@@ -1,24 +1,42 @@
-﻿using System;
 using System.Windows;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
 namespace WinPieGestures
 {
+    /// <summary>
+    /// 输入对话框窗口 (T07)：确认与验证逻辑全部在 <see cref="InputViewModel"/>（DataContext 绑定）——
+    /// 标题/提示/输入文本走绑定，确认按钮绑 ConfirmCommand；code-behind 只剩主题应用、VM 事件接线、
+    /// 本地化按钮文案、键盘路由（Enter=确认 / Esc=取消）、提示框与焦点行为。
+    /// 由 <see cref="DialogService"/> 创建，Owner 归设置窗口。
+    /// </summary>
     public partial class InputDialog : Window
     {
-        public string InputText { get; private set; } = "";
-        private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;
+        private readonly InputViewModel _vm;
 
-        public InputDialog(IThemeService themeService, string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
+        public InputDialog(IThemeService themeService, InputViewModel viewModel)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
-            Title = title;
-            TitleTextBlock.Text = title;
-            PromptTextBlock.Text = prompt;
-            InputTextBox.Text = defaultText;
-            _validator = validator;
+            _vm = viewModel;
+            DataContext = _vm;
+
+            _vm.CloseRequested += _ =>
+            {
+                DialogResult = true;
+                Close();
+            };
+            _vm.ValidationFailed += (message, rejectedText) =>
+            {
+                MessageBox.Show(message, I18n.T("Notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
+                InputTextBox.Focus();
+                if (!string.IsNullOrEmpty(rejectedText))
+                {
+                    // validator 拒绝时全选便于改输；空输入只聚焦，保持迁移前行为。
+                    InputTextBox.SelectAll();
+                }
+            };
+
             if (OkButton != null) OkButton.Content = I18n.T("BtnConfirm");
             if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
 
@@ -29,51 +47,25 @@ namespace WinPieGestures
             };
         }
 
-        private void OkButton_Click(object sender, RoutedEventArgs e)
+        private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
         {
-            string trimmed = InputTextBox.Text.Trim();
-            if (string.IsNullOrEmpty(trimmed))
+            if (e.Key == Key.Enter)
             {
-                MessageBox.Show(I18n.T("InputDialogEmpty"), I18n.T("Notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                InputTextBox.Focus();
-                return;
+                _vm.ConfirmCommand.Execute(null);
+                e.Handled = true;
             }
-
-            if (_validator != null)
+            else if (e.Key == Key.Escape)
             {
-                var (isValid, errorMessage) = _validator(trimmed);
-                if (!isValid)
-                {
-                    MessageBox.Show(errorMessage, I18n.T("Notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                    InputTextBox.Focus();
-                    InputTextBox.SelectAll();
-                    return;
-                }
+                DialogResult = false;
+                Close();
+                e.Handled = true;
             }
-
-            InputText = trimmed;
-            DialogResult = true;
-            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
-        }
-
-        private void InputTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                OkButton_Click(sender, e);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Escape)
-            {
-                CancelButton_Click(sender, e);
-                e.Handled = true;
-            }
         }
     }
 }

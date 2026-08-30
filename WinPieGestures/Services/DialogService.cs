@@ -4,10 +4,10 @@ using System.Windows;
 namespace WinPieGestures
 {
     /// <summary>
-    /// 对话框服务实现 (T06, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
+    /// 对话框服务实现 (T06/T07, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
     /// 窗口创建完成后调 <see cref="SetOwner"/> 回填引用，化解"服务需要 Owner ↔ 窗口依赖服务"
     /// 的循环。Owner 的用法是实现内部自由，不泄露进接口。
-    /// 迁移期混装：程序选择器已走 VM 化链路；其余对话框暂在内部 new 旧 code-behind 窗口，
+    /// 迁移期混装：程序选择器与输入框已走 VM 化链路；其余对话框暂在内部 new 旧 code-behind 窗口，
     /// 接口保持不变，后续工单逐个迁入。
     /// </summary>
     public sealed class DialogService : IDialogService
@@ -36,9 +36,10 @@ namespace WinPieGestures
             string defaultText = "",
             Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
-            // 迁移期暂用旧输入框窗口；确认后文本已去空白、经校验。
-            var dialog = new InputDialog(_themeService, title, prompt, defaultText, validator) { Owner = _owner };
-            return dialog.ShowDialog() == true ? new InputDialogResult(dialog.InputText) : null;
+            // T07：确认与验证逻辑已迁 InputViewModel，窗口只剩布局接线（ADR-0004）。
+            var viewModel = new InputViewModel(title, prompt, defaultText, validator);
+            var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
+            return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
         }
 
         public IconPickResult? ShowIconPicker(string? currentIconKey)
@@ -74,6 +75,18 @@ namespace WinPieGestures
             };
 
             return openFileDialog.ShowDialog(_owner) == true ? new FilePickResult(openFileDialog.FileName) : null;
+        }
+
+        public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null)
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = filter,
+                FileName = fileName ?? "",
+                Title = title ?? ""
+            };
+
+            return saveFileDialog.ShowDialog(_owner) == true ? new FilePickResult(saveFileDialog.FileName) : null;
         }
     }
 }

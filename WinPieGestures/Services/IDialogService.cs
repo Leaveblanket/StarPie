@@ -47,7 +47,10 @@ namespace WinPieGestures
         /// <summary>屏上取色器（全屏置顶工具，不用 Owner）。返回 null 表示取消。</summary>
         EyedropResult? ShowEyedropper();
 
-        /// <summary>系统文件对话框（BCL 抽象一并入服务，保持边界完整）。返回 null 表示取消。</summary>
+        /// <summary>系统打开文件对话框（BCL 抽象一并入服务，保持边界完整）。返回 null 表示取消。</summary>
         FilePickResult? ShowOpenFileDialog(string filter, string? title = null);
+
+        /// <summary>系统保存文件对话框（BCL 抽象一并入服务，保持边界完整）。返回 null 表示取消。</summary>
+        FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null);
     }
 }

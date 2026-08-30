@@ -12,17 +12,14 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Microsoft.Win32;
 using Application = System.Windows.Application;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using MessageBox = System.Windows.MessageBox;
-using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Path = System.IO.Path;
 using Point = System.Windows.Point;
-using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 using Size = System.Windows.Size;
 using TextBox = System.Windows.Controls.TextBox;
 using DispatcherTimer = System.Windows.Threading.DispatcherTimer;
@@ -696,8 +693,7 @@ namespace WinPieGestures
 
         private void AddCustomProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new InputDialog(
-                _themeService,
+            var result = _dialogs.ShowInputDialog(
                 title: "新建自定义配置",
                 prompt: "请输入新配置方案名称（如：游戏模式、绘图工作流、PS修图 或 myapp.exe）：",
                 defaultText: $"自定义配置_{ConfigManager.CurrentConfig.Profiles.Count}",
@@ -710,13 +706,12 @@ namespace WinPieGestures
                     return (true, "");
                 });
 
-            dialog.Owner = this;
-            if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.InputText))
+            if (result != null)
             {
                 int currentSectorCount = _selectedProfile?.SectorCount ?? 8;
                 var newProfile = new WheelProfile
                 {
-                    ProcessName = dialog.InputText,
+                    ProcessName = result.Text,
                     SectorCount = currentSectorCount,
                     Actions = new List<ActionItem>()
                 };
@@ -748,8 +743,7 @@ namespace WinPieGestures
             }
 
             string oldName = _selectedProfile.ProcessName;
-            var dialog = new InputDialog(
-                _themeService,
+            var result = _dialogs.ShowInputDialog(
                 title: "重命名配置方案",
                 prompt: $"请输入配置方案「{oldName}」的新名称：",
                 defaultText: oldName,
@@ -766,10 +760,9 @@ namespace WinPieGestures
                     return (true, "");
                 });
 
-            dialog.Owner = this;
-            if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.InputText))
+            if (result != null)
             {
-                _selectedProfile.ProcessName = dialog.InputText;
+                _selectedProfile.ProcessName = result.Text;
                 ProfilesListBox.Items.Refresh();
                 SyncUiToConfigAndSave(true);
             }
@@ -964,8 +957,7 @@ namespace WinPieGestures
             if (preset == null) return;
 
             string oldName = preset.Name;
-            var dialog = new InputDialog(
-                _themeService,
+            var result = _dialogs.ShowInputDialog(
                 title: I18n.T("RenameCustomPresetTitle"),
                 prompt: $"{I18n.T("RenameCustomPresetPrompt")}「{oldName}」",
                 defaultText: oldName,
@@ -975,10 +967,9 @@ namespace WinPieGestures
                     return (true, "");
                 });
 
-            dialog.Owner = this;
-            if (dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.InputText))
+            if (result != null)
             {
-                preset.Name = dialog.InputText.Trim();
+                preset.Name = result.Text;
                 ConfigManager.SaveConfig();
 
                 ReloadThemePresets();
@@ -1023,14 +1014,11 @@ namespace WinPieGestures
 
         private void SaveCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new InputDialog(_themeService, "保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}")
-            {
-                Owner = this
-            };
+            var result = _dialogs.ShowInputDialog("保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}");
 
-            if (dialog.ShowDialog() == true && !string.IsNullOrWhiteSpace(dialog.InputText))
+            if (result != null)
             {
-                string presetName = dialog.InputText.Trim();
+                string presetName = result.Text;
                 if (ConfigManager.CurrentConfig.CustomColorPresets == null)
                 {
                     ConfigManager.CurrentConfig.CustomColorPresets = new List<CustomColorPreset>();
@@ -1398,16 +1386,13 @@ namespace WinPieGestures
 
         private void BrowseCoreImageButton_Click(object sender, RoutedEventArgs e)
         {
-            var openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "选择中心核圆图案图片",
-                Filter = "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*",
-                CheckFileExists = true
-            };
+            var picked = _dialogs.ShowOpenFileDialog(
+                "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*",
+                "选择中心核圆图案图片");
 
-            if (openFileDialog.ShowDialog() == true)
+            if (picked != null)
             {
-                string selectedPath = openFileDialog.FileName;
+                string selectedPath = picked.Path;
                 if (CoreImagePathTextBox != null)
                 {
                     CoreImagePathTextBox.Text = selectedPath;
@@ -1808,16 +1793,14 @@ namespace WinPieGestures
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var sfd = new SaveFileDialog
-            {
-                Filter = "JSON 配置文件 (*.json)|*.json",
-                FileName = $"WinPieGestures_Config_Backup_{DateTime.Now:yyyyMMdd}.json",
-                Title = "导出配置文件"
-            };
+            var picked = _dialogs.ShowSaveFileDialog(
+                "JSON 配置文件 (*.json)|*.json",
+                $"WinPieGestures_Config_Backup_{DateTime.Now:yyyyMMdd}.json",
+                "导出配置文件");
 
-            if (sfd.ShowDialog() == true)
+            if (picked != null)
             {
-                bool success = ConfigManager.ExportConfig(sfd.FileName);
+                bool success = ConfigManager.ExportConfig(picked.Path);
                 if (success)
                 {
                     MessageBox.Show("配置导出成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1831,15 +1814,11 @@ namespace WinPieGestures
 
         private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var ofd = new OpenFileDialog
-            {
-                Filter = "JSON 配置文件 (*.json)|*.json",
-                Title = "选择要导入的配置文件"
-            };
+            var picked = _dialogs.ShowOpenFileDialog("JSON 配置文件 (*.json)|*.json", "选择要导入的配置文件");
 
-            if (ofd.ShowDialog() == true)
+            if (picked != null)
             {
-                bool success = ConfigManager.ImportConfig(ofd.FileName);
+                bool success = ConfigManager.ImportConfig(picked.Path);
                 if (success)
                 {
                     MessageBox.Show("配置导入成功！正在应用新设置...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
