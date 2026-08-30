@@ -34,6 +34,7 @@ namespace WinPieGestures
         private readonly IThemeService _themeService;
         private readonly Action _exitApplication;
         private readonly Action<string, string> _showTrayBalloonTip;
+        private readonly IDialogService _dialogs;
         private WheelProfile? _selectedProfile;
         private readonly ObservableCollection<SlotViewModel> _slotViewModels = new ObservableCollection<SlotViewModel>();
 
@@ -90,12 +91,13 @@ namespace WinPieGestures
             new ActionItem { Type = "System", Name = "任务管理器 (TaskMgr)", Parameter = "TaskManager", IconKey = "TaskManager" }
         };
 
-        public SettingsWindow(IThemeService themeService, Action exitApplication, Action<string, string> showTrayBalloonTip)
+        public SettingsWindow(IThemeService themeService, IDialogService dialogs, Action exitApplication, Action<string, string> showTrayBalloonTip)
         {
             InitializeComponent();
             _themeService = themeService;
             _exitApplication = exitApplication;
             _showTrayBalloonTip = showTrayBalloonTip;
+            _dialogs = dialogs;
 
             _isUpdatingUi = true;
             try
@@ -661,11 +663,11 @@ namespace WinPieGestures
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new ProgramPickerWindow(_themeService);
-            picker.Owner = this;
-            if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
+            // T06：程序选择走对话框服务（VM 化链路），取消与无效统一 null。
+            var picked = _dialogs.ShowProgramPicker();
+            if (picked != null)
             {
-                string procName = Path.GetFileName(picker.SelectedPath).ToLower();
+                string procName = Path.GetFileName(picked.Path).ToLower();
                 if (ConfigManager.CurrentConfig.Profiles.Any(p => p.ProcessName.Equals(procName, StringComparison.OrdinalIgnoreCase)))
                 {
                     MessageBox.Show("已存在该程序的配置方案！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -1677,11 +1679,10 @@ namespace WinPieGestures
         {
             try
             {
-                var picker = new ProgramPickerWindow(_themeService);
-                picker.Owner = this;
-                if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
+                var picked = _dialogs.ShowProgramPicker();
+                if (picked != null)
                 {
-                    string fileName = System.IO.Path.GetFileName(picker.SelectedPath).ToLower();
+                    string fileName = System.IO.Path.GetFileName(picked.Path).ToLower();
                     AddBlacklistProcess(fileName);
                 }
             }
@@ -1954,14 +1955,13 @@ namespace WinPieGestures
         {
             if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
             {
-                var picker = new ProgramPickerWindow(_themeService);
-                picker.Owner = this;
-                if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
+                var picked = _dialogs.ShowProgramPicker();
+                if (picked != null)
                 {
-                    vm.Parameter = picker.SelectedPath;
+                    vm.Parameter = picked.Path;
                     if (string.IsNullOrEmpty(vm.Name) || vm.Name.StartsWith("动作") || vm.Name == "快捷动作")
                     {
-                        vm.Name = !string.IsNullOrEmpty(picker.SelectedName) ? picker.SelectedName : Path.GetFileNameWithoutExtension(picker.SelectedPath);
+                        vm.Name = !string.IsNullOrEmpty(picked.Name) ? picked.Name : Path.GetFileNameWithoutExtension(picked.Path);
                     }
                 }
             }

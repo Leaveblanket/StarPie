@@ -10,6 +10,8 @@
         Loaded="Window_Loaded">
 
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
+
         <Style x:Key="PickerBtn" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource ButtonDefaultBgBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}"/>
@@ -69,23 +71,36 @@
         
         <!-- Search bar -->
         <Grid Grid.Row="1" Margin="0,0,0,10">
-            <TextBox Name="SearchTextBox" Height="34" VerticalContentAlignment="Center" Padding="30,0,10,0" 
+            <TextBox Name="SearchTextBox" Height="34" VerticalContentAlignment="Center" Padding="30,0,10,0"
                      Background="{DynamicResource InputBackgroundBrush}"
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      BorderBrush="{DynamicResource InputBorderBrush}"
                      BorderThickness="1"
                      FontSize="12"
-                     TextChanged="SearchTextBox_TextChanged"/>
-            <TextBlock Text="🔍" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" 
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock Text="🔍" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                        VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0" IsHitTestVisible="False"/>
-            <TextBlock x:Name="SearchPlaceholderText" Text="搜索软件名称、可执行文件或路径..." FontSize="12" 
+            <TextBlock x:Name="SearchPlaceholderText" Text="搜索软件名称、可执行文件或路径..." FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.6"
-                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30,0,0,0" IsHitTestVisible="False"/>
+                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30,0,0,0" IsHitTestVisible="False">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SearchText}" Value="">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
         </Grid>
-        
+
         <!-- List View -->
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8">
-            <ListView Name="ProgramsListView" BorderThickness="0" Background="Transparent" 
+            <ListView Name="ProgramsListView" BorderThickness="0" Background="Transparent"
+                      ItemsSource="{Binding DisplayedPrograms}"
+                      SelectedItem="{Binding SelectedProgram}"
                       MouseDoubleClick="ProgramsListView_MouseDoubleClick" SelectionMode="Single">
                 <ListView.ItemTemplate>
                     <DataTemplate>
@@ -102,9 +117,22 @@
         </Border>
 
         <!-- Loading / Status indicator -->
-        <TextBlock Grid.Row="3" Name="StatusTextBlock" Text="正在智能检索系统中已安装的软件，请稍候..." 
-                   Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,6,0,6" FontSize="12" FontWeight="Medium" Visibility="Visible"/>
-        
+        <TextBlock Grid.Row="3" Name="StatusTextBlock" Margin="0,6,0,6" FontSize="12" FontWeight="Medium"
+                   Text="{Binding StatusText}"
+                   Visibility="{Binding IsStatusVisible, Converter={StaticResource BoolToVisibility}}">
+            <!-- 颜色必须走 Style 触发器：本地 Foreground 值会压过 DataTrigger -->
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                            <Setter Property="Foreground" Value="Red"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
         <!-- Bottom Actions -->
         <Grid Grid.Row="4" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
@@ -113,8 +141,8 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="ManualBrowseButton" Grid.Column="0" Content="手动浏览文件..." Style="{StaticResource PickerBtn}" Height="32" Padding="14,0" Click="ManualBrowse_Click"/>
-            <Button x:Name="OkButton" Grid.Column="2" Content="确定" Style="{StaticResource PrimaryPickerBtn}" Width="84" Height="32" Click="Ok_Click" FontWeight="Bold" Margin="0,0,8,0"/>
+            <Button x:Name="ManualBrowseButton" Grid.Column="0" Content="手动浏览文件..." Style="{StaticResource PickerBtn}" Height="32" Padding="14,0" Command="{Binding BrowseManuallyCommand}"/>
+            <Button x:Name="OkButton" Grid.Column="2" Content="确定" Style="{StaticResource PrimaryPickerBtn}" Width="84" Height="32" Command="{Binding ConfirmCommand}" FontWeight="Bold" Margin="0,0,8,0"/>
             <Button x:Name="CancelButton" Grid.Column="3" Content="取消" Style="{StaticResource PickerBtn}" Width="84" Height="32" Click="Cancel_Click"/>
         </Grid>
     </Grid>
