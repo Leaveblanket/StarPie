@@ -24,6 +24,8 @@ namespace WinPieGestures
         private const int WM_MOUSEMOVE = 0x0200;
         private const int WM_RBUTTONDOWN = 0x0204;
         private const int WM_RBUTTONUP = 0x0205;
+        private const int WM_MBUTTONDOWN = 0x0207;
+        private const int WM_MBUTTONUP = 0x0208;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT
@@ -66,6 +68,13 @@ namespace WinPieGestures
 
         private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
         private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+        private const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
+        private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
+
+        // Dev instances trigger on the middle button so they can coexist with the
+        // installed release, which keeps the default right-button gesture.
+        private readonly int _triggerDownMessage = DevInstance.IsActive ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
+        private readonly int _triggerUpMessage = DevInstance.IsActive ? WM_MBUTTONUP : WM_RBUTTONUP;
 
         public bool IsPaused { get; set; } = false;
 
@@ -183,7 +192,7 @@ namespace WinPieGestures
                 int message = (int)wParam;
                 MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
 
-                if (message == WM_RBUTTONDOWN)
+                if (message == _triggerDownMessage)
                 {
                     if (_ignoreNextRButtonDown)
                     {
@@ -198,7 +207,7 @@ namespace WinPieGestures
                         return (IntPtr)1; // Block the event from propagating
                     }
                 }
-                else if (message == WM_RBUTTONUP)
+                else if (message == _triggerUpMessage)
                 {
                     if (_ignoreNextRButtonUp)
                     {
@@ -235,8 +244,16 @@ namespace WinPieGestures
         {
             _ignoreNextRButtonDown = true;
             _ignoreNextRButtonUp = true;
-            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            if (DevInstance.IsActive)
+            {
+                mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+            }
+            else
+            {
+                mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+                mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            }
         }
     }
 }

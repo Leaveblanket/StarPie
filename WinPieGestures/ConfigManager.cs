@@ -107,12 +107,32 @@ namespace WinPieGestures
         private static readonly string AppDataFolder = GetAppDataFolder();
         private static readonly string ConfigPath = Path.Combine(AppDataFolder, "config.json");
 
-        private static string GetAppDataFolder()
+        internal static string GetAppDataFolder()
         {
             string baseFolder = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LOCALAPPDATA"))
                 ? Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
                 : Environment.GetEnvironmentVariable("LOCALAPPDATA")!;
-            string starPieFolder = Path.Combine(baseFolder, "StarPie");
+
+            if (DevInstance.IsActive)
+            {
+                // Dev instances sandbox into their own folder so the installed release's
+                // config is never touched; seed it once from the real config if present.
+                string devFolder = Path.Combine(baseFolder, DevInstance.FolderName);
+                try
+                {
+                    string devConfig = Path.Combine(devFolder, "config.json");
+                    string releaseConfig = Path.Combine(baseFolder, "StarPie", "config.json");
+                    if (!File.Exists(devConfig) && File.Exists(releaseConfig))
+                    {
+                        Directory.CreateDirectory(devFolder);
+                        File.Copy(releaseConfig, devConfig);
+                    }
+                }
+                catch { }
+                return devFolder;
+            }
+
+            string starPieFolder = Path.Combine(baseFolder, DevInstance.FolderName);
             string legacyFolder = Path.Combine(baseFolder, "WinPieGestures");
             
             // Auto migrate from legacy folder if needed
@@ -332,6 +352,9 @@ namespace WinPieGestures
 
         public static void SetAutoStart(bool enable)
         {
+            // Dev instances must not repoint the real autostart entry at the dev executable
+            if (DevInstance.IsActive) return;
+
             try
             {
                 using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);

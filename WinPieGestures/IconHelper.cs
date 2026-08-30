@@ -528,8 +528,7 @@ namespace WinPieGestures
 
         public static string GetCustomIconsDirectory()
         {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string dir = Path.Combine(appData, "StarPie", "CustomIcons");
+            string dir = Path.Combine(ConfigManager.GetAppDataFolder(), "CustomIcons");
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);

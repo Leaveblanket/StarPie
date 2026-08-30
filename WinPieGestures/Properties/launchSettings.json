@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "StarPie Dev": {
+      "commandName": "Project",
+      "commandLineArgs": "--dev"
+    }
+  }
+}

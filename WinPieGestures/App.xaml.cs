@@ -10,7 +10,6 @@ namespace WinPieGestures
     public partial class App : System.Windows.Application
     {
         private static Mutex? _singleInstanceMutex;
-        private const string MutexName = @"Global\StarPie_SingleInstance_Mutex_9B8A7C";
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
@@ -39,7 +38,7 @@ namespace WinPieGestures
                 bool isNewInstance;
                 try
                 {
-                    _singleInstanceMutex = new Mutex(true, MutexName, out isNewInstance);
+                    _singleInstanceMutex = new Mutex(true, DevInstance.MutexName, out isNewInstance);
                 }
                 catch
                 {
@@ -51,7 +50,7 @@ namespace WinPieGestures
                     // Existing instance is running, try to bring settings window to front if open
                     try
                     {
-                        IntPtr hWnd = FindWindow(null, "StarPie 设置控制台 (Preferences)");
+                        IntPtr hWnd = FindWindow(null, "StarPie 设置控制台 (Preferences)" + DevInstance.Suffix);
                         if (hWnd != IntPtr.Zero)
                         {
                             ShowWindow(hWnd, SW_RESTORE);
