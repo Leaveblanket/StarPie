@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
@@ -10,10 +10,10 @@ namespace WinPieGestures
         public string InputText { get; private set; } = "";
         private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;
 
-        public InputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
+        public InputDialog(IThemeService themeService, string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             InitializeComponent();
-            AppThemeManager.ApplyTheme(this, AppThemeManager.CurrentEffectiveTheme);
+            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
             Title = title;
             TitleTextBlock.Text = title;
             PromptTextBlock.Text = prompt;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -22,10 +22,10 @@ namespace WinPieGestures
         public string? SelectedIconKey { get; private set; }
         private Border? _selectedCard;
 
-        public IconPickerWindow(string? initialKey = null)
+        public IconPickerWindow(IThemeService themeService, string? initialKey = null)
         {
             InitializeComponent();
-            AppThemeManager.ApplyTheme(this, AppThemeManager.CurrentEffectiveTheme);
+            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
             SelectedIconKey = initialKey;
             PopulateIcons();
             ApplyLocalization();

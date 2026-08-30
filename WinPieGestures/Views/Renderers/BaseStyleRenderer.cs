@@ -25,7 +25,7 @@ namespace WinPieGestures
         public bool IsLightTheme { get; protected set; } = false;
         protected AppConfig? _config;
 
-        public virtual void Initialize(string theme, AppConfig config)
+        public virtual void Initialize(string theme, AppConfig config, bool windowsInDarkMode)
         {
             _config = config;
             BorderThickness = 1.0;
@@ -34,7 +34,7 @@ namespace WinPieGestures
             string effectiveTheme = theme;
             if (string.Equals(theme, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(theme))
             {
-                effectiveTheme = AppThemeManager.IsWindowsInDarkTheme() ? "Dark" : "Light";
+                effectiveTheme = windowsInDarkMode ? "Dark" : "Light";
             }
 
             IsLightTheme = string.Equals(effectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);

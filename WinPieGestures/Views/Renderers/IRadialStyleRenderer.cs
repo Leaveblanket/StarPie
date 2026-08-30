@@ -19,7 +19,9 @@ namespace WinPieGestures
         double BorderThickness { get; }
         double HighlightBorderThickness { get; }
 
-        void Initialize(string theme, AppConfig config);
+        /// <summary>The theme name as configured; when it is "System"/empty the
+        /// renderer resolves with the caller-provided live Windows dark-mode flag.</summary>
+        void Initialize(string theme, AppConfig config, bool windowsInDarkMode);
 
         /// <summary>Draws the style's decorations; wheel state (geometry, whether the
         /// core icon is shown) flows in from the wheel view-model via the caller.</summary>

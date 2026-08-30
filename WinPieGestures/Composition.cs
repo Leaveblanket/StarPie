@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Windows;
 
@@ -17,6 +17,7 @@ namespace WinPieGestures
         private readonly MouseHook _mouseHook;
         // Kept alive for its hook-event subscriptions; the hook roots the controller.
         private readonly GestureController? _gestureController;
+        private readonly IThemeService _themeService;
         private TrayIconManager? _trayIcon;
         private SettingsWindow? _settingsWindow;
         /// <summary>True while an app-level exit is in flight; the settings window
@@ -36,9 +37,11 @@ namespace WinPieGestures
 
             _mouseHook = new MouseHook();
 
+            IThemeService themeService = new ThemeService();
             IWindowContext windowContext = new WindowContext();
-            IWheelFactory wheelFactory = new WheelFactory(_config);
+            IWheelFactory wheelFactory = new WheelFactory(_config, themeService);
             var engine = new GestureEngine(_config, windowContext, wheelFactory);
+            _themeService = themeService;
 
             _gestureController = new GestureController(_mouseHook, engine);
         }
@@ -51,10 +54,12 @@ namespace WinPieGestures
             _mouseHook.Start();
 
             _settingsWindow = new SettingsWindow(
+                _themeService,
                 exitApplication: ExitApplication,
                 showTrayBalloonTip: (title, text) => _trayIcon?.ShowBalloonTip(title, text));
 
             _trayIcon = new TrayIconManager(
+                _themeService,
                 onDoubleClick: () => _settingsWindow.ShowSettings(0),
                 menuProvider: BuildTrayMenuEntries);
             _trayIcon.SetTooltip(DefaultTooltip);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -29,10 +29,10 @@ namespace WinPieGestures
         public string SelectedPath { get; private set; } = "";
         public string SelectedName { get; private set; } = "";
 
-        public ProgramPickerWindow()
+        public ProgramPickerWindow(IThemeService themeService)
         {
             InitializeComponent();
-            AppThemeManager.ApplyTheme(this, AppThemeManager.CurrentEffectiveTheme);
+            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
             ProgramsListView.ItemsSource = _displayedPrograms;
             ApplyLocalization();
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -103,6 +103,7 @@ namespace WinPieGestures
         private const int SM_CXSMICON = 49;
         private const int IDI_APPLICATION = 32512;
 
+        private readonly IThemeService _themeService;
         private readonly Action _onDoubleClick;
         private readonly Func<IReadOnlyList<TrayMenuEntry>> _menuProvider;
         private readonly HwndSource _source;
@@ -111,8 +112,9 @@ namespace WinPieGestures
         private string _currentTip = string.Empty;
         private Window? _menuWindow;
 
-        public TrayIconManager(Action onDoubleClick, Func<IReadOnlyList<TrayMenuEntry>> menuProvider)
+        public TrayIconManager(IThemeService themeService, Action onDoubleClick, Func<IReadOnlyList<TrayMenuEntry>> menuProvider)
         {
+            _themeService = themeService;
             _onDoubleClick = onDoubleClick;
             _menuProvider = menuProvider;
 
@@ -241,7 +243,7 @@ namespace WinPieGestures
             if (_menuWindow != null) { _menuWindow.Close(); _menuWindow = null; }
 
             var entries = _menuProvider();
-            bool dark = AppThemeManager.IsWindowsInDarkTheme();
+            bool dark = _themeService.IsWindowsInDarkTheme();
 
             var panel = new StackPanel { MinWidth = 214 };
             foreach (var entry in entries)

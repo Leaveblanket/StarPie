@@ -14,10 +14,12 @@ namespace WinPieGestures
     public sealed class WheelFactory : IWheelFactory
     {
         private readonly IConfigService _config;
+        private readonly IThemeService _themeService;
 
-        public WheelFactory(IConfigService config)
+        public WheelFactory(IConfigService config, IThemeService themeService)
         {
             _config = config;
+            _themeService = themeService;
         }
 
         public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
@@ -28,7 +30,7 @@ namespace WinPieGestures
             dispatcher.Invoke(() =>
             {
                 viewModel = new WheelViewModel(center, profile, _config.Current);
-                window = new RadialWindow(viewModel);
+                window = new RadialWindow(viewModel, _themeService);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
         }

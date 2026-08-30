@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -31,6 +31,7 @@ namespace WinPieGestures
 {
     public partial class SettingsWindow : Window
     {
+        private readonly IThemeService _themeService;
         private readonly Action _exitApplication;
         private readonly Action<string, string> _showTrayBalloonTip;
         private WheelProfile? _selectedProfile;
@@ -89,9 +90,10 @@ namespace WinPieGestures
             new ActionItem { Type = "System", Name = "任务管理器 (TaskMgr)", Parameter = "TaskManager", IconKey = "TaskManager" }
         };
 
-        public SettingsWindow(Action exitApplication, Action<string, string> showTrayBalloonTip)
+        public SettingsWindow(IThemeService themeService, Action exitApplication, Action<string, string> showTrayBalloonTip)
         {
             InitializeComponent();
+            _themeService = themeService;
             _exitApplication = exitApplication;
             _showTrayBalloonTip = showTrayBalloonTip;
 
@@ -105,7 +107,7 @@ namespace WinPieGestures
 
                 // Load App Interface Theme
                 SetComboBoxSelectedValue(AppThemeComboBox, ConfigManager.CurrentConfig.AppTheme ?? "System");
-                AppThemeManager.ApplyTheme(this, ConfigManager.CurrentConfig.AppTheme ?? "System");
+                _themeService.ApplyTheme(this, ConfigManager.CurrentConfig.AppTheme ?? "System");
 
                 // Load theme & style settings
                 ReloadThemePresets();
@@ -659,7 +661,7 @@ namespace WinPieGestures
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new ProgramPickerWindow();
+            var picker = new ProgramPickerWindow(_themeService);
             picker.Owner = this;
             if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
             {
@@ -693,6 +695,7 @@ namespace WinPieGestures
         private void AddCustomProfileButton_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new InputDialog(
+                _themeService,
                 title: "新建自定义配置",
                 prompt: "请输入新配置方案名称（如：游戏模式、绘图工作流、PS修图 或 myapp.exe）：",
                 defaultText: $"自定义配置_{ConfigManager.CurrentConfig.Profiles.Count}",
@@ -744,6 +747,7 @@ namespace WinPieGestures
 
             string oldName = _selectedProfile.ProcessName;
             var dialog = new InputDialog(
+                _themeService,
                 title: "重命名配置方案",
                 prompt: $"请输入配置方案「{oldName}」的新名称：",
                 defaultText: oldName,
@@ -959,6 +963,7 @@ namespace WinPieGestures
 
             string oldName = preset.Name;
             var dialog = new InputDialog(
+                _themeService,
                 title: I18n.T("RenameCustomPresetTitle"),
                 prompt: $"{I18n.T("RenameCustomPresetPrompt")}「{oldName}」",
                 defaultText: oldName,
@@ -1016,7 +1021,7 @@ namespace WinPieGestures
 
         private void SaveCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new InputDialog("保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}")
+            var dialog = new InputDialog(_themeService, "保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}")
             {
                 Owner = this
             };
@@ -1300,7 +1305,7 @@ namespace WinPieGestures
 
         private void PickCoreIconButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new IconPickerWindow(ConfigManager.CurrentConfig.CoreCustomIconKey);
+            var picker = new IconPickerWindow(_themeService, ConfigManager.CurrentConfig.CoreCustomIconKey);
             picker.Owner = this;
             if (picker.ShowDialog() == true)
             {
@@ -1529,7 +1534,7 @@ namespace WinPieGestures
         {
             if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
             {
-                var picker = new IconPickerWindow(vm.IconKey);
+                var picker = new IconPickerWindow(_themeService, vm.IconKey);
                 picker.Owner = this;
                 if (picker.ShowDialog() == true)
                 {
@@ -1600,7 +1605,7 @@ namespace WinPieGestures
                 TextBox? targetBox = GetColorTextBoxByTag(tag);
                 if (targetBox != null)
                 {
-                    var dlg = new ColorPickerWindow(targetBox.Text) { Owner = this };
+                    var dlg = new ColorPickerWindow(_themeService, targetBox.Text) { Owner = this };
                     if (dlg.ShowDialog() == true && !string.IsNullOrEmpty(dlg.SelectedHexColor))
                     {
                         targetBox.Text = dlg.SelectedHexColor;
@@ -1644,7 +1649,7 @@ namespace WinPieGestures
             if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
             string selectedTheme = (AppThemeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "System";
             ConfigManager.CurrentConfig.AppTheme = selectedTheme;
-            AppThemeManager.ApplyTheme(this, selectedTheme);
+            _themeService.ApplyTheme(this, selectedTheme);
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
                 RenderLiveWheelPreview();
@@ -1672,7 +1677,7 @@ namespace WinPieGestures
         {
             try
             {
-                var picker = new ProgramPickerWindow();
+                var picker = new ProgramPickerWindow(_themeService);
                 picker.Owner = this;
                 if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
                 {
@@ -1949,7 +1954,7 @@ namespace WinPieGestures
         {
             if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
             {
-                var picker = new ProgramPickerWindow();
+                var picker = new ProgramPickerWindow(_themeService);
                 picker.Owner = this;
                 if (picker.ShowDialog() == true && !string.IsNullOrEmpty(picker.SelectedPath))
                 {
@@ -2083,7 +2088,7 @@ namespace WinPieGestures
                 bool showText = ConfigManager.CurrentConfig.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
-                _previewStyleRenderer.Initialize(theme, ConfigManager.CurrentConfig);
+                _previewStyleRenderer.Initialize(theme, ConfigManager.CurrentConfig, _themeService.IsWindowsInDarkTheme());
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;

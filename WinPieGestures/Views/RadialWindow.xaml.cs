@@ -27,6 +27,7 @@ namespace WinPieGestures
     public partial class RadialWindow : Window
     {
         private readonly WheelViewModel _viewModel;
+        private readonly IThemeService _themeService;
         private readonly List<Path> _sectorPaths = new List<Path>();
         private readonly List<StackPanel> _contentPanels = new List<StackPanel>();
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
@@ -48,11 +49,12 @@ namespace WinPieGestures
         private double _borderThickness = 1.0;
         private double _highlightBorderThickness = 1.5;
 
-        public RadialWindow(WheelViewModel viewModel)
+        public RadialWindow(WheelViewModel viewModel, IThemeService themeService)
         {
             InitializeComponent();
 
             _viewModel = viewModel;
+            _themeService = themeService;
             DataContext = viewModel;
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -70,7 +72,7 @@ namespace WinPieGestures
         {
             // Instantiate corresponding style renderer using the factory
             _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.UiStyle);
-            _styleRenderer.Initialize(_viewModel.Theme, _viewModel.Config);
+            _styleRenderer.Initialize(_viewModel.Theme, _viewModel.Config, _themeService.IsWindowsInDarkTheme());
 
             _innerRadius = _viewModel.InnerRadius;
             _outerRadius = _viewModel.OuterRadius;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
@@ -39,10 +39,10 @@ namespace WinPieGestures
             "#E06C4DFF", "#A0FFFFFF", "#E0FFFFFF", "#E60F172A", "#E61E1B4B", "#E6142E1F", "#E6181111"
         };
 
-        public ColorPickerWindow(string initialHex = "#FF2563EB")
+        public ColorPickerWindow(IThemeService themeService, string initialHex = "#FF2563EB")
         {
             InitializeComponent();
-            AppThemeManager.ApplyTheme(this, AppThemeManager.CurrentEffectiveTheme);
+            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
             PopulateSwatches();
             SetColorFromHex(string.IsNullOrWhiteSpace(initialHex) ? "#FF2563EB" : initialHex);
             ApplyLocalization();

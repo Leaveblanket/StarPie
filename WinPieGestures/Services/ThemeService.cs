@@ -10,22 +10,49 @@ namespace WinPieGestures
     using Color = System.Windows.Media.Color;
     using ColorConverter = System.Windows.Media.ColorConverter;
 
-    public static class AppThemeManager
+    /// <summary>
+    /// App theme application (T09): the runtime state and Win32 surface of the former
+    /// static AppThemeManager, behind the IThemeService seam. The Windows dark-mode
+    /// probe is injectable so "follow system" resolution is unit-testable; production
+    /// reads the personalize registry key live, preserving per-decision behavior.
+    /// </summary>
+    public sealed class ThemeService : IThemeService
     {
-        public static string CurrentEffectiveTheme { get; private set; } = "Light";
+        public string CurrentEffectiveTheme { get; private set; } = "Light";
+
+        private readonly Func<bool> _windowsInDarkModeProbe;
+
+        public ThemeService() : this(null)
+        {
+        }
+
+        public ThemeService(Func<bool>? windowsInDarkModeProbe)
+        {
+            _windowsInDarkModeProbe = windowsInDarkModeProbe ?? ProbeWindowsDarkMode;
+        }
+
+        public bool IsWindowsInDarkTheme() => _windowsInDarkModeProbe();
+
+        /// <summary>"System"/empty resolves to "Dark"/"Light" via the live Windows
+        /// setting; any other name passes through unchanged.</summary>
+        public string ResolveEffectiveTheme(string themeName)
+        {
+            if (string.Equals(themeName, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(themeName))
+            {
+                return IsWindowsInDarkTheme() ? "Dark" : "Light";
+            }
+
+            return themeName;
+        }
 
         [DllImport("dwmapi.dll", PreserveSig = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-        public static void ApplyTheme(FrameworkElement rootElement, string themeName)
+        public void ApplyTheme(FrameworkElement? rootElement, string themeName)
         {
             if (rootElement == null) return;
 
-            string effectiveTheme = themeName;
-            if (string.Equals(themeName, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(themeName))
-            {
-                effectiveTheme = IsWindowsInDarkTheme() ? "Dark" : "Light";
-            }
+            string effectiveTheme = ResolveEffectiveTheme(themeName);
 
             CurrentEffectiveTheme = effectiveTheme;
 
@@ -199,7 +226,7 @@ namespace WinPieGestures
             }
         }
 
-        public static void SetWindowDarkMode(Window window, bool isDark)
+        private void SetWindowDarkMode(Window window, bool isDark)
         {
             if (window == null) return;
             try
@@ -280,7 +307,7 @@ namespace WinPieGestures
             return brush;
         }
 
-        public static bool IsWindowsInDarkTheme()
+        private static bool ProbeWindowsDarkMode()
         {
             try
             {
