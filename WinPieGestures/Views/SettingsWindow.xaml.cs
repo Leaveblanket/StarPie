@@ -31,6 +31,8 @@ namespace WinPieGestures
         private readonly Action _exitApplication;
         private readonly Action<string, string> _showTrayBalloonTip;
         private readonly IDialogService _dialogs;
+        // 外观分区 ViewModel (T10)。
+        private readonly AppearanceSettingsViewModel _appearanceVm;
         // 配置方案分区列表侧 ViewModel (T11)：方案列表/选中态、扇区数、方向槽位集合。
         private readonly ProfileListViewModel _profileList;
 
@@ -62,6 +64,27 @@ namespace WinPieGestures
             _showTrayBalloonTip = showTrayBalloonTip;
             _dialogs = dialogs;
 
+            // 外观分区子 ViewModel (T10)：状态与编排住 VM，绘制（实时预览）留在本视图层
+            _appearanceVm = new AppearanceSettingsViewModel(ConfigManager.ConfigService, _dialogs);
+            AppearanceSettingsGrid.DataContext = _appearanceVm;
+            _appearanceVm.PreviewInvalidated += OnAppearancePreviewInvalidated;
+            _appearanceVm.AutoSaveRequested += ScheduleAutoSave;
+            _appearanceVm.SaveNowRequested += () => SyncUiToConfigAndSave(true);
+            _appearanceVm.PresetListChanged += SyncThemePresetItems;
+            _appearanceVm.DeleteConfirmRequested += preset =>
+            {
+                var result = MessageBox.Show(this, $"确定要删除自定义配色方案预设【{preset.Name}】吗？", "确认删除配色方案", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    _appearanceVm.ConfirmDeleteCustomColorPreset(preset);
+                }
+            };
+            _appearanceVm.PresetDeleted += name =>
+                MessageBox.Show(this, $"自定义配色方案【{name}】已成功删除！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            _appearanceVm.PresetSaved += name =>
+                MessageBox.Show($"配色预设【{name}】已成功保存！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+            SyncThemePresetItems();
+
             _isUpdatingUi = true;
             try
             {
@@ -76,56 +99,6 @@ namespace WinPieGestures
                 // Load App Interface Theme
                 SetComboBoxSelectedValue(AppThemeComboBox, ConfigManager.CurrentConfig.AppTheme ?? "System");
                 _themeService.ApplyTheme(this, ConfigManager.CurrentConfig.AppTheme ?? "System");
-
-                // Load theme & style settings
-                ReloadThemePresets();
-                SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
-                SetComboBoxSelectedValue(UiStyleComboBox, ConfigManager.CurrentConfig.UiStyle);
-
-                CustomSectorBgTextBox.Text = ConfigManager.CurrentConfig.CustomSectorBg;
-                CustomSectorBorderTextBox.Text = ConfigManager.CurrentConfig.CustomSectorBorder;
-                CustomHighlightBgTextBox.Text = ConfigManager.CurrentConfig.CustomHighlightBg;
-                CustomHighlightBorderTextBox.Text = ConfigManager.CurrentConfig.CustomHighlightBorder;
-                CustomTextTextBox.Text = ConfigManager.CurrentConfig.CustomText;
-
-                bool isCustomPreset = (ConfigManager.CurrentConfig.Theme ?? "").StartsWith("CustomPreset_");
-                if (CustomColorsPanel != null) CustomColorsPanel.Visibility = Visibility.Visible;
-                if ((ConfigManager.CurrentConfig.Theme == "Custom" || isCustomPreset) && CustomColorExpander != null)
-                {
-                    CustomColorExpander.IsExpanded = true;
-                }
-                if (RenameCustomColorPresetButton != null) RenameCustomColorPresetButton.Visibility = isCustomPreset ? Visibility.Visible : Visibility.Collapsed;
-                if (DeletePresetInPanelButton != null) DeletePresetInPanelButton.Visibility = isCustomPreset ? Visibility.Visible : Visibility.Collapsed;
-
-                // Load Highlight Glow settings
-                SetComboBoxSelectedValue(HighlightGlowPresetComboBox, ConfigManager.CurrentConfig.HighlightGlowPreset ?? "Auto");
-                HighlightGlowColorTextBox.Text = ConfigManager.CurrentConfig.HighlightGlowColor ?? "";
-                HighlightGlowRadiusSlider.Value = ConfigManager.CurrentConfig.HighlightGlowRadius > 0 ? ConfigManager.CurrentConfig.HighlightGlowRadius : 24.0;
-                HighlightGlowRadiusLabel.Text = $"{HighlightGlowRadiusSlider.Value:0} px";
-                HighlightGlowOpacitySlider.Value = (ConfigManager.CurrentConfig.HighlightGlowOpacity >= 0 ? ConfigManager.CurrentConfig.HighlightGlowOpacity : 0.85) * 100.0;
-                HighlightGlowOpacityLabel.Text = $"{HighlightGlowOpacitySlider.Value:0}%";
-                CustomHighlightGlowPanel.Visibility = (ConfigManager.CurrentConfig.HighlightGlowPreset == "Custom" || !string.IsNullOrEmpty(ConfigManager.CurrentConfig.HighlightGlowColor)) ? Visibility.Visible : Visibility.Collapsed;
-
-                // Load sliders & shape settings
-                WheelRadiusSlider.Value = ConfigManager.CurrentConfig.WheelRadius;
-                WheelRadiusLabel.Text = ConfigManager.CurrentConfig.WheelRadius.ToString("0");
-                InnerRadiusSlider.Value = ConfigManager.CurrentConfig.InnerRadius;
-                InnerRadiusLabel.Text = ConfigManager.CurrentConfig.InnerRadius.ToString("0");
-                CoreRadiusSlider.Value = ConfigManager.CurrentConfig.CoreRadius;
-                CoreRadiusLabel.Text = ConfigManager.CurrentConfig.CoreRadius.ToString("0");
-
-                SectorGapSlider.Value = ConfigManager.CurrentConfig.SectorGap;
-                SectorGapLabel.Text = $"{ConfigManager.CurrentConfig.SectorGap:0} px";
-                SectorCornerRadiusSlider.Value = ConfigManager.CurrentConfig.SectorCornerRadius;
-                SectorCornerRadiusLabel.Text = $"{ConfigManager.CurrentConfig.SectorCornerRadius:0} px";
-                SectorIconSizeSlider.Value = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
-                SectorIconSizeLabel.Text = $"{SectorIconSizeSlider.Value:0} px";
-                SectorFontSizeSlider.Value = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
-                SectorFontSizeLabel.Text = $"{SectorFontSizeSlider.Value:0.0} px";
-
-                SetComboBoxSelectedValue(ShapeComboBox, ConfigManager.CurrentConfig.Shape);
-                SetComboBoxSelectedValue(IconLayoutModeComboBox, ConfigManager.CurrentConfig.IconLayoutMode);
-                ShowTextCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowText;
 
                 // Center Core Pattern, Image & Visibility
                 ShowCoreIconCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowCoreIcon;
@@ -153,9 +126,6 @@ namespace WinPieGestures
                 // Initialize Language setting
                 SetComboBoxSelectedValue(LanguageComboBox, ConfigManager.CurrentConfig.Language ?? "Auto");
                 ApplyLocalization();
-
-                // Initialize color preview borders
-                UpdateColorPreviews();
 
                 SlotsItemsControl.ItemsSource = _profileList.Slots;
 
@@ -393,30 +363,11 @@ namespace WinPieGestures
 
             try
             {
+                // 外观分区（T10）各设置项已由 AppearanceSettingsViewModel 即时写穿配置，此处不再从控件回读。
+
                 if (AppThemeComboBox?.SelectedItem is ComboBoxItem appThemeItem)
                 {
                     ConfigManager.CurrentConfig.AppTheme = appThemeItem.Tag?.ToString() ?? "System";
-                }
-                if (UiStyleComboBox?.SelectedItem is ComboBoxItem uiStyleItem)
-                {
-                    ConfigManager.CurrentConfig.UiStyle = uiStyleItem.Tag?.ToString() ?? "ClassicRing";
-                }
-                if (ThemeComboBox?.SelectedItem is ComboBoxItem themeItem)
-                {
-                    ConfigManager.CurrentConfig.Theme = themeItem.Tag?.ToString() ?? "System";
-                }
-                if (ShapeComboBox?.SelectedItem is ComboBoxItem shapeItem)
-                {
-                    ConfigManager.CurrentConfig.Shape = shapeItem.Tag?.ToString() ?? "Original";
-                }
-                if (IconLayoutModeComboBox?.SelectedItem is ComboBoxItem layoutItem)
-                {
-                    ConfigManager.CurrentConfig.IconLayoutMode = layoutItem.Tag?.ToString() ?? "IconAndText";
-                }
-
-                if (ShowTextCheckBox != null)
-                {
-                    ConfigManager.CurrentConfig.ShowText = ShowTextCheckBox.IsChecked == true;
                 }
 
                 if (ShowCoreIconCheckBox != null)
@@ -432,37 +383,7 @@ namespace WinPieGestures
                     ConfigManager.CurrentConfig.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
                 }
 
-                if (HighlightGlowPresetComboBox?.SelectedItem is ComboBoxItem glowPresetItem)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowPreset = glowPresetItem.Tag?.ToString() ?? "Auto";
-                }
-                if (HighlightGlowColorTextBox != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowColor = HighlightGlowColorTextBox.Text.Trim();
-                }
-                if (HighlightGlowRadiusSlider != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowRadius = HighlightGlowRadiusSlider.Value;
-                }
-                if (HighlightGlowOpacitySlider != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowOpacity = HighlightGlowOpacitySlider.Value / 100.0;
-                }
-
-                if (WheelRadiusSlider != null) ConfigManager.CurrentConfig.WheelRadius = WheelRadiusSlider.Value;
-                if (InnerRadiusSlider != null) ConfigManager.CurrentConfig.InnerRadius = InnerRadiusSlider.Value;
-                if (CoreRadiusSlider != null) ConfigManager.CurrentConfig.CoreRadius = CoreRadiusSlider.Value;
-                if (SectorGapSlider != null) ConfigManager.CurrentConfig.SectorGap = SectorGapSlider.Value;
-                if (SectorCornerRadiusSlider != null) ConfigManager.CurrentConfig.SectorCornerRadius = SectorCornerRadiusSlider.Value;
-                if (SectorIconSizeSlider != null) ConfigManager.CurrentConfig.SectorIconSize = SectorIconSizeSlider.Value;
-                if (SectorFontSizeSlider != null) ConfigManager.CurrentConfig.SectorFontSize = SectorFontSizeSlider.Value;
                 if (ThresholdSlider != null) ConfigManager.CurrentConfig.DragThreshold = ThresholdSlider.Value;
-
-                if (CustomSectorBgTextBox != null) ConfigManager.CurrentConfig.CustomSectorBg = CustomSectorBgTextBox.Text.Trim();
-                if (CustomSectorBorderTextBox != null) ConfigManager.CurrentConfig.CustomSectorBorder = CustomSectorBorderTextBox.Text.Trim();
-                if (CustomHighlightBgTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBg = CustomHighlightBgTextBox.Text.Trim();
-                if (CustomHighlightBorderTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBorder = CustomHighlightBorderTextBox.Text.Trim();
-                if (CustomTextTextBox != null) ConfigManager.CurrentConfig.CustomText = CustomTextTextBox.Text.Trim();
 
                 if (DisableOnFullScreenCheckBox != null) ConfigManager.CurrentConfig.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
                 if (CtrlModifierCheckBox != null) ConfigManager.CurrentConfig.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
@@ -707,24 +628,22 @@ namespace WinPieGestures
             }
         }
 
-        private void UiStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void OuterEscapeDistanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (UiStyleComboBox == null || ConfigManager.CurrentConfig == null) return;
-            var selectedItem = UiStyleComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
+            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            double val = Math.Round(e.NewValue);
+            ConfigManager.CurrentConfig.OuterEscapeDistance = val;
+            if (OuterEscapeDistanceLabel != null)
             {
-                ConfigManager.CurrentConfig.UiStyle = selectedItem.Tag?.ToString() ?? "ClassicRing";
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
+                OuterEscapeDistanceLabel.Text = $"{val:0} px";
             }
+            SyncUiToConfigAndSave(true);
         }
 
-        private void ReloadThemePresets()
+        /// <summary>按 VM 的预设列表重建配色方案下拉的动态项（CustomPreset_*），并恢复当前选中 Tag（视图层条目管理，数据来自 VM）。</summary>
+        private void SyncThemePresetItems()
         {
             if (ThemeComboBox == null) return;
-            string currentTag = ConfigManager.CurrentConfig?.Theme ?? (ThemeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "System";
 
             var toRemove = new List<ComboBoxItem>();
             foreach (var item in ThemeComboBox.Items)
@@ -739,84 +658,16 @@ namespace WinPieGestures
                 ThemeComboBox.Items.Remove(item);
             }
 
-            int customIndex = -1;
-            for (int i = 0; i < ThemeComboBox.Items.Count; i++)
+            foreach (var preset in _appearanceVm.CustomPresets)
             {
-                if (ThemeComboBox.Items[i] is ComboBoxItem cbi && cbi.Tag?.ToString() == "Custom")
+                ThemeComboBox.Items.Add(new ComboBoxItem
                 {
-                    customIndex = i;
-                    break;
-                }
+                    Content = $"🎨 {preset.Name} (自定义预设)",
+                    Tag = "CustomPreset_" + preset.Id
+                });
             }
 
-            if (ConfigManager.CurrentConfig.CustomColorPresets != null)
-            {
-                foreach (var preset in ConfigManager.CurrentConfig.CustomColorPresets)
-                {
-                    var newItem = new ComboBoxItem
-                    {
-                        Content = $"🎨 {preset.Name} (自定义预设)",
-                        Tag = "CustomPreset_" + preset.Id
-                    };
-                    if (customIndex >= 0)
-                    {
-                        ThemeComboBox.Items.Insert(customIndex, newItem);
-                        customIndex++;
-                    }
-                    else
-                    {
-                        ThemeComboBox.Items.Add(newItem);
-                    }
-                }
-            }
-
-            SetComboBoxSelectedValue(ThemeComboBox, currentTag);
-        }
-
-        private void ThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ThemeComboBox == null || ConfigManager.CurrentConfig == null) return;
-            var selectedItem = ThemeComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                string theme = selectedItem.Tag?.ToString() ?? "System";
-                ConfigManager.CurrentConfig.Theme = theme;
-
-                bool isCustomPreset = theme.StartsWith("CustomPreset_");
-
-                if (RenameCustomColorPresetButton != null)
-                {
-                    RenameCustomColorPresetButton.Visibility = isCustomPreset ? Visibility.Visible : Visibility.Collapsed;
-                }
-                if (DeletePresetInPanelButton != null)
-                {
-                    DeletePresetInPanelButton.Visibility = isCustomPreset ? Visibility.Visible : Visibility.Collapsed;
-                }
-
-                if (isCustomPreset)
-                {
-                    string presetId = theme.Substring("CustomPreset_".Length);
-                    var preset = ConfigManager.CurrentConfig.CustomColorPresets?.Find(p => p.Id == presetId);
-                    if (preset != null)
-                    {
-                        CustomSectorBgTextBox.Text = preset.SectorBg;
-                        CustomSectorBorderTextBox.Text = preset.SectorBorder;
-                        CustomHighlightBgTextBox.Text = preset.HighlightBg;
-                        CustomHighlightBorderTextBox.Text = preset.HighlightBorder;
-                        CustomTextTextBox.Text = preset.TextColor;
-                    }
-                    if (CustomColorExpander != null)
-                    {
-                        CustomColorExpander.IsExpanded = true;
-                    }
-                }
-
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-            }
+            SetComboBoxSelectedValue(ThemeComboBox, _appearanceVm.SelectedTheme);
         }
 
         private void OuterEscapeCheckBox_Checked(object sender, RoutedEventArgs e)
@@ -832,337 +683,6 @@ namespace WinPieGestures
             if (ConfigManager.CurrentConfig == null) return;
             ConfigManager.CurrentConfig.EnableOuterEscapeCancel = false;
             if (OuterEscapeDistancePanel != null) OuterEscapeDistancePanel.Visibility = Visibility.Collapsed;
-            SyncUiToConfigAndSave(true);
-        }
-
-        private void OuterEscapeDistanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-            double val = Math.Round(e.NewValue);
-            ConfigManager.CurrentConfig.OuterEscapeDistance = val;
-            if (OuterEscapeDistanceLabel != null)
-            {
-                OuterEscapeDistanceLabel.Text = $"{val:0} px";
-            }
-            SyncUiToConfigAndSave(true);
-        }
-
-        private void RenameCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (ConfigManager.CurrentConfig == null) return;
-            string theme = (ThemeComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? ConfigManager.CurrentConfig.Theme ?? "";
-            if (!theme.StartsWith("CustomPreset_")) return;
-
-            string presetId = theme.Substring("CustomPreset_".Length);
-            var preset = ConfigManager.CurrentConfig.CustomColorPresets?.Find(p => p.Id == presetId);
-            if (preset == null) return;
-
-            string oldName = preset.Name;
-            var result = _dialogs.ShowInputDialog(
-                title: I18n.T("RenameCustomPresetTitle"),
-                prompt: $"{I18n.T("RenameCustomPresetPrompt")}「{oldName}」",
-                defaultText: oldName,
-                validator: input =>
-                {
-                    if (string.IsNullOrWhiteSpace(input)) return (false, "配色方案名称不能为空！");
-                    return (true, "");
-                });
-
-            if (result != null)
-            {
-                preset.Name = result.Text;
-                ConfigManager.SaveConfig();
-
-                ReloadThemePresets();
-                SetComboBoxSelectedValue(ThemeComboBox, $"CustomPreset_{preset.Id}");
-                SyncUiToConfigAndSave(true);
-            }
-        }
-
-        private void DeleteCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (ConfigManager.CurrentConfig == null) return;
-            string theme = (ThemeComboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? ConfigManager.CurrentConfig.Theme ?? "";
-            if (!theme.StartsWith("CustomPreset_")) return;
-
-            string presetId = theme.Substring("CustomPreset_".Length);
-            var preset = ConfigManager.CurrentConfig.CustomColorPresets?.Find(p => p.Id == presetId);
-            if (preset == null) return;
-
-            var result = MessageBox.Show(this, $"确定要删除自定义配色方案预设【{preset.Name}】吗？", "确认删除配色方案", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (result == MessageBoxResult.Yes)
-            {
-                ConfigManager.CurrentConfig.CustomColorPresets?.Remove(preset);
-                ConfigManager.CurrentConfig.Theme = "System";
-                ConfigManager.SaveConfig();
-
-                ReloadThemePresets();
-                SetComboBoxSelectedValue(ThemeComboBox, "System");
-
-                if (RenameCustomColorPresetButton != null) RenameCustomColorPresetButton.Visibility = Visibility.Collapsed;
-                if (DeletePresetInPanelButton != null) DeletePresetInPanelButton.Visibility = Visibility.Collapsed;
-                
-
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-
-                MessageBox.Show(this, $"自定义配色方案【{preset.Name}】已成功删除！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void SaveCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
-        {
-            var result = _dialogs.ShowInputDialog("保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}");
-
-            if (result != null)
-            {
-                string presetName = result.Text;
-                if (ConfigManager.CurrentConfig.CustomColorPresets == null)
-                {
-                    ConfigManager.CurrentConfig.CustomColorPresets = new List<CustomColorPreset>();
-                }
-
-                var newPreset = new CustomColorPreset
-                {
-                    Name = presetName,
-                    SectorBg = CustomSectorBgTextBox.Text.Trim(),
-                    SectorBorder = CustomSectorBorderTextBox.Text.Trim(),
-                    HighlightBg = CustomHighlightBgTextBox.Text.Trim(),
-                    HighlightBorder = CustomHighlightBorderTextBox.Text.Trim(),
-                    TextColor = CustomTextTextBox.Text.Trim()
-                };
-
-                ConfigManager.CurrentConfig.CustomColorPresets.Add(newPreset);
-                ConfigManager.CurrentConfig.Theme = "CustomPreset_" + newPreset.Id;
-                ConfigManager.SaveConfig();
-
-                ReloadThemePresets();
-                SetComboBoxSelectedValue(ThemeComboBox, "CustomPreset_" + newPreset.Id);
-                RenderLiveWheelPreview();
-
-                System.Windows.MessageBox.Show($"配色预设【{presetName}】已成功保存！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
-        private void WheelRadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (WheelRadiusLabel != null && ConfigManager.CurrentConfig != null)
-            {
-                WheelRadiusLabel.Text = e.NewValue.ToString("0");
-                ConfigManager.CurrentConfig.WheelRadius = e.NewValue;
-                if (!_isUpdatingUi && AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                ScheduleAutoSave();
-            }
-        }
-
-        private void InnerRadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (InnerRadiusLabel != null && ConfigManager.CurrentConfig != null)
-            {
-                InnerRadiusLabel.Text = e.NewValue.ToString("0");
-                ConfigManager.CurrentConfig.InnerRadius = e.NewValue;
-                if (!_isUpdatingUi && AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                ScheduleAutoSave();
-            }
-        }
-
-        private void CoreRadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (CoreRadiusLabel != null && ConfigManager.CurrentConfig != null)
-            {
-                CoreRadiusLabel.Text = e.NewValue.ToString("0");
-                ConfigManager.CurrentConfig.CoreRadius = e.NewValue;
-                if (!_isUpdatingUi && AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                ScheduleAutoSave();
-            }
-        }
-
-        private void SectorGapSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (SectorGapLabel != null && ConfigManager.CurrentConfig != null)
-            {
-                SectorGapLabel.Text = $"{e.NewValue:0} px";
-                ConfigManager.CurrentConfig.SectorGap = e.NewValue;
-                if (!_isUpdatingUi && AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                ScheduleAutoSave();
-            }
-        }
-
-        private void SectorCornerRadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (SectorCornerRadiusLabel != null && ConfigManager.CurrentConfig != null)
-            {
-                SectorCornerRadiusLabel.Text = $"{e.NewValue:0} px";
-                ConfigManager.CurrentConfig.SectorCornerRadius = e.NewValue;
-                if (!_isUpdatingUi && AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                ScheduleAutoSave();
-            }
-        }
-
-        private void ShapeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (ShapeComboBox == null || ConfigManager.CurrentConfig == null) return;
-            var selectedItem = ShapeComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                ConfigManager.CurrentConfig.Shape = selectedItem.Tag?.ToString() ?? "Original";
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-            }
-        }
-
-        private void IconLayoutModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (IconLayoutModeComboBox == null || ConfigManager.CurrentConfig == null || _isUpdatingUi) return;
-            var selectedItem = IconLayoutModeComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                string mode = selectedItem.Tag?.ToString() ?? "IconAndText";
-                ConfigManager.CurrentConfig.IconLayoutMode = mode;
-
-                _isUpdatingUi = true;
-                try
-                {
-                    if (mode == "IconOnly")
-                    {
-                        ConfigManager.CurrentConfig.ShowText = false;
-                        if (ShowTextCheckBox != null) ShowTextCheckBox.IsChecked = false;
-                    }
-                    else
-                    {
-                        ConfigManager.CurrentConfig.ShowText = true;
-                        if (ShowTextCheckBox != null) ShowTextCheckBox.IsChecked = true;
-                    }
-                }
-                finally
-                {
-                    _isUpdatingUi = false;
-                }
-
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-            }
-        }
-
-        private void ShowTextCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            if (ShowTextCheckBox == null || ConfigManager.CurrentConfig == null || _isUpdatingUi) return;
-            bool isShow = ShowTextCheckBox.IsChecked == true;
-            ConfigManager.CurrentConfig.ShowText = isShow;
-
-            _isUpdatingUi = true;
-            try
-            {
-                if (isShow)
-                {
-                    if (ConfigManager.CurrentConfig.IconLayoutMode == "IconOnly")
-                    {
-                        ConfigManager.CurrentConfig.IconLayoutMode = "IconAndText";
-                        SetComboBoxSelectedValue(IconLayoutModeComboBox, "IconAndText");
-                    }
-                }
-                else
-                {
-                    if (ConfigManager.CurrentConfig.IconLayoutMode != "IconOnly")
-                    {
-                        ConfigManager.CurrentConfig.IconLayoutMode = "IconOnly";
-                        SetComboBoxSelectedValue(IconLayoutModeComboBox, "IconOnly");
-                    }
-                }
-            }
-            finally
-            {
-                _isUpdatingUi = false;
-            }
-
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            SyncUiToConfigAndSave(true);
-        }
-
-        private void SectorIconSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (SectorIconSizeSlider == null || SectorIconSizeLabel == null || ConfigManager.CurrentConfig == null || _isUpdatingUi) return;
-            ConfigManager.CurrentConfig.SectorIconSize = e.NewValue;
-            SectorIconSizeLabel.Text = $"{e.NewValue:0} px";
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
-        private void SectorFontSizeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (SectorFontSizeSlider == null || SectorFontSizeLabel == null || ConfigManager.CurrentConfig == null || _isUpdatingUi) return;
-            ConfigManager.CurrentConfig.SectorFontSize = e.NewValue;
-            SectorFontSizeLabel.Text = $"{e.NewValue:0.0} px";
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
-        private void ResetDimensionsButton_Click(object sender, RoutedEventArgs e)
-        {
-            _isUpdatingUi = true;
-            try
-            {
-                WheelRadiusSlider.Value = 138;
-                WheelRadiusLabel.Text = "138";
-                InnerRadiusSlider.Value = 52;
-                InnerRadiusLabel.Text = "52";
-                CoreRadiusSlider.Value = 50;
-                CoreRadiusLabel.Text = "50";
-                SectorGapSlider.Value = 2;
-                SectorGapLabel.Text = "2 px";
-                SectorCornerRadiusSlider.Value = 4;
-                SectorCornerRadiusLabel.Text = "4 px";
-                SectorIconSizeSlider.Value = 20.0;
-                SectorIconSizeLabel.Text = "20 px";
-                SectorFontSizeSlider.Value = 10.5;
-                SectorFontSizeLabel.Text = "10.5 px";
-
-                ConfigManager.CurrentConfig.WheelRadius = 138;
-                ConfigManager.CurrentConfig.InnerRadius = 52;
-                ConfigManager.CurrentConfig.CoreRadius = 50;
-                ConfigManager.CurrentConfig.SectorGap = 2;
-                ConfigManager.CurrentConfig.SectorCornerRadius = 4;
-                ConfigManager.CurrentConfig.SectorIconSize = 20.0;
-                ConfigManager.CurrentConfig.SectorFontSize = 10.5;
-            }
-            finally
-            {
-                _isUpdatingUi = false;
-            }
-            RenderLiveWheelPreview();
             SyncUiToConfigAndSave(true);
         }
 
@@ -1322,101 +842,6 @@ namespace WinPieGestures
             SyncUiToConfigAndSave(true);
         }
 
-        private void HighlightGlowPresetComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isUpdatingUi || HighlightGlowPresetComboBox == null || ConfigManager.CurrentConfig == null) return;
-            var selectedItem = HighlightGlowPresetComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                string preset = selectedItem.Tag?.ToString() ?? "Auto";
-                ConfigManager.CurrentConfig.HighlightGlowPreset = preset;
-
-                switch (preset)
-                {
-                    case "Lilac":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#A855F7";
-                        HighlightGlowColorTextBox.Text = "#A855F7";
-                        break;
-                    case "Blue":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#3B82F6";
-                        HighlightGlowColorTextBox.Text = "#3B82F6";
-                        break;
-                    case "Emerald":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#10B981";
-                        HighlightGlowColorTextBox.Text = "#10B981";
-                        break;
-                    case "Rose":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#EC4899";
-                        HighlightGlowColorTextBox.Text = "#EC4899";
-                        break;
-                    case "Amber":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#F59E0B";
-                        HighlightGlowColorTextBox.Text = "#F59E0B";
-                        break;
-                    case "Red":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#EF4444";
-                        HighlightGlowColorTextBox.Text = "#EF4444";
-                        break;
-                    case "White":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "#FFFFFF";
-                        HighlightGlowColorTextBox.Text = "#FFFFFF";
-                        break;
-                    case "Auto":
-                        ConfigManager.CurrentConfig.HighlightGlowColor = "";
-                        HighlightGlowColorTextBox.Text = "";
-                        break;
-                }
-
-                if (CustomHighlightGlowPanel != null)
-                {
-                    CustomHighlightGlowPanel.Visibility = (preset == "Custom" || !string.IsNullOrEmpty(HighlightGlowColorTextBox.Text)) ? Visibility.Visible : Visibility.Collapsed;
-                }
-
-                UpdateColorPreviews();
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-            }
-        }
-
-        private void HighlightGlowColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null || HighlightGlowColorTextBox == null) return;
-            ConfigManager.CurrentConfig.HighlightGlowColor = HighlightGlowColorTextBox.Text.Trim();
-            UpdateColorPreviews();
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
-        private void HighlightGlowRadiusSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_isUpdatingUi || HighlightGlowRadiusLabel == null || ConfigManager.CurrentConfig == null) return;
-            HighlightGlowRadiusLabel.Text = $"{e.NewValue:0} px";
-            ConfigManager.CurrentConfig.HighlightGlowRadius = e.NewValue;
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
-        private void HighlightGlowOpacitySlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            if (_isUpdatingUi || HighlightGlowOpacityLabel == null || ConfigManager.CurrentConfig == null) return;
-            HighlightGlowOpacityLabel.Text = $"{e.NewValue:0}%";
-            ConfigManager.CurrentConfig.HighlightGlowOpacity = e.NewValue / 100.0;
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
         private void PickIcon_Click(object sender, RoutedEventArgs e)
         {
             // 对话框编排已迁 SlotViewModel.PickIcon (T12)；此处只剩 View 层效果：
@@ -1427,103 +852,6 @@ namespace WinPieGestures
                 {
                     RenderLiveWheelPreview();
                 }
-            }
-        }
-
-        private void CustomColorTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-
-            ConfigManager.CurrentConfig.CustomSectorBg = CustomSectorBgTextBox.Text.Trim();
-            ConfigManager.CurrentConfig.CustomSectorBorder = CustomSectorBorderTextBox.Text.Trim();
-            ConfigManager.CurrentConfig.CustomHighlightBg = CustomHighlightBgTextBox.Text.Trim();
-            ConfigManager.CurrentConfig.CustomHighlightBorder = CustomHighlightBorderTextBox.Text.Trim();
-            ConfigManager.CurrentConfig.CustomText = CustomTextTextBox.Text.Trim();
-
-            UpdateColorPreviews();
-
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-        }
-
-        private void UpdateColorPreviews()
-        {
-            UpdateColorPreviewBorder(CustomSectorBgPreview, CustomSectorBgTextBox.Text);
-            UpdateColorPreviewBorder(CustomSectorBorderPreview, CustomSectorBorderTextBox.Text);
-            UpdateColorPreviewBorder(CustomHighlightBgPreview, CustomHighlightBgTextBox.Text);
-            UpdateColorPreviewBorder(CustomHighlightBorderPreview, CustomHighlightBorderTextBox.Text);
-            UpdateColorPreviewBorder(CustomTextPreview, CustomTextTextBox.Text);
-            if (HighlightGlowColorPreview != null && HighlightGlowColorTextBox != null)
-            {
-                UpdateColorPreviewBorder(HighlightGlowColorPreview, HighlightGlowColorTextBox.Text);
-            }
-        }
-
-        private void UpdateColorPreviewBorder(Border border, string hex)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(hex))
-                {
-                    var color = (Color)ColorConverter.ConvertFromString(hex);
-                    border.Background = new SolidColorBrush(color);
-                }
-                else
-                {
-                    border.Background = Brushes.Transparent;
-                }
-            }
-            catch
-            {
-                border.Background = Brushes.Transparent;
-            }
-        }
-
-        private void PickCustomColor_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement elem && elem.Tag is string tag)
-            {
-                TextBox? targetBox = GetColorTextBoxByTag(tag);
-                if (targetBox != null)
-                {
-                    var picked = _dialogs.ShowColorPicker(targetBox.Text);
-                    if (picked != null)
-                    {
-                        targetBox.Text = picked.HexColor;
-                    }
-                }
-            }
-        }
-
-        private void PickEyedropper_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement elem && elem.Tag is string tag)
-            {
-                TextBox? targetBox = GetColorTextBoxByTag(tag);
-                if (targetBox != null)
-                {
-                    var picked = _dialogs.ShowEyedropper();
-                    if (picked != null)
-                    {
-                        targetBox.Text = picked.HexColor;
-                    }
-                }
-            }
-        }
-
-        private TextBox? GetColorTextBoxByTag(string tag)
-        {
-            switch (tag)
-            {
-                case "CustomSectorBg": return CustomSectorBgTextBox;
-                case "CustomSectorBorder": return CustomSectorBorderTextBox;
-                case "CustomHighlightBg": return CustomHighlightBgTextBox;
-                case "CustomHighlightBorder": return CustomHighlightBorderTextBox;
-                case "CustomText": return CustomTextTextBox;
-                case "HighlightGlowColor": return HighlightGlowColorTextBox;
-                default: return null;
             }
         }
 
@@ -1876,6 +1204,15 @@ namespace WinPieGestures
 
         #region 60FPS Live Preview Canvas Rendering
 
+        /// <summary>外观设置变化（VM PreviewInvalidated）→ 分区可见时重绘实时预览。</summary>
+        private void OnAppearancePreviewInvalidated()
+        {
+            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
+            {
+                RenderLiveWheelPreview();
+            }
+        }
+
         private void RenderLiveWheelPreview()
         {
             if (_isRenderingPreview || LiveWheelPreviewCanvas == null || ConfigManager.CurrentConfig == null) return;
@@ -1889,27 +1226,29 @@ namespace WinPieGestures
                 _previewAngles.Clear();
                 _lastHoveredSector = -2;
 
+                // 预览输入（当前外观设置值）从外观子 ViewModel 读取；绘制逻辑留在视图层。
+                // 渲染器 Initialize 仍传 AppConfig：VM 已即时写穿，两者恒等。
                 double canvasSize = 300.0;
                 double cx = canvasSize / 2.0;
                 double cy = canvasSize / 2.0;
 
-                double maxR = Math.Max(80.0, ConfigManager.CurrentConfig.WheelRadius);
+                double maxR = Math.Max(80.0, _appearanceVm.WheelRadius);
                 double scale = 135.0 / Math.Max(135.0, maxR);
 
-                double outerR = Math.Max(30.0, ConfigManager.CurrentConfig.WheelRadius * scale);
-                double innerR = Math.Max(15.0, ConfigManager.CurrentConfig.InnerRadius * scale);
-                double coreR = Math.Max(10.0, ConfigManager.CurrentConfig.CoreRadius * scale);
-                double gap = Math.Max(0.0, ConfigManager.CurrentConfig.SectorGap * scale);
-                double cornerRadius = Math.Max(0.0, ConfigManager.CurrentConfig.SectorCornerRadius * scale);
+                double outerR = Math.Max(30.0, _appearanceVm.WheelRadius * scale);
+                double innerR = Math.Max(15.0, _appearanceVm.InnerRadius * scale);
+                double coreR = Math.Max(10.0, _appearanceVm.CoreRadius * scale);
+                double gap = Math.Max(0.0, _appearanceVm.SectorGap * scale);
+                double cornerRadius = Math.Max(0.0, _appearanceVm.SectorCornerRadius * scale);
 
                 if (innerR >= outerR) innerR = outerR * 0.5;
                 if (coreR >= innerR) coreR = innerR * 0.8;
 
-                string uiStyle = ConfigManager.CurrentConfig.UiStyle ?? "ClassicRing";
-                string theme = ConfigManager.CurrentConfig.Theme ?? "System";
-                string shape = ConfigManager.CurrentConfig.Shape ?? "Original";
-                string layoutMode = ConfigManager.CurrentConfig.IconLayoutMode ?? "IconAndText";
-                bool showText = ConfigManager.CurrentConfig.ShowText && layoutMode != "IconOnly";
+                string uiStyle = _appearanceVm.UiStyle ?? "ClassicRing";
+                string theme = _appearanceVm.SelectedTheme ?? "System";
+                string shape = _appearanceVm.Shape ?? "Original";
+                string layoutMode = _appearanceVm.IconLayoutMode ?? "IconAndText";
+                bool showText = _appearanceVm.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
                 _previewStyleRenderer.Initialize(theme, ConfigManager.CurrentConfig, _themeService.IsWindowsInDarkTheme());
@@ -2068,7 +1407,7 @@ namespace WinPieGestures
                         else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconHelper.GetSvgPathByKey("Folder");
                         else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconHelper.GetSvgPathByKey(parameter);
 
-                        double configuredIconSize = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
+                        double configuredIconSize = _appearanceVm.SectorIconSize > 0 ? _appearanceVm.SectorIconSize : 20.0;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
                         double previewIconSize = ((layoutMode == "IconOnly") ? configuredIconSize * 1.35 : configuredIconSize) * 0.72 * scaleFactor;
 
@@ -2147,7 +1486,7 @@ namespace WinPieGestures
 
                     if (showText && !string.IsNullOrEmpty(actionName))
                     {
-                        double baseFontSize = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
+                        double baseFontSize = _appearanceVm.SectorFontSize > 0 ? _appearanceVm.SectorFontSize : 10.5;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
                         double previewFs = ((layoutMode == "TextOnly") ? baseFontSize + 1.0 : baseFontSize) * 0.85 * scaleFactor;
                         double textMaxW = n == 12 ? 44.0 : (n == 4 ? 76.0 : 64.0);
@@ -2218,11 +1557,11 @@ namespace WinPieGestures
                 double dy = p.Y - 150.0;
                 double dist = Math.Sqrt(dx * dx + dy * dy);
 
-                double maxR = Math.Max(80.0, ConfigManager.CurrentConfig.WheelRadius);
+                double maxR = Math.Max(80.0, _appearanceVm.WheelRadius);
                 double scale = 135.0 / Math.Max(135.0, maxR);
-                double outerR = ConfigManager.CurrentConfig.WheelRadius * scale;
-                double innerR = ConfigManager.CurrentConfig.InnerRadius * scale;
-                double coreR = ConfigManager.CurrentConfig.CoreRadius * scale;
+                double outerR = _appearanceVm.WheelRadius * scale;
+                double innerR = _appearanceVm.InnerRadius * scale;
+                double coreR = _appearanceVm.CoreRadius * scale;
 
                 int hoveredIndex = -2;
 
