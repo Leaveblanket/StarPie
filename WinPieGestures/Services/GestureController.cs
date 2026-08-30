@@ -9,6 +9,7 @@ namespace WinPieGestures
     public class GestureController
     {
         private readonly MouseHook _mouseHook;
+        private readonly IConfigService _config;
         private RadialWindow _radialWindow;
 
         private Point _startPoint;
@@ -17,9 +18,10 @@ namespace WinPieGestures
         private WheelProfile _activeProfile;
         private int _selectedSectorIndex = -1;
 
-        public GestureController(MouseHook mouseHook)
+        public GestureController(MouseHook mouseHook, IConfigService config)
         {
             _mouseHook = mouseHook;
+            _config = config;
             _mouseHook.OnRightButtonDown += Hook_OnRightButtonDown;
             _mouseHook.OnRightButtonUp += Hook_OnRightButtonUp;
             _mouseHook.OnMouseMove += Hook_OnMouseMove;
@@ -31,10 +33,10 @@ namespace WinPieGestures
             string processName = ActiveWindowHelper.GetActiveWindowProcessName();
             
             bool isBlacklisted = false;
-            if (ConfigManager.CurrentConfig.BlacklistedProcesses != null)
+            if (_config.Current.BlacklistedProcesses != null)
             {
                 string normProc = processName.Trim().ToLower();
-                foreach (var blacklisted in ConfigManager.CurrentConfig.BlacklistedProcesses)
+                foreach (var blacklisted in _config.Current.BlacklistedProcesses)
                 {
                     if (blacklisted.Trim().ToLower() == normProc)
                     {
@@ -44,15 +46,15 @@ namespace WinPieGestures
                 }
             }
 
-            bool isCtrlPressed = ConfigManager.CurrentConfig.DisableOnCtrl && 
+            bool isCtrlPressed = _config.Current.DisableOnCtrl && 
                                  (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) != 0;
-            bool isShiftPressed = ConfigManager.CurrentConfig.DisableOnShift && 
+            bool isShiftPressed = _config.Current.DisableOnShift && 
                                   (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Shift) != 0;
-            bool isAltPressed = ConfigManager.CurrentConfig.DisableOnAlt && 
+            bool isAltPressed = _config.Current.DisableOnAlt && 
                                 (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Alt) != 0;
             bool isModifierPressed = isCtrlPressed || isShiftPressed || isAltPressed;
 
-            bool isFullScreen = ConfigManager.CurrentConfig.DisableOnFullScreen && FullScreenHelper.IsActiveWindowFullScreen();
+            bool isFullScreen = _config.Current.DisableOnFullScreen && FullScreenHelper.IsActiveWindowFullScreen();
 
             if (isBlacklisted || isModifierPressed || isFullScreen)
             {
@@ -81,14 +83,14 @@ namespace WinPieGestures
                 double dy = e.Position.Y - _startPoint.Y;
                 double distance = Math.Sqrt(dx * dx + dy * dy);
 
-                if (distance >= ConfigManager.CurrentConfig.DragThreshold)
+                if (distance >= _config.Current.DragThreshold)
                 {
                     _isWaitingForThreshold = false;
                     _isGestureActive = true;
 
                     // Detect foreground process
                     string processName = ActiveWindowHelper.GetActiveWindowProcessName();
-                    _activeProfile = ConfigManager.GetProfileForProcess(processName);
+                    _activeProfile = _config.GetProfileForProcess(processName);
 
                     Debug.WriteLine($"Gesture activated. Process: {processName}, Profile: {_activeProfile.ProcessName}, Sectors: {_activeProfile.SectorCount}");
 
@@ -168,7 +170,7 @@ namespace WinPieGestures
             double distance = Math.Sqrt(dx * dx + dy * dy);
 
             // 1. Center deadzone cancel (拖回中心核圆取消)
-            if (distance < ConfigManager.CurrentConfig.DragThreshold * 0.6)
+            if (distance < _config.Current.DragThreshold * 0.6)
             {
                 _selectedSectorIndex = -1;
                 _radialWindow.HighlightSector(-1);
@@ -177,10 +179,10 @@ namespace WinPieGestures
             }
 
             // 2. Scheme 2: Outer Escape Cancel (顺势外甩脱离取消)
-            bool enableOuterEscape = ConfigManager.CurrentConfig.EnableOuterEscapeCancel;
-            double outerRadius = ConfigManager.CurrentConfig.WheelRadius > 0 ? ConfigManager.CurrentConfig.WheelRadius : 138.0;
-            double escapeThreshold = ConfigManager.CurrentConfig.OuterEscapeDistance > 0 
-                ? ConfigManager.CurrentConfig.OuterEscapeDistance 
+            bool enableOuterEscape = _config.Current.EnableOuterEscapeCancel;
+            double outerRadius = _config.Current.WheelRadius > 0 ? _config.Current.WheelRadius : 138.0;
+            double escapeThreshold = _config.Current.OuterEscapeDistance > 0 
+                ? _config.Current.OuterEscapeDistance 
                 : outerRadius * 1.50;
 
             if (enableOuterEscape && distance > escapeThreshold)

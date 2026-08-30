@@ -71,12 +71,13 @@ namespace WinPieGestures
 
             try
             {
-                // Initialize configuration
-                ConfigManager.LoadConfig();
-
                 // Manual composition root: assemble services and create the initial
                 // settings window explicitly (no StartupUri — see ADR-0003)
                 _composition = new Composition();
+
+                // Initialize configuration through the injected config service
+                _composition.Config.Load();
+
                 _composition.Run();
 
                 // Initial memory optimization after startup
@@ -107,7 +108,7 @@ namespace WinPieGestures
             // Auto-persist latest configuration on application exit
             try
             {
-                ConfigManager.SaveConfig();
+                _composition?.Config.Save();
             }
             catch { }
 

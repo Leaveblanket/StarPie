@@ -13,6 +13,7 @@ namespace WinPieGestures
     /// </summary>
     internal sealed class Composition : IDisposable
     {
+        private readonly IConfigService _config;
         private readonly MouseHook _mouseHook;
         // Kept alive for its hook-event subscriptions; the hook roots the controller.
         private readonly GestureController? _gestureController;
@@ -23,11 +24,20 @@ namespace WinPieGestures
         /// consults it to close for real instead of hiding to the tray.</summary>
         public static bool IsExiting { get; private set; }
 
+        /// <summary>The config service handed to gesture-side consumers; the app
+        /// layer drives Load on startup and Save on exit through it.</summary>
+        internal IConfigService Config => _config;
+
         public Composition()
         {
+            // Expand phase (ADR-0002): the single service instance still lives in
+            // the static ConfigManager facade until the settings window migrates
+            // off it; the composition root then takes it over directly.
+            _config = ConfigManager.ConfigService;
+
             _mouseHook = new MouseHook();
 
-            _gestureController = new GestureController(_mouseHook);
+            _gestureController = new GestureController(_mouseHook, _config);
         }
 
         /// <summary>Starts the mouse hook, creates the tray and the initial settings
