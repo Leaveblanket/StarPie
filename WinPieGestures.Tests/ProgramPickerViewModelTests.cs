@@ -27,6 +27,7 @@ public sealed class ProgramPickerViewModelTests
         }
 
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
+        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
 
         public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
         public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();

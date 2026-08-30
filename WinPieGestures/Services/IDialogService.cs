@@ -52,5 +52,8 @@ namespace WinPieGestures
 
         /// <summary>系统保存文件对话框（BCL 抽象一并入服务，保持边界完整）。返回 null 表示取消。</summary>
         FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null);
+
+        /// <summary>系统文件夹选择对话框（T12，OpenFolderDialog 同属 BCL 抽象）。返回 null 表示取消。</summary>
+        FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null);
     }
 }
