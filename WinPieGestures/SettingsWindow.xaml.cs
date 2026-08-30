@@ -19,23 +19,19 @@ using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using MessageBox = System.Windows.MessageBox;
-using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using Path = System.IO.Path;
 using Point = System.Windows.Point;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 using Size = System.Windows.Size;
 using TextBox = System.Windows.Controls.TextBox;
-using ToolStripMenuItem = System.Windows.Forms.ToolStripMenuItem;
-using ToolStripSeparator = System.Windows.Forms.ToolStripSeparator;
-using ToolTipIcon = System.Windows.Forms.ToolTipIcon;
 using DispatcherTimer = System.Windows.Threading.DispatcherTimer;
 
 namespace WinPieGestures
 {
     public partial class SettingsWindow : Window
     {
-        private NotifyIcon _notifyIcon;
+        private TrayIconManager? _trayIcon;
         private bool _isClosingFromTray = false;
         private WheelProfile? _selectedProfile;
         private readonly ObservableCollection<SlotViewModel> _slotViewModels = new ObservableCollection<SlotViewModel>();
@@ -222,100 +218,33 @@ namespace WinPieGestures
             };
         }
 
-        private ToolStripMenuItem? _pauseResumeMenuItem;
-
         private void InitializeTrayIcon()
         {
-            System.Drawing.Icon? trayIcon = null;
-            try
-            {
-                // Priority 1: Extract associated icon from current executable
-                string? exePath = Environment.ProcessPath;
-                if (string.IsNullOrEmpty(exePath))
-                {
-                    exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
-                }
-                if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
-                {
-                    trayIcon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
-                }
-            }
-            catch { }
-
-            if (trayIcon == null)
-            {
-                try
-                {
-                    // Priority 2: Load from WPF embedded resource stream
-                    var streamInfo = System.Windows.Application.GetResourceStream(new Uri("pack://application:,,,/app_icon.ico"));
-                    if (streamInfo != null)
-                    {
-                        using var stream = streamInfo.Stream;
-                        trayIcon = new System.Drawing.Icon(stream);
-                    }
-                }
-                catch { }
-            }
-
-            if (trayIcon == null)
-            {
-                try
-                {
-                    // Priority 3: Load from BaseDirectory
-                    string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app_icon.ico");
-                    if (File.Exists(iconPath))
-                    {
-                        trayIcon = new System.Drawing.Icon(iconPath);
-                    }
-                }
-                catch { }
-            }
-
-            if (trayIcon == null)
-            {
-                trayIcon = System.Drawing.SystemIcons.Application;
-            }
-
-            _notifyIcon = new NotifyIcon
-            {
-                Icon = trayIcon,
-                Visible = true,
-                Text = I18n.T("TrayTooltip")
-            };
-
-            // Double click opens settings
-            _notifyIcon.DoubleClick += (s, e) => ShowSettings(0);
-
-            BuildTrayContextMenu();
+            _trayIcon = new TrayIconManager(
+                onDoubleClick: () => ShowSettings(0),
+                menuProvider: BuildTrayMenuEntries);
+            _trayIcon.SetTooltip(I18n.T("TrayTooltip") + DevInstance.Suffix);
         }
 
-        private void BuildTrayContextMenu()
+        private List<TrayMenuEntry> BuildTrayMenuEntries()
         {
-            if (_notifyIcon == null) return;
-            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
-            
-            var titleItem = new ToolStripMenuItem("StarPie v1.4.1")
+            var entries = new List<TrayMenuEntry>
             {
-                Enabled = false,
-                Font = new System.Drawing.Font(System.Drawing.SystemFonts.DefaultFont, System.Drawing.FontStyle.Bold)
+                TrayMenuEntry.Header("StarPie v1.4.1" + DevInstance.Suffix),
+                TrayMenuEntry.Separator()
             };
-            contextMenu.Items.Add(titleItem);
-            contextMenu.Items.Add(new ToolStripSeparator());
 
             string pauseText = (App.MainMouseHook != null && App.MainMouseHook.IsPaused) ? I18n.T("TrayResume") : I18n.T("TrayPause");
-            _pauseResumeMenuItem = new ToolStripMenuItem(pauseText, null, (s, e) => TogglePauseGestures());
-            contextMenu.Items.Add(_pauseResumeMenuItem);
+            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayPreferences"), () => ShowSettings(0)));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAppearance"), () => ShowSettings(1)));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayGestures"), () => ShowSettings(2)));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAbout"), () => ShowSettings(4)));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayElevate"), () => ElevatePrivileges_Click(this, new RoutedEventArgs())));
+            entries.Add(TrayMenuEntry.Separator());
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayExit"), ExitApplication));
 
-            contextMenu.Items.Add(I18n.T("TrayPreferences"), null, (s, e) => ShowSettings(0));
-            contextMenu.Items.Add(I18n.T("TrayAppearance"), null, (s, e) => ShowSettings(1));
-            contextMenu.Items.Add(I18n.T("TrayGestures"), null, (s, e) => ShowSettings(2));
-            contextMenu.Items.Add(I18n.T("TrayAbout"), null, (s, e) => ShowSettings(4));
-            contextMenu.Items.Add(I18n.T("TrayElevate"), null, (s, e) => ElevatePrivileges_Click(s, new RoutedEventArgs()));
-            
-            contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add(I18n.T("TrayExit"), null, (s, e) => ExitApplication());
-
-            _notifyIcon.ContextMenuStrip = contextMenu;
+            return entries;
         }
 
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -332,7 +261,7 @@ namespace WinPieGestures
 
         public void ApplyLocalization()
         {
-            this.Title = I18n.T("WindowTitle");
+            this.Title = I18n.T("WindowTitle") + DevInstance.Suffix;
             if (SidebarSubtitleText != null) SidebarSubtitleText.Text = I18n.T("AppSubtitle");
 
             // Sidebar Tabs
@@ -415,8 +344,7 @@ namespace WinPieGestures
             if (ExportConfigButton != null) ExportConfigButton.Content = I18n.T("BtnExportConfig");
             if (ImportConfigButton != null) ImportConfigButton.Content = I18n.T("BtnImportConfig");
 
-            // Update Tray Menu
-            BuildTrayContextMenu();
+            // Tray menu labels refresh automatically (menu is rebuilt on every open)
         }
 
         private void TogglePauseGestures()
@@ -426,13 +354,11 @@ namespace WinPieGestures
 
             if (App.MainMouseHook.IsPaused)
             {
-                if (_pauseResumeMenuItem != null) _pauseResumeMenuItem.Text = I18n.T("TrayResume");
-                _notifyIcon.Text = $"StarPie ({I18n.T("TrayPause")})";
+                _trayIcon?.SetTooltip($"StarPie ({I18n.T("TrayPause")})");
             }
             else
             {
-                if (_pauseResumeMenuItem != null) _pauseResumeMenuItem.Text = I18n.T("TrayPause");
-                _notifyIcon.Text = I18n.T("TrayTooltip");
+                _trayIcon?.SetTooltip(I18n.T("TrayTooltip") + DevInstance.Suffix);
             }
         }
 
@@ -639,8 +565,8 @@ namespace WinPieGestures
                 SyncUiToConfigAndSave(true);
             }
             catch { }
-            _notifyIcon.Visible = false;
-            _notifyIcon.Dispose();
+            _trayIcon?.Dispose();
+            _trayIcon = null;
             Application.Current.Shutdown();
         }
 
@@ -663,12 +589,9 @@ namespace WinPieGestures
                 };
                 this.BeginAnimation(Window.OpacityProperty, anim);
 
-                _notifyIcon.ShowBalloonTip(
-                    2000, 
-                    "WinPieGestures", 
-                    "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。", 
-                    ToolTipIcon.Info
-                );
+                _trayIcon?.ShowBalloonTip(
+                    "WinPieGestures",
+                    "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
             }
         }
 
