@@ -20,6 +20,12 @@ public sealed class TestDialogService : IDialogService
     /// <summary>ShowFolderDialog 的预设返回值。</summary>
     public FilePickResult? FolderToPick { get; set; }
 
+    /// <summary>ShowOpenFileDialog 的预设返回值。</summary>
+    public FilePickResult? OpenFileToPick { get; set; }
+
+    /// <summary>ShowSaveFileDialog 的预设返回值。</summary>
+    public FilePickResult? SaveFileToPick { get; set; }
+
     public int ProgramPickerCallCount { get; private set; }
 
     /// <summary>每次 ShowIconPicker 收到的 currentIconKey 实参。</summary>
@@ -27,6 +33,12 @@ public sealed class TestDialogService : IDialogService
 
     /// <summary>每次 ShowFolderDialog 收到的 initialDirectory 实参。</summary>
     public List<string?> FolderDialogInitialDirectories { get; } = new();
+
+    /// <summary>每次 ShowOpenFileDialog 收到的 (filter, title) 实参。</summary>
+    public List<(string Filter, string? Title)> OpenFileDialogCalls { get; } = new();
+
+    /// <summary>每次 ShowSaveFileDialog 收到的 (filter, fileName, title) 实参。</summary>
+    public List<(string Filter, string? FileName, string? Title)> SaveFileDialogCalls { get; } = new();
 
     public ProgramPickResult? ShowProgramPicker()
     {
@@ -54,10 +66,16 @@ public sealed class TestDialogService : IDialogService
         => throw new NotSupportedException("本测试场景不涉及屏上取色。");
 
     public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
-        => throw new NotSupportedException("本测试场景不涉及文件打开对话框。");
+    {
+        OpenFileDialogCalls.Add((filter, title));
+        return OpenFileToPick;
+    }
 
     public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null)
-        => throw new NotSupportedException("本测试场景不涉及文件保存对话框。");
+    {
+        SaveFileDialogCalls.Add((filter, fileName, title));
+        return SaveFileToPick;
+    }
 
     public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null)
     {

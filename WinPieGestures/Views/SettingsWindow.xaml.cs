@@ -28,11 +28,13 @@ namespace WinPieGestures
     public partial class SettingsWindow : Window
     {
         private readonly IThemeService _themeService;
-        private readonly Action _exitApplication;
-        private readonly Action<string, string> _showTrayBalloonTip;
         private readonly IDialogService _dialogs;
         // 配置方案分区列表侧 ViewModel (T11)：方案列表/选中态、扇区数、方向槽位集合。
         private readonly ProfileListViewModel _profileList;
+        // 手势行为分区 ViewModel (T13)：触发阈值、场景隔离、外圈逃逸、进程黑名单。
+        private readonly BehaviorSettingsViewModel _behavior;
+        // 通用分区 ViewModel (T13)：语言、开机自启、提权/退出、托盘提示、导入导出。
+        private readonly GeneralSettingsViewModel _general;
 
         // Re-entrancy guards (Initial state is true to prevent XAML initialization from overwriting saved config)
         private bool _isUpdatingUi = true;
@@ -58,9 +60,37 @@ namespace WinPieGestures
         {
             InitializeComponent();
             _themeService = themeService;
-            _exitApplication = exitApplication;
-            _showTrayBalloonTip = showTrayBalloonTip;
             _dialogs = dialogs;
+
+            // T13：行为/通用分区编排进 ViewModel（ADR-0001）；注册表与配置导入/导出仍是
+            // ConfigManager 静态方法——经委托包装保持调用点不变（transitional）。
+            _behavior = new BehaviorSettingsViewModel(ConfigManager.CurrentConfig, dialogs);
+            _behavior.SaveRequested += () => SyncUiToConfigAndSave(true);
+            _behavior.SaveDebounceRequested += ScheduleAutoSave;
+            _behavior.BlacklistEntryAdded += proc =>
+            {
+                if (BlacklistListBox != null)
+                {
+                    BlacklistListBox.SelectedItem = proc;
+                    BlacklistListBox.ScrollIntoView(proc);
+                }
+            };
+
+            _general = new GeneralSettingsViewModel(
+                ConfigManager.CurrentConfig,
+                dialogs,
+                showTrayBalloonTip,
+                exitApplication,
+                isAutoStartEnabled: () => ConfigManager.IsAutoStartEnabled(),
+                setAutoStart: enable => ConfigManager.SetAutoStart(enable),
+                exportConfig: path => ConfigManager.ExportConfig(path),
+                importConfig: path => ConfigManager.ImportConfig(path));
+            _general.SaveRequested += () => SyncUiToConfigAndSave(true);
+            _general.ConfigImported += ReloadAfterConfigImport;
+            _general.NoticeRequested += ShowNotice;
+
+            // ADR-0002：I18n 语言切换广播——语言切换后经此刷新全部界面文本。
+            I18n.LanguageChanged += ApplyLocalization;
 
             _isUpdatingUi = true;
             try
@@ -70,8 +100,10 @@ namespace WinPieGestures
                 // 槽位动作编辑提交（T12 文件夹选择写回）后同步 UI 状态并落盘——对应迁移前 BrowseFolder_Click 的调用点。
                 _profileList.SlotEditCommitted += () => SyncUiToConfigAndSave(true);
                 ProfilesListBox.ItemsSource = _profileList.Profiles;
-                ThresholdSlider.Value = ConfigManager.CurrentConfig.DragThreshold;
-                ThresholdValueLabel.Text = ConfigManager.CurrentConfig.DragThreshold.ToString("0");
+
+                // T13：行为分区控件初值从 ViewModel 读取（状态已由 VM 承载）。
+                ThresholdSlider.Value = _behavior.DragThreshold;
+                ThresholdValueLabel.Text = _behavior.DragThreshold.ToString("0");
 
                 // Load App Interface Theme
                 SetComboBoxSelectedValue(AppThemeComboBox, ConfigManager.CurrentConfig.AppTheme ?? "System");
@@ -134,24 +166,25 @@ namespace WinPieGestures
                 UpdateCoreIconPreviewUI();
 
                 // Load Scene Isolation settings
-                DisableOnFullScreenCheckBox.IsChecked = ConfigManager.CurrentConfig.DisableOnFullScreen;
-                CtrlModifierCheckBox.IsChecked = ConfigManager.CurrentConfig.DisableOnCtrl;
-                ShiftModifierCheckBox.IsChecked = ConfigManager.CurrentConfig.DisableOnShift;
-                AltModifierCheckBox.IsChecked = ConfigManager.CurrentConfig.DisableOnAlt;
+                DisableOnFullScreenCheckBox.IsChecked = _behavior.DisableOnFullScreen;
+                CtrlModifierCheckBox.IsChecked = _behavior.DisableOnCtrl;
+                ShiftModifierCheckBox.IsChecked = _behavior.DisableOnShift;
+                AltModifierCheckBox.IsChecked = _behavior.DisableOnAlt;
 
-                if (ConfigManager.CurrentConfig.BlacklistedProcesses != null)
-                {
-                    foreach (var proc in ConfigManager.CurrentConfig.BlacklistedProcesses)
-                    {
-                        BlacklistListBox.Items.Add(proc);
-                    }
-                }
+                // T13：黑名单列表源换由 BehaviorSettingsViewModel 承载（导入后经 VM Reload 重建）。
+                BlacklistListBox.ItemsSource = _behavior.BlacklistProcesses;
+
+                // 外圈逃逸：初值同步自 VM（迁移前构造漏设，开关初始显示与配置脱节——与 T11
+                // 修正选中态滞留同思路，同步后手势链路读取的配置值不变）。
+                EnableOuterEscapeCheckBox.IsChecked = _behavior.EnableOuterEscapeCancel;
+                OuterEscapeDistanceSlider.Value = _behavior.OuterEscapeDistance;
+                OuterEscapeDistanceLabel.Text = $"{Math.Round(_behavior.OuterEscapeDistance):0} px";
 
                 // Auto-start setting
-                AutoStartCheckBox.IsChecked = ConfigManager.IsAutoStartEnabled();
+                AutoStartCheckBox.IsChecked = _general.AutoStartEnabled;
 
                 // Initialize Language setting
-                SetComboBoxSelectedValue(LanguageComboBox, ConfigManager.CurrentConfig.Language ?? "Auto");
+                SetComboBoxSelectedValue(LanguageComboBox, _general.LanguageCode);
                 ApplyLocalization();
 
                 // Initialize color preview borders
@@ -191,12 +224,11 @@ namespace WinPieGestures
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isUpdatingUi) return;
+            // T13：语言切换编排（写配置、I18n.SetLanguage 触发广播）进 GeneralSettingsViewModel；
+            // 文本刷新由窗口订阅的 I18n.LanguageChanged → ApplyLocalization 完成。
             if (LanguageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string langCode)
             {
-                ConfigManager.CurrentConfig.Language = langCode;
-                I18n.SetLanguage(langCode);
-                ApplyLocalization();
-                ConfigManager.SaveConfig();
+                _general.ApplyLanguage(langCode);
             }
         }
 
@@ -456,18 +488,14 @@ namespace WinPieGestures
                 if (SectorCornerRadiusSlider != null) ConfigManager.CurrentConfig.SectorCornerRadius = SectorCornerRadiusSlider.Value;
                 if (SectorIconSizeSlider != null) ConfigManager.CurrentConfig.SectorIconSize = SectorIconSizeSlider.Value;
                 if (SectorFontSizeSlider != null) ConfigManager.CurrentConfig.SectorFontSize = SectorFontSizeSlider.Value;
-                if (ThresholdSlider != null) ConfigManager.CurrentConfig.DragThreshold = ThresholdSlider.Value;
+                // T13：行为分区（阈值、全屏禁用、修饰键旁路）由 BehaviorSettingsViewModel live-apply
+                // 即时写回运行态配置，此处不再重复同步。
 
                 if (CustomSectorBgTextBox != null) ConfigManager.CurrentConfig.CustomSectorBg = CustomSectorBgTextBox.Text.Trim();
                 if (CustomSectorBorderTextBox != null) ConfigManager.CurrentConfig.CustomSectorBorder = CustomSectorBorderTextBox.Text.Trim();
                 if (CustomHighlightBgTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBg = CustomHighlightBgTextBox.Text.Trim();
                 if (CustomHighlightBorderTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBorder = CustomHighlightBorderTextBox.Text.Trim();
                 if (CustomTextTextBox != null) ConfigManager.CurrentConfig.CustomText = CustomTextTextBox.Text.Trim();
-
-                if (DisableOnFullScreenCheckBox != null) ConfigManager.CurrentConfig.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
-                if (CtrlModifierCheckBox != null) ConfigManager.CurrentConfig.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
-                if (ShiftModifierCheckBox != null) ConfigManager.CurrentConfig.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
-                if (AltModifierCheckBox != null) ConfigManager.CurrentConfig.DisableOnAlt = AltModifierCheckBox.IsChecked == true;
 
                 if (saveToDisk)
                 {
@@ -507,9 +535,8 @@ namespace WinPieGestures
             };
             this.BeginAnimation(Window.OpacityProperty, anim);
 
-            _showTrayBalloonTip(
-                "WinPieGestures",
-                "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
+            // T13：托盘驻留气泡提示编排进 GeneralSettingsViewModel（经组合根已有委托传递）。
+            _general.NotifyMinimizedToTray();
         }
 
         private void ProfilesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -699,12 +726,13 @@ namespace WinPieGestures
 
         private void ThresholdSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (ThresholdValueLabel != null && ConfigManager.CurrentConfig != null)
+            if (ThresholdValueLabel != null)
             {
                 ThresholdValueLabel.Text = e.NewValue.ToString("0");
-                ConfigManager.CurrentConfig.DragThreshold = e.NewValue;
-                ScheduleAutoSave();
             }
+            // T13：阈值 live-apply 编排进 VM（写回运行态配置 + 防抖落盘请求）。
+            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            _behavior.DragThreshold = e.NewValue;
         }
 
         private void UiStyleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -821,30 +849,29 @@ namespace WinPieGestures
 
         private void OuterEscapeCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            if (ConfigManager.CurrentConfig == null) return;
-            ConfigManager.CurrentConfig.EnableOuterEscapeCancel = true;
+            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            // T13：外圈逃逸开关编排进 VM（live-apply 写回配置）；面板可见性是 View 层效果。
             if (OuterEscapeDistancePanel != null) OuterEscapeDistancePanel.Visibility = Visibility.Visible;
-            SyncUiToConfigAndSave(true);
+            _behavior.EnableOuterEscapeCancel = true;
         }
 
         private void OuterEscapeCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (ConfigManager.CurrentConfig == null) return;
-            ConfigManager.CurrentConfig.EnableOuterEscapeCancel = false;
+            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
             if (OuterEscapeDistancePanel != null) OuterEscapeDistancePanel.Visibility = Visibility.Collapsed;
-            SyncUiToConfigAndSave(true);
+            _behavior.EnableOuterEscapeCancel = false;
         }
 
         private void OuterEscapeDistanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
             double val = Math.Round(e.NewValue);
-            ConfigManager.CurrentConfig.OuterEscapeDistance = val;
             if (OuterEscapeDistanceLabel != null)
             {
                 OuterEscapeDistanceLabel.Text = $"{val:0} px";
             }
-            SyncUiToConfigAndSave(true);
+            // T13：外甩距离编排进 VM（写回运行态配置前取整 + 立即落盘请求）。
+            _behavior.OuterEscapeDistance = e.NewValue;
         }
 
         private void RenameCustomColorPresetButton_Click(object sender, RoutedEventArgs e)
@@ -1543,143 +1570,80 @@ namespace WinPieGestures
         private void DisableOnFullScreenCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-            ConfigManager.CurrentConfig.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
-            SyncUiToConfigAndSave(true);
+            // T13：全屏禁用编排进 VM（live-apply + 落盘请求）。
+            _behavior.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
         }
 
         private void ModifierCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-            ConfigManager.CurrentConfig.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
-            ConfigManager.CurrentConfig.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
-            ConfigManager.CurrentConfig.DisableOnAlt = AltModifierCheckBox.IsChecked == true;
-            SyncUiToConfigAndSave(true);
+            // T13：修饰键旁路编排进 VM（live-apply + 落盘请求）。
+            _behavior.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
+            _behavior.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
+            _behavior.DisableOnAlt = AltModifierCheckBox.IsChecked == true;
+        }
+
+        /// <summary>把输入框文本与 VM 同步后执行黑名单命令，再按 VM 状态回写输入框：
+        /// 成功添加新项后 VM 清空输入文本（对应迁移前 NewBlacklistProcessTextBox.Clear()）；
+        /// 取消选择或重复项时 VM 文本不变，输入框保留用户输入——与迁移前一致。</summary>
+        private void RunBlacklistCommand(CommunityToolkit.Mvvm.Input.IRelayCommand command)
+        {
+            _behavior.NewBlacklistProcess = NewBlacklistProcessTextBox.Text;
+            command.Execute(null);
+            NewBlacklistProcessTextBox.Text = _behavior.NewBlacklistProcess;
         }
 
         private void BrowseBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                var picked = _dialogs.ShowProgramPicker();
-                if (picked != null)
-                {
-                    string fileName = System.IO.Path.GetFileName(picked.Path).ToLower();
-                    AddBlacklistProcess(fileName);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[BrowseBlacklistButton_Click Error]: {ex}");
-            }
+            RunBlacklistCommand(_behavior.BrowseBlacklistCommand);
         }
 
         private void AddBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            string proc = NewBlacklistProcessTextBox.Text.Trim().ToLower();
-            if (string.IsNullOrEmpty(proc))
-            {
-                // If empty, open ProgramPickerWindow to let user pick directly!
-                BrowseBlacklistButton_Click(sender, e);
-                return;
-            }
-
-            AddBlacklistProcess(proc);
+            RunBlacklistCommand(_behavior.AddBlacklistFromInputCommand);
         }
 
         private void NewBlacklistProcessTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Enter)
             {
-                AddBlacklistButton_Click(sender, e);
+                RunBlacklistCommand(_behavior.AddBlacklistFromInputCommand);
                 e.Handled = true;
             }
+        }
+
+        private void BlacklistListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // 列表选中态与 VM 双向同步（AddBlacklistProcess 经 BlacklistEntryAdded 回设选中为同值，无循环）。
+            _behavior.SelectedBlacklistProcess = BlacklistListBox.SelectedItem as string;
         }
 
         private void BlacklistListBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Delete || e.Key == System.Windows.Input.Key.Back)
             {
-                DeleteBlacklistButton_Click(sender, e);
+                _behavior.DeleteBlacklistProcessCommand.Execute(null);
                 e.Handled = true;
-            }
-        }
-
-        private void AddBlacklistProcess(string proc)
-        {
-            if (string.IsNullOrWhiteSpace(proc)) return;
-            proc = proc.Trim().ToLower();
-            if (!proc.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-            {
-                proc += ".exe";
-            }
-
-            if (!BlacklistListBox.Items.Contains(proc))
-            {
-                BlacklistListBox.Items.Add(proc);
-                BlacklistListBox.SelectedItem = proc;
-                BlacklistListBox.ScrollIntoView(proc);
-
-                if (ConfigManager.CurrentConfig.BlacklistedProcesses == null)
-                {
-                    ConfigManager.CurrentConfig.BlacklistedProcesses = new List<string>();
-                }
-                if (!ConfigManager.CurrentConfig.BlacklistedProcesses.Contains(proc))
-                {
-                    ConfigManager.CurrentConfig.BlacklistedProcesses.Add(proc);
-                }
-                NewBlacklistProcessTextBox.Clear();
-                SyncUiToConfigAndSave(true);
-            }
-            else
-            {
-                BlacklistListBox.SelectedItem = proc;
-                BlacklistListBox.ScrollIntoView(proc);
             }
         }
 
         private void DeleteBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            var selected = BlacklistListBox.SelectedItem?.ToString();
-            if (string.IsNullOrEmpty(selected) && BlacklistListBox.Items.Count > 0)
-            {
-                selected = BlacklistListBox.Items[BlacklistListBox.Items.Count - 1]?.ToString();
-            }
-
-            if (!string.IsNullOrEmpty(selected))
-            {
-                BlacklistListBox.Items.Remove(selected);
-                ConfigManager.CurrentConfig.BlacklistedProcesses?.Remove(selected);
-                SyncUiToConfigAndSave(true);
-            }
+            _behavior.DeleteBlacklistProcessCommand.Execute(null);
         }
 
         private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            bool enable = AutoStartCheckBox.IsChecked == true;
-            ConfigManager.SetAutoStart(enable);
-            SyncUiToConfigAndSave(true);
+            if (_isUpdatingUi) return;
+            // T13：开机自启编排进 VM（注册表读写经注入委托保持 ConfigManager 调用点）。
+            _general.SetAutoStart(AutoStartCheckBox.IsChecked == true);
         }
 
         /// <summary>Relaunches elevated, then exits through the composition root. Also used by the tray menu.</summary>
         public void ElevateAndRestart()
         {
-            try
-            {
-                string exePath = Environment.ProcessPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WinPieGestures.exe");
-                var startInfo = new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    UseShellExecute = true,
-                    Verb = "runas"
-                };
-
-                Process.Start(startInfo);
-                _exitApplication();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"提权重启失败或已取消: {ex.Message}", "管理员提权", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            // T13：提权重启编排进 GeneralSettingsViewModel；保留窗口方法供组合根托盘菜单调用。
+            _general.ElevateAndRestart();
         }
 
         private void ElevatePrivileges_Click(object sender, RoutedEventArgs e)
@@ -1689,81 +1653,78 @@ namespace WinPieGestures
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var picked = _dialogs.ShowSaveFileDialog(
-                "JSON 配置文件 (*.json)|*.json",
-                $"WinPieGestures_Config_Backup_{DateTime.Now:yyyyMMdd}.json",
-                "导出配置文件");
-
-            if (picked != null)
-            {
-                bool success = ConfigManager.ExportConfig(picked.Path);
-                if (success)
-                {
-                    MessageBox.Show("配置导出成功！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show("配置导出失败，请检查写入权限。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
+            _general.ExportConfigCommand.Execute(null);
         }
 
         private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            var picked = _dialogs.ShowOpenFileDialog("JSON 配置文件 (*.json)|*.json", "选择要导入的配置文件");
+            _general.ImportConfigCommand.Execute(null);
+        }
 
-            if (picked != null)
+        private void ShowNotice(GeneralSettingsViewModel.NoticeRequest notice)
+        {
+            var image = notice.Kind switch
             {
-                bool success = ConfigManager.ImportConfig(picked.Path);
-                if (success)
+                GeneralSettingsViewModel.NoticeKind.Error => MessageBoxImage.Error,
+                GeneralSettingsViewModel.NoticeKind.Warning => MessageBoxImage.Warning,
+                _ => MessageBoxImage.Information
+            };
+            MessageBox.Show(notice.Message, notice.Title, MessageBoxButton.OK, image);
+        }
+
+        /// <summary>配置导入成功后重载各分区 UI（运行态配置实例已被替换；T13 起行为分区一并经 VM 重挂）。</summary>
+        private void ReloadAfterConfigImport()
+        {
+            // Reload controls
+            _isUpdatingUi = true;
+            try
+            {
+                // T11：列表源换由 ProfileListViewModel 重建（迁移前为整表重挂 ItemsSource + Items.Refresh）。
+                _profileList.Reload(ConfigManager.CurrentConfig.Profiles);
+                if (_profileList.Profiles.Count > 0)
                 {
-                    MessageBox.Show("配置导入成功！正在应用新设置...", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-                    
-                    // Reload controls
-                    _isUpdatingUi = true;
-                    try
-                    {
-                        // T11：列表源换由 ProfileListViewModel 重建（迁移前为整表重挂 ItemsSource + Items.Refresh）。
-                        _profileList.Reload(ConfigManager.CurrentConfig.Profiles);
-                        if (_profileList.Profiles.Count > 0)
-                        {
-                            ProfilesListBox.SelectedIndex = 0;
-                            // 迁移前 _selectedProfile 在导入后滞留旧配置对象（选中态与列表脱节）；
-                            // 现显式选中第一个方案，使扇区数、槽位与预览和导入内容一致。
-                            _profileList.SelectProfile(_profileList.Profiles[0]);
-                            UpdateSectorCountRadios();
-                        }
-
-                        ThresholdSlider.Value = ConfigManager.CurrentConfig.DragThreshold;
-                        SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
-                        SetComboBoxSelectedValue(UiStyleComboBox, ConfigManager.CurrentConfig.UiStyle);
-                        SetComboBoxSelectedValue(ShapeComboBox, ConfigManager.CurrentConfig.Shape);
-                        SetComboBoxSelectedValue(IconLayoutModeComboBox, ConfigManager.CurrentConfig.IconLayoutMode);
-
-                        WheelRadiusSlider.Value = ConfigManager.CurrentConfig.WheelRadius;
-                        InnerRadiusSlider.Value = ConfigManager.CurrentConfig.InnerRadius;
-                        CoreRadiusSlider.Value = ConfigManager.CurrentConfig.CoreRadius;
-                        SectorGapSlider.Value = ConfigManager.CurrentConfig.SectorGap;
-                        SectorCornerRadiusSlider.Value = ConfigManager.CurrentConfig.SectorCornerRadius;
-                        SectorIconSizeSlider.Value = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
-                        SectorIconSizeLabel.Text = $"{SectorIconSizeSlider.Value:0} px";
-                        SectorFontSizeSlider.Value = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
-                        SectorFontSizeLabel.Text = $"{SectorFontSizeSlider.Value:0.0} px";
-
-                        ShowTextCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowText;
-                    }
-                    finally
-                    {
-                        _isUpdatingUi = false;
-                    }
-
-                    RenderLiveWheelPreview();
+                    ProfilesListBox.SelectedIndex = 0;
+                    // 迁移前 _selectedProfile 在导入后滞留旧配置对象（选中态与列表脱节）；
+                    // 现显式选中第一个方案，使扇区数、槽位与预览和导入内容一致。
+                    _profileList.SelectProfile(_profileList.Profiles[0]);
+                    UpdateSectorCountRadios();
                 }
-                else
-                {
-                    MessageBox.Show("导入失败：文件格式不匹配或已损坏。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+
+                // T13：行为分区经 VM 重挂新配置实例，控件同步实际导入值。
+                _behavior.Reload(ConfigManager.CurrentConfig);
+                ThresholdSlider.Value = _behavior.DragThreshold;
+                ThresholdValueLabel.Text = _behavior.DragThreshold.ToString("0");
+                DisableOnFullScreenCheckBox.IsChecked = _behavior.DisableOnFullScreen;
+                CtrlModifierCheckBox.IsChecked = _behavior.DisableOnCtrl;
+                ShiftModifierCheckBox.IsChecked = _behavior.DisableOnShift;
+                AltModifierCheckBox.IsChecked = _behavior.DisableOnAlt;
+                EnableOuterEscapeCheckBox.IsChecked = _behavior.EnableOuterEscapeCancel;
+                OuterEscapeDistanceSlider.Value = _behavior.OuterEscapeDistance;
+                OuterEscapeDistanceLabel.Text = $"{Math.Round(_behavior.OuterEscapeDistance):0} px";
+
+                SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
+                SetComboBoxSelectedValue(UiStyleComboBox, ConfigManager.CurrentConfig.UiStyle);
+                SetComboBoxSelectedValue(ShapeComboBox, ConfigManager.CurrentConfig.Shape);
+                SetComboBoxSelectedValue(IconLayoutModeComboBox, ConfigManager.CurrentConfig.IconLayoutMode);
+
+                WheelRadiusSlider.Value = ConfigManager.CurrentConfig.WheelRadius;
+                InnerRadiusSlider.Value = ConfigManager.CurrentConfig.InnerRadius;
+                CoreRadiusSlider.Value = ConfigManager.CurrentConfig.CoreRadius;
+                SectorGapSlider.Value = ConfigManager.CurrentConfig.SectorGap;
+                SectorCornerRadiusSlider.Value = ConfigManager.CurrentConfig.SectorCornerRadius;
+                SectorIconSizeSlider.Value = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
+                SectorIconSizeLabel.Text = $"{SectorIconSizeSlider.Value:0} px";
+                SectorFontSizeSlider.Value = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
+                SectorFontSizeLabel.Text = $"{SectorFontSizeSlider.Value:0.0} px";
+
+                ShowTextCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowText;
             }
+            finally
+            {
+                _isUpdatingUi = false;
+            }
+
+            RenderLiveWheelPreview();
         }
 
         private void TrimMemoryButton_Click(object sender, RoutedEventArgs e)
