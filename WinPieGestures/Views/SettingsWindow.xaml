@@ -751,7 +751,7 @@
                                                 Click="AddBlacklistButton_Click" ToolTip="将输入框中的进程名称加入排除黑名单"/>
                                     </Grid>
 
-                                    <ListBox x:Name="BlacklistListBox" Height="110" Margin="0,0,0,8" KeyDown="BlacklistListBox_KeyDown" SelectionChanged="BlacklistListBox_SelectionChanged"/>
+                                    <ListBox x:Name="BlacklistListBox" Height="110" Margin="0,0,0,8" ItemsSource="{Binding Behavior.BlacklistProcesses}" KeyDown="BlacklistListBox_KeyDown" SelectionChanged="BlacklistListBox_SelectionChanged"/>
                                     <Button x:Name="DeleteBlacklistButton" Content="🗑️ 移除选中的进程" Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Right" Height="30" Padding="12,0" Click="DeleteBlacklistButton_Click"/>
                                 </StackPanel>
                             </Border>
@@ -760,7 +760,7 @@
                 </Grid>
 
                 <!-- ================= PAGE 1: APPEARANCE & LIVE CANVAS ================= -->
-                <Grid x:Name="AppearanceSettingsGrid" Visibility="Collapsed">
+                <Grid x:Name="AppearanceSettingsGrid" Visibility="Collapsed" DataContext="{Binding Appearance}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -1241,7 +1241,7 @@
                                     <StackPanel>
                                         <TextBlock x:Name="ProfileCardTitleText" Text="当前配置方案 (Profile)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <TextBlock x:Name="ProfileCardDescText" Text="选择或新建针对特定程序（如 Chrome、VS Code）或特定工作流的轮盘配置方案（支持双击重命名）。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,10"/>
-                                        <ListBox x:Name="ProfilesListBox" Height="100" SelectionChanged="ProfilesListBox_SelectionChanged" MouseDoubleClick="ProfilesListBox_MouseDoubleClick" DisplayMemberPath="ProcessName"/>
+                                        <ListBox x:Name="ProfilesListBox" Height="100" ItemsSource="{Binding ProfileList.Profiles}" SelectionChanged="ProfilesListBox_SelectionChanged" MouseDoubleClick="ProfilesListBox_MouseDoubleClick" DisplayMemberPath="ProcessName"/>
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
                                         <Button x:Name="AddProfileButton" Content="➕ 新增专属程序配置" Style="{StaticResource PrimaryButtonStyle}" Height="30" Margin="0,0,0,5" Click="AddProfileButton_Click" ToolTip="从已安装软件或开始菜单中选择程序创建专属配置"/>
@@ -1277,7 +1277,7 @@
                                     <TextBlock x:Name="SectorActionListTitleText" Text="扇区动作映射列表" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <TextBlock x:Name="SectorActionListDescText" Text="为每个方位指定触发动作与图标。支持热键组合（如 Ctrl+C）、启动本地程序与系统级操作。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,14"/>
                                     
-                                    <ItemsControl x:Name="SlotsItemsControl">
+                                    <ItemsControl x:Name="SlotsItemsControl" ItemsSource="{Binding ProfileList.Slots}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Border Background="{DynamicResource SubtleCardBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
