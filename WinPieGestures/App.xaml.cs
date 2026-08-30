@@ -10,6 +10,7 @@ namespace WinPieGestures
     public partial class App : System.Windows.Application
     {
         private static Mutex? _singleInstanceMutex;
+        private Composition? _composition;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
@@ -22,9 +23,6 @@ namespace WinPieGestures
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         private const int SW_RESTORE = 9;
-
-        public static MouseHook? MainMouseHook { get; private set; }
-        private GestureController? _gestureController;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -76,12 +74,10 @@ namespace WinPieGestures
                 // Initialize configuration
                 ConfigManager.LoadConfig();
 
-                // Initialize mouse hook
-                MainMouseHook = new MouseHook();
-                MainMouseHook.Start();
-
-                // Initialize gesture controller
-                _gestureController = new GestureController(MainMouseHook);
+                // Manual composition root: assemble services and create the initial
+                // settings window explicitly (no StartupUri — see ADR-0003)
+                _composition = new Composition();
+                _composition.Run();
 
                 // Initial memory optimization after startup
                 MemoryOptimizer.TrimMemory(true);
@@ -115,8 +111,9 @@ namespace WinPieGestures
             }
             catch { }
 
-            // Unregister mouse hook on exit
-            MainMouseHook?.Stop();
+            // Tray and mouse hook lifecycle belong to the app layer (ADR-0003)
+            _composition?.Dispose();
+            _composition = null;
 
             if (_singleInstanceMutex != null)
             {

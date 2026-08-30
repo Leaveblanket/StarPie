@@ -1,8 +1,9 @@
 <Application x:Class="WinPieGestures.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:WinPieGestures"
-             StartupUri="Views/SettingsWindow.xaml">
+             xmlns:local="clr-namespace:WinPieGestures">
+    <!-- No StartupUri: the initial settings window is created by the composition root
+         (Composition.Run) so constructor-injected services are wired first. ADR-0003. -->
     <Application.Resources>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF"/>

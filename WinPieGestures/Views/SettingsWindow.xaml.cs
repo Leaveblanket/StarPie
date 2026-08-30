@@ -31,8 +31,8 @@ namespace WinPieGestures
 {
     public partial class SettingsWindow : Window
     {
-        private TrayIconManager? _trayIcon;
-        private bool _isClosingFromTray = false;
+        private readonly Action _exitApplication;
+        private readonly Action<string, string> _showTrayBalloonTip;
         private WheelProfile? _selectedProfile;
         private readonly ObservableCollection<SlotViewModel> _slotViewModels = new ObservableCollection<SlotViewModel>();
 
@@ -89,10 +89,11 @@ namespace WinPieGestures
             new ActionItem { Type = "System", Name = "任务管理器 (TaskMgr)", Parameter = "TaskManager", IconKey = "TaskManager" }
         };
 
-        public SettingsWindow()
+        public SettingsWindow(Action exitApplication, Action<string, string> showTrayBalloonTip)
         {
             InitializeComponent();
-            InitializeTrayIcon();
+            _exitApplication = exitApplication;
+            _showTrayBalloonTip = showTrayBalloonTip;
 
             _isUpdatingUi = true;
             try
@@ -218,35 +219,6 @@ namespace WinPieGestures
             };
         }
 
-        private void InitializeTrayIcon()
-        {
-            _trayIcon = new TrayIconManager(
-                onDoubleClick: () => ShowSettings(0),
-                menuProvider: BuildTrayMenuEntries);
-            _trayIcon.SetTooltip(I18n.T("TrayTooltip") + DevInstance.Suffix);
-        }
-
-        private List<TrayMenuEntry> BuildTrayMenuEntries()
-        {
-            var entries = new List<TrayMenuEntry>
-            {
-                TrayMenuEntry.Header("StarPie v1.4.1" + DevInstance.Suffix),
-                TrayMenuEntry.Separator()
-            };
-
-            string pauseText = (App.MainMouseHook != null && App.MainMouseHook.IsPaused) ? I18n.T("TrayResume") : I18n.T("TrayPause");
-            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayPreferences"), () => ShowSettings(0)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAppearance"), () => ShowSettings(1)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayGestures"), () => ShowSettings(2)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAbout"), () => ShowSettings(4)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayElevate"), () => ElevatePrivileges_Click(this, new RoutedEventArgs())));
-            entries.Add(TrayMenuEntry.Separator());
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayExit"), ExitApplication));
-
-            return entries;
-        }
-
         private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (_isUpdatingUi) return;
@@ -345,21 +317,6 @@ namespace WinPieGestures
             if (ImportConfigButton != null) ImportConfigButton.Content = I18n.T("BtnImportConfig");
 
             // Tray menu labels refresh automatically (menu is rebuilt on every open)
-        }
-
-        private void TogglePauseGestures()
-        {
-            if (App.MainMouseHook == null) return;
-            App.MainMouseHook.IsPaused = !App.MainMouseHook.IsPaused;
-
-            if (App.MainMouseHook.IsPaused)
-            {
-                _trayIcon?.SetTooltip($"StarPie ({I18n.T("TrayPause")})");
-            }
-            else
-            {
-                _trayIcon?.SetTooltip(I18n.T("TrayTooltip") + DevInstance.Suffix);
-            }
         }
 
         public void ShowSettings(int tabIndex = 0)
@@ -557,42 +514,36 @@ namespace WinPieGestures
             }
         }
 
-        private void ExitApplication()
+        /// <summary>Persists in-progress UI edits to config; called by the composition root before an app-level exit.</summary>
+        public void SavePendingChanges()
         {
-            _isClosingFromTray = true;
-            try
-            {
-                SyncUiToConfigAndSave(true);
-            }
-            catch { }
-            _trayIcon?.Dispose();
-            _trayIcon = null;
-            Application.Current.Shutdown();
+            SyncUiToConfigAndSave(true);
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
+            // App-level exit (ADR-0003): pending edits were already flushed by the
+            // composition root — allow the close. Any other close hides to the tray.
+            if (Composition.IsExiting) return;
+
             SyncUiToConfigAndSave(true);
             MemoryOptimizer.TrimMemory();
 
-            if (!_isClosingFromTray)
-            {
-                e.Cancel = true;
-                
-                // Fade out before hiding
-                var anim = new DoubleAnimation(1.0, 0.0, new Duration(TimeSpan.FromMilliseconds(120)));
-                anim.Completed += (s, ev) =>
-                {
-                    this.Hide();
-                    this.Opacity = 1.0;
-                    MemoryOptimizer.TrimMemory();
-                };
-                this.BeginAnimation(Window.OpacityProperty, anim);
+            e.Cancel = true;
 
-                _trayIcon?.ShowBalloonTip(
-                    "WinPieGestures",
-                    "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
-            }
+            // Fade out before hiding
+            var anim = new DoubleAnimation(1.0, 0.0, new Duration(TimeSpan.FromMilliseconds(120)));
+            anim.Completed += (s, ev) =>
+            {
+                this.Hide();
+                this.Opacity = 1.0;
+                MemoryOptimizer.TrimMemory();
+            };
+            this.BeginAnimation(Window.OpacityProperty, anim);
+
+            _showTrayBalloonTip(
+                "WinPieGestures",
+                "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
         }
 
         private void ProfilesListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1822,7 +1773,8 @@ namespace WinPieGestures
             SyncUiToConfigAndSave(true);
         }
 
-        private void ElevatePrivileges_Click(object sender, RoutedEventArgs e)
+        /// <summary>Relaunches elevated, then exits through the composition root. Also used by the tray menu.</summary>
+        public void ElevateAndRestart()
         {
             try
             {
@@ -1835,12 +1787,17 @@ namespace WinPieGestures
                 };
 
                 Process.Start(startInfo);
-                ExitApplication();
+                _exitApplication();
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"提权重启失败或已取消: {ex.Message}", "管理员提权", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+        }
+
+        private void ElevatePrivileges_Click(object sender, RoutedEventArgs e)
+        {
+            ElevateAndRestart();
         }
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
