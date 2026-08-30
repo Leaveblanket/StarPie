@@ -29,13 +29,13 @@ namespace WinPieGestures
     {
         private readonly IThemeService _themeService;
         private readonly IDialogService _dialogs;
-        // 外观分区 ViewModel (T10)。
+        // 根设置 ViewModel (T14)：聚合各分区子 ViewModel，是窗口 DataContext 的单一根源；
+        // 分区间共享状态（配置导入后的分区重挂）经根协调。
+        private readonly RootSettingsViewModel _root;
+        // 分区子 ViewModel：根暴露的同一实例别名，供视图层事件接线（预览重绘、落盘、弹窗等）。
         private readonly AppearanceSettingsViewModel _appearanceVm;
-        // 配置方案分区列表侧 ViewModel (T11)：方案列表/选中态、扇区数、方向槽位集合。
         private readonly ProfileListViewModel _profileList;
-        // 手势行为分区 ViewModel (T13)：触发阈值、场景隔离、外圈逃逸、进程黑名单。
         private readonly BehaviorSettingsViewModel _behavior;
-        // 通用分区 ViewModel (T13)：语言、开机自启、提权/退出、托盘提示、导入导出。
         private readonly GeneralSettingsViewModel _general;
 
         // Re-entrancy guards (Initial state is true to prevent XAML initialization from overwriting saved config)
@@ -64,9 +64,26 @@ namespace WinPieGestures
             _themeService = themeService;
             _dialogs = dialogs;
 
+            // T14：根 ViewModel 聚合各分区子 ViewModel（装配集中、手动 new，ADR-0002）；
+            // 窗口 DataContext 设为根，分区 DataContext 与列表 ItemsSource 一律经 XAML
+            // 根路径绑定解析（单一根源），视图层只保留事件接线与 View 效果。
+            _root = new RootSettingsViewModel(
+                ConfigManager.ConfigService,
+                _dialogs,
+                () => ConfigManager.CurrentConfig,
+                showTrayBalloonTip,
+                exitApplication,
+                isAutoStartEnabled: () => ConfigManager.IsAutoStartEnabled(),
+                setAutoStart: enable => ConfigManager.SetAutoStart(enable),
+                exportConfig: path => ConfigManager.ExportConfig(path),
+                importConfig: path => ConfigManager.ImportConfig(path));
+            DataContext = _root;
+            _appearanceVm = _root.Appearance;
+            _profileList = _root.ProfileList;
+            _behavior = _root.Behavior;
+            _general = _root.General;
+
             // 外观分区子 ViewModel (T10)：状态与编排住 VM，绘制（实时预览）留在本视图层
-            _appearanceVm = new AppearanceSettingsViewModel(ConfigManager.ConfigService, _dialogs);
-            AppearanceSettingsGrid.DataContext = _appearanceVm;
             _appearanceVm.PreviewInvalidated += OnAppearancePreviewInvalidated;
             _appearanceVm.AutoSaveRequested += ScheduleAutoSave;
             _appearanceVm.SaveNowRequested += () => SyncUiToConfigAndSave(true);
@@ -84,9 +101,6 @@ namespace WinPieGestures
             _appearanceVm.PresetSaved += name =>
                 MessageBox.Show($"配色预设【{name}】已成功保存！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
             SyncThemePresetItems();
-            // T13：行为/通用分区编排进 ViewModel（ADR-0001）；注册表与配置导入/导出仍是
-            // ConfigManager 静态方法——经委托包装保持调用点不变（transitional）。
-            _behavior = new BehaviorSettingsViewModel(ConfigManager.CurrentConfig, dialogs);
             _behavior.SaveRequested += () => SyncUiToConfigAndSave(true);
             _behavior.SaveDebounceRequested += ScheduleAutoSave;
             _behavior.BlacklistEntryAdded += proc =>
@@ -98,17 +112,9 @@ namespace WinPieGestures
                 }
             };
 
-            _general = new GeneralSettingsViewModel(
-                ConfigManager.CurrentConfig,
-                dialogs,
-                showTrayBalloonTip,
-                exitApplication,
-                isAutoStartEnabled: () => ConfigManager.IsAutoStartEnabled(),
-                setAutoStart: enable => ConfigManager.SetAutoStart(enable),
-                exportConfig: path => ConfigManager.ExportConfig(path),
-                importConfig: path => ConfigManager.ImportConfig(path));
             _general.SaveRequested += () => SyncUiToConfigAndSave(true);
-            _general.ConfigImported += ReloadAfterConfigImport;
+            // T14：导入后的分区间 VM 重挂由根协调（ReloadAfterConfigImport），窗口只做控件同步。
+            _root.PartitionsReloaded += ReloadAfterConfigImport;
             _general.NoticeRequested += ShowNotice;
 
             // ADR-0002：I18n 语言切换广播——语言切换后经此刷新全部界面文本。
@@ -117,11 +123,9 @@ namespace WinPieGestures
             _isUpdatingUi = true;
             try
             {
-                // Load profiles to listbox
-                _profileList = new ProfileListViewModel(ConfigManager.CurrentConfig.Profiles, dialogs);
+                // T14：方案列表 ItemsSource 经 XAML 绑定自根解析（ProfileList.Profiles）。
                 // 槽位动作编辑提交（T12 文件夹选择写回）后同步 UI 状态并落盘——对应迁移前 BrowseFolder_Click 的调用点。
                 _profileList.SlotEditCommitted += () => SyncUiToConfigAndSave(true);
-                ProfilesListBox.ItemsSource = _profileList.Profiles;
 
                 // T13：行为分区控件初值从 ViewModel 读取（状态已由 VM 承载）。
                 ThresholdSlider.Value = _behavior.DragThreshold;
@@ -143,8 +147,7 @@ namespace WinPieGestures
                 ShiftModifierCheckBox.IsChecked = _behavior.DisableOnShift;
                 AltModifierCheckBox.IsChecked = _behavior.DisableOnAlt;
 
-                // T13：黑名单列表源换由 BehaviorSettingsViewModel 承载（导入后经 VM Reload 重建）。
-                BlacklistListBox.ItemsSource = _behavior.BlacklistProcesses;
+                // T14：黑名单列表源经 XAML 绑定自根解析（Behavior.BlacklistProcesses）。
 
                 // 外圈逃逸：初值同步自 VM（迁移前构造漏设，开关初始显示与配置脱节——与 T11
                 // 修正选中态滞留同思路，同步后手势链路读取的配置值不变）。
@@ -159,7 +162,7 @@ namespace WinPieGestures
                 SetComboBoxSelectedValue(LanguageComboBox, _general.LanguageCode);
                 ApplyLocalization();
 
-                SlotsItemsControl.ItemsSource = _profileList.Slots;
+                // T14：槽位集合 ItemsSource 经 XAML 绑定自根解析（ProfileList.Slots）。
 
                 // Check UAC privileges and show warning if not elevated
                 bool isAdmin = IsRunningAsAdmin();
@@ -394,7 +397,9 @@ namespace WinPieGestures
 
             try
             {
-                // 外观分区（T10）各设置项已由 AppearanceSettingsViewModel 即时写穿配置，此处不再从控件回读。
+                // T14：外观（T10）与行为（T13）分区各设置项已由子 ViewModel live-apply 即时写穿
+                // 运行态配置，不再从控件回读；此处仅同步尚未 VM 化、状态仍住控件的界面主题与
+                // 中心核图标项（预览绘制属 View 效果，随 T10 留置本视图层）。
 
                 if (AppThemeComboBox?.SelectedItem is ComboBoxItem appThemeItem)
                 {
@@ -413,39 +418,6 @@ namespace WinPieGestures
                 {
                     ConfigManager.CurrentConfig.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
                 }
-
-                if (HighlightGlowPresetComboBox?.SelectedItem is ComboBoxItem glowPresetItem)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowPreset = glowPresetItem.Tag?.ToString() ?? "Auto";
-                }
-                if (HighlightGlowColorTextBox != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowColor = HighlightGlowColorTextBox.Text.Trim();
-                }
-                if (HighlightGlowRadiusSlider != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowRadius = HighlightGlowRadiusSlider.Value;
-                }
-                if (HighlightGlowOpacitySlider != null)
-                {
-                    ConfigManager.CurrentConfig.HighlightGlowOpacity = HighlightGlowOpacitySlider.Value / 100.0;
-                }
-
-                if (WheelRadiusSlider != null) ConfigManager.CurrentConfig.WheelRadius = WheelRadiusSlider.Value;
-                if (InnerRadiusSlider != null) ConfigManager.CurrentConfig.InnerRadius = InnerRadiusSlider.Value;
-                if (CoreRadiusSlider != null) ConfigManager.CurrentConfig.CoreRadius = CoreRadiusSlider.Value;
-                if (SectorGapSlider != null) ConfigManager.CurrentConfig.SectorGap = SectorGapSlider.Value;
-                if (SectorCornerRadiusSlider != null) ConfigManager.CurrentConfig.SectorCornerRadius = SectorCornerRadiusSlider.Value;
-                if (SectorIconSizeSlider != null) ConfigManager.CurrentConfig.SectorIconSize = SectorIconSizeSlider.Value;
-                if (SectorFontSizeSlider != null) ConfigManager.CurrentConfig.SectorFontSize = SectorFontSizeSlider.Value;
-                // T13：行为分区（阈值、全屏禁用、修饰键旁路）由 BehaviorSettingsViewModel live-apply
-                // 即时写回运行态配置，此处不再重复同步。
-
-                if (CustomSectorBgTextBox != null) ConfigManager.CurrentConfig.CustomSectorBg = CustomSectorBgTextBox.Text.Trim();
-                if (CustomSectorBorderTextBox != null) ConfigManager.CurrentConfig.CustomSectorBorder = CustomSectorBorderTextBox.Text.Trim();
-                if (CustomHighlightBgTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBg = CustomHighlightBgTextBox.Text.Trim();
-                if (CustomHighlightBorderTextBox != null) ConfigManager.CurrentConfig.CustomHighlightBorder = CustomHighlightBorderTextBox.Text.Trim();
-                if (CustomTextTextBox != null) ConfigManager.CurrentConfig.CustomText = CustomTextTextBox.Text.Trim();
 
                 if (saveToDisk)
                 {
@@ -1029,26 +1001,25 @@ namespace WinPieGestures
             MessageBox.Show(notice.Message, notice.Title, MessageBoxButton.OK, image);
         }
 
-        /// <summary>配置导入成功后重载各分区 UI（运行态配置实例已被替换；T13 起行为分区一并经 VM 重挂）。</summary>
+        /// <summary>配置导入成功后同步各分区控件显示。T14 起分区间 VM 状态重挂（方案列表、
+        /// 行为、通用）已由根 <see cref="RootSettingsViewModel"/> 经 PartitionsReloaded 协调
+        /// 完成，此处只做 View 层控件同步。</summary>
         private void ReloadAfterConfigImport()
         {
             // Reload controls
             _isUpdatingUi = true;
             try
             {
-                // T11：列表源换由 ProfileListViewModel 重建（迁移前为整表重挂 ItemsSource + Items.Refresh）。
-                _profileList.Reload(ConfigManager.CurrentConfig.Profiles);
+                // 方案列表选中态回落到第一项，使扇区数、槽位与预览和导入内容一致
+                // （迁移前 _selectedProfile 在导入后滞留旧配置对象、选中态与列表脱节，T11 修正保留）。
                 if (_profileList.Profiles.Count > 0)
                 {
                     ProfilesListBox.SelectedIndex = 0;
-                    // 迁移前 _selectedProfile 在导入后滞留旧配置对象（选中态与列表脱节）；
-                    // 现显式选中第一个方案，使扇区数、槽位与预览和导入内容一致。
                     _profileList.SelectProfile(_profileList.Profiles[0]);
                     UpdateSectorCountRadios();
                 }
 
-                // T13：行为分区经 VM 重挂新配置实例，控件同步实际导入值。
-                _behavior.Reload(ConfigManager.CurrentConfig);
+                // 行为分区控件同步实际导入值。
                 ThresholdSlider.Value = _behavior.DragThreshold;
                 ThresholdValueLabel.Text = _behavior.DragThreshold.ToString("0");
                 DisableOnFullScreenCheckBox.IsChecked = _behavior.DisableOnFullScreen;
@@ -1059,6 +1030,7 @@ namespace WinPieGestures
                 OuterEscapeDistanceSlider.Value = _behavior.OuterEscapeDistance;
                 OuterEscapeDistanceLabel.Text = $"{Math.Round(_behavior.OuterEscapeDistance):0} px";
 
+                // 外观分区控件经双向绑定把导入值回推 VM（VM live-apply 写回同值，语义不变）。
                 SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
                 SetComboBoxSelectedValue(UiStyleComboBox, ConfigManager.CurrentConfig.UiStyle);
                 SetComboBoxSelectedValue(ShapeComboBox, ConfigManager.CurrentConfig.Shape);
