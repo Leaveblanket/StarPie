@@ -1,7 +1,7 @@
 <Window x:Class="WinPieGestures.InputDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="配置方案 - StarPie" 
+        Title="{Binding Title}"
         Width="400" SizeToContent="Height"
         Background="{DynamicResource WindowBackgroundBrush}"
         FontFamily="Segoe UI, Microsoft YaHei, PingFang SC"
@@ -80,21 +80,22 @@
         </Border.Effect>
         <StackPanel>
             <!-- Title & Subtitle -->
-            <TextBlock x:Name="TitleTextBlock" Text="新建自定义配置" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-            <TextBlock x:Name="PromptTextBlock" Text="请输入配置方案名称（如：游戏模式、绘图工作流 或 程序名.exe）：" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+            <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+            <TextBlock Text="{Binding Prompt}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
 
             <!-- Input Box -->
             <TextBox x:Name="InputTextBox" Height="36" FontSize="13" VerticalContentAlignment="Center" Padding="8,0"
-                     BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" 
+                     BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"
                      Background="{DynamicResource InputBackgroundBrush}"
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      Margin="0,0,0,18"
+                     Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                      KeyDown="InputTextBox_KeyDown"/>
 
             <!-- Action Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="CancelButton" Content="取消" Style="{StaticResource DialogButtonStyle}" Width="80" Margin="0,0,10,0" Click="CancelButton_Click"/>
-                <Button x:Name="OkButton" Content="确定" Style="{StaticResource DialogPrimaryButtonStyle}" Width="80" Click="OkButton_Click"/>
+                <Button x:Name="OkButton" Content="确定" Style="{StaticResource DialogPrimaryButtonStyle}" Width="80" Command="{Binding ConfirmCommand}"/>
             </StackPanel>
         </StackPanel>
     </Border>
