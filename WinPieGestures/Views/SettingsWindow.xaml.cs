@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -32,8 +31,8 @@ namespace WinPieGestures
         private readonly Action _exitApplication;
         private readonly Action<string, string> _showTrayBalloonTip;
         private readonly IDialogService _dialogs;
-        private WheelProfile? _selectedProfile;
-        private readonly ObservableCollection<SlotViewModel> _slotViewModels = new ObservableCollection<SlotViewModel>();
+        // 配置方案分区列表侧 ViewModel (T11)：方案列表/选中态、扇区数、方向槽位集合。
+        private readonly ProfileListViewModel _profileList;
 
         // Re-entrancy guards (Initial state is true to prevent XAML initialization from overwriting saved config)
         private bool _isUpdatingUi = true;
@@ -55,39 +54,6 @@ namespace WinPieGestures
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        // Direction Labels
-        private static readonly string[] Directions4 = { "右 (E / 0°)", "下 (S / 90°)", "左 (W / 180°)", "上 (N / 270°)" };
-        private static readonly string[] Directions8 = { "右 (E / 0°)", "右下 (SE / 45°)", "下 (S / 90°)", "左下 (SW / 135°)", "左 (W / 180°)", "左上 (NW / 225°)", "上 (N / 270°)", "右上 (NE / 315°)" };
-        private static readonly string[] Directions12 = { 
-            "右 3点钟 (E / 0°)", "右下 4点钟 (30°)", "右下 5点钟 (60°)", "下 6点钟 (S / 90°)", 
-            "左下 7点钟 (120°)", "左下 8点钟 (150°)", "左 9点钟 (W / 180°)", "左上 10点钟 (210°)", 
-            "左上 11点钟 (240°)", "上 12点钟 (N / 270°)", "右上 1点钟 (300°)", "右上 2点钟 (330°)" 
-        };
-
-        private static readonly ActionItem[] DefaultPresets4 = new[]
-        {
-            new ActionItem { Type = "Hotkey", Name = "复制 (Copy)", Parameter = "Ctrl+C", IconKey = "Copy" },
-            new ActionItem { Type = "System", Name = "显示桌面 (Desktop)", Parameter = "ShowDesktop", IconKey = "ShowDesktop" },
-            new ActionItem { Type = "Hotkey", Name = "粘贴 (Paste)", Parameter = "Ctrl+V", IconKey = "Paste" },
-            new ActionItem { Type = "System", Name = "关闭窗口 (Close)", Parameter = "CloseWindow", IconKey = "CloseWindow" }
-        };
-
-        private static readonly ActionItem[] DefaultPresets12 = new[]
-        {
-            new ActionItem { Type = "Hotkey", Name = "复制 (Copy)", Parameter = "Ctrl+C", IconKey = "Copy" },
-            new ActionItem { Type = "Hotkey", Name = "剪切 (Cut)", Parameter = "Ctrl+X", IconKey = "Cut" },
-            new ActionItem { Type = "System", Name = "锁定电脑 (Lock)", Parameter = "Lock", IconKey = "Lock" },
-            new ActionItem { Type = "System", Name = "显示桌面 (Desktop)", Parameter = "ShowDesktop", IconKey = "ShowDesktop" },
-            new ActionItem { Type = "System", Name = "任务视图 (TaskView)", Parameter = "TaskView", IconKey = "TaskView" },
-            new ActionItem { Type = "System", Name = "屏幕截图 (Screenshot)", Parameter = "Screenshot", IconKey = "Screenshot" },
-            new ActionItem { Type = "Hotkey", Name = "粘贴 (Paste)", Parameter = "Ctrl+V", IconKey = "Paste" },
-            new ActionItem { Type = "Hotkey", Name = "撤销 (Undo)", Parameter = "Ctrl+Z", IconKey = "Undo" },
-            new ActionItem { Type = "System", Name = "音量减小 (Vol-)", Parameter = "VolumeDown", IconKey = "VolumeDown" },
-            new ActionItem { Type = "System", Name = "关闭窗口 (Close)", Parameter = "CloseWindow", IconKey = "CloseWindow" },
-            new ActionItem { Type = "System", Name = "音量增加 (Vol+)", Parameter = "VolumeUp", IconKey = "VolumeUp" },
-            new ActionItem { Type = "System", Name = "任务管理器 (TaskMgr)", Parameter = "TaskManager", IconKey = "TaskManager" }
-        };
-
         public SettingsWindow(IThemeService themeService, IDialogService dialogs, Action exitApplication, Action<string, string> showTrayBalloonTip)
         {
             InitializeComponent();
@@ -100,7 +66,8 @@ namespace WinPieGestures
             try
             {
                 // Load profiles to listbox
-                ProfilesListBox.ItemsSource = ConfigManager.CurrentConfig.Profiles;
+                _profileList = new ProfileListViewModel(ConfigManager.CurrentConfig.Profiles);
+                ProfilesListBox.ItemsSource = _profileList.Profiles;
                 ThresholdSlider.Value = ConfigManager.CurrentConfig.DragThreshold;
                 ThresholdValueLabel.Text = ConfigManager.CurrentConfig.DragThreshold.ToString("0");
 
@@ -188,21 +155,20 @@ namespace WinPieGestures
                 // Initialize color preview borders
                 UpdateColorPreviews();
 
-                SlotsItemsControl.ItemsSource = _slotViewModels;
+                SlotsItemsControl.ItemsSource = _profileList.Slots;
 
                 // Check UAC privileges and show warning if not elevated
                 bool isAdmin = IsRunningAsAdmin();
                 UacWarningCard.Visibility = isAdmin ? Visibility.Collapsed : Visibility.Visible;
 
                 // Select default profile
-                _selectedProfile = ConfigManager.CurrentConfig.Profiles.FirstOrDefault();
-                if (_selectedProfile != null)
+                var firstItem = _profileList.Profiles.FirstOrDefault();
+                if (firstItem != null)
                 {
-                    ProfilesListBox.SelectedItem = _selectedProfile;
-                    if (SectorCount4Radio != null) SectorCount4Radio.IsChecked = _selectedProfile.SectorCount == 4;
-                    if (SectorCount8Radio != null) SectorCount8Radio.IsChecked = _selectedProfile.SectorCount == 8;
-                    if (SectorCount12Radio != null) SectorCount12Radio.IsChecked = _selectedProfile.SectorCount == 12;
-                    RefreshSlots();
+                    // 与迁移前一致：仅设置可视选中（处理器此时被 _isUpdatingUi 拦截），状态经 VM 落地。
+                    ProfilesListBox.SelectedItem = firstItem;
+                    _profileList.SelectProfile(firstItem);
+                    UpdateSectorCountRadios();
                 }
             }
             finally
@@ -372,20 +338,17 @@ namespace WinPieGestures
 
             if (index == 2)
             {
-                if (_selectedProfile == null && ConfigManager.CurrentConfig.Profiles.Count > 0)
+                if (_profileList.SelectedProfile == null && _profileList.Profiles.Count > 0)
                 {
-                    _selectedProfile = ConfigManager.CurrentConfig.Profiles[0];
-                    if (ProfilesListBox != null) ProfilesListBox.SelectedItem = _selectedProfile;
+                    if (ProfilesListBox != null) ProfilesListBox.SelectedItem = _profileList.Profiles[0];
                 }
-                if (_selectedProfile != null)
+                if (_profileList.SelectedProfile != null)
                 {
                     _isUpdatingUi = true;
                     try
                     {
-                        if (SectorCount4Radio != null) SectorCount4Radio.IsChecked = _selectedProfile.SectorCount == 4;
-                        if (SectorCount8Radio != null) SectorCount8Radio.IsChecked = _selectedProfile.SectorCount == 8;
-                        if (SectorCount12Radio != null) SectorCount12Radio.IsChecked = _selectedProfile.SectorCount == 12;
-                        RefreshSlots();
+                        UpdateSectorCountRadios();
+                        _profileList.RebuildSlots();
                     }
                     finally
                     {
@@ -551,18 +514,13 @@ namespace WinPieGestures
         {
             if (_isUpdatingUi) return;
 
-            _selectedProfile = ProfilesListBox.SelectedItem as WheelProfile;
-            if (_selectedProfile == null) return;
+            if (!_profileList.SelectProfile(ProfilesListBox.SelectedItem as ProfileItemViewModel)) return;
 
             _isUpdatingUi = true;
             try
             {
                 // Update radio buttons
-                if (SectorCount4Radio != null) SectorCount4Radio.IsChecked = _selectedProfile.SectorCount == 4;
-                if (SectorCount8Radio != null) SectorCount8Radio.IsChecked = _selectedProfile.SectorCount == 8;
-                if (SectorCount12Radio != null) SectorCount12Radio.IsChecked = _selectedProfile.SectorCount == 12;
-
-                RefreshSlots();
+                UpdateSectorCountRadios();
             }
             finally
             {
@@ -575,81 +533,25 @@ namespace WinPieGestures
             }
         }
 
-        private void RefreshSlots()
+        /// <summary>把选中方案的扇区数（原始值）同步到 4/8/12 单选钮（与迁移前的三处手工同步一致）。</summary>
+        private void UpdateSectorCountRadios()
         {
-            try
-            {
-                _slotViewModels.Clear();
-                if (_selectedProfile == null)
-                {
-                    _selectedProfile = ProfilesListBox?.SelectedItem as WheelProfile ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault();
-                }
-                if (_selectedProfile == null) return;
-
-                int count = _selectedProfile.SectorCount;
-                if (count != 4 && count != 8 && count != 12) count = 8;
-
-                string[] directions = count switch
-                {
-                    4 => Directions4,
-                    12 => Directions12,
-                    _ => Directions8
-                };
-
-                if (_selectedProfile.Actions == null)
-                {
-                    _selectedProfile.Actions = new List<ActionItem>();
-                }
-
-                while (_selectedProfile.Actions.Count < count)
-                {
-                    int idx = _selectedProfile.Actions.Count;
-                    if (count == 12 && idx < DefaultPresets12.Length)
-                    {
-                        var p = DefaultPresets12[idx];
-                        _selectedProfile.Actions.Add(new ActionItem { Type = p.Type, Name = p.Name, Parameter = p.Parameter, IconKey = p.IconKey });
-                    }
-                    else if (count == 4 && idx < DefaultPresets4.Length)
-                    {
-                        var p = DefaultPresets4[idx];
-                        _selectedProfile.Actions.Add(new ActionItem { Type = p.Type, Name = p.Name, Parameter = p.Parameter, IconKey = p.IconKey });
-                    }
-                    else
-                    {
-                        _selectedProfile.Actions.Add(new ActionItem { Type = "Hotkey", Name = $"快捷动作 {idx + 1}", Parameter = "" });
-                    }
-                }
-
-                for (int i = 0; i < count; i++)
-                {
-                    var action = _selectedProfile.Actions[i];
-                    var vm = new SlotViewModel(directions[i], action);
-                    _slotViewModels.Add(vm);
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[RefreshSlots Error]: {ex}");
-            }
+            int count = _profileList.SelectedProfile?.Model.SectorCount ?? 0;
+            if (SectorCount4Radio != null) SectorCount4Radio.IsChecked = count == 4;
+            if (SectorCount8Radio != null) SectorCount8Radio.IsChecked = count == 8;
+            if (SectorCount12Radio != null) SectorCount12Radio.IsChecked = count == 12;
         }
 
         private void SectorCountRadio_Checked(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi) return;
 
-            if (_selectedProfile == null)
-            {
-                _selectedProfile = ProfilesListBox?.SelectedItem as WheelProfile ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault();
-            }
-            if (_selectedProfile == null) return;
-
             int newCount = 8;
             if (SectorCount4Radio?.IsChecked == true) newCount = 4;
             else if (SectorCount8Radio?.IsChecked == true) newCount = 8;
             else if (SectorCount12Radio?.IsChecked == true) newCount = 12;
 
-            _selectedProfile.SectorCount = newCount;
-            RefreshSlots();
+            if (!_profileList.ApplySectorCount(newCount)) return;
 
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
@@ -671,7 +573,7 @@ namespace WinPieGestures
                     return;
                 }
 
-                int currentSectorCount = _selectedProfile?.SectorCount ?? 8;
+                int currentSectorCount = _profileList.SelectedProfile?.Model.SectorCount ?? 8;
                 var newProfile = new WheelProfile
                 {
                     ProcessName = procName,
@@ -684,9 +586,7 @@ namespace WinPieGestures
                     newProfile.Actions.Add(new ActionItem { Type = "Hotkey", Name = $"动作 {i + 1}", Parameter = "" });
                 }
 
-                ConfigManager.CurrentConfig.Profiles.Add(newProfile);
-                ProfilesListBox.Items.Refresh();
-                ProfilesListBox.SelectedItem = newProfile;
+                ProfilesListBox.SelectedItem = _profileList.AddProfile(newProfile);
                 SyncUiToConfigAndSave(true);
             }
         }
@@ -708,7 +608,7 @@ namespace WinPieGestures
 
             if (result != null)
             {
-                int currentSectorCount = _selectedProfile?.SectorCount ?? 8;
+                int currentSectorCount = _profileList.SelectedProfile?.Model.SectorCount ?? 8;
                 var newProfile = new WheelProfile
                 {
                     ProcessName = result.Text,
@@ -721,28 +621,27 @@ namespace WinPieGestures
                     newProfile.Actions.Add(new ActionItem { Type = "Hotkey", Name = $"动作 {i + 1}", Parameter = "" });
                 }
 
-                ConfigManager.CurrentConfig.Profiles.Add(newProfile);
-                ProfilesListBox.Items.Refresh();
-                ProfilesListBox.SelectedItem = newProfile;
+                ProfilesListBox.SelectedItem = _profileList.AddProfile(newProfile);
                 SyncUiToConfigAndSave(true);
             }
         }
 
         private void RenameProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedProfile == null)
+            var selected = _profileList.SelectedProfile;
+            if (selected == null)
             {
                 MessageBox.Show("请先在列表中选择要重命名的配置方案！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            if (_selectedProfile.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
+            if (selected.Model.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
             {
                 MessageBox.Show("「Global」为系统全局默认基础配置，不可重命名。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            string oldName = _selectedProfile.ProcessName;
+            string oldName = selected.Model.ProcessName;
             var result = _dialogs.ShowInputDialog(
                 title: "重命名配置方案",
                 prompt: $"请输入配置方案「{oldName}」的新名称：",
@@ -762,15 +661,15 @@ namespace WinPieGestures
 
             if (result != null)
             {
-                _selectedProfile.ProcessName = result.Text;
-                ProfilesListBox.Items.Refresh();
+                selected.Model.ProcessName = result.Text;
+                selected.RefreshDisplay();
                 SyncUiToConfigAndSave(true);
             }
         }
 
         private void ProfilesListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (ProfilesListBox.SelectedItem is WheelProfile profile && !profile.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
+            if (ProfilesListBox.SelectedItem is ProfileItemViewModel item && !item.Model.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
             {
                 RenameProfileButton_Click(sender, e);
             }
@@ -778,19 +677,19 @@ namespace WinPieGestures
 
         private void DeleteProfileButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_selectedProfile == null) return;
+            var selected = _profileList.SelectedProfile;
+            if (selected == null) return;
 
-            if (_selectedProfile.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
+            if (selected.Model.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase))
             {
                 MessageBox.Show("全局默认配置 (Global) 不能删除！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            var result = MessageBox.Show($"确定要删除配置方案 [{_selectedProfile.ProcessName}] 吗？", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show($"确定要删除配置方案 [{selected.Model.ProcessName}] 吗？", "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                ConfigManager.CurrentConfig.Profiles.Remove(_selectedProfile);
-                ProfilesListBox.Items.Refresh();
+                _profileList.RemoveProfile(selected);
                 ProfilesListBox.SelectedIndex = 0;
                 SyncUiToConfigAndSave(true);
             }
@@ -1825,9 +1724,16 @@ namespace WinPieGestures
                     _isUpdatingUi = true;
                     try
                     {
-                        ProfilesListBox.ItemsSource = null;
-                        ProfilesListBox.ItemsSource = ConfigManager.CurrentConfig.Profiles;
-                        ProfilesListBox.SelectedIndex = 0;
+                        // T11：列表源换由 ProfileListViewModel 重建（迁移前为整表重挂 ItemsSource + Items.Refresh）。
+                        _profileList.Reload(ConfigManager.CurrentConfig.Profiles);
+                        if (_profileList.Profiles.Count > 0)
+                        {
+                            ProfilesListBox.SelectedIndex = 0;
+                            // 迁移前 _selectedProfile 在导入后滞留旧配置对象（选中态与列表脱节）；
+                            // 现显式选中第一个方案，使扇区数、槽位与预览和导入内容一致。
+                            _profileList.SelectProfile(_profileList.Profiles[0]);
+                            UpdateSectorCountRadios();
+                        }
 
                         ThresholdSlider.Value = ConfigManager.CurrentConfig.DragThreshold;
                         SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
@@ -2145,7 +2051,7 @@ namespace WinPieGestures
 
                 _previewStyleRenderer.RenderDecorations(LiveWheelPreviewCanvas, previewCoreGrid, cx, cy, outerR, coreR, 1, ConfigManager.CurrentConfig.ShowCoreIcon);
 
-                var profile = _selectedProfile ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault() ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
+                var profile = _profileList.SelectedProfile?.Model ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault() ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
                 int n = profile.SectorCount > 0 ? profile.SectorCount : 8;
                 double sectorSize = 360.0 / n;
 
@@ -2477,278 +2383,5 @@ namespace WinPieGestures
         }
 
         #endregion
-    }
-
-    public class SystemPresetItem
-    {
-        public string Key { get; set; } = "";
-        public string Category { get; set; } = "";
-        public string DisplayName { get; set; } = "";
-        public string DefaultName { get; set; } = "";
-        public string DefaultIconKey { get; set; } = "";
-        public string FormattedDisplay => $"[{Category}] {DisplayName}";
-    }
-
-    public class SlotViewModel : INotifyPropertyChanged
-    {
-        public static readonly List<SystemPresetItem> SystemPresetList = new List<SystemPresetItem>
-        {
-            // 窗口与工作区
-            new SystemPresetItem { Key = "CloseWindow", Category = "窗口管理", DisplayName = "关闭当前窗口 (Close / Alt+F4)", DefaultName = "关闭窗口", DefaultIconKey = "CloseWindow" },
-            new SystemPresetItem { Key = "Minimize", Category = "窗口管理", DisplayName = "最小化窗口 (Minimize / Win+Down)", DefaultName = "最小化", DefaultIconKey = "Minimize" },
-            new SystemPresetItem { Key = "Maximize", Category = "窗口管理", DisplayName = "最大化/还原 (Maximize / Win+Up)", DefaultName = "最大化", DefaultIconKey = "Maximize" },
-            new SystemPresetItem { Key = "SnapLeft", Category = "窗口管理", DisplayName = "左半屏贴靠 (Snap Left / Win+Left)", DefaultName = "靠左分屏", DefaultIconKey = "SnapLeft" },
-            new SystemPresetItem { Key = "SnapRight", Category = "窗口管理", DisplayName = "右半屏贴靠 (Snap Right / Win+Right)", DefaultName = "靠右分屏", DefaultIconKey = "SnapRight" },
-            new SystemPresetItem { Key = "TaskView", Category = "窗口管理", DisplayName = "任务视图/多任务 (Task View / Win+Tab)", DefaultName = "任务视图", DefaultIconKey = "TaskView" },
-            new SystemPresetItem { Key = "PrevDesktop", Category = "窗口管理", DisplayName = "上一虚拟桌面 (Prev Desktop)", DefaultName = "上一桌面", DefaultIconKey = "PrevDesktop" },
-            new SystemPresetItem { Key = "NextDesktop", Category = "窗口管理", DisplayName = "下一虚拟桌面 (Next Desktop)", DefaultName = "下一桌面", DefaultIconKey = "NextDesktop" },
-            new SystemPresetItem { Key = "ShowDesktop", Category = "窗口管理", DisplayName = "显示桌面 (Desktop / Win+D)", DefaultName = "显示桌面", DefaultIconKey = "ShowDesktop" },
-            new SystemPresetItem { Key = "FullScreen", Category = "窗口管理", DisplayName = "全屏切换 (Full Screen / F11)", DefaultName = "全屏切换", DefaultIconKey = "FullScreen" },
-            new SystemPresetItem { Key = "Screenshot", Category = "窗口管理", DisplayName = "屏幕截图 (Screenshot / Win+Shift+S)", DefaultName = "屏幕截图", DefaultIconKey = "Screenshot" },
-
-            // 系统管理与实用工具
-            new SystemPresetItem { Key = "TaskManager", Category = "系统工具", DisplayName = "任务管理器 (Task Manager / Ctrl+Shift+Esc)", DefaultName = "任务管理器", DefaultIconKey = "TaskManager" },
-            new SystemPresetItem { Key = "Explorer", Category = "系统工具", DisplayName = "文件资源管理器 (Explorer / Win+E)", DefaultName = "资源管理器", DefaultIconKey = "Explorer" },
-            new SystemPresetItem { Key = "Settings", Category = "系统工具", DisplayName = "Windows 设置 (Settings / Win+I)", DefaultName = "系统设置", DefaultIconKey = "Settings" },
-            new SystemPresetItem { Key = "Calculator", Category = "系统工具", DisplayName = "计算器 (Calculator / calc.exe)", DefaultName = "计算器", DefaultIconKey = "Calculator" },
-            new SystemPresetItem { Key = "RunDialog", Category = "系统工具", DisplayName = "运行窗口 (Run / Win+R)", DefaultName = "运行", DefaultIconKey = "RunDialog" },
-            new SystemPresetItem { Key = "WindowsSearch", Category = "系统工具", DisplayName = "系统搜索 (Search / Win+S)", DefaultName = "搜索", DefaultIconKey = "WindowsSearch" },
-            new SystemPresetItem { Key = "ClipboardHistory", Category = "系统工具", DisplayName = "剪贴板历史 (Clipboard / Win+V)", DefaultName = "剪贴板", DefaultIconKey = "ClipboardHistory" },
-            new SystemPresetItem { Key = "Lock", Category = "系统工具", DisplayName = "锁定电脑 (Lock Workstation)", DefaultName = "锁定电脑", DefaultIconKey = "Lock" },
-
-            // 多媒体与音量
-            new SystemPresetItem { Key = "VolumeUp", Category = "媒体音效", DisplayName = "音量增加 (Volume Up)", DefaultName = "音量加", DefaultIconKey = "VolumeUp" },
-            new SystemPresetItem { Key = "VolumeDown", Category = "媒体音效", DisplayName = "音量减小 (Volume Down)", DefaultName = "音量减", DefaultIconKey = "VolumeDown" },
-            new SystemPresetItem { Key = "VolumeMute", Category = "媒体音效", DisplayName = "静音切换 (Mute)", DefaultName = "静音切换", DefaultIconKey = "VolumeMute" },
-            new SystemPresetItem { Key = "PlayPause", Category = "媒体音效", DisplayName = "播放/暂停 (Play/Pause)", DefaultName = "播放/暂停", DefaultIconKey = "PlayPause" },
-            new SystemPresetItem { Key = "NextTrack", Category = "媒体音效", DisplayName = "下一曲 (Next Track)", DefaultName = "下一曲", DefaultIconKey = "NextTrack" },
-            new SystemPresetItem { Key = "PrevTrack", Category = "媒体音效", DisplayName = "上一曲 (Previous Track)", DefaultName = "上一曲", DefaultIconKey = "PrevTrack" },
-            new SystemPresetItem { Key = "StopMedia", Category = "媒体音效", DisplayName = "停止播放 (Stop)", DefaultName = "停止", DefaultIconKey = "VolumeMute" },
-
-            // 浏览器与文档
-            new SystemPresetItem { Key = "NewTab", Category = "网页浏览", DisplayName = "新建标签页 (New Tab / Ctrl+T)", DefaultName = "新建标签", DefaultIconKey = "NewTab" },
-            new SystemPresetItem { Key = "CloseTab", Category = "网页浏览", DisplayName = "关闭标签页 (Close Tab / Ctrl+W)", DefaultName = "关闭标签", DefaultIconKey = "CloseTab" },
-            new SystemPresetItem { Key = "ReopenTab", Category = "网页浏览", DisplayName = "恢复关闭标签 (Reopen / Ctrl+Shift+T)", DefaultName = "恢复标签", DefaultIconKey = "ReopenTab" },
-            new SystemPresetItem { Key = "Refresh", Category = "网页浏览", DisplayName = "刷新页面 (Refresh / F5)", DefaultName = "刷新", DefaultIconKey = "Refresh" },
-            new SystemPresetItem { Key = "HardRefresh", Category = "网页浏览", DisplayName = "强制刷新 (Hard Refresh / Ctrl+F5)", DefaultName = "强制刷新", DefaultIconKey = "Refresh" },
-            new SystemPresetItem { Key = "ZoomIn", Category = "网页浏览", DisplayName = "页面放大 (Zoom In / Ctrl++)", DefaultName = "放大", DefaultIconKey = "ZoomIn" },
-            new SystemPresetItem { Key = "ZoomOut", Category = "网页浏览", DisplayName = "页面缩小 (Zoom Out / Ctrl+-)", DefaultName = "缩小", DefaultIconKey = "ZoomOut" },
-            new SystemPresetItem { Key = "ZoomReset", Category = "网页浏览", DisplayName = "默认缩放 (Reset Zoom / Ctrl+0)", DefaultName = "默认缩放", DefaultIconKey = "ZoomReset" },
-
-            // 电源管理
-            new SystemPresetItem { Key = "Sleep", Category = "电源控制", DisplayName = "系统睡眠 (Sleep)", DefaultName = "睡眠", DefaultIconKey = "Sleep" },
-            new SystemPresetItem { Key = "Restart", Category = "电源控制", DisplayName = "重启电脑 (Restart)", DefaultName = "重启", DefaultIconKey = "Restart" },
-            new SystemPresetItem { Key = "Shutdown", Category = "电源控制", DisplayName = "关闭电脑 (Shutdown)", DefaultName = "关机", DefaultIconKey = "Shutdown" }
-        };
-
-        public static readonly Dictionary<string, string> SystemPresets = SystemPresetList.ToDictionary(x => x.Key, x => x.FormattedDisplay);
-
-        public string DirectionLabel { get; }
-        public ActionItem Action { get; }
-
-        public string Name
-        {
-            get => Action.Name ?? "";
-            set
-            {
-                if (Action.Name != value)
-                {
-                    Action.Name = value;
-                    OnPropertyChanged(nameof(Name));
-                }
-            }
-        }
-
-        public string Type
-        {
-            get => string.IsNullOrEmpty(Action.Type) ? "Hotkey" : Action.Type;
-            set
-            {
-                if (Action.Type != value && !string.IsNullOrEmpty(value))
-                {
-                    Action.Type = value;
-                    if ((value == "Folder" || value == "OpenFolder") && string.IsNullOrEmpty(IconKey))
-                    {
-                        IconKey = "Folder";
-                        if (string.IsNullOrEmpty(Name) || Name.StartsWith("快捷动作") || Name.StartsWith("动作"))
-                        {
-                            Name = I18n.T("ActionTypeFolderShort");
-                        }
-                    }
-                    OnPropertyChanged(nameof(Type));
-                    OnPropertyChanged(nameof(IsHotkeyType));
-                    OnPropertyChanged(nameof(IsLaunchType));
-                    OnPropertyChanged(nameof(IsFolderType));
-                    OnPropertyChanged(nameof(IsSystemType));
-                }
-            }
-        }
-
-        public string Parameter
-        {
-            get => Action.Parameter ?? "";
-            set
-            {
-                if (Action.Parameter != value)
-                {
-                    Action.Parameter = value;
-                    OnPropertyChanged(nameof(Parameter));
-                }
-            }
-        }
-
-        public string Arguments
-        {
-            get => Action.Arguments ?? "";
-            set
-            {
-                if (Action.Arguments != value)
-                {
-                    Action.Arguments = value;
-                    OnPropertyChanged(nameof(Arguments));
-                }
-            }
-        }
-
-        public string IconKey
-        {
-            get => Action.IconKey ?? "";
-            set
-            {
-                if (Action.IconKey != value)
-                {
-                    Action.IconKey = value;
-                    OnPropertyChanged(nameof(IconKey));
-                    OnPropertyChanged(nameof(IconDisplayText));
-                    OnPropertyChanged(nameof(HasVectorIcon));
-                    OnPropertyChanged(nameof(VectorIconData));
-                }
-            }
-        }
-
-        public string CustomIconSvg
-        {
-            get => Action.CustomIconSvg ?? "";
-            set
-            {
-                if (Action.CustomIconSvg != value)
-                {
-                    Action.CustomIconSvg = value;
-                    OnPropertyChanged(nameof(CustomIconSvg));
-                    OnPropertyChanged(nameof(IconDisplayText));
-                    OnPropertyChanged(nameof(HasVectorIcon));
-                    OnPropertyChanged(nameof(VectorIconData));
-                }
-            }
-        }
-
-        public string IconDisplayText
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(IconKey)) return IconKey;
-                if (!string.IsNullOrEmpty(CustomIconSvg)) return "自定义SVG";
-                return "图标...";
-            }
-        }
-
-        public bool HasVectorIcon => VectorIconData != null;
-
-        public Geometry? VectorIconData
-        {
-            get
-            {
-                string? data = null;
-                if (!string.IsNullOrEmpty(CustomIconSvg)) data = CustomIconSvg;
-                else if (!string.IsNullOrEmpty(IconKey))
-                {
-                    if (IconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var custom = IconHelper.GetCustomIcons().FirstOrDefault(c => c.Key == IconKey);
-                        if (custom != null && custom.IsSvg) data = custom.SvgData;
-                    }
-                    else
-                    {
-                        data = IconHelper.GetSvgPathByKey(IconKey);
-                    }
-                }
-                
-                if (!string.IsNullOrEmpty(data))
-                {
-                    try
-                    {
-                        return Geometry.Parse(data);
-                    }
-                    catch { }
-                }
-                return null;
-            }
-        }
-
-        public string SelectedSystemPreset
-        {
-            get => Action.Type == "System" ? (Action.Parameter ?? "Lock") : "Lock";
-            set
-            {
-                if (Action.Parameter != value && !string.IsNullOrEmpty(value))
-                {
-                    Action.Parameter = value;
-                    OnPropertyChanged(nameof(SelectedSystemPreset));
-                    OnPropertyChanged(nameof(Parameter));
-
-                    // Auto associate default friendly name and icon if matching
-                    var preset = SystemPresetList.FirstOrDefault(x => string.Equals(x.Key, value, StringComparison.OrdinalIgnoreCase));
-                    if (preset != null)
-                    {
-                        if (string.IsNullOrEmpty(Name) || Name == "快捷动作" || SystemPresetList.Any(p => p.DefaultName == Name))
-                        {
-                            Name = preset.DefaultName;
-                        }
-                        if (string.IsNullOrEmpty(IconKey) || SystemPresetList.Any(p => p.DefaultIconKey == IconKey))
-                        {
-                            IconKey = preset.DefaultIconKey;
-                        }
-                    }
-                }
-            }
-        }
-
-        public bool IsHotkeyType => Type == "Hotkey";
-        public bool IsLaunchType => Type == "Launch";
-        public bool IsFolderType => Type == "Folder" || Type == "OpenFolder";
-        public bool IsSystemType => Type == "System";
-
-        public class ActionTypeOption
-        {
-            public string Tag { get; set; } = "";
-            public string DisplayText { get; set; } = "";
-        }
-
-        public List<ActionTypeOption> ActionTypes => new List<ActionTypeOption>
-        {
-            new ActionTypeOption { Tag = "Hotkey", DisplayText = I18n.T("ActionTypeHotkeyShort") },
-            new ActionTypeOption { Tag = "Launch", DisplayText = I18n.T("ActionTypeLaunchShort") },
-            new ActionTypeOption { Tag = "Folder", DisplayText = I18n.T("ActionTypeFolderShort") },
-            new ActionTypeOption { Tag = "System", DisplayText = I18n.T("ActionTypeSystemShort") }
-        };
-
-        public string TestButtonText => I18n.T("BtnTest");
-
-        public SlotViewModel(string directionLabel, ActionItem action)
-        {
-            DirectionLabel = directionLabel;
-            Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
-
-            I18n.LanguageChanged += () =>
-            {
-                OnPropertyChanged(nameof(ActionTypes));
-                OnPropertyChanged(nameof(TestButtonText));
-                OnPropertyChanged(nameof(IconDisplayText));
-            };
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string propertyName) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
