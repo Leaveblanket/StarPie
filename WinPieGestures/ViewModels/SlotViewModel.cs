@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace WinPieGestures
 {
@@ -20,13 +23,22 @@ namespace WinPieGestures
     }
 
     /// <summary>
-    /// 方向槽位 ViewModel (T11, ADR-0001)：自 SettingsWindow 的窗口内私有槽位 ViewModel 迁入
+    /// 方向槽位 ViewModel (T11/T12, ADR-0001)：自 SettingsWindow 的窗口内私有槽位 ViewModel 迁入
     /// 正式 ViewModel，包装扇区绑定的 <see cref="ActionItem"/> 提供槽位编辑绑定。
-    /// 本票迁移列表侧职责（方向槽位集合与槽位名称编辑），名称编辑与迁移前一致——直写模型、
-    /// 无额外验证；类型/参数/图标等动作编辑属性暂保持迁移前行为，其调用点归 T12 迁移。
+    /// T11 迁入列表侧职责（方向槽位集合与槽位名称编辑），名称编辑与迁移前一致——直写模型、
+    /// 无额外验证。T12 迁入动作编辑闭环：对话框编排（程序选择/文件夹选择/图标设置）经
+    /// <see cref="IDialogService"/> 完成，写回结果直改模型即 live-apply；类型切换（绑定 Type）
+    /// 与热键录制（HotkeyRecorderBox 依赖属性绑定 Parameter）在 T11 迁移时已直连本 VM。
+    /// 与迁移前的落盘差异保持一致：程序/图标选择不主动落盘，文件夹选择提交后触发
+    /// <see cref="EditApplied"/> 请求落盘（迁移前为 SyncUiToConfigAndSave(true)）。
     /// </summary>
-    public class SlotViewModel : ObservableObject
+    public partial class SlotViewModel : ObservableObject
     {
+        private readonly IDialogService _dialogs;
+
+        /// <summary>槽位编辑提交（文件夹选择写回）后触发，窗口据此将运行态配置落盘。</summary>
+        public event Action? EditApplied;
+
         public static readonly List<SystemPresetItem> SystemPresetList = new List<SystemPresetItem>
         {
             // 窗口与工作区
@@ -270,10 +282,11 @@ namespace WinPieGestures
 
         public string TestButtonText => I18n.T("BtnTest");
 
-        public SlotViewModel(string directionLabel, ActionItem action)
+        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs)
         {
             DirectionLabel = directionLabel;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
+            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
 
             I18n.LanguageChanged += () =>
             {
@@ -281,6 +294,69 @@ namespace WinPieGestures
                 OnPropertyChanged(nameof(TestButtonText));
                 OnPropertyChanged(nameof(IconDisplayText));
             };
+        }
+
+        /// <summary>
+        /// 图标选取编排（迁移前 PickIcon_Click 的对话框部分）：弹出图标选择器并将结果写回
+        /// <see cref="IconKey"/>。返回本次是否完成选择（含清除图标），供窗口决定是否刷新
+        /// 外观轮盘预览——该预览是 View 层渲染效果，留在 code-behind（ADR-0001）。
+        /// </summary>
+        public bool PickIcon()
+        {
+            var picked = _dialogs.ShowIconPicker(IconKey);
+            if (picked == null) return false;
+            IconKey = picked.IconKey ?? "";
+            return true;
+        }
+
+        /// <summary>
+        /// 程序选择编排（迁移前 Browse_Click）：弹出程序选择器，写回参数并按迁移前规则
+        /// 回填缺省名称（已有自定义名称不覆盖）。与迁移前一致不主动落盘。
+        /// </summary>
+        [RelayCommand]
+        private void BrowseProgram()
+        {
+            var picked = _dialogs.ShowProgramPicker();
+            if (picked != null)
+            {
+                Parameter = picked.Path;
+                if (string.IsNullOrEmpty(Name) || Name.StartsWith("动作") || Name == "快捷动作")
+                {
+                    Name = !string.IsNullOrEmpty(picked.Name) ? picked.Name : Path.GetFileNameWithoutExtension(picked.Path);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 文件夹选择编排（迁移前 BrowseFolder_Click）：弹出文件夹选择对话框（初始目录为当前
+        /// 参数，有效性由服务判定），写回参数并按迁移前规则回填名称与 Folder 图标；提交后触发
+        /// <see cref="EditApplied"/> 请求落盘。异常兜底与迁移前一致（仅记录不上抛）。
+        /// </summary>
+        [RelayCommand]
+        private void BrowseFolder()
+        {
+            try
+            {
+                var picked = _dialogs.ShowFolderDialog(Parameter, I18n.T("BtnBrowseFolder"));
+                if (picked != null && !string.IsNullOrEmpty(picked.Path))
+                {
+                    Parameter = picked.Path;
+                    if (string.IsNullOrEmpty(Name) || Name.StartsWith("快捷动作") || Name.StartsWith("动作") || Name == "打开文件夹")
+                    {
+                        var dirInfo = new DirectoryInfo(picked.Path);
+                        Name = dirInfo.Name;
+                    }
+                    if (string.IsNullOrEmpty(IconKey))
+                    {
+                        IconKey = "Folder";
+                    }
+                    EditApplied?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[BrowseFolder Error]: {ex}");
+            }
         }
     }
 }

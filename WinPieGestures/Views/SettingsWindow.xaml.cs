@@ -66,7 +66,9 @@ namespace WinPieGestures
             try
             {
                 // Load profiles to listbox
-                _profileList = new ProfileListViewModel(ConfigManager.CurrentConfig.Profiles);
+                _profileList = new ProfileListViewModel(ConfigManager.CurrentConfig.Profiles, dialogs);
+                // 槽位动作编辑提交（T12 文件夹选择写回）后同步 UI 状态并落盘——对应迁移前 BrowseFolder_Click 的调用点。
+                _profileList.SlotEditCommitted += () => SyncUiToConfigAndSave(true);
                 ProfilesListBox.ItemsSource = _profileList.Profiles;
                 ThresholdSlider.Value = ConfigManager.CurrentConfig.DragThreshold;
                 ThresholdValueLabel.Text = ConfigManager.CurrentConfig.DragThreshold.ToString("0");
@@ -1417,16 +1419,13 @@ namespace WinPieGestures
 
         private void PickIcon_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
+            // 对话框编排已迁 SlotViewModel.PickIcon (T12)；此处只剩 View 层效果：
+            // 图标变化影响轮盘预览，外观分区可见时刷新。
+            if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm && vm.PickIcon())
             {
-                var picked = _dialogs.ShowIconPicker(vm.IconKey);
-                if (picked != null)
+                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                 {
-                    vm.IconKey = picked.IconKey ?? "";
-                    if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                    {
-                        RenderLiveWheelPreview();
-                    }
+                    RenderLiveWheelPreview();
                 }
             }
         }
@@ -1832,64 +1831,6 @@ namespace WinPieGestures
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
-        }
-
-        private void Browse_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
-            {
-                var picked = _dialogs.ShowProgramPicker();
-                if (picked != null)
-                {
-                    vm.Parameter = picked.Path;
-                    if (string.IsNullOrEmpty(vm.Name) || vm.Name.StartsWith("动作") || vm.Name == "快捷动作")
-                    {
-                        vm.Name = !string.IsNullOrEmpty(picked.Name) ? picked.Name : Path.GetFileNameWithoutExtension(picked.Path);
-                    }
-                }
-            }
-        }
-
-        private void BrowseFolder_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
-            {
-                try
-                {
-                    var dialog = new Microsoft.Win32.OpenFolderDialog
-                    {
-                        Title = I18n.T("BtnBrowseFolder"),
-                        Multiselect = false
-                    };
-                    if (!string.IsNullOrWhiteSpace(vm.Parameter) && System.IO.Directory.Exists(vm.Parameter))
-                    {
-                        dialog.InitialDirectory = vm.Parameter;
-                    }
-
-                    if (dialog.ShowDialog(this) == true)
-                    {
-                        string selectedFolder = dialog.FolderName;
-                        if (!string.IsNullOrEmpty(selectedFolder))
-                        {
-                            vm.Parameter = selectedFolder;
-                            if (string.IsNullOrEmpty(vm.Name) || vm.Name.StartsWith("快捷动作") || vm.Name.StartsWith("动作") || vm.Name == "打开文件夹")
-                            {
-                                var dirInfo = new System.IO.DirectoryInfo(selectedFolder);
-                                vm.Name = dirInfo.Name;
-                            }
-                            if (string.IsNullOrEmpty(vm.IconKey))
-                            {
-                                vm.IconKey = "Folder";
-                            }
-                            SyncUiToConfigAndSave();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"[BrowseFolder_Click Error]: {ex}");
-                }
-            }
         }
 
         private void Test_Click(object sender, RoutedEventArgs e)

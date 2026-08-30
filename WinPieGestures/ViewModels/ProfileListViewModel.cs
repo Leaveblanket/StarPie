@@ -8,12 +8,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace WinPieGestures
 {
     /// <summary>
-    /// 设置窗口·配置方案分区列表侧 ViewModel (T11, ADR-0001)：承接迁移前 SettingsWindow
+    /// 设置窗口·配置方案分区列表侧 ViewModel (T11/T12, ADR-0001)：承接迁移前 SettingsWindow
     /// code-behind 的方案列表与选中态（<c>_selectedProfile</c> 字段）、扇区数切换与
     /// 方向槽位集合（<c>_slotViewModels</c> + <c>RefreshSlots</c>）。
-    /// 程序选择/重命名/删除的对话框编排仍留在窗口 code-behind，本 VM 只提供其列表侧落点；
-    /// 槽位内的动作编辑闭环（类型切换/程序选择/热键录制/图标设置）归 T12。
-    /// 与 <see cref="WheelViewModel.Config"/> 先例同理，过渡期直接持有运行态配置的
+    /// T12 起槽位持有对话框服务（<see cref="IDialogService"/>，动作编辑闭环的对话框编排全部
+    /// 进槽位 ViewModel），本 VM 将槽位编辑提交事件转发为 <see cref="SlotEditCommitted"/> 供
+    /// 窗口落盘。与 <see cref="WheelViewModel.Config"/> 先例同理，过渡期直接持有运行态配置的
     /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
     /// </summary>
     public partial class ProfileListViewModel : ObservableObject
@@ -52,6 +52,7 @@ namespace WinPieGestures
         };
 
         private List<WheelProfile> _sourceProfiles;
+        private readonly IDialogService _dialogs;
 
         /// <summary>方案展示列表（按前台进程名展示每个方案，Global 为全局兜底方案）。</summary>
         public ObservableCollection<ProfileItemViewModel> Profiles { get; } = new();
@@ -59,15 +60,19 @@ namespace WinPieGestures
         /// <summary>选中方案的方向槽位集合：选中方案或扇区数变更时整体重建。</summary>
         public ObservableCollection<SlotViewModel> Slots { get; } = new();
 
+        /// <summary>任一槽位动作编辑提交（文件夹选择写回）后触发，窗口据此落盘。</summary>
+        public event Action? SlotEditCommitted;
+
         [ObservableProperty]
         private ProfileItemViewModel? _selectedProfile;
 
         /// <summary>选中方案的扇区数（原始值不做规范化——与迁移前单选钮同步逻辑一致）。</summary>
         public int? SelectedSectorCount => SelectedProfile?.Model.SectorCount;
 
-        public ProfileListViewModel(List<WheelProfile> sourceProfiles)
+        public ProfileListViewModel(List<WheelProfile> sourceProfiles, IDialogService dialogs)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
+            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             Reload(sourceProfiles);
         }
 
@@ -161,7 +166,9 @@ namespace WinPieGestures
 
                 for (int i = 0; i < count; i++)
                 {
-                    Slots.Add(new SlotViewModel(directions[i], profile.Actions[i]));
+                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs);
+                    slot.EditApplied += () => SlotEditCommitted?.Invoke();
+                    Slots.Add(slot);
                 }
             }
             catch (Exception ex)

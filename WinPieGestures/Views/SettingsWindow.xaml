@@ -1330,7 +1330,7 @@
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                          IsReadOnly="True" Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextSecondaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="选择的应用程序路径"/>
-                                                                <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Click="Browse_Click" Height="30" ToolTip="选择应用程序或快捷方式...">
+                                                                <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="选择应用程序或快捷方式...">
                                                                     <TextBlock Text="📁" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Button>
                                                             </Grid>
@@ -1343,7 +1343,7 @@
                                                                 </Grid.ColumnDefinitions>
                                                                 <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                          Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="选择的本地文件夹路径"/>
-                                                                <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Click="BrowseFolder_Click" Height="30" ToolTip="选择本地文件夹...">
+                                                                <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseFolderCommand}" Height="30" ToolTip="选择本地文件夹...">
                                                                     <TextBlock Text="📂" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                                 </Button>
                                                             </Grid>

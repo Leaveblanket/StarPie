@@ -86,5 +86,20 @@ namespace WinPieGestures
 
             return saveFileDialog.ShowDialog(_owner) == true ? new FilePickResult(saveFileDialog.FileName) : null;
         }
+
+        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null)
+        {
+            var openFolderDialog = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = title ?? "",
+                Multiselect = false
+            };
+            if (!string.IsNullOrWhiteSpace(initialDirectory) && System.IO.Directory.Exists(initialDirectory))
+            {
+                openFolderDialog.InitialDirectory = initialDirectory;
+            }
+
+            return openFolderDialog.ShowDialog(_owner) == true ? new FilePickResult(openFolderDialog.FolderName) : null;
+        }
     }
 }
