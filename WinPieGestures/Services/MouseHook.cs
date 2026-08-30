@@ -1,19 +1,22 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Windows;
-using Point = System.Windows.Point;
 
 namespace WinPieGestures
 {
-    public class MouseEventArgs : EventArgs
+    /// <summary>
+    /// Hook event argument: raw screen coordinates plus whether the event was
+    /// consumed by gesture handling. Intentionally free of UI-framework types
+    /// so the hook stays a pure adapter (ADR-0002).
+    /// </summary>
+    public class MouseHookEventArgs : EventArgs
     {
-        public Point Position { get; }
+        public GesturePoint Position { get; }
         public bool Handled { get; set; }
 
-        public MouseEventArgs(double x, double y)
+        public MouseHookEventArgs(GesturePoint position)
         {
-            Position = new Point(x, y);
+            Position = position;
             Handled = false;
         }
     }
@@ -78,9 +81,9 @@ namespace WinPieGestures
 
         public bool IsPaused { get; set; } = false;
 
-        public event EventHandler<MouseEventArgs> OnRightButtonDown;
-        public event EventHandler<MouseEventArgs> OnRightButtonUp;
-        public event EventHandler<MouseEventArgs> OnMouseMove;
+        public event EventHandler<MouseHookEventArgs> OnRightButtonDown;
+        public event EventHandler<MouseHookEventArgs> OnRightButtonUp;
+        public event EventHandler<MouseHookEventArgs> OnMouseMove;
 
         private LowLevelMouseProc _proc;
         private IntPtr _hookId = IntPtr.Zero;
@@ -200,7 +203,7 @@ namespace WinPieGestures
                         return CallNextHookEx(_hookId, nCode, wParam, lParam);
                     }
 
-                    var args = new MouseEventArgs(hookStruct.pt.x, hookStruct.pt.y);
+                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
                     OnRightButtonDown?.Invoke(this, args);
                     if (args.Handled)
                     {
@@ -215,7 +218,7 @@ namespace WinPieGestures
                         return CallNextHookEx(_hookId, nCode, wParam, lParam);
                     }
 
-                    var args = new MouseEventArgs(hookStruct.pt.x, hookStruct.pt.y);
+                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
                     OnRightButtonUp?.Invoke(this, args);
                     if (args.Handled)
                     {
@@ -224,7 +227,7 @@ namespace WinPieGestures
                 }
                 else if (message == WM_MOUSEMOVE)
                 {
-                    var args = new MouseEventArgs(hookStruct.pt.x, hookStruct.pt.y);
+                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
                     OnMouseMove?.Invoke(this, args);
                     if (args.Handled)
                     {

@@ -19,7 +19,6 @@ namespace WinPieGestures
         private readonly GestureController? _gestureController;
         private TrayIconManager? _trayIcon;
         private SettingsWindow? _settingsWindow;
-
         /// <summary>True while an app-level exit is in flight; the settings window
         /// consults it to close for real instead of hiding to the tray.</summary>
         public static bool IsExiting { get; private set; }
@@ -37,7 +36,11 @@ namespace WinPieGestures
 
             _mouseHook = new MouseHook();
 
-            _gestureController = new GestureController(_mouseHook, _config);
+            IWindowContext windowContext = new WindowContext();
+            IRadialWindowFactory wheelFactory = new RadialWindowFactory();
+            var engine = new GestureEngine(_config, windowContext, wheelFactory);
+
+            _gestureController = new GestureController(_mouseHook, engine);
         }
 
         /// <summary>Starts the mouse hook, creates the tray and the initial settings
