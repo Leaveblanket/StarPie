@@ -43,7 +43,7 @@ dotnet run --project WinPieGestures        # launchSettings 已默认附加 --de
    ```
 3. **编写与验证代码**：
    - 保持 C# 编码风格与项目现有架构一致；
-   - 新增 UI 字符串请同步在 `WinPieGestures/I18n.cs` 中添加四国语言（中/繁/英/日）翻译；
+   - 新增 UI 字符串请同步在 `WinPieGestures/Services/I18n.cs` 中添加四国语言（中/繁/英/日）翻译；
    - 运行自动化测试：`python -m pytest tests/test_settings.py -v` 确保 100% 绿灯。
 4. **提交 Commit**（推荐采用约定式提交规范）：
    ```text

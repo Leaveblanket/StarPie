@@ -25,4 +25,8 @@
     <None Include="app_icon.ico" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
 </Project>
