@@ -791,7 +791,7 @@
                                         <TextBlock Text="定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
                                         
                                         <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectionChanged="AppThemeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="🌓 跟随系统 (System Auto)" Tag="System" IsSelected="True"/>
+                                            <ComboBoxItem Content="🌓 跟随系统 (System Auto)" Tag="System"/>
                                             <ComboBoxItem Content="☀️ 极简纯白 (Modern Light)" Tag="Light"/>
                                             <ComboBoxItem Content="🌙 极夜曜黑 (Obsidian Dark)" Tag="Dark"/>
                                             <ComboBoxItem Content="🌌 午夜深蓝 (Midnight Navy)" Tag="MidnightNavy"/>
@@ -811,7 +811,7 @@
                                         
                                         <TextBlock Text="主题风格 (UiStyle):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                         <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="UiStyleComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="经典圆环 (Classic Ring)" Tag="ClassicRing" IsSelected="True"/>
+                                            <ComboBoxItem Content="经典圆环 (Classic Ring)" Tag="ClassicRing"/>
                                             <ComboBoxItem Content="极简扇区 (Clean Sectors)" Tag="CleanSectors"/>
                                             <ComboBoxItem Content="液态毛玻璃 (Glassmorphism)" Tag="Glassmorphism"/>
                                             
@@ -944,7 +944,7 @@
                                 <!-- Highlight Glow & Luminous Halo Controls (高亮边缘光晕与发光特效) -->
                                         <TextBlock Text="高亮边缘光晕模式 (Highlight Glow):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,4"/>
                                         <ComboBox x:Name="HighlightGlowPresetComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,8" SelectionChanged="HighlightGlowPresetComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="🌈 跟随主题高亮色 (Auto / Follow Theme)" Tag="Auto" IsSelected="True"/>
+                                            <ComboBoxItem Content="🌈 跟随主题高亮色 (Auto / Follow Theme)" Tag="Auto"/>
                                             <ComboBoxItem Content="💜 丁香晶紫 (Lilac Violet #A855F7)" Tag="Lilac"/>
                                             <ComboBoxItem Content="💙 冰川湛蓝 (Glacial Blue #3B82F6)" Tag="Blue"/>
                                             <ComboBoxItem Content="💚 翡翠荧绿 (Emerald Green #10B981)" Tag="Emerald"/>
@@ -1006,7 +1006,7 @@
                                         <!-- Shape Selector -->
                                         <TextBlock Text="扇区切削形态 (Shape):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                         <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="ShapeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="经典紧凑扇区 (Original)" Tag="Original" IsSelected="True"/>
+                                            <ComboBoxItem Content="经典紧凑扇区 (Original)" Tag="Original"/>
                                             <ComboBoxItem Content="独立圆形卡片 (Circle)" Tag="Circle"/>
                                             <ComboBoxItem Content="悬浮圆角胶囊 (Capsule)" Tag="RoundedCapsule"/>
                                             <ComboBoxItem Content="蜂巢六边形矩阵 (HexagonHive)" Tag="HexagonHive"/>
@@ -1079,7 +1079,7 @@
                                         
                                         <TextBlock Text="排版模式 (Layout Mode):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                         <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="IconLayoutModeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="图标 + 文字 (双行居中)" Tag="IconAndText" IsSelected="True"/>
+                                            <ComboBoxItem Content="图标 + 文字 (双行居中)" Tag="IconAndText"/>
                                             <ComboBoxItem Content="仅显示图标 (极大化居中)" Tag="IconOnly"/>
                                             <ComboBoxItem Content="仅显示文字 (纯文字居中)" Tag="TextOnly"/>
                                         </ComboBox>
@@ -1122,7 +1122,7 @@
 
                                         <TextBlock Text="核圆图案类型 (Core Pattern):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                         <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="CoreIconTypeComboBox_SelectionChanged">
-                                            <ComboBoxItem Content="✕ 默认取消叉号 (Exit / Close)" Tag="Exit" IsSelected="True"/>
+                                            <ComboBoxItem Content="✕ 默认取消叉号 (Exit / Close)" Tag="Exit"/>
                                             <ComboBoxItem Content="⌖ 十字准心 (Crosshair)" Tag="Crosshair"/>
                                             <ComboBoxItem Content="⊞ Windows 微标 (Windows Logo)" Tag="Windows"/>
                                             <ComboBoxItem Content="⦿ 极简靶心圆点 (Bullseye Dot)" Tag="Dot"/>
