@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Application = System.Windows.Application;
 
 namespace WinPieGestures
@@ -13,11 +13,13 @@ namespace WinPieGestures
     {
         private readonly MouseHook _mouseHook;
         private readonly GestureEngine _engine;
+        private readonly IActionExecutorService _actionExecutor;
 
-        public GestureController(MouseHook mouseHook, GestureEngine engine)
+        public GestureController(MouseHook mouseHook, GestureEngine engine, IActionExecutorService actionExecutor)
         {
             _mouseHook = mouseHook;
             _engine = engine;
+            _actionExecutor = actionExecutor;
             _mouseHook.OnRightButtonDown += Hook_OnRightButtonDown;
             _mouseHook.OnRightButtonUp += Hook_OnRightButtonUp;
             _mouseHook.OnMouseMove += Hook_OnMouseMove;
@@ -50,7 +52,7 @@ namespace WinPieGestures
             else if (result.ActionToExecute != null)
             {
                 ActionItem action = result.ActionToExecute;
-                Application.Current.Dispatcher.Invoke(() => ActionExecutor.Execute(action));
+                Application.Current.Dispatcher.Invoke(() => _actionExecutor.Execute(action));
             }
         }
     }

@@ -18,6 +18,7 @@ namespace WinPieGestures
         // DialogService (T06, ADR-0002/0004)：Owner 惰性回填——先建服务、后建设置窗口，
         // Run() 里窗口创建完成后回填引用，化解"服务要 Owner ↔ 窗口要服务"的循环。
         private readonly DialogService _dialogService;
+        private readonly IActionExecutorService _actionExecutor;
         // Kept alive for its hook-event subscriptions; the hook roots the controller.
         private readonly GestureController? _gestureController;
         private readonly IThemeService _themeService;
@@ -41,13 +42,15 @@ namespace WinPieGestures
             _mouseHook = new MouseHook();
 
             IThemeService themeService = new ThemeService();
+            IActionExecutorService actionExecutor = new ActionExecutorService();
             IWindowContext windowContext = new WindowContext();
             IWheelFactory wheelFactory = new WheelFactory(_config, themeService);
             var engine = new GestureEngine(_config, windowContext, wheelFactory);
             _themeService = themeService;
 
             _dialogService = new DialogService(themeService);
-            _gestureController = new GestureController(_mouseHook, engine);
+            _actionExecutor = actionExecutor;
+            _gestureController = new GestureController(_mouseHook, engine, actionExecutor);
         }
 
         /// <summary>Starts the mouse hook, creates the tray and the initial settings
@@ -61,7 +64,8 @@ namespace WinPieGestures
                 _themeService,
                 exitApplication: ExitApplication,
                 showTrayBalloonTip: (title, text) => _trayIcon?.ShowBalloonTip(title, text),
-                dialogs: _dialogService);
+                dialogs: _dialogService,
+                actionExecutor: _actionExecutor);
             // 惰性回填 Owner：此后所有模态对话框归属设置窗口。
             _dialogService.SetOwner(_settingsWindow);
 
