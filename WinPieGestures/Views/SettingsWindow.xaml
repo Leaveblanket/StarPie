@@ -810,7 +810,7 @@
                                         <TextBlock Text="轮盘视觉风格与色彩" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
                                         
                                         <TextBlock Text="主题风格 (UiStyle):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="UiStyleComboBox_SelectionChanged">
+                                        <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValue="{Binding UiStyle}">
                                             <ComboBoxItem Content="经典圆环 (Classic Ring)" Tag="ClassicRing"/>
                                             <ComboBoxItem Content="极简扇区 (Clean Sectors)" Tag="CleanSectors"/>
                                             <ComboBoxItem Content="液态毛玻璃 (Glassmorphism)" Tag="Glassmorphism"/>
@@ -823,7 +823,7 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectionChanged="ThemeComboBox_SelectionChanged">
+                                            <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValue="{Binding SelectedTheme}">
                                                 <ComboBoxItem Content="跟随系统 (System Auto)" Tag="System"/>
                                                 <ComboBoxItem Content="深色模式 (Dark)" Tag="Dark"/>
                                                 <ComboBoxItem Content="浅色模式 (Light)" Tag="Light"/>
@@ -831,7 +831,7 @@
                                                 <ComboBoxItem Content="冰川透蓝 (Glacial Ice)" Tag="GlacialIce"/>
                                                 <ComboBoxItem Content="莫兰迪柔灰 (Morandi Muted)" Tag="MorandiMuted"/>
                                             </ComboBox>
-                                            <Button x:Name="RenameCustomColorPresetButton" Grid.Column="1" Content="✏️ 重命名预设" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="Collapsed" Click="RenameCustomColorPresetButton_Click" ToolTip="重命名当前选中的自定义配色方案预设"/>
+                                            <Button x:Name="RenameCustomColorPresetButton" Grid.Column="1" Content="✏️ 重命名预设" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="重命名当前选中的自定义配色方案预设"/>
                                         </Grid>
 
                                                                         <!-- Card 1.5: Custom Advanced Colors (Collapsible) -->
@@ -839,7 +839,7 @@
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                     </Border.Effect>
-                                    <Expander x:Name="CustomColorExpander" IsExpanded="False" Background="Transparent" BorderThickness="0">
+                                    <Expander x:Name="CustomColorExpander" IsExpanded="{Binding IsCustomColorExpanderExpanded}" Background="Transparent" BorderThickness="0">
                                         <Expander.Header>
                                             <StackPanel Margin="0,2,0,2">
                                                 <TextBlock x:Name="CustomColorsExpanderTitleText" Text="🎨 自定义高级配色与色彩微调" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -858,11 +858,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="扇区底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" TextChanged="CustomColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Tag="CustomSectorBg" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                    <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                                <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
+                                                    <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgBrush}"/>
                                                 </Button>
-                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Tag="CustomSectorBg" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
                                             </Grid>
 
                                             <!-- Sector Normal Border -->
@@ -874,11 +874,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="扇区边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" TextChanged="CustomColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Tag="CustomSectorBorder" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                    <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                                <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
+                                                    <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderBrush}"/>
                                                 </Button>
-                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Tag="CustomSectorBorder" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
                                             </Grid>
 
                                             <!-- Sector Highlight Color -->
@@ -890,11 +890,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="高亮底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" TextChanged="CustomColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Tag="CustomHighlightBg" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                    <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                                <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
+                                                    <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgBrush}"/>
                                                 </Button>
-                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Tag="CustomHighlightBg" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
                                             </Grid>
 
                                             <!-- Sector Highlight Border -->
@@ -906,11 +906,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="高亮边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" TextChanged="CustomColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Tag="CustomHighlightBorder" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                    <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                                <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
+                                                    <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderBrush}"/>
                                                 </Button>
-                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Tag="CustomHighlightBorder" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
                                             </Grid>
 
                                             <!-- Text Color -->
@@ -922,11 +922,11 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="文字颜色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                                <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" TextChanged="CustomColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Tag="CustomText" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                    <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                                <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" Text="{Binding CustomTextText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                                <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
+                                                    <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextBrush}"/>
                                                 </Button>
-                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Tag="CustomText" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                                <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
                                             </Grid>
 
                                             <Grid Margin="0,6,0,0">
@@ -934,8 +934,8 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <Button x:Name="SaveCustomColorPresetButton" Content="💾 保存当前颜色为自定义配色预设..." Style="{StaticResource ModernButtonStyle}" Height="30" FontWeight="Medium" Click="SaveCustomColorPresetButton_Click"/>
-                                                <Button x:Name="DeletePresetInPanelButton" Grid.Column="1" Content="🗑️ 删除预设" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="8,0,0,0" Padding="12,0" Visibility="Collapsed" Click="DeleteCustomColorPresetButton_Click" ToolTip="删除当前选中的自定义配色方案预设"/>
+                                                <Button x:Name="SaveCustomColorPresetButton" Content="💾 保存当前颜色为自定义配色预设..." Style="{StaticResource ModernButtonStyle}" Height="30" FontWeight="Medium" Command="{Binding SavePresetCommand}"/>
+                                                <Button x:Name="DeletePresetInPanelButton" Grid.Column="1" Content="🗑️ 删除预设" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding DeletePresetCommand}" ToolTip="删除当前选中的自定义配色方案预设"/>
                                             </Grid>
                                         </StackPanel>
                                     </Expander>
@@ -943,7 +943,7 @@
 
                                 <!-- Highlight Glow & Luminous Halo Controls (高亮边缘光晕与发光特效) -->
                                         <TextBlock Text="高亮边缘光晕模式 (Highlight Glow):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,4"/>
-                                        <ComboBox x:Name="HighlightGlowPresetComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,8" SelectionChanged="HighlightGlowPresetComboBox_SelectionChanged">
+                                        <ComboBox x:Name="HighlightGlowPresetComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,8" SelectedValue="{Binding HighlightGlowPreset}">
                                             <ComboBoxItem Content="🌈 跟随主题高亮色 (Auto / Follow Theme)" Tag="Auto"/>
                                             <ComboBoxItem Content="💜 丁香晶紫 (Lilac Violet #A855F7)" Tag="Lilac"/>
                                             <ComboBoxItem Content="💙 冰川湛蓝 (Glacial Blue #3B82F6)" Tag="Blue"/>
@@ -956,7 +956,7 @@
                                         </ComboBox>
 
                                         <!-- Custom Highlight Glow Color Row -->
-                                        <Grid x:Name="CustomHighlightGlowPanel" Visibility="Collapsed" Margin="0,0,0,8">
+                                        <Grid x:Name="CustomHighlightGlowPanel" Visibility="{Binding IsCustomGlowVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="68"/>
                                                 <ColumnDefinition Width="*"/>
@@ -964,11 +964,11 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="光晕色值:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                            <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" TextChanged="HighlightGlowColorTextBox_TextChanged" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取光晕颜色" Tag="HighlightGlowColor" Click="PickCustomColor_Click" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1"/>
+                                            <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" Text="{Binding HighlightGlowColorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取光晕颜色" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorBrush}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取光晕颜色" Tag="HighlightGlowColor" Click="PickEyedropper_Click" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取光晕颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!-- Highlight Glow Blur Radius -->
@@ -978,8 +978,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="HighlightGlowRadiusSlider" Minimum="8" Maximum="48" Value="24" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="HighlightGlowRadiusSlider_ValueChanged"/>
-                                            <TextBlock x:Name="HighlightGlowRadiusLabel" Grid.Column="1" Text="24 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="HighlightGlowRadiusSlider" Minimum="8" Maximum="48" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding HighlightGlowRadius}"/>
+                                            <TextBlock x:Name="HighlightGlowRadiusLabel" Grid.Column="1" Text="{Binding HighlightGlowRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <!-- Highlight Glow Opacity -->
@@ -989,8 +989,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="HighlightGlowOpacitySlider" Minimum="0" Maximum="100" Value="85" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="HighlightGlowOpacitySlider_ValueChanged"/>
-                                            <TextBlock x:Name="HighlightGlowOpacityLabel" Grid.Column="1" Text="85%" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="HighlightGlowOpacitySlider" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding HighlightGlowOpacityPercent}"/>
+                                            <TextBlock x:Name="HighlightGlowOpacityLabel" Grid.Column="1" Text="{Binding HighlightGlowOpacityLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -1005,7 +1005,7 @@
                                         
                                         <!-- Shape Selector -->
                                         <TextBlock Text="扇区切削形态 (Shape):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="ShapeComboBox_SelectionChanged">
+                                        <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValue="{Binding Shape}">
                                             <ComboBoxItem Content="经典紧凑扇区 (Original)" Tag="Original"/>
                                             <ComboBoxItem Content="独立圆形卡片 (Circle)" Tag="Circle"/>
                                             <ComboBoxItem Content="悬浮圆角胶囊 (Capsule)" Tag="RoundedCapsule"/>
@@ -1019,8 +1019,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="SectorGapSlider" Minimum="0" Maximum="12" Value="2" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="SectorGapSlider_ValueChanged"/>
-                                            <TextBlock x:Name="SectorGapLabel" Grid.Column="1" Text="2 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="SectorGapSlider" Minimum="0" Maximum="12" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorGap}"/>
+                                            <TextBlock x:Name="SectorGapLabel" Grid.Column="1" Text="{Binding SectorGapLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <!-- Sector Corner Radius / Fillet -->
@@ -1030,8 +1030,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="SectorCornerRadiusSlider" Minimum="0" Maximum="16" Value="4" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="SectorCornerRadiusSlider_ValueChanged"/>
-                                            <TextBlock x:Name="SectorCornerRadiusLabel" Grid.Column="1" Text="4 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="SectorCornerRadiusSlider" Minimum="0" Maximum="16" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorCornerRadius}"/>
+                                            <TextBlock x:Name="SectorCornerRadiusLabel" Grid.Column="1" Text="{Binding SectorCornerRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                         
                                         <!-- Wheel Radius -->
@@ -1041,8 +1041,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="WheelRadiusSlider" Minimum="100" Maximum="200" Value="138" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="WheelRadiusSlider_ValueChanged"/>
-                                            <TextBlock x:Name="WheelRadiusLabel" Grid.Column="1" Text="138" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="WheelRadiusSlider" Minimum="100" Maximum="200" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding WheelRadius}"/>
+                                            <TextBlock x:Name="WheelRadiusLabel" Grid.Column="1" Text="{Binding WheelRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <!-- Inner Radius -->
@@ -1052,8 +1052,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="InnerRadiusSlider" Minimum="30" Maximum="90" Value="52" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="InnerRadiusSlider_ValueChanged"/>
-                                            <TextBlock x:Name="InnerRadiusLabel" Grid.Column="1" Text="52" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="InnerRadiusSlider" Minimum="30" Maximum="90" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding InnerRadius}"/>
+                                            <TextBlock x:Name="InnerRadiusLabel" Grid.Column="1" Text="{Binding InnerRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <!-- Core Radius -->
@@ -1063,8 +1063,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="CoreRadiusSlider" Minimum="30" Maximum="80" Value="50" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="CoreRadiusSlider_ValueChanged"/>
-                                            <TextBlock x:Name="CoreRadiusLabel" Grid.Column="1" Text="50" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="CoreRadiusSlider" Minimum="30" Maximum="80" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding CoreRadius}"/>
+                                            <TextBlock x:Name="CoreRadiusLabel" Grid.Column="1" Text="{Binding CoreRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
                                     </StackPanel>
                                 </Border>
@@ -1078,7 +1078,7 @@
                                         <TextBlock Text="图标与排版选项" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
                                         
                                         <TextBlock Text="排版模式 (Layout Mode):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="IconLayoutModeComboBox_SelectionChanged">
+                                        <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValue="{Binding IconLayoutMode}">
                                             <ComboBoxItem Content="图标 + 文字 (双行居中)" Tag="IconAndText"/>
                                             <ComboBoxItem Content="仅显示图标 (极大化居中)" Tag="IconOnly"/>
                                             <ComboBoxItem Content="仅显示文字 (纯文字居中)" Tag="TextOnly"/>
@@ -1091,8 +1091,8 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="SectorIconSizeSlider" Minimum="14" Maximum="36" Value="20" SmallChange="1" LargeChange="2" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="SectorIconSizeSlider_ValueChanged"/>
-                                            <TextBlock x:Name="SectorIconSizeLabel" Grid.Column="1" Text="20 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="SectorIconSizeSlider" Minimum="14" Maximum="36" SmallChange="1" LargeChange="2" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorIconSize}"/>
+                                            <TextBlock x:Name="SectorIconSizeLabel" Grid.Column="1" Text="{Binding SectorIconSizeLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
                                         <!-- Sector Font Size -->
@@ -1102,11 +1102,11 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="45"/>
                                             </Grid.ColumnDefinitions>
-                                            <Slider x:Name="SectorFontSizeSlider" Minimum="8" Maximum="18" Value="10.5" SmallChange="0.5" LargeChange="1.0" TickFrequency="0.5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="SectorFontSizeSlider_ValueChanged"/>
-                                            <TextBlock x:Name="SectorFontSizeLabel" Grid.Column="1" Text="10.5 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <Slider x:Name="SectorFontSizeSlider" Minimum="8" Maximum="18" SmallChange="0.5" LargeChange="1.0" TickFrequency="0.5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorFontSize}"/>
+                                            <TextBlock x:Name="SectorFontSizeLabel" Grid.Column="1" Text="{Binding SectorFontSizeLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                         </Grid>
 
-                                        <CheckBox x:Name="ShowTextCheckBox" Content="在轮盘扇区中显示动作名称文字" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,0" Checked="ShowTextCheckBox_Changed" Unchecked="ShowTextCheckBox_Changed"/>
+                                        <CheckBox x:Name="ShowTextCheckBox" Content="在轮盘扇区中显示动作名称文字" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,0" IsChecked="{Binding ShowText}"/>
                                     </StackPanel>
                                 </Border>
 
@@ -1208,7 +1208,7 @@
                                 </Border>
 
                                 <!-- Quick Reset Button -->
-                                <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="一键重置为推荐几何尺寸" Style="{StaticResource ModernButtonStyle}" Height="32" Click="ResetDimensionsButton_Click" HorizontalAlignment="Right"/>
+                                <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="一键重置为推荐几何尺寸" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding ResetDimensionsCommand}" HorizontalAlignment="Right"/>
                             </Grid>
                         </Border>
                     </Grid>
