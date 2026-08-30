@@ -29,6 +29,7 @@ namespace WinPieGestures
     {
         private readonly IThemeService _themeService;
         private readonly IDialogService _dialogs;
+        private readonly IActionExecutorService _actionExecutor;
         // 根设置 ViewModel (T14)：聚合各分区子 ViewModel，是窗口 DataContext 的单一根源；
         // 分区间共享状态（配置导入后的分区重挂）经根协调。
         private readonly RootSettingsViewModel _root;
@@ -58,11 +59,12 @@ namespace WinPieGestures
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        public SettingsWindow(IThemeService themeService, IDialogService dialogs, Action exitApplication, Action<string, string> showTrayBalloonTip)
+        public SettingsWindow(IThemeService themeService, IDialogService dialogs, IActionExecutorService actionExecutor, Action exitApplication, Action<string, string> showTrayBalloonTip)
         {
             InitializeComponent();
             _themeService = themeService;
             _dialogs = dialogs;
+            _actionExecutor = actionExecutor;
 
             // T14：根 ViewModel 聚合各分区子 ViewModel（装配集中、手动 new，ADR-0002）；
             // 窗口 DataContext 设为根，分区 DataContext 与列表 ItemsSource 一律经 XAML
@@ -1127,7 +1129,7 @@ namespace WinPieGestures
         {
             if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
             {
-                ActionExecutor.Execute(vm.Action);
+                _actionExecutor.Execute(vm.Action);
             }
         }
 
