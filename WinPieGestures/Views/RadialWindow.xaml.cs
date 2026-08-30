@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -18,10 +19,14 @@ using Path = System.Windows.Shapes.Path;
 
 namespace WinPieGestures
 {
+    /// <summary>
+    /// 轮盘窗口 (T05): all view state lives in the per-gesture <see cref="WheelViewModel"/>
+    /// — this class observes its change notifications and performs the drawing and
+    /// animations; the gesture engine never calls into it.
+    /// </summary>
     public partial class RadialWindow : Window
     {
-        private readonly Point _centerPoint;
-        private readonly WheelProfile _profile;
+        private readonly WheelViewModel _viewModel;
         private readonly List<Path> _sectorPaths = new List<Path>();
         private readonly List<StackPanel> _contentPanels = new List<StackPanel>();
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
@@ -43,12 +48,13 @@ namespace WinPieGestures
         private double _borderThickness = 1.0;
         private double _highlightBorderThickness = 1.5;
 
-        public RadialWindow(Point centerPoint, WheelProfile profile)
+        public RadialWindow(WheelViewModel viewModel)
         {
             InitializeComponent();
 
-            _centerPoint = centerPoint;
-            _profile = profile;
+            _viewModel = viewModel;
+            DataContext = viewModel;
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
             InitializeThemeAndStyle();
             CoreTextPanel.Visibility = Visibility.Collapsed;
@@ -56,27 +62,18 @@ namespace WinPieGestures
             // Load event to position the window and render sectors
             Loaded += RadialWindow_Loaded;
 
-            CoreTitle.Text = profile.ProcessName == "Global" ? "全局动作" : profile.ProcessName;
-            CoreSubtitle.Text = $"{profile.SectorCount} 键动作";
+            CoreTitle.Text = _viewModel.CoreTitle;
+            CoreSubtitle.Text = _viewModel.CoreSubtitle;
         }
 
         private void InitializeThemeAndStyle()
         {
-            string theme = ConfigManager.CurrentConfig.Theme ?? "System";
-            string style = ConfigManager.CurrentConfig.UiStyle ?? "ClassicRing";
-
-            _innerRadius = ConfigManager.CurrentConfig.InnerRadius;
-            _outerRadius = ConfigManager.CurrentConfig.WheelRadius;
-
-            // Enforce basic safety boundary
-            if (_innerRadius >= _outerRadius)
-            {
-                _innerRadius = Math.Max(0, _outerRadius - 20);
-            }
-
             // Instantiate corresponding style renderer using the factory
-            _styleRenderer = StyleRendererFactory.CreateRenderer(style);
-            _styleRenderer.Initialize(theme, ConfigManager.CurrentConfig);
+            _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.UiStyle);
+            _styleRenderer.Initialize(_viewModel.Theme, _viewModel.Config);
+
+            _innerRadius = _viewModel.InnerRadius;
+            _outerRadius = _viewModel.OuterRadius;
 
             // Fetch brushes and dimensions from style renderer
             _defaultSectorBrush = _styleRenderer.DefaultSectorBrush;
@@ -92,8 +89,8 @@ namespace WinPieGestures
 
         private void RadialWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            double wheelRadius = ConfigManager.CurrentConfig.WheelRadius;
-            double coreRadius = ConfigManager.CurrentConfig.CoreRadius;
+            double wheelRadius = _viewModel.OuterRadius;
+            double coreRadius = _viewModel.CoreRadius;
 
             // Adjust window size dynamically based on outer radius
             double winSize = wheelRadius * 2.0 + 40.0; // Margin for shadow
@@ -128,15 +125,15 @@ namespace WinPieGestures
             }
 
             // Set window position in WPF units
-            this.Left = (_centerPoint.X / scaleX) - (this.Width / 2);
-            this.Top = (_centerPoint.Y / scaleY) - (this.Height / 2);
+            this.Left = (_viewModel.Center.X / scaleX) - (this.Width / 2);
+            this.Top = (_viewModel.Center.Y / scaleY) - (this.Height / 2);
 
             // Apply core brushes
             CoreEllipse.Fill = _coreBgBrush;
             CoreEllipse.Stroke = _coreBorderBrush;
 
             // Render Core Background Image / Avatar (if configured)
-            string coreBgPath = ConfigManager.CurrentConfig.CoreBgImagePath ?? "";
+            string coreBgPath = _viewModel.Config.CoreBgImagePath ?? "";
             if (!string.IsNullOrEmpty(coreBgPath) && System.IO.File.Exists(coreBgPath))
             {
                 try
@@ -144,8 +141,8 @@ namespace WinPieGestures
                     var coreImg = new System.Windows.Media.Imaging.BitmapImage(new Uri(coreBgPath, UriKind.Absolute));
                     CoreEllipse.Fill = new ImageBrush(coreImg)
                     {
-                        Stretch = ParseStretch(ConfigManager.CurrentConfig.CoreBgStretch),
-                        Opacity = ConfigManager.CurrentConfig.CoreBgOpacity
+                        Stretch = ParseStretch(_viewModel.Config.CoreBgStretch),
+                        Opacity = _viewModel.Config.CoreBgOpacity
                     };
                 }
                 catch { }
@@ -159,22 +156,22 @@ namespace WinPieGestures
             CoreTitle.FontSize = Math.Max(8.0, coreRadius / 5.0);
             CoreSubtitle.FontSize = Math.Max(6.0, coreRadius / 7.0);
 
-            bool isCatPaw = ConfigManager.CurrentConfig.UiStyle == "CatPaw";
-            bool showCoreIcon = ConfigManager.CurrentConfig.ShowCoreIcon;
-            string coreType = ConfigManager.CurrentConfig.CoreIconType ?? "Exit";
+            bool isCatPaw = _viewModel.UiStyle == "CatPaw";
+            bool showCoreIcon = _viewModel.ShowCoreIcon;
+            string coreType = _viewModel.Config.CoreIconType ?? "Exit";
 
             CoreTitle.Visibility = Visibility.Collapsed;
             CoreSubtitle.Visibility = Visibility.Collapsed;
 
             if (showCoreIcon && !isCatPaw)
             {
-                if (coreType == "Image" && !string.IsNullOrEmpty(ConfigManager.CurrentConfig.CoreCustomImagePath) && File.Exists(ConfigManager.CurrentConfig.CoreCustomImagePath))
+                if (coreType == "Image" && !string.IsNullOrEmpty(_viewModel.Config.CoreCustomImagePath) && File.Exists(_viewModel.Config.CoreCustomImagePath))
                 {
                     try
                     {
                         var bmp = new BitmapImage();
                         bmp.BeginInit();
-                        bmp.UriSource = new Uri(ConfigManager.CurrentConfig.CoreCustomImagePath, UriKind.Absolute);
+                        bmp.UriSource = new Uri(_viewModel.Config.CoreCustomImagePath, UriKind.Absolute);
                         bmp.CacheOption = BitmapCacheOption.OnLoad;
                         bmp.EndInit();
 
@@ -197,8 +194,8 @@ namespace WinPieGestures
                     CoreCustomImage.Visibility = Visibility.Collapsed;
                     var coreGeom = IconHelper.GetCoreIconGeometry(
                         coreType,
-                        ConfigManager.CurrentConfig.CoreCustomIconKey,
-                        ConfigManager.CurrentConfig.CoreCustomIconSvg);
+                        _viewModel.Config.CoreCustomIconKey,
+                        _viewModel.Config.CoreCustomIconSvg);
                     if (coreGeom != null)
                     {
                         CoreExitIcon.Data = coreGeom;
@@ -247,12 +244,11 @@ namespace WinPieGestures
 
         private void RenderStyleDecorations()
         {
-            string style = ConfigManager.CurrentConfig.UiStyle ?? "ClassicRing";
             double winSize = this.Width;
             double cx = winSize / 2.0;
             double cy = winSize / 2.0;
-            double wheelRadius = ConfigManager.CurrentConfig.WheelRadius;
-            double coreRadius = ConfigManager.CurrentConfig.CoreRadius;
+            double wheelRadius = _viewModel.OuterRadius;
+            double coreRadius = _viewModel.CoreRadius;
 
             // Clear previous style decoration paths
             var toRemove = new List<UIElement>();
@@ -289,23 +285,23 @@ namespace WinPieGestures
             // Render style decorations via the style renderer
             if (_styleRenderer != null)
             {
-                _styleRenderer.RenderDecorations(WheelCanvas, CoreGrid, cx, cy, wheelRadius, coreRadius, insertIndex);
+                _styleRenderer.RenderDecorations(WheelCanvas, CoreGrid, cx, cy, wheelRadius, coreRadius, insertIndex, _viewModel.ShowCoreIcon);
             }
         }
 
         private void RenderSectors()
         {
-            int n = _profile.SectorCount;
+            int n = _viewModel.SectorCount;
             double sectorSize = 360.0 / n;
             double winSize = this.Width;
             double cx = winSize / 2.0;
             double cy = winSize / 2.0;
 
-            string shape = ConfigManager.CurrentConfig.Shape ?? "Original";
-            double gap = Math.Max(0.0, ConfigManager.CurrentConfig.SectorGap);
-            double cornerRadius = Math.Max(0.0, ConfigManager.CurrentConfig.SectorCornerRadius);
-            string layoutMode = ConfigManager.CurrentConfig.IconLayoutMode ?? "IconAndText";
-            bool showText = ConfigManager.CurrentConfig.ShowText && layoutMode != "IconOnly";
+            string shape = _viewModel.Config.Shape ?? "Original";
+            double gap = Math.Max(0.0, _viewModel.Config.SectorGap);
+            double cornerRadius = Math.Max(0.0, _viewModel.Config.SectorCornerRadius);
+            string layoutMode = _viewModel.Config.IconLayoutMode ?? "IconAndText";
+            bool showText = _viewModel.Config.ShowText && layoutMode != "IconOnly";
 
             _sectorPaths.Clear();
             _contentPanels.Clear();
@@ -379,26 +375,18 @@ namespace WinPieGestures
                 };
                 container.Children.Add(stackPanel);
 
-                string actionText = "未设置";
-                string actionType = "Hotkey";
-                string parameter = "";
-                string iconKey = "";
-                string customSvg = "";
-
-                if (i < _profile.Actions.Count && _profile.Actions[i] != null)
-                {
-                    actionText = _profile.Actions[i].Name ?? "";
-                    actionType = _profile.Actions[i].Type ?? "Hotkey";
-                    parameter = _profile.Actions[i].Parameter ?? "";
-                    iconKey = _profile.Actions[i].IconKey ?? "";
-                    customSvg = _profile.Actions[i].CustomIconSvg ?? "";
-                }
+                WheelSectorViewModel sector = _viewModel.Sectors[i];
+                string actionText = sector.HasAction ? sector.Name : "未设置";
+                string actionType = sector.Type;
+                string parameter = sector.Parameter;
+                string iconKey = sector.IconKey;
+                string customSvg = sector.CustomIconSvg;
 
                 FrameworkElement? iconElement = null;
 
                 if (layoutMode != "TextOnly")
                 {
-                    double configuredIconSize = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
+                    double configuredIconSize = _viewModel.Config.SectorIconSize > 0 ? _viewModel.Config.SectorIconSize : 20.0;
                     double scaleFactor = n == 12 ? 0.82 : (n == 4 ? 1.20 : 1.0);
                     double baseIconSize = (layoutMode == "IconOnly") ? configuredIconSize * 1.35 : configuredIconSize;
                     double iconSize = baseIconSize * scaleFactor;
@@ -518,7 +506,7 @@ namespace WinPieGestures
 
                 if (showText && !string.IsNullOrEmpty(actionText))
                 {
-                    double baseFontSize = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
+                    double baseFontSize = _viewModel.Config.SectorFontSize > 0 ? _viewModel.Config.SectorFontSize : 10.5;
                     double actualFontSize = (layoutMode == "TextOnly") ? baseFontSize + 1.0 : baseFontSize;
                     if (n == 12) actualFontSize = Math.Min(actualFontSize, 9.5);
                     else if (n == 4) actualFontSize = Math.Max(actualFontSize, 11.5);
@@ -616,12 +604,35 @@ namespace WinPieGestures
             return geometry;
         }
 
-        private bool _isOuterEscaped = false;
-        public void SetOuterEscapeState(bool isEscaped)
+        /// <summary>Reflects engine-driven state mutations onto the view (T05): the
+        /// window is only ever driven through the <see cref="WheelViewModel"/>.</summary>
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (_isOuterEscaped == isEscaped) return;
-            _isOuterEscaped = isEscaped;
+            switch (e.PropertyName)
+            {
+                case nameof(WheelViewModel.SelectedSectorIndex):
+                    ApplySectorHighlight(_viewModel.SelectedSectorIndex);
+                    break;
+                case nameof(WheelViewModel.IsOuterEscaped):
+                    ApplyOuterEscapeState(_viewModel.IsOuterEscaped);
+                    break;
+                case nameof(WheelViewModel.IsShown):
+                    if (_viewModel.IsShown)
+                    {
+                        Show();
+                    }
+                    break;
+                case nameof(WheelViewModel.IsClosed):
+                    Close();
+                    MemoryOptimizer.TrimMemory();
+                    break;
+            }
+        }
 
+        private void ApplyOuterEscapeState(bool isEscaped)
+        {
+            // The view-model only raises a change on real transitions, so every call
+            // here is a state flip and the dim/restored animation always applies.
             var anim = new DoubleAnimation
             {
                 To = isEscaped ? 0.38 : 1.0,
@@ -631,7 +642,7 @@ namespace WinPieGestures
             this.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
-        public void HighlightSector(int index)
+        private void ApplySectorHighlight(int index)
         {
             // Center Exit Hover Feedback
             if (index == -1)

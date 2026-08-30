@@ -46,7 +46,7 @@ namespace WinPieGestures
             CoreBorderBrush = new SolidColorBrush(Color.FromArgb(70, 255, 255, 255));
         }
 
-        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex)
+        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
             // Pure floating aesthetic: No bulky background disc!
             // Sectors float directly over the desktop/app with individual glass refraction and shadows.

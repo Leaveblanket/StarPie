@@ -2161,7 +2161,7 @@ namespace WinPieGestures
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }
 
-                _previewStyleRenderer.RenderDecorations(LiveWheelPreviewCanvas, previewCoreGrid, cx, cy, outerR, coreR, 1);
+                _previewStyleRenderer.RenderDecorations(LiveWheelPreviewCanvas, previewCoreGrid, cx, cy, outerR, coreR, 1, ConfigManager.CurrentConfig.ShowCoreIcon);
 
                 var profile = _selectedProfile ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault() ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
                 int n = profile.SectorCount > 0 ? profile.SectorCount : 8;

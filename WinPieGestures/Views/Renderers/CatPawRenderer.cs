@@ -46,7 +46,7 @@ namespace WinPieGestures
             CoreBorderBrush = new SolidColorBrush(Color.FromRgb(244, 114, 182));
         }
 
-        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex)
+        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
             // 1. Prominent Natural Cat Ears (Widely spaced on top-left ~216° and top-right ~324°)
             double earSize = Math.Max(30.0, wheelRadius * 0.36);
@@ -145,7 +145,7 @@ namespace WinPieGestures
                 var existingPaw = coreGrid.Children.OfType<Grid>().FirstOrDefault(g => g.Name == "DynamicPawGrid");
                 if (existingPaw != null) coreGrid.Children.Remove(existingPaw);
 
-                if (!ConfigManager.CurrentConfig.ShowCoreIcon)
+                if (!showCoreIcon)
                 {
                     return;
                 }

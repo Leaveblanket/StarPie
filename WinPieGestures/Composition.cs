@@ -37,7 +37,7 @@ namespace WinPieGestures
             _mouseHook = new MouseHook();
 
             IWindowContext windowContext = new WindowContext();
-            IRadialWindowFactory wheelFactory = new RadialWindowFactory();
+            IWheelFactory wheelFactory = new WheelFactory(_config);
             var engine = new GestureEngine(_config, windowContext, wheelFactory);
 
             _gestureController = new GestureController(_mouseHook, engine);

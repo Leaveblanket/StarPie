@@ -51,7 +51,7 @@ namespace WinPieGestures
 
     /// <summary>
     /// Pure gesture decision state machine (no WPF/Win32 references): press waits for
-    /// the drag threshold → activates the wheel via <see cref="IRadialWindowFactory"/> →
+    /// the drag threshold → activates the wheel view-model via <see cref="IWheelFactory"/> →
     /// drag-selects with center-deadzone cancel and outer-escape cancel → release
     /// executes the selected sector's action, replays the suppressed click, or cancels.
     /// Isolation (blacklist / modifiers / full-screen) and profile lookup are decided
@@ -69,16 +69,16 @@ namespace WinPieGestures
 
         private readonly IConfigService _config;
         private readonly IWindowContext _windowContext;
-        private readonly IRadialWindowFactory _wheelFactory;
+        private readonly IWheelFactory _wheelFactory;
 
         private GesturePoint _startPoint;
         private WheelProfile? _activeProfile;
         private int _selectedSectorIndex = -1;
-        private IRadialWindow? _wheel;
+        private IWheelViewModel? _wheel;
 
         public GestureState State { get; private set; } = GestureState.Idle;
 
-        public GestureEngine(IConfigService config, IWindowContext windowContext, IRadialWindowFactory wheelFactory)
+        public GestureEngine(IConfigService config, IWindowContext windowContext, IWheelFactory wheelFactory)
         {
             _config = config;
             _windowContext = windowContext;

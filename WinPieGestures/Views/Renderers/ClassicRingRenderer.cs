@@ -42,7 +42,7 @@ namespace WinPieGestures
             HighlightBorderThickness = 2.0;
         }
 
-        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex)
+        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
             Color orbitColor = IsLightTheme ? Color.FromArgb(70, 100, 116, 139) : Color.FromArgb(45, 255, 255, 255);
             Color tickColor = IsLightTheme ? Color.FromArgb(100, 71, 85, 105) : Color.FromArgb(70, 255, 255, 255);

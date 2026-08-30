@@ -200,7 +200,7 @@ namespace WinPieGestures
             return defaultOpacity;
         }
 
-        public abstract void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex);
+        public abstract void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon);
 
         public virtual void ApplySectorHighlight(Path path, bool isHighlighted)
         {

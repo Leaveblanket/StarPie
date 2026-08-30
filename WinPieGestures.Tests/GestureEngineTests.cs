@@ -464,12 +464,12 @@ internal sealed class FakeWindowContext : IWindowContext
     public GestureModifierKeys GetActiveModifierKeys() => Modifiers;
 }
 
-internal sealed class FakeWheelFactory : IRadialWindowFactory
+internal sealed class FakeWheelFactory : IWheelFactory
 {
     public List<(GesturePoint Center, WheelProfile Profile)> Created { get; } = new();
     public List<FakeWheel> Wheels { get; } = new();
 
-    public IRadialWindow Create(GesturePoint center, WheelProfile profile)
+    public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
     {
         Created.Add((center, profile));
         var wheel = new FakeWheel();
@@ -478,7 +478,7 @@ internal sealed class FakeWheelFactory : IRadialWindowFactory
     }
 }
 
-internal sealed class FakeWheel : IRadialWindow
+internal sealed class FakeWheel : IWheelViewModel
 {
     /// <summary>Ordered interaction log: "Show", "Highlight:{i}", "Escape:{bool}", "Close".</summary>
     public List<string> Calls { get; } = new();

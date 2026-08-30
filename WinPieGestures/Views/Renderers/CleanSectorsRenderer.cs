@@ -38,7 +38,7 @@ namespace WinPieGestures
             HighlightBorderThickness = 1.6;
         }
 
-        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex)
+        public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
             // Pure minimalist style: clean space, no noisy clutter
         }
