@@ -84,14 +84,14 @@
                     <Grid>
                         <!-- Checkerboard for alpha -->
                         <Border CornerRadius="5" Background="{DynamicResource SubtleCardBrush}"/>
-                        <Border x:Name="ColorPreviewBorder" CornerRadius="5"/>
+                        <Border x:Name="ColorPreviewBorder" CornerRadius="5" Background="{Binding PreviewBrush}"/>
                     </Grid>
                 </Border>
-                <TextBox x:Name="HexInputBox" Width="95" Height="36" FontSize="13" FontWeight="SemiBold" 
+                <TextBox x:Name="HexInputBox" Width="95" Height="36" FontSize="13" FontWeight="SemiBold"
                          Background="{DynamicResource InputBackgroundBrush}"
                          Foreground="{DynamicResource TextPrimaryBrush}"
                          BorderBrush="{DynamicResource InputBorderBrush}"
-                         VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0" TextChanged="HexInputBox_TextChanged"/>
+                         VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Margin="0" Text="{Binding HexText, UpdateSourceTrigger=PropertyChanged}"/>
             </StackPanel>
         </Grid>
 
@@ -106,7 +106,7 @@
 
             <!-- 1. Color Spectrum (Saturation & Value) -->
             <Border Grid.Row="0" CornerRadius="8" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" ClipToBounds="True">
-                <Canvas x:Name="SpectrumCanvas" Background="Red" MouseDown="SpectrumCanvas_MouseDown" MouseMove="SpectrumCanvas_MouseMove" Cursor="Cross">
+                <Canvas x:Name="SpectrumCanvas" Background="{Binding SpectrumBrush}" MouseDown="SpectrumCanvas_MouseDown" MouseMove="SpectrumCanvas_MouseMove" Cursor="Cross">
                     <!-- White to Transparent Horizontal Gradient -->
                     <Rectangle Width="{Binding ActualWidth, ElementName=SpectrumCanvas}" Height="{Binding ActualHeight, ElementName=SpectrumCanvas}">
                         <Rectangle.Fill>
@@ -143,7 +143,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="HueLabelText" Text="色相" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <Slider x:Name="HueSlider" Grid.Column="1" Minimum="0" Maximum="360" Value="0" ValueChanged="HueSlider_ValueChanged" Height="18">
+                    <Slider x:Name="HueSlider" Grid.Column="1" Minimum="0" Maximum="360" Value="{Binding Hue}" Height="18">
                         <Slider.Background>
                             <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
                                 <GradientStop Color="#FFFF0000" Offset="0.0"/>
@@ -165,7 +165,7 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock x:Name="AlphaLabelText" Text="不透明" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                    <Slider x:Name="AlphaSlider" Grid.Column="1" Minimum="0" Maximum="255" Value="255" ValueChanged="AlphaSlider_ValueChanged" Height="18"/>
+                    <Slider x:Name="AlphaSlider" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding Alpha}" Height="18"/>
                 </Grid>
             </StackPanel>
 
@@ -180,7 +180,7 @@
                         <TextBlock x:Name="EyedropperTitleText" Text="🔍 屏幕取色吸管" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                         <TextBlock x:Name="EyedropperDescText" Text="点击后在屏幕任意窗口吸取精准色彩" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                    <Button Grid.Column="1" x:Name="EyedropperButton" Content="从屏幕吸色" Style="{StaticResource PrimaryBtn}" Padding="12,4" Height="26" FontSize="11" Click="Eyedropper_Click"/>
+                    <Button Grid.Column="1" x:Name="EyedropperButton" Content="从屏幕吸色" Style="{StaticResource PrimaryBtn}" Padding="12,4" Height="26" FontSize="11" Command="{Binding EyedropperCommand}"/>
                 </Grid>
             </Border>
 

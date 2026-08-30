@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Color = System.Windows.Media.Color;
-using Cursors = System.Windows.Input.Cursors;
-using HorizontalAlignment = System.Windows.HorizontalAlignment;
+using MessageBox = System.Windows.MessageBox;
 
 namespace WinPieGestures
 {
@@ -17,18 +14,202 @@ namespace WinPieGestures
     using Cursors = System.Windows.Input.Cursors;
     using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
+    /// <summary>
+    /// 图标选择器窗口 (T08)：选中状态、搜索过滤、导入/删除编排与确认结果全部在
+    /// <see cref="IconPickerViewModel"/>；code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）、
+    /// 本地化文案与把 VM 的关闭请求落成 DialogResult。由 <see cref="DialogService"/> 创建，
+    /// Owner 归设置窗口。
+    /// </summary>
     public partial class IconPickerWindow : Window
     {
-        public string? SelectedIconKey { get; private set; }
+        private readonly IconPickerViewModel _vm;
         private Border? _selectedCard;
 
-        public IconPickerWindow(IThemeService themeService, string? initialKey = null)
+        public IconPickerWindow(IThemeService themeService, IDialogService dialogService, string? initialKey = null)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
-            SelectedIconKey = initialKey;
-            PopulateIcons();
+            _vm = new IconPickerViewModel(IconHelper.GetCustomIcons, () => IconHelper.VectorIconList, dialogService, initialKey);
+            DataContext = _vm;
+            _vm.CloseRequested += result =>
+            {
+                DialogResult = true;
+                Close();
+            };
+            _vm.ImportFailed += message => MessageBox.Show(message, "StarPie", MessageBoxButton.OK, MessageBoxImage.Warning);
+            _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
+            _vm.ApplyFilter(null);
             ApplyLocalization();
+        }
+
+        /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
+        public IconPickResult BuildResult() => _vm.BuildResult();
+
+        private void DisplayedIcons_Changed(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            switch (e.Action)
+            {
+                case NotifyCollectionChangedAction.Reset:
+                    IconsWrapPanel.Children.Clear();
+                    _selectedCard = null;
+                    break;
+                case NotifyCollectionChangedAction.Add:
+                    if (e.NewItems != null)
+                    {
+                        foreach (IconEntry entry in e.NewItems)
+                        {
+                            IconsWrapPanel.Children.Add(BuildIconCard(entry));
+                        }
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>构建单张图标卡片：SVG/位图元素与选中高亮留视图，选中状态归 VM。</summary>
+        private Border BuildIconCard(IconEntry entry)
+        {
+            var cardBg = (Brush)FindResource("SubtleCardBrush");
+            var cardBorder = (Brush)FindResource("InputBorderBrush");
+            var textPrimary = (Brush)FindResource("TextPrimaryBrush");
+            var textSecondary = (Brush)FindResource("TextSecondaryBrush");
+
+            var card = new Border
+            {
+                Background = cardBg,
+                BorderBrush = cardBorder,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Margin = new Thickness(4),
+                Padding = new Thickness(6),
+                Cursor = Cursors.Hand,
+                Tag = entry.Key
+            };
+
+            var grid = new Grid();
+            var sp = new StackPanel
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            FrameworkElement iconElem;
+            if (entry.IsSvg)
+            {
+                iconElem = new Path
+                {
+                    Data = Geometry.Parse(entry.SvgData),
+                    Fill = entry.IsCustom ? (Brush)FindResource("AccentPrimaryBrush") : textPrimary,
+                    Width = 24,
+                    Height = 24,
+                    Stretch = Stretch.Uniform,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 0, 0, 4)
+                };
+            }
+            else
+            {
+                var img = new System.Windows.Controls.Image
+                {
+                    Width = 24,
+                    Height = 24,
+                    Stretch = Stretch.Uniform,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 0, 0, 4)
+                };
+                img.Source = IconHelper.GetCustomImageSource(entry.FilePath);
+                iconElem = img;
+            }
+
+            var tb = new TextBlock
+            {
+                Text = entry.IsCustom ? entry.DisplayName : entry.Key,
+                FontSize = 10,
+                Foreground = textSecondary,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                MaxWidth = 72,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TextAlignment = TextAlignment.Center
+            };
+
+            sp.Children.Add(iconElem);
+            sp.Children.Add(tb);
+            grid.Children.Add(sp);
+
+            // Delete small button for custom icons
+            if (entry.IsCustom)
+            {
+                var delBtn = new System.Windows.Controls.Button
+                {
+                    Content = "✕",
+                    FontSize = 9,
+                    Width = 16,
+                    Height = 16,
+                    Padding = new Thickness(0),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Background = System.Windows.Media.Brushes.Transparent,
+                    BorderThickness = new Thickness(0),
+                    Foreground = textSecondary,
+                    Cursor = Cursors.Hand,
+                    ToolTip = "删除此自定义图标"
+                };
+                delBtn.Click += (s, e) =>
+                {
+                    e.Handled = true;
+                    _vm.DeleteCustomIcon(entry.Key);
+                };
+                grid.Children.Add(delBtn);
+            }
+
+            card.Child = grid;
+
+            if (string.Equals(_vm.SelectedIconKey, entry.Key, StringComparison.OrdinalIgnoreCase))
+            {
+                ApplyCardSelection(card);
+            }
+
+            card.MouseLeftButtonDown += (s, e) =>
+            {
+                ApplyCardSelection(card);
+                _vm.Select(entry);
+                if (e.ClickCount == 2)
+                {
+                    _vm.ConfirmCommand.Execute(null);
+                }
+            };
+
+            return card;
+        }
+
+        /// <summary>高亮选中卡片并把原选中卡片恢复常态（纯视觉状态）。</summary>
+        private void ApplyCardSelection(Border card)
+        {
+            if (_selectedCard != null)
+            {
+                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
+                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
+            }
+
+            _selectedCard = card;
+            card.Background = (Brush)FindResource("NavTabActiveBgBrush");
+            card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
+        }
+
+        private void ClearIcon_Click(object sender, RoutedEventArgs e)
+        {
+            _vm.ClearIconCommand.Execute(null);
+            if (_selectedCard != null)
+            {
+                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
+                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
+                _selectedCard = null;
+            }
+        }
+
+        private void Cancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
         }
 
         private void ApplyLocalization()
@@ -42,303 +223,7 @@ namespace WinPieGestures
             if (SelectedIconPrefixText != null) SelectedIconPrefixText.Text = I18n.T("IconPickerSelected") + " ";
             if (ConfirmButton != null) ConfirmButton.Content = I18n.T("BtnConfirm");
             if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
-            if (string.IsNullOrEmpty(SelectedIconKey) && SelectedIconNameLabel != null)
-            {
-                SelectedIconNameLabel.Text = I18n.T("IconPickerNone");
-            }
-        }
-
-        private void PopulateIcons(string filter = "")
-        {
-            IconsWrapPanel.Children.Clear();
-            _selectedCard = null;
-
-            var cardBg = (Brush)FindResource("SubtleCardBrush");
-            var cardBorder = (Brush)FindResource("InputBorderBrush");
-            var textPrimary = (Brush)FindResource("TextPrimaryBrush");
-            var textSecondary = (Brush)FindResource("TextSecondaryBrush");
-
-            // 1. Render Custom User Icons (if any)
-            var customIcons = IconHelper.GetCustomIcons();
-            if (!string.IsNullOrEmpty(filter))
-            {
-                customIcons = customIcons.Where(i => 
-                    i.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) || 
-                    i.Key.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-            }
-
-            foreach (var custom in customIcons)
-            {
-                var card = new Border
-                {
-                    Background = cardBg,
-                    BorderBrush = cardBorder,
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(8),
-                    Margin = new Thickness(4),
-                    Padding = new Thickness(6),
-                    Cursor = Cursors.Hand,
-                    Tag = custom.Key
-                };
-
-                var grid = new Grid();
-                var sp = new StackPanel
-                {
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-
-                FrameworkElement iconElem;
-                if (custom.IsSvg)
-                {
-                    iconElem = new Path
-                    {
-                        Data = Geometry.Parse(custom.SvgData),
-                        Fill = (Brush)FindResource("AccentPrimaryBrush"),
-                        Width = 24,
-                        Height = 24,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 0, 0, 4)
-                    };
-                }
-                else
-                {
-                    var img = new System.Windows.Controls.Image
-                    {
-                        Width = 24,
-                        Height = 24,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 0, 0, 4)
-                    };
-                    img.Source = IconHelper.GetCustomImageSource(custom.FilePath);
-                    iconElem = img;
-                }
-
-                var tb = new TextBlock
-                {
-                    Text = custom.DisplayName,
-                    FontSize = 10,
-                    Foreground = textSecondary,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    MaxWidth = 72,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    TextAlignment = TextAlignment.Center
-                };
-
-                sp.Children.Add(iconElem);
-                sp.Children.Add(tb);
-                grid.Children.Add(sp);
-
-                // Delete small button for custom icons
-                var delBtn = new System.Windows.Controls.Button
-                {
-                    Content = "✕",
-                    FontSize = 9,
-                    Width = 16,
-                    Height = 16,
-                    Padding = new Thickness(0),
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Top,
-                    Background = System.Windows.Media.Brushes.Transparent,
-                    BorderThickness = new Thickness(0),
-                    Foreground = (Brush)FindResource("TextSecondaryBrush"),
-                    Cursor = Cursors.Hand,
-                    ToolTip = "删除此自定义图标"
-                };
-                delBtn.Click += (s, e) =>
-                {
-                    e.Handled = true;
-                    if (IconHelper.DeleteCustomIcon(custom.Key))
-                    {
-                        PopulateIcons(SearchTextBox.Text.Trim());
-                    }
-                };
-                grid.Children.Add(delBtn);
-
-                card.Child = grid;
-
-                if (string.Equals(SelectedIconKey, custom.Key, StringComparison.OrdinalIgnoreCase))
-                {
-                    SelectCustomCard(card, custom);
-                }
-
-                card.MouseLeftButtonDown += (s, e) =>
-                {
-                    SelectCustomCard(card, custom);
-                    if (e.ClickCount == 2)
-                    {
-                        Confirm_Click(this, new RoutedEventArgs());
-                    }
-                };
-
-                IconsWrapPanel.Children.Add(card);
-            }
-
-            // 2. Render Built-in Vector Icons
-            var items = IconHelper.VectorIconList;
-            if (!string.IsNullOrEmpty(filter))
-            {
-                items = items.Where(i => 
-                    i.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) || 
-                    i.Category.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                    i.Key.Contains(filter, StringComparison.OrdinalIgnoreCase)
-                ).ToList();
-            }
-
-            foreach (var item in items)
-            {
-                var card = new Border
-                {
-                    Background = cardBg,
-                    BorderBrush = cardBorder,
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(8),
-                    Margin = new Thickness(4),
-                    Padding = new Thickness(6),
-                    Cursor = Cursors.Hand,
-                    Tag = item
-                };
-
-                var sp = new StackPanel
-                {
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center
-                };
-
-                var path = new Path
-                {
-                    Data = Geometry.Parse(item.SvgData),
-                    Fill = textPrimary,
-                    Width = 24,
-                    Height = 24,
-                    Stretch = Stretch.Uniform,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 0, 0, 4)
-                };
-
-                var tb = new TextBlock
-                {
-                    Text = item.Key,
-                    FontSize = 10,
-                    Foreground = textSecondary,
-                    TextTrimming = TextTrimming.CharacterEllipsis,
-                    MaxWidth = 72,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    TextAlignment = TextAlignment.Center
-                };
-
-                sp.Children.Add(path);
-                sp.Children.Add(tb);
-                card.Child = sp;
-
-                // Selection check
-                if (string.Equals(SelectedIconKey, item.Key, StringComparison.OrdinalIgnoreCase))
-                {
-                    SelectCard(card, item);
-                }
-
-                card.MouseLeftButtonDown += (s, e) =>
-                {
-                    SelectCard(card, item);
-                    if (e.ClickCount == 2)
-                    {
-                        Confirm_Click(this, new RoutedEventArgs());
-                    }
-                };
-
-                IconsWrapPanel.Children.Add(card);
-            }
-        }
-
-        private void SelectCustomCard(Border card, IconHelper.CustomIconItem custom)
-        {
-            if (_selectedCard != null)
-            {
-                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
-                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
-            }
-
-            _selectedCard = card;
-            SelectedIconKey = custom.Key;
-            SelectedIconNameLabel.Text = custom.DisplayName + " (自定义)";
-
-            card.Background = (Brush)FindResource("NavTabActiveBgBrush");
-            card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
-        }
-
-        private void ImportIcon_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var dialog = new Microsoft.Win32.OpenFileDialog
-                {
-                    Title = "导入自定义图标 (SVG / PNG / ICO / JPG)",
-                    Filter = "所有支持的图标 (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVG 矢量图 (*.svg)|*.svg|图片文件 (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|所有文件 (*.*)|*.*",
-                    Multiselect = false
-                };
-
-                if (dialog.ShowDialog(this) == true && !string.IsNullOrEmpty(dialog.FileName))
-                {
-                    var imported = IconHelper.ImportCustomIcon(dialog.FileName);
-                    if (imported != null)
-                    {
-                        SelectedIconKey = imported.Key;
-                        PopulateIcons(SearchTextBox.Text.Trim());
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show($"导入图标失败:\n{ex.Message}", "StarPie", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        }
-
-        private void SelectCard(Border card, VectorIconItem item)
-        {
-            if (_selectedCard != null)
-            {
-                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
-                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
-            }
-
-            _selectedCard = card;
-            SelectedIconKey = item.Key;
-            SelectedIconNameLabel.Text = item.DisplayName;
-
-            card.Background = (Brush)FindResource("NavTabActiveBgBrush");
-            card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
-        }
-
-        private void SearchTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            PopulateIcons(SearchTextBox.Text.Trim());
-        }
-
-        private void ClearIcon_Click(object sender, RoutedEventArgs e)
-        {
-            SelectedIconKey = "";
-            SelectedIconNameLabel.Text = "(无图标)";
-            if (_selectedCard != null)
-            {
-                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
-                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
-                _selectedCard = null;
-            }
-        }
-
-        private void Confirm_Click(object sender, RoutedEventArgs e)
-        {
-            this.DialogResult = true;
-            this.Close();
-        }
-
-        private void Cancel_Click(object sender, RoutedEventArgs e)
-        {
-            this.DialogResult = false;
-            this.Close();
+            // SelectedIconNameLabel 的文案走 VM 的 SelectedIconDisplayName 绑定，这里不能落本地值覆盖绑定。
         }
     }
 }

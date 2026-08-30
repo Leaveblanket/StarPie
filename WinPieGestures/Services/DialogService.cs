@@ -7,8 +7,8 @@ namespace WinPieGestures
     /// 对话框服务实现 (T06, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
     /// 窗口创建完成后调 <see cref="SetOwner"/> 回填引用，化解"服务需要 Owner ↔ 窗口依赖服务"
     /// 的循环。Owner 的用法是实现内部自由，不泄露进接口。
-    /// 迁移期混装：程序选择器已走 VM 化链路；其余对话框暂在内部 new 旧 code-behind 窗口，
-    /// 接口保持不变，后续工单逐个迁入。
+    /// 迁移期混装：程序选择器（T06）与图标/颜色选择器、屏上取色（T08）已走 VM 化链路；
+    /// 输入框暂在内部 new 旧 code-behind 窗口（T07 迁入），接口保持不变。
     /// </summary>
     public sealed class DialogService : IDialogService
     {
@@ -43,16 +43,14 @@ namespace WinPieGestures
 
         public IconPickResult? ShowIconPicker(string? currentIconKey)
         {
-            var picker = new IconPickerWindow(_themeService, currentIconKey) { Owner = _owner };
-            return picker.ShowDialog() == true ? new IconPickResult(picker.SelectedIconKey) : null;
+            var picker = new IconPickerWindow(_themeService, this, currentIconKey) { Owner = _owner };
+            return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
         {
-            var dialog = new ColorPickerWindow(_themeService, initialHex) { Owner = _owner };
-            return dialog.ShowDialog() == true && !string.IsNullOrEmpty(dialog.SelectedHexColor)
-                ? new ColorPickResult(dialog.SelectedHexColor)
-                : null;
+            var dialog = new ColorPickerWindow(_themeService, this, initialHex) { Owner = _owner };
+            return dialog.ShowDialog() == true ? dialog.BuildResult() : null;
         }
 
         public EyedropResult? ShowEyedropper()
@@ -60,7 +58,7 @@ namespace WinPieGestures
             // 全屏置顶工具，刻意不用 Owner（ADR-0004）。
             var eyedropper = new ScreenEyedropperOverlay();
             return eyedropper.ShowDialog() == true && !string.IsNullOrEmpty(eyedropper.CapturedHexColor)
-                ? new EyedropResult(eyedropper.CapturedHexColor)
+                ? new EyedropResult(eyedropper.CapturedHexColor!)
                 : null;
         }
 

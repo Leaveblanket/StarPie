@@ -1307,11 +1307,10 @@ namespace WinPieGestures
 
         private void PickCoreIconButton_Click(object sender, RoutedEventArgs e)
         {
-            var picker = new IconPickerWindow(_themeService, ConfigManager.CurrentConfig.CoreCustomIconKey);
-            picker.Owner = this;
-            if (picker.ShowDialog() == true)
+            var picked = _dialogs.ShowIconPicker(ConfigManager.CurrentConfig.CoreCustomIconKey);
+            if (picked != null)
             {
-                ConfigManager.CurrentConfig.CoreCustomIconKey = picker.SelectedIconKey ?? "";
+                ConfigManager.CurrentConfig.CoreCustomIconKey = picked.IconKey ?? "";
                 UpdateCoreIconPreviewUI();
                 if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                 {
@@ -1536,11 +1535,10 @@ namespace WinPieGestures
         {
             if (sender is FrameworkElement elem && elem.DataContext is SlotViewModel vm)
             {
-                var picker = new IconPickerWindow(_themeService, vm.IconKey);
-                picker.Owner = this;
-                if (picker.ShowDialog() == true)
+                var picked = _dialogs.ShowIconPicker(vm.IconKey);
+                if (picked != null)
                 {
-                    vm.IconKey = picker.SelectedIconKey ?? "";
+                    vm.IconKey = picked.IconKey ?? "";
                     if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                     {
                         RenderLiveWheelPreview();
@@ -1607,10 +1605,10 @@ namespace WinPieGestures
                 TextBox? targetBox = GetColorTextBoxByTag(tag);
                 if (targetBox != null)
                 {
-                    var dlg = new ColorPickerWindow(_themeService, targetBox.Text) { Owner = this };
-                    if (dlg.ShowDialog() == true && !string.IsNullOrEmpty(dlg.SelectedHexColor))
+                    var picked = _dialogs.ShowColorPicker(targetBox.Text);
+                    if (picked != null)
                     {
-                        targetBox.Text = dlg.SelectedHexColor;
+                        targetBox.Text = picked.HexColor;
                     }
                 }
             }
@@ -1623,10 +1621,10 @@ namespace WinPieGestures
                 TextBox? targetBox = GetColorTextBoxByTag(tag);
                 if (targetBox != null)
                 {
-                    var eyedropper = new ScreenEyedropperOverlay();
-                    if (eyedropper.ShowDialog() == true && !string.IsNullOrEmpty(eyedropper.CapturedHexColor))
+                    var picked = _dialogs.ShowEyedropper();
+                    if (picked != null)
                     {
-                        targetBox.Text = eyedropper.CapturedHexColor;
+                        targetBox.Text = picked.HexColor;
                     }
                 }
             }
