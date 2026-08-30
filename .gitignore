@@ -43,4 +43,7 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
+# Tool Indexes
+.codegraph/
+
 
