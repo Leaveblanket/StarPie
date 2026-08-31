@@ -17,7 +17,7 @@ using Size = System.Windows.Size;
 using Brushes = System.Windows.Media.Brushes;
 using Path = System.Windows.Shapes.Path;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     /// <summary>
     /// 轮盘窗口 (T05): all view state lives in the per-gesture <see cref="WheelViewModel"/>

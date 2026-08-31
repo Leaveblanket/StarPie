@@ -1,7 +1,7 @@
 ﻿using System;
 using Application = System.Windows.Application;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// App-side adapter around the pure <see cref="GestureEngine"/> (ADR-0002):

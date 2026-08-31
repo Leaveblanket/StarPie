@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     using Application = System.Windows.Application;
     using Color = System.Windows.Media.Color;

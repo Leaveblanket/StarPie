@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Shapes;
 using Brush = System.Windows.Media.Brush;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     public interface IRadialStyleRenderer
     {

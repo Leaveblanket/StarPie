@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     using Button = System.Windows.Controls.Button;
     using Color = System.Windows.Media.Color;

@@ -7,7 +7,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 系统预设动作条目（T11 随槽位 ViewModel 一并自 SettingsWindow 迁入，数据一字未动）。

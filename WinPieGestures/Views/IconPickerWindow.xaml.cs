@@ -7,7 +7,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     using Brush = System.Windows.Media.Brush;
     using Color = System.Windows.Media.Color;

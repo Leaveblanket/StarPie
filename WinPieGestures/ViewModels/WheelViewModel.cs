@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 轮盘 ViewModel (T05, ADR-0001): owns the wheel's view state — selected sector,

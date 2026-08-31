@@ -8,7 +8,7 @@ using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     /// <summary>
     /// Glassmorphism Style: Apple Liquid Glass & Windows Fluent Acrylic/Mica Floating Wheel.

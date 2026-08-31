@@ -8,7 +8,7 @@ using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     /// <summary>
     /// Classic Ring Style: Vision Pro Spatial Ring HUD.
