@@ -82,4 +82,24 @@ public sealed class TestDialogService : IDialogService
         FolderDialogInitialDirectories.Add(initialDirectory);
         return FolderToPick;
     }
+
+    /// <summary>Confirm 的预设返回值（true = 用户选"是"）。</summary>
+    public bool ConfirmResult { get; set; }
+
+    /// <summary>每次 Confirm 收到的 (title, message) 实参。</summary>
+    public List<(string Title, string Message)> ConfirmCalls { get; } = new();
+
+    /// <summary>每次 ShowInfo 收到的 (title, message) 实参。</summary>
+    public List<(string Title, string Message)> InfoCalls { get; } = new();
+
+    public bool Confirm(string title, string message)
+    {
+        ConfirmCalls.Add((title, message));
+        return ConfirmResult;
+    }
+
+    public void ShowInfo(string title, string message)
+    {
+        InfoCalls.Add((title, message));
+    }
 }

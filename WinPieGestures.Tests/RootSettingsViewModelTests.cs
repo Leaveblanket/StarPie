@@ -46,10 +46,14 @@ public sealed class RootSettingsViewModelTests
         public List<string> ExportedPaths { get; } = new();
         public Func<string, bool> OnImport { get; set; } = _ => false;
 
+        /// <summary>T17：注入根 VM 的落盘防抖替身，测试手动触发到期或断言挂起态。</summary>
+        public TestSaveDebouncer Debouncer { get; } = new();
+
         public RootSettingsViewModel CreateRoot(IDialogService dialogs, IConfigService configService)
             => new(
                 configService,
                 dialogs,
+                Debouncer,
                 () => Current,
                 (title, text) => BalloonTips.Add(title + text),
                 () => ExitCalls++,
@@ -180,5 +184,82 @@ public sealed class RootSettingsViewModelTests
         root.SaveConfig();
 
         Assert.Equal(2, configService.SaveCalls);
+    }
+
+    // --- 自动保存编排 (T17) ---------------------------------------------------------
+
+    [Fact]
+    public void DebouncedSetting_SchedulesSave_AtDebounceDelay_AndFiresAfterTick()
+    {
+        var config = MakeConfig();
+        var configService = new FakeConfigService { Current = config };
+        var stubs = new HostStubs { Current = config };
+        var root = stubs.CreateRoot(new TestDialogService(), configService);
+
+        root.Appearance.AppTheme = "Dark";
+
+        Assert.Equal(1, stubs.Debouncer.ScheduleCalls);
+        Assert.Equal(TimeSpan.FromMilliseconds(400), stubs.Debouncer.LastDelay);
+        Assert.Equal(1, stubs.Debouncer.PendingCount);
+        Assert.Equal(0, configService.SaveCalls);
+
+        stubs.Debouncer.TickPending();
+
+        Assert.Equal(1, configService.SaveCalls);
+    }
+
+    [Fact]
+    public void MultipleDebouncedRequests_CollapseToSingleSave()
+    {
+        var config = MakeConfig();
+        var configService = new FakeConfigService { Current = config };
+        var stubs = new HostStubs { Current = config };
+        var root = stubs.CreateRoot(new TestDialogService(), configService);
+
+        root.Appearance.AppTheme = "Dark";
+        root.Appearance.ShowCoreIcon = false;
+        root.Appearance.CoreIconType = "Crosshair";
+
+        // 连续变更重复调度，但挂起动作只有一个（后到替换先到），到期只落盘一次
+        Assert.Equal(3, stubs.Debouncer.ScheduleCalls);
+        Assert.Equal(1, stubs.Debouncer.PendingCount);
+
+        stubs.Debouncer.TickPending();
+
+        Assert.Equal(1, configService.SaveCalls);
+    }
+
+    [Fact]
+    public void FlushPendingSave_CancelsPendingAndSavesImmediately()
+    {
+        var config = MakeConfig();
+        var configService = new FakeConfigService { Current = config };
+        var stubs = new HostStubs { Current = config };
+        var root = stubs.CreateRoot(new TestDialogService(), configService);
+
+        root.Appearance.AppTheme = "Dark";
+        root.FlushPendingSave();
+
+        Assert.Equal(1, configService.SaveCalls);
+        Assert.Equal(0, stubs.Debouncer.PendingCount);
+
+        // 到期不再重复落盘（挂起已随冲刷取消）
+        stubs.Debouncer.TickPending();
+        Assert.Equal(1, configService.SaveCalls);
+    }
+
+    [Fact]
+    public void ImmediateSaveRequests_BypassDebounce_AndCancelPending()
+    {
+        var config = MakeConfig();
+        var configService = new FakeConfigService { Current = config };
+        var stubs = new HostStubs { Current = config };
+        var root = stubs.CreateRoot(new TestDialogService(), configService);
+
+        root.Appearance.AppTheme = "Dark";
+        root.General.ApplyLanguage("en-US");
+
+        Assert.Equal(1, configService.SaveCalls);
+        Assert.Equal(0, stubs.Debouncer.PendingCount);
     }
 }

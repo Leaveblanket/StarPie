@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>程序选择器的确认结果；取消与无效统一由服务返回 null，不再向调用方暴露。</summary>
     public sealed record ProgramPickResult(string Name, string Path);
@@ -55,5 +55,11 @@ namespace WinPieGestures
 
         /// <summary>系统文件夹选择对话框（T12，OpenFolderDialog 同属 BCL 抽象）。返回 null 表示取消。</summary>
         FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null);
+
+        /// <summary>是/否确认框 (T17)。返回 true 表示用户选择"是"。</summary>
+        bool Confirm(string title, string message);
+
+        /// <summary>信息提示框 (T17)：单按钮确认，无返回值。</summary>
+        void ShowInfo(string title, string message);
     }
 }
