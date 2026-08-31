@@ -13,7 +13,7 @@ namespace WinPieGestures
     /// 方向槽位集合（<c>_slotViewModels</c> + <c>RefreshSlots</c>）。
     /// T12 起槽位持有对话框服务（<see cref="IDialogService"/>，动作编辑闭环的对话框编排全部
     /// 进槽位 ViewModel），本 VM 将槽位编辑提交事件转发为 <see cref="SlotEditCommitted"/> 供
-    /// 窗口落盘。与 <see cref="WheelViewModel.Config"/> 先例同理，过渡期直接持有运行态配置的
+    /// 窗口落盘。与 <see cref="WheelViewModel.Config"/> 先例同理，直接持有运行态配置的
     /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
     /// </summary>
     public partial class ProfileListViewModel : ObservableObject
@@ -193,6 +193,14 @@ namespace WinPieGestures
             _sourceProfiles.Remove(item.Model);
             Profiles.Remove(item);
         }
+
+        /// <summary>方案名（进程名）占用查重，大小写不敏感（迁移前新增/重命名对话框校验语义；
+        /// T16 自窗口 code-behind 对运行态配置的直接查询收编）。</summary>
+        public bool IsProcessNameTaken(string processName)
+            => Profiles.Any(p => p.Model.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase));
+
+        /// <summary>新自定义方案的缺省名（迁移前 AddCustomProfileButton_Click 的默认文案）。</summary>
+        public string CreateDefaultCustomProfileName() => $"自定义配置_{Profiles.Count}";
     }
 
     /// <summary>

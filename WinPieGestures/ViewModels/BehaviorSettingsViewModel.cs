@@ -10,7 +10,7 @@ namespace WinPieGestures
     /// <summary>
     /// 设置窗口·手势行为分区 ViewModel (T13, ADR-0001)：承接迁移前 SettingsWindow code-behind 的
     /// 触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸取消与进程排除黑名单的状态与编排。
-    /// 过渡期直接持有运行态 <see cref="AppConfig"/> 引用（live-apply：属性变更即时写回运行态配置
+    /// 直接持有运行态 <see cref="AppConfig"/> 引用（live-apply：属性变更即时写回运行态配置
     /// 并生效，与 <see cref="WheelViewModel.Config"/> / <see cref="ProfileListViewModel"/> 先例同理）；
     /// 落盘经 <see cref="SaveRequested"/> / <see cref="SaveDebounceRequested"/> 交窗口统一处理
     /// （窗口走 SyncUiToConfigAndSave / ScheduleAutoSave，防抖节奏留在 View 基础设施）。
@@ -116,7 +116,7 @@ namespace WinPieGestures
             }
         }
 
-        // --- live-apply 写回（对应迁移前各事件处理器对 ConfigManager.CurrentConfig 的直接写入） ---
+        // --- live-apply 写回（对应迁移前各事件处理器对运行态配置的直接写入） ---
 
         partial void OnDragThresholdChanged(double value)
         {

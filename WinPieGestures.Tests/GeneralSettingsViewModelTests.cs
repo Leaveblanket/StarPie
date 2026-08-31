@@ -8,7 +8,7 @@ namespace WinPieGestures.Tests;
 /// 通用分区 ViewModel 的行为覆盖 (T13, ADR-0001)：界面语言切换（写配置 + I18n 切换 +
 /// 落盘请求）、开机自启（注册表读写经注入委托）、退出/提权重启编排、托盘驻留气泡提示
 /// 与配置导入/导出——全部锁定迁移前 SettingsWindow code-behind 的外部行为。
-/// 直接 new 被测对象并注入记录型委托，不触碰 ConfigManager 静态态。
+/// 直接 new 被测对象并注入记录型委托，不触碰任何静态配置状态。
 /// </summary>
 public sealed class GeneralSettingsViewModelTests
 {
@@ -160,7 +160,7 @@ public sealed class GeneralSettingsViewModelTests
 
         vm.SetAutoStart(true);
 
-        // 注册表读写经注入委托（transitional 保持 ConfigManager 调用点不变）
+        // 注册表读写经注入委托（组合根接线 AutostartRegistry）
         Assert.Equal(new[] { true }, calls);
         Assert.Equal(1, saves);
     }

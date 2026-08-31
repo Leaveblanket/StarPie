@@ -30,9 +30,9 @@ namespace WinPieGestures
 
         public GesturePoint Center { get; }
 
-        /// <summary>Live config reference (transitional, T05 scope): the window still
-        /// reads pure-styling fields (shape, fonts, core imagery) off it until the
-        /// settings side migrates; renderer-facing state is exposed as properties.</summary>
+        /// <summary>Live config reference: the radial window reads pure-styling
+        /// fields (shape, fonts, core imagery) off it; renderer-facing state is
+        /// exposed as properties.</summary>
         public AppConfig Config { get; }
 
         /// <summary>One slot per 轮盘 sector, indexed by azimuth; slots without a bound action report <c>HasAction == false</c>.</summary>

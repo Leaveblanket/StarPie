@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 
 namespace WinPieGestures
@@ -13,7 +14,7 @@ namespace WinPieGestures
     /// </summary>
     internal sealed class Composition : IDisposable
     {
-        private readonly IConfigService _config;
+        private readonly JsonConfigService _config;
         private readonly MouseHook _mouseHook;
         // DialogService (T06, ADR-0002/0004)：Owner 惰性回填——先建服务、后建设置窗口，
         // Run() 里窗口创建完成后回填引用，化解"服务要 Owner ↔ 窗口要服务"的循环。
@@ -34,10 +35,10 @@ namespace WinPieGestures
 
         public Composition()
         {
-            // Expand phase (ADR-0002): the single service instance still lives in
-            // the static ConfigManager facade until the settings window migrates
-            // off it; the composition root then takes it over directly.
-            _config = ConfigManager.ConfigService;
+            // T16：组合根直接构造唯一配置服务实例（静态配置门面已删除）——
+            // 路径解析（dev 沙箱与 legacy 目录迁移）收进 AppDataPaths，语义不变；
+            // Load 仍由应用层在 Run 之前驱动（ADR-0003 装配顺序）。
+            _config = new JsonConfigService(Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json"));
 
             _mouseHook = new MouseHook();
 
@@ -60,12 +61,21 @@ namespace WinPieGestures
         {
             _mouseHook.Start();
 
-            _settingsWindow = new SettingsWindow(
-                _themeService,
-                exitApplication: ExitApplication,
-                showTrayBalloonTip: (title, text) => _trayIcon?.ShowBalloonTip(title, text),
-                dialogs: _dialogService,
-                actionExecutor: _actionExecutor);
+            // T16：设置根 ViewModel 装配点上移到组合根（T14 曾在窗口构造函数内装配，属迁移期
+            // 过渡形态）。宿主副作用经既有委托接线：自启注册表走 AutostartRegistry，导入导出
+            // 走配置服务，托盘气泡与退出复用应用层委托。
+            var root = new RootSettingsViewModel(
+                _config,
+                _dialogService,
+                () => _config.Current,
+                (title, text) => _trayIcon?.ShowBalloonTip(title, text),
+                ExitApplication,
+                isAutoStartEnabled: AutostartRegistry.IsAutoStartEnabled,
+                setAutoStart: AutostartRegistry.SetAutoStart,
+                exportConfig: path => _config.Export(path),
+                importConfig: path => _config.Import(path));
+
+            _settingsWindow = new SettingsWindow(root, _themeService, _dialogService, _actionExecutor);
             // 惰性回填 Owner：此后所有模态对话框归属设置窗口。
             _dialogService.SetOwner(_settingsWindow);
 

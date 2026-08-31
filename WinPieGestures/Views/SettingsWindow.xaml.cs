@@ -59,26 +59,17 @@ namespace WinPieGestures
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        public SettingsWindow(IThemeService themeService, IDialogService dialogs, IActionExecutorService actionExecutor, Action exitApplication, Action<string, string> showTrayBalloonTip)
+        public SettingsWindow(RootSettingsViewModel root, IThemeService themeService, IDialogService dialogs, IActionExecutorService actionExecutor)
         {
             InitializeComponent();
             _themeService = themeService;
             _dialogs = dialogs;
             _actionExecutor = actionExecutor;
 
-            // T14：根 ViewModel 聚合各分区子 ViewModel（装配集中、手动 new，ADR-0002）；
-            // 窗口 DataContext 设为根，分区 DataContext 与列表 ItemsSource 一律经 XAML
-            // 根路径绑定解析（单一根源），视图层只保留事件接线与 View 效果。
-            _root = new RootSettingsViewModel(
-                ConfigManager.ConfigService,
-                _dialogs,
-                () => ConfigManager.CurrentConfig,
-                showTrayBalloonTip,
-                exitApplication,
-                isAutoStartEnabled: () => ConfigManager.IsAutoStartEnabled(),
-                setAutoStart: enable => ConfigManager.SetAutoStart(enable),
-                exportConfig: path => ConfigManager.ExportConfig(path),
-                importConfig: path => ConfigManager.ImportConfig(path));
+            // T14：根 ViewModel 由组合根装配后注入（T16 起装配点在 Composition——窗口只消费，
+            // 不再自建分区委托链）；窗口 DataContext 设为根，分区 DataContext 与列表 ItemsSource
+            // 一律经 XAML 根路径绑定解析（单一根源），视图层只保留事件接线与 View 效果。
+            _root = root;
             DataContext = _root;
             _appearanceVm = _root.Appearance;
             _profileList = _root.ProfileList;
@@ -134,13 +125,13 @@ namespace WinPieGestures
                 ThresholdValueLabel.Text = _behavior.DragThreshold.ToString("0");
 
                 // Load App Interface Theme
-                SetComboBoxSelectedValue(AppThemeComboBox, ConfigManager.CurrentConfig.AppTheme ?? "System");
-                _themeService.ApplyTheme(this, ConfigManager.CurrentConfig.AppTheme ?? "System");
+                SetComboBoxSelectedValue(AppThemeComboBox, _appearanceVm.AppTheme);
+                _themeService.ApplyTheme(this, _appearanceVm.AppTheme);
 
                 // Center Core Pattern, Image & Visibility
-                ShowCoreIconCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowCoreIcon;
-                SetComboBoxSelectedValue(CoreIconTypeComboBox, ConfigManager.CurrentConfig.CoreIconType ?? "Exit");
-                CoreImagePathTextBox.Text = ConfigManager.CurrentConfig.CoreCustomImagePath ?? "";
+                ShowCoreIconCheckBox.IsChecked = _appearanceVm.ShowCoreIcon;
+                SetComboBoxSelectedValue(CoreIconTypeComboBox, _appearanceVm.CoreIconType);
+                CoreImagePathTextBox.Text = _appearanceVm.CoreCustomImagePath;
                 UpdateCoreIconPreviewUI();
 
                 // Load Scene Isolation settings
@@ -374,7 +365,7 @@ namespace WinPieGestures
 
         private void ScheduleAutoSave()
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
 
             if (_autoSaveDebounceTimer == null)
             {
@@ -395,35 +386,36 @@ namespace WinPieGestures
 
         private void SyncUiToConfigAndSave(bool saveToDisk = true)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
 
             try
             {
-                // T14：外观（T10）与行为（T13）分区各设置项已由子 ViewModel live-apply 即时写穿
-                // 运行态配置，不再从控件回读；此处仅同步尚未 VM 化、状态仍住控件的界面主题与
-                // 中心核图标项（预览绘制属 View 效果，随 T10 留置本视图层）。
+                // T16：外观（T10/T16）与行为（T13）分区各设置项已由子 ViewModel live-apply 即时
+                // 写穿运行态配置，不再从控件回读；此处仅把状态仍住控件的界面主题与中心核图标
+                // 四项经外观子 ViewModel 的透传属性写回（与迁移前在保存点直读控件语义一致），
+                // 预览绘制属 View 效果，留置本视图层。
 
                 if (AppThemeComboBox?.SelectedItem is ComboBoxItem appThemeItem)
                 {
-                    ConfigManager.CurrentConfig.AppTheme = appThemeItem.Tag?.ToString() ?? "System";
+                    _appearanceVm.AppTheme = appThemeItem.Tag?.ToString() ?? "System";
                 }
 
                 if (ShowCoreIconCheckBox != null)
                 {
-                    ConfigManager.CurrentConfig.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
+                    _appearanceVm.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
                 }
                 if (CoreIconTypeComboBox?.SelectedItem is ComboBoxItem coreIconItem)
                 {
-                    ConfigManager.CurrentConfig.CoreIconType = coreIconItem.Tag?.ToString() ?? "Exit";
+                    _appearanceVm.CoreIconType = coreIconItem.Tag?.ToString() ?? "Exit";
                 }
                 if (CoreImagePathTextBox != null)
                 {
-                    ConfigManager.CurrentConfig.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
+                    _appearanceVm.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
                 }
 
                 if (saveToDisk)
                 {
-                    ConfigManager.SaveConfig();
+                    _root.SaveConfig();
                 }
             }
             catch (Exception ex)
@@ -520,7 +512,7 @@ namespace WinPieGestures
             if (picked != null)
             {
                 string procName = Path.GetFileName(picked.Path).ToLower();
-                if (ConfigManager.CurrentConfig.Profiles.Any(p => p.ProcessName.Equals(procName, StringComparison.OrdinalIgnoreCase)))
+                if (_profileList.IsProcessNameTaken(procName))
                 {
                     MessageBox.Show("已存在该程序的配置方案！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
@@ -549,10 +541,10 @@ namespace WinPieGestures
             var result = _dialogs.ShowInputDialog(
                 title: "新建自定义配置",
                 prompt: "请输入新配置方案名称（如：游戏模式、绘图工作流、PS修图 或 myapp.exe）：",
-                defaultText: $"自定义配置_{ConfigManager.CurrentConfig.Profiles.Count}",
+                defaultText: _profileList.CreateDefaultCustomProfileName(),
                 validator: input =>
                 {
-                    if (ConfigManager.CurrentConfig.Profiles.Any(p => p.ProcessName.Equals(input, StringComparison.OrdinalIgnoreCase)))
+                    if (_profileList.IsProcessNameTaken(input))
                     {
                         return (false, "已存在同名的配置方案，请换一个名称！");
                     }
@@ -605,7 +597,7 @@ namespace WinPieGestures
                     {
                         return (true, "");
                     }
-                    if (ConfigManager.CurrentConfig.Profiles.Any(p => p.ProcessName.Equals(input, StringComparison.OrdinalIgnoreCase)))
+                    if (_profileList.IsProcessNameTaken(input))
                     {
                         return (false, "已存在同名的配置方案，请换一个名称！");
                     }
@@ -655,20 +647,19 @@ namespace WinPieGestures
                 ThresholdValueLabel.Text = e.NewValue.ToString("0");
             }
             // T13：阈值 live-apply 编排进 VM（写回运行态配置 + 防抖落盘请求）。
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             _behavior.DragThreshold = e.NewValue;
         }
 
         private void OuterEscapeDistanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-            double val = Math.Round(e.NewValue);
-            ConfigManager.CurrentConfig.OuterEscapeDistance = val;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
+            // T16：滑杆值交 VM 管线（取整写穿配置 + 立即落盘请求），标签显示取整值——与迁移前一致。
+            _behavior.OuterEscapeDistance = e.NewValue;
             if (OuterEscapeDistanceLabel != null)
             {
-                OuterEscapeDistanceLabel.Text = $"{val:0} px";
+                OuterEscapeDistanceLabel.Text = $"{Math.Round(e.NewValue):0} px";
             }
-            SyncUiToConfigAndSave(true);
         }
 
         /// <summary>按 VM 的预设列表重建配色方案下拉的动态项（CustomPreset_*），并恢复当前选中 Tag（视图层条目管理，数据来自 VM）。</summary>
@@ -703,7 +694,7 @@ namespace WinPieGestures
 
         private void OuterEscapeCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             // T13：外圈逃逸开关编排进 VM（live-apply 写回配置）；面板可见性是 View 层效果。
             if (OuterEscapeDistancePanel != null) OuterEscapeDistancePanel.Visibility = Visibility.Visible;
             _behavior.EnableOuterEscapeCancel = true;
@@ -711,15 +702,16 @@ namespace WinPieGestures
 
         private void OuterEscapeCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             if (OuterEscapeDistancePanel != null) OuterEscapeDistancePanel.Visibility = Visibility.Collapsed;
             _behavior.EnableOuterEscapeCancel = false;
         }
 
         private void ShowCoreIconCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
-            ConfigManager.CurrentConfig.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
+            // T16：状态写穿外观子 VM 透传属性（落运行态配置）。
+            _appearanceVm.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
                 RenderLiveWheelPreview();
@@ -729,12 +721,12 @@ namespace WinPieGestures
 
         private void CoreIconTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             var selectedItem = CoreIconTypeComboBox.SelectedItem as ComboBoxItem;
             if (selectedItem != null)
             {
-                string coreType = selectedItem.Tag?.ToString() ?? "Exit";
-                ConfigManager.CurrentConfig.CoreIconType = coreType;
+                // T16：状态写穿外观子 VM 透传属性（落运行态配置）。
+                _appearanceVm.CoreIconType = selectedItem.Tag?.ToString() ?? "Exit";
                 UpdateCoreIconPreviewUI();
                 if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                 {
@@ -746,10 +738,10 @@ namespace WinPieGestures
 
         private void PickCoreIconButton_Click(object sender, RoutedEventArgs e)
         {
-            var picked = _dialogs.ShowIconPicker(ConfigManager.CurrentConfig.CoreCustomIconKey);
-            if (picked != null)
+            // T16：对话框编排进外观子 VM（PickCoreIcon，SlotViewModel.PickIcon 先例）；此处只剩
+            // View 层效果：预览面板可见性、核圆图标预览与轮盘预览重绘。
+            if (_appearanceVm.PickCoreIcon())
             {
-                ConfigManager.CurrentConfig.CoreCustomIconKey = picked.IconKey ?? "";
                 UpdateCoreIconPreviewUI();
                 if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                 {
@@ -761,9 +753,9 @@ namespace WinPieGestures
 
         private void UpdateCoreIconPreviewUI()
         {
-            if (ConfigManager.CurrentConfig == null) return;
+            if (_root.CurrentConfig == null) return;
 
-            string coreType = ConfigManager.CurrentConfig.CoreIconType ?? "Exit";
+            string coreType = _appearanceVm.CoreIconType;
             if (CustomCoreIconPanel != null)
             {
                 CustomCoreIconPanel.Visibility = coreType == "Custom" ? Visibility.Visible : Visibility.Collapsed;
@@ -774,19 +766,19 @@ namespace WinPieGestures
                 CustomCoreImagePanel.Visibility = coreType == "Image" ? Visibility.Visible : Visibility.Collapsed;
                 if (coreType == "Image")
                 {
-                    UpdateCoreImageThumbnail(ConfigManager.CurrentConfig.CoreCustomImagePath);
+                    UpdateCoreImageThumbnail(_appearanceVm.CoreCustomImagePath);
                 }
             }
 
             if (CustomCoreIconPreviewPath != null && CustomCoreIconNameLabel != null)
             {
-                var geom = IconHelper.GetCoreIconGeometry(coreType, ConfigManager.CurrentConfig.CoreCustomIconKey, ConfigManager.CurrentConfig.CoreCustomIconSvg);
+                var geom = IconHelper.GetCoreIconGeometry(coreType, _appearanceVm.CoreCustomIconKey, _appearanceVm.CoreCustomIconSvg);
                 CustomCoreIconPreviewPath.Data = geom;
-                if (!string.IsNullOrEmpty(ConfigManager.CurrentConfig.CoreCustomIconKey))
+                if (!string.IsNullOrEmpty(_appearanceVm.CoreCustomIconKey))
                 {
-                    CustomCoreIconNameLabel.Text = ConfigManager.CurrentConfig.CoreCustomIconKey;
+                    CustomCoreIconNameLabel.Text = _appearanceVm.CoreCustomIconKey;
                 }
-                else if (!string.IsNullOrEmpty(ConfigManager.CurrentConfig.CoreCustomIconSvg))
+                else if (!string.IsNullOrEmpty(_appearanceVm.CoreCustomIconSvg))
                 {
                     CustomCoreIconNameLabel.Text = "自定义 SVG 图标";
                 }
@@ -824,9 +816,10 @@ namespace WinPieGestures
 
         private void CoreImagePathTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null || CoreImagePathTextBox == null) return;
-            ConfigManager.CurrentConfig.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
-            UpdateCoreImageThumbnail(ConfigManager.CurrentConfig.CoreCustomImagePath);
+            if (_isUpdatingUi || _root.CurrentConfig == null || CoreImagePathTextBox == null) return;
+            // T16：状态写穿外观子 VM 透传属性（落运行态配置，迁移前逐键直写语义）。
+            _appearanceVm.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
+            UpdateCoreImageThumbnail(_appearanceVm.CoreCustomImagePath);
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
                 RenderLiveWheelPreview();
@@ -847,7 +840,7 @@ namespace WinPieGestures
                 {
                     CoreImagePathTextBox.Text = selectedPath;
                 }
-                ConfigManager.CurrentConfig.CoreCustomImagePath = selectedPath;
+                _appearanceVm.CoreCustomImagePath = selectedPath;
                 UpdateCoreImageThumbnail(selectedPath);
                 if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
                 {
@@ -863,7 +856,7 @@ namespace WinPieGestures
             {
                 CoreImagePathTextBox.Text = "";
             }
-            ConfigManager.CurrentConfig.CoreCustomImagePath = "";
+            _appearanceVm.CoreCustomImagePath = "";
             UpdateCoreImageThumbnail("");
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
@@ -887,9 +880,10 @@ namespace WinPieGestures
 
         private void AppThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             string selectedTheme = (AppThemeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "System";
-            ConfigManager.CurrentConfig.AppTheme = selectedTheme;
+            // T16：状态写穿外观子 VM 透传属性；主题应用（窗口视觉）是 View 效果，留置本层。
+            _appearanceVm.AppTheme = selectedTheme;
             _themeService.ApplyTheme(this, selectedTheme);
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
@@ -900,14 +894,14 @@ namespace WinPieGestures
 
         private void DisableOnFullScreenCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             // T13：全屏禁用编排进 VM（live-apply + 落盘请求）。
             _behavior.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
         }
 
         private void ModifierCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || ConfigManager.CurrentConfig == null) return;
+            if (_isUpdatingUi || _root.CurrentConfig == null) return;
             // T13：修饰键旁路编排进 VM（live-apply + 落盘请求）。
             _behavior.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
             _behavior.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
@@ -966,7 +960,7 @@ namespace WinPieGestures
         private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi) return;
-            // T13：开机自启编排进 VM（注册表读写经注入委托保持 ConfigManager 调用点）。
+            // T13：开机自启编排进 VM（注册表读写经注入委托，组合根接线 AutostartRegistry）。
             _general.SetAutoStart(AutoStartCheckBox.IsChecked == true);
         }
 
@@ -1033,22 +1027,22 @@ namespace WinPieGestures
                 OuterEscapeDistanceLabel.Text = $"{Math.Round(_behavior.OuterEscapeDistance):0} px";
 
                 // 外观分区控件经双向绑定把导入值回推 VM（VM live-apply 写回同值，语义不变）。
-                SetComboBoxSelectedValue(ThemeComboBox, ConfigManager.CurrentConfig.Theme);
-                SetComboBoxSelectedValue(UiStyleComboBox, ConfigManager.CurrentConfig.UiStyle);
-                SetComboBoxSelectedValue(ShapeComboBox, ConfigManager.CurrentConfig.Shape);
-                SetComboBoxSelectedValue(IconLayoutModeComboBox, ConfigManager.CurrentConfig.IconLayoutMode);
+                SetComboBoxSelectedValue(ThemeComboBox, _root.CurrentConfig.Theme);
+                SetComboBoxSelectedValue(UiStyleComboBox, _root.CurrentConfig.UiStyle);
+                SetComboBoxSelectedValue(ShapeComboBox, _root.CurrentConfig.Shape);
+                SetComboBoxSelectedValue(IconLayoutModeComboBox, _root.CurrentConfig.IconLayoutMode);
 
-                WheelRadiusSlider.Value = ConfigManager.CurrentConfig.WheelRadius;
-                InnerRadiusSlider.Value = ConfigManager.CurrentConfig.InnerRadius;
-                CoreRadiusSlider.Value = ConfigManager.CurrentConfig.CoreRadius;
-                SectorGapSlider.Value = ConfigManager.CurrentConfig.SectorGap;
-                SectorCornerRadiusSlider.Value = ConfigManager.CurrentConfig.SectorCornerRadius;
-                SectorIconSizeSlider.Value = ConfigManager.CurrentConfig.SectorIconSize > 0 ? ConfigManager.CurrentConfig.SectorIconSize : 20.0;
+                WheelRadiusSlider.Value = _root.CurrentConfig.WheelRadius;
+                InnerRadiusSlider.Value = _root.CurrentConfig.InnerRadius;
+                CoreRadiusSlider.Value = _root.CurrentConfig.CoreRadius;
+                SectorGapSlider.Value = _root.CurrentConfig.SectorGap;
+                SectorCornerRadiusSlider.Value = _root.CurrentConfig.SectorCornerRadius;
+                SectorIconSizeSlider.Value = _root.CurrentConfig.SectorIconSize > 0 ? _root.CurrentConfig.SectorIconSize : 20.0;
                 SectorIconSizeLabel.Text = $"{SectorIconSizeSlider.Value:0} px";
-                SectorFontSizeSlider.Value = ConfigManager.CurrentConfig.SectorFontSize > 0 ? ConfigManager.CurrentConfig.SectorFontSize : 10.5;
+                SectorFontSizeSlider.Value = _root.CurrentConfig.SectorFontSize > 0 ? _root.CurrentConfig.SectorFontSize : 10.5;
                 SectorFontSizeLabel.Text = $"{SectorFontSizeSlider.Value:0.0} px";
 
-                ShowTextCheckBox.IsChecked = ConfigManager.CurrentConfig.ShowText;
+                ShowTextCheckBox.IsChecked = _root.CurrentConfig.ShowText;
             }
             finally
             {
@@ -1179,7 +1173,7 @@ namespace WinPieGestures
 
         private void RenderLiveWheelPreview()
         {
-            if (_isRenderingPreview || LiveWheelPreviewCanvas == null || ConfigManager.CurrentConfig == null) return;
+            if (_isRenderingPreview || LiveWheelPreviewCanvas == null || _root.CurrentConfig == null) return;
             _isRenderingPreview = true;
 
             try
@@ -1215,7 +1209,7 @@ namespace WinPieGestures
                 bool showText = _appearanceVm.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
-                _previewStyleRenderer.Initialize(theme, ConfigManager.CurrentConfig, _themeService.IsWindowsInDarkTheme());
+                _previewStyleRenderer.Initialize(theme, _root.CurrentConfig, _themeService.IsWindowsInDarkTheme());
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;
@@ -1241,7 +1235,7 @@ namespace WinPieGestures
                 previewCoreGrid.Children.Add(_previewCoreCircle);
 
                 double exitSize = Math.Max(12, coreR * 0.42);
-                string coreType = ConfigManager.CurrentConfig.CoreIconType ?? "Exit";
+                string coreType = _appearanceVm.CoreIconType;
 
                 if (coreType == "Image")
                 {
@@ -1255,15 +1249,15 @@ namespace WinPieGestures
                         VerticalAlignment = System.Windows.VerticalAlignment.Center,
                         IsHitTestVisible = false,
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
-                        Visibility = (ConfigManager.CurrentConfig.ShowCoreIcon && ConfigManager.CurrentConfig.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (_appearanceVm.ShowCoreIcon && _appearanceVm.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
-                    if (!string.IsNullOrEmpty(ConfigManager.CurrentConfig.CoreCustomImagePath) && File.Exists(ConfigManager.CurrentConfig.CoreCustomImagePath))
+                    if (!string.IsNullOrEmpty(_appearanceVm.CoreCustomImagePath) && File.Exists(_appearanceVm.CoreCustomImagePath))
                     {
                         try
                         {
                             var bmp = new BitmapImage();
                             bmp.BeginInit();
-                            bmp.UriSource = new Uri(ConfigManager.CurrentConfig.CoreCustomImagePath, UriKind.Absolute);
+                            bmp.UriSource = new Uri(_appearanceVm.CoreCustomImagePath, UriKind.Absolute);
                             bmp.CacheOption = BitmapCacheOption.OnLoad;
                             bmp.EndInit();
                             coreImg.Source = bmp;
@@ -1279,8 +1273,8 @@ namespace WinPieGestures
                         Name = "CoreExitIcon",
                         Data = IconHelper.GetCoreIconGeometry(
                             coreType,
-                            ConfigManager.CurrentConfig.CoreCustomIconKey,
-                            ConfigManager.CurrentConfig.CoreCustomIconSvg),
+                            _appearanceVm.CoreCustomIconKey,
+                            _appearanceVm.CoreCustomIconSvg),
                         Fill = _previewTextBrush,
                         Width = exitSize,
                         Height = exitSize,
@@ -1288,14 +1282,14 @@ namespace WinPieGestures
                         HorizontalAlignment = System.Windows.HorizontalAlignment.Center,
                         VerticalAlignment = System.Windows.VerticalAlignment.Center,
                         IsHitTestVisible = false,
-                        Visibility = (ConfigManager.CurrentConfig.ShowCoreIcon && ConfigManager.CurrentConfig.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (_appearanceVm.ShowCoreIcon && _appearanceVm.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }
 
-                _previewStyleRenderer.RenderDecorations(LiveWheelPreviewCanvas, previewCoreGrid, cx, cy, outerR, coreR, 1, ConfigManager.CurrentConfig.ShowCoreIcon);
+                _previewStyleRenderer.RenderDecorations(LiveWheelPreviewCanvas, previewCoreGrid, cx, cy, outerR, coreR, 1, _appearanceVm.ShowCoreIcon);
 
-                var profile = _profileList.SelectedProfile?.Model ?? ConfigManager.CurrentConfig.Profiles.FirstOrDefault() ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
+                var profile = _profileList.SelectedProfile?.Model ?? _root.CurrentConfig.Profiles.FirstOrDefault() ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
                 int n = profile.SectorCount > 0 ? profile.SectorCount : 8;
                 double sectorSize = 360.0 / n;
 
@@ -1512,7 +1506,7 @@ namespace WinPieGestures
 
         private void LiveWheelPreviewCanvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (_previewSectorPaths.Count == 0 || ConfigManager.CurrentConfig == null) return;
+            if (_previewSectorPaths.Count == 0 || _root.CurrentConfig == null) return;
 
             try
             {

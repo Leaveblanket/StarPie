@@ -7,7 +7,7 @@ namespace WinPieGestures.Tests;
 /// <summary>
 /// 根设置 ViewModel 的行为覆盖 (T14, ADR-0001)：聚合各分区子 ViewModel 并以同一运行态配置
 /// 播种；配置导入替换运行态配置实例后由根统一重挂各分区（方案列表/行为/通用），分区间
-/// 共享状态不残留旧实例。直接 new 被测对象 + mock 依赖，不触碰 ConfigManager 静态态。
+/// 共享状态不残留旧实例。直接 new 被测对象 + mock 依赖，不触碰任何静态配置状态。
 /// </summary>
 public sealed class RootSettingsViewModelTests
 {
@@ -146,5 +146,39 @@ public sealed class RootSettingsViewModelTests
         Assert.Equal(GeneralSettingsViewModel.NoticeKind.Error, notices[0].Kind);
         Assert.Equal(25.0, root.Behavior.DragThreshold);
         Assert.Single(root.ProfileList.Profiles);
+    }
+
+    // --- 运行态配置访问与落盘（T16 新增根 VM 表面） ---------------------------------
+
+    [Fact]
+    public void CurrentConfig_ExposesLiveConfigInstance_AndTracksImportedInstance()
+    {
+        var configV1 = MakeConfig();
+        var configV2 = MakeConfig(language: "en");
+        var stubs = new HostStubs { Current = configV1 };
+        stubs.OnImport = _ => { stubs.Current = configV2; return true; };
+        var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult("D:\\backup.json") };
+        var root = stubs.CreateRoot(dialogs, new FakeConfigService { Current = configV1 });
+
+        Assert.Same(configV1, root.CurrentConfig);
+
+        root.General.ImportConfigCommand.Execute(null);
+
+        // 导入替换运行态实例后，访问器取到新实例（纯 View 读取与预览绘制消费此入口）
+        Assert.Same(configV2, root.CurrentConfig);
+    }
+
+    [Fact]
+    public void SaveConfig_DrivesInjectedConfigServiceSave()
+    {
+        var config = MakeConfig();
+        var configService = new FakeConfigService { Current = config };
+        var stubs = new HostStubs { Current = config };
+        var root = stubs.CreateRoot(new TestDialogService(), configService);
+
+        root.SaveConfig();
+        root.SaveConfig();
+
+        Assert.Equal(2, configService.SaveCalls);
     }
 }
