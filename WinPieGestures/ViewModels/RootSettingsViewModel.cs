@@ -11,8 +11,8 @@ namespace WinPieGestures
     /// 分区间共享状态经根协调：配置导入会替换运行态配置实例（JsonConfigService.Import），
     /// 成功后由本 VM 统一重挂各分区，并经 <see cref="PartitionsReloaded"/> 通知视图同步控件
     /// （落盘防抖与预览重绘等 View 基础设施仍由窗口承载）。
-    /// 装配遵循 ADR-0002 手动组合根：子 VM 在此集中 <c>new</c>（编译期检查），过渡期
-    /// ConfigManager 静态调用经构造委托注入，保持可测。
+    /// 装配遵循 ADR-0002 手动组合根：子 VM 在此集中 <c>new</c>（编译期检查），宿主副作用
+    /// （自启注册表、导入导出）经构造委托注入，保持可测。
     /// </summary>
     public partial class RootSettingsViewModel : ObservableObject
     {
@@ -31,8 +31,10 @@ namespace WinPieGestures
         /// <summary>分区间重挂完成（配置导入成功后），视图据此同步各分区控件显示。</summary>
         public event Action? PartitionsReloaded;
 
-        // 运行态配置访问器：导入配置会替换实例，分区重挂时经此取最新引用（对应窗口的
-        // () => ConfigManager.CurrentConfig）。
+        private readonly IConfigService _configService;
+
+        // 运行态配置访问器：导入配置会替换实例，分区重挂时经此取最新引用
+        //（组合根以 () => configService.Current 接线）。
         private readonly Func<AppConfig> _currentConfig;
 
         public RootSettingsViewModel(
@@ -57,6 +59,7 @@ namespace WinPieGestures
             if (importConfig == null) throw new ArgumentNullException(nameof(importConfig));
 
             _currentConfig = currentConfig;
+            _configService = configService;
             var config = currentConfig() ?? throw new ArgumentException("运行态配置尚未初始化。", nameof(currentConfig));
 
             Appearance = new AppearanceSettingsViewModel(configService, dialogs);
@@ -77,6 +80,16 @@ namespace WinPieGestures
         }
 
         private void OnConfigImported() => ReloadAfterConfigImport(_currentConfig());
+
+        /// <summary>
+        /// 运行态配置访问（T16）：纯 View 初值读取与预览绘制经此取当前配置，导入后自动取到
+        /// 新实例。迁移前视图层直读静态配置门面，现统一收敛到根 VM。
+        /// </summary>
+        public AppConfig CurrentConfig => _currentConfig();
+
+        /// <summary>把运行态配置落盘（T16）：窗口 SyncUiToConfigAndSave 的保存动作经此走
+        /// 注入的配置服务（迁移前为静态配置门面的保存调用）。</summary>
+        public void SaveConfig() => _configService.Save();
 
         /// <summary>
         /// 以新的运行态配置重挂各分区（分区间共享状态经根协调的统一入口，构造后配置实例被

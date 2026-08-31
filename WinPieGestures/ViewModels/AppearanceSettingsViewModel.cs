@@ -17,6 +17,8 @@ namespace WinPieGestures
     /// 立即项经 <see cref="SaveNowRequested"/>，由视图层驱动（视图持有防抖计时器与 SyncUiToConfigAndSave）。
     /// 实时预览的绘制留在视图层：视图经 <see cref="PreviewInvalidated"/> 用当前属性值重绘画布。
     /// 配色预设增删改的编排（含命名输入对话框）在此，确认/提示 MessageBox 属视图交互，经事件回调视图。
+    /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
+    /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）。
     /// </summary>
     public partial class AppearanceSettingsViewModel : ObservableObject
     {
@@ -232,6 +234,91 @@ namespace WinPieGestures
 
         public string SectorIconSizeLabel => $"{SectorIconSize:0} px";
         public string SectorFontSizeLabel => $"{SectorFontSize:0.0} px";
+
+        // ---- 界面主题与中心核图标（T16 自窗口 code-behind 收编） --------------------
+        //
+        // 透传属性：状态直接住运行态配置（读直取、写直穿），不持副本——配置导入替换实例后
+        // 无需重挂即取到新值，与迁移前窗口处理器在保存点对配置对象的直读直写逐字等价。预览重绘与落盘时机由视图层处理器驱动（这些属性的变更不走
+        // PreviewInvalidated/AutoSaveRequested 管线，与迁移前一致）。
+
+        /// <summary>软件控制台界面主题（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。
+        /// 主题应用到窗口属视图效果，经 IThemeService 由窗口驱动。</summary>
+        public string AppTheme
+        {
+            get => Config.AppTheme ?? "System";
+            set
+            {
+                value ??= "System";
+                if (string.Equals(Config.AppTheme, value, StringComparison.Ordinal)) return;
+                Config.AppTheme = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>是否显示核圆中心图标/图案。</summary>
+        public bool ShowCoreIcon
+        {
+            get => Config.ShowCoreIcon;
+            set
+            {
+                if (Config.ShowCoreIcon == value) return;
+                Config.ShowCoreIcon = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>中心核图案类型（Exit/Crosshair/.../Custom/Image）。</summary>
+        public string CoreIconType
+        {
+            get => Config.CoreIconType ?? "Exit";
+            set
+            {
+                value ??= "Exit";
+                if (string.Equals(Config.CoreIconType, value, StringComparison.Ordinal)) return;
+                Config.CoreIconType = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>中心核自定义矢量图标键（custom: 前缀或图标库键；空为默认五角星）。</summary>
+        public string CoreCustomIconKey
+        {
+            get => Config.CoreCustomIconKey ?? "";
+            set
+            {
+                value ??= "";
+                if (string.Equals(Config.CoreCustomIconKey, value, StringComparison.Ordinal)) return;
+                Config.CoreCustomIconKey = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>中心核自定义 SVG 路径数据（只读透传：窗口层无写入点，预览绘制消费）。</summary>
+        public string CoreCustomIconSvg => Config.CoreCustomIconSvg ?? "";
+
+        /// <summary>中心核自定义图片本地路径（写穿透传；文本框逐键写入的迁移前语义）。</summary>
+        public string CoreCustomImagePath
+        {
+            get => Config.CoreCustomImagePath ?? "";
+            set
+            {
+                value = (value ?? "").Trim();
+                if (string.Equals(Config.CoreCustomImagePath, value, StringComparison.Ordinal)) return;
+                Config.CoreCustomImagePath = value;
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>中心核自定义图标选取编排（迁移前 PickCoreIconButton_Click 的对话框部分）：
+        /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并返回 true，
+        /// 预览刷新与落盘由视图层驱动。</summary>
+        public bool PickCoreIcon()
+        {
+            var picked = _dialogs.ShowIconPicker(CoreCustomIconKey);
+            if (picked == null) return false;
+            CoreCustomIconKey = picked.IconKey ?? "";
+            return true;
+        }
 
         // ---- 变更管线（写穿配置 + 通知标签 + 事件） ---------------------------------
 

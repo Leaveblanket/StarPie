@@ -11,8 +11,8 @@ namespace WinPieGestures
     /// 托盘驻留气泡提示与配置导入/导出的状态与编排。
     /// 语言切换写入运行态配置并调用 <see cref="I18n.SetLanguage"/>；界面文本刷新由窗口订阅
     /// I18n.LanguageChanged 广播完成（ADR-0002：I18n 刻意保持静态 + 切换广播）。
-    /// 注册表读写（开机自启）与配置导入/导出仍是 ConfigManager/静态方法——经注入委托保持
-    /// 调用点不变（transitional，工单落点建议），编排进本 VM 保证可测。
+    /// 注册表读写（开机自启，组合根接线 AutostartRegistry）与配置导入/导出（组合根接线
+    /// 配置服务）经注入委托编排进本 VM，保证可测。
     /// 导入配置会替换运行态配置实例（JsonConfigService.Import），成功后经 <see cref="ConfigImported"/>
     /// 通知窗口重载各分区 UI。
     /// </summary>
@@ -34,7 +34,7 @@ namespace WinPieGestures
         private readonly Func<string, bool> _importConfig;
         private readonly Action<string> _startElevated;
 
-        /// <summary>开机自启开关状态（读自注册表——经注入委托，transitional 保持 ConfigManager 调用点）。</summary>
+        /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
         [ObservableProperty]
         private bool _autoStartEnabled;
 

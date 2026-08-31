@@ -8,7 +8,8 @@ namespace WinPieGestures
     /// <summary>
     /// JSON-file implementation of IConfigService: owns reading and writing
     /// config.json (same format and location as before), with the path injected
-    /// via the constructor (production path computed by ConfigManager, tests
+    /// via the constructor (production path computed by AppDataPaths in the
+    /// composition root, tests
     /// inject a temp path). Load semantics match the previous static code: a
     /// missing file is seeded with the default config, corrupt JSON falls back
     /// to defaults without touching the file, and hand-edited files are

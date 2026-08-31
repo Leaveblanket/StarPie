@@ -528,7 +528,8 @@ namespace WinPieGestures
 
         public static string GetCustomIconsDirectory()
         {
-            string dir = Path.Combine(ConfigManager.GetAppDataFolder(), "CustomIcons");
+            // T16：应用数据目录经 AppDataPaths 解析（dev 沙箱语义不变），不再依赖静态配置门面。
+            string dir = Path.Combine(AppDataPaths.GetAppDataFolder(), "CustomIcons");
             if (!Directory.Exists(dir))
             {
                 Directory.CreateDirectory(dir);

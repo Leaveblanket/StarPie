@@ -39,12 +39,23 @@ public sealed class AppearanceSettingsViewModelTests
         public EyedropResult? EyedropResult;
         public int EyedropCalls;
 
+        public IconPickResult? IconResult;
+        public int IconCalls;
+        public string? LastIconPickerCurrentKey;
+
         public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             InputCalls++;
             LastInputDefaultText = defaultText;
             LastValidator = validator;
             return InputResult;
+        }
+
+        public IconPickResult? ShowIconPicker(string? currentIconKey)
+        {
+            IconCalls++;
+            LastIconPickerCurrentKey = currentIconKey;
+            return IconResult;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
@@ -61,7 +72,6 @@ public sealed class AppearanceSettingsViewModelTests
         }
 
         public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
-        public IconPickResult? ShowIconPicker(string? currentIconKey) => throw new NotSupportedException();
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
@@ -688,5 +698,102 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal(1, log.Preview);
         Assert.Equal(1, log.SaveNow);
         Assert.Equal(0, log.AutoSave);
+    }
+
+    // --- 界面主题与中心核图标（T16 自窗口收编的透传属性） ---------------------------
+
+    [Fact]
+    public void PassThroughProperties_ReadThroughLiveConfig_WithLegacyFallbacks()
+    {
+        var config = new AppConfig
+        {
+            AppTheme = "Dark", ShowCoreIcon = true,
+            CoreIconType = "Crosshair", CoreCustomIconKey = "Copy", CoreCustomImagePath = "C:\\i.png"
+        };
+        var (vm, _, _, _) = Create(config);
+
+        Assert.Equal("Dark", vm.AppTheme);
+        Assert.True(vm.ShowCoreIcon);
+        Assert.Equal("Crosshair", vm.CoreIconType);
+        Assert.Equal("Copy", vm.CoreCustomIconKey);
+        Assert.Equal("C:\\i.png", vm.CoreCustomImagePath);
+
+        // 空值回落与迁移前窗口读取点一致：主题 System、核图标 Exit、键与路径空串
+        config.AppTheme = null!;
+        config.CoreIconType = null!;
+        config.CoreCustomIconKey = null!;
+        config.CoreCustomImagePath = null!;
+        Assert.Equal("System", vm.AppTheme);
+        Assert.Equal("Exit", vm.CoreIconType);
+        Assert.Equal("", vm.CoreCustomIconKey);
+        Assert.Equal("", vm.CoreCustomImagePath);
+    }
+
+    [Fact]
+    public void PassThroughProperties_WriteThroughToLiveConfig_RaisePlainNotificationOnly()
+    {
+        var (vm, config, _, log) = Create();
+
+        int propertyNotifications = 0;
+        vm.PropertyChanged += (_, _) => propertyNotifications++;
+
+        vm.AppTheme = "MidnightNavy";
+        vm.ShowCoreIcon = false;
+        vm.CoreIconType = "Image";
+        vm.CoreCustomIconKey = "custom:star";
+        vm.CoreCustomImagePath = "  C:\\imgs\\core.png  ";
+
+        Assert.Equal("MidnightNavy", config.Current.AppTheme);
+        Assert.False(config.Current.ShowCoreIcon);
+        Assert.Equal("Image", config.Current.CoreIconType);
+        Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
+        Assert.Equal("C:\\imgs\\core.png", config.Current.CoreCustomImagePath);
+
+        // 与迁移前一致：这些变更只落配置，不触发预览/落盘事件（由窗口处理器驱动）
+        Assert.Equal(5, propertyNotifications);
+        Assert.Equal(0, log.Preview);
+        Assert.Equal(0, log.AutoSave);
+        Assert.Equal(0, log.SaveNow);
+
+        // 同值写入不再通知
+        vm.AppTheme = "MidnightNavy";
+        Assert.Equal(5, propertyNotifications);
+    }
+
+    [Fact]
+    public void PickCoreIcon_Cancelled_ReturnsFalseAndKeepsConfig()
+    {
+        var (vm, config, dialogs, _) = Create();
+        config.Current.CoreCustomIconKey = "Copy";
+        dialogs.IconResult = null;
+
+        Assert.False(vm.PickCoreIcon());
+
+        Assert.Equal(1, dialogs.IconCalls);
+        Assert.Equal("Copy", dialogs.LastIconPickerCurrentKey);
+        Assert.Equal("Copy", config.Current.CoreCustomIconKey);
+    }
+
+    [Fact]
+    public void PickCoreIcon_Confirmed_WritesIconKeyAndReturnsTrue()
+    {
+        var (vm, config, dialogs, _) = Create();
+        dialogs.IconResult = new IconPickResult("custom:star");
+
+        Assert.True(vm.PickCoreIcon());
+
+        Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
+    }
+
+    [Fact]
+    public void PickCoreIcon_ClearSelection_WritesEmptyKey()
+    {
+        var (vm, config, dialogs, _) = Create();
+        config.Current.CoreCustomIconKey = "Copy";
+        dialogs.IconResult = new IconPickResult(null);
+
+        Assert.True(vm.PickCoreIcon());
+
+        Assert.Equal("", config.Current.CoreCustomIconKey);
     }
 }

@@ -9,7 +9,7 @@ namespace WinPieGestures.Tests;
 /// 配置方案分区列表侧 ViewModel 的行为覆盖 (T11, ADR-0001)：方案列表与选中态、
 /// 扇区数切换、方向槽位集合（方位角标签、缺省动作补齐、扇区数规范化）以及
 /// 槽位名称编辑——全部锁定迁移前 SettingsWindow code-behind 的外部行为。
-/// 直接 new 被测对象，不触碰 ConfigManager 静态态。
+/// 直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class ProfileListViewModelTests
 {
@@ -358,5 +358,35 @@ public sealed class ProfileListViewModelTests
         vm.Slots[0].BrowseFolderCommand.Execute(null);
 
         Assert.Equal(1, committed); // 重建后的新槽位仍经同一事件冒泡
+    }
+
+    // --- 名称查重与缺省名（T16 自窗口 code-behind 收编） -----------------------------
+
+    [Fact]
+    public void IsProcessNameTaken_MatchesCaseInsensitiveAgainstRuntimeProfiles()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global"), MakeProfile("chrome.exe", 4) }, Dialogs());
+
+        Assert.True(vm.IsProcessNameTaken("Chrome.EXE"));
+        Assert.True(vm.IsProcessNameTaken("global"));
+        Assert.False(vm.IsProcessNameTaken("myapp.exe"));
+    }
+
+    [Fact]
+    public void IsProcessNameTaken_SeesProfilesAddedAtRuntime()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs());
+
+        vm.AddProfile(MakeProfile("newapp.exe"));
+
+        Assert.True(vm.IsProcessNameTaken("NewApp.exe"));
+    }
+
+    [Fact]
+    public void CreateDefaultCustomProfileName_UsesCurrentProfileCount()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe") }, Dialogs());
+
+        Assert.Equal("自定义配置_2", vm.CreateDefaultCustomProfileName());
     }
 }

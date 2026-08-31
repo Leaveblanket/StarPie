@@ -9,7 +9,7 @@ namespace WinPieGestures.Tests;
 /// 手势行为分区 ViewModel 的行为覆盖 (T13, ADR-0001)：触发阈值、场景隔离（全屏禁用、
 /// 修饰键旁路）、外圈逃逸取消与进程排除黑名单——全部锁定迁移前 SettingsWindow code-behind
 /// 的外部行为（live-apply 写回运行态配置、防抖/立即落盘事件、黑名单归一化规则）。
-/// 直接 new 被测对象，不触碰 ConfigManager 静态态。
+/// 直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class BehaviorSettingsViewModelTests
 {
