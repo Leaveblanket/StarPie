@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     /// <summary>
     /// 输入对话框窗口 (T07)：确认与验证逻辑全部在 <see cref="InputViewModel"/>（DataContext 绑定）——

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// JSON-file implementation of IConfigService: owns reading and writing

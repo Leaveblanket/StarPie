@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// Theme seam (ADR-0002): owns the app's current effective theme, applies it to a

@@ -8,17 +8,18 @@ using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 外观分区子 ViewModel (T10, ADR-0001)：皮肤选择（UiStyle）、轮盘配色方案与自定义配色预设、
     /// 高亮边缘光晕、几何尺寸、排版与文字显示。全部设置改动即时写穿 <see cref="IConfigService.Current"/>
-    /// （立即生效语义）；落盘时机与迁移前逐项一致——防抖项经 <see cref="AutoSaveRequested"/>、
-    /// 立即项经 <see cref="SaveNowRequested"/>，由视图层驱动（视图持有防抖计时器与 SyncUiToConfigAndSave）。
+    /// （立即生效语义）；落盘时机经 <see cref="AutoSaveRequested"/>（防抖项）/ <see cref="SaveNowRequested"/>
+    /// （立即项）上报，由根 ViewModel 统一编排（T17 起防抖计时与落盘住 RootSettingsViewModel，视图不再持有保存编排）。
     /// 实时预览的绘制留在视图层：视图经 <see cref="PreviewInvalidated"/> 用当前属性值重绘画布。
-    /// 配色预设增删改的编排（含命名输入对话框）在此，确认/提示 MessageBox 属视图交互，经事件回调视图。
+    /// 配色预设增删改的编排（含命名输入对话框）在此，确认/提示经事件回调由视图走对话框服务。
     /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
-    /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）。
+    /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
+    /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
     /// </summary>
     public partial class AppearanceSettingsViewModel : ObservableObject
     {
@@ -238,8 +239,10 @@ namespace WinPieGestures
         // ---- 界面主题与中心核图标（T16 自窗口 code-behind 收编） --------------------
         //
         // 透传属性：状态直接住运行态配置（读直取、写直穿），不持副本——配置导入替换实例后
-        // 无需重挂即取到新值，与迁移前窗口处理器在保存点对配置对象的直读直写逐字等价。预览重绘与落盘时机由视图层处理器驱动（这些属性的变更不走
-        // PreviewInvalidated/AutoSaveRequested 管线，与迁移前一致）。
+        // 无需重挂即取到新值，与迁移前窗口处理器在保存点对配置对象的直读直写逐字等价。
+        // T17：变更归队 Live-apply 管线——AppTheme/ShowCoreIcon 上报防抖落盘；CoreIconType/
+        // CoreCustomImagePath 同时上报预览重绘（对应迁移前各自 SelectionChanged/TextChanged
+        // 处理器里的重绘与落盘调用；绑定初始化回推同值时被 setter 的等值守卫短路，不触发事件）。
 
         /// <summary>软件控制台界面主题（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。
         /// 主题应用到窗口属视图效果，经 IThemeService 由窗口驱动。</summary>
@@ -252,6 +255,7 @@ namespace WinPieGestures
                 if (string.Equals(Config.AppTheme, value, StringComparison.Ordinal)) return;
                 Config.AppTheme = value;
                 OnPropertyChanged();
+                AutoSaveRequested?.Invoke();
             }
         }
 
@@ -264,6 +268,7 @@ namespace WinPieGestures
                 if (Config.ShowCoreIcon == value) return;
                 Config.ShowCoreIcon = value;
                 OnPropertyChanged();
+                AutoSaveRequested?.Invoke();
             }
         }
 
@@ -277,6 +282,8 @@ namespace WinPieGestures
                 if (string.Equals(Config.CoreIconType, value, StringComparison.Ordinal)) return;
                 Config.CoreIconType = value;
                 OnPropertyChanged();
+                PreviewInvalidated?.Invoke();
+                AutoSaveRequested?.Invoke();
             }
         }
 
@@ -306,17 +313,20 @@ namespace WinPieGestures
                 if (string.Equals(Config.CoreCustomImagePath, value, StringComparison.Ordinal)) return;
                 Config.CoreCustomImagePath = value;
                 OnPropertyChanged();
+                PreviewInvalidated?.Invoke();
+                AutoSaveRequested?.Invoke();
             }
         }
 
         /// <summary>中心核自定义图标选取编排（迁移前 PickCoreIconButton_Click 的对话框部分）：
-        /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并返回 true，
-        /// 预览刷新与落盘由视图层驱动。</summary>
+        /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并经
+        /// <see cref="SaveNowRequested"/> 请求立即落盘，预览刷新由视图层驱动。</summary>
         public bool PickCoreIcon()
         {
             var picked = _dialogs.ShowIconPicker(CoreCustomIconKey);
             if (picked == null) return false;
             CoreCustomIconKey = picked.IconKey ?? "";
+            SaveNowRequested?.Invoke();
             return true;
         }
 

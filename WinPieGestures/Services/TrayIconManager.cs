@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// One row of the tray context menu. Entries are supplied by the owner on every

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// 对话框服务实现 (T06/T07, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
@@ -100,6 +100,16 @@ namespace WinPieGestures
             }
 
             return openFolderDialog.ShowDialog(_owner) == true ? new FilePickResult(openFolderDialog.FolderName) : null;
+        }
+
+        public bool Confirm(string title, string message)
+        {
+            return MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
+        }
+
+        public void ShowInfo(string title, string message)
+        {
+            MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

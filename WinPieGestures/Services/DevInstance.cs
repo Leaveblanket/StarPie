@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// Marks instances launched with the "--dev" flag so they can run side-by-side

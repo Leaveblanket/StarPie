@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>UI-framework-free screen point flowing through the gesture pipeline.</summary>
     public readonly struct GesturePoint

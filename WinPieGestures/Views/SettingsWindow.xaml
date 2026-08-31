@@ -1,9 +1,9 @@
-﻿<Window x:Class="WinPieGestures.SettingsWindow"
+﻿<Window x:Class="WinPieGestures.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WinPieGestures"
+        xmlns:local="clr-namespace:WinPieGestures" xmlns:controls="clr-namespace:WinPieGestures.Controls" xmlns:vm="clr-namespace:WinPieGestures.ViewModels"
         mc:Ignorable="d"
         Title="StarPie 设置控制台 (Preferences)" Height="720" Width="1060"
         WindowStartupLocation="CenterScreen"
@@ -479,7 +479,7 @@
         </Style>
 
         <!-- Modern Hotkey Recorder Control Style -->
-        <Style TargetType="{x:Type local:HotkeyRecorderBox}">
+        <Style TargetType="{x:Type controls:HotkeyRecorderBox}">
             <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}"/>
             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
@@ -487,7 +487,7 @@
             <Setter Property="Height" Value="30"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type local:HotkeyRecorderBox}">
+                    <ControlTemplate TargetType="{x:Type controls:HotkeyRecorderBox}">
                         <Border x:Name="PART_Border"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -790,7 +790,8 @@
                                         <TextBlock Text="软件控制台界面主题 (App Theme)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                                         <TextBlock Text="定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
                                         
-                                        <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectionChanged="AppThemeComboBox_SelectionChanged">
+                                        <!-- T17：AppTheme 双向绑定根路径解析（SelectedValuePath 取 Tag），选中后事件处理器只驱动窗口主题应用与预览重绘等 View 效果。 -->
+                                        <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValuePath="Tag" SelectedValue="{Binding Appearance.AppTheme, Mode=TwoWay}" SelectionChanged="AppThemeComboBox_SelectionChanged">
                                             <ComboBoxItem Content="🌓 跟随系统 (System Auto)" Tag="System"/>
                                             <ComboBoxItem Content="☀️ 极简纯白 (Modern Light)" Tag="Light"/>
                                             <ComboBoxItem Content="🌙 极夜曜黑 (Obsidian Dark)" Tag="Dark"/>
@@ -1118,10 +1119,12 @@
                                     <StackPanel>
                                         <TextBlock Text="中心核圆与图案设置" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
-                                        <CheckBox x:Name="ShowCoreIconCheckBox" Content="显示核圆中心图标 / 图案" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
+                                        <!-- T17：ShowCoreIcon 双向绑定根路径解析；事件处理器只保留预览重绘 View 效果。 -->
+                                        <CheckBox x:Name="ShowCoreIconCheckBox" Content="显示核圆中心图标 / 图案" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding Appearance.ShowCoreIcon, Mode=TwoWay}" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
 
                                         <TextBlock Text="核圆图案类型 (Core Pattern):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                        <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectionChanged="CoreIconTypeComboBox_SelectionChanged">
+                                        <!-- T17：CoreIconType 双向绑定根路径解析（SelectedValuePath 取 Tag）；事件处理器只保留核圆预览面板/图标同步等 View 效果。 -->
+                                        <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding Appearance.CoreIconType, Mode=TwoWay}" SelectionChanged="CoreIconTypeComboBox_SelectionChanged">
                                             <ComboBoxItem Content="✕ 默认取消叉号 (Exit / Close)" Tag="Exit"/>
                                             <ComboBoxItem Content="⌖ 十字准心 (Crosshair)" Tag="Crosshair"/>
                                             <ComboBoxItem Content="⊞ Windows 微标 (Windows Logo)" Tag="Windows"/>
@@ -1160,7 +1163,8 @@
                                             <Border x:Name="CoreImageThumbnailBorder" Width="32" Height="32" CornerRadius="16" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Margin="0,0,8,0" Background="{DynamicResource InputBackgroundBrush}" VerticalAlignment="Center" ClipToBounds="True">
                                                 <Image x:Name="CoreImageThumbnail" Stretch="UniformToFill"/>
                                             </Border>
-                                            <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" TextChanged="CoreImagePathTextBox_TextChanged" ToolTip="自定义图片本地路径"/>
+                                            <!-- T17：CoreCustomImagePath 双向绑定根路径解析（逐键更新源，保持迁移前逐键写入语义）；缩略图随 VM PropertyChanged 刷新。 -->
+                                            <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding Appearance.CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="自定义图片本地路径"/>
                                             <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="浏览图片..." Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Click="BrowseCoreImageButton_Click"/>
                                             <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="清除" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Click="ClearCoreImageButton_Click"/>
                                         </Grid>
@@ -1319,7 +1323,7 @@
                                                         <!-- Col 4: Parameter Inputs -->
                                                         <Grid Grid.Column="4" Margin="0,0,8,0">
                                                             <!-- 1. Hotkey Interactive Recorder Box -->
-                                                            <local:HotkeyRecorderBox HotkeyText="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                            <controls:HotkeyRecorderBox HotkeyText="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                                      Visibility="{Binding IsHotkeyType, Converter={StaticResource BoolToVis}}" Height="30" FontSize="12"/>
                                                             
                                                             <!-- 2. Program Launch -->
@@ -1352,7 +1356,7 @@
                                                             <ComboBox SelectedValue="{Binding SelectedSystemPreset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                       SelectedValuePath="Key" DisplayMemberPath="Value"
                                                                       Style="{StaticResource FlatComboBoxStyle}"
-                                                                      ItemsSource="{Binding Source={x:Static local:SlotViewModel.SystemPresets}}"
+                                                                      ItemsSource="{Binding Source={x:Static vm:SlotViewModel.SystemPresets}}"
                                                                       Visibility="{Binding IsSystemType, Converter={StaticResource BoolToVis}}" Height="30" FontSize="12"/>
                                                         </Grid>
                                                         

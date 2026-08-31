@@ -1,4 +1,4 @@
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     [Flags]
     public enum GestureModifierKeys

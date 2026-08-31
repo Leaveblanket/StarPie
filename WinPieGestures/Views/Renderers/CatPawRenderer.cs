@@ -10,7 +10,7 @@ using Panel = System.Windows.Controls.Panel;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Point = System.Windows.Point;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     /// <summary>
     /// Cat Paw Style: Adorable pastel sakura aesthetics, perky organic cat ears, and 3D Q-pop center paw cushions.

@@ -4,7 +4,7 @@ using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     /// <summary>
     /// Clean Sectors Style: Swiss Modern Minimalist.

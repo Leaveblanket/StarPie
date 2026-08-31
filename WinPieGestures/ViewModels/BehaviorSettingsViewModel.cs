@@ -5,7 +5,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 设置窗口·手势行为分区 ViewModel (T13, ADR-0001)：承接迁移前 SettingsWindow code-behind 的

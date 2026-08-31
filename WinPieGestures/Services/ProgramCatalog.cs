@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>程序选择器的一条候选程序。T06 起 <c>ProgramItem</c> 提为不可变记录，
     /// 扫描候选阶段 <c>IconSource</c> 为 null，去重定名后再补图标。</summary>

@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// 动作执行服务实现 (T15, ADR-0002)：迁移前静态 ActionExecutor 的系统调用层——

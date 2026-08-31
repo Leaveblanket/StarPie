@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.Win32;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// 已安装程序的扫描编排 (T06)：从旧 <c>ProgramPickerWindow</c> 原样迁出的八个来源——

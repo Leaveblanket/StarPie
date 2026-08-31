@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 输入对话框 ViewModel (T07, ADR-0001/0004)：接管迁移前 InputDialog code-behind 的全部确认逻辑——

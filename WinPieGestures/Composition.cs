@@ -25,6 +25,9 @@ namespace WinPieGestures
         private readonly IThemeService _themeService;
         private TrayIconManager? _trayIcon;
         private SettingsWindow? _settingsWindow;
+        // T17：设置根 ViewModel 上移为组合根字段——应用退出兜底落盘（FlushPendingSave）与
+        // 托盘提权重启（General 分区 VM）由组合根直调，不再经窗口透传。
+        private RootSettingsViewModel? _root;
         /// <summary>True while an app-level exit is in flight; the settings window
         /// consults it to close for real instead of hiding to the tray.</summary>
         public static bool IsExiting { get; private set; }
@@ -63,10 +66,12 @@ namespace WinPieGestures
 
             // T16：设置根 ViewModel 装配点上移到组合根（T14 曾在窗口构造函数内装配，属迁移期
             // 过渡形态）。宿主副作用经既有委托接线：自启注册表走 AutostartRegistry，导入导出
-            // 走配置服务，托盘气泡与退出复用应用层委托。
-            var root = new RootSettingsViewModel(
+            // 走配置服务，托盘气泡与退出复用应用层委托。T17：落盘防抖器由组合根提供
+            // （DispatcherTimer 实现，UI 线程），自动保存编排住根 VM。
+            _root = new RootSettingsViewModel(
                 _config,
                 _dialogService,
+                new DispatcherSaveDebouncer(),
                 () => _config.Current,
                 (title, text) => _trayIcon?.ShowBalloonTip(title, text),
                 ExitApplication,
@@ -75,7 +80,7 @@ namespace WinPieGestures
                 exportConfig: path => _config.Export(path),
                 importConfig: path => _config.Import(path));
 
-            _settingsWindow = new SettingsWindow(root, _themeService, _dialogService, _actionExecutor);
+            _settingsWindow = new SettingsWindow(_root, _themeService, _dialogService, _actionExecutor);
             // 惰性回填 Owner：此后所有模态对话框归属设置窗口。
             _dialogService.SetOwner(_settingsWindow);
 
@@ -109,7 +114,7 @@ namespace WinPieGestures
             entries.Add(TrayMenuEntry.Item(I18n.T("TrayAppearance"), () => _settingsWindow?.ShowSettings(1)));
             entries.Add(TrayMenuEntry.Item(I18n.T("TrayGestures"), () => _settingsWindow?.ShowSettings(2)));
             entries.Add(TrayMenuEntry.Item(I18n.T("TrayAbout"), () => _settingsWindow?.ShowSettings(4)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayElevate"), () => _settingsWindow?.ElevateAndRestart()));
+            entries.Add(TrayMenuEntry.Item(I18n.T("TrayElevate"), () => _root?.General.ElevateAndRestart()));
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(I18n.T("TrayExit"), ExitApplication));
 
@@ -130,7 +135,8 @@ namespace WinPieGestures
         {
             try
             {
-                _settingsWindow?.SavePendingChanges();
+                // T17：退出前兜底落盘直调根 VM（冲刷挂起防抖 + 立即落盘，迁移前窗口透传已删）。
+                _root?.FlushPendingSave();
             }
             catch { }
 

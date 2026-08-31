@@ -21,9 +21,8 @@ using Path = System.IO.Path;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 using TextBox = System.Windows.Controls.TextBox;
-using DispatcherTimer = System.Windows.Threading.DispatcherTimer;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     public partial class SettingsWindow : Window
     {
@@ -76,26 +75,22 @@ namespace WinPieGestures
             _behavior = _root.Behavior;
             _general = _root.General;
 
-            // 外观分区子 ViewModel (T10)：状态与编排住 VM，绘制（实时预览）留在本视图层
+            // 外观分区子 ViewModel (T10)：状态与编排住 VM，绘制（实时预览）留在本视图层。
+            // T17：落盘请求（AutoSaveRequested/SaveNowRequested）由根 VM 订阅编排，窗口不再接线。
             _appearanceVm.PreviewInvalidated += OnAppearancePreviewInvalidated;
-            _appearanceVm.AutoSaveRequested += ScheduleAutoSave;
-            _appearanceVm.SaveNowRequested += () => SyncUiToConfigAndSave(true);
             _appearanceVm.PresetListChanged += SyncThemePresetItems;
             _appearanceVm.DeleteConfirmRequested += preset =>
             {
-                var result = MessageBox.Show(this, $"确定要删除自定义配色方案预设【{preset.Name}】吗？", "确认删除配色方案", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
+                if (_dialogs.Confirm("确认删除配色方案", $"确定要删除自定义配色方案预设【{preset.Name}】吗？"))
                 {
                     _appearanceVm.ConfirmDeleteCustomColorPreset(preset);
                 }
             };
             _appearanceVm.PresetDeleted += name =>
-                MessageBox.Show(this, $"自定义配色方案【{name}】已成功删除！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogs.ShowInfo("提示", $"自定义配色方案【{name}】已成功删除！");
             _appearanceVm.PresetSaved += name =>
-                MessageBox.Show($"配色预设【{name}】已成功保存！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogs.ShowInfo("提示", $"配色预设【{name}】已成功保存！");
             SyncThemePresetItems();
-            _behavior.SaveRequested += () => SyncUiToConfigAndSave(true);
-            _behavior.SaveDebounceRequested += ScheduleAutoSave;
             _behavior.BlacklistEntryAdded += proc =>
             {
                 if (BlacklistListBox != null)
@@ -105,7 +100,6 @@ namespace WinPieGestures
                 }
             };
 
-            _general.SaveRequested += () => SyncUiToConfigAndSave(true);
             // T14：导入后的分区间 VM 重挂由根协调（ReloadAfterConfigImport），窗口只做控件同步。
             _root.PartitionsReloaded += ReloadAfterConfigImport;
             _general.NoticeRequested += ShowNotice;
@@ -113,25 +107,27 @@ namespace WinPieGestures
             // ADR-0002：I18n 语言切换广播——语言切换后经此刷新全部界面文本。
             I18n.LanguageChanged += ApplyLocalization;
 
+            // T17：核圆图片路径缩略图是 View 效果，随 VM 属性变更（绑定逐键推源）刷新。
+            _appearanceVm.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(AppearanceSettingsViewModel.CoreCustomImagePath))
+                {
+                    UpdateCoreImageThumbnail(_appearanceVm.CoreCustomImagePath);
+                }
+            };
+
             _isUpdatingUi = true;
             try
             {
                 // T14：方案列表 ItemsSource 经 XAML 绑定自根解析（ProfileList.Profiles）。
-                // 槽位动作编辑提交（T12 文件夹选择写回）后同步 UI 状态并落盘——对应迁移前 BrowseFolder_Click 的调用点。
-                _profileList.SlotEditCommitted += () => SyncUiToConfigAndSave(true);
 
                 // T13：行为分区控件初值从 ViewModel 读取（状态已由 VM 承载）。
                 ThresholdSlider.Value = _behavior.DragThreshold;
                 ThresholdValueLabel.Text = _behavior.DragThreshold.ToString("0");
 
-                // Load App Interface Theme
-                SetComboBoxSelectedValue(AppThemeComboBox, _appearanceVm.AppTheme);
+                // T17：界面主题与中心核图标四项改由 XAML 双向绑定自根解析（初值绑定自动回填）；
+                // 窗口主题应用是 View 效果，仍在此驱动。
                 _themeService.ApplyTheme(this, _appearanceVm.AppTheme);
-
-                // Center Core Pattern, Image & Visibility
-                ShowCoreIconCheckBox.IsChecked = _appearanceVm.ShowCoreIcon;
-                SetComboBoxSelectedValue(CoreIconTypeComboBox, _appearanceVm.CoreIconType);
-                CoreImagePathTextBox.Text = _appearanceVm.CoreCustomImagePath;
                 UpdateCoreIconPreviewUI();
 
                 // Load Scene Isolation settings
@@ -361,82 +357,14 @@ namespace WinPieGestures
             }
         }
 
-        private DispatcherTimer? _autoSaveDebounceTimer;
-
-        private void ScheduleAutoSave()
-        {
-            if (_isUpdatingUi || _root.CurrentConfig == null) return;
-
-            if (_autoSaveDebounceTimer == null)
-            {
-                _autoSaveDebounceTimer = new DispatcherTimer
-                {
-                    Interval = TimeSpan.FromMilliseconds(400)
-                };
-                _autoSaveDebounceTimer.Tick += (s, e) =>
-                {
-                    _autoSaveDebounceTimer.Stop();
-                    SyncUiToConfigAndSave(true);
-                };
-            }
-
-            _autoSaveDebounceTimer.Stop();
-            _autoSaveDebounceTimer.Start();
-        }
-
-        private void SyncUiToConfigAndSave(bool saveToDisk = true)
-        {
-            if (_isUpdatingUi || _root.CurrentConfig == null) return;
-
-            try
-            {
-                // T16：外观（T10/T16）与行为（T13）分区各设置项已由子 ViewModel live-apply 即时
-                // 写穿运行态配置，不再从控件回读；此处仅把状态仍住控件的界面主题与中心核图标
-                // 四项经外观子 ViewModel 的透传属性写回（与迁移前在保存点直读控件语义一致），
-                // 预览绘制属 View 效果，留置本视图层。
-
-                if (AppThemeComboBox?.SelectedItem is ComboBoxItem appThemeItem)
-                {
-                    _appearanceVm.AppTheme = appThemeItem.Tag?.ToString() ?? "System";
-                }
-
-                if (ShowCoreIconCheckBox != null)
-                {
-                    _appearanceVm.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
-                }
-                if (CoreIconTypeComboBox?.SelectedItem is ComboBoxItem coreIconItem)
-                {
-                    _appearanceVm.CoreIconType = coreIconItem.Tag?.ToString() ?? "Exit";
-                }
-                if (CoreImagePathTextBox != null)
-                {
-                    _appearanceVm.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
-                }
-
-                if (saveToDisk)
-                {
-                    _root.SaveConfig();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SyncUiToConfigAndSave Error]: {ex.Message}");
-            }
-        }
-
-        /// <summary>Persists in-progress UI edits to config; called by the composition root before an app-level exit.</summary>
-        public void SavePendingChanges()
-        {
-            SyncUiToConfigAndSave(true);
-        }
-
         private void Window_Closing(object sender, CancelEventArgs e)
         {
             // App-level exit (ADR-0003): pending edits were already flushed by the
             // composition root — allow the close. Any other close hides to the tray.
             if (Composition.IsExiting) return;
 
-            SyncUiToConfigAndSave(true);
+            // T17：关闭隐藏前的兜底落盘上移至根 VM（冲刷挂起防抖 + 立即落盘）。
+            _root.FlushPendingSave();
             MemoryOptimizer.TrimMemory();
 
             e.Cancel = true;
@@ -502,7 +430,7 @@ namespace WinPieGestures
             {
                 RenderLiveWheelPreview();
             }
-            SyncUiToConfigAndSave(true);
+            _root.FlushPendingSave();
         }
 
         private void AddProfileButton_Click(object sender, RoutedEventArgs e)
@@ -532,7 +460,7 @@ namespace WinPieGestures
                 }
 
                 ProfilesListBox.SelectedItem = _profileList.AddProfile(newProfile);
-                SyncUiToConfigAndSave(true);
+                _root.FlushPendingSave();
             }
         }
 
@@ -567,7 +495,7 @@ namespace WinPieGestures
                 }
 
                 ProfilesListBox.SelectedItem = _profileList.AddProfile(newProfile);
-                SyncUiToConfigAndSave(true);
+                _root.FlushPendingSave();
             }
         }
 
@@ -608,7 +536,7 @@ namespace WinPieGestures
             {
                 selected.Model.ProcessName = result.Text;
                 selected.RefreshDisplay();
-                SyncUiToConfigAndSave(true);
+                _root.FlushPendingSave();
             }
         }
 
@@ -636,7 +564,7 @@ namespace WinPieGestures
             {
                 _profileList.RemoveProfile(selected);
                 ProfilesListBox.SelectedIndex = 0;
-                SyncUiToConfigAndSave(true);
+                _root.FlushPendingSave();
             }
         }
 
@@ -709,37 +637,28 @@ namespace WinPieGestures
 
         private void ShowCoreIconCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            if (_isUpdatingUi || _root.CurrentConfig == null) return;
-            // T16：状态写穿外观子 VM 透传属性（落运行态配置）。
-            _appearanceVm.ShowCoreIcon = ShowCoreIconCheckBox.IsChecked == true;
+            if (_isUpdatingUi) return;
+            // T17：状态经 IsChecked 双向绑定写穿外观子 VM（落盘由 VM 管线上报根编排）；
+            // 本处理器只剩预览重绘 View 效果。
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
                 RenderLiveWheelPreview();
             }
-            SyncUiToConfigAndSave(true);
         }
 
         private void CoreIconTypeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdatingUi || _root.CurrentConfig == null) return;
-            var selectedItem = CoreIconTypeComboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                // T16：状态写穿外观子 VM 透传属性（落运行态配置）。
-                _appearanceVm.CoreIconType = selectedItem.Tag?.ToString() ?? "Exit";
-                UpdateCoreIconPreviewUI();
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
-            }
+            if (_isUpdatingUi) return;
+            // T17：状态经 SelectedValue 双向绑定写穿外观子 VM（预览重绘与落盘由 VM 管线上报）；
+            // 本处理器只剩核圆预览面板/图标同步 View 效果。
+            UpdateCoreIconPreviewUI();
         }
 
         private void PickCoreIconButton_Click(object sender, RoutedEventArgs e)
         {
-            // T16：对话框编排进外观子 VM（PickCoreIcon，SlotViewModel.PickIcon 先例）；此处只剩
-            // View 层效果：预览面板可见性、核圆图标预览与轮盘预览重绘。
+            // T16：对话框与写回编排进外观子 VM（PickCoreIcon，SlotViewModel.PickIcon 先例）；
+            // T17 起落盘由 VM 经 SaveNowRequested 上报根编排，此处只剩 View 层效果：
+            // 核圆图标预览与轮盘预览重绘。
             if (_appearanceVm.PickCoreIcon())
             {
                 UpdateCoreIconPreviewUI();
@@ -747,7 +666,6 @@ namespace WinPieGestures
                 {
                     RenderLiveWheelPreview();
                 }
-                SyncUiToConfigAndSave(true);
             }
         }
 
@@ -814,19 +732,6 @@ namespace WinPieGestures
             }
         }
 
-        private void CoreImagePathTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isUpdatingUi || _root.CurrentConfig == null || CoreImagePathTextBox == null) return;
-            // T16：状态写穿外观子 VM 透传属性（落运行态配置，迁移前逐键直写语义）。
-            _appearanceVm.CoreCustomImagePath = CoreImagePathTextBox.Text.Trim();
-            UpdateCoreImageThumbnail(_appearanceVm.CoreCustomImagePath);
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            ScheduleAutoSave();
-        }
-
         private void BrowseCoreImageButton_Click(object sender, RoutedEventArgs e)
         {
             var picked = _dialogs.ShowOpenFileDialog(
@@ -835,34 +740,16 @@ namespace WinPieGestures
 
             if (picked != null)
             {
-                string selectedPath = picked.Path;
-                if (CoreImagePathTextBox != null)
-                {
-                    CoreImagePathTextBox.Text = selectedPath;
-                }
-                _appearanceVm.CoreCustomImagePath = selectedPath;
-                UpdateCoreImageThumbnail(selectedPath);
-                if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-                {
-                    RenderLiveWheelPreview();
-                }
-                SyncUiToConfigAndSave(true);
+                // T17：只写 VM——绑定把值回填文本框，缩略图随 VM PropertyChanged 刷新，
+                // 预览重绘与落盘由 VM 管线上报（预览/防抖落盘）。
+                _appearanceVm.CoreCustomImagePath = picked.Path;
             }
         }
 
         private void ClearCoreImageButton_Click(object sender, RoutedEventArgs e)
         {
-            if (CoreImagePathTextBox != null)
-            {
-                CoreImagePathTextBox.Text = "";
-            }
+            // T17：同 Browse——只写 VM，文本框与缩略图随绑定/PropertyChanged 刷新。
             _appearanceVm.CoreCustomImagePath = "";
-            UpdateCoreImageThumbnail("");
-            if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
-            {
-                RenderLiveWheelPreview();
-            }
-            SyncUiToConfigAndSave(true);
         }
 
         private void PickIcon_Click(object sender, RoutedEventArgs e)
@@ -880,16 +767,14 @@ namespace WinPieGestures
 
         private void AppThemeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_isUpdatingUi || _root.CurrentConfig == null) return;
-            string selectedTheme = (AppThemeComboBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() ?? "System";
-            // T16：状态写穿外观子 VM 透传属性；主题应用（窗口视觉）是 View 效果，留置本层。
-            _appearanceVm.AppTheme = selectedTheme;
-            _themeService.ApplyTheme(this, selectedTheme);
+            if (_isUpdatingUi) return;
+            // T17：状态经 SelectedValue 双向绑定写穿外观子 VM（落盘由 VM 管线上报根编排）；
+            // 主题应用（窗口视觉）是 View 效果，留置本层。
+            _themeService.ApplyTheme(this, _appearanceVm.AppTheme);
             if (AppearanceSettingsGrid?.Visibility == Visibility.Visible)
             {
                 RenderLiveWheelPreview();
             }
-            SyncUiToConfigAndSave(true);
         }
 
         private void DisableOnFullScreenCheckBox_Changed(object sender, RoutedEventArgs e)
@@ -964,16 +849,11 @@ namespace WinPieGestures
             _general.SetAutoStart(AutoStartCheckBox.IsChecked == true);
         }
 
-        /// <summary>Relaunches elevated, then exits through the composition root. Also used by the tray menu.</summary>
-        public void ElevateAndRestart()
-        {
-            // T13：提权重启编排进 GeneralSettingsViewModel；保留窗口方法供组合根托盘菜单调用。
-            _general.ElevateAndRestart();
-        }
-
         private void ElevatePrivileges_Click(object sender, RoutedEventArgs e)
         {
-            ElevateAndRestart();
+            // T13：提权重启编排进 GeneralSettingsViewModel；T17 起组合根托盘菜单也直调分区 VM，
+            // 窗口不再保留透传方法。
+            _general.ElevateAndRestart();
         }
 
         private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
@@ -1043,6 +923,15 @@ namespace WinPieGestures
                 SectorFontSizeLabel.Text = $"{SectorFontSizeSlider.Value:0.0} px";
 
                 ShowTextCheckBox.IsChecked = _root.CurrentConfig.ShowText;
+
+                // T17：界面主题与中心核四项导入后按新配置回填控件（处理器被 _isUpdatingUi 抑制，
+                // 绑定回推同值被 VM 等值守卫短路，不产生落盘/预览事件）；窗口主题应用为 View 效果。
+                SetComboBoxSelectedValue(AppThemeComboBox, _appearanceVm.AppTheme);
+                _themeService.ApplyTheme(this, _appearanceVm.AppTheme);
+                ShowCoreIconCheckBox.IsChecked = _appearanceVm.ShowCoreIcon;
+                SetComboBoxSelectedValue(CoreIconTypeComboBox, _appearanceVm.CoreIconType);
+                CoreImagePathTextBox.Text = _appearanceVm.CoreCustomImagePath;
+                UpdateCoreIconPreviewUI();
             }
             finally
             {
@@ -1110,7 +999,8 @@ namespace WinPieGestures
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            SyncUiToConfigAndSave(true);
+            // T17：显式保存按钮退化为"立即冲刷挂起防抖 + 落盘"（自动保存之外的兜底交互）。
+            _root.FlushPendingSave();
             MessageBox.Show("配置已成功保存至硬盘！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 

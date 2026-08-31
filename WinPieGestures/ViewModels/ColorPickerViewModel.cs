@@ -5,7 +5,7 @@ using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 颜色选择器 ViewModel (T08, ADR-0001/0004)：HSV 状态机、十六进制输入解析、

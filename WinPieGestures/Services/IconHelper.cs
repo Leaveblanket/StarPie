@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     [ComImport]
     [Guid("00021401-0000-0000-C000-000000000046")]

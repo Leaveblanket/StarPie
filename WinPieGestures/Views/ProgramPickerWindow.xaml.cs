@@ -2,7 +2,7 @@
 using System.Windows;
 using MessageBox = System.Windows.MessageBox;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views
 {
     /// <summary>
     /// 程序选择器窗口 (T06)：逻辑全部在 <see cref="ProgramPickerViewModel"/>——扫描编排、

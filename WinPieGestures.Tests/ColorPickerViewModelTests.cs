@@ -29,6 +29,8 @@ public sealed class ColorPickerViewModelTests
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
+        public bool Confirm(string title, string message) => throw new NotSupportedException();
+        public void ShowInfo(string title, string message) => throw new NotSupportedException();
     }
 
     private static ColorPickerViewModel Create(FakeDialogService? dialogs = null, string initialHex = "#FFFF0000")

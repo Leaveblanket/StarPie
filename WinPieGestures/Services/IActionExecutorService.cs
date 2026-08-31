@@ -1,4 +1,4 @@
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// 动作执行服务 (T15, ADR-0002)：启动程序 / 热键 / 系统命令三类动作的唯一执行入口。

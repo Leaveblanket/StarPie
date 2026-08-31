@@ -1,4 +1,4 @@
-<Window x:Class="WinPieGestures.ColorPickerWindow"
+<Window x:Class="WinPieGestures.Views.ColorPickerWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="色彩选择器与屏幕吸管 (Color Picker)" Height="610" Width="510"

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace WinPieGestures
+namespace WinPieGestures.Services
 {
     /// <summary>
     /// 应用数据目录解析 (T16 自静态配置门面收编，ADR-0002)：dev 实例沙箱隔离与

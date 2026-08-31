@@ -75,6 +75,8 @@ public sealed class AppearanceSettingsViewModelTests
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
+        public bool Confirm(string title, string message) => throw new NotSupportedException();
+        public void ShowInfo(string title, string message) => throw new NotSupportedException();
     }
 
     /// <summary>事件计数器：订阅 VM 全部事件便于断言。</summary>
@@ -730,7 +732,7 @@ public sealed class AppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void PassThroughProperties_WriteThroughToLiveConfig_RaisePlainNotificationOnly()
+    public void PassThroughProperties_WriteThroughToLiveConfig_AndRaiseLiveApplyPipelineEvents()
     {
         var (vm, config, _, log) = Create();
 
@@ -749,15 +751,82 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
         Assert.Equal("C:\\imgs\\core.png", config.Current.CoreCustomImagePath);
 
-        // 与迁移前一致：这些变更只落配置，不触发预览/落盘事件（由窗口处理器驱动）
+        // T17：透传属性归队 Live-apply 管线——AppTheme/ShowCoreIcon 上报防抖落盘；
+        // CoreIconType/CoreCustomImagePath 同时上报预览重绘；CoreCustomIconKey 保持纯通知
+        //（其落盘由 PickCoreIcon 经 SaveNowRequested 驱动）。
         Assert.Equal(5, propertyNotifications);
-        Assert.Equal(0, log.Preview);
-        Assert.Equal(0, log.AutoSave);
+        Assert.Equal(2, log.Preview);
+        Assert.Equal(4, log.AutoSave);
         Assert.Equal(0, log.SaveNow);
 
-        // 同值写入不再通知
+        // 同值写入不再通知、不再触发管线
         vm.AppTheme = "MidnightNavy";
         Assert.Equal(5, propertyNotifications);
+        Assert.Equal(4, log.AutoSave);
+    }
+
+    // --- 透传属性管线逐项语义 (T17) -------------------------------------------------
+
+    [Fact]
+    public void AppTheme_Setter_RaisesAutoSaveOnly()
+    {
+        var (vm, _, _, log) = Create();
+
+        vm.AppTheme = "Dark";
+
+        Assert.Equal(1, log.AutoSave);
+        Assert.Equal(0, log.Preview);
+        Assert.Equal(0, log.SaveNow);
+    }
+
+    [Fact]
+    public void ShowCoreIcon_Setter_RaisesAutoSaveOnly()
+    {
+        var (vm, _, _, log) = Create();
+
+        vm.ShowCoreIcon = false;
+
+        Assert.Equal(1, log.AutoSave);
+        Assert.Equal(0, log.Preview);
+        Assert.Equal(0, log.SaveNow);
+    }
+
+    [Fact]
+    public void CoreIconType_Setter_RaisesPreviewAndAutoSave()
+    {
+        var (vm, _, _, log) = Create();
+
+        vm.CoreIconType = "Crosshair";
+
+        Assert.Equal(1, log.Preview);
+        Assert.Equal(1, log.AutoSave);
+        Assert.Equal(0, log.SaveNow);
+    }
+
+    [Fact]
+    public void CoreCustomImagePath_Setter_TrimsAndRaisesPreviewAndAutoSave()
+    {
+        var (vm, config, _, log) = Create();
+
+        vm.CoreCustomImagePath = "  C:\\imgs\\core.png  ";
+
+        Assert.Equal("C:\\imgs\\core.png", config.Current.CoreCustomImagePath);
+        Assert.Equal(1, log.Preview);
+        Assert.Equal(1, log.AutoSave);
+        Assert.Equal(0, log.SaveNow);
+    }
+
+    [Fact]
+    public void PickCoreIcon_Confirmed_RaisesSaveNow()
+    {
+        var (vm, config, dialogs, log) = Create();
+        dialogs.IconResult = new IconPickResult("custom:star");
+
+        Assert.True(vm.PickCoreIcon());
+
+        Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
+        Assert.Equal(1, log.SaveNow);
+        Assert.Equal(0, log.AutoSave);
     }
 
     [Fact]

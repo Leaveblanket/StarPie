@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures
+namespace WinPieGestures.ViewModels
 {
     /// <summary>
     /// 设置窗口·配置方案分区列表侧 ViewModel (T11/T12, ADR-0001)：承接迁移前 SettingsWindow

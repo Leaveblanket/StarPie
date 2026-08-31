@@ -7,7 +7,7 @@ using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 
-namespace WinPieGestures
+namespace WinPieGestures.Views.Renderers
 {
     public abstract class BaseStyleRenderer : IRadialStyleRenderer
     {
