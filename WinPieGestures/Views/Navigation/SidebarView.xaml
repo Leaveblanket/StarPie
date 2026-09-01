@@ -10,7 +10,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- 解析期 StaticResource 自合并共享样式字典(与主框架合并同源) -->
-                <ResourceDictionary Source="../SettingsStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/SettingsStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>

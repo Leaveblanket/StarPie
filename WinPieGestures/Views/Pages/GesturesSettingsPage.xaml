@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:controls="clr-namespace:WinPieGestures.Controls"
         xmlns:pages="clr-namespace:WinPieGestures.Views.Pages"
-        xmlns:vm="clr-namespace:WinPieGestures.ViewModels"
+        xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Gestures"
         mc:Ignorable="d"
         d:DesignHeight="600" d:DesignWidth="760"
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
@@ -20,7 +20,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!-- 页面解析期(未挂入主框架树)即需解析 StaticResource:自合并共享样式字典 -->
-                <ResourceDictionary Source="../SettingsStyles.xaml"/>
+                <ResourceDictionary Source="../Styles/SettingsStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </pages:SettingsPageBase.Resources>
