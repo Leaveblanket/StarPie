@@ -60,7 +60,7 @@ namespace WinPieGestures
             ConfigureServices(services);
             _provider = services.BuildServiceProvider();
 
-            _config = (JsonConfigService)_provider.GetRequiredService<IConfigService>();
+            _config = _provider.GetRequiredService<JsonConfigService>();
             _messenger = _provider.GetRequiredService<IMessenger>();
             _mouseHook = _provider.GetRequiredService<MouseHook>();
             _themeService = _provider.GetRequiredService<IThemeService>();

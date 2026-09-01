@@ -15,7 +15,10 @@ namespace WinPieGestures.ViewModels
         /// <summary>UIA 自动化标识（沿用迁移前 NavTab{0..4}）。</summary>
         public string AutomationId { get; }
 
-        /// <summary>导航项标题（已本地化；语言切换经主框架 VM 重设）。</summary>
+        /// <summary>标题的 I18n 键（语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>
+        public string TitleKey { get; }
+
+        /// <summary>导航项标题（已本地化）。</summary>
         [ObservableProperty]
         private string _title;
 
@@ -33,13 +36,14 @@ namespace WinPieGestures.ViewModels
 
         public NavigationItemViewModel(
             string automationId,
-            string title,
+            string titleKey,
             string iconData,
             Type targetViewModelType,
             Action navigate)
         {
             AutomationId = automationId ?? throw new ArgumentNullException(nameof(automationId));
-            _title = title ?? throw new ArgumentNullException(nameof(title));
+            TitleKey = titleKey ?? throw new ArgumentNullException(nameof(titleKey));
+            _title = I18n.T(titleKey);
             IconData = iconData ?? throw new ArgumentNullException(nameof(iconData));
             TargetViewModelType = targetViewModelType ?? throw new ArgumentNullException(nameof(targetViewModelType));
 

@@ -14,7 +14,7 @@ Supersedes ADR-0002（核心决定部分）。ADR-0002 中仍然有效的部分�
 
 ## Consequences
 
-- 容器只做解析：`Composition` 内 `new ServiceCollection()` 注册 → `BuildServiceProvider()`，解析点仍集中在组合根；ADR-0003 装配顺序（钩子先启 → 配置 Load → 建窗）不变。
+- 容器只做解析：`Composition` 内 `new ServiceCollection()` 注册 → `BuildServiceProvider()`，解析点仍集中在组合根（泛型导航服务按目标 VM 类型解析是组合根装配的延伸，注册亦在组合根）；ADR-0003 装配顺序（钩子先启 → 配置 Load → 建窗）不变。
 - 生命周期：服务与页面 ViewModel 单例（状态跨导航常驻，见 CONTEXT.md"导航"条目）；页面 View 瞬态，由 DataTemplate 无参构造实例化，不经容器。
 - 跨页面广播协调走 CommunityToolkit.Mvvm 的 WeakReferenceMessenger（`IMessenger` 以单例注册进容器，便于测试替换）；静态已知依赖（如外观页预览读选中方案）仍构造注入。
 - 重新评估触发器（继承自 ADR-0002）：出现插件系统、多环境/多实例生命周期需求，或引入 ILogger 生态时，重新评估 Host 化。

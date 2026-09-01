@@ -40,16 +40,11 @@ namespace WinPieGestures.ViewModels
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>
             {
-                new("NavTab0", I18n.T("TabTrigger"), IconTrigger, typeof(BehaviorSettingsViewModel),
-                    navTrigger.Navigate),
-                new("NavTab1", I18n.T("TabAppearance"), IconAppearance, typeof(AppearanceSettingsViewModel),
-                    navAppearance.Navigate),
-                new("NavTab2", I18n.T("TabGestures"), IconGestures, typeof(ProfileListViewModel),
-                    navGestures.Navigate),
-                new("NavTab3", I18n.T("TabAdvanced"), IconAdvanced, typeof(GeneralSettingsViewModel),
-                    navAdvanced.Navigate),
-                new("NavTab4", I18n.T("TabAbout"), IconAbout, typeof(AboutViewModel),
-                    navAbout.Navigate)
+                new("NavTab0", "TabTrigger", IconTrigger, typeof(BehaviorSettingsViewModel), navTrigger.Navigate),
+                new("NavTab1", "TabAppearance", IconAppearance, typeof(AppearanceSettingsViewModel), navAppearance.Navigate),
+                new("NavTab2", "TabGestures", IconGestures, typeof(ProfileListViewModel), navGestures.Navigate),
+                new("NavTab3", "TabAdvanced", IconAdvanced, typeof(GeneralSettingsViewModel), navAdvanced.Navigate),
+                new("NavTab4", "TabAbout", IconAbout, typeof(AboutViewModel), navAbout.Navigate)
             };
 
             store.PropertyChanged += (_, e) =>
@@ -79,11 +74,10 @@ namespace WinPieGestures.ViewModels
 
         private void RefreshTitles()
         {
-            NavigationItems[0].Title = I18n.T("TabTrigger");
-            NavigationItems[1].Title = I18n.T("TabAppearance");
-            NavigationItems[2].Title = I18n.T("TabGestures");
-            NavigationItems[3].Title = I18n.T("TabAdvanced");
-            NavigationItems[4].Title = I18n.T("TabAbout");
+            foreach (NavigationItemViewModel item in NavigationItems)
+            {
+                item.Title = I18n.T(item.TitleKey);
+            }
         }
 
         // 导航图标（迁移前 NavTab{0..4} 的 Path Data 原样搬迁）
