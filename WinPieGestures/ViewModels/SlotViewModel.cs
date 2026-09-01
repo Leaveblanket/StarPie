@@ -35,6 +35,7 @@ namespace WinPieGestures.ViewModels
     public partial class SlotViewModel : ObservableObject
     {
         private readonly IDialogService _dialogs;
+        private readonly IActionExecutorService _actionExecutor;
 
         /// <summary>槽位编辑提交（文件夹选择写回）后触发，窗口据此将运行态配置落盘。</summary>
         public event Action? EditApplied;
@@ -282,11 +283,12 @@ namespace WinPieGestures.ViewModels
 
         public string TestButtonText => I18n.T("BtnTest");
 
-        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs)
+        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs, IActionExecutorService actionExecutor)
         {
             DirectionLabel = directionLabel;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+            _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
 
             I18n.LanguageChanged += () =>
             {
@@ -308,6 +310,12 @@ namespace WinPieGestures.ViewModels
             IconKey = picked.IconKey ?? "";
             return true;
         }
+
+        /// <summary>
+        /// 执行本槽位动作（T19 自窗口 Test_Click 收编：动作执行器经构造注入，页面 View 只剩命令绑定）。
+        /// </summary>
+        [RelayCommand]
+        private void ExecuteTest() => _actionExecutor.Execute(Action);
 
         /// <summary>
         /// 程序选择编排（迁移前 Browse_Click）：弹出程序选择器，写回参数并按迁移前规则

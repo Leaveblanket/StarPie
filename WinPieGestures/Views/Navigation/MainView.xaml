@@ -1,0 +1,84 @@
+<Window x:Class="WinPieGestures.Views.Navigation.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:WinPieGestures.ViewModels"
+        xmlns:pages="clr-namespace:WinPieGestures.Views.Pages"
+        xmlns:navigation="clr-namespace:WinPieGestures.Views.Navigation"
+        mc:Ignorable="d"
+        Title="StarPie 设置控制台 (Preferences)" Height="720" Width="1060"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Closing="Window_Closing"
+        FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        RenderOptions.BitmapScalingMode="HighQuality">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 设置界面共享样式 (T19)：隐式控件样式只由主框架合并，不泄漏到其它窗口 -->
+                <ResourceDictionary Source="../SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 页面映射 (T19)：页面 VM → 页面 View；View 无参构造、按导航重建，不经容器 -->
+            <DataTemplate DataType="{x:Type vm:BehaviorSettingsViewModel}">
+                <pages:TriggerSettingsPage/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
+                <pages:AppearanceSettingsPage/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ProfileListViewModel}">
+                <pages:GesturesSettingsPage/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
+                <pages:AdvancedSettingsPage/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+                <pages:AboutSettingsPage/>
+            </DataTemplate>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar Navigation -->
+        <navigation:SidebarView Grid.Column="0"/>
+
+        <!-- Right Main Panel -->
+        <Grid Grid.Column="1" Margin="25,25,25,20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Current Page (DataTemplate-mapped) -->
+            <ContentControl Grid.Row="0" Content="{Binding CurrentViewModel}"/>
+
+            <!-- Global Bottom Action Footer -->
+            <Border Grid.Row="1" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,15,0,0" Margin="0,15,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock x:Name="BottomNoteText" Grid.Column="0" Text="注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+
+                    <Button x:Name="SaveButton" Grid.Column="1" Content="保存更改" Style="{StaticResource PrimaryButtonStyle}" Width="120" Height="36" Click="SaveButton_Click" Margin="0,0,10,0"/>
+                    <Button x:Name="CloseButton" Grid.Column="2" Content="关闭并隐藏" Style="{StaticResource ModernButtonStyle}" Width="100" Height="36" Click="CloseButton_Click"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

@@ -23,8 +23,11 @@ public sealed class GeneralSettingsViewModelTests
         Action<string>? startElevated = null,
         Func<string, bool>? exportConfig = null,
         Func<string, bool>? importConfig = null,
-        List<GeneralSettingsViewModel.NoticeRequest>? notices = null)
+        List<GeneralSettingsViewModel.NoticeRequest>? notices = null,
+        SaveSpy? save = null)
     {
+        var messenger = TestHub.NewMessenger();
+        if (save != null) SaveSpy.Attach(messenger, save);
         var vm = new GeneralSettingsViewModel(
             config,
             dialogs ?? new TestDialogService(),
@@ -34,6 +37,8 @@ public sealed class GeneralSettingsViewModelTests
             enable => autoStartCalls?.Add(enable),
             exportConfig ?? (_ => true),
             importConfig ?? (_ => true),
+            currentConfig: () => config,
+            messenger: messenger,
             startElevated);
         if (notices != null)
         {
@@ -77,16 +82,15 @@ public sealed class GeneralSettingsViewModelTests
     {
         var config = MakeConfig();
         var original = I18n.CurrentLanguage;
-        var saves = 0;
-        var vm = Create(config);
-        vm.SaveRequested += () => saves++;
+        var save = new SaveSpy();
+        var vm = Create(config, save: save);
         try
         {
             vm.ApplyLanguage(code);
 
             Assert.Equal(code, config.Language);
             Assert.Equal(expected, I18n.CurrentLanguage);
-            Assert.Equal(1, saves);
+            Assert.Equal(1, save.Immediate);
         }
         finally
         {
@@ -124,15 +128,14 @@ public sealed class GeneralSettingsViewModelTests
     public void ApplyLanguage_EmptyCode_MakesNoChanges()
     {
         var config = MakeConfig();
-        var saves = 0;
-        var vm = Create(config);
-        vm.SaveRequested += () => saves++;
+        var save = new SaveSpy();
+        var vm = Create(config, save: save);
 
         vm.ApplyLanguage("");
         vm.ApplyLanguage(null!);
 
         Assert.Equal("Auto", config.Language);
-        Assert.Equal(0, saves);
+        Assert.Equal(0, save.Immediate);
     }
 
     [Fact]
@@ -154,15 +157,14 @@ public sealed class GeneralSettingsViewModelTests
     {
         var config = MakeConfig();
         var calls = new List<bool>();
-        var saves = 0;
-        var vm = Create(config, autoStartCalls: calls);
-        vm.SaveRequested += () => saves++;
+        var save = new SaveSpy();
+        var vm = Create(config, autoStartCalls: calls, save: save);
 
         vm.SetAutoStart(true);
 
         // 注册表读写经注入委托（组合根接线 AutostartRegistry）
         Assert.Equal(new[] { true }, calls);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
     }
 
     // --- 托盘驻留提示 ----------------------------------------------------------------
@@ -283,27 +285,27 @@ public sealed class GeneralSettingsViewModelTests
         var dialogs = new TestDialogService();
         var imported = new List<string>();
         var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
-        var importedEvents = 0;
-        var vm = Create(MakeConfig(), dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices);
-        vm.ConfigImported += () => importedEvents++;
+        var save = new SaveSpy();
+        var config = MakeConfig();
+        var vm = Create(config, dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices, save: save);
 
         vm.ImportConfigCommand.Execute(null);
 
         Assert.Empty(imported);
         Assert.Empty(notices);
-        Assert.Equal(0, importedEvents);
+        Assert.Empty(save.Imported);
     }
 
     [Fact]
     public void ImportConfig_Success_NoticesInfoThenRaisesConfigImported()
     {
+        var config = MakeConfig();
         var dialogs = new TestDialogService();
         dialogs.OpenFileToPick = new FilePickResult(@"D:\backup\config.json");
         var imported = new List<string>();
         var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
-        var importedEvents = 0;
-        var vm = Create(MakeConfig(), dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices);
-        vm.ConfigImported += () => importedEvents++;
+        var save = new SaveSpy();
+        var vm = Create(config, dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices, save: save);
 
         vm.ImportConfigCommand.Execute(null);
 
@@ -316,7 +318,9 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal("提示", notice.Title);
         Assert.Equal("配置导入成功！正在应用新设置...", notice.Message);
         Assert.Equal(GeneralSettingsViewModel.NoticeKind.Info, notice.Kind);
-        Assert.Equal(1, importedEvents);
+        // T19：导入成功广播携带新运行态配置实例（取代 ConfigImported 事件）
+        var message = Assert.Single(save.Imported);
+        Assert.Same(config, message.ImportedConfig);
     }
 
     [Fact]
@@ -325,9 +329,8 @@ public sealed class GeneralSettingsViewModelTests
         var dialogs = new TestDialogService();
         dialogs.OpenFileToPick = new FilePickResult(@"D:\backup\config.json");
         var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
-        var importedEvents = 0;
-        var vm = Create(MakeConfig(), dialogs: dialogs, importConfig: _ => false, notices: notices);
-        vm.ConfigImported += () => importedEvents++;
+        var save = new SaveSpy();
+        var vm = Create(MakeConfig(), dialogs: dialogs, importConfig: _ => false, notices: notices, save: save);
 
         vm.ImportConfigCommand.Execute(null);
 
@@ -335,6 +338,6 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal("错误", notice.Title);
         Assert.Equal("导入失败：文件格式不匹配或已损坏。", notice.Message);
         Assert.Equal(GeneralSettingsViewModel.NoticeKind.Error, notice.Kind);
-        Assert.Equal(0, importedEvents);
+        Assert.Empty(save.Imported);
     }
 }

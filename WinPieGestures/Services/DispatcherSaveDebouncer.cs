@@ -6,7 +6,7 @@ namespace WinPieGestures.Services
     /// <summary>
     /// <see cref="ISaveDebouncer"/> 的 WPF 实现 (T17)：DispatcherTimer 承载计时，
     /// Tick 落在 UI 线程——自动保存的请求方（分区 ViewModel 管线）与落盘点
-    /// （RootSettingsViewModel.SaveConfig）都在 UI 线程，无需跨线程封送。
+    /// （T19 起为组合根的 SettingsSaveOrchestrator）都在 UI 线程，无需跨线程封送。
     /// </summary>
     public sealed class DispatcherSaveDebouncer : ISaveDebouncer
     {

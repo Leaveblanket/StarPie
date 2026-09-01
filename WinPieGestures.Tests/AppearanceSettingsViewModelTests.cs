@@ -71,31 +71,37 @@ public sealed class AppearanceSettingsViewModelTests
             return EyedropResult;
         }
 
+        public bool ConfirmResult = true;
+        public readonly List<(string Title, string Message)> Confirms = new();
+        public readonly List<(string Title, string Message)> Infos = new();
+
         public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
-        public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public void ShowInfo(string title, string message) => throw new NotSupportedException();
+        public bool Confirm(string title, string message) { Confirms.Add((title, message)); return ConfirmResult; }
+        public void ShowInfo(string title, string message) => Infos.Add((title, message));
     }
 
-    /// <summary>事件计数器：订阅 VM 全部事件便于断言。</summary>
+    /// <summary>
+    /// 事件/消息计数器 (T19)：视图事件（预览/预设列表）照旧订阅；落盘请求转发到
+    /// <see cref="SaveSpy"/> 消息计数（可赋值以支持用例中途清零）；删除确认与保存提示
+    /// 经对话框替身的记录断言（T19 对话框编排内聚进 VM）。
+    /// </summary>
     private sealed class EventLog
     {
-        public int Preview; public int AutoSave; public int SaveNow; public int PresetList;
-        public string? SavedPresetName; public string? DeletedPresetName;
-        public readonly List<CustomColorPreset> DeleteConfirms = new();
+        private readonly SaveSpy _spy;
+        public int Preview; public int PresetList;
+        public int AutoSave { get => _spy.Debounced; set => _spy.Debounced = value; }
+        public int SaveNow { get => _spy.Immediate; set => _spy.Immediate = value; }
 
-        public static EventLog Attach(AppearanceSettingsViewModel vm)
+        private EventLog(SaveSpy spy) => _spy = spy;
+
+        public static EventLog Attach(AppearanceSettingsViewModel vm, SaveSpy spy)
         {
-            var log = new EventLog();
+            var log = new EventLog(spy);
             vm.PreviewInvalidated += () => log.Preview++;
-            vm.AutoSaveRequested += () => log.AutoSave++;
-            vm.SaveNowRequested += () => log.SaveNow++;
             vm.PresetListChanged += () => log.PresetList++;
-            vm.DeleteConfirmRequested += log.DeleteConfirms.Add;
-            vm.PresetSaved += name => log.SavedPresetName = name;
-            vm.PresetDeleted += name => log.DeletedPresetName = name;
             return log;
         }
     }
@@ -105,8 +111,10 @@ public sealed class AppearanceSettingsViewModelTests
     {
         var configService = new FakeConfigService { Current = config ?? new AppConfig() };
         var dialogs = new FakeDialogService();
-        var vm = new AppearanceSettingsViewModel(configService, dialogs);
-        return (vm, configService, dialogs, EventLog.Attach(vm));
+        var (messenger, spy) = SaveSpy.Create();
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor());
+        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList);
+        return (vm, configService, dialogs, EventLog.Attach(vm, spy));
     }
 
     // --- 构造播种 -------------------------------------------------------------------
@@ -480,7 +488,10 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.True(vm.IsCustomColorExpanderExpanded);
         Assert.Equal(1, log.PresetList);
         Assert.Equal(1, log.SaveNow);
-        Assert.Equal("我的预设", log.SavedPresetName);
+        // T19：保存成功提示经对话框服务(编排内聚进 VM)
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal("提示", info.Title);
+        Assert.Equal("配色预设【我的预设】已成功保存！", info.Message);
     }
 
     [Fact]
@@ -494,7 +505,7 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Empty(config.Current.CustomColorPresets);
         Assert.Equal(0, log.PresetList);
         Assert.Equal(0, log.SaveNow);
-        Assert.Null(log.SavedPresetName);
+        Assert.Empty(dialogs.Infos);
     }
 
     [Fact]
@@ -562,10 +573,10 @@ public sealed class AppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void DeletePreset_RaisesConfirmRequestWithSelectedPreset()
+    public void DeletePreset_ConfirmsWithSelectedPresetName_AndDeletesOnConfirm()
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
-        var (vm, _, _, log) = Create(new AppConfig
+        var (vm, _, dialogs, _) = Create(new AppConfig
         {
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
@@ -573,19 +584,39 @@ public sealed class AppearanceSettingsViewModelTests
 
         vm.DeletePresetCommand.Execute(null);
 
-        var confirmed = Assert.Single(log.DeleteConfirms);
-        Assert.Same(preset, confirmed);
-        Assert.Null(log.DeletedPresetName); // 确认前不删
+        // T19：删除确认对话框编排内聚进 VM——确认即删除并提示成功
+        var confirm = Assert.Single(dialogs.Confirms);
+        Assert.Equal("确认删除配色方案", confirm.Title);
+        Assert.Contains("待删", confirm.Message);
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Contains("待删", info.Message);
+    }
+
+    [Fact]
+    public void DeletePreset_Cancelled_KeepsPreset()
+    {
+        var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
+        var (vm, config, dialogs, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        });
+        dialogs.ConfirmResult = false;
+
+        vm.DeletePresetCommand.Execute(null);
+
+        Assert.Single(config.Current.CustomColorPresets!);
+        Assert.Empty(dialogs.Infos);
     }
 
     [Fact]
     public void DeletePreset_NoCustomPresetSelected_DoesNotRequestConfirm()
     {
-        var (vm, _, _, log) = Create();
+        var (vm, _, dialogs, _) = Create();
 
         vm.DeletePresetCommand.Execute(null);
 
-        Assert.Empty(log.DeleteConfirms);
+        Assert.Empty(dialogs.Confirms);
     }
 
     [Fact]
@@ -593,7 +624,7 @@ public sealed class AppearanceSettingsViewModelTests
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
         var other = new CustomColorPreset { Id = "p2", Name = "保留" };
-        var (vm, config, _, log) = Create(new AppConfig
+        var (vm, config, dialogs, log) = Create(new AppConfig
         {
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset, other }
@@ -606,7 +637,10 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.False(vm.IsCustomPresetSelected);
         Assert.DoesNotContain(preset, config.Current.CustomColorPresets!);
         Assert.Contains(other, config.Current.CustomColorPresets!);
-        Assert.Equal("待删", log.DeletedPresetName);
+        // T19：删除成功提示经对话框服务
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal("提示", info.Title);
+        Assert.Contains("待删", info.Message);
         Assert.Equal(1, log.SaveNow);
         Assert.True(log.Preview > 0);
     }
@@ -615,7 +649,7 @@ public sealed class AppearanceSettingsViewModelTests
     public void ConfirmDelete_PresetNoLongerInList_IsNoOp()
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
-        var (vm, config, _, log) = Create(new AppConfig
+        var (vm, config, dialogs, log) = Create(new AppConfig
         {
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
@@ -625,7 +659,7 @@ public sealed class AppearanceSettingsViewModelTests
 
         Assert.Single(config.Current.CustomColorPresets!);
         Assert.Equal(0, log.SaveNow);
-        Assert.Null(log.DeletedPresetName);
+        Assert.Empty(dialogs.Infos);
     }
 
     // --- 主题选择边界 -------------------------------------------------------------------

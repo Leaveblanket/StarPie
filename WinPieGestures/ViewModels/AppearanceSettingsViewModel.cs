@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
+using WinPieGestures.Services;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
@@ -13,10 +15,13 @@ namespace WinPieGestures.ViewModels
     /// <summary>
     /// 外观分区子 ViewModel (T10, ADR-0001)：皮肤选择（UiStyle）、轮盘配色方案与自定义配色预设、
     /// 高亮边缘光晕、几何尺寸、排版与文字显示。全部设置改动即时写穿 <see cref="IConfigService.Current"/>
-    /// （立即生效语义）；落盘时机经 <see cref="AutoSaveRequested"/>（防抖项）/ <see cref="SaveNowRequested"/>
-    /// （立即项）上报，由根 ViewModel 统一编排（T17 起防抖计时与落盘住 RootSettingsViewModel，视图不再持有保存编排）。
+    /// （立即生效语义）；落盘请求经 <see cref="IMessenger"/> 上报组合根编排订阅者
+    /// （防抖/立即两类消息，T19 起取代迁移前的事件上报）。
     /// 实时预览的绘制留在视图层：视图经 <see cref="PreviewInvalidated"/> 用当前属性值重绘画布。
-    /// 配色预设增删改的编排（含命名输入对话框）在此，确认/提示经事件回调由视图走对话框服务。
+    /// 配色预设增删改的编排（含命名输入与删除确认/结果提示对话框）在此（T19：对话框编排内聚进 VM）。
+    /// T19 页面化：构造注入 <see cref="ProfileListViewModel"/> 单例——预览画哪个方案是编译期可见的
+    /// 静态已知依赖，不走消息（ADR-0005）；导入成功经 <see cref="ConfigImportedMessage"/> 广播后
+    /// 自行从配置重挂状态（播种快照属性导入后会过期），并经 <see cref="ConfigReloaded"/> 通知页面 View。
     /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
     /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
     /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
@@ -25,6 +30,7 @@ namespace WinPieGestures.ViewModels
     {
         private readonly IConfigService _config;
         private readonly IDialogService _dialogs;
+        private readonly IMessenger _messenger;
 
         // Re-entrancy guards（与迁移前窗口 _isUpdatingUi 语义一致）：
         // _loading     构造播种期：只落状态字段，不回写配置、不发事件（绑定随后一次性读取）
@@ -34,31 +40,43 @@ namespace WinPieGestures.ViewModels
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>任意外观设置变化后请求视图重绘实时预览（视图自行判断分区是否可见）。</summary>
+        /// <summary>任意外观设置变化后请求视图重绘实时预览（页面 View 订阅，未挂载时不重绘）。</summary>
         public event Action? PreviewInvalidated;
-
-        /// <summary>防抖落盘（迁移前 ScheduleAutoSave 语义：400ms 防抖后整窗同步保存）。</summary>
-        public event Action? AutoSaveRequested;
-
-        /// <summary>立即落盘（迁移前 SyncUiToConfigAndSave(true) 语义）。</summary>
-        public event Action? SaveNowRequested;
 
         /// <summary>自定义配色预设列表变化（增/删/改名），视图据此重建配色方案下拉的动态项。</summary>
         public event Action? PresetListChanged;
 
-        /// <summary>请求视图弹确认框删除预设（确认后视图回调 <see cref="ConfirmDeleteCustomColorPreset"/>）。</summary>
-        public event Action<CustomColorPreset>? DeleteConfirmRequested;
+        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步
+        /// 下拉动态项/窗口主题/预览等 View 层效果。</summary>
+        public event Action? ConfigReloaded;
 
-        /// <summary>预设已删除，message 为视图提示文案所需的预设名。</summary>
-        public event Action<string>? PresetDeleted;
+        /// <summary>方案列表分区 ViewModel 单例（T19 构造注入）：预览读取选中方案——静态已知依赖
+        /// 走构造注入不走消息（ADR-0005，Spec 决策 13）。</summary>
+        public ProfileListViewModel ProfileList { get; }
 
-        /// <summary>预设已保存，message 为视图提示文案所需的预设名。</summary>
-        public event Action<string>? PresetSaved;
+        /// <summary>运行态配置访问（T19：预览渲染初始化等 View 层读取；导入后自动取到新实例，
+        /// 与迁移前根 VM 的 CurrentConfig 语义一致）。</summary>
+        public AppConfig CurrentConfig => _config.Current;
 
-        public AppearanceSettingsViewModel(IConfigService config, IDialogService dialogs)
+        public AppearanceSettingsViewModel(
+            IConfigService config,
+            IDialogService dialogs,
+            IMessenger messenger,
+            ProfileListViewModel profileList)
         {
             _config = config;
             _dialogs = dialogs;
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            ProfileList = profileList ?? throw new ArgumentNullException(nameof(profileList));
+
+            // T19：导入成功广播 → 从新配置重挂播种快照（透传属性读穿配置本就即时），
+            // 再通知页面 View 做 View 层同步（预设下拉动态项/主题应用/预览重绘）。
+            messenger.Register<ConfigImportedMessage>(this, (_, _) =>
+            {
+                ReloadFromConfig();
+                ConfigReloaded?.Invoke();
+            });
+
             LoadFromConfig();
             _loading = false;
         }
@@ -121,7 +139,7 @@ namespace WinPieGestures.ViewModels
                 }
 
                 PreviewInvalidated?.Invoke();
-                SaveNowRequested?.Invoke();
+                _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             }
         }
 
@@ -255,7 +273,7 @@ namespace WinPieGestures.ViewModels
                 if (string.Equals(Config.AppTheme, value, StringComparison.Ordinal)) return;
                 Config.AppTheme = value;
                 OnPropertyChanged();
-                AutoSaveRequested?.Invoke();
+                _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
 
@@ -268,7 +286,7 @@ namespace WinPieGestures.ViewModels
                 if (Config.ShowCoreIcon == value) return;
                 Config.ShowCoreIcon = value;
                 OnPropertyChanged();
-                AutoSaveRequested?.Invoke();
+                _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
 
@@ -283,7 +301,7 @@ namespace WinPieGestures.ViewModels
                 Config.CoreIconType = value;
                 OnPropertyChanged();
                 PreviewInvalidated?.Invoke();
-                AutoSaveRequested?.Invoke();
+                _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
 
@@ -314,19 +332,33 @@ namespace WinPieGestures.ViewModels
                 Config.CoreCustomImagePath = value;
                 OnPropertyChanged();
                 PreviewInvalidated?.Invoke();
-                AutoSaveRequested?.Invoke();
+                _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
 
         /// <summary>中心核自定义图标选取编排（迁移前 PickCoreIconButton_Click 的对话框部分）：
         /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并经
-        /// <see cref="SaveNowRequested"/> 请求立即落盘，预览刷新由视图层驱动。</summary>
+        /// 消息请求立即落盘，预览刷新由视图层驱动。</summary>
         public bool PickCoreIcon()
         {
             var picked = _dialogs.ShowIconPicker(CoreCustomIconKey);
             if (picked == null) return false;
             CoreCustomIconKey = picked.IconKey ?? "";
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+            return true;
+        }
+
+        /// <summary>中心核自定义图片选取编排（T19 自页面 View 收编，页面保持无参构造不经容器）：
+        /// 取消返回 false 不动状态；选中写回 <see cref="CoreCustomImagePath"/>（绑定回填文本框、
+        /// 缩略图随 PropertyChanged 刷新，落盘/预览由该属性管线发出）。</summary>
+        public bool BrowseCoreImage()
+        {
+            var picked = _dialogs.ShowOpenFileDialog(
+                "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*",
+                "选择中心核圆图案图片");
+            if (picked == null) return false;
+
+            CoreCustomImagePath = picked.Path;
             return true;
         }
 
@@ -381,7 +413,7 @@ namespace WinPieGestures.ViewModels
             IsCustomGlowVisible = value == "Custom" || !string.IsNullOrEmpty(HighlightGlowColorText);
 
             PreviewInvalidated?.Invoke();
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnHighlightGlowColorTextChanged(string value)
@@ -390,7 +422,7 @@ namespace WinPieGestures.ViewModels
             Config.HighlightGlowColor = (value ?? "").Trim();
             HighlightGlowColorBrush = ParseColorBrush(value);
             PreviewInvalidated?.Invoke();
-            AutoSaveRequested?.Invoke();
+            _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
 
         partial void OnHighlightGlowRadiusChanged(double value)
@@ -416,7 +448,7 @@ namespace WinPieGestures.ViewModels
             if (!_bulkUpdating)
             {
                 PreviewInvalidated?.Invoke();
-                SaveNowRequested?.Invoke();
+                _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             }
         }
 
@@ -483,7 +515,7 @@ namespace WinPieGestures.ViewModels
             }
 
             PreviewInvalidated?.Invoke();
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnSectorIconSizeChanged(double value)
@@ -529,14 +561,14 @@ namespace WinPieGestures.ViewModels
             }
 
             PreviewInvalidated?.Invoke();
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         private void RaisePreviewAndAutoSave()
         {
             if (_bulkUpdating) return;
             PreviewInvalidated?.Invoke();
-            AutoSaveRequested?.Invoke();
+            _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
 
         // ---- 命令 -----------------------------------------------------------------
@@ -562,7 +594,7 @@ namespace WinPieGestures.ViewModels
             }
 
             PreviewInvalidated?.Invoke();
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         /// <summary>打开调色板选取颜色（tag 定位目标色值：五个自定义配色 + 高亮光晕色）。</summary>
@@ -642,7 +674,7 @@ namespace WinPieGestures.ViewModels
             // 先发列表变化让视图重建下拉项（新 Tag 才有落点），再切选中触发主题管线
             PresetListChanged?.Invoke();
             SelectedTheme = "CustomPreset_" + newPreset.Id;
-            PresetSaved?.Invoke(presetName);
+            _dialogs.ShowInfo("提示", $"配色预设【{presetName}】已成功保存！");
         }
 
         /// <summary>重命名当前选中的自定义配色预设（仅选中自定义预设时有效；取消则不动）。</summary>
@@ -667,20 +699,25 @@ namespace WinPieGestures.ViewModels
 
             preset.Name = result.Text;
             PresetListChanged?.Invoke();
-            SaveNowRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             PreviewInvalidated?.Invoke();
         }
 
-        /// <summary>删除当前选中的自定义配色预设：先经视图确认，再执行 <see cref="DeleteConfirmRequested"/> 回调链。</summary>
+        /// <summary>删除当前选中的自定义配色预设（T19：删除确认与结果提示对话框编排内聚进本 VM）：
+        /// 确认框 → 移除预设、回落 System 配色并落盘（事件由主题管线统一发出）→ 成功提示。</summary>
         [RelayCommand]
         private void DeletePreset()
         {
             var preset = SelectedCustomPreset;
             if (preset == null) return;
-            DeleteConfirmRequested?.Invoke(preset);
+
+            if (_dialogs.Confirm("确认删除配色方案", $"确定要删除自定义配色方案预设【{preset.Name}】吗？"))
+            {
+                ConfirmDeleteCustomColorPreset(preset);
+            }
         }
 
-        /// <summary>视图确认后执行删除：移除预设、回落 System 配色并落盘（事件由主题管线统一发出）。</summary>
+        /// <summary>确认后执行删除：移除预设、回落 System 配色并落盘，随后提示删除成功。</summary>
         public void ConfirmDeleteCustomColorPreset(CustomColorPreset preset)
         {
             if (preset == null) return;
@@ -691,10 +728,36 @@ namespace WinPieGestures.ViewModels
 
             PresetListChanged?.Invoke();
             SelectedTheme = "System";
-            PresetDeleted?.Invoke(preset.Name);
+            _dialogs.ShowInfo("提示", $"自定义配色方案【{preset.Name}】已成功删除！");
         }
 
         // ---- 播种与纯函数 ----------------------------------------------------------
+
+        /// <summary>
+        /// 导入配置后从当前配置重挂播种快照状态 (T19)：<see cref="_loading"/> 抑制与构造播种一致
+        /// （只落状态不回写配置、不发落盘/预览事件），随后补发绑定通知让透传属性绑定同步拉取新值，
+        /// 并发 <see cref="PresetListChanged"/> 让页面 View 重建配色下拉的动态项。
+        /// </summary>
+        public void ReloadFromConfig()
+        {
+            _loading = true;
+            try
+            {
+                LoadFromConfig();
+            }
+            finally
+            {
+                _loading = false;
+            }
+
+            OnPropertyChanged(nameof(AppTheme));
+            OnPropertyChanged(nameof(ShowCoreIcon));
+            OnPropertyChanged(nameof(CoreIconType));
+            OnPropertyChanged(nameof(CoreCustomIconKey));
+            OnPropertyChanged(nameof(CoreCustomIconSvg));
+            OnPropertyChanged(nameof(CoreCustomImagePath));
+            PresetListChanged?.Invoke();
+        }
 
         /// <summary>
         /// 从配置播种状态（经属性赋值；<see cref="_loading"/> 使各 On*Changed 管线短路——

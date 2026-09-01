@@ -34,7 +34,8 @@ public sealed class BehaviorSettingsViewModelTests
     {
         var config = MakeConfig();
 
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         Assert.Equal(25.0, vm.DragThreshold);
         Assert.True(vm.DisableOnFullScreen);
@@ -51,7 +52,7 @@ public sealed class BehaviorSettingsViewModelTests
     [Fact]
     public void Reload_RebindsToNewConfigInstance()
     {
-        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs());
+        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), TestHub.NewMessenger());
         var imported = MakeConfig();
         imported.DragThreshold = 40.0;
         imported.DisableOnFullScreen = false;
@@ -78,18 +79,14 @@ public sealed class BehaviorSettingsViewModelTests
     public void DragThreshold_WritesConfigLiveAndRequestsDebouncedSave()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var debounce = 0;
-        var immediate = 0;
-        vm.SaveDebounceRequested += () => debounce++;
-        vm.SaveRequested += () => immediate++;
-
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.DragThreshold = 42.0;
 
         Assert.Equal(42.0, config.DragThreshold);
-        Assert.Equal(1, debounce);
+        Assert.Equal(1, save.Debounced);
         // 阈值走防抖通道，不触发立即落盘（对应迁移前 ScheduleAutoSave）
-        Assert.Equal(0, immediate);
+        Assert.Equal(0, save.Immediate);
     }
 
     // --- live-apply：场景隔离（立即落盘） ---------------------------------------------
@@ -98,9 +95,8 @@ public sealed class BehaviorSettingsViewModelTests
     public void SceneIsolationSwitches_WriteConfigLiveAndRequestImmediateSave()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         vm.DisableOnFullScreen = false;
         vm.DisableOnCtrl = true;
@@ -111,7 +107,7 @@ public sealed class BehaviorSettingsViewModelTests
         Assert.True(config.DisableOnCtrl);
         Assert.True(config.DisableOnShift);
         Assert.True(config.DisableOnAlt);
-        Assert.Equal(4, saves);
+        Assert.Equal(4, save.Immediate);
     }
 
     // --- live-apply：外圈逃逸 --------------------------------------------------------
@@ -120,30 +116,28 @@ public sealed class BehaviorSettingsViewModelTests
     public void OuterEscapeToggle_WritesConfigLiveAndRequestsImmediateSave()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         vm.EnableOuterEscapeCancel = false;
 
         Assert.False(config.EnableOuterEscapeCancel);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
     }
 
     [Fact]
     public void OuterEscapeDistance_RoundsBeforeWritingConfig()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         vm.OuterEscapeDistance = 190.6;
 
         // 属性保留滑条原始值，配置写入取整值（对应迁移前 Math.Round）
         Assert.Equal(190.6, vm.OuterEscapeDistance);
         Assert.Equal(191.0, config.OuterEscapeDistance);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
     }
 
     // --- 黑名单：输入框添加 -----------------------------------------------------------
@@ -152,10 +146,9 @@ public sealed class BehaviorSettingsViewModelTests
     public void AddFromInput_NormalizesAndAddsProcess()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.NewBlacklistProcess = "  MyGame ";
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
         var added = new List<string>();
         vm.BlacklistEntryAdded += p => added.Add(p);
 
@@ -166,7 +159,7 @@ public sealed class BehaviorSettingsViewModelTests
         Assert.Contains("mygame.exe", config.BlacklistedProcesses!);
         // 成功添加后清空输入并请求落盘
         Assert.Equal(string.Empty, vm.NewBlacklistProcess);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
         Assert.Equal(new[] { "mygame.exe" }, added);
         Assert.Equal("mygame.exe", vm.SelectedBlacklistProcess);
     }
@@ -175,7 +168,8 @@ public sealed class BehaviorSettingsViewModelTests
     public void AddFromInput_AppendsExeExtensionWhenMissing()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.NewBlacklistProcess = "SOLIDWORKS";
 
         vm.AddBlacklistFromInputCommand.Execute(null);
@@ -187,10 +181,9 @@ public sealed class BehaviorSettingsViewModelTests
     public void AddFromInput_Duplicate_OnlySelectsAndDoesNotSaveOrClear()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.NewBlacklistProcess = "MSTSC";
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
         var added = new List<string>();
         vm.BlacklistEntryAdded += p => added.Add(p);
 
@@ -201,7 +194,7 @@ public sealed class BehaviorSettingsViewModelTests
         Assert.Equal("mstsc.exe", vm.SelectedBlacklistProcess);
         // 输入框保留用户原始输入（迁移前重复分支不触碰 TextBox）
         Assert.Equal("MSTSC", vm.NewBlacklistProcess);
-        Assert.Equal(0, saves);
+        Assert.Equal(0, save.Immediate);
         Assert.Equal(new[] { "mstsc.exe" }, added);
     }
 
@@ -209,7 +202,7 @@ public sealed class BehaviorSettingsViewModelTests
     public void AddFromInput_Empty_FallsBackToProgramPicker()
     {
         var dialogs = Dialogs();
-        var vm = new BehaviorSettingsViewModel(MakeConfig(), dialogs);
+        var vm = new BehaviorSettingsViewModel(MakeConfig(), dialogs, TestHub.NewMessenger());
         dialogs.ProgramToPick = new ProgramPickResult("Some App", @"C:\Tools\MyTool.EXE");
         vm.NewBlacklistProcess = "";
 
@@ -228,7 +221,8 @@ public sealed class BehaviorSettingsViewModelTests
         var config = MakeConfig();
         var dialogs = Dialogs();
         dialogs.ProgramToPick = new ProgramPickResult("Some App", @"C:\Program Files\App\MyApp.exe");
-        var vm = new BehaviorSettingsViewModel(config, dialogs);
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, dialogs, messenger);
 
         vm.BrowseBlacklistCommand.Execute(null);
 
@@ -243,16 +237,15 @@ public sealed class BehaviorSettingsViewModelTests
     {
         var config = MakeConfig();
         var dialogs = Dialogs();
-        var vm = new BehaviorSettingsViewModel(config, dialogs);
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, dialogs, messenger);
         var before = vm.BlacklistProcesses.ToList();
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
 
         vm.BrowseBlacklistCommand.Execute(null);
 
         Assert.Equal(1, dialogs.ProgramPickerCallCount);
         Assert.Equal(before, vm.BlacklistProcesses);
-        Assert.Equal(0, saves);
+        Assert.Equal(0, save.Immediate);
     }
 
     // --- 黑名单：移除 -----------------------------------------------------------------
@@ -261,33 +254,31 @@ public sealed class BehaviorSettingsViewModelTests
     public void Delete_RemovesSelectedProcessFromListAndConfig()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.SelectedBlacklistProcess = "paint.exe";
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
 
         vm.DeleteBlacklistProcessCommand.Execute(null);
 
         Assert.DoesNotContain("paint.exe", vm.BlacklistProcesses);
         Assert.DoesNotContain("paint.exe", config.BlacklistedProcesses!);
         Assert.Contains("mstsc.exe", vm.BlacklistProcesses);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
     }
 
     [Fact]
     public void Delete_WithoutSelection_FallsBackToLastItem()
     {
         var config = MakeConfig();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         vm.DeleteBlacklistProcessCommand.Execute(null);
 
         // 与迁移前一致：未选中时兜底移除最后一项
         Assert.DoesNotContain("paint.exe", vm.BlacklistProcesses);
         Assert.DoesNotContain("paint.exe", config.BlacklistedProcesses!);
-        Assert.Equal(1, saves);
+        Assert.Equal(1, save.Immediate);
     }
 
     [Fact]
@@ -295,13 +286,12 @@ public sealed class BehaviorSettingsViewModelTests
     {
         var config = MakeConfig();
         config.BlacklistedProcesses = new List<string>();
-        var vm = new BehaviorSettingsViewModel(config, Dialogs());
-        var saves = 0;
-        vm.SaveRequested += () => saves++;
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
 
         vm.DeleteBlacklistProcessCommand.Execute(null);
 
         Assert.Empty(vm.BlacklistProcesses);
-        Assert.Equal(0, saves);
+        Assert.Equal(0, save.Immediate);
     }
 }

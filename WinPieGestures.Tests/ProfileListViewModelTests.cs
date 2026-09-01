@@ -33,7 +33,7 @@ public sealed class ProfileListViewModelTests
     {
         var source = new List<WheelProfile> { MakeProfile("Global"), MakeProfile("chrome.exe", 4) };
 
-        var vm = new ProfileListViewModel(source, Dialogs());
+        var vm = new ProfileListViewModel(source, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.Equal(2, vm.Profiles.Count);
         Assert.Equal("Global", vm.Profiles[0].ProcessName);
@@ -48,7 +48,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SelectProfile_Null_ReturnsFalseAndKeepsState()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.False(vm.SelectProfile(null));
         Assert.Null(vm.SelectedProfile);
@@ -59,7 +59,7 @@ public sealed class ProfileListViewModelTests
     public void SelectProfile_RebuildsSlotsWithDirectionLabelsAndLiveActionReferences()
     {
         var profile = MakeProfile("Global", 8);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.True(vm.SelectProfile(vm.Profiles[0]));
 
@@ -75,7 +75,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SelectProfile_RaisesSelectedProfileNotification()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         object? notified = null;
         vm.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(vm.SelectedProfile)) notified = s; };
 
@@ -90,7 +90,7 @@ public sealed class ProfileListViewModelTests
     public void RebuildSlots_NormalizesInvalidSectorCountTo8SlotsWithoutWritingModelBack()
     {
         var profile = MakeProfile("Global", 6, actionCount: 0);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.Equal(8, vm.Slots.Count);
@@ -101,7 +101,7 @@ public sealed class ProfileListViewModelTests
     public void RebuildSlots_12KeyProfile_FillsMissingActionsFromDefaultPresets()
     {
         var profile = MakeProfile("Global", 12, actionCount: 0);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.SelectProfile(vm.Profiles[0]);
 
@@ -118,7 +118,7 @@ public sealed class ProfileListViewModelTests
     public void RebuildSlots_4KeyProfile_FillsMissingActionsFromDefaultPresets()
     {
         var profile = MakeProfile("Global", 4, actionCount: 0);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.SelectProfile(vm.Profiles[0]);
 
@@ -131,7 +131,7 @@ public sealed class ProfileListViewModelTests
     public void RebuildSlots_8KeyProfile_FillsPlaceholderNames()
     {
         var profile = MakeProfile("Global", 8, actionCount: 0);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.SelectProfile(vm.Profiles[0]);
 
@@ -146,7 +146,7 @@ public sealed class ProfileListViewModelTests
     public void RebuildSlots_KeepsActionsBeyondSectorCount()
     {
         var profile = MakeProfile("Global", 4, actionCount: 6);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.SelectProfile(vm.Profiles[0]);
 
@@ -157,7 +157,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void RebuildSlots_WithoutAnyProfile_LeavesSlotsEmpty()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.RebuildSlots();
 
@@ -171,7 +171,7 @@ public sealed class ProfileListViewModelTests
     public void ApplySectorCount_WritesModelAndRebuildsSlots()
     {
         var profile = MakeProfile("Global", 8);
-        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.True(vm.ApplySectorCount(12));
@@ -185,7 +185,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void ApplySectorCount_WithoutSelection_FallsBackToFirstProfile()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global", 4), MakeProfile("chrome.exe", 4) }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global", 4), MakeProfile("chrome.exe", 4) }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.True(vm.ApplySectorCount(8));
 
@@ -197,7 +197,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void ApplySectorCount_EmptyList_ReturnsFalse()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.False(vm.ApplySectorCount(8));
         Assert.Null(vm.SelectedProfile);
@@ -209,7 +209,7 @@ public sealed class ProfileListViewModelTests
     public void AddProfile_AppendsToSourceListAndDisplayCollection()
     {
         var source = new List<WheelProfile> { MakeProfile() };
-        var vm = new ProfileListViewModel(source, Dialogs());
+        var vm = new ProfileListViewModel(source, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         var added = new WheelProfile { ProcessName = "new.exe", SectorCount = 4 };
 
         var item = vm.AddProfile(added);
@@ -224,7 +224,7 @@ public sealed class ProfileListViewModelTests
     public void RemoveProfile_RemovesFromSourceListAndDisplayCollection()
     {
         var source = new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe") };
-        var vm = new ProfileListViewModel(source, Dialogs());
+        var vm = new ProfileListViewModel(source, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         var target = vm.Profiles[1];
         vm.SelectProfile(target);
 
@@ -237,7 +237,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void RefreshDisplay_RaisesProcessNameChangeAfterModelRename()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("old.exe") }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("old.exe") }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         var item = vm.Profiles[0];
         var notified = new List<string?>();
         item.PropertyChanged += (s, e) => notified.Add(e.PropertyName);
@@ -252,7 +252,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void Reload_RebuildsCollectionAndClearsSelectionAndSlots()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
 
         var newList = new List<WheelProfile> { MakeProfile("imported.exe", 4) };
@@ -270,7 +270,7 @@ public sealed class ProfileListViewModelTests
     public void SlotName_Set_WritesThroughToActionAndRaisesChange()
     {
         var action = new ActionItem { Type = "Hotkey", Name = "旧名" };
-        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs());
+        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs(), new TestActionExecutor());
         var names = new List<string?>();
         slot.PropertyChanged += (s, e) => names.Add(e.PropertyName);
 
@@ -284,7 +284,7 @@ public sealed class ProfileListViewModelTests
     public void SlotName_SetSameValue_DoesNotRaiseChange()
     {
         var action = new ActionItem { Type = "Hotkey", Name = "同名" };
-        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs());
+        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs(), new TestActionExecutor());
         var raised = false;
         slot.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(slot.Name)) raised = true; };
 
@@ -297,7 +297,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SlotName_Get_NullActionName_ReturnsEmpty()
     {
-        var slot = new SlotViewModel("下 (S / 90°)", new ActionItem { Name = null! }, Dialogs());
+        var slot = new SlotViewModel("下 (S / 90°)", new ActionItem { Name = null! }, Dialogs(), new TestActionExecutor());
 
         Assert.Equal("", slot.Name);
     }
@@ -305,7 +305,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SlotConstructor_NullAction_CreatesDefaultHotkeyAction()
     {
-        var slot = new SlotViewModel("左 (W / 180°)", null!, Dialogs());
+        var slot = new SlotViewModel("左 (W / 180°)", null!, Dialogs(), new TestActionExecutor());
 
         Assert.Equal("左 (W / 180°)", slot.DirectionLabel);
         Assert.Equal("Hotkey", slot.Action.Type);
@@ -317,7 +317,7 @@ public sealed class ProfileListViewModelTests
     public void SlotPassthroughProperties_WriteThroughToAction()
     {
         var action = new ActionItem();
-        var slot = new SlotViewModel("上 (N / 270°)", action, Dialogs());
+        var slot = new SlotViewModel("上 (N / 270°)", action, Dialogs(), new TestActionExecutor());
 
         slot.Parameter = "Ctrl+Shift+Esc";
         slot.Arguments = "--minimized";
@@ -335,29 +335,28 @@ public sealed class ProfileListViewModelTests
     public void SlotEditApplied_BubblesUpAsSlotEditCommitted()
     {
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Work") };
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, dialogs);
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, dialogs, messenger, new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
-        var committed = 0;
-        vm.SlotEditCommitted += () => committed++;
 
-        vm.Slots[2].BrowseFolderCommand.Execute(null); // 文件夹选择提交经槽位事件冒泡到列表
+        vm.Slots[2].BrowseFolderCommand.Execute(null); // 文件夹选择提交经槽位上报立即落盘请求
 
-        Assert.Equal(1, committed);
+        Assert.Equal(1, save.Immediate);
     }
 
     [Fact]
     public void SlotEditCommitted_AfterRebuild_SubscribesOnlyToCurrentSlots()
     {
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Work") };
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, dialogs);
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, dialogs, messenger, new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
-        var committed = 0;
-        vm.SlotEditCommitted += () => committed++;
 
-        vm.ApplySectorCount(4); // 重建槽位集合
+        vm.ApplySectorCount(4); // 重建槽位集合（T19 起扇区数应用自身发一次立即落盘请求）
+        var before = save.Immediate;
         vm.Slots[0].BrowseFolderCommand.Execute(null);
 
-        Assert.Equal(1, committed); // 重建后的新槽位仍经同一事件冒泡
+        Assert.Equal(before + 1, save.Immediate); // 重建后的新槽位仍上报落盘请求
     }
 
     // --- 名称查重与缺省名（T16 自窗口 code-behind 收编） -----------------------------
@@ -365,7 +364,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void IsProcessNameTaken_MatchesCaseInsensitiveAgainstRuntimeProfiles()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global"), MakeProfile("chrome.exe", 4) }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global"), MakeProfile("chrome.exe", 4) }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.True(vm.IsProcessNameTaken("Chrome.EXE"));
         Assert.True(vm.IsProcessNameTaken("global"));
@@ -375,7 +374,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void IsProcessNameTaken_SeesProfilesAddedAtRuntime()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         vm.AddProfile(MakeProfile("newapp.exe"));
 
@@ -385,7 +384,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void CreateDefaultCustomProfileName_UsesCurrentProfileCount()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe") }, Dialogs());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe") }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.Equal("自定义配置_2", vm.CreateDefaultCustomProfileName());
     }

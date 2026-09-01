@@ -1,8 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
+using WinPieGestures.Services;
 
 namespace WinPieGestures.ViewModels
 {
@@ -13,8 +16,9 @@ namespace WinPieGestures.ViewModels
     /// I18n.LanguageChanged 广播完成（ADR-0002：I18n 刻意保持静态 + 切换广播）。
     /// 注册表读写（开机自启，组合根接线 AutostartRegistry）与配置导入/导出（组合根接线
     /// 配置服务）经注入委托编排进本 VM，保证可测。
-    /// 导入配置会替换运行态配置实例（JsonConfigService.Import），成功后经 <see cref="ConfigImported"/>
-    /// 通知窗口重载各分区 UI。
+    /// T19 页面化：落盘请求改经 <see cref="IMessenger"/> 上报组合根编排订阅者；导入成功发
+    /// <see cref="ConfigImportedMessage"/> 广播，各页面 VM 订阅后自行重挂（本 VM 亦订阅重挂语言码，
+    /// 并经 <see cref="ConfigReloaded"/> 通知页面 View 同步控件）。
     /// </summary>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
@@ -32,17 +36,16 @@ namespace WinPieGestures.ViewModels
         private readonly Action<bool> _setAutoStart;
         private readonly Func<string, bool> _exportConfig;
         private readonly Func<string, bool> _importConfig;
+        private readonly Func<AppConfig> _currentConfig;
+        private readonly IMessenger _messenger;
         private readonly Action<string> _startElevated;
 
         /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
         [ObservableProperty]
         private bool _autoStartEnabled;
 
-        /// <summary>配置需要落盘（语言切换、自启切换；对应迁移前各自的保存调用）。</summary>
-        public event Action? SaveRequested;
-
-        /// <summary>配置导入成功：窗口据此重载各分区 UI（运行态配置实例已被替换）。</summary>
-        public event Action? ConfigImported;
+        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步控件显示。</summary>
+        public event Action? ConfigReloaded;
 
         /// <summary>弹窗请求（导出/导入结果、提权失败——VM 层零 MessageBox 引用）。</summary>
         public event Action<NoticeRequest>? NoticeRequested;
@@ -56,6 +59,8 @@ namespace WinPieGestures.ViewModels
             Action<bool> setAutoStart,
             Func<string, bool> exportConfig,
             Func<string, bool> importConfig,
+            Func<AppConfig> currentConfig,
+            IMessenger messenger,
             Action<string>? startElevated = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -66,7 +71,16 @@ namespace WinPieGestures.ViewModels
             _setAutoStart = setAutoStart ?? throw new ArgumentNullException(nameof(setAutoStart));
             _exportConfig = exportConfig ?? throw new ArgumentNullException(nameof(exportConfig));
             _importConfig = importConfig ?? throw new ArgumentNullException(nameof(importConfig));
+            _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _startElevated = startElevated ?? StartElevatedProcess;
+
+            // T19：导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
+            messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
+            {
+                Reload(msg.ImportedConfig);
+                ConfigReloaded?.Invoke();
+            });
 
             AutoStartEnabled = _isAutoStartEnabled();
         }
@@ -91,14 +105,14 @@ namespace WinPieGestures.ViewModels
             if (string.IsNullOrEmpty(langCode)) return;
             _config.Language = langCode;
             I18n.SetLanguage(langCode);
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         /// <summary>开机自启切换（迁移前 AutoStartCheckBox_Changed）：注册表读写经注入委托，并请求落盘。</summary>
         public void SetAutoStart(bool enable)
         {
             _setAutoStart(enable);
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         /// <summary>窗口最小化到托盘时的气泡提示（迁移前 Window_Closing 的提示调用）；
@@ -175,7 +189,7 @@ namespace WinPieGestures.ViewModels
             {
                 // 弹窗（模态）先于 UI 重载——与迁移前"先提示、点确定后重载控件"顺序一致
                 NoticeRequested?.Invoke(new NoticeRequest("提示", "配置导入成功！正在应用新设置...", NoticeKind.Info));
-                ConfigImported?.Invoke();
+                _messenger.Send(new ConfigImportedMessage(_currentConfig()));
             }
             else
             {

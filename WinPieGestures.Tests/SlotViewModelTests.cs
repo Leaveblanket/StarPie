@@ -13,7 +13,7 @@ namespace WinPieGestures.Tests;
 public sealed class SlotViewModelTests
 {
     private static SlotViewModel MakeSlot(ActionItem? action = null)
-        => new("右 (E / 0°)", action ?? new ActionItem(), new TestDialogService());
+        => new("右 (E / 0°)", action ?? new ActionItem(), new TestDialogService(), new TestActionExecutor());
 
     // --- 图标设置（迁移前 PickIcon_Click） ---------------------------------------------
 
@@ -21,7 +21,7 @@ public sealed class SlotViewModelTests
     public void PickIcon_WhenPicked_WritesIconKeyAndReturnsTrue()
     {
         var dialogs = new TestDialogService { IconToPick = new IconPickResult("TaskManager") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem(), dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem(), dialogs, new TestActionExecutor());
 
         var picked = slot.PickIcon();
 
@@ -33,7 +33,7 @@ public sealed class SlotViewModelTests
     public void PickIcon_PassesCurrentIconKeyToPicker()
     {
         var dialogs = new TestDialogService();
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs, new TestActionExecutor());
 
         slot.PickIcon();
 
@@ -45,7 +45,7 @@ public sealed class SlotViewModelTests
     public void PickIcon_WhenCancelled_ReturnsFalseAndKeepsIconKey()
     {
         var dialogs = new TestDialogService { IconToPick = null };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs, new TestActionExecutor());
 
         var picked = slot.PickIcon();
 
@@ -57,7 +57,7 @@ public sealed class SlotViewModelTests
     public void PickIcon_ClearResult_WritesEmptyIconKey()
     {
         var dialogs = new TestDialogService { IconToPick = new IconPickResult(null) };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { IconKey = "Copy" }, dialogs, new TestActionExecutor());
 
         var picked = slot.PickIcon();
 
@@ -71,7 +71,7 @@ public sealed class SlotViewModelTests
     public void BrowseProgram_WhenPicked_WritesParameterToFillsDefaultName()
     {
         var dialogs = new TestDialogService { ProgramToPick = new ProgramPickResult("记事本", @"C:\Windows\notepad.exe") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Type = "Launch" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Type = "Launch" }, dialogs, new TestActionExecutor());
 
         slot.BrowseProgramCommand.Execute(null);
 
@@ -83,7 +83,7 @@ public sealed class SlotViewModelTests
     public void BrowseProgram_EmptyPickerName_FallsBackToFileNameWithoutExtension()
     {
         var dialogs = new TestDialogService { ProgramToPick = new ProgramPickResult("", @"C:\Tools\foo.bar.exe") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem(), dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem(), dialogs, new TestActionExecutor());
 
         slot.BrowseProgramCommand.Execute(null);
 
@@ -94,7 +94,7 @@ public sealed class SlotViewModelTests
     public void BrowseProgram_OverwritesPlaceholderNames()
     {
         var dialogs = new TestDialogService { ProgramToPick = new ProgramPickResult("计算器", @"C:\Windows\System32\calc.exe") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 2" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 2" }, dialogs, new TestActionExecutor());
 
         slot.BrowseProgramCommand.Execute(null);
 
@@ -105,7 +105,7 @@ public sealed class SlotViewModelTests
     public void BrowseProgram_KeepsCustomizedName()
     {
         var dialogs = new TestDialogService { ProgramToPick = new ProgramPickResult("计算器", @"C:\Windows\System32\calc.exe") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "我的程序" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "我的程序" }, dialogs, new TestActionExecutor());
 
         slot.BrowseProgramCommand.Execute(null);
 
@@ -117,7 +117,7 @@ public sealed class SlotViewModelTests
     public void BrowseProgram_WhenCancelled_NothingChanges()
     {
         var dialogs = new TestDialogService { ProgramToPick = null };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 1", Parameter = "old" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 1", Parameter = "old" }, dialogs, new TestActionExecutor());
 
         slot.BrowseProgramCommand.Execute(null);
 
@@ -132,7 +132,7 @@ public sealed class SlotViewModelTests
     public void BrowseFolder_WhenPicked_WritesParameterFillsNameIconAndRaisesEditApplied()
     {
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Users\me\Documents") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Type = "Folder", Name = "快捷动作 1" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Type = "Folder", Name = "快捷动作 1" }, dialogs, new TestActionExecutor());
         var committed = 0;
         slot.EditApplied += () => committed++;
 
@@ -148,7 +148,7 @@ public sealed class SlotViewModelTests
     public void BrowseFolder_KeepsCustomizedNameAndIcon()
     {
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Work") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "工作目录", IconKey = "Explorer" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "工作目录", IconKey = "Explorer" }, dialogs, new TestActionExecutor());
 
         slot.BrowseFolderCommand.Execute(null);
 
@@ -161,7 +161,7 @@ public sealed class SlotViewModelTests
     public void BrowseFolder_WhenCancelled_NothingChangesAndNoEditApplied()
     {
         var dialogs = new TestDialogService { FolderToPick = null };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 1", Parameter = "old" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Name = "动作 1", Parameter = "old" }, dialogs, new TestActionExecutor());
         var committed = 0;
         slot.EditApplied += () => committed++;
 
@@ -176,7 +176,7 @@ public sealed class SlotViewModelTests
     public void BrowseFolder_PassesCurrentParameterAsInitialDirectory()
     {
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Work") };
-        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Parameter = @"C:\Users" }, dialogs);
+        var slot = new SlotViewModel("右 (E / 0°)", new ActionItem { Parameter = @"C:\Users" }, dialogs, new TestActionExecutor());
 
         slot.BrowseFolderCommand.Execute(null);
 

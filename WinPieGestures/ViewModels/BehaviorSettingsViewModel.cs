@@ -3,23 +3,27 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
+using WinPieGestures.Services;
 
 namespace WinPieGestures.ViewModels
 {
     /// <summary>
-    /// 设置窗口·手势行为分区 ViewModel (T13, ADR-0001)：承接迁移前 SettingsWindow code-behind 的
-    /// 触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸取消与进程排除黑名单的状态与编排。
-    /// 直接持有运行态 <see cref="AppConfig"/> 引用（live-apply：属性变更即时写回运行态配置
-    /// 并生效，与 <see cref="WheelViewModel.Config"/> / <see cref="ProfileListViewModel"/> 先例同理）；
-    /// 落盘经 <see cref="SaveRequested"/> / <see cref="SaveDebounceRequested"/> 交窗口统一处理
-    /// （窗口走 SyncUiToConfigAndSave / ScheduleAutoSave，防抖节奏留在 View 基础设施）。
-    /// 导入配置会替换运行态配置实例（JsonConfigService.Import），届时经 <see cref="Reload"/> 重挂。
+    /// 设置窗口·触发与场景页面 ViewModel (T13, T19 页面化, ADR-0001)：承接迁移前 SettingsWindow
+    /// code-behind 的触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸取消与进程排除黑名单的
+    /// 状态与编排。直接持有运行态 <see cref="AppConfig"/> 引用（live-apply：属性变更即时写回运行态
+    /// 配置并生效，与 <see cref="WheelViewModel.Config"/> / <see cref="ProfileListViewModel"/> 先例同理）；
+    /// 落盘经 <see cref="IMessenger"/> 上报组合根编排订阅者（立即请求/防抖请求两类消息，
+    /// T19 起取代迁移前的事件上报）。
+    /// 导入配置会替换运行态配置实例（JsonConfigService.Import），届时经 <see cref="Reload"/> 重挂；
+    /// <see cref="ConfigReloaded"/> 供页面 View 同步控件显示。
     /// </summary>
     public partial class BehaviorSettingsViewModel : ObservableObject
     {
         private AppConfig _config;
         private readonly IDialogService _dialogs;
+        private readonly IMessenger _messenger;
 
         /// <summary>手势触发阈值（像素）。变更即时写回运行态配置（对应迁移前 ThresholdSlider_ValueChanged）。</summary>
         [ObservableProperty]
@@ -64,19 +68,25 @@ namespace WinPieGestures.ViewModels
         //（值来自配置本身，无需回写；窗口在 _isUpdatingUi 保护内同步控件）。
         private bool _isReloading;
 
-        /// <summary>配置需要立即落盘（对应迁移前 SyncUiToConfigAndSave(true)）。</summary>
-        public event Action? SaveRequested;
+        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步控件显示。</summary>
+        public event Action? ConfigReloaded;
 
-        /// <summary>配置需要防抖落盘（触发阈值滑条专用，对应迁移前 ScheduleAutoSave 的 400ms 防抖）。</summary>
-        public event Action? SaveDebounceRequested;
-
-        /// <summary>黑名单新增条目后触发，窗口据此滚动到该项（View 层滚动效果）。</summary>
+        /// <summary>黑名单新增条目后触发，页面据此滚动到该项（View 层滚动效果）。</summary>
         public event Action<string>? BlacklistEntryAdded;
 
-        public BehaviorSettingsViewModel(AppConfig config, IDialogService dialogs)
+        public BehaviorSettingsViewModel(AppConfig config, IDialogService dialogs, IMessenger messenger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+
+            // T19：导入成功广播 → 以消息携带的新配置自行重挂，并通知页面 View 同步控件。
+            messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
+            {
+                Reload(msg.ImportedConfig);
+                ConfigReloaded?.Invoke();
+            });
+
             Reload(config);
         }
 
@@ -122,42 +132,42 @@ namespace WinPieGestures.ViewModels
         {
             if (_isReloading || _config == null) return;
             _config.DragThreshold = value;
-            SaveDebounceRequested?.Invoke();
+            _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
 
         partial void OnDisableOnFullScreenChanged(bool value)
         {
             if (_isReloading || _config == null) return;
             _config.DisableOnFullScreen = value;
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnDisableOnCtrlChanged(bool value)
         {
             if (_isReloading || _config == null) return;
             _config.DisableOnCtrl = value;
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnDisableOnShiftChanged(bool value)
         {
             if (_isReloading || _config == null) return;
             _config.DisableOnShift = value;
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnDisableOnAltChanged(bool value)
         {
             if (_isReloading || _config == null) return;
             _config.DisableOnAlt = value;
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnEnableOuterEscapeCancelChanged(bool value)
         {
             if (_isReloading || _config == null) return;
             _config.EnableOuterEscapeCancel = value;
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         partial void OnOuterEscapeDistanceChanged(double value)
@@ -165,7 +175,7 @@ namespace WinPieGestures.ViewModels
             if (_isReloading || _config == null) return;
             // 与迁移前一致：写回配置前取整（滑条仍显示原始值）
             _config.OuterEscapeDistance = Math.Round(value);
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         // --- 进程排除黑名单编排（迁移前 Browse/Add/Delete 三个处理器与 AddBlacklistProcess） ---
@@ -238,7 +248,7 @@ namespace WinPieGestures.ViewModels
             SelectedBlacklistProcess = proc;
             BlacklistEntryAdded?.Invoke(proc);
             NewBlacklistProcess = "";
-            SaveRequested?.Invoke();
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         /// <summary>移除选中的黑名单进程；未选中时兜底移除最后一项（与迁移前一致）。</summary>
@@ -255,7 +265,7 @@ namespace WinPieGestures.ViewModels
             {
                 BlacklistProcesses.Remove(selected);
                 _config.BlacklistedProcesses?.Remove(selected);
-                SaveRequested?.Invoke();
+                _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             }
         }
     }
