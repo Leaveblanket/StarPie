@@ -1,0 +1,76 @@
+{
+    "dotnet.defaultSolution": "WinPieGestures/WinPieGestures.slnx",
+    "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
+    "dotnet.backgroundAnalysis.analysisTimeoutMs": 10000,
+    "dotnet.completion.showCompletionItemsFromAllProjects": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.codeActionsOnSave": {
+        "source.fixAll": "explicit",
+        "source.organizeImports": "explicit"
+    },
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false,
+    "files.eol": "\r\n",
+    "files.encoding": "utf8bom",
+    "files.autoGuessEncoding": false,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true,
+    "files.associations": {
+        "*.xaml": "xml",
+        "*.slnx": "xml"
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.vs": true,
+        "**/bin": true,
+        "**/obj": true,
+        "**/.codegraph": true
+    },
+    "search.exclude": {
+        "**/bin": true,
+        "**/obj": true,
+        "**/.vs": true,
+        "**/.codegraph": true,
+        "**/releases": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/.vs/**": true,
+        "**/bin/**": true,
+        "**/obj/**": true,
+        "**/.codegraph/**": true,
+        "**/releases/**": true
+    },
+    "csharp.format.enable": true,
+    "csharp.format.onSave": true,
+    "omnisharp.enableEditorConfigSupport": true,
+    "omnisharp.enableRoslynAnalyzers": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp",
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    "[xml]": {
+        "editor.defaultFormatter": "redhat.vscode-xml",
+        "editor.tabSize": 4,
+        "editor.insertSpaces": true
+    },
+    "[json]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "xml.format.enabled": true,
+    "xml.format.preserveEmptyContent": true,
+    "explorer.fileNesting.enabled": true,
+    "explorer.fileNesting.expand": false,
+    "explorer.fileNesting.patterns": {
+        "*.cs": "${capture}.xaml, ${capture}.xaml.cs",
+        "*.xaml": "${capture}.xaml.cs",
+        "*.csproj": "*.slnx"
+    },
+    "dotnet.codeLens.enableReferencesCodeLens": false,
+    "dotnet.codeLens.enableTestsCodeLens": true,
+    "dotnet.formatting.organizeImportsOnFormat": true
+}
