@@ -84,6 +84,7 @@ namespace WinPieGestures
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<MouseHook>();
             services.AddSingleton(new ThemeService());
+            services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<ThemeService>());
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<IWheelFactory, WheelFactory>();

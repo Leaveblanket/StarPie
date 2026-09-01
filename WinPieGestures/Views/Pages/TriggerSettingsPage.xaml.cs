@@ -15,7 +15,9 @@ namespace WinPieGestures.Views.Pages
         // 初始为 true：抑制 XAML 初始化与回填期间的值变更风暴（与迁移前窗口 _isUpdatingUi 语义一致）。
         private bool _isUpdatingUi = true;
 
-        private BehaviorSettingsViewModel Vm => (BehaviorSettingsViewModel)DataContext;
+        // 页面 VM 在 Loaded 时缓存:Unloaded 阶段 DataContext 已随可视树脱离而置空,
+        // 届时经缓存退订事件(迁移前窗口持有字段引用,无此问题)。
+        private BehaviorSettingsViewModel? _vm;
 
         public TriggerSettingsPage()
         {
@@ -51,15 +53,22 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            Vm.ConfigReloaded += OnConfigReloaded;
-            Vm.BlacklistEntryAdded += OnBlacklistEntryAdded;
+            _vm = (BehaviorSettingsViewModel)DataContext;
+            _vm.ConfigReloaded -= OnConfigReloaded;
+            _vm.ConfigReloaded += OnConfigReloaded;
+            _vm.BlacklistEntryAdded -= OnBlacklistEntryAdded;
+            _vm.BlacklistEntryAdded += OnBlacklistEntryAdded;
             SyncControlsFromVm();
         }
 
         protected override void OnPageUnloaded()
         {
-            Vm.ConfigReloaded -= OnConfigReloaded;
-            Vm.BlacklistEntryAdded -= OnBlacklistEntryAdded;
+            if (_vm != null)
+            {
+                _vm.ConfigReloaded -= OnConfigReloaded;
+                _vm.BlacklistEntryAdded -= OnBlacklistEntryAdded;
+            }
+            _vm = null;
         }
 
         /// <summary>从 VM 回填非绑定控件（页面挂载与导入广播后；迁移前窗口构造块/导入同步原样搬迁）。</summary>
@@ -68,19 +77,20 @@ namespace WinPieGestures.Views.Pages
             _isUpdatingUi = true;
             try
             {
-                ThresholdSlider.Value = Vm.DragThreshold;
-                ThresholdValueLabel.Text = Vm.DragThreshold.ToString("0");
+                var vm = _vm!;
+                ThresholdSlider.Value = vm.DragThreshold;
+                ThresholdValueLabel.Text = vm.DragThreshold.ToString("0");
 
-                DisableOnFullScreenCheckBox.IsChecked = Vm.DisableOnFullScreen;
-                CtrlModifierCheckBox.IsChecked = Vm.DisableOnCtrl;
-                ShiftModifierCheckBox.IsChecked = Vm.DisableOnShift;
-                AltModifierCheckBox.IsChecked = Vm.DisableOnAlt;
+                DisableOnFullScreenCheckBox.IsChecked = vm.DisableOnFullScreen;
+                CtrlModifierCheckBox.IsChecked = vm.DisableOnCtrl;
+                ShiftModifierCheckBox.IsChecked = vm.DisableOnShift;
+                AltModifierCheckBox.IsChecked = vm.DisableOnAlt;
 
                 // 外圈逃逸：开关与面板可见性、滑杆同步（迁移前构造漏设修正的语义保留）
-                EnableOuterEscapeCheckBox.IsChecked = Vm.EnableOuterEscapeCancel;
-                OuterEscapeDistancePanel.Visibility = Vm.EnableOuterEscapeCancel ? Visibility.Visible : Visibility.Collapsed;
-                OuterEscapeDistanceSlider.Value = Vm.OuterEscapeDistance;
-                OuterEscapeDistanceLabel.Text = $"{Math.Round(Vm.OuterEscapeDistance):0} px";
+                EnableOuterEscapeCheckBox.IsChecked = vm.EnableOuterEscapeCancel;
+                OuterEscapeDistancePanel.Visibility = vm.EnableOuterEscapeCancel ? Visibility.Visible : Visibility.Collapsed;
+                OuterEscapeDistanceSlider.Value = vm.OuterEscapeDistance;
+                OuterEscapeDistanceLabel.Text = $"{Math.Round(vm.OuterEscapeDistance):0} px";
             }
             finally
             {
@@ -105,13 +115,13 @@ namespace WinPieGestures.Views.Pages
                 ThresholdValueLabel.Text = e.NewValue.ToString("0");
             }
             if (_isUpdatingUi) return;
-            Vm.DragThreshold = e.NewValue;
+            _vm!.DragThreshold = e.NewValue;
         }
 
         private void OuterEscapeDistanceSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             if (_isUpdatingUi) return;
-            Vm.OuterEscapeDistance = e.NewValue;
+            _vm!.OuterEscapeDistance = e.NewValue;
             OuterEscapeDistanceLabel.Text = $"{Math.Round(e.NewValue):0} px";
         }
 
@@ -119,53 +129,53 @@ namespace WinPieGestures.Views.Pages
         {
             if (_isUpdatingUi) return;
             OuterEscapeDistancePanel.Visibility = Visibility.Visible;
-            Vm.EnableOuterEscapeCancel = true;
+            _vm!.EnableOuterEscapeCancel = true;
         }
 
         private void OuterEscapeCheckBox_Unchecked(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi) return;
             OuterEscapeDistancePanel.Visibility = Visibility.Collapsed;
-            Vm.EnableOuterEscapeCancel = false;
+            _vm!.EnableOuterEscapeCancel = false;
         }
 
         private void DisableOnFullScreenCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi) return;
-            Vm.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
+            _vm!.DisableOnFullScreen = DisableOnFullScreenCheckBox.IsChecked == true;
         }
 
         private void ModifierCheckBox_Changed(object sender, RoutedEventArgs e)
         {
             if (_isUpdatingUi) return;
-            Vm.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
-            Vm.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
-            Vm.DisableOnAlt = AltModifierCheckBox.IsChecked == true;
+            _vm!.DisableOnCtrl = CtrlModifierCheckBox.IsChecked == true;
+            _vm!.DisableOnShift = ShiftModifierCheckBox.IsChecked == true;
+            _vm!.DisableOnAlt = AltModifierCheckBox.IsChecked == true;
         }
 
         /// <summary>把输入框文本与 VM 同步后执行黑名单命令，再按 VM 状态回写输入框（迁移前原样搬迁）。</summary>
         private void RunBlacklistCommand(CommunityToolkit.Mvvm.Input.IRelayCommand command)
         {
-            Vm.NewBlacklistProcess = NewBlacklistProcessTextBox.Text;
+            _vm!.NewBlacklistProcess = NewBlacklistProcessTextBox.Text;
             command.Execute(null);
-            NewBlacklistProcessTextBox.Text = Vm.NewBlacklistProcess;
+            NewBlacklistProcessTextBox.Text = _vm.NewBlacklistProcess;
         }
 
         private void BrowseBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            RunBlacklistCommand(Vm.BrowseBlacklistCommand);
+            RunBlacklistCommand(_vm!.BrowseBlacklistCommand);
         }
 
         private void AddBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            RunBlacklistCommand(Vm.AddBlacklistFromInputCommand);
+            RunBlacklistCommand(_vm!.AddBlacklistFromInputCommand);
         }
 
         private void NewBlacklistProcessTextBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Enter)
             {
-                RunBlacklistCommand(Vm.AddBlacklistFromInputCommand);
+                RunBlacklistCommand(_vm!.AddBlacklistFromInputCommand);
                 e.Handled = true;
             }
         }
@@ -173,21 +183,21 @@ namespace WinPieGestures.Views.Pages
         private void BlacklistListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             // 列表选中态与 VM 双向同步（AddBlacklistProcess 经 BlacklistEntryAdded 回设选中为同值，无循环）。
-            Vm.SelectedBlacklistProcess = BlacklistListBox.SelectedItem as string;
+            _vm!.SelectedBlacklistProcess = BlacklistListBox.SelectedItem as string;
         }
 
         private void BlacklistListBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == System.Windows.Input.Key.Delete || e.Key == System.Windows.Input.Key.Back)
             {
-                Vm.DeleteBlacklistProcessCommand.Execute(null);
+                _vm!.DeleteBlacklistProcessCommand.Execute(null);
                 e.Handled = true;
             }
         }
 
         private void DeleteBlacklistButton_Click(object sender, RoutedEventArgs e)
         {
-            Vm.DeleteBlacklistProcessCommand.Execute(null);
+            _vm!.DeleteBlacklistProcessCommand.Execute(null);
         }
     }
 }

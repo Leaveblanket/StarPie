@@ -13,7 +13,14 @@ namespace WinPieGestures.Views.Pages
     /// </summary>
     public partial class GesturesSettingsPage : SettingsPageBase
     {
-        private ProfileListViewModel Vm => (ProfileListViewModel)DataContext;
+        // 页面 VM 在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)。
+        private ProfileListViewModel? _vm;
+
+        private ProfileListViewModel Vm => _vm!;
+
+        // 初始为 true:抑制 XAML 解析期(扇区数 8 键默认 IsChecked="True")与回填期的事件风暴
+        // (与迁移前窗口 _isUpdatingUi 语义一致)。
+        private bool _isUpdatingUi = true;
 
         public GesturesSettingsPage()
         {
@@ -40,33 +47,56 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            Vm.ConfigReloaded += OnConfigReloaded;
+            _vm = (ProfileListViewModel)DataContext;
+            _vm.ConfigReloaded -= OnConfigReloaded;
+            _vm.ConfigReloaded += OnConfigReloaded;
 
-            // 迁移前 SwitchToTab(2) 的选中兜底原样搬迁：无选中回落第一项，再同步单选钮与槽位。
-            if (Vm.SelectedProfile == null && Vm.Profiles.Count > 0)
+            _isUpdatingUi = true;
+            try
             {
-                ProfilesListBox.SelectedItem = Vm.Profiles[0];
+                // 迁移前 SwitchToTab(2) 的选中兜底原样搬迁：无选中回落第一项，再同步单选钮与槽位。
+                if (Vm.SelectedProfile == null && Vm.Profiles.Count > 0)
+                {
+                    ProfilesListBox.SelectedItem = Vm.Profiles[0];
+                }
+
+                if (Vm.SelectedProfile != null)
+                {
+                    ProfilesListBox.SelectedItem = Vm.SelectedProfile;
+                    UpdateSectorCountRadios();
+                    Vm.RebuildSlots();
+                }
             }
-
-            if (Vm.SelectedProfile != null)
+            finally
             {
-                ProfilesListBox.SelectedItem = Vm.SelectedProfile;
-                UpdateSectorCountRadios();
-                Vm.RebuildSlots();
+                _isUpdatingUi = false;
             }
         }
 
         protected override void OnPageUnloaded()
         {
-            Vm.ConfigReloaded -= OnConfigReloaded;
+            if (_vm != null)
+            {
+                _vm.ConfigReloaded -= OnConfigReloaded;
+            }
+            _vm = null;
         }
 
         private void OnConfigReloaded()
         {
             // 导入后列表选中回落到第一项，使扇区数、槽位与导入内容一致（迁移前语义保留）。
-            if (Vm.Profiles.Count > 0)
+            if (_vm == null) return;
+            _isUpdatingUi = true;
+            try
             {
-                ProfilesListBox.SelectedIndex = 0;
+                if (Vm.Profiles.Count > 0)
+                {
+                    ProfilesListBox.SelectedIndex = 0;
+                }
+            }
+            finally
+            {
+                _isUpdatingUi = false;
             }
         }
 
@@ -83,12 +113,14 @@ namespace WinPieGestures.Views.Pages
 
         private void ProfilesListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            if (_isUpdatingUi) return;
             if (!Vm.SelectProfile(ProfilesListBox.SelectedItem as ProfileItemViewModel)) return;
             UpdateSectorCountRadios();
         }
 
         private void SectorCountRadio_Checked(object sender, RoutedEventArgs e)
         {
+            if (_isUpdatingUi) return;
             int newCount = 8;
             if (SectorCount4Radio?.IsChecked == true) newCount = 4;
             else if (SectorCount8Radio?.IsChecked == true) newCount = 8;

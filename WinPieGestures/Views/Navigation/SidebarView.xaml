@@ -6,6 +6,15 @@
         mc:Ignorable="d"
         d:DesignHeight="640" d:DesignWidth="230">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 解析期 StaticResource 自合并共享样式字典(与主框架合并同源) -->
+                <ResourceDictionary Source="../SettingsStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <!-- 左侧导航栏 (T19)：导航项数据驱动（图标/标题/目标 VM 类型/选中态），
          由主框架 VM 的 NavigationItems 提供；AutomationId 沿用 NavTab{0..4} 供 e2e 使用。 -->
     <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0" Padding="16,20,16,15">
@@ -43,6 +52,7 @@
                     <DataTemplate>
                         <RadioButton Style="{StaticResource NavTabRadioButtonStyle}" GroupName="SidebarTabs"
                                      AutomationProperties.AutomationId="{Binding AutomationId}"
+                                     AutomationProperties.Name="{Binding Title}"
                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
                                      Command="{Binding NavigateCommand}">
                             <StackPanel Orientation="Horizontal">

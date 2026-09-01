@@ -17,7 +17,5 @@ namespace WinPieGestures.Services
     public interface INavigationService<TViewModel> : INavigationService
         where TViewModel : ObservableObject
     {
-        /// <summary>把导航当前页切到目标 ViewModel（经容器解析出的同一单例）。</summary>
-        void Navigate();
     }
 }

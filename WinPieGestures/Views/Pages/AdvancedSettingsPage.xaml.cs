@@ -15,7 +15,10 @@ namespace WinPieGestures.Views.Pages
     {
         private bool _isUpdatingUi = true;
 
-        private GeneralSettingsViewModel Vm => (GeneralSettingsViewModel)DataContext;
+        // 页面 VM 在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)。
+        private GeneralSettingsViewModel? _vm;
+
+        private GeneralSettingsViewModel Vm => _vm!;
 
         public AdvancedSettingsPage()
         {
@@ -42,8 +45,11 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            Vm.NoticeRequested += ShowNotice;
-            Vm.ConfigReloaded += OnConfigReloaded;
+            _vm = (GeneralSettingsViewModel)DataContext;
+            _vm.NoticeRequested -= ShowNotice;
+            _vm.NoticeRequested += ShowNotice;
+            _vm.ConfigReloaded -= OnConfigReloaded;
+            _vm.ConfigReloaded += OnConfigReloaded;
 
             _isUpdatingUi = true;
             try
@@ -60,8 +66,12 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageUnloaded()
         {
-            Vm.NoticeRequested -= ShowNotice;
-            Vm.ConfigReloaded -= OnConfigReloaded;
+            if (_vm != null)
+            {
+                _vm.NoticeRequested -= ShowNotice;
+                _vm.ConfigReloaded -= OnConfigReloaded;
+            }
+            _vm = null;
         }
 
         private void OnConfigReloaded()

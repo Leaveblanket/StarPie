@@ -49,7 +49,10 @@ namespace WinPieGestures.Views.Pages
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        private AppearanceSettingsViewModel Vm => (AppearanceSettingsViewModel)DataContext;
+        // 页面 VM 在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)。
+        private AppearanceSettingsViewModel _vm = null!;
+
+        private AppearanceSettingsViewModel Vm => _vm;
 
         public AppearanceSettingsPage()
         {
@@ -67,10 +70,15 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            Vm.PreviewInvalidated += OnAppearancePreviewInvalidated;
-            Vm.PresetListChanged += SyncThemePresetItems;
-            Vm.ConfigReloaded += OnConfigReloaded;
-            Vm.PropertyChanged += OnVmPropertyChanged;
+            _vm = (AppearanceSettingsViewModel)DataContext;
+            _vm.PreviewInvalidated -= OnAppearancePreviewInvalidated;
+            _vm.PreviewInvalidated += OnAppearancePreviewInvalidated;
+            _vm.PresetListChanged -= SyncThemePresetItems;
+            _vm.PresetListChanged += SyncThemePresetItems;
+            _vm.ConfigReloaded -= OnConfigReloaded;
+            _vm.ConfigReloaded += OnConfigReloaded;
+            _vm.PropertyChanged -= OnVmPropertyChanged;
+            _vm.PropertyChanged += OnVmPropertyChanged;
 
             _isUpdatingUi = true;
             try
@@ -92,10 +100,11 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageUnloaded()
         {
-            Vm.PreviewInvalidated -= OnAppearancePreviewInvalidated;
-            Vm.PresetListChanged -= SyncThemePresetItems;
-            Vm.ConfigReloaded -= OnConfigReloaded;
-            Vm.PropertyChanged -= OnVmPropertyChanged;
+            _vm.PreviewInvalidated -= OnAppearancePreviewInvalidated;
+            _vm.PresetListChanged -= SyncThemePresetItems;
+            _vm.ConfigReloaded -= OnConfigReloaded;
+            _vm.PropertyChanged -= OnVmPropertyChanged;
+            _vm = null!;
         }
 
         private void OnConfigReloaded()

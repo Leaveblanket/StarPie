@@ -72,6 +72,7 @@ namespace WinPieGestures.ViewModels
             }
         }
 
+        /// <summary>语言切换后按导航项的标题键重取本地化文本。</summary>
         private void RefreshTitles()
         {
             foreach (NavigationItemViewModel item in NavigationItems)

@@ -73,13 +73,13 @@ def test_switch_all_tabs_smoothly(app):
     for i in range(5):
         tab_btn = win.child_window(auto_id=f"NavTab{i}", control_type="RadioButton")
         assert tab_btn.exists(timeout=5), f"NavTab{i} must exist"
-        tab_btn.select()
+        tab_btn.click_input()  # T19 命令式导航:UIA Select 只置勾选不触发命令,须真实点击
         time.sleep(0.3)
         assert win.is_visible(), f"Window must remain visible after selecting NavTab{i}"
         
     # Specifically re-verify Tab 1 (Appearance & Live Canvas)
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     wheel_slider = win.child_window(auto_id="WheelRadiusSlider", control_type="Slider")
@@ -93,21 +93,21 @@ def test_switch_all_tabs_smoothly(app):
     
     # Test Tab 2 (Mappings & Profiles)
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
     assert profiles_list.exists(timeout=3), "ProfilesListBox should exist in Mappings tab"
     
     # Test Tab 3 (System)
     tab3 = win.child_window(auto_id="NavTab3", control_type="RadioButton")
-    tab3.select()
+    tab3.click_input()
     time.sleep(0.3)
     auto_start_chk = win.child_window(auto_id="AutoStartCheckBox", control_type="CheckBox")
     assert auto_start_chk.exists(timeout=3), "AutoStartCheckBox should exist in System tab"
     
     # Test Tab 4 (About)
     tab4 = win.child_window(auto_id="NavTab4", control_type="RadioButton")
-    tab4.select()
+    tab4.click_input()
     time.sleep(0.3)
     changelog_btn = win.child_window(auto_id="OpenChangelogButton", control_type="Button")
     assert changelog_btn.exists(timeout=3), "OpenChangelogButton should exist in About tab"
@@ -123,7 +123,7 @@ def test_appearance_shapes_and_geometry_reset(app):
     win, local_app_data = app
     
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 1. Test Gap & Corner Radius Sliders
@@ -190,7 +190,7 @@ def test_profile_management_ui_and_buttons(app):
     win, local_app_data = app
     
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     add_app_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
@@ -220,7 +220,7 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     win, local_app_data = app
     
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
@@ -254,7 +254,7 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     win, local_app_data = app
     
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 1. Verify AppTheme dropdown (软件界面主题)
@@ -308,7 +308,7 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     win, local_app_data = app
     
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 1. Verify UiStyle dropdown (轮盘主题风格)
@@ -366,7 +366,7 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     win, local_app_data = app
     
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 1. Verify ShapeComboBox exists and can select new shapes
@@ -433,7 +433,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     
     # 1. Verify streamlined shapes
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
@@ -441,7 +441,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     
     # 2. Switch to Gestures & Actions tab
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.5)
     
     radio4 = win.child_window(auto_id="SectorCount4Radio", control_type="RadioButton")
@@ -494,7 +494,7 @@ def test_v134_memory_autosave_and_theme_persistence(app):
     
     # 1. Navigate to Appearance Tab (NavTab1)
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 2. Change AppTheme to Light
@@ -529,7 +529,7 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
     
     # 1. Appearance Tab
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 2. Check Core Icon controls exist
@@ -559,7 +559,7 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
     
     # 5. Test ProgramPickerWindow in Mappings Tab
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
@@ -579,7 +579,7 @@ def test_v136_glow_color_customization_config_memory_and_core_image(app):
     
     # 1. Appearance Tab
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 2. Check Highlight Glow controls
@@ -640,7 +640,7 @@ def test_v136_custom_color_preset_deletion_and_management(app):
     
     # 1. Appearance Tab
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     # 2. Check ThemeComboBox existence
@@ -671,7 +671,7 @@ def test_v138_i18n_multilanguage_support(app):
     
     # 1. Advanced & System Tab
     tab3 = win.child_window(auto_id="NavTab3", control_type="RadioButton")
-    tab3.select()
+    tab3.click_input()
     time.sleep(0.4)
     
     # 2. Check LanguageComboBox existence
@@ -689,8 +689,9 @@ def test_v138_i18n_multilanguage_support(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     assert "Save" in save_btn.window_text(), f"Save button should be in English, got {save_btn.window_text()}"
     
-    tab0_text = win.child_window(auto_id="NavTab0Text", control_type="Text")
-    assert "Trigger" in tab0_text.window_text() or "🎯" in tab0_text.window_text(), "Tab0 should update"
+    # T19 数据驱动侧边栏:标题是 NavTab0 单选钮的内容文本(不再有独立 NavTab0Text 元素)
+    tab0_text = win.child_window(auto_id="NavTab0", control_type="RadioButton").window_text()
+    assert "Trigger" in tab0_text or "🎯" in tab0_text, f"Tab0 should update, got {tab0_text}"
     
     # 5. Check config file persists Language = "en"
     config_path = get_config_path(local_app_data)
@@ -728,7 +729,7 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
     
     # 1. Switch to Tab 2
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     # 2. Check title text blocks
@@ -779,7 +780,7 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     
     # 1. Appearance Tab (Tab 1)
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     ui_style_combo = win.child_window(auto_id="UiStyleComboBox", control_type="ComboBox")
@@ -792,7 +793,7 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     
     # 2. Gestures Tab (Tab 2)
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     action_list_title = win.child_window(auto_id="SectorActionListTitleText", control_type="Text")
@@ -800,7 +801,7 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     
     # 3. About Tab (Tab 4)
     tab4 = win.child_window(auto_id="NavTab4", control_type="RadioButton")
-    tab4.select()
+    tab4.click_input()
     time.sleep(0.4)
     
     older_expander = win.child_window(auto_id="OlderMilestonesExpander", control_type="Group")
@@ -832,7 +833,7 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     
     # 2. Gestures Tab (Tab 2)
     tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
-    tab2.select()
+    tab2.click_input()
     time.sleep(0.4)
     
     rename_profile_btn = win.child_window(auto_id="RenameProfileButton", control_type="Button")
@@ -840,7 +841,7 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     
     # 3. Appearance Tab (Tab 1)
     tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
-    tab1.select()
+    tab1.click_input()
     time.sleep(0.4)
     
     color_expander = win.child_window(auto_id="CustomColorExpander", control_type="Group")
