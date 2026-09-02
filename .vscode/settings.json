@@ -1,6 +1,7 @@
 {
     "dotnet.defaultSolution": "WinPieGestures/WinPieGestures.slnx",
     "dotnet.backgroundAnalysis.analyzerDiagnosticsScope": "openFiles",
+    "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "fullSolution",
     "dotnet.backgroundAnalysis.analysisTimeoutMs": 10000,
     "dotnet.completion.showCompletionItemsFromAllProjects": false,
     "editor.formatOnSave": true,

@@ -30,19 +30,19 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                
+
                 <StackPanel Grid.Row="0" Margin="0,0,0,16">
                     <TextBlock x:Name="AppearancePageHeader" Text="外观、主题与实时画布" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <TextBlock x:Name="AppearancePageSubheader" Text="微调轮盘视觉风格、几何形态、光学切缝与配色方案，右侧支持 60FPS 所见即所得交互测试。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
-                
+
                 <!-- Split Pane: Left Config (1.15*) + Right Live Preview (1*) -->
                 <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1.15*"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <!-- Left Config Controls -->
                     <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,14,0">
                         <StackPanel Margin="0,0,6,0">
@@ -54,7 +54,7 @@
                                 <StackPanel>
                                     <TextBlock Text="软件控制台界面主题 (App Theme)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                                     <TextBlock Text="定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
-                                    
+
                                     <!-- T17/T19：AppTheme 双向绑定(页面 DataContext 即外观 VM;T17 的根路径在此等价)（SelectedValuePath 取 Tag），选中后事件处理器只驱动窗口主题应用与预览重绘等 View 效果。 -->
                                     <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}" SelectionChanged="AppThemeComboBox_SelectionChanged">
                                         <ComboBoxItem Content="🌓 跟随系统 (System Auto)" Tag="System"/>
@@ -74,13 +74,13 @@
                                 </Border.Effect>
                                 <StackPanel>
                                     <TextBlock Text="轮盘视觉风格与色彩" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                                    
+
                                     <TextBlock Text="主题风格 (UiStyle):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding UiStyle}">
                                         <ComboBoxItem Content="经典圆环 (Classic Ring)" Tag="ClassicRing"/>
                                         <ComboBoxItem Content="极简扇区 (Clean Sectors)" Tag="CleanSectors"/>
                                         <ComboBoxItem Content="液态毛玻璃 (Glassmorphism)" Tag="Glassmorphism"/>
-                                        
+
                                     </ComboBox>
 
                                     <TextBlock Text="轮盘配色方案 (Wheel Theme):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
@@ -114,7 +114,7 @@
                                     </Expander.Header>
                                     <StackPanel x:Name="CustomColorsPanel" Margin="0,12,0,4">
                                         <TextBlock Text="自定义十六进制色彩 (色盘调色 / 屏幕吸色):" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                                        
+
                                         <!-- Sector Normal Color -->
                                         <Grid Margin="0,0,0,6">
                                             <Grid.ColumnDefinitions>
@@ -268,7 +268,7 @@
                                 </Border.Effect>
                                 <StackPanel>
                                     <TextBlock Text="几何形态与尺寸微调" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,10"/>
-                                    
+
                                     <!-- Shape Selector -->
                                     <TextBlock Text="扇区切削形态 (Shape):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding Shape}">
@@ -299,7 +299,7 @@
                                         <Slider x:Name="SectorCornerRadiusSlider" Minimum="0" Maximum="16" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorCornerRadius}"/>
                                         <TextBlock x:Name="SectorCornerRadiusLabel" Grid.Column="1" Text="{Binding SectorCornerRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
-                                    
+
                                     <!-- Wheel Radius -->
                                     <TextBlock Text="轮盘整体半径 (外径):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
@@ -342,7 +342,7 @@
                                 </Border.Effect>
                                 <StackPanel>
                                     <TextBlock Text="图标与排版选项" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                                    
+
                                     <TextBlock Text="排版模式 (Layout Mode):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding IconLayoutMode}">
                                         <ComboBoxItem Content="图标 + 文字 (双行居中)" Tag="IconAndText"/>
@@ -449,7 +449,7 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            
+
                             <StackPanel Grid.Row="0" Margin="0,0,0,10">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -469,7 +469,7 @@
                                 <Grid>
                                     <!-- Subtle grid texture lines -->
                                     <Path Stroke="{DynamicResource PreviewGridLineBrush}" StrokeThickness="0.5" Data="M0,150 L300,150 M150,0 L150,300" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    
+
                                     <!-- Interactive Live Canvas -->
                                     <Canvas x:Name="LiveWheelPreviewCanvas" Width="300" Height="300" HorizontalAlignment="Center" VerticalAlignment="Center"
                                             MouseMove="LiveWheelPreviewCanvas_MouseMove" MouseLeave="LiveWheelPreviewCanvas_MouseLeave"/>

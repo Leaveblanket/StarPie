@@ -20,14 +20,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Resource Include="app_icon.ico" />
-    <Resource Include="logo.png" />
-    <None Include="app_icon.ico" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <EditorConfigFiles Remove="D:\CSharp\StarPie\WinPieGestures\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="D:\CSharp\StarPie\WinPieGestures\.editorconfig" />
   </ItemGroup>
 
 </Project>
