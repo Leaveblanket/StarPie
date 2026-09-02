@@ -12,8 +12,6 @@ using System.Windows.Shapes;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
-using Size = System.Windows.Size;
 using Brushes = System.Windows.Media.Brushes;
 using Path = System.Windows.Shapes.Path;
 
@@ -33,16 +31,16 @@ namespace WinPieGestures.Views.Wheel
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
         private readonly List<TranslateTransform> _containerTransforms = new List<TranslateTransform>();
         private readonly List<double> _sectorAngles = new List<double>();
-        private IRadialStyleRenderer _styleRenderer;
+        private IRadialStyleRenderer _styleRenderer = null!;
 
         // Styling brushes and dimensions (instantiated dynamically)
-        private Brush _defaultSectorBrush;
-        private Brush _highlightSectorBrush;
-        private Brush _sectorBorderBrush;
-        private Brush _highlightBorderBrush;
-        private Brush _textColorBrush;
-        private Brush _coreBgBrush;
-        private Brush _coreBorderBrush;
+        private Brush _defaultSectorBrush = Brushes.Transparent;
+        private Brush _highlightSectorBrush = Brushes.Transparent;
+        private Brush _sectorBorderBrush = Brushes.Transparent;
+        private Brush _highlightBorderBrush = Brushes.Transparent;
+        private Brush _textColorBrush = Brushes.Transparent;
+        private Brush _coreBgBrush = Brushes.Transparent;
+        private Brush _coreBorderBrush = Brushes.Transparent;
 
         private double _innerRadius = 52;
         private double _outerRadius = 138;
@@ -111,7 +109,6 @@ namespace WinPieGestures.Views.Wheel
             CoreGrid.Height = coreRadius * 2.0;
             System.Windows.Controls.Panel.SetZIndex(CoreGrid, 5);
 
-            // Outer Ellipse size
             OuterEllipse.Width = wheelRadius * 2.0 + 8.0;
             OuterEllipse.Height = wheelRadius * 2.0 + 8.0;
 
@@ -126,11 +123,9 @@ namespace WinPieGestures.Views.Wheel
                 scaleY = source.CompositionTarget.TransformToDevice.M22;
             }
 
-            // Set window position in WPF units
             this.Left = (_viewModel.Center.X / scaleX) - (this.Width / 2);
             this.Top = (_viewModel.Center.Y / scaleY) - (this.Height / 2);
 
-            // Apply core brushes
             CoreEllipse.Fill = _coreBgBrush;
             CoreEllipse.Stroke = _coreBorderBrush;
 
@@ -219,7 +214,7 @@ namespace WinPieGestures.Views.Wheel
             // Run open spring scale-in and fade-in animation
             var sb = new Storyboard();
             var backEase = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 };
-            
+
             var scaleXAnim = new DoubleAnimation(0.65, 1.0, new Duration(TimeSpan.FromMilliseconds(110)))
             {
                 EasingFunction = backEase
@@ -256,7 +251,7 @@ namespace WinPieGestures.Views.Wheel
             var toRemove = new List<UIElement>();
             foreach (UIElement child in WheelCanvas.Children)
             {
-                if (child is FrameworkElement fe && fe.Tag != null && fe.Tag.ToString().StartsWith("Deco_"))
+                if (child is FrameworkElement fe && fe.Tag is { } tag && tag.ToString()?.StartsWith("Deco_") == true)
                 {
                     toRemove.Add(child);
                 }
@@ -284,7 +279,6 @@ namespace WinPieGestures.Views.Wheel
             int insertIndex = CoreGrid.Children.IndexOf(CoreTextPanel);
             if (insertIndex < 0) insertIndex = 0;
 
-            // Render style decorations via the style renderer
             if (_styleRenderer != null)
             {
                 _styleRenderer.RenderDecorations(WheelCanvas, CoreGrid, cx, cy, wheelRadius, coreRadius, insertIndex, _viewModel.ShowCoreIcon);
@@ -315,7 +309,7 @@ namespace WinPieGestures.Views.Wheel
             var toRemove = new List<UIElement>();
             foreach (UIElement child in WheelCanvas.Children)
             {
-                if (child != CoreGrid && child != OuterEllipse && !(child is FrameworkElement fe && fe.Tag != null && fe.Tag.ToString().StartsWith("Deco_")))
+                if (child != CoreGrid && child != OuterEllipse && !(child is FrameworkElement fe && fe.Tag is { } tag && tag.ToString()?.StartsWith("Deco_") == true))
                 {
                     toRemove.Add(child);
                 }
@@ -578,34 +572,6 @@ namespace WinPieGestures.Views.Wheel
             return null;
         }
 
-        private Geometry CreateSectorGeometry(double startAngleDegrees, double endAngleDegrees, double innerRadius, double outerRadius)
-        {
-            double startRad = startAngleDegrees * (Math.PI / 180.0);
-            double endRad = endAngleDegrees * (Math.PI / 180.0);
-
-            double cx = this.Width / 2.0;
-            double cy = this.Height / 2.0;
-
-            Point p1 = new Point(cx + Math.Cos(startRad) * outerRadius, cy + Math.Sin(startRad) * outerRadius);
-            Point p2 = new Point(cx + Math.Cos(endRad) * outerRadius, cy + Math.Sin(endRad) * outerRadius);
-            Point p3 = new Point(cx + Math.Cos(endRad) * innerRadius, cy + Math.Sin(endRad) * innerRadius);
-            Point p4 = new Point(cx + Math.Cos(startRad) * innerRadius, cy + Math.Sin(startRad) * innerRadius);
-
-            bool isLargeArc = Math.Abs(endAngleDegrees - startAngleDegrees) > 180.0;
-
-            var geometry = new StreamGeometry();
-            using (StreamGeometryContext ctx = geometry.Open())
-            {
-                ctx.BeginFigure(p1, isFilled: true, isClosed: true);
-                ctx.ArcTo(p2, new Size(outerRadius, outerRadius), 0, isLargeArc, SweepDirection.Clockwise, isStroked: true, isSmoothJoin: true);
-                ctx.LineTo(p3, isStroked: true, isSmoothJoin: false);
-                ctx.ArcTo(p4, new Size(innerRadius, innerRadius), 0, isLargeArc, SweepDirection.Counterclockwise, isStroked: true, isSmoothJoin: true);
-                ctx.LineTo(p1, isStroked: true, isSmoothJoin: false);
-            }
-            geometry.Freeze();
-            return geometry;
-        }
-
         /// <summary>Reflects engine-driven state mutations onto the view (T05): the
         /// window is only ever driven through the <see cref="WheelViewModel"/>.</summary>
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -655,7 +621,6 @@ namespace WinPieGestures.Views.Wheel
                     _styleRenderer.ApplyExitHighlight(CoreExitIcon, true);
                 }
 
-                // Animate CoreScale up
                 var scaleAnim = new DoubleAnimation(1.12, new Duration(TimeSpan.FromMilliseconds(90)))
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
@@ -671,7 +636,6 @@ namespace WinPieGestures.Views.Wheel
                     _styleRenderer.ApplyExitHighlight(CoreExitIcon, false);
                 }
 
-                // Animate CoreScale back to normal
                 var scaleAnim = new DoubleAnimation(1.0, new Duration(TimeSpan.FromMilliseconds(90)))
                 {
                     EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
@@ -691,8 +655,8 @@ namespace WinPieGestures.Views.Wheel
                 var cTransform = i < _containerTransforms.Count ? _containerTransforms[i] : null;
                 double angleRad = i < _sectorAngles.Count ? _sectorAngles[i] : 0;
 
-                TextBlock textBlock = panel?.Children.OfType<TextBlock>().FirstOrDefault();
-                Path vectorIcon = panel?.Children.OfType<Path>().FirstOrDefault();
+                TextBlock? textBlock = panel?.Children.OfType<TextBlock>().FirstOrDefault();
+                Path? vectorIcon = panel?.Children.OfType<Path>().FirstOrDefault();
 
                 if (i == index)
                 {
@@ -749,7 +713,7 @@ namespace WinPieGestures.Views.Wheel
                         cTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
                         cTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
                     }
-                    
+
                     if (_styleRenderer != null)
                     {
                         _styleRenderer.ApplySectorHighlight(path, false);

@@ -14,7 +14,6 @@
         <!-- Premium Radial Shadow -->
         <DropShadowEffect x:Key="RadialShadow" Color="#000000" BlurRadius="28" ShadowDepth="2" Opacity="0.45"/>
         <DropShadowEffect x:Key="TextShadow" Color="#000000" BlurRadius="4" ShadowDepth="1" Opacity="0.8"/>
-        <DropShadowEffect x:Key="NeonGlowEffect" Color="#06B6D4" BlurRadius="22" ShadowDepth="0" Opacity="0.85"/>
     </Window.Resources>
     
     <Grid Name="MainGrid" RenderTransformOrigin="0.5,0.5">
