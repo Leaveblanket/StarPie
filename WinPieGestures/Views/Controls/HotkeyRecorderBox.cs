@@ -12,7 +12,7 @@ using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 using Cursors = System.Windows.Input.Cursors;
 
-namespace WinPieGestures.Controls
+namespace WinPieGestures.Views.Controls
 {
     public class HotkeyRecorderBox : Control
     {

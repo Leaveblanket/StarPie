@@ -1,4 +1,4 @@
-global using WinPieGestures.Controls;
+global using WinPieGestures.Models;
 global using WinPieGestures.Services.Actions;
 global using WinPieGestures.Services.Configuration;
 global using WinPieGestures.Services.Dialogs;
@@ -13,6 +13,7 @@ global using WinPieGestures.ViewModels.Gestures;
 global using WinPieGestures.ViewModels.Navigation;
 global using WinPieGestures.ViewModels.Pages;
 global using WinPieGestures.ViewModels.Wheel;
+global using WinPieGestures.Views.Controls;
 global using WinPieGestures.Views.Dialogs;
 global using WinPieGestures.Views.Navigation;
 global using WinPieGestures.Views.Pages;

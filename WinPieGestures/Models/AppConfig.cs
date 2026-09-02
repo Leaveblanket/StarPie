@@ -1,45 +1,7 @@
-using System;
 using System.Collections.Generic;
 
-namespace WinPieGestures
+namespace WinPieGestures.Models
 {
-    // T16：Model 层四个 POCO 自静态配置门面文件原样提取（ADR-0001：Model 保持纯 POCO，
-    // config.json 格式向后兼容是硬约束），字段与默认值一字未动。
-
-    public class ActionItem
-    {
-        public string Type { get; set; } = "Hotkey"; // "Launch", "Hotkey", "System"
-        public string Name { get; set; } = "快捷动作"; // Name to show on the wheel sector
-        public string Parameter { get; set; } = ""; // Executable path, hotkey string, or system preset
-        public string Arguments { get; set; } = ""; // Optional arguments for launching
-        public string IconKey { get; set; } = ""; // Vector icon key or emoji or empty
-        public string CustomIconSvg { get; set; } = ""; // Custom SVG path geometry
-
-        public override string ToString() => Name;
-    }
-
-    public class WheelProfile
-    {
-        public string ProcessName { get; set; } = "Global"; // e.g. "chrome.exe", "Global", or custom name
-        public int SectorCount { get; set; } = 8; // 4, 8, or 12
-        public List<ActionItem> Actions { get; set; } = new List<ActionItem>();
-
-        public override string ToString() => ProcessName;
-    }
-
-    public class CustomColorPreset
-    {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-        public string Name { get; set; } = "我的配色";
-        public string SectorBg { get; set; } = "#9016161A";
-        public string SectorBorder { get; set; } = "#35FFFFFF";
-        public string HighlightBg { get; set; } = "#E06C4DFF";
-        public string HighlightBorder { get; set; } = "#A0FFFFFF";
-        public string TextColor { get; set; } = "#E0FFFFFF";
-
-        public override string ToString() => Name;
-    }
-
     public class AppConfig
     {
         public string Language { get; set; } = "Auto"; // "Auto", "zh-CN", "zh-TW", "en", "ja"
