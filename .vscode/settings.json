@@ -31,8 +31,7 @@
         "**/bin": true,
         "**/obj": true,
         "**/.vs": true,
-        "**/.codegraph": true,
-        "**/releases": true
+        "**/.codegraph": true
     },
     "files.watcherExclude": {
         "**/.git/objects/**": true,
@@ -40,8 +39,7 @@
         "**/.vs/**": true,
         "**/bin/**": true,
         "**/obj/**": true,
-        "**/.codegraph/**": true,
-        "**/releases/**": true
+        "**/.codegraph/**": true
     },
     "[csharp]": {
         "editor.defaultFormatter": "ms-dotnettools.csharp",
