@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using WinPieGestures;
@@ -8,15 +8,17 @@ namespace WinPieGestures.Tests;
 /// <summary>
 /// 图标选择器 ViewModel 的行为覆盖 (T08)：过滤规则（自定义按显示名/键、内置按显示名/分类/键）、
 /// 初始选中恢复、选择/清空、确认结果、导入编排（mock 对话框服务）与删除编排（注入委托）。
+/// T20 起完成经 <see cref="IconPickerViewModel.IsCompleted"/> 可观察状态驱动，导入失败提示经 IDialogService。
 /// </summary>
 public sealed class IconPickerViewModelTests
 {
-    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog，其余不该被调用。</summary>
+    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
     private sealed class FakeDialogService : IDialogService
     {
         public FilePickResult? OpenFileDialogResult;
         public string? LastFilter;
         public int OpenFileCalls;
+        public List<(string Title, string Message)> InfoCalls { get; } = new();
 
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
         {
@@ -25,6 +27,8 @@ public sealed class IconPickerViewModelTests
             return OpenFileDialogResult;
         }
 
+        public void ShowInfo(string title, string message) => InfoCalls.Add((title, message));
+
         public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
         public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();
         public IconPickResult? ShowIconPicker(string? currentIconKey) => throw new NotSupportedException();
@@ -32,7 +36,6 @@ public sealed class IconPickerViewModelTests
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
         public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public void ShowInfo(string title, string message) => throw new NotSupportedException();
         public EyedropResult? ShowEyedropper() => throw new NotSupportedException();
     }
 
@@ -128,9 +131,7 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void InitialKey_MatchingVector_RestoresSelectionLabel()
     {
-        var vm = Create(
-            vectors: new List<VectorIconItem> { Vector("Copy", "复制 (Copy)") },
-            initialKey: "Copy");
+        var vm = Create(vectors: new List<VectorIconItem> { Vector("Copy", "复制 (Copy)") }, initialKey: "Copy");
         vm.ApplyFilter(null);
 
         Assert.Equal("Copy", vm.SelectedIconKey);
@@ -185,17 +186,15 @@ public sealed class IconPickerViewModelTests
     }
 
     [Fact]
-    public void Confirm_RaisesCloseRequestedWithCurrentKey()
+    public void Confirm_CompletesWithCurrentKey()
     {
         var vm = Create(vectors: new List<VectorIconItem> { Vector("Copy", "复制 (Copy)") }, initialKey: "Copy");
         vm.ApplyFilter(null);
-        IconPickResult? received = null;
-        vm.CloseRequested += r => received = r;
 
         vm.ConfirmCommand.Execute(null);
 
-        Assert.NotNull(received);
-        Assert.Equal("Copy", received!.IconKey);
+        Assert.True(vm.IsCompleted);
+        Assert.Equal("Copy", vm.BuildResult().IconKey);
     }
 
     [Fact]
@@ -203,13 +202,11 @@ public sealed class IconPickerViewModelTests
     {
         // 迁移前行为：未做任何选择时确认，结果携带 null 键（调用方以 ?? "" 收敛）。
         var vm = Create();
-        IconPickResult? received = new("sentinel");
-        vm.CloseRequested += r => received = r;
 
         vm.ConfirmCommand.Execute(null);
 
-        Assert.NotNull(received);
-        Assert.Null(received!.IconKey);
+        Assert.True(vm.IsCompleted);
+        Assert.Null(vm.BuildResult().IconKey);
     }
 
     // --- 导入（mock 对话框服务） ------------------------------------------------------
@@ -251,18 +248,17 @@ public sealed class IconPickerViewModelTests
     }
 
     [Fact]
-    public void Import_Throws_RaisesImportFailed()
+    public void Import_Throws_ShowsInfo()
     {
         var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\icons\broken.svg") };
         var vm = Create(dialogs: dialogs, importIcon: _ => throw new InvalidOperationException("disk full"));
         vm.ApplyFilter(null);
-        string? failure = null;
-        vm.ImportFailed += message => failure = message;
 
         vm.ImportIconCommand.Execute(null);
 
-        Assert.NotNull(failure);
-        Assert.Contains("disk full", failure);
+        var call = Assert.Single(dialogs.InfoCalls);
+        Assert.Contains("disk full", call.Message);
+        Assert.False(vm.IsCompleted);
     }
 
     // --- 删除（注入委托） -------------------------------------------------------------
@@ -278,7 +274,7 @@ public sealed class IconPickerViewModelTests
         vm.ApplyFilter(null);
         Assert.Single(vm.DisplayedIcons);
 
-        vm.DeleteCustomIcon("custom:star");
+        vm.DeleteCustomIconActionCommand.Execute("custom:star");
 
         Assert.Equal(["custom:star"], deleted);
         Assert.Empty(vm.DisplayedIcons); // 重建后自定义图标已不在来源里
@@ -292,7 +288,7 @@ public sealed class IconPickerViewModelTests
             deleteIcon: _ => false);
         vm.ApplyFilter(null);
 
-        vm.DeleteCustomIcon("custom:star");
+        vm.DeleteCustomIconActionCommand.Execute("custom:star");
 
         Assert.Single(vm.DisplayedIcons);
     }

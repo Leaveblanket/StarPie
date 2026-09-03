@@ -1,6 +1,3 @@
-using System;
-using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using WinPieGestures.Services;
 
@@ -20,26 +17,7 @@ namespace WinPieGestures.Views.Pages
         protected override void ApplyLocalization()
         {
             OlderMilestonesExpander.Header = I18n.T("MilestonesOlderExpander");
-        }
-
-        private void OpenChangelogButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                string changelogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CHANGELOG.md");
-                if (File.Exists(changelogPath))
-                {
-                    Process.Start(new ProcessStartInfo(changelogPath) { UseShellExecute = true });
-                }
-                else
-                {
-                    MessageBox.Show("CHANGELOG.md 文件位于根目录。", "提示");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"无法打开文件: {ex.Message}");
-            }
+            OpenChangelogButton.Content = I18n.T("BtnOpenChangelog");
         }
     }
 }

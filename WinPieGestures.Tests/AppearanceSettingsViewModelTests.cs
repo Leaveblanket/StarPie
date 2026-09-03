@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommunityToolkit.Mvvm.Messaging;
 using WinPieGestures;
+using WinPieGestures.Views.Converters;
 using Brush = System.Windows.Media.Brush;
 
 namespace WinPieGestures.Tests;
@@ -97,11 +99,11 @@ public sealed class AppearanceSettingsViewModelTests
 
         private EventLog(SaveSpy spy) => _spy = spy;
 
-        public static EventLog Attach(AppearanceSettingsViewModel vm, SaveSpy spy)
+        public static EventLog Attach(WeakReferenceMessenger messenger, SaveSpy spy)
         {
             var log = new EventLog(spy);
-            vm.PreviewInvalidated += () => log.Preview++;
-            vm.PresetListChanged += () => log.PresetList++;
+            messenger.Register<AppearancePreviewInvalidatedMessage>(log, (_, _) => log.Preview++);
+            messenger.Register<AppearancePresetListChangedMessage>(log, (_, _) => log.PresetList++);
             return log;
         }
     }
@@ -114,7 +116,7 @@ public sealed class AppearanceSettingsViewModelTests
         var (messenger, spy) = SaveSpy.Create();
         var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor());
         var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList);
-        return (vm, configService, dialogs, EventLog.Attach(vm, spy));
+        return (vm, configService, dialogs, EventLog.Attach(messenger, spy));
     }
 
     // --- 构造播种 -------------------------------------------------------------------
@@ -396,17 +398,19 @@ public sealed class AppearanceSettingsViewModelTests
         vm.CustomSectorBgText = "  #123456  ";
 
         Assert.Equal("#123456", config.Current.CustomSectorBg);
-        Assert.NotNull(vm.CustomSectorBgBrush);
+        // 预览画刷由 View 层 HexToBrushConverter 转换，VM 不再暴露 Brush
         Assert.Equal(1, log.Preview);
         Assert.Equal(0, log.AutoSave);
         Assert.Equal(0, log.SaveNow);
     }
 
     [Fact]
-    public void ParseColorBrush_EmptyOrInvalid_IsTransparent()
+    public void HexToBrushConverter_EmptyOrInvalid_IsTransparent()
     {
-        Assert.Equal(System.Windows.Media.Brushes.Transparent, AppearanceSettingsViewModel.ParseColorBrush(""));
-        Assert.Equal(System.Windows.Media.Brushes.Transparent, AppearanceSettingsViewModel.ParseColorBrush("not-a-color"));
+        // ParseColorBrush 随 WIP 移入 View 层转换器（ADR-0008）：空串/非法值一律透明
+        var converter = new HexToBrushConverter();
+        Assert.Equal(System.Windows.Media.Brushes.Transparent, converter.Convert("", typeof(Brush), null!, null!));
+        Assert.Equal(System.Windows.Media.Brushes.Transparent, converter.Convert("not-a-color", typeof(Brush), null!, null!));
     }
 
     [Fact]
@@ -856,7 +860,7 @@ public sealed class AppearanceSettingsViewModelTests
         var (vm, config, dialogs, log) = Create();
         dialogs.IconResult = new IconPickResult("custom:star");
 
-        Assert.True(vm.PickCoreIcon());
+        vm.PickCoreIconCommand.Execute(null);
 
         Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
         Assert.Equal(1, log.SaveNow);
@@ -870,7 +874,7 @@ public sealed class AppearanceSettingsViewModelTests
         config.Current.CoreCustomIconKey = "Copy";
         dialogs.IconResult = null;
 
-        Assert.False(vm.PickCoreIcon());
+        vm.PickCoreIconCommand.Execute(null);
 
         Assert.Equal(1, dialogs.IconCalls);
         Assert.Equal("Copy", dialogs.LastIconPickerCurrentKey);
@@ -883,7 +887,7 @@ public sealed class AppearanceSettingsViewModelTests
         var (vm, config, dialogs, _) = Create();
         dialogs.IconResult = new IconPickResult("custom:star");
 
-        Assert.True(vm.PickCoreIcon());
+        vm.PickCoreIconCommand.Execute(null);
 
         Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
     }
@@ -895,7 +899,7 @@ public sealed class AppearanceSettingsViewModelTests
         config.Current.CoreCustomIconKey = "Copy";
         dialogs.IconResult = new IconPickResult(null);
 
-        Assert.True(vm.PickCoreIcon());
+        vm.PickCoreIconCommand.Execute(null);
 
         Assert.Equal("", config.Current.CoreCustomIconKey);
     }

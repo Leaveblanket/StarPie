@@ -1,12 +1,12 @@
 using System;
 using WinPieGestures;
-using Color = System.Windows.Media.Color;
 
 namespace WinPieGestures.Tests;
 
 /// <summary>
 /// 屏上取色器 ViewModel 的行为覆盖 (T08)：拾取颜色换算、放大镜文案/色块、
-/// 确认/取消关闭请求与放大镜定位纯函数。Win32 取像素留在视图，不进 VM。
+/// 确认/取消返回语义与放大镜定位纯函数。Win32 取像素留在视图，不进 VM；
+/// T20 起色块以 SwatchHex 字符串表示（View 经 HexToBrushConverter 转画刷）。
 /// </summary>
 public sealed class ScreenEyedropperViewModelTests
 {
@@ -20,39 +20,35 @@ public sealed class ScreenEyedropperViewModelTests
     }
 
     [Fact]
-    public void TrackColor_UpdatesHexTextAndSwatch()
+    public void TrackColor_UpdatesHexTextAndSwatchHex()
     {
         var vm = new ScreenEyedropperViewModel();
 
         vm.TrackColor(0x12, 0x34, 0x56);
 
         Assert.Equal("#FF123456", vm.HexText);
-        Assert.Equal(Color.FromRgb(0x12, 0x34, 0x56), vm.SwatchBrush.Color);
+        Assert.Equal("#FF123456", vm.SwatchHex);
     }
 
     [Fact]
-    public void Capture_SetsCapturedHexColor_AndRaisesCloseRequestedConfirmed()
+    public void Capture_SetsCapturedHexColor_AndReturnsTrue()
     {
         var vm = new ScreenEyedropperViewModel();
-        bool? received = null;
-        vm.CloseRequested += confirmed => received = confirmed;
 
-        vm.Capture(0xAB, 0xCD, 0xEF);
+        bool captured = vm.Capture(0xAB, 0xCD, 0xEF);
 
+        Assert.True(captured); // 视图据此落 DialogResult=true
         Assert.Equal("#FFABCDEF", vm.CapturedHexColor);
-        Assert.True(received);
     }
 
     [Fact]
-    public void Cancel_RaisesCloseRequestedCancelled_WithoutCapture()
+    public void Cancel_ReturnsFalse_WithoutCapture()
     {
         var vm = new ScreenEyedropperViewModel();
-        bool? received = null;
-        vm.CloseRequested += confirmed => received = confirmed;
 
-        vm.Cancel();
+        bool cancelled = vm.Cancel();
 
-        Assert.False(received);
+        Assert.False(cancelled); // 视图据此落 DialogResult=false
         Assert.Null(vm.CapturedHexColor);
     }
 

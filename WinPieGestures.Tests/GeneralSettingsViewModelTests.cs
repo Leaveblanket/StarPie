@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CommunityToolkit.Mvvm.Messaging;
 using WinPieGestures;
 
 namespace WinPieGestures.Tests;
@@ -23,7 +24,7 @@ public sealed class GeneralSettingsViewModelTests
         Action<string>? startElevated = null,
         Func<string, bool>? exportConfig = null,
         Func<string, bool>? importConfig = null,
-        List<GeneralSettingsViewModel.NoticeRequest>? notices = null,
+        List<NoticeRequest>? notices = null,
         SaveSpy? save = null)
     {
         var messenger = TestHub.NewMessenger();
@@ -42,7 +43,7 @@ public sealed class GeneralSettingsViewModelTests
             startElevated);
         if (notices != null)
         {
-            vm.NoticeRequested += notices.Add;
+            messenger.Register<GeneralNoticeRequestedMessage>(vm, (_, m) => notices.Add(m.Notice));
         }
         return vm;
     }
@@ -190,7 +191,7 @@ public sealed class GeneralSettingsViewModelTests
         var config = MakeConfig();
         var exitCalls = new List<string>();
         var started = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var vm = Create(config, startElevated: path => started.Add(path), exitCalls: exitCalls, notices: notices);
 
         vm.ElevateAndRestart();
@@ -208,7 +209,7 @@ public sealed class GeneralSettingsViewModelTests
     {
         var config = MakeConfig();
         var exitCalls = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var vm = Create(
             config,
             startElevated: _ => throw new Exception("已取消"),
@@ -221,7 +222,7 @@ public sealed class GeneralSettingsViewModelTests
         var notice = Assert.Single(notices);
         Assert.Equal("管理员提权", notice.Title);
         Assert.Equal("提权重启失败或已取消: 已取消", notice.Message);
-        Assert.Equal(GeneralSettingsViewModel.NoticeKind.Warning, notice.Kind);
+        Assert.Equal(NoticeKind.Warning, notice.Kind);
     }
 
     // --- 配置导出/导入 ---------------------------------------------------------------
@@ -231,7 +232,7 @@ public sealed class GeneralSettingsViewModelTests
     {
         var dialogs = new TestDialogService();
         var exported = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var vm = Create(MakeConfig(), dialogs: dialogs, exportConfig: path => { exported.Add(path); return true; }, notices: notices);
 
         vm.ExportConfigCommand.Execute(null);
@@ -246,7 +247,7 @@ public sealed class GeneralSettingsViewModelTests
         var dialogs = new TestDialogService();
         dialogs.SaveFileToPick = new FilePickResult(@"D:\backup\config.json");
         var exported = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var vm = Create(MakeConfig(), dialogs: dialogs, exportConfig: path => { exported.Add(path); return true; }, notices: notices);
 
         vm.ExportConfigCommand.Execute(null);
@@ -260,7 +261,7 @@ public sealed class GeneralSettingsViewModelTests
         var notice = Assert.Single(notices);
         Assert.Equal("提示", notice.Title);
         Assert.Equal("配置导出成功！", notice.Message);
-        Assert.Equal(GeneralSettingsViewModel.NoticeKind.Info, notice.Kind);
+        Assert.Equal(NoticeKind.Info, notice.Kind);
     }
 
     [Fact]
@@ -268,7 +269,7 @@ public sealed class GeneralSettingsViewModelTests
     {
         var dialogs = new TestDialogService();
         dialogs.SaveFileToPick = new FilePickResult(@"D:\backup\config.json");
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var vm = Create(MakeConfig(), dialogs: dialogs, exportConfig: _ => false, notices: notices);
 
         vm.ExportConfigCommand.Execute(null);
@@ -276,7 +277,7 @@ public sealed class GeneralSettingsViewModelTests
         var notice = Assert.Single(notices);
         Assert.Equal("错误", notice.Title);
         Assert.Equal("配置导出失败，请检查写入权限。", notice.Message);
-        Assert.Equal(GeneralSettingsViewModel.NoticeKind.Error, notice.Kind);
+        Assert.Equal(NoticeKind.Error, notice.Kind);
     }
 
     [Fact]
@@ -284,7 +285,7 @@ public sealed class GeneralSettingsViewModelTests
     {
         var dialogs = new TestDialogService();
         var imported = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var save = new SaveSpy();
         var config = MakeConfig();
         var vm = Create(config, dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices, save: save);
@@ -303,7 +304,7 @@ public sealed class GeneralSettingsViewModelTests
         var dialogs = new TestDialogService();
         dialogs.OpenFileToPick = new FilePickResult(@"D:\backup\config.json");
         var imported = new List<string>();
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var save = new SaveSpy();
         var vm = Create(config, dialogs: dialogs, importConfig: path => { imported.Add(path); return true; }, notices: notices, save: save);
 
@@ -317,7 +318,7 @@ public sealed class GeneralSettingsViewModelTests
         var notice = Assert.Single(notices);
         Assert.Equal("提示", notice.Title);
         Assert.Equal("配置导入成功！正在应用新设置...", notice.Message);
-        Assert.Equal(GeneralSettingsViewModel.NoticeKind.Info, notice.Kind);
+        Assert.Equal(NoticeKind.Info, notice.Kind);
         // T19：导入成功广播携带新运行态配置实例（取代 ConfigImported 事件）
         var message = Assert.Single(save.Imported);
         Assert.Same(config, message.ImportedConfig);
@@ -328,7 +329,7 @@ public sealed class GeneralSettingsViewModelTests
     {
         var dialogs = new TestDialogService();
         dialogs.OpenFileToPick = new FilePickResult(@"D:\backup\config.json");
-        var notices = new List<GeneralSettingsViewModel.NoticeRequest>();
+        var notices = new List<NoticeRequest>();
         var save = new SaveSpy();
         var vm = Create(MakeConfig(), dialogs: dialogs, importConfig: _ => false, notices: notices, save: save);
 
@@ -337,7 +338,7 @@ public sealed class GeneralSettingsViewModelTests
         var notice = Assert.Single(notices);
         Assert.Equal("错误", notice.Title);
         Assert.Equal("导入失败：文件格式不匹配或已损坏。", notice.Message);
-        Assert.Equal(GeneralSettingsViewModel.NoticeKind.Error, notice.Kind);
+        Assert.Equal(NoticeKind.Error, notice.Kind);
         Assert.Empty(save.Imported);
     }
 }

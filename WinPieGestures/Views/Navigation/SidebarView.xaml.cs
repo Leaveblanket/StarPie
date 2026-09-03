@@ -15,6 +15,7 @@ namespace WinPieGestures.Views.Navigation
             InitializeComponent();
             ApplyLocalization();
             I18n.LanguageChanged += ApplyLocalization;
+            Unloaded += (_, _) => I18n.LanguageChanged -= ApplyLocalization;
         }
 
         private void ApplyLocalization()

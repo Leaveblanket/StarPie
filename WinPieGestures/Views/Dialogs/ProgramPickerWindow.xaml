@@ -6,8 +6,7 @@
         Background="{DynamicResource WindowBackgroundBrush}"
         FontFamily="Segoe UI, Microsoft YaHei"
         WindowStartupLocation="CenterOwner"
-        ShowInTaskbar="False"
-        Loaded="Window_Loaded">
+        ShowInTaskbar="False">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
@@ -100,8 +99,10 @@
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8">
             <ListView Name="ProgramsListView" BorderThickness="0" Background="Transparent"
                       ItemsSource="{Binding DisplayedPrograms}"
-                      SelectedItem="{Binding SelectedProgram}"
-                      MouseDoubleClick="ProgramsListView_MouseDoubleClick" SelectionMode="Single">
+                      SelectedItem="{Binding SelectedProgram}" SelectionMode="Single">
+                <ListView.InputBindings>
+                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ConfirmCommand}"/>
+                </ListView.InputBindings>
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Margin="6,4" Height="44">

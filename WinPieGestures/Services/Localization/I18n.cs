@@ -1314,6 +1314,20 @@ namespace WinPieGestures.Services.Localization
                 [LanguageCode.En] = "View Full CHANGELOG",
                 [LanguageCode.Ja] = "完全な更新履歴を表示"
             },
+            ["ChangelogNotFound"] = new()
+            {
+                [LanguageCode.ZhCn] = "CHANGELOG.md 文件位于应用程序根目录。",
+                [LanguageCode.ZhTw] = "CHANGELOG.md 檔案位於應用程式根目錄。",
+                [LanguageCode.En] = "CHANGELOG.md is located in the application directory.",
+                [LanguageCode.Ja] = "CHANGELOG.md はアプリケーション フォルダーにあります。"
+            },
+            ["ChangelogOpenFailed"] = new()
+            {
+                [LanguageCode.ZhCn] = "无法打开 CHANGELOG.md。",
+                [LanguageCode.ZhTw] = "無法開啟 CHANGELOG.md。",
+                [LanguageCode.En] = "Unable to open CHANGELOG.md.",
+                [LanguageCode.Ja] = "CHANGELOG.md を開けません。"
+            },
             ["MilestonesTitle"] = new()
             {
                 [LanguageCode.ZhCn] = "版本演进里程碑 (Milestones)",

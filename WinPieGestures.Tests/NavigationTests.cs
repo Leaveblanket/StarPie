@@ -132,7 +132,7 @@ public sealed class MainViewModelTests
         public ProfileListViewModel Profiles { get; }
         public AppearanceSettingsViewModel Appearance { get; }
         public GeneralSettingsViewModel General { get; }
-        public AboutViewModel About { get; } = new();
+        public AboutViewModel About { get; }
 
         public PageVmFixture()
         {
@@ -151,6 +151,7 @@ public sealed class MainViewModelTests
                 _ => true,
                 currentConfig: () => Config,
                 messenger: Messenger);
+            About = new AboutViewModel(Dialogs, () => true);
         }
     }
 
@@ -195,7 +196,9 @@ public sealed class MainViewModelTests
             new FakeNavigationService<AppearanceSettingsViewModel>(store, fixture.Appearance),
             new FakeNavigationService<ProfileListViewModel>(store, fixture.Profiles),
             new FakeNavigationService<GeneralSettingsViewModel>(store, fixture.General),
-            new FakeNavigationService<AboutViewModel>(store, fixture.About));
+            new FakeNavigationService<AboutViewModel>(store, fixture.About),
+            fixture.Messenger,
+            fixture.Dialogs);
         return (vm, store, fixture);
     }
 

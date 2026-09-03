@@ -1,6 +1,6 @@
 ﻿﻿
 using System.Windows;
-using MessageBox = System.Windows.MessageBox;
+using System.ComponentModel;
 
 namespace WinPieGestures.Views.Dialogs
 {
@@ -13,37 +13,26 @@ namespace WinPieGestures.Views.Dialogs
     {
         private readonly ProgramPickerViewModel _vm;
 
-        public ProgramPickerWindow(IThemeService themeService, IDialogService dialogService)
+        public ProgramPickerWindow(IThemeService themeService, ProgramPickerViewModel viewModel)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
-            _vm = new ProgramPickerViewModel(ProgramScanner.ScanInstalledPrograms, dialogService);
+            _vm = viewModel;
             DataContext = _vm;
-            _vm.CloseRequested += result =>
-            {
-                if (result == null)
-                {
-                    MessageBox.Show("请选择一个程序，或者点击“手动浏览文件...”", "未选择", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                DialogResult = true;
-                Close();
-            };
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
             ApplyLocalization();
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
         public ProgramPickResult? BuildResult() => _vm.BuildResult();
 
-        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            await _vm.LoadAsync();
-        }
-
-        private void ProgramsListView_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            _vm.ConfirmCommand.Execute(null);
+            if (e.PropertyName == nameof(ProgramPickerViewModel.IsCompleted))
+            {
+                DialogResult = true;
+                Close();
+            }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)

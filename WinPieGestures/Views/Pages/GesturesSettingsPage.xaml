@@ -53,13 +53,13 @@
                             <StackPanel>
                                 <TextBlock x:Name="ProfileCardTitleText" Text="当前配置方案 (Profile)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock x:Name="ProfileCardDescText" Text="选择或新建针对特定程序（如 Chrome、VS Code）或特定工作流的轮盘配置方案（支持双击重命名）。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,10"/>
-                                <ListBox x:Name="ProfilesListBox" Height="100" ItemsSource="{Binding Profiles}" SelectionChanged="ProfilesListBox_SelectionChanged" MouseDoubleClick="ProfilesListBox_MouseDoubleClick" DisplayMemberPath="ProcessName"/>
+                                <ListBox x:Name="ProfilesListBox" Height="100" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" DisplayMemberPath="ProcessName"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
-                                <Button x:Name="AddProfileButton" Content="➕ 新增专属程序配置" Style="{StaticResource PrimaryButtonStyle}" Height="30" Margin="0,0,0,5" Click="AddProfileButton_Click" ToolTip="从已安装软件或开始菜单中选择程序创建专属配置"/>
-                                <Button x:Name="AddCustomProfileButton" Content="➕ 新建自定义配置" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Click="AddCustomProfileButton_Click" ToolTip="自定义命名创建新的轮盘配置方案"/>
-                                <Button x:Name="RenameProfileButton" Content="✏️ 重命名当前配置" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Click="RenameProfileButton_Click" ToolTip="重命名选中的配置方案"/>
-                                <Button x:Name="DeleteProfileButton" Content="🗑️ 删除当前配置" Style="{StaticResource ModernButtonStyle}" Height="30" Click="DeleteProfileButton_Click" ToolTip="删除选中的配置方案"/>
+                                <Button x:Name="AddProfileButton" Content="➕ 新增专属程序配置" Style="{StaticResource PrimaryButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddProfileFromPickerCommand}" ToolTip="从已安装软件或开始菜单中选择程序创建专属配置"/>
+                                <Button x:Name="AddCustomProfileButton" Content="➕ 新建自定义配置" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddCustomProfileFromDialogCommand}" ToolTip="自定义命名创建新的轮盘配置方案"/>
+                                <Button x:Name="RenameProfileButton" Content="✏️ 重命名当前配置" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding RenameSelectedProfileCommand}" ToolTip="重命名选中的配置方案"/>
+                                <Button x:Name="DeleteProfileButton" Content="🗑️ 删除当前配置" Style="{StaticResource ModernButtonStyle}" Height="30" Command="{Binding DeleteSelectedProfileCommand}" ToolTip="删除选中的配置方案"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -73,9 +73,9 @@
                             <TextBlock x:Name="SectorCountTitleText" Text="扇区方位数量 (Sector Count)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock x:Name="SectorCountDescText" Text="切换手势轮盘的切分数量。4 键最快最不易误触，8 键为标准全能方位，12 键适合功能密集场景。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,10"/>
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="SectorCount4Radio" GroupName="SectorCountGroup" Content="4 键十字方位" Margin="0,0,24,0" Checked="SectorCountRadio_Checked"/>
-                                <RadioButton x:Name="SectorCount8Radio" GroupName="SectorCountGroup" Content="8 键全向方位 (推荐)" Margin="0,0,24,0" IsChecked="True" Checked="SectorCountRadio_Checked"/>
-                                <RadioButton x:Name="SectorCount12Radio" GroupName="SectorCountGroup" Content="12 键钟表方位" Checked="SectorCountRadio_Checked"/>
+                                <RadioButton x:Name="SectorCount4Radio" GroupName="SectorCountGroup" Content="4 键十字方位" Margin="0,0,24,0" IsChecked="{Binding SelectedSectorCount, Converter={StaticResource IntEqualsConverter}, ConverterParameter=4}" Command="{Binding ApplySectorCountSelectionCommand}" CommandParameter="4"/>
+                                <RadioButton x:Name="SectorCount8Radio" GroupName="SectorCountGroup" Content="8 键全向方位 (推荐)" Margin="0,0,24,0" IsChecked="{Binding SelectedSectorCount, Converter={StaticResource IntEqualsConverter}, ConverterParameter=8}" Command="{Binding ApplySectorCountSelectionCommand}" CommandParameter="8"/>
+                                <RadioButton x:Name="SectorCount12Radio" GroupName="SectorCountGroup" Content="12 键钟表方位" IsChecked="{Binding SelectedSectorCount, Converter={StaticResource IntEqualsConverter}, ConverterParameter=12}" Command="{Binding ApplySectorCountSelectionCommand}" CommandParameter="12"/>
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -108,10 +108,10 @@
                                                 <TextBlock Text="{Binding DirectionLabel}" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center" FontSize="12"/>
 
                                                 <!-- Col 1: Icon Selector Button -->
-                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" Click="PickIcon_Click" ToolTip="点击选取矢量图标">
+                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" Command="{Binding PickIconCommand}" ToolTip="点击选取矢量图标">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Path Width="14" Height="14" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,4,0"
-                                                                  Data="{Binding VectorIconData}" Visibility="{Binding HasVectorIcon, Converter={StaticResource BoolToVis}}"/>
+                                                              Data="{Binding VectorIconPathData, Converter={StaticResource StringToGeometryConverter}}" Visibility="{Binding HasVectorIcon, Converter={StaticResource BoolToVis}}"/>
                                                         <TextBlock Text="{Binding IconDisplayText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="52"/>
                                                     </StackPanel>
                                                 </Button>

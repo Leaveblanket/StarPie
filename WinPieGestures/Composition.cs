@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
@@ -95,7 +96,7 @@ namespace WinPieGestures
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 
             // T19：消息总线（WeakReferenceMessenger，实例注入便于测试替换）与落盘编排订阅者。
-            services.AddSingleton<IMessenger>(new WeakReferenceMessenger());
+            services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             services.AddSingleton<SettingsSaveOrchestrator>();
 
             // T19：导航件——NavigationStore 单例 + 泛型导航服务开放泛型注册。
@@ -132,10 +133,33 @@ namespace WinPieGestures
                     return sp.GetRequiredService<JsonConfigService>().Import(path);
                 },
                 currentConfig: () => sp.GetRequiredService<IConfigService>().Current,
-                messenger: sp.GetRequiredService<IMessenger>()));
-            services.AddSingleton<AboutViewModel>();
+                messenger: sp.GetRequiredService<IMessenger>(),
+                isAdministrator: IsRunningAsAdministrator));
+            services.AddSingleton<AboutViewModel>(sp => new AboutViewModel(
+                sp.GetRequiredService<IDialogService>(),
+                () =>
+                {
+                    string changelogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CHANGELOG.md");
+                    if (!File.Exists(changelogPath)) return false;
+                    Process.Start(new ProcessStartInfo(changelogPath) { UseShellExecute = true });
+                    return true;
+                }));
 
             services.AddSingleton<MainViewModel>();
+        }
+
+        private static bool IsRunningAsAdministrator()
+        {
+            try
+            {
+                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                return new System.Security.Principal.WindowsPrincipal(identity)
+                    .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>Starts the mouse hook, resolves the page ViewModels (import broadcast
@@ -160,7 +184,16 @@ namespace WinPieGestures
             // 初始页：触发与场景（迁移前 NavTab0 默认选中）。
             _navTrigger.Navigate();
 
-            _mainView = new MainView(mainViewModel, _themeService, _messenger);
+            _mainView = new MainView(mainViewModel, _themeService);
+            _mainView.IsVisibleChanged += (_, _) =>
+            {
+                if (_mainView is { IsVisible: false } && !IsExiting)
+                {
+                    _saveOrchestrator.FlushPendingSave();
+                    MemoryOptimizer.TrimMemory();
+                    _messenger.Send(MinimizedToTrayMessage.Instance);
+                }
+            };
             _mainView.ApplyAppTheme(_provider.GetRequiredService<AppearanceSettingsViewModel>().AppTheme);
             // 惰性回填 Owner：此后所有模态对话框归属主框架。
             _dialogService.SetOwner(_mainView);

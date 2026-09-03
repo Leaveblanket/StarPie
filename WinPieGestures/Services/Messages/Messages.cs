@@ -42,4 +42,51 @@ namespace WinPieGestures.Services.Messages
         public static MinimizedToTrayMessage Instance { get; } = new();
         private MinimizedToTrayMessage() { }
     }
+
+    /// <summary>外观设置页请求 View 重绘实时预览。</summary>
+    public sealed class AppearancePreviewInvalidatedMessage
+    {
+        public static AppearancePreviewInvalidatedMessage Instance { get; } = new();
+        private AppearancePreviewInvalidatedMessage() { }
+    }
+
+    /// <summary>自定义配色预设列表已变化，外观设置页应重建下拉项。</summary>
+    public sealed class AppearancePresetListChangedMessage
+    {
+        public static AppearancePresetListChangedMessage Instance { get; } = new();
+        private AppearancePresetListChangedMessage() { }
+    }
+
+    /// <summary>导入配置后某页面 ViewModel 已重挂，对应页面 View 应同步控件状态。</summary>
+    public sealed class PageConfigReloadedMessage
+    {
+        public Type ViewModelType { get; }
+
+        public PageConfigReloadedMessage(Type viewModelType)
+        {
+            ViewModelType = viewModelType ?? throw new System.ArgumentNullException(nameof(viewModelType));
+        }
+    }
+
+    /// <summary>黑名单新增条目后请求页面 View 滚动并选中该条目。</summary>
+    public sealed class BlacklistEntryAddedMessage
+    {
+        public string ProcessName { get; }
+
+        public BlacklistEntryAddedMessage(string processName)
+        {
+            ProcessName = processName ?? string.Empty;
+        }
+    }
+
+    /// <summary>通用设置页请求 View 显示通知。</summary>
+    public sealed class GeneralNoticeRequestedMessage
+    {
+        public NoticeRequest Notice { get; }
+
+        public GeneralNoticeRequestedMessage(NoticeRequest notice)
+        {
+            Notice = notice ?? throw new System.ArgumentNullException(nameof(notice));
+        }
+    }
 }

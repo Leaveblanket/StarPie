@@ -8,16 +8,18 @@ namespace WinPieGestures.Tests;
 
 /// <summary>
 /// 程序选择器 ViewModel 的行为覆盖 (T06)：扫描编排（注入假扫描委托）、搜索过滤接线、
-/// 选择结果与手动浏览编排（mock 对话框服务）。
+/// 选择结果与手动浏览编排（mock 对话框服务）。T20 起完成经
+/// <see cref="ProgramPickerViewModel.IsCompleted"/> 可观察状态驱动，无效选择提示经 IDialogService。
 /// </summary>
 public sealed class ProgramPickerViewModelTests
 {
-    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog，其余不该被调用。</summary>
+    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
     private sealed class FakeDialogService : IDialogService
     {
         public FilePickResult? OpenFileDialogResult;
         public string? LastFilter;
         public int OpenFileCalls;
+        public List<(string Title, string Message)> InfoCalls { get; } = new();
 
         public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
         {
@@ -29,7 +31,7 @@ public sealed class ProgramPickerViewModelTests
         public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
         public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
         public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public void ShowInfo(string title, string message) => throw new NotSupportedException();
+        public void ShowInfo(string title, string message) => InfoCalls.Add((title, message));
 
         public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
         public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();
@@ -126,63 +128,64 @@ public sealed class ProgramPickerViewModelTests
     }
 
     [Fact]
-    public void Confirm_WithoutSelection_RaisesCloseRequestedWithNull()
+    public void Confirm_WithoutSelection_ShowsNoticeAndDoesNotComplete()
     {
-        var vm = Create();
-        ProgramPickResult? received = new("", "sentinel");
-        vm.CloseRequested += r => received = r;
+        var dialogs = new FakeDialogService();
+        var vm = Create(dialogs: dialogs);
 
         vm.ConfirmCommand.Execute(null);
 
-        Assert.Null(received); // null = 无效选择，视图层负责"请选择"提示
+        // 未选中：经对话框服务提示"请选择"，窗口保持打开、不产生结果
+        var call = Assert.Single(dialogs.InfoCalls);
+        Assert.Contains("请选择", call.Message);
+        Assert.False(vm.IsCompleted);
+        Assert.Null(vm.Result);
+        Assert.Null(vm.BuildResult());
     }
 
     [Fact]
-    public async Task Confirm_WithSelection_RaisesCloseRequestedWithResult()
+    public async Task Confirm_WithSelection_CompletesWithResult()
     {
         var vm = Create(scan: () => new List<ProgramEntry> { Entry("A", @"C:\a.exe") });
         await vm.LoadAsync();
         vm.SelectedProgram = vm.DisplayedPrograms.Single();
-        ProgramPickResult? received = null;
-        vm.CloseRequested += r => received = r;
 
         vm.ConfirmCommand.Execute(null);
 
-        Assert.NotNull(received);
-        Assert.Equal(@"C:\a.exe", received!.Path);
+        Assert.True(vm.IsCompleted);
+        Assert.NotNull(vm.Result);
+        Assert.Equal(@"C:\a.exe", vm.Result!.Path);
     }
 
     // --- 手动浏览（mock 对话框服务） -------------------------------------------------
 
     [Fact]
-    public void BrowseManually_PickedExe_RaisesCloseRequestedWithNameFromFileName()
+    public void BrowseManually_PickedExe_CompletesWithNameFromFileName()
     {
         var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\Tools\mytool.exe") };
         var vm = Create(dialogs: dialogs);
-        ProgramPickResult? received = null;
-        vm.CloseRequested += r => received = r;
 
         vm.BrowseManuallyCommand.Execute(null);
 
         Assert.Equal(1, dialogs.OpenFileCalls);
         Assert.Contains("*.exe", dialogs.LastFilter);
-        Assert.NotNull(received);
-        Assert.Equal("mytool", received!.Name);
-        Assert.Equal(@"C:\Tools\mytool.exe", received.Path);
+        Assert.True(vm.IsCompleted);
+        Assert.NotNull(vm.Result);
+        Assert.Equal("mytool", vm.Result!.Name);
+        Assert.Equal(@"C:\Tools\mytool.exe", vm.Result.Path);
     }
 
     [Fact]
-    public void BrowseManually_PickerCancelled_StaysOpenWithoutCloseRequest()
+    public void BrowseManually_PickerCancelled_StaysOpenWithoutCompleting()
     {
         var dialogs = new FakeDialogService { OpenFileDialogResult = null };
         var vm = Create(dialogs: dialogs);
-        var fired = false;
-        vm.CloseRequested += _ => fired = true;
 
         vm.BrowseManuallyCommand.Execute(null);
 
         Assert.Equal(1, dialogs.OpenFileCalls);
-        Assert.False(fired);
+        Assert.False(vm.IsCompleted);
+        Assert.Null(vm.Result);
     }
 
     [Fact]
@@ -192,13 +195,12 @@ public sealed class ProgramPickerViewModelTests
         // 沿用旧行为：路径回落为所选 .lnk 本身，显示名取文件名。
         var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\fake\missing.lnk") };
         var vm = Create(dialogs: dialogs);
-        ProgramPickResult? received = null;
-        vm.CloseRequested += r => received = r;
 
         vm.BrowseManuallyCommand.Execute(null);
 
-        Assert.NotNull(received);
-        Assert.Equal("missing", received!.Name);
-        Assert.Equal(@"C:\fake\missing.lnk", received.Path);
+        Assert.True(vm.IsCompleted);
+        Assert.NotNull(vm.Result);
+        Assert.Equal("missing", vm.Result!.Name);
+        Assert.Equal(@"C:\fake\missing.lnk", vm.Result.Path);
     }
 }

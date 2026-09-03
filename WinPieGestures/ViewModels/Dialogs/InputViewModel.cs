@@ -14,6 +14,7 @@ namespace WinPieGestures.ViewModels.Dialogs
     public partial class InputViewModel : ObservableObject
     {
         private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;
+        private readonly IDialogService _dialogs;
         private InputDialogResult? _result;
 
         /// <summary>对话框标题（窗口标题与头部文案共用）。</summary>
@@ -25,25 +26,26 @@ namespace WinPieGestures.ViewModels.Dialogs
         [ObservableProperty]
         private string _inputText;
 
-        /// <summary>确认有效后请求窗口关闭，携带已去空白的输入结果；确认无效时不触发（无效走 <see cref="ValidationFailed"/>）。</summary>
-        public event Action<InputDialogResult?>? CloseRequested;
+        /// <summary>确认有效后变为 true，视图据此关闭窗口。</summary>
+        [ObservableProperty]
+        private bool _isCompleted;
 
-        /// <summary>
-        /// 确认无效：message 为提示文案（空输入固定文案或 validator 错误信息）；
-        /// rejectedText 为被拒的已去空白文本，空输入时为 null（视图据此复刻迁移前焦点行为——仅 validator 无效时全选）。
-        /// </summary>
-        public event Action<string, string?>? ValidationFailed;
+        /// <summary>最近一次被拒绝的已去空白文本；null 表示空输入，非 null 表示 validator 拒绝。</summary>
+        [ObservableProperty]
+        private string? _rejectedText;
 
         public InputViewModel(
             string title,
             string prompt,
             string defaultText = "",
-            Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
+            Func<string, (bool IsValid, string ErrorMessage)>? validator = null,
+            IDialogService? dialogs = null)
         {
             Title = title;
             Prompt = prompt;
             _inputText = defaultText;
             _validator = validator;
+            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
         }
 
         /// <summary>确认结果：仅在确认有效后非空；取消与无效输入为 null。</summary>
@@ -55,7 +57,8 @@ namespace WinPieGestures.ViewModels.Dialogs
             string trimmed = (InputText ?? "").Trim();
             if (string.IsNullOrEmpty(trimmed))
             {
-                ValidationFailed?.Invoke(I18n.T("InputDialogEmpty"), null);
+                _dialogs.ShowInfo(I18n.T("Notice"), I18n.T("InputDialogEmpty"));
+                RejectedText = null;
                 return;
             }
 
@@ -64,13 +67,14 @@ namespace WinPieGestures.ViewModels.Dialogs
                 var (isValid, errorMessage) = _validator(trimmed);
                 if (!isValid)
                 {
-                    ValidationFailed?.Invoke(errorMessage, trimmed);
+                    _dialogs.ShowInfo(I18n.T("Notice"), errorMessage);
+                    RejectedText = trimmed;
                     return;
                 }
             }
 
             _result = new InputDialogResult(trimmed);
-            CloseRequested?.Invoke(_result);
+            IsCompleted = true;
         }
     }
 }

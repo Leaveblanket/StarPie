@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using WinPieGestures.Services;
 
 namespace WinPieGestures.ViewModels.Navigation
@@ -15,6 +17,8 @@ namespace WinPieGestures.ViewModels.Navigation
     public partial class MainViewModel : ObservableObject
     {
         private readonly NavigationStore _store;
+        private readonly IMessenger _messenger;
+        private readonly IDialogService _dialogs;
 
         /// <summary>五个导航项（触发与场景/外观与形态/手势与动作/高级与系统/关于与更新），顺序即侧边栏顺序。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
@@ -28,7 +32,9 @@ namespace WinPieGestures.ViewModels.Navigation
             INavigationService<AppearanceSettingsViewModel> navAppearance,
             INavigationService<ProfileListViewModel> navGestures,
             INavigationService<GeneralSettingsViewModel> navAdvanced,
-            INavigationService<AboutViewModel> navAbout)
+            INavigationService<AboutViewModel> navAbout,
+            IMessenger messenger,
+            IDialogService dialogs)
         {
             if (store == null) throw new ArgumentNullException(nameof(store));
             if (navTrigger == null) throw new ArgumentNullException(nameof(navTrigger));
@@ -36,6 +42,8 @@ namespace WinPieGestures.ViewModels.Navigation
             if (navGestures == null) throw new ArgumentNullException(nameof(navGestures));
             if (navAdvanced == null) throw new ArgumentNullException(nameof(navAdvanced));
             if (navAbout == null) throw new ArgumentNullException(nameof(navAbout));
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _store = store;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>
@@ -60,6 +68,13 @@ namespace WinPieGestures.ViewModels.Navigation
             I18n.LanguageChanged += RefreshTitles;
 
             SyncSelection();
+        }
+
+        [RelayCommand]
+        private void Save()
+        {
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+            _dialogs.ShowInfo(I18n.T("Notice"), I18n.T("MsgSaveSuccess"));
         }
 
         /// <summary>随导航当前页同步各导航项选中态（目标类型比对，数据驱动不再依赖 Tag 数字索引）。</summary>

@@ -84,7 +84,7 @@
                     <Grid>
                         <!-- Checkerboard for alpha -->
                         <Border CornerRadius="5" Background="{DynamicResource SubtleCardBrush}"/>
-                        <Border x:Name="ColorPreviewBorder" CornerRadius="5" Background="{Binding PreviewBrush}"/>
+                        <Border x:Name="ColorPreviewBorder" CornerRadius="5" Background="{Binding PreviewHex, Converter={StaticResource HexToBrushConverter}}"/>
                     </Grid>
                 </Border>
                 <TextBox x:Name="HexInputBox" Width="95" Height="36" FontSize="13" FontWeight="SemiBold"
@@ -106,7 +106,7 @@
 
             <!-- 1. Color Spectrum (Saturation & Value) -->
             <Border Grid.Row="0" CornerRadius="8" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" ClipToBounds="True">
-                <Canvas x:Name="SpectrumCanvas" Background="{Binding SpectrumBrush}" MouseDown="SpectrumCanvas_MouseDown" MouseMove="SpectrumCanvas_MouseMove" Cursor="Cross">
+                <Canvas x:Name="SpectrumCanvas" Background="{Binding SpectrumHex, Converter={StaticResource HexToBrushConverter}}" MouseDown="SpectrumCanvas_MouseDown" MouseMove="SpectrumCanvas_MouseMove" Cursor="Cross">
                     <!-- White to Transparent Horizontal Gradient -->
                     <Rectangle Width="{Binding ActualWidth, ElementName=SpectrumCanvas}" Height="{Binding ActualHeight, ElementName=SpectrumCanvas}">
                         <Rectangle.Fill>

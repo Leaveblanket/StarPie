@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using MessageBox = System.Windows.MessageBox;
 
 namespace WinPieGestures.Views.Dialogs
 {
@@ -25,25 +25,28 @@ namespace WinPieGestures.Views.Dialogs
         private readonly IconPickerViewModel _vm;
         private Border? _selectedCard;
 
-        public IconPickerWindow(IThemeService themeService, IDialogService dialogService, string? initialKey = null)
+        public IconPickerWindow(IThemeService themeService, IconPickerViewModel viewModel)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
-            _vm = new IconPickerViewModel(IconHelper.GetCustomIcons, () => IconHelper.VectorIconList, dialogService, initialKey);
+            _vm = viewModel;
             DataContext = _vm;
-            _vm.CloseRequested += result =>
-            {
-                DialogResult = true;
-                Close();
-            };
-            _vm.ImportFailed += message => MessageBox.Show(message, "StarPie", MessageBoxButton.OK, MessageBoxImage.Warning);
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
-            _vm.ApplyFilter(null);
             ApplyLocalization();
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
         public IconPickResult BuildResult() => _vm.BuildResult();
+
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IconPickerViewModel.IsCompleted))
+            {
+                DialogResult = true;
+                Close();
+            }
+        }
 
         private void DisplayedIcons_Changed(object? sender, NotifyCollectionChangedEventArgs e)
         {
@@ -151,12 +154,13 @@ namespace WinPieGestures.Views.Dialogs
                     BorderThickness = new Thickness(0),
                     Foreground = textSecondary,
                     Cursor = Cursors.Hand,
-                    ToolTip = "删除此自定义图标"
+                    ToolTip = "删除此自定义图标",
+                    Command = _vm.DeleteCustomIconActionCommand,
+                    CommandParameter = entry.Key
                 };
                 delBtn.Click += (s, e) =>
                 {
                     e.Handled = true;
-                    _vm.DeleteCustomIcon(entry.Key);
                 };
                 grid.Children.Add(delBtn);
             }
@@ -171,12 +175,18 @@ namespace WinPieGestures.Views.Dialogs
             card.MouseLeftButtonDown += (s, e) =>
             {
                 ApplyCardSelection(card);
-                _vm.Select(entry);
                 if (e.ClickCount == 2)
                 {
-                    _vm.ConfirmCommand.Execute(null);
+                    DialogResult = true;
+                    Close();
                 }
             };
+            card.InputBindings.Add(new MouseBinding
+            {
+                MouseAction = MouseAction.LeftClick,
+                Command = _vm.SelectIconCommand,
+                CommandParameter = entry
+            });
 
             return card;
         }
@@ -193,17 +203,6 @@ namespace WinPieGestures.Views.Dialogs
             _selectedCard = card;
             card.Background = (Brush)FindResource("NavTabActiveBgBrush");
             card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
-        }
-
-        private void ClearIcon_Click(object sender, RoutedEventArgs e)
-        {
-            _vm.ClearIconCommand.Execute(null);
-            if (_selectedCard != null)
-            {
-                _selectedCard.Background = (Brush)FindResource("SubtleCardBrush");
-                _selectedCard.BorderBrush = (Brush)FindResource("InputBorderBrush");
-                _selectedCard = null;
-            }
         }
 
         private void Cancel_Click(object sender, RoutedEventArgs e)

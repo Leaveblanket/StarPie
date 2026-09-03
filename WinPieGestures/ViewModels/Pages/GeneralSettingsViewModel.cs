@@ -17,16 +17,10 @@ namespace WinPieGestures.ViewModels.Pages
     /// 配置服务）经注入委托编排进本 VM，保证可测。
     /// T19 页面化：落盘请求改经 <see cref="IMessenger"/> 上报组合根编排订阅者；导入成功发
     /// <see cref="ConfigImportedMessage"/> 广播，各页面 VM 订阅后自行重挂（本 VM 亦订阅重挂语言码，
-    /// 并经 <see cref="ConfigReloaded"/> 通知页面 View 同步控件）。
+    /// 并经 <see cref="PageConfigReloadedMessage"/> 通知页面 View 同步控件）。
     /// </summary>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
-        /// <summary>弹窗级别（VM 层不引用 WPF 类型，窗口据此映射 MessageBoxImage）。</summary>
-        public enum NoticeKind { Info, Warning, Error }
-
-        /// <summary>弹窗请求：标题、正文与级别。</summary>
-        public sealed record NoticeRequest(string Title, string Message, NoticeKind Kind);
-
         private AppConfig _config;
         private readonly IDialogService _dialogs;
         private readonly Action<string, string> _showTrayBalloonTip;
@@ -38,17 +32,23 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly Func<AppConfig> _currentConfig;
         private readonly IMessenger _messenger;
         private readonly Action<string> _startElevated;
+        private readonly Func<bool> _isAdministratorProbe;
 
         /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
         [ObservableProperty]
         private bool _autoStartEnabled;
 
+        [ObservableProperty]
+        private string _languageCode = "Auto";
+
+        [ObservableProperty]
+        private bool _isAdministrator;
+
+        public bool ShowUacWarning => !IsAdministrator;
+
+        partial void OnIsAdministratorChanged(bool value) => OnPropertyChanged(nameof(ShowUacWarning));
+
         /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步控件显示。</summary>
-        public event Action? ConfigReloaded;
-
-        /// <summary>弹窗请求（导出/导入结果、提权失败——VM 层零 MessageBox 引用）。</summary>
-        public event Action<NoticeRequest>? NoticeRequested;
-
         public GeneralSettingsViewModel(
             AppConfig config,
             IDialogService dialogs,
@@ -60,7 +60,8 @@ namespace WinPieGestures.ViewModels.Pages
             Func<string, bool> importConfig,
             Func<AppConfig> currentConfig,
             IMessenger messenger,
-            Action<string>? startElevated = null)
+            Action<string>? startElevated = null,
+            Func<bool>? isAdministrator = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
@@ -73,26 +74,42 @@ namespace WinPieGestures.ViewModels.Pages
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _startElevated = startElevated ?? StartElevatedProcess;
+            _isAdministratorProbe = isAdministrator ?? (() => false);
 
             // T19：导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig);
-                ConfigReloaded?.Invoke();
+                _messenger.Send(new PageConfigReloadedMessage(typeof(GeneralSettingsViewModel)));
             });
 
-            AutoStartEnabled = _isAutoStartEnabled();
+            _autoStartEnabled = _isAutoStartEnabled();
+            OnPropertyChanged(nameof(AutoStartEnabled));
+            LanguageCode = _config.Language ?? "Auto";
+            IsAdministrator = _isAdministratorProbe();
         }
 
         /// <summary>当前界面语言码（"Auto"/"zh-CN"/"zh-TW"/"en"/"ja"），窗口据此初始化语言下拉。</summary>
-        public string LanguageCode => _config.Language ?? "Auto";
+        partial void OnAutoStartEnabledChanged(bool value)
+        {
+            if (_config == null) return;
+            _setAutoStart(value);
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+        }
+
+        partial void OnLanguageCodeChanged(string value)
+        {
+            if (_config == null || string.IsNullOrEmpty(value) || string.Equals(_config.Language, value, StringComparison.Ordinal)) return;
+            ApplyLanguage(value);
+        }
 
         /// <summary>以运行态配置重挂状态（导入配置后窗口调用——配置实例已被替换）。
         /// 与迁移前一致，自启勾选不随导入刷新（迁移前导入重置亦不触碰注册表开关）。</summary>
         public void Reload(AppConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            OnPropertyChanged(nameof(LanguageCode));
+            LanguageCode = _config.Language ?? "Auto";
+            IsAdministrator = _isAdministratorProbe();
         }
 
         /// <summary>
@@ -105,6 +122,16 @@ namespace WinPieGestures.ViewModels.Pages
             _config.Language = langCode;
             I18n.SetLanguage(langCode);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+        }
+
+        [RelayCommand]
+        private void Elevate() => ElevateAndRestart();
+
+        [RelayCommand]
+        private void TrimMemory()
+        {
+            MemoryOptimizer.TrimMemory(true);
+            _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "物理工作集内存已深度压缩！", NoticeKind.Info)));
         }
 
         /// <summary>开机自启切换（迁移前 AutoStartCheckBox_Changed）：注册表读写经注入委托，并请求落盘。</summary>
@@ -126,7 +153,7 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>
         /// 以管理员身份重启并退出应用（迁移前 SettingsWindow.ElevateAndRestart，托盘菜单同样
         /// 经窗口转发调用）。启动编排经注入委托（默认 Process.Start runas）；失败或已取消
-        /// 经 <see cref="NoticeRequested"/> 交窗口弹窗，不退出。
+        /// 经 <see cref="GeneralNoticeRequestedMessage"/> 交窗口弹窗，不退出。
         /// </summary>
         public void ElevateAndRestart()
         {
@@ -138,7 +165,7 @@ namespace WinPieGestures.ViewModels.Pages
             }
             catch (Exception ex)
             {
-                NoticeRequested?.Invoke(new NoticeRequest("管理员提权", $"提权重启失败或已取消: {ex.Message}", NoticeKind.Warning));
+                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("管理员提权", $"提权重启失败或已取消: {ex.Message}", NoticeKind.Warning)));
             }
         }
 
@@ -168,11 +195,11 @@ namespace WinPieGestures.ViewModels.Pages
 
             if (_exportConfig(picked.Path))
             {
-                NoticeRequested?.Invoke(new NoticeRequest("提示", "配置导出成功！", NoticeKind.Info));
+                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "配置导出成功！", NoticeKind.Info)));
             }
             else
             {
-                NoticeRequested?.Invoke(new NoticeRequest("错误", "配置导出失败，请检查写入权限。", NoticeKind.Error));
+                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("错误", "配置导出失败，请检查写入权限。", NoticeKind.Error)));
             }
         }
 
@@ -187,12 +214,12 @@ namespace WinPieGestures.ViewModels.Pages
             if (_importConfig(picked.Path))
             {
                 // 弹窗（模态）先于 UI 重载——与迁移前"先提示、点确定后重载控件"顺序一致
-                NoticeRequested?.Invoke(new NoticeRequest("提示", "配置导入成功！正在应用新设置...", NoticeKind.Info));
+                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "配置导入成功！正在应用新设置...", NoticeKind.Info)));
                 _messenger.Send(new ConfigImportedMessage(_currentConfig()));
             }
             else
             {
-                NoticeRequested?.Invoke(new NoticeRequest("错误", "导入失败：文件格式不匹配或已损坏。", NoticeKind.Error));
+                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("错误", "导入失败：文件格式不匹配或已损坏。", NoticeKind.Error)));
             }
         }
     }
