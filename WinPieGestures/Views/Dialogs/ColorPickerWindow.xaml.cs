@@ -18,8 +18,9 @@ namespace WinPieGestures.Views.Dialogs
 
     /// <summary>
     /// 颜色选择器窗口 (T08)：HSV 状态机、十六进制输入解析与确认结果全部在
-    /// <see cref="ColorPickerViewModel"/>；code-behind 只剩色盘取点、取色圈定位、
-    /// 本地化文案与把确认/取消落成 DialogResult。由 <see cref="DialogService"/> 创建，
+    /// <see cref="ColorPickerViewModel"/>；code-behind 只剩取色圈定位、本地化文案与把
+    /// VM 完成/取消落成 DialogResult——色盘取点像素坐标翻译在
+    /// <see cref="SpectrumCanvasBehavior"/>（ADR-0009）。由 <see cref="DialogService"/> 创建，
     /// Owner 归设置窗口。
     /// </summary>
     public partial class ColorPickerWindow : Window
@@ -43,6 +44,13 @@ namespace WinPieGestures.Views.Dialogs
 
         private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            if (e.PropertyName == nameof(ColorPickerViewModel.IsCompleted))
+            {
+                DialogResult = true;
+                Close();
+                return;
+            }
+
             if (e.PropertyName == nameof(ColorPickerViewModel.Saturation) ||
                 e.PropertyName == nameof(ColorPickerViewModel.Value))
             {
@@ -81,43 +89,6 @@ namespace WinPieGestures.Views.Dialogs
             Canvas.SetTop(SpectrumThumb, (1.0 - _vm.Value) * h);
         }
 
-        private void SpectrumCanvas_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                SpectrumCanvas.CaptureMouse();
-                UpdateFromSpectrumMouse(e.GetPosition(SpectrumCanvas));
-            }
-        }
-
-        private void SpectrumCanvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed && SpectrumCanvas.IsMouseCaptured)
-            {
-                UpdateFromSpectrumMouse(e.GetPosition(SpectrumCanvas));
-            }
-        }
-
-        protected override void OnMouseUp(MouseButtonEventArgs e)
-        {
-            base.OnMouseUp(e);
-            if (SpectrumCanvas.IsMouseCaptured)
-            {
-                SpectrumCanvas.ReleaseMouseCapture();
-            }
-        }
-
-        private void UpdateFromSpectrumMouse(Point pos)
-        {
-            double w = SpectrumCanvas.ActualWidth > 0 ? SpectrumCanvas.ActualWidth : 440;
-            double h = SpectrumCanvas.ActualHeight > 0 ? SpectrumCanvas.ActualHeight : 180;
-
-            double x = Math.Max(0, Math.Min(w, pos.X));
-            double y = Math.Max(0, Math.Min(h, pos.Y));
-
-            _vm.SetSpectrumPoint(x / w, 1.0 - (y / h));
-        }
-
         private void SwatchesScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (sender is ScrollViewer scv)
@@ -127,12 +98,7 @@ namespace WinPieGestures.Views.Dialogs
             }
         }
 
-        private void Ok_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = true;
-            Close();
-        }
-
+        // ADR-0009：取消无业务语义，Click→DialogResult=false 属 code-behind 白名单。
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

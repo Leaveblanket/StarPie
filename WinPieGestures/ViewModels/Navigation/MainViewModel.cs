@@ -26,6 +26,10 @@ namespace WinPieGestures.ViewModels.Navigation
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>
         public ObservableObject? CurrentViewModel => _store.CurrentViewModel;
 
+        /// <summary>App 级退出进行中（组合根在托盘退出/提权重启时置位）：主框架 Closing
+        /// 据此放行真关窗而非隐藏到托盘（ADR-0003；#27 起退出状态归壳层 VM，View 不再反向依赖 Composition）。</summary>
+        public bool IsExiting { get; set; }
+
         public MainViewModel(
             NavigationStore store,
             INavigationService<BehaviorSettingsViewModel> navTrigger,

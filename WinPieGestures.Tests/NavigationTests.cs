@@ -240,6 +240,19 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public void IsExiting_DefaultsFalse_AndIsSettable()
+    {
+        // T22：App 退出状态归壳层 VM（组合根置位、主框架 Closing 读取），View 不反向依赖 Composition。
+        var (vm, _, _) = Create();
+
+        Assert.False(vm.IsExiting);
+
+        vm.IsExiting = true;
+
+        Assert.True(vm.IsExiting);
+    }
+
+    [Fact]
     public void NavigateViaItemCommand_SwitchesCurrentViewModel_AndMarksItemSelected()
     {
         var (vm, store, fixture) = Create();

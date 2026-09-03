@@ -45,10 +45,8 @@ namespace WinPieGestures
         private MainView? _mainView;
         // 通用分区 VM：托盘提权重启与托盘驻留气泡由组合根直调/订阅（Spec：托盘气泡/提权由组合根订阅或直调）。
         private GeneralSettingsViewModel? _general;
-
-        /// <summary>True while an app-level exit is in flight; the settings window
-        /// consults it to close for real instead of hiding to the tray.</summary>
-        public static bool IsExiting { get; private set; }
+        // #27：壳层 VM（MainViewModel）承担 App 退出状态，主框架 Closing 据此放行真关窗而非隐藏到托盘。
+        private MainViewModel? _mainViewModel;
 
         /// <summary>The config service handed to gesture-side consumers; the app
         /// layer drives Load on startup and Save on exit through it.</summary>
@@ -180,6 +178,7 @@ namespace WinPieGestures
             _messenger.Register<MinimizedToTrayMessage>(this, (_, _) => _general?.NotifyMinimizedToTray());
 
             var mainViewModel = _provider.GetRequiredService<MainViewModel>();
+            _mainViewModel = mainViewModel;
 
             // 初始页：触发与场景（迁移前 NavTab0 默认选中）。
             _navTrigger.Navigate();
@@ -187,7 +186,7 @@ namespace WinPieGestures
             _mainView = new MainView(mainViewModel, _themeService);
             _mainView.IsVisibleChanged += (_, _) =>
             {
-                if (_mainView is { IsVisible: false } && !IsExiting)
+                if (_mainView is { IsVisible: false } && !mainViewModel.IsExiting)
                 {
                     _saveOrchestrator.FlushPendingSave();
                     MemoryOptimizer.TrimMemory();
@@ -270,7 +269,11 @@ namespace WinPieGestures
                 _trayIcon = null;
             }
 
-            IsExiting = true;
+            // #27：退出状态落壳层 VM；主框架 Closing 放行真关窗（语义与旧 Composition.IsExiting 一致）。
+            if (_mainViewModel != null)
+            {
+                _mainViewModel.IsExiting = true;
+            }
             Application.Current.Shutdown();
         }
     }

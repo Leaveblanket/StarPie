@@ -172,20 +172,19 @@ namespace WinPieGestures.Views.Dialogs
                 ApplyCardSelection(card);
             }
 
-            card.MouseLeftButtonDown += (s, e) =>
-            {
-                ApplyCardSelection(card);
-                if (e.ClickCount == 2)
-                {
-                    DialogResult = true;
-                    Close();
-                }
-            };
+            // ADR-0009：事件只做纯 UI 视觉高亮；选择/双击确认均走 MouseBinding → VM 命令，
+            // 完成由 IsCompleted 观察器落 DialogResult=true（View 不在事件里当业务入口）。
+            card.MouseLeftButtonDown += (s, e) => ApplyCardSelection(card);
             card.InputBindings.Add(new MouseBinding
             {
                 MouseAction = MouseAction.LeftClick,
                 Command = _vm.SelectIconCommand,
                 CommandParameter = entry
+            });
+            card.InputBindings.Add(new MouseBinding
+            {
+                MouseAction = MouseAction.LeftDoubleClick,
+                Command = _vm.ConfirmCommand
             });
 
             return card;
@@ -205,6 +204,7 @@ namespace WinPieGestures.Views.Dialogs
             card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
         }
 
+        // ADR-0009：取消无业务语义，Click→DialogResult=false 属 code-behind 白名单。
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

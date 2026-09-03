@@ -5,6 +5,9 @@ using WinPieGestures.Models;
 
 namespace WinPieGestures.ViewModels.Dialogs
 {
+    /// <summary>色盘取点归一化坐标（Saturation/Value ∈ [0,1]；View 附加行为翻译像素坐标后传入 VM 命令）。</summary>
+    public readonly record struct SpectrumPoint(double Saturation, double Value);
+
     /// <summary>
     /// 颜色选择器 ViewModel (T08, ADR-0001/0004)：HSV 状态机、十六进制输入解析、
     /// 预览/色盘画刷与确认结果全部在此；视图只做色盘取点、滑杆/输入框绑定与本地化文案。
@@ -53,6 +56,10 @@ namespace WinPieGestures.ViewModels.Dialogs
         /// <summary>预览块颜色（当前完整颜色，含透明度），View 经 HexToBrushConverter 转为画刷。</summary>
         [ObservableProperty]
         private string _previewHex = DefaultHex;
+
+        /// <summary>确认后变为 true，视图据此关闭窗口。</summary>
+        [ObservableProperty]
+        private bool _isCompleted;
 
         public ColorPickerViewModel(IDialogService dialogs, string initialHex = DefaultHex)
         {
@@ -136,6 +143,10 @@ namespace WinPieGestures.ViewModels.Dialogs
             UpdatePreview();
         }
 
+        /// <summary>色盘取点命令：View 附加行为把 Canvas 像素坐标翻译成归一化点后经此进入（ADR-0009）。</summary>
+        [RelayCommand]
+        private void SetSpectrumPointAction(SpectrumPoint point) => SetSpectrumPoint(point.Saturation, point.Value);
+
         /// <summary>屏上取色：经对话框服务开全屏取色器，取回后应用到当前色（取消则不动）。</summary>
         [RelayCommand]
         private void Eyedropper()
@@ -150,6 +161,10 @@ namespace WinPieGestures.ViewModels.Dialogs
         /// <summary>确认结果：未得到有效色时返回 null，调用方只判一次 null。</summary>
         public ColorPickResult? BuildResult()
             => string.IsNullOrEmpty(SelectedHexColor) ? null : new ColorPickResult(SelectedHexColor);
+
+        /// <summary>确认：请求关窗；取消由视图直接关窗。</summary>
+        [RelayCommand]
+        private void Confirm() => IsCompleted = true;
 
         private void UpdateSpectrumBrush() => SpectrumHex = ColorMath.HsvToRgb(Hue, 1, 1).ToHex();
 
