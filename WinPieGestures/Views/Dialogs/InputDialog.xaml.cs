@@ -7,7 +7,7 @@ namespace WinPieGestures.Views.Dialogs
     /// <summary>
     /// 输入对话框窗口 (T07)：确认与验证逻辑全部在 <see cref="InputViewModel"/>（DataContext 绑定）——
     /// 标题/提示/输入文本走绑定，确认按钮绑 ConfirmCommand；code-behind 只剩主题应用、VM 事件接线、
-    /// 本地化按钮文案、键盘路由（Enter=确认 / Esc=取消）、提示框与焦点行为。
+    /// 键盘路由（Enter=确认 / Esc=取消）、提示框与焦点行为。
     /// 由 <see cref="DialogService"/> 创建，Owner 归设置窗口。
     /// </summary>
     public partial class InputDialog : Window
@@ -23,8 +23,6 @@ namespace WinPieGestures.Views.Dialogs
 
             _vm.PropertyChanged += OnViewModelPropertyChanged;
 
-            if (OkButton != null) OkButton.Content = I18n.T("BtnConfirm");
-            if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
 
             Loaded += (s, e) =>
             {

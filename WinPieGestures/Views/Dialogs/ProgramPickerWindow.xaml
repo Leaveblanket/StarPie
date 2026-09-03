@@ -66,7 +66,7 @@
         </Grid.RowDefinitions>
         
         <!-- Header -->
-        <TextBlock x:Name="HeaderTitleText" Grid.Row="0" Text="从已安装的软件和开始菜单中选择" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+        <TextBlock AutomationProperties.AutomationId="HeaderTitleText" Grid.Row="0" Text="{DynamicResource ProgramPickerHeader}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
         
         <!-- Search bar -->
         <Grid Grid.Row="1" Margin="0,0,0,10">
@@ -79,7 +79,7 @@
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
             <TextBlock Text="🔍" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
                        VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0" IsHitTestVisible="False"/>
-            <TextBlock x:Name="SearchPlaceholderText" Text="搜索软件名称、可执行文件或路径..." FontSize="12"
+            <TextBlock AutomationProperties.AutomationId="SearchPlaceholderText" Text="{DynamicResource ProgramPickerPlaceholder}" FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.6"
                        VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30,0,0,0" IsHitTestVisible="False">
                 <TextBlock.Style>
@@ -142,9 +142,9 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="ManualBrowseButton" Grid.Column="0" Content="手动浏览文件..." Style="{StaticResource PickerBtn}" Height="32" Padding="14,0" Command="{Binding BrowseManuallyCommand}"/>
-            <Button x:Name="OkButton" Grid.Column="2" Content="确定" Style="{StaticResource PrimaryPickerBtn}" Width="84" Height="32" Command="{Binding ConfirmCommand}" FontWeight="Bold" Margin="0,0,8,0"/>
-            <Button x:Name="CancelButton" Grid.Column="3" Content="取消" Style="{StaticResource PickerBtn}" Width="84" Height="32" Click="Cancel_Click"/>
+            <Button AutomationProperties.AutomationId="ManualBrowseButton" Grid.Column="0" Content="{DynamicResource BtnManualBrowse}" Style="{StaticResource PickerBtn}" Height="32" Padding="14,0" Command="{Binding BrowseManuallyCommand}"/>
+            <Button AutomationProperties.AutomationId="OkButton" Grid.Column="2" Content="{DynamicResource BtnConfirm}" Style="{StaticResource PrimaryPickerBtn}" Width="84" Height="32" Command="{Binding ConfirmCommand}" FontWeight="Bold" Margin="0,0,8,0"/>
+            <Button AutomationProperties.AutomationId="CancelButton" Grid.Column="3" Content="{DynamicResource BtnCancel}" Style="{StaticResource PickerBtn}" Width="84" Height="32" Click="Cancel_Click"/>
         </Grid>
     </Grid>
 </Window>
