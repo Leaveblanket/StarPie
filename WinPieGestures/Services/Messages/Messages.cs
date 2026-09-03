@@ -23,7 +23,8 @@ namespace WinPieGestures.Services.Messages
 
     /// <summary>
     /// 配置导入成功（运行态配置实例已被 IConfigService 替换）：
-    /// 各页面 VM 订阅后自行重挂状态，各页 View 订阅后同步控件显示。
+    /// 各页面 VM 订阅后自行重挂状态（绑定控件随属性通知自动刷新）；外观页另经
+    /// <see cref="PageConfigReloadedMessage"/> 收尾主题应用/预览重绘等 View 效果。
     /// </summary>
     public sealed class ConfigImportedMessage
     {
@@ -50,14 +51,8 @@ namespace WinPieGestures.Services.Messages
         private AppearancePreviewInvalidatedMessage() { }
     }
 
-    /// <summary>自定义配色预设列表已变化，外观设置页应重建下拉项。</summary>
-    public sealed class AppearancePresetListChangedMessage
-    {
-        public static AppearancePresetListChangedMessage Instance { get; } = new();
-        private AppearancePresetListChangedMessage() { }
-    }
-
-    /// <summary>导入配置后某页面 ViewModel 已重挂，对应页面 View 应同步控件状态。</summary>
+    /// <summary>导入配置后某页面 ViewModel 已重挂，外观页 View 订阅后只做主题应用/预览重绘等
+    /// View 效果（T21：状态与下拉项已声明式绑定，不再同步控件）。</summary>
     public sealed class PageConfigReloadedMessage
     {
         public Type ViewModelType { get; }

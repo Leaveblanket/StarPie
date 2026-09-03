@@ -1,21 +1,14 @@
-using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
-using WinPieGestures.ViewModels;
 
 namespace WinPieGestures.Views.Pages
 {
     /// <summary>
-    /// 触发与场景页面 (T19)：迁移前 SettingsWindow PAGE 0 原样搬迁。页面 ViewModel 为
-    /// <see cref="BehaviorSettingsViewModel"/>（容器单例）；滑杆/开关为非绑定控件（清欠边界外），
-    /// 挂载与导入重挂时从 VM 回填，事件处理器只做"写 VM + View 效果"。
+    /// 触发与场景页面 (T19/T21)：全部状态经 Binding 直连 <see cref="BehaviorSettingsViewModel"/>
+    /// （滑杆/开关/黑名单列表等均双向绑定，导入重挂由 VM 属性通知自动回填），code-behind 只保留
+    /// 本地化回填与黑名单新增条目的滚动适配（ADR-0009 白名单：纯 UI 适配）。
     /// </summary>
     public partial class TriggerSettingsPage : SettingsPageBase
     {
-        // 页面 VM 在 Loaded 时缓存:Unloaded 阶段 DataContext 已随可视树脱离而置空,
-        // 届时经缓存退订事件(迁移前窗口持有字段引用,无此问题)。
-        private BehaviorSettingsViewModel? _vm;
-
         public TriggerSettingsPage()
         {
             InitializeComponent();
@@ -50,29 +43,18 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            _vm = (BehaviorSettingsViewModel)DataContext;
-            WeakReferenceMessenger.Default.Register<PageConfigReloadedMessage>(this, (_, m) =>
-            {
-                if (m.ViewModelType == typeof(BehaviorSettingsViewModel)) OnConfigReloaded();
-            });
+            // ADR-0009：黑名单新增后的滚动适配是纯 UI 效果；选中已由 VM 写入
+            // SelectedBlacklistProcess，列表 SelectedItem 双向绑定自动跟随。
             WeakReferenceMessenger.Default.Register<BlacklistEntryAddedMessage>(this, (_, m) => OnBlacklistEntryAdded(m.ProcessName));
         }
 
         protected override void OnPageUnloaded()
         {
-            if (_vm != null)
-            {
-                WeakReferenceMessenger.Default.Unregister<PageConfigReloadedMessage>(this);
-                WeakReferenceMessenger.Default.Unregister<BlacklistEntryAddedMessage>(this);
-            }
-            _vm = null;
+            WeakReferenceMessenger.Default.Unregister<BlacklistEntryAddedMessage>(this);
         }
-
-        private void OnConfigReloaded() { }
 
         private void OnBlacklistEntryAdded(string proc)
         {
-            BlacklistListBox.SelectedItem = proc;
             BlacklistListBox.ScrollIntoView(proc);
         }
     }

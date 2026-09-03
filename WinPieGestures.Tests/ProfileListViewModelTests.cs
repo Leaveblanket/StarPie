@@ -29,7 +29,7 @@ public sealed class ProfileListViewModelTests
     // --- 构造与列表展示 -------------------------------------------------------------
 
     [Fact]
-    public void Constructor_WrapsAllSourceProfilesAndStartsUnselected()
+    public void Constructor_WrapsAllSourceProfiles_SelectsFirstByDefault()
     {
         var source = new List<WheelProfile> { MakeProfile("Global"), MakeProfile("chrome.exe", 4) };
 
@@ -38,6 +38,18 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(2, vm.Profiles.Count);
         Assert.Equal("Global", vm.Profiles[0].ProcessName);
         Assert.Equal("chrome.exe", vm.Profiles[1].ProcessName);
+        // T21：默认选中收编进 VM——有方案即选中首项并重建槽位（页面 View 不再写选中态）。
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile);
+        Assert.Equal(8, vm.SelectedSectorCount);
+        Assert.Equal(8, vm.Slots.Count);
+    }
+
+    [Fact]
+    public void Constructor_NoProfiles_StartsUnselectedWithEmptySlots()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+
+        Assert.Empty(vm.Profiles);
         Assert.Null(vm.SelectedProfile);
         Assert.Null(vm.SelectedSectorCount);
         Assert.Empty(vm.Slots);
@@ -51,8 +63,9 @@ public sealed class ProfileListViewModelTests
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
 
         Assert.False(vm.SelectProfile(null));
-        Assert.Null(vm.SelectedProfile);
-        Assert.Empty(vm.Slots);
+        // T21：默认选中已在 VM 内，null 选择不清空当前选中与槽位。
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile);
+        Assert.Equal(8, vm.Slots.Count);
     }
 
     [Fact]
@@ -75,11 +88,11 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SelectProfile_RaisesSelectedProfileNotification()
     {
-        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe", 4) }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         object? notified = null;
         vm.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(vm.SelectedProfile)) notified = s; };
 
-        vm.SelectProfile(vm.Profiles[0]);
+        vm.SelectProfile(vm.Profiles[1]); // 默认已选中首项，改选第二项才会触发通知
 
         Assert.NotNull(notified);
     }
@@ -250,7 +263,7 @@ public sealed class ProfileListViewModelTests
     }
 
     [Fact]
-    public void Reload_RebuildsCollectionAndClearsSelectionAndSlots()
+    public void Reload_RebuildsCollectionAndSelectsFirstOfNewList()
     {
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
         vm.SelectProfile(vm.Profiles[0]);
@@ -258,10 +271,25 @@ public sealed class ProfileListViewModelTests
         var newList = new List<WheelProfile> { MakeProfile("imported.exe", 4) };
         vm.Reload(newList);
 
-        Assert.Null(vm.SelectedProfile);
-        Assert.Empty(vm.Slots);
+        // T21：导入回落收编进 VM——重挂后选中新列表首项并重建槽位。
         Assert.Single(vm.Profiles);
         Assert.Equal("imported.exe", vm.Profiles[0].ProcessName);
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile);
+        Assert.Equal(4, vm.SelectedSectorCount);
+        Assert.Equal(4, vm.Slots.Count);
+    }
+
+    [Fact]
+    public void Reload_EmptyList_ClearsSelectionAndSlots()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+        vm.SelectProfile(vm.Profiles[0]);
+
+        vm.Reload(new List<WheelProfile>());
+
+        Assert.Empty(vm.Profiles);
+        Assert.Null(vm.SelectedProfile);
+        Assert.Empty(vm.Slots);
     }
 
     // --- 槽位名称编辑（迁移前行为锁定：直写模型、无验证） -------------------------------
