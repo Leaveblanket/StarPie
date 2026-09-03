@@ -1,0 +1,3 @@
+# Strict ViewModel/View boundary
+
+The settings and dialog layers keep their ViewModels free of WPF presentation types and stop exposing ad hoc .NET events from ViewModel to View. Color and geometry values are represented as strings or pure model types, converted to WPF types in the View layer by converters; page-to-view refresh flows use `IMessenger` (`WeakReferenceMessenger.Default`); dialog close/completion is observed through observable completion state instead of `event Action`; dialog ViewModels are created by `IDialogService` rather than inside View constructors. Live wheel preview drawing is owned by a View-layer `WheelPreviewRenderer`, leaving the page code-behind to mount the Canvas and forward mouse input.
