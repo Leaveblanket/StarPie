@@ -1,25 +1,17 @@
-using System;
 using System.Windows;
-using System.Windows.Controls;
-using WinPieGestures.Services;
-using WinPieGestures.ViewModels;
+using CommunityToolkit.Mvvm.Messaging;
+using WinPieGestures.Services.Messages;
 
 namespace WinPieGestures.Views.Pages
 {
     /// <summary>
-    /// 高级与系统页面 (T19)：迁移前 SettingsWindow PAGE 3 原样搬迁。页面 ViewModel 为
-    /// <see cref="GeneralSettingsViewModel"/>（容器单例）：语言切换/自启/提权/导入导出编排已住 VM，
-    /// 本视图只做弹窗映射（NoticeRequested）与语言下拉等 View 效果；落盘请求由 VM 消息上报组合根。
+    /// 高级与系统页面 (T19)：迁移前 SettingsWindow PAGE 3 原样搬迁。语言切换/自启/提权/导入导出编排
+    /// 已住 VM（容器单例），本视图只做弹窗映射（<see cref="GeneralNoticeRequestedMessage"/>）与
+    /// 语言下拉等 View 效果；语言状态经 XAML 双向绑定直达 VM，code-behind 不引用 VM 类型
+    /// （ADR-0008 严格边界）。
     /// </summary>
     public partial class AdvancedSettingsPage : SettingsPageBase
     {
-        private bool _isUpdatingUi = true;
-
-        // 页面 VM 在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)。
-        private GeneralSettingsViewModel? _vm;
-
-        private GeneralSettingsViewModel Vm => _vm!;
-
         public AdvancedSettingsPage()
         {
             InitializeComponent();
@@ -45,110 +37,23 @@ namespace WinPieGestures.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            _vm = (GeneralSettingsViewModel)DataContext;
-            _vm.NoticeRequested -= ShowNotice;
-            _vm.NoticeRequested += ShowNotice;
-            _vm.ConfigReloaded -= OnConfigReloaded;
-            _vm.ConfigReloaded += OnConfigReloaded;
-
-            _isUpdatingUi = true;
-            try
-            {
-                AutoStartCheckBox.IsChecked = Vm.AutoStartEnabled;
-                SetComboBoxSelectedValue(LanguageComboBox, Vm.LanguageCode);
-                UacWarningCard.Visibility = IsRunningAsAdmin() ? Visibility.Collapsed : Visibility.Visible;
-            }
-            finally
-            {
-                _isUpdatingUi = false;
-            }
+            WeakReferenceMessenger.Default.Register<GeneralNoticeRequestedMessage>(this, (_, m) => ShowNotice(m.Notice));
         }
 
         protected override void OnPageUnloaded()
         {
-            if (_vm != null)
-            {
-                _vm.NoticeRequested -= ShowNotice;
-                _vm.ConfigReloaded -= OnConfigReloaded;
-            }
-            _vm = null;
+            WeakReferenceMessenger.Default.Unregister<GeneralNoticeRequestedMessage>(this);
         }
 
-        private void OnConfigReloaded()
-        {
-            _isUpdatingUi = true;
-            try
-            {
-                SetComboBoxSelectedValue(LanguageComboBox, Vm.LanguageCode);
-            }
-            finally
-            {
-                _isUpdatingUi = false;
-            }
-        }
-
-        private void ShowNotice(GeneralSettingsViewModel.NoticeRequest notice)
+        private void ShowNotice(NoticeRequest notice)
         {
             var image = notice.Kind switch
             {
-                GeneralSettingsViewModel.NoticeKind.Error => MessageBoxImage.Error,
-                GeneralSettingsViewModel.NoticeKind.Warning => MessageBoxImage.Warning,
+                NoticeKind.Error => MessageBoxImage.Error,
+                NoticeKind.Warning => MessageBoxImage.Warning,
                 _ => MessageBoxImage.Information
             };
             MessageBox.Show(notice.Message, notice.Title, MessageBoxButton.OK, image);
-        }
-
-        // --- 事件处理器（迁移前窗口处理器原样搬迁；编排已住 VM） ---
-
-        private void LanguageComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (_isUpdatingUi) return;
-            // 语言切换编排（写配置、I18n.SetLanguage 触发广播）进 VM；文本刷新由各页订阅的广播完成。
-            if (LanguageComboBox.SelectedItem is ComboBoxItem item && item.Tag is string langCode)
-            {
-                Vm.ApplyLanguage(langCode);
-            }
-        }
-
-        private void AutoStartCheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            if (_isUpdatingUi) return;
-            Vm.SetAutoStart(AutoStartCheckBox.IsChecked == true);
-        }
-
-        private void ElevatePrivileges_Click(object sender, RoutedEventArgs e)
-        {
-            Vm.ElevateAndRestart();
-        }
-
-        private void ExportConfigButton_Click(object sender, RoutedEventArgs e)
-        {
-            Vm.ExportConfigCommand.Execute(null);
-        }
-
-        private void ImportConfigButton_Click(object sender, RoutedEventArgs e)
-        {
-            Vm.ImportConfigCommand.Execute(null);
-        }
-
-        private void TrimMemoryButton_Click(object sender, RoutedEventArgs e)
-        {
-            MemoryOptimizer.TrimMemory(true);
-            MessageBox.Show(Window.GetWindow(this), "物理工作集内存已深度压缩！", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        private static bool IsRunningAsAdmin()
-        {
-            try
-            {
-                using var id = System.Security.Principal.WindowsIdentity.GetCurrent();
-                var principal = new System.Security.Principal.WindowsPrincipal(id);
-                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

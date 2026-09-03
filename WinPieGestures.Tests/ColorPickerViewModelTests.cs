@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using WinPieGestures;
-using Color = System.Windows.Media.Color;
 
 namespace WinPieGestures.Tests;
 
 /// <summary>
 /// 颜色选择器 ViewModel 的行为覆盖 (T08)：HSV/RGB 纯函数换算、十六进制输入解析与规范化、
 /// 色盘取点夹紧、确认结果与屏上取色编排（mock 对话框服务）。
+/// T20 起颜色值以 <see cref="RgbColor"/> 纯模型表示（View 层经 HexToBrushConverter 转 WPF 画刷）。
 /// </summary>
 public sealed class ColorPickerViewModelTests
 {
@@ -33,6 +33,8 @@ public sealed class ColorPickerViewModelTests
         public void ShowInfo(string title, string message) => throw new NotSupportedException();
     }
 
+    private static RgbColor Rgb(byte r, byte g, byte b) => new(255, r, g, b);
+
     private static ColorPickerViewModel Create(FakeDialogService? dialogs = null, string initialHex = "#FFFF0000")
         => new(dialogs ?? new FakeDialogService(), initialHex);
 
@@ -47,7 +49,7 @@ public sealed class ColorPickerViewModelTests
     {
         var color = ColorPickerViewModel.HsvToRgb(h, s, v);
 
-        Assert.Equal(Color.FromRgb(r, g, b), color);
+        Assert.Equal(Rgb(r, g, b), color);
     }
 
     [Fact]
@@ -55,7 +57,7 @@ public sealed class ColorPickerViewModelTests
     {
         var color = ColorPickerViewModel.HsvToRgb(0, 0, 0.5);
 
-        Assert.Equal(Color.FromRgb(127, 127, 127), color);
+        Assert.Equal(Rgb(127, 127, 127), color);
     }
 
     [Theory]
@@ -64,7 +66,7 @@ public sealed class ColorPickerViewModelTests
     [InlineData(0, 0, 255, 240, 1, 1)]
     public void ColorToHsv_PureHues_AreExact(byte r, byte g, byte b, double h, double s, double v)
     {
-        var (outH, outS, outV) = ColorPickerViewModel.ColorToHsv(Color.FromRgb(r, g, b));
+        var (outH, outS, outV) = ColorPickerViewModel.ColorToHsv(Rgb(r, g, b));
 
         Assert.Equal(h, outH, 5);
         Assert.Equal(s, outS, 5);
@@ -143,15 +145,15 @@ public sealed class ColorPickerViewModelTests
     }
 
     [Fact]
-    public void SetColorFromHex_RaisesSpectrumChanged()
+    public void SetColorFromHex_RefreshesSpectrumHex()
     {
+        // 色盘底色（当前色相纯色）经可观察 SpectrumHex 驱动绑定，取代旧 SpectrumChanged 事件。
         var vm = Create(dialogs: new FakeDialogService(), initialHex: "#FF000000");
-        var raised = 0;
-        vm.SpectrumChanged += () => raised++;
 
         vm.SetColorFromHex("#FF00FF00");
 
-        Assert.Equal(1, raised);
+        Assert.Equal("#FF00FF00", vm.SpectrumHex);
+        Assert.Equal("#FF00FF00", vm.PreviewHex);
     }
 
     // --- 十六进制输入框 ----------------------------------------------------------------

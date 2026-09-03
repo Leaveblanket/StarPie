@@ -51,8 +51,8 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="60"/>
                                     </Grid.ColumnDefinitions>
-                                    <Slider x:Name="ThresholdSlider" Minimum="10" Maximum="60" Value="25" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="ThresholdSlider_ValueChanged"/>
-                                    <TextBlock x:Name="ThresholdValueLabel" Grid.Column="1" Text="25" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    <Slider x:Name="ThresholdSlider" Minimum="10" Maximum="60" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding DragThreshold, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <TextBlock x:Name="ThresholdValueLabel" Grid.Column="1" Text="{Binding DragThreshold, StringFormat={}{0:0}}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="14" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -64,7 +64,7 @@
                             <StackPanel>
                                 <TextBlock x:Name="OuterEscapeTitleText" Text="顺势外甩脱离取消 (Outer Escape Cancel)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock x:Name="OuterEscapeDescText" Text="手势划出后若想放弃，无需拉回中心，直接顺势向外快速划出即可安全取消，0 误触。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,10" TextWrapping="Wrap"/>
-                                <CheckBox x:Name="EnableOuterEscapeCheckBox" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,4" Checked="OuterEscapeCheckBox_Checked" Unchecked="OuterEscapeCheckBox_Unchecked">
+                                <CheckBox x:Name="EnableOuterEscapeCheckBox" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,4" IsChecked="{Binding EnableOuterEscapeCancel, Mode=TwoWay}">
                                     <StackPanel Margin="6,0,0,0">
                                         <TextBlock x:Name="OuterEscapeCheckboxTitleText" Text="启用向外顺势甩出取消手势 (推荐开启)" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <TextBlock x:Name="OuterEscapeCheckboxDescText" Text="超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
@@ -72,7 +72,7 @@
                                 </CheckBox>
 
                                 <!-- Escape Distance Slider (Shown when enabled) -->
-                                <StackPanel x:Name="OuterEscapeDistancePanel" Margin="0,10,0,0">
+                                 <StackPanel x:Name="OuterEscapeDistancePanel" Margin="0,10,0,0" Visibility="{Binding EnableOuterEscapeCancel, Converter={StaticResource BoolToVis}}">
                                     <Border BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,12,0,0">
                                         <StackPanel>
                                             <TextBlock x:Name="OuterEscapeDistanceTitleText" Text="外甩取消距离灵敏度 (Escape Distance):" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -82,8 +82,8 @@
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="70"/>
                                                 </Grid.ColumnDefinitions>
-                                                <Slider x:Name="OuterEscapeDistanceSlider" Minimum="140" Maximum="320" Value="190" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" ValueChanged="OuterEscapeDistanceSlider_ValueChanged"/>
-                                                <TextBlock x:Name="OuterEscapeDistanceLabel" Grid.Column="1" Text="190 px" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                                <Slider x:Name="OuterEscapeDistanceSlider" Minimum="140" Maximum="320" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding OuterEscapeDistance, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                                <TextBlock x:Name="OuterEscapeDistanceLabel" Grid.Column="1" Text="{Binding OuterEscapeDistance, StringFormat={}{0:0} px}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="13" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -100,7 +100,7 @@
                                 <TextBlock x:Name="SceneIsolationTitleText" Text="场景隔离与防误触" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock x:Name="SceneIsolationDescText" Text="当处于特定场景或配合修饰键操作时，自动绕过轮盘拦截，放行原生右键事件。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,12"/>
                                 
-                                <CheckBox x:Name="DisableOnFullScreenCheckBox" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,14" Checked="DisableOnFullScreenCheckBox_Changed" Unchecked="DisableOnFullScreenCheckBox_Changed">
+                                <CheckBox x:Name="DisableOnFullScreenCheckBox" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,14" IsChecked="{Binding DisableOnFullScreen, Mode=TwoWay}">
                                     <StackPanel Margin="6,0,0,0">
                                         <TextBlock x:Name="FullScreenOptionTitleText" Text="全屏游戏/独占应用自动禁用手势" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <TextBlock x:Name="FullScreenOptionDescText" Text="自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
@@ -111,9 +111,9 @@
                                     <StackPanel>
                                         <TextBlock x:Name="ModifierPassTitleText" Text="快捷键旁路穿透 (按住以下修饰键拖拽时不触发手势):" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                                         <WrapPanel>
-                                            <CheckBox x:Name="CtrlModifierCheckBox" Content="按住 Ctrl 键时旁路" Margin="0,0,20,8" Checked="ModifierCheckBox_Changed" Unchecked="ModifierCheckBox_Changed"/>
-                                            <CheckBox x:Name="ShiftModifierCheckBox" Content="按住 Shift 键时旁路" Margin="0,0,20,8" Checked="ModifierCheckBox_Changed" Unchecked="ModifierCheckBox_Changed"/>
-                                            <CheckBox x:Name="AltModifierCheckBox" Content="按住 Alt 键时旁路" Margin="0,0,20,8" Checked="ModifierCheckBox_Changed" Unchecked="ModifierCheckBox_Changed"/>
+                                            <CheckBox x:Name="CtrlModifierCheckBox" Content="按住 Ctrl 键时旁路" Margin="0,0,20,8" IsChecked="{Binding DisableOnCtrl, Mode=TwoWay}"/>
+                                            <CheckBox x:Name="ShiftModifierCheckBox" Content="按住 Shift 键时旁路" Margin="0,0,20,8" IsChecked="{Binding DisableOnShift, Mode=TwoWay}"/>
+                                            <CheckBox x:Name="AltModifierCheckBox" Content="按住 Alt 键时旁路" Margin="0,0,20,8" IsChecked="{Binding DisableOnAlt, Mode=TwoWay}"/>
                                         </WrapPanel>
                                     </StackPanel>
                                 </Border>
@@ -138,17 +138,21 @@
                                     <TextBox x:Name="NewBlacklistProcessTextBox" Height="34" Margin="0,0,8,0"
                                              FontSize="12" VerticalContentAlignment="Center"
                                              ToolTip="输入进程名称 (如 solidworks.exe) 或直接点击右侧选择应用..."
-                                             KeyDown="NewBlacklistProcessTextBox_KeyDown"/>
+                                              Text="{Binding NewBlacklistProcess, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                        <TextBox.InputBindings><KeyBinding Key="Enter" Command="{Binding AddBlacklistFromInputCommand}"/></TextBox.InputBindings>
+                                    </TextBox>
                                     <Button x:Name="BrowseBlacklistButton" Grid.Column="1" Content="🔍 选择应用..." 
                                             Style="{StaticResource ModernButtonStyle}" Height="34" Padding="14,0" Margin="0,0,8,0" 
-                                            Click="BrowseBlacklistButton_Click" ToolTip="从已安装软件列表中快速选择要排除的程序"/>
+                                            Command="{Binding BrowseBlacklistCommand}" ToolTip="从已安装软件列表中快速选择要排除的程序"/>
                                     <Button x:Name="AddBlacklistButton" Grid.Column="2" Content="➕ 添加进程" 
                                             Style="{StaticResource PrimaryButtonStyle}" Height="34" Padding="16,0" 
-                                            Click="AddBlacklistButton_Click" ToolTip="将输入框中的进程名称加入排除黑名单"/>
+                                            Command="{Binding AddBlacklistFromInputCommand}" ToolTip="将输入框中的进程名称加入排除黑名单"/>
                                 </Grid>
 
-                                <ListBox x:Name="BlacklistListBox" Height="110" Margin="0,0,0,8" ItemsSource="{Binding BlacklistProcesses}" KeyDown="BlacklistListBox_KeyDown" SelectionChanged="BlacklistListBox_SelectionChanged"/>
-                                <Button x:Name="DeleteBlacklistButton" Content="🗑️ 移除选中的进程" Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Right" Height="30" Padding="12,0" Click="DeleteBlacklistButton_Click"/>
+                                <ListBox x:Name="BlacklistListBox" Height="110" Margin="0,0,0,8" ItemsSource="{Binding BlacklistProcesses}" SelectedItem="{Binding SelectedBlacklistProcess, Mode=TwoWay}">
+                                    <ListBox.InputBindings><KeyBinding Key="Delete" Command="{Binding DeleteBlacklistProcessCommand}"/><KeyBinding Key="Back" Command="{Binding DeleteBlacklistProcessCommand}"/></ListBox.InputBindings>
+                                </ListBox>
+                                <Button x:Name="DeleteBlacklistButton" Content="🗑️ 移除选中的进程" Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Right" Height="30" Padding="12,0" Command="{Binding DeleteBlacklistProcessCommand}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

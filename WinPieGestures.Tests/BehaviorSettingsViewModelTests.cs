@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CommunityToolkit.Mvvm.Messaging;
 using WinPieGestures;
 
 namespace WinPieGestures.Tests;
@@ -150,7 +151,7 @@ public sealed class BehaviorSettingsViewModelTests
         var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.NewBlacklistProcess = "  MyGame ";
         var added = new List<string>();
-        vm.BlacklistEntryAdded += p => added.Add(p);
+        messenger.Register<BlacklistEntryAddedMessage>(vm, (_, m) => added.Add(m.ProcessName));
 
         vm.AddBlacklistFromInputCommand.Execute(null);
 
@@ -185,7 +186,7 @@ public sealed class BehaviorSettingsViewModelTests
         var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
         vm.NewBlacklistProcess = "MSTSC";
         var added = new List<string>();
-        vm.BlacklistEntryAdded += p => added.Add(p);
+        messenger.Register<BlacklistEntryAddedMessage>(vm, (_, m) => added.Add(m.ProcessName));
 
         vm.AddBlacklistFromInputCommand.Execute(null);
 

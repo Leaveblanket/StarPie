@@ -1,9 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
+using WinPieGestures.Models;
 
 namespace WinPieGestures.ViewModels.Dialogs
 {
@@ -28,15 +26,12 @@ namespace WinPieGestures.ViewModels.Dialogs
 
         private readonly IDialogService _dialogs;
 
+        [ObservableProperty]
         private double _saturation = 1; // 0 ~ 1
+
+        [ObservableProperty]
         private double _value = 1;      // 0 ~ 1
         private bool _isUpdating;
-
-        /// <summary>色盘当前点的饱和度（0 ~ 1），视图重定位取色圈用。</summary>
-        public double Saturation => _saturation;
-
-        /// <summary>色盘当前点的明度（0 ~ 1），视图重定位取色圈用。</summary>
-        public double Value => _value;
 
         /// <summary>当前结果色（#AARRGGBB，大写）。</summary>
         public string SelectedHexColor { get; private set; } = DefaultHex;
@@ -51,16 +46,13 @@ namespace WinPieGestures.ViewModels.Dialogs
         [ObservableProperty]
         private string _hexText = DefaultHex;
 
-        /// <summary>色盘底色（当前色相的纯色）。</summary>
+        /// <summary>色盘底色（当前色相的纯色），View 经 HexToBrushConverter 转为画刷。</summary>
         [ObservableProperty]
-        private SolidColorBrush _spectrumBrush = new(System.Windows.Media.Color.FromRgb(255, 0, 0));
+        private string _spectrumHex = DefaultHex;
 
-        /// <summary>预览块画刷（当前完整颜色，含透明度）。</summary>
+        /// <summary>预览块颜色（当前完整颜色，含透明度），View 经 HexToBrushConverter 转为画刷。</summary>
         [ObservableProperty]
-        private SolidColorBrush _previewBrush = new(System.Windows.Media.Color.FromRgb(37, 99, 235));
-
-        /// <summary>色相/饱和度/明度变化后通知视图重定位取色圈（画布尺寸归视图）。</summary>
-        public event Action? SpectrumChanged;
+        private string _previewHex = DefaultHex;
 
         public ColorPickerViewModel(IDialogService dialogs, string initialHex = DefaultHex)
         {
@@ -89,12 +81,11 @@ namespace WinPieGestures.ViewModels.Dialogs
             try
             {
                 if (!text.StartsWith("#")) text = "#" + text;
-                var color = (Color)ColorConverter.ConvertFromString(text);
+                if (!RgbColor.TryParseHex(text, out var color)) return;
 
                 ApplyParsedColor(color);
 
                 UpdateSpectrumBrush();
-                RaiseSpectrumChanged();
                 UpdatePreview();
             }
             catch { }
@@ -107,7 +98,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             try
             {
                 if (!hex.StartsWith("#")) hex = "#" + hex;
-                var color = (Color)ColorConverter.ConvertFromString(hex);
+                if (!RgbColor.TryParseHex(hex, out var color)) return;
 
                 _isUpdating = true;
                 HexText = hex.ToUpper();
@@ -116,20 +107,22 @@ namespace WinPieGestures.ViewModels.Dialogs
                 ApplyParsedColor(color);
 
                 UpdateSpectrumBrush();
-                RaiseSpectrumChanged();
                 UpdatePreview();
             }
             catch { }
         }
 
+        [RelayCommand]
+        private void SetColorFromHexAction(string hex) => SetColorFromHex(hex);
+
         /// <summary>应用已解析的颜色：同步 HSV 状态与滑杆（抑制回环，与迁移前一致）。</summary>
-        private void ApplyParsedColor(Color color)
+        private void ApplyParsedColor(RgbColor color)
         {
-            var (h, s, v) = ColorToHsv(color);
+            var (h, s, v) = ColorMath.RgbToHsv(color);
 
             _isUpdating = true;
-            _saturation = s;
-            _value = v;
+            Saturation = s;
+            Value = v;
             Hue = h;
             Alpha = color.A;
             _isUpdating = false;
@@ -138,9 +131,8 @@ namespace WinPieGestures.ViewModels.Dialogs
         /// <summary>色盘取点：饱和度/明度归一化值越界夹紧后更新结果色。</summary>
         public void SetSpectrumPoint(double saturation, double value)
         {
-            _saturation = Math.Max(0, Math.Min(1, saturation));
-            _value = Math.Max(0, Math.Min(1, value));
-            RaiseSpectrumChanged();
+            Saturation = Math.Max(0, Math.Min(1, saturation));
+            Value = Math.Max(0, Math.Min(1, value));
             UpdatePreview();
         }
 
@@ -159,15 +151,14 @@ namespace WinPieGestures.ViewModels.Dialogs
         public ColorPickResult? BuildResult()
             => string.IsNullOrEmpty(SelectedHexColor) ? null : new ColorPickResult(SelectedHexColor);
 
-        private void UpdateSpectrumBrush() => SpectrumBrush = new SolidColorBrush(HsvToRgb(Hue, 1, 1));
+        private void UpdateSpectrumBrush() => SpectrumHex = ColorMath.HsvToRgb(Hue, 1, 1).ToHex();
 
         private void UpdatePreview()
         {
-            var rgb = HsvToRgb(Hue, _saturation, _value);
-            var finalColor = Color.FromArgb((byte)Alpha, rgb.R, rgb.G, rgb.B);
-            SelectedHexColor = $"#{finalColor.A:X2}{finalColor.R:X2}{finalColor.G:X2}{finalColor.B:X2}";
+            var finalColor = ColorMath.HsvToRgb(Hue, Saturation, Value, (byte)Alpha);
+            SelectedHexColor = finalColor.ToHex();
 
-            PreviewBrush = new SolidColorBrush(finalColor);
+            PreviewHex = SelectedHexColor;
 
             // 与迁移前一致：程序化写输入框时抑制回环解析。
             if (!_isUpdating)
@@ -178,64 +169,13 @@ namespace WinPieGestures.ViewModels.Dialogs
             }
         }
 
-        private void RaiseSpectrumChanged() => SpectrumChanged?.Invoke();
-
         #region HSV / RGB Conversion（迁移自 ColorPickerWindow，算法不变）
 
         /// <summary>HSV → RGB：h ∈ [0, 360)，s/v ∈ [0, 1]。</summary>
-        public static Color HsvToRgb(double h, double s, double v)
-        {
-            int hi = (int)Math.Floor(h / 60) % 6;
-            double f = (h / 60) - Math.Floor(h / 60);
-
-            v *= 255;
-            byte vVal = (byte)Math.Max(0, Math.Min(255, v));
-            byte p = (byte)Math.Max(0, Math.Min(255, v * (1 - s)));
-            byte q = (byte)Math.Max(0, Math.Min(255, v * (1 - f * s)));
-            byte t = (byte)Math.Max(0, Math.Min(255, v * (1 - (1 - f) * s)));
-
-            switch (hi)
-            {
-                case 0: return Color.FromRgb(vVal, t, p);
-                case 1: return Color.FromRgb(q, vVal, p);
-                case 2: return Color.FromRgb(p, vVal, t);
-                case 3: return Color.FromRgb(p, q, vVal);
-                case 4: return Color.FromRgb(t, p, vVal);
-                default: return Color.FromRgb(vVal, p, q);
-            }
-        }
+        public static RgbColor HsvToRgb(double h, double s, double v) => ColorMath.HsvToRgb(h, s, v);
 
         /// <summary>RGB → HSV：h ∈ [0, 360)，s/v ∈ [0, 1]；返回色相便于一行接线。</summary>
-        public static (double Hue, double Saturation, double Value) ColorToHsv(Color color)
-        {
-            double r = color.R / 255.0;
-            double g = color.G / 255.0;
-            double b = color.B / 255.0;
-
-            double max = Math.Max(r, Math.Max(g, b));
-            double min = Math.Min(r, Math.Min(g, b));
-            double delta = max - min;
-
-            double v = max;
-            double s = max <= 0 ? 0 : delta / max;
-
-            double h;
-            if (delta <= 0)
-            {
-                h = 0;
-            }
-            else
-            {
-                if (Math.Abs(r - max) < 0.0001) h = (g - b) / delta;
-                else if (Math.Abs(g - max) < 0.0001) h = 2 + (b - r) / delta;
-                else h = 4 + (r - g) / delta;
-
-                h *= 60;
-                if (h < 0) h += 360;
-            }
-
-            return (h, s, v);
-        }
+        public static (double Hue, double Saturation, double Value) ColorToHsv(RgbColor color) => ColorMath.RgbToHsv(color);
 
         #endregion
     }

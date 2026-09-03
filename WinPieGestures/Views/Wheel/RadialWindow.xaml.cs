@@ -592,7 +592,6 @@ namespace WinPieGestures.Views.Wheel
                     break;
                 case nameof(WheelViewModel.IsClosed):
                     Close();
-                    MemoryOptimizer.TrimMemory();
                     break;
             }
         }

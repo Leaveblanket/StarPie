@@ -98,7 +98,7 @@
                      BorderBrush="{DynamicResource InputBorderBrush}"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" ToolTip="输入图标名称进行快速过滤..."/>
             <Button Grid.Column="1" x:Name="ImportIconButton" Content="➕ 导入自定义图标..." Style="{StaticResource ModernButtonStyle}" Height="32" Margin="8,0,0,0" Command="{Binding ImportIconCommand}" ToolTip="支持导入本地 SVG 矢量图或 PNG / ICO / JPG 图片图标"/>
-            <Button Grid.Column="2" x:Name="ClearIconButton" Content="清空图标" Style="{StaticResource ModernButtonStyle}" Height="32" Margin="8,0,0,0" Click="ClearIcon_Click"/>
+            <Button Grid.Column="2" x:Name="ClearIconButton" Content="清空图标" Style="{StaticResource ModernButtonStyle}" Height="32" Margin="8,0,0,0" Command="{Binding ClearIconCommand}"/>
         </Grid>
 
         <!-- Icons Grid -->

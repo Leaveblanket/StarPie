@@ -26,12 +26,12 @@ namespace WinPieGestures.Views.Dialogs
     {
         private readonly ColorPickerViewModel _vm;
 
-        public ColorPickerWindow(IThemeService themeService, IDialogService dialogService, string initialHex = "#FF2563EB")
+        public ColorPickerWindow(IThemeService themeService, ColorPickerViewModel viewModel)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
-            _vm = new ColorPickerViewModel(dialogService, initialHex);
-            _vm.SpectrumChanged += UpdateSpectrumThumbPosition;
+            _vm = viewModel;
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
             DataContext = _vm;
             PopulateSwatches();
             UpdateSpectrumThumbPosition();
@@ -40,6 +40,15 @@ namespace WinPieGestures.Views.Dialogs
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
         public ColorPickResult? BuildResult() => _vm.BuildResult();
+
+        private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ColorPickerViewModel.Saturation) ||
+                e.PropertyName == nameof(ColorPickerViewModel.Value))
+            {
+                UpdateSpectrumThumbPosition();
+            }
+        }
 
         private void PopulateSwatches()
         {
@@ -53,9 +62,10 @@ namespace WinPieGestures.Views.Dialogs
                     {
                         Style = (Style)FindResource("ColorSwatchButtonStyle"),
                         Background = new SolidColorBrush(col),
-                        ToolTip = hex
+                        ToolTip = hex,
+                        Command = _vm.SetColorFromHexActionCommand,
+                        CommandParameter = hex
                     };
-                    btn.Click += (s, e) => _vm.SetColorFromHex(hex);
                     SwatchesPanel.Children.Add(btn);
                 }
                 catch { }
@@ -166,15 +176,16 @@ namespace WinPieGestures.Views.Dialogs
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT { public int X; public int Y; }
 
-        private readonly ScreenEyedropperViewModel _vm = new();
+        private readonly ScreenEyedropperViewModel _vm;
         private readonly Canvas _loupeCanvas;
         private readonly Border _loupeBorder;
 
         /// <summary>捕获的颜色（仅在 DialogResult == true 时非空）。</summary>
         public string? CapturedHexColor => _vm.CapturedHexColor;
 
-        public ScreenEyedropperOverlay()
+        public ScreenEyedropperOverlay(ScreenEyedropperViewModel viewModel)
         {
+            _vm = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
             WindowStyle = WindowStyle.None;
             AllowsTransparency = true;
             Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
@@ -221,13 +232,11 @@ namespace WinPieGestures.Views.Dialogs
             // 放大镜文案与色块走 VM 绑定。
             DataContext = _vm;
             hexLabel.SetBinding(TextBlock.TextProperty, new Binding(nameof(ScreenEyedropperViewModel.HexText)));
-            swatchBorder.SetBinding(Border.BackgroundProperty, new Binding(nameof(ScreenEyedropperViewModel.SwatchBrush)));
-
-            _vm.CloseRequested += confirmed =>
+            var swatchBinding = new Binding(nameof(ScreenEyedropperViewModel.SwatchHex))
             {
-                DialogResult = confirmed;
-                Close();
+                Converter = (IValueConverter)FindResource("HexToBrushConverter")
             };
+            swatchBorder.SetBinding(Border.BackgroundProperty, swatchBinding);
 
             MouseMove += ScreenEyedropperOverlay_MouseMove;
             MouseDown += ScreenEyedropperOverlay_MouseDown;
@@ -257,12 +266,14 @@ namespace WinPieGestures.Views.Dialogs
                 if (GetCursorPos(out POINT pt))
                 {
                     Color c = GetPixelColor(pt.X, pt.Y);
-                    _vm.Capture(c.R, c.G, c.B);
+                    DialogResult = _vm.Capture(c.R, c.G, c.B);
+                    Close();
                 }
             }
             else if (e.ChangedButton == MouseButton.Right)
             {
-                _vm.Cancel();
+                DialogResult = _vm.Cancel();
+                Close();
             }
         }
 
@@ -270,7 +281,8 @@ namespace WinPieGestures.Views.Dialogs
         {
             if (e.Key == Key.Escape)
             {
-                _vm.Cancel();
+                DialogResult = _vm.Cancel();
+                Close();
             }
         }
 

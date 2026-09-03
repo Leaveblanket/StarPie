@@ -126,7 +126,7 @@
                                             <TextBlock Text="扇区底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                             <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgBrush}"/>
+                                                <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
                                             <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
@@ -142,7 +142,7 @@
                                             <TextBlock Text="扇区边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                             <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderBrush}"/>
+                                                <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
                                             <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
@@ -158,7 +158,7 @@
                                             <TextBlock Text="高亮底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                             <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgBrush}"/>
+                                                <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
                                             <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
@@ -174,7 +174,7 @@
                                             <TextBlock Text="高亮边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                             <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderBrush}"/>
+                                                <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
                                             <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
@@ -190,7 +190,7 @@
                                             <TextBlock Text="文字颜色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" Text="{Binding CustomTextText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                             <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
-                                                <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextBrush}"/>
+                                                <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
                                             <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
@@ -232,7 +232,7 @@
                                         <TextBlock Text="光晕色值:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" Text="{Binding HighlightGlowColorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
                                         <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取光晕颜色" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
-                                            <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorBrush}"/>
+                                            <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorText, Converter={StaticResource HexToBrushConverter}}"/>
                                         </Button>
                                         <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取光晕颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
                                     </Grid>
@@ -414,7 +414,7 @@
                                                 <TextBlock x:Name="CustomCoreIconNameLabel" Text="未选择图标" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
-                                        <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="选择图标..." Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Click="PickCoreIconButton_Click"/>
+                                        <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="选择图标..." Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Command="{Binding PickCoreIconCommand}"/>
                                     </Grid>
 
                                     <!-- Custom Core Image Row -->
@@ -430,8 +430,8 @@
                                         </Border>
                                         <!-- T17/T19：CoreCustomImagePath 双向绑定（逐键更新源，保持迁移前逐键写入语义）；缩略图随 VM PropertyChanged 刷新。 -->
                                         <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="自定义图片本地路径"/>
-                                        <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="浏览图片..." Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Click="BrowseCoreImageButton_Click"/>
-                                        <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="清除" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Click="ClearCoreImageButton_Click"/>
+                                    <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="浏览图片..." Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Command="{Binding BrowseCoreImageCommand}"/>
+                                    <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="清除" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Command="{Binding ClearCoreImageCommand}"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>

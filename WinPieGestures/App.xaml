@@ -1,9 +1,13 @@
 <Application x:Class="WinPieGestures.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:WinPieGestures.Views.Converters">
     <!-- No StartupUri: the initial settings window is created by the composition root
          (Composition.Run) so constructor-injected services are wired first. ADR-0003. -->
     <Application.Resources>
+        <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
+        <converters:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
+        <converters:IntEqualsConverter x:Key="IntEqualsConverter"/>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>

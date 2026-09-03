@@ -72,7 +72,7 @@
 
                     <TextBlock x:Name="BottomNoteText" Grid.Column="0" Text="注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
 
-                    <Button x:Name="SaveButton" Grid.Column="1" Content="保存更改" Style="{StaticResource PrimaryButtonStyle}" Width="120" Height="36" Click="SaveButton_Click" Margin="0,0,10,0"/>
+                    <Button x:Name="SaveButton" Grid.Column="1" Content="保存更改" Style="{StaticResource PrimaryButtonStyle}" Width="120" Height="36" Command="{Binding SaveCommand}" Margin="0,0,10,0"/>
                     <Button x:Name="CloseButton" Grid.Column="2" Content="关闭并隐藏" Style="{StaticResource ModernButtonStyle}" Width="100" Height="36" Click="CloseButton_Click"/>
                 </Grid>
             </Border>

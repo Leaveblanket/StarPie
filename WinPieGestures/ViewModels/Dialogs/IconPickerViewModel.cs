@@ -51,11 +51,9 @@ namespace WinPieGestures.ViewModels.Dialogs
         [ObservableProperty]
         private string _selectedIconDisplayName;
 
-        /// <summary>确认后请求窗口关闭；总是携带结果（IconKey 可为 null/空，沿用迁移前语义）。</summary>
-        public event Action<IconPickResult?>? CloseRequested;
-
-        /// <summary>导入失败时通知视图弹提示（迁移前为 code-behind 直接 MessageBox）。</summary>
-        public event Action<string>? ImportFailed;
+        /// <summary>确认后变为 true，视图据此关闭窗口。</summary>
+        [ObservableProperty]
+        private bool _isCompleted;
 
         public IconPickerViewModel(
             Func<IReadOnlyList<IconHelper.CustomIconItem>> getCustomIcons,
@@ -75,6 +73,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             SelectedIconKey = initialKey;
             // 迁移前：初始键为空时本地化为 "(未选择)"，非空但未匹配到卡片时停留在 XAML 默认文案。
             _selectedIconDisplayName = string.IsNullOrEmpty(initialKey) ? I18n.T("IconPickerNone") : "(未选择)";
+            ApplyFilter("");
         }
 
         partial void OnSearchTextChanged(string value) => ApplyFilter(value);
@@ -134,6 +133,9 @@ namespace WinPieGestures.ViewModels.Dialogs
             SelectedIconDisplayName = entry.IsCustom ? entry.DisplayName + CustomSuffix : entry.DisplayName;
         }
 
+        [RelayCommand]
+        private void SelectIcon(IconEntry entry) => Select(entry);
+
         /// <summary>清空选择：键置空串、文案落"(无图标)"（与迁移前清空按钮一致）。</summary>
         [RelayCommand]
         private void ClearIcon()
@@ -163,12 +165,12 @@ namespace WinPieGestures.ViewModels.Dialogs
             }
             catch (Exception ex)
             {
-                ImportFailed?.Invoke($"导入图标失败:\n{ex.Message}");
+                _dialogs.ShowInfo("StarPie", $"导入图标失败:\n{ex.Message}");
             }
         }
 
         /// <summary>删除自定义图标：成功后按当前过滤重建列表；删除失败（含键不存在）不动列表。</summary>
-        public void DeleteCustomIcon(string key)
+        private void DeleteCustomIconCore(string key)
         {
             if (_deleteCustomIcon(key))
             {
@@ -176,11 +178,14 @@ namespace WinPieGestures.ViewModels.Dialogs
             }
         }
 
+        [RelayCommand]
+        private void DeleteCustomIconAction(string key) => DeleteCustomIconCore(key);
+
         /// <summary>确认结果：携带当前选中键（可能为 null/空，语义见 <see cref="IconPickResult"/>）。</summary>
         public IconPickResult BuildResult() => new(SelectedIconKey);
 
-        /// <summary>确认：经 CloseRequested 请求关窗；取消不经过此命令，由视图直接关窗。</summary>
+        /// <summary>确认：请求关窗；取消由视图直接关窗。</summary>
         [RelayCommand]
-        private void Confirm() => CloseRequested?.Invoke(BuildResult());
+        private void Confirm() => IsCompleted = true;
     }
 }

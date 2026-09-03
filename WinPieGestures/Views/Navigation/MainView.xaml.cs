@@ -3,8 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Animation;
 using Application = System.Windows.Application;
-using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
 using WinPieGestures.ViewModels;
 
 namespace WinPieGestures.Views.Navigation
@@ -18,18 +16,17 @@ namespace WinPieGestures.Views.Navigation
     public partial class MainView : Window
     {
         private readonly IThemeService _themeService;
-        private readonly IMessenger _messenger;
 
-        public MainView(MainViewModel main, IThemeService themeService, IMessenger messenger)
+        public MainView(MainViewModel main, IThemeService themeService)
         {
             InitializeComponent();
             _themeService = themeService;
-            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
             DataContext = main ?? throw new ArgumentNullException(nameof(main));
 
             // ADR-0002：I18n 语言切换广播——壳层文本刷新（导航项标题由主框架 VM 刷新）。
             I18n.LanguageChanged += ApplyLocalization;
+            Closed += (_, _) => I18n.LanguageChanged -= ApplyLocalization;
 
             ApplyLocalization();
         }
@@ -74,10 +71,6 @@ namespace WinPieGestures.Views.Navigation
             // composition root — allow the close. Any other close hides to the tray.
             if (Composition.IsExiting) return;
 
-            // 关窗隐藏前的兜底落盘（迁移前 _root.FlushPendingSave；T19 经消息交组合根编排）。
-            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            MemoryOptimizer.TrimMemory();
-
             e.Cancel = true;
 
             // Fade out before hiding
@@ -86,19 +79,8 @@ namespace WinPieGestures.Views.Navigation
             {
                 Hide();
                 Opacity = 1.0;
-                MemoryOptimizer.TrimMemory();
             };
             BeginAnimation(Window.OpacityProperty, anim);
-
-            // 托盘驻留气泡：组合根订阅本消息后直调通用分区 VM（气泡文案与编排仍在 VM）。
-            _messenger.Send(MinimizedToTrayMessage.Instance);
-        }
-
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
-        {
-            // 显式保存按钮退化为"立即冲刷挂起防抖 + 落盘"（自动保存之外的兜底交互）。
-            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            MessageBox.Show(this, "配置已成功保存至硬盘！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)

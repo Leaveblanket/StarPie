@@ -68,12 +68,6 @@ namespace WinPieGestures.ViewModels.Pages
         //（值来自配置本身，无需回写；窗口在 _isUpdatingUi 保护内同步控件）。
         private bool _isReloading;
 
-        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步控件显示。</summary>
-        public event Action? ConfigReloaded;
-
-        /// <summary>黑名单新增条目后触发，页面据此滚动到该项（View 层滚动效果）。</summary>
-        public event Action<string>? BlacklistEntryAdded;
-
         public BehaviorSettingsViewModel(AppConfig config, IDialogService dialogs, IMessenger messenger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -84,7 +78,7 @@ namespace WinPieGestures.ViewModels.Pages
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig);
-                ConfigReloaded?.Invoke();
+                _messenger.Send(new PageConfigReloadedMessage(typeof(BehaviorSettingsViewModel)));
             });
 
             Reload(config);
@@ -231,7 +225,7 @@ namespace WinPieGestures.ViewModels.Pages
             {
                 // 与迁移前一致：重复项仅选中并滚动，无其他副作用
                 SelectedBlacklistProcess = proc;
-                BlacklistEntryAdded?.Invoke(proc);
+                _messenger.Send(new BlacklistEntryAddedMessage(proc));
                 return;
             }
 
@@ -246,7 +240,7 @@ namespace WinPieGestures.ViewModels.Pages
             }
 
             SelectedBlacklistProcess = proc;
-            BlacklistEntryAdded?.Invoke(proc);
+            _messenger.Send(new BlacklistEntryAddedMessage(proc));
             NewBlacklistProcess = "";
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }

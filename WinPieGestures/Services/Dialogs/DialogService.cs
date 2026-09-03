@@ -25,7 +25,8 @@ namespace WinPieGestures.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var window = new ProgramPickerWindow(_themeService, this) { Owner = _owner };
+            var viewModel = new ProgramPickerViewModel(ProgramScanner.ScanInstalledPrograms, this);
+            var window = new ProgramPickerWindow(_themeService, viewModel) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
         }
@@ -37,27 +38,33 @@ namespace WinPieGestures.Services.Dialogs
             Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             // T07：确认与验证逻辑已迁 InputViewModel，窗口只剩布局接线（ADR-0004）。
-            var viewModel = new InputViewModel(title, prompt, defaultText, validator);
+            var viewModel = new InputViewModel(title, prompt, defaultText, validator, this);
             var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
             return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
         }
 
         public IconPickResult? ShowIconPicker(string? currentIconKey)
         {
-            var picker = new IconPickerWindow(_themeService, this, currentIconKey) { Owner = _owner };
+            var viewModel = new IconPickerViewModel(
+                IconHelper.GetCustomIcons,
+                () => IconHelper.VectorIconList,
+                this,
+                currentIconKey);
+            var picker = new IconPickerWindow(_themeService, viewModel) { Owner = _owner };
             return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
         {
-            var dialog = new ColorPickerWindow(_themeService, this, initialHex) { Owner = _owner };
+            var viewModel = new ColorPickerViewModel(this, initialHex);
+            var dialog = new ColorPickerWindow(_themeService, viewModel) { Owner = _owner };
             return dialog.ShowDialog() == true ? dialog.BuildResult() : null;
         }
 
         public EyedropResult? ShowEyedropper()
         {
             // 全屏置顶工具，刻意不用 Owner（ADR-0004）。
-            var eyedropper = new ScreenEyedropperOverlay();
+            var eyedropper = new ScreenEyedropperOverlay(new ScreenEyedropperViewModel());
             return eyedropper.ShowDialog() == true && !string.IsNullOrEmpty(eyedropper.CapturedHexColor)
                 ? new EyedropResult(eyedropper.CapturedHexColor!)
                 : null;

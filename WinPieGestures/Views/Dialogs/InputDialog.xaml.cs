@@ -1,6 +1,6 @@
 using System.Windows;
+using System.ComponentModel;
 using System.Windows.Input;
-using MessageBox = System.Windows.MessageBox;
 
 namespace WinPieGestures.Views.Dialogs
 {
@@ -21,21 +21,7 @@ namespace WinPieGestures.Views.Dialogs
             _vm = viewModel;
             DataContext = _vm;
 
-            _vm.CloseRequested += _ =>
-            {
-                DialogResult = true;
-                Close();
-            };
-            _vm.ValidationFailed += (message, rejectedText) =>
-            {
-                MessageBox.Show(message, I18n.T("Notice"), MessageBoxButton.OK, MessageBoxImage.Warning);
-                InputTextBox.Focus();
-                if (!string.IsNullOrEmpty(rejectedText))
-                {
-                    // validator 拒绝时全选便于改输；空输入只聚焦，保持迁移前行为。
-                    InputTextBox.SelectAll();
-                }
-            };
+            _vm.PropertyChanged += OnViewModelPropertyChanged;
 
             if (OkButton != null) OkButton.Content = I18n.T("BtnConfirm");
             if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
@@ -47,18 +33,22 @@ namespace WinPieGestures.Views.Dialogs
             };
         }
 
-        private void InputTextBox_KeyDown(object sender, KeyEventArgs e)
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.PropertyName == nameof(InputViewModel.IsCompleted))
             {
-                _vm.ConfirmCommand.Execute(null);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Escape)
-            {
-                DialogResult = false;
+                DialogResult = true;
                 Close();
-                e.Handled = true;
+                return;
+            }
+
+            if (e.PropertyName == nameof(InputViewModel.RejectedText))
+            {
+                InputTextBox.Focus();
+                if (!string.IsNullOrEmpty(_vm.RejectedText))
+                {
+                    InputTextBox.SelectAll();
+                }
             }
         }
 

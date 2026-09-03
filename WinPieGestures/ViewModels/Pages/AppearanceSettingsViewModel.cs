@@ -4,11 +4,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using WinPieGestures.Services;
-using Brush = System.Windows.Media.Brush;
-using Brushes = System.Windows.Media.Brushes;
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
 
 namespace WinPieGestures.ViewModels.Pages
 {
@@ -40,16 +35,6 @@ namespace WinPieGestures.ViewModels.Pages
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>任意外观设置变化后请求视图重绘实时预览（页面 View 订阅，未挂载时不重绘）。</summary>
-        public event Action? PreviewInvalidated;
-
-        /// <summary>自定义配色预设列表变化（增/删/改名），视图据此重建配色方案下拉的动态项。</summary>
-        public event Action? PresetListChanged;
-
-        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步
-        /// 下拉动态项/窗口主题/预览等 View 层效果。</summary>
-        public event Action? ConfigReloaded;
-
         /// <summary>方案列表分区 ViewModel 单例（T19 构造注入）：预览读取选中方案——静态已知依赖
         /// 走构造注入不走消息（ADR-0005，Spec 决策 13）。</summary>
         public ProfileListViewModel ProfileList { get; }
@@ -74,7 +59,7 @@ namespace WinPieGestures.ViewModels.Pages
             messenger.Register<ConfigImportedMessage>(this, (_, _) =>
             {
                 ReloadFromConfig();
-                ConfigReloaded?.Invoke();
+                _messenger.Send(new PageConfigReloadedMessage(typeof(AppearanceSettingsViewModel)));
             });
 
             LoadFromConfig();
@@ -138,7 +123,7 @@ namespace WinPieGestures.ViewModels.Pages
                     IsCustomColorExpanderExpanded = true;
                 }
 
-                PreviewInvalidated?.Invoke();
+                _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
                 _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             }
         }
@@ -151,37 +136,22 @@ namespace WinPieGestures.ViewModels.Pages
         [ObservableProperty]
         private bool _isCustomColorExpanderExpanded;
 
-        // ---- 自定义配色微调（文本框原始内容 + 预览画刷） -----------------------------
+        // ---- 自定义配色微调（文本框原始内容，预览由 View 经 HexToBrushConverter 转成画刷） -----------------------------
 
         [ObservableProperty]
         private string _customSectorBgText = "";
 
         [ObservableProperty]
-        private Brush _customSectorBgBrush = Brushes.Transparent;
-
-        [ObservableProperty]
         private string _customSectorBorderText = "";
-
-        [ObservableProperty]
-        private Brush _customSectorBorderBrush = Brushes.Transparent;
 
         [ObservableProperty]
         private string _customHighlightBgText = "";
 
         [ObservableProperty]
-        private Brush _customHighlightBgBrush = Brushes.Transparent;
-
-        [ObservableProperty]
         private string _customHighlightBorderText = "";
 
         [ObservableProperty]
-        private Brush _customHighlightBorderBrush = Brushes.Transparent;
-
-        [ObservableProperty]
         private string _customTextText = "";
-
-        [ObservableProperty]
-        private Brush _customTextBrush = Brushes.Transparent;
 
         // ---- 高亮边缘光晕 ---------------------------------------------------------
 
@@ -190,9 +160,6 @@ namespace WinPieGestures.ViewModels.Pages
 
         [ObservableProperty]
         private string _highlightGlowColorText = "";
-
-        [ObservableProperty]
-        private Brush _highlightGlowColorBrush = Brushes.Transparent;
 
         /// <summary>光晕弥散半径滑杆值（px，8~48；配置存 0 时按迁移前回落 24）。</summary>
         [ObservableProperty]
@@ -300,7 +267,7 @@ namespace WinPieGestures.ViewModels.Pages
                 if (string.Equals(Config.CoreIconType, value, StringComparison.Ordinal)) return;
                 Config.CoreIconType = value;
                 OnPropertyChanged();
-                PreviewInvalidated?.Invoke();
+                _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
                 _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
@@ -331,7 +298,7 @@ namespace WinPieGestures.ViewModels.Pages
                 if (string.Equals(Config.CoreCustomImagePath, value, StringComparison.Ordinal)) return;
                 Config.CoreCustomImagePath = value;
                 OnPropertyChanged();
-                PreviewInvalidated?.Invoke();
+                _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
                 _messenger.Send(DebouncedSaveRequestedMessage.Instance);
             }
         }
@@ -339,28 +306,31 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>中心核自定义图标选取编排（迁移前 PickCoreIconButton_Click 的对话框部分）：
         /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并经
         /// 消息请求立即落盘，预览刷新由视图层驱动。</summary>
-        public bool PickCoreIcon()
+        [RelayCommand]
+        private void PickCoreIcon()
         {
             var picked = _dialogs.ShowIconPicker(CoreCustomIconKey);
-            if (picked == null) return false;
+            if (picked == null) return;
             CoreCustomIconKey = picked.IconKey ?? "";
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            return true;
         }
 
         /// <summary>中心核自定义图片选取编排（T19 自页面 View 收编，页面保持无参构造不经容器）：
         /// 取消返回 false 不动状态；选中写回 <see cref="CoreCustomImagePath"/>（绑定回填文本框、
         /// 缩略图随 PropertyChanged 刷新，落盘/预览由该属性管线发出）。</summary>
-        public bool BrowseCoreImage()
+        [RelayCommand]
+        private void BrowseCoreImage()
         {
             var picked = _dialogs.ShowOpenFileDialog(
                 "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*",
                 "选择中心核圆图案图片");
-            if (picked == null) return false;
+            if (picked == null) return;
 
             CoreCustomImagePath = picked.Path;
-            return true;
         }
+
+        [RelayCommand]
+        private void ClearCoreImage() => CoreCustomImagePath = "";
 
         // ---- 变更管线（写穿配置 + 通知标签 + 事件） ---------------------------------
 
@@ -369,27 +339,21 @@ namespace WinPieGestures.ViewModels.Pages
             if (_loading) return;
             Config.UiStyle = value;
             // 与迁移前一致：皮肤切换只重绘预览，不请求落盘
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
-        partial void OnCustomSectorBgTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomSectorBg = c,
-            v => CustomSectorBgBrush = v);
-        partial void OnCustomSectorBorderTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomSectorBorder = c,
-            v => CustomSectorBorderBrush = v);
-        partial void OnCustomHighlightBgTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomHighlightBg = c,
-            v => CustomHighlightBgBrush = v);
-        partial void OnCustomHighlightBorderTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomHighlightBorder = c,
-            v => CustomHighlightBorderBrush = v);
-        partial void OnCustomTextTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomText = c,
-            v => CustomTextBrush = v);
+        partial void OnCustomSectorBgTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomSectorBg = c);
+        partial void OnCustomSectorBorderTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomSectorBorder = c);
+        partial void OnCustomHighlightBgTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomHighlightBg = c);
+        partial void OnCustomHighlightBorderTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomHighlightBorder = c);
+        partial void OnCustomTextTextChanged(string value) => OnCustomColorTextChanged(value, c => Config.CustomText = c);
 
-        private void OnCustomColorTextChanged(string value, Action<string> writeConfig, Action<Brush> setBrush)
+        private void OnCustomColorTextChanged(string value, Action<string> writeConfig)
         {
             if (_loading) return;
             // 与迁移前一致：自定义配色键入写穿配置并重绘，但落盘留给关窗等既有时机
             writeConfig((value ?? "").Trim());
-            setBrush(ParseColorBrush(value));
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
         partial void OnHighlightGlowPresetChanged(string value)
@@ -412,7 +376,7 @@ namespace WinPieGestures.ViewModels.Pages
             // 与迁移前一致：先回落色值，再按"Custom 或已有色值"计算可见性
             IsCustomGlowVisible = value == "Custom" || !string.IsNullOrEmpty(HighlightGlowColorText);
 
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
@@ -420,8 +384,7 @@ namespace WinPieGestures.ViewModels.Pages
         {
             if (_loading) return;
             Config.HighlightGlowColor = (value ?? "").Trim();
-            HighlightGlowColorBrush = ParseColorBrush(value);
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
 
@@ -447,7 +410,7 @@ namespace WinPieGestures.ViewModels.Pages
             Config.Shape = value;
             if (!_bulkUpdating)
             {
-                PreviewInvalidated?.Invoke();
+                _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
                 _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             }
         }
@@ -514,7 +477,7 @@ namespace WinPieGestures.ViewModels.Pages
                 _layoutSyncing = false;
             }
 
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
@@ -560,14 +523,14 @@ namespace WinPieGestures.ViewModels.Pages
                 _layoutSyncing = false;
             }
 
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
         private void RaisePreviewAndAutoSave()
         {
             if (_bulkUpdating) return;
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
 
@@ -593,7 +556,7 @@ namespace WinPieGestures.ViewModels.Pages
                 _bulkUpdating = false;
             }
 
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
@@ -672,7 +635,7 @@ namespace WinPieGestures.ViewModels.Pages
             Config.Theme = "CustomPreset_" + newPreset.Id;
 
             // 先发列表变化让视图重建下拉项（新 Tag 才有落点），再切选中触发主题管线
-            PresetListChanged?.Invoke();
+            _messenger.Send(AppearancePresetListChangedMessage.Instance);
             SelectedTheme = "CustomPreset_" + newPreset.Id;
             _dialogs.ShowInfo("提示", $"配色预设【{presetName}】已成功保存！");
         }
@@ -698,9 +661,9 @@ namespace WinPieGestures.ViewModels.Pages
             if (result == null) return;
 
             preset.Name = result.Text;
-            PresetListChanged?.Invoke();
+            _messenger.Send(AppearancePresetListChangedMessage.Instance);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            PreviewInvalidated?.Invoke();
+            _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
         /// <summary>删除当前选中的自定义配色预设（T19：删除确认与结果提示对话框编排内聚进本 VM）：
@@ -726,7 +689,7 @@ namespace WinPieGestures.ViewModels.Pages
             Config.CustomColorPresets.Remove(preset);
             Config.Theme = "System";
 
-            PresetListChanged?.Invoke();
+            _messenger.Send(AppearancePresetListChangedMessage.Instance);
             SelectedTheme = "System";
             _dialogs.ShowInfo("提示", $"自定义配色方案【{preset.Name}】已成功删除！");
         }
@@ -756,7 +719,7 @@ namespace WinPieGestures.ViewModels.Pages
             OnPropertyChanged(nameof(CoreCustomIconKey));
             OnPropertyChanged(nameof(CoreCustomIconSvg));
             OnPropertyChanged(nameof(CoreCustomImagePath));
-            PresetListChanged?.Invoke();
+            _messenger.Send(AppearancePresetListChangedMessage.Instance);
         }
 
         /// <summary>
@@ -786,18 +749,12 @@ namespace WinPieGestures.ViewModels.Pages
             HighlightGlowRadius = c.HighlightGlowRadius > 0 ? c.HighlightGlowRadius : 24.0;
             HighlightGlowOpacityPercent = (c.HighlightGlowOpacity >= 0 ? c.HighlightGlowOpacity : 0.85) * 100.0;
             IsCustomGlowVisible = HighlightGlowPreset == "Custom" || !string.IsNullOrEmpty(HighlightGlowColorText);
-            HighlightGlowColorBrush = ParseColorBrush(HighlightGlowColorText);
 
             CustomSectorBgText = c.CustomSectorBg ?? "";
             CustomSectorBorderText = c.CustomSectorBorder ?? "";
             CustomHighlightBgText = c.CustomHighlightBg ?? "";
             CustomHighlightBorderText = c.CustomHighlightBorder ?? "";
             CustomTextText = c.CustomText ?? "";
-            CustomSectorBgBrush = ParseColorBrush(CustomSectorBgText);
-            CustomSectorBorderBrush = ParseColorBrush(CustomSectorBorderText);
-            CustomHighlightBgBrush = ParseColorBrush(CustomHighlightBgText);
-            CustomHighlightBorderBrush = ParseColorBrush(CustomHighlightBorderText);
-            CustomTextBrush = ParseColorBrush(CustomTextText);
 
             IsCustomPresetSelected = SelectedTheme.StartsWith("CustomPreset_");
             IsCustomColorExpanderExpanded = c.Theme == "Custom" || IsCustomPresetSelected;
@@ -812,18 +769,5 @@ namespace WinPieGestures.ViewModels.Pages
             return value;
         }
 
-        /// <summary>十六进制串 → 预览画刷；空串与非法值一律透明（迁移前 UpdateColorPreviewBorder 行为）。</summary>
-        public static Brush ParseColorBrush(string? hex)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(hex)) return Brushes.Transparent;
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-            }
-            catch
-            {
-                return Brushes.Transparent;
-            }
-        }
     }
 }

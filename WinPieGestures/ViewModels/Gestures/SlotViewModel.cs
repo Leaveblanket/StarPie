@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 
 namespace WinPieGestures.ViewModels.Gestures
 {
@@ -36,9 +36,7 @@ namespace WinPieGestures.ViewModels.Gestures
     {
         private readonly IDialogService _dialogs;
         private readonly IActionExecutorService _actionExecutor;
-
-        /// <summary>槽位编辑提交（文件夹选择写回）后触发，窗口据此将运行态配置落盘。</summary>
-        public event Action? EditApplied;
+        private readonly IMessenger _messenger;
 
         public static readonly List<SystemPresetItem> SystemPresetList = new List<SystemPresetItem>
         {
@@ -170,7 +168,7 @@ namespace WinPieGestures.ViewModels.Gestures
                     OnPropertyChanged(nameof(IconKey));
                     OnPropertyChanged(nameof(IconDisplayText));
                     OnPropertyChanged(nameof(HasVectorIcon));
-                    OnPropertyChanged(nameof(VectorIconData));
+                    OnPropertyChanged(nameof(VectorIconPathData));
                 }
             }
         }
@@ -186,7 +184,7 @@ namespace WinPieGestures.ViewModels.Gestures
                     OnPropertyChanged(nameof(CustomIconSvg));
                     OnPropertyChanged(nameof(IconDisplayText));
                     OnPropertyChanged(nameof(HasVectorIcon));
-                    OnPropertyChanged(nameof(VectorIconData));
+                    OnPropertyChanged(nameof(VectorIconPathData));
                 }
             }
         }
@@ -201,9 +199,9 @@ namespace WinPieGestures.ViewModels.Gestures
             }
         }
 
-        public bool HasVectorIcon => VectorIconData != null;
+        public bool HasVectorIcon => !string.IsNullOrEmpty(VectorIconPathData);
 
-        public Geometry? VectorIconData
+        public string? VectorIconPathData
         {
             get
             {
@@ -222,15 +220,7 @@ namespace WinPieGestures.ViewModels.Gestures
                     }
                 }
 
-                if (!string.IsNullOrEmpty(data))
-                {
-                    try
-                    {
-                        return Geometry.Parse(data);
-                    }
-                    catch { }
-                }
-                return null;
+                return data;
             }
         }
 
@@ -283,12 +273,13 @@ namespace WinPieGestures.ViewModels.Gestures
 
         public string TestButtonText => I18n.T("BtnTest");
 
-        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs, IActionExecutorService actionExecutor)
+        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs, IActionExecutorService actionExecutor, IMessenger messenger)
         {
             DirectionLabel = directionLabel;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
+            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
             I18n.LanguageChanged += () =>
             {
@@ -303,13 +294,16 @@ namespace WinPieGestures.ViewModels.Gestures
         /// <see cref="IconKey"/>。返回本次是否完成选择（含清除图标），供窗口决定是否刷新
         /// 外观轮盘预览——该预览是 View 层渲染效果，留在 code-behind（ADR-0001）。
         /// </summary>
-        public bool PickIcon()
+        private bool PickIconCore()
         {
             var picked = _dialogs.ShowIconPicker(IconKey);
             if (picked == null) return false;
             IconKey = picked.IconKey ?? "";
             return true;
         }
+
+        [RelayCommand]
+        private void PickIcon() => PickIconCore();
 
         /// <summary>
         /// 执行本槽位动作（T19 自窗口 Test_Click 收编：动作执行器经构造注入，页面 View 只剩命令绑定）。
@@ -358,7 +352,7 @@ namespace WinPieGestures.ViewModels.Gestures
                     {
                         IconKey = "Folder";
                     }
-                    EditApplied?.Invoke();
+                    _messenger.Send(ImmediateSaveRequestedMessage.Instance);
                 }
             }
             catch (Exception ex)

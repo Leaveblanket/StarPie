@@ -42,20 +42,30 @@ namespace WinPieGestures.ViewModels.Dialogs
         [ObservableProperty]
         private bool _isStatusVisible = true;
 
-        /// <summary>确认或手动浏览后请求窗口关闭；携带 null 表示无效选择（视图层负责提示）。</summary>
-        public event Action<ProgramPickResult?>? CloseRequested;
+        /// <summary>确认或手动浏览后请求窗口关闭；null 表示无效选择。</summary>
+        [ObservableProperty]
+        private ProgramPickResult? _result;
+
+        /// <summary>确认或手动浏览成功后变为 true，视图据此关闭窗口。</summary>
+        [ObservableProperty]
+        private bool _isCompleted;
 
         public ProgramPickerViewModel(Func<IReadOnlyList<ProgramEntry>> scanPrograms, IDialogService dialogs)
         {
             _scanPrograms = scanPrograms;
             _dialogs = dialogs;
             _statusText = I18n.T("ProgramPickerScanning");
+            _ = LoadAsync();
         }
 
         partial void OnSearchTextChanged(string value) => ApplySearch(value);
 
-        /// <summary>扫描编排：后台线程跑来源扫描，回来后重建展示列表（保持"扫描中"提示的旧行为）。</summary>
-        public async Task LoadAsync()
+        private Task? _loadTask;
+
+        /// <summary>扫描编排：构造自动启动一次；重复调用返回同一任务（single-flight，避免并发双扫）。</summary>
+        public Task LoadAsync() => _loadTask ??= LoadCoreAsync();
+
+        private async Task LoadCoreAsync()
         {
             HasError = false;
             StatusText = I18n.T("ProgramPickerScanning");
@@ -89,10 +99,19 @@ namespace WinPieGestures.ViewModels.Dialogs
         public ProgramPickResult? BuildResult()
             => SelectedProgram is { } selected ? new ProgramPickResult(selected.Name, selected.Path) : null;
 
-        /// <summary>确认：未选中时携带 null（视图层弹"请选择"提示并保持窗口打开）；
-        /// 取消不经过此事件，由视图直接关窗。</summary>
+        /// <summary>确认：未选中时提示并保持窗口打开；选中时完成。</summary>
         [RelayCommand]
-        private void Confirm() => CloseRequested?.Invoke(BuildResult());
+        private void Confirm()
+        {
+            Result = BuildResult();
+            if (Result == null)
+            {
+                _dialogs.ShowInfo("未选择", "请选择一个程序，或者点击“手动浏览文件...”");
+                return;
+            }
+
+            IsCompleted = true;
+        }
 
         /// <summary>手动浏览：经对话框服务开系统文件对话框；.lnk 解析为真实目标（沿用旧行为），
         /// 取消则停留在本窗口。</summary>
@@ -110,7 +129,8 @@ namespace WinPieGestures.ViewModels.Dialogs
                 chosenPath = targetPath;
             }
 
-            CloseRequested?.Invoke(new ProgramPickResult(Path.GetFileNameWithoutExtension(picked.Path), chosenPath));
+            Result = new ProgramPickResult(Path.GetFileNameWithoutExtension(picked.Path), chosenPath);
+            IsCompleted = true;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Input;
 using WinPieGestures.Services;
 
 namespace WinPieGestures.ViewModels.Pages
@@ -70,13 +71,45 @@ namespace WinPieGestures.ViewModels.Pages
         public ObservableCollection<SlotViewModel> Slots { get; } = new();
 
         /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步列表选中。</summary>
-        public event Action? ConfigReloaded;
-
         [ObservableProperty]
         private ProfileItemViewModel? _selectedProfile;
 
         /// <summary>选中方案的扇区数（原始值不做规范化——与迁移前单选钮同步逻辑一致）。</summary>
-        public int? SelectedSectorCount => SelectedProfile?.Model.SectorCount;
+        public int? SelectedSectorCount
+        {
+            get => SelectedProfile?.Model.SectorCount;
+            set
+            {
+                if (value is 4 or 8 or 12) ApplySectorCount(value.Value);
+            }
+        }
+
+        partial void OnSelectedProfileChanged(ProfileItemViewModel? value)
+        {
+            RebuildSlots();
+            OnPropertyChanged(nameof(SelectedSectorCount));
+        }
+
+        [RelayCommand]
+        private void AddProfileFromPicker() => AddProfileFromAppPicker();
+
+        [RelayCommand]
+        private void AddCustomProfileFromDialog() => AddCustomProfileViaDialog();
+
+        [RelayCommand]
+        private void RenameSelectedProfile() => RenameSelectedProfileViaDialog();
+
+        [RelayCommand]
+        private void DeleteSelectedProfile() => DeleteSelectedProfileViaDialog();
+
+        [RelayCommand]
+        private void ApplySectorCountSelection(string? sectorCount)
+        {
+            if (int.TryParse(sectorCount, out var count))
+            {
+                ApplySectorCount(count);
+            }
+        }
 
         public ProfileListViewModel(
             List<WheelProfile> sourceProfiles,
@@ -93,7 +126,7 @@ namespace WinPieGestures.ViewModels.Pages
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig.Profiles);
-                ConfigReloaded?.Invoke();
+                _messenger.Send(new PageConfigReloadedMessage(typeof(ProfileListViewModel)));
             });
 
             Reload(sourceProfiles);
@@ -103,8 +136,10 @@ namespace WinPieGestures.ViewModels.Pages
         public void Reload(List<WheelProfile> sourceProfiles)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
-            SelectedProfile = null;
+            // 先清空展示集合再清选中：OnSelectedProfileChanged 触发的 RebuildSlots 在
+            // Profiles 为空时直接返回，不会把旧列表第一项回选（T20 修正）。
             Profiles.Clear();
+            SelectedProfile = null;
             foreach (var profile in sourceProfiles)
             {
                 Profiles.Add(new ProfileItemViewModel(profile));
@@ -191,8 +226,7 @@ namespace WinPieGestures.ViewModels.Pages
 
                 for (int i = 0; i < count; i++)
                 {
-                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor);
-                    slot.EditApplied += () => _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger);
                     Slots.Add(slot);
                 }
             }
