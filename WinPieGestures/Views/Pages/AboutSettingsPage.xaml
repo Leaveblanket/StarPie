@@ -82,9 +82,9 @@
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            Text="高质感、极速现代 Windows 鼠标轮盘笔势工具" />
                             </StackPanel>
-                            <Button x:Name="OpenChangelogButton" Grid.Column="2" Height="34"
+                            <Button Grid.Column="2" AutomationProperties.AutomationId="OpenChangelogButton" Height="34"
                                     VerticalAlignment="Center" Command="{Binding OpenChangelogCommand}"
-                                    Content="查看完整 CHANGELOG"
+                                    Content="{DynamicResource BtnOpenChangelog}"
                                     Style="{StaticResource ModernButtonStyle}" />
                         </Grid>
                     </Border>
@@ -296,9 +296,9 @@
                             </Border>
 
                             <!--  Collapsible Older Milestones  -->
-                            <Expander x:Name="OlderMilestonesExpander" Margin="0,4,0,0"
+                            <Expander AutomationProperties.AutomationId="OlderMilestonesExpander" Margin="0,4,0,0"
                                       Background="Transparent" BorderThickness="0"
-                                      Header="📜 展开查看更早的历史版本演进 (Older Milestones)"
+                                      Header="{DynamicResource MilestonesOlderExpander}"
                                       IsExpanded="False">
                                 <StackPanel Margin="0,8,0,0">
                                     <!--  v1.3.4  -->

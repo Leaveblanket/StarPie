@@ -8,8 +8,9 @@ namespace WinPieGestures.Views.Pages
     /// <summary>
     /// 外观与形态页面 (T19/T21)：状态经 Binding 直连 <see cref="AppearanceSettingsViewModel"/>
     /// （配色下拉 ItemsSource 化、核圆面板可见性 DataTrigger 化、核圆图标预览/名称与图片缩略图
-    /// Converter 绑定化），code-behind 只保留本地化回填、实时预览画布渲染与窗口主题应用等
-    /// ADR-0009 白名单项。页面 VM 是单例：PreviewInvalidated/PageConfigReloaded 视图消息在
+    /// Converter 绑定化），code-behind 只保留实时预览画布渲染与窗口主题应用等
+    /// ADR-0009 白名单项（页面文本经 T24 语言字典声明式化）。页面 VM 是单例：
+    /// PreviewInvalidated/PageConfigReloaded 视图消息在
     /// Loaded/Unloaded 成对订阅退订，防过期页面引用泄漏。
     /// </summary>
     public partial class AppearanceSettingsPage : SettingsPageBase
@@ -24,15 +25,6 @@ namespace WinPieGestures.Views.Pages
         public AppearanceSettingsPage()
         {
             InitializeComponent();
-        }
-
-        protected override void ApplyLocalization()
-        {
-            AppearancePageHeader.Text = I18n.T("AppearanceHeader");
-            AppearancePageSubheader.Text = I18n.T("AppearanceSubheader");
-            CustomColorsExpanderTitleText.Text = I18n.T("CustomColorsExpanderTitle");
-            CustomColorsExpanderDescText.Text = I18n.T("CustomColorsExpanderDesc");
-            RenameCustomColorPresetButton.Content = I18n.T("RenameCustomPresetButton");
         }
 
         protected override void OnPageLoaded()

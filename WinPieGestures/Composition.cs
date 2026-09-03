@@ -167,6 +167,11 @@ namespace WinPieGestures
         {
             _mouseHook.Start();
 
+            // T24：语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。订阅与首次应用
+            // 先于任何页面 View 创建（语言切换经 I18n.LanguageChanged 同步重建，换入不累积）。
+            I18n.LanguageChanged += ApplyLanguageDictionary;
+            ApplyLanguageDictionary();
+
             // 页面 VM 解析点（组合根）：VM 构造即订阅导入广播与落盘消息，时机与迁移前根 VM 构造等价。
             _ = _provider.GetRequiredService<BehaviorSettingsViewModel>();
             _ = _provider.GetRequiredService<ProfileListViewModel>();
@@ -208,11 +213,37 @@ namespace WinPieGestures
 
         public void Dispose()
         {
+            // T24：成对退订语言字典换入（订阅在 Run()），防静态事件在组合根释放后仍持有引用。
+            I18n.LanguageChanged -= ApplyLanguageDictionary;
             _trayIcon?.Dispose();
             _trayIcon = null;
             _mouseHook.Stop();
             // T18：容器随组合根释放（单例未持非托管资源，语义与手动形态一致）。
             _provider.Dispose();
+        }
+
+        // T24：运行时语言字典——单一 C# 源（I18n.Translations）的 XAML 投影，只持当前语言一份；
+        // 原地 Clear 重建（replace 语义），不向 MergedDictionaries 累积旧语言。
+        private static readonly ResourceDictionary LanguageDictionary = new();
+
+        /// <summary>用当前语言重建 Application 级语言字典（设置页文本 DynamicResource 的数据源）。</summary>
+        private static void ApplyLanguageDictionary()
+        {
+            if (Application.Current is not { } app)
+            {
+                return;
+            }
+
+            if (!app.Resources.MergedDictionaries.Contains(LanguageDictionary))
+            {
+                app.Resources.MergedDictionaries.Add(LanguageDictionary);
+            }
+
+            LanguageDictionary.Clear();
+            foreach ((string key, string value) in I18n.EnumerateCurrentEntries())
+            {
+                LanguageDictionary[key] = value;
+            }
         }
 
         /// <summary>类型化导航 + 窗口激活（托盘直达；淡入淡出在 <see cref="MainView.ShowAndActivate"/>）。</summary>

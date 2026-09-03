@@ -31,9 +31,9 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                <TextBlock x:Name="AdvancedPageHeader" FontSize="20" FontWeight="Bold"
+                <TextBlock AutomationProperties.AutomationId="AdvancedPageHeader" FontSize="20" FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimaryBrush}"
-                           Text="高级系统与运维备份" />
+                           Text="{DynamicResource AdvancedHeader}" />
                 <TextBlock x:Name="AdvancedPageSubheader" Margin="0,4,0,0"
                            FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}"
@@ -60,14 +60,14 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14"
                                                Text="🌐" />
-                                    <TextBlock x:Name="LanguageTitleText" VerticalAlignment="Center"
+                                    <TextBlock VerticalAlignment="Center"
                                                FontSize="14" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="界面语言 (Display Language)" />
+                                               Text="{DynamicResource LanguageTitle}" />
                                 </StackPanel>
-                                <TextBlock x:Name="LanguageDescText" Margin="0,2,0,0" FontSize="12"
+                                <TextBlock Margin="0,2,0,0" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="选择软件控制台与轮盘界面的显示语言，即时生效并持久保存。" />
+                                           Text="{DynamicResource LanguageDesc}" />
                             </StackPanel>
                             <ComboBox x:Name="LanguageComboBox" Grid.Column="1" Height="34"
                                       VerticalAlignment="Center"
@@ -98,13 +98,13 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="StartupTitleText" FontSize="14"
+                                <TextBlock FontSize="14"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimaryBrush}"
-                                           Text="Windows 开机自启动" />
-                                <TextBlock x:Name="StartupDescText" Margin="0,2,0,0" FontSize="12"
+                                           Text="{DynamicResource StartupTitle}" />
+                                <TextBlock Margin="0,2,0,0" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="登录 Windows 系统时自动在后台静默启动 StarPie，无需手动打开。" />
+                                           Text="{DynamicResource StartupDesc}" />
                             </StackPanel>
                             <CheckBox x:Name="AutoStartCheckBox" Grid.Column="1"
                                       VerticalAlignment="Center"
@@ -132,19 +132,19 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14"
                                                Text="🛡️" />
-                                    <TextBlock x:Name="ElevateTitleText" VerticalAlignment="Center"
+                                    <TextBlock VerticalAlignment="Center"
                                                FontSize="14" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="以管理员权限运行 (UAC Elevation)" />
+                                               Text="{DynamicResource ElevateTitle}" />
                                 </StackPanel>
-                                <TextBlock x:Name="ElevateDescText" Margin="0,2,0,0" FontSize="12"
+                                <TextBlock Margin="0,2,0,0" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="当前以普通用户权限运行。若需在任务管理器、注册表或管理员权限程序中响应轮盘手势，建议提升为管理员权限。"
+                                           Text="{DynamicResource ElevateDesc}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
-                            <Button x:Name="ElevateButton" Grid.Column="1" Height="32"
+                            <Button Grid.Column="1" Height="32"
                                     Padding="14,0" VerticalAlignment="Center"
-                                    Command="{Binding ElevateCommand}" Content="提升权限"
+                                    Command="{Binding ElevateCommand}" Content="{DynamicResource BtnElevate}"
                                     Style="{StaticResource ModernButtonStyle}" />
                         </Grid>
                     </Border>
@@ -167,18 +167,18 @@
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14"
                                                Text="🚀" />
-                                    <TextBlock x:Name="MemoryOptTitleText" VerticalAlignment="Center"
+                                    <TextBlock VerticalAlignment="Center"
                                                FontSize="14" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="极致轻量内存管理 (Memory Optimization)" />
+                                               Text="{DynamicResource MemoryTitle}" />
                                 </StackPanel>
-                                <TextBlock x:Name="MemoryOptDescText" Margin="0,2,0,0" FontSize="12"
+                                <TextBlock Margin="0,2,0,0" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="已开启工作集压缩与动态内存优化，StarPie 常驻后台内存维持在 15~25MB。" />
+                                           Text="{DynamicResource MemoryDesc}" />
                             </StackPanel>
-                            <Button x:Name="TrimMemoryButton" Grid.Column="1" Height="32"
+                            <Button Grid.Column="1" Height="32"
                                     Padding="14,0" VerticalAlignment="Center"
-                                    Command="{Binding TrimMemoryCommand}" Content="立即压缩内存"
+                                    Command="{Binding TrimMemoryCommand}" Content="{DynamicResource BtnTrimMemory}"
                                     Style="{StaticResource ModernButtonStyle}"
                                     ToolTip="立即清理未引用的工作集物理内存" />
                         </Grid>
@@ -194,17 +194,17 @@
                                               Color="#000000" />
                         </Border.Effect>
                         <StackPanel>
-                            <TextBlock x:Name="BackupTitleText" Margin="0,0,0,12" FontSize="14"
+                            <TextBlock Margin="0,0,0,12" FontSize="14"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextPrimaryBrush}"
-                                       Text="配置导出与导入 (Backup &amp; Migration)" />
+                                       Text="{DynamicResource BackupTitle}" />
                             <WrapPanel>
-                                <Button x:Name="ExportConfigButton" Height="34" Margin="0,0,10,0"
+                                <Button Height="34" Margin="0,0,10,0"
                                          Padding="14,0" Command="{Binding ExportConfigCommand}"
-                                        Content="导出当前配置为 JSON..."
+                                        Content="{DynamicResource BtnExportConfig}"
                                         Style="{StaticResource ModernButtonStyle}" />
-                                <Button x:Name="ImportConfigButton" Height="34" Padding="14,0"
-                                         Command="{Binding ImportConfigCommand}" Content="从外部 JSON 文件导入..."
+                                <Button Height="34" Padding="14,0"
+                                         Command="{Binding ImportConfigCommand}" Content="{DynamicResource BtnImportConfig}"
                                         Style="{StaticResource ModernButtonStyle}" />
                             </WrapPanel>
                         </StackPanel>

@@ -88,6 +88,18 @@ namespace WinPieGestures.Services.Localization
             return key;
         }
 
+        /// <summary>
+        /// 枚举当前语言全部键值（T24：组合根运行时构建 XAML 语言字典的数据源；
+        /// 取值与 <see cref="T"/> 同一兜底语义）。
+        /// </summary>
+        internal static IEnumerable<KeyValuePair<string, string>> EnumerateCurrentEntries()
+        {
+            foreach (string key in Translations.Keys)
+            {
+                yield return new KeyValuePair<string, string>(key, GetString(key));
+            }
+        }
+
         private static readonly Dictionary<string, Dictionary<LanguageCode, string>> Translations = new()
         {
             // Standard Global Buttons & Actions
