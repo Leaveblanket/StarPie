@@ -58,12 +58,13 @@
                 </Ellipse>
                 
                 <StackPanel Name="CoreTextPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5">
-                    <!-- Icon or process label -->
-                    <TextBlock Name="CoreTitle" Text="WinPie" 
+                    <!-- ADR-0009 状态流走 Binding: 进程名/键数标签由 VM 只读属性声明式回填,
+                     移除 code-behind 手写 Text 赋值(该面板运行时始终 Collapsed, 行为不变)。 -->
+                    <TextBlock Name="CoreTitle" Text="{Binding CoreTitle}" 
                                Foreground="#D0FFFFFF" FontSize="11" FontWeight="Bold" 
                                HorizontalAlignment="Center" TextAlignment="Center"
                                TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
-                    <TextBlock Name="CoreSubtitle" Text="RMB Drag" 
+                    <TextBlock Name="CoreSubtitle" Text="{Binding CoreSubtitle}" 
                                Foreground="#80FFFFFF" FontSize="8" 
                                HorizontalAlignment="Center" Margin="0,2,0,0"/>
                 </StackPanel>

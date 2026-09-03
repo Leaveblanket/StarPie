@@ -6,6 +6,8 @@ using Brush = System.Windows.Media.Brush;
 
 namespace WinPieGestures.Views.Renderers
 {
+    /// <summary>纯视觉渲染契约(ADR-0009 白名单 3): 渲染器只消费主题/配置与绘制参数,
+    /// 不订阅事件、不读写 VM、不反向依赖 Composition/服务; 实例按窗口/预览随用随建。</summary>
     public interface IRadialStyleRenderer
     {
         Brush DefaultSectorBrush { get; }
