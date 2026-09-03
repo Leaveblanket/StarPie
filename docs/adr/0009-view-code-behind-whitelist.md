@@ -1,5 +1,7 @@
 # View code-behind 白名单与输入适配边界
 
+> **更新（ADR-0010）**：白名单第 2 条（本地化）范围收窄为“XAML 表达不了的位置”（Title 拼接、原生壳、动态生成项）；静态文案一律声明式化，文案分类与 VM 生命周期契约见 [ADR-0010](./0010-localization-copy-principles.md)。
+
 承接 ADR-0008 的严格边界，明确 `architecture.md` §3.5 之下 View 的 `.cs` 里允许保留什么、哪些必须 Binding/ICommand 化。此前各页迁移后仍残留手写 VM 状态读写、空壳事件与 View→Composition 反向依赖，且无文档界定归属，未来 agent 无法判断某段 code-behind 该留该迁。
 
 ## Status
