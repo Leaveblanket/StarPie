@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using WinPieGestures;
 
 namespace WinPieGestures.Tests;
@@ -25,6 +26,20 @@ public sealed class ProfileListViewModelTests
     }
 
     private static TestDialogService Dialogs() => new();
+
+    /// <summary>T27 诊断：I18n.LanguageChanged 字段的委托列表。</summary>
+    private static string I18nHandlersDump()
+        => ((MulticastDelegate?)typeof(I18n)
+            .GetField(nameof(I18n.LanguageChanged), BindingFlags.Static | BindingFlags.NonPublic)
+            ?.GetValue(null)) is { } handlers
+            ? string.Join(" | ", handlers.GetInvocationList().Select(d => d.Method.DeclaringType?.Name + "." + d.Method.Name))
+            : "<null>";
+    /// <summary>I18n.LanguageChanged 静态事件当前订阅者数（反射读 backing field；
+    /// 事件是 <see cref="Action"/> 无订阅者时为 null）。</summary>
+    private static int I18nEventSubscriberCount()
+        => ((MulticastDelegate?)typeof(I18n)
+            .GetField(nameof(I18n.LanguageChanged), BindingFlags.Static | BindingFlags.NonPublic)
+            ?.GetValue(null))?.GetInvocationList().Length ?? 0;
 
     // --- 构造与列表展示 -------------------------------------------------------------
 
@@ -290,6 +305,126 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Profiles);
         Assert.Null(vm.SelectedProfile);
         Assert.Empty(vm.Slots);
+    }
+
+    // --- 瞬态 VM 生命周期（T27/ADR-0010：槽位经本 VM Dispose；Dispose 后订阅清零） -------
+
+    [Fact]
+    public void RebuildSlots_DisposesOldSlots_SoLanguageHandlersDoNotAccumulate()
+    {
+        var original = I18n.CurrentLanguage;
+        var before = I18nEventSubscriberCount();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+
+        var firstGeneration = vm.Slots.ToArray();
+        try
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                vm.SelectProfile(vm.Profiles[0]); // 重复选中触发多次 RebuildSlots
+            }
+
+            // 只等于当前存活槽数（8）而非 rebuild 次数（3×8）累积；
+            // before 之后：槽位每次重建先成对退订再新建，差值即当前槽的订阅。
+            Assert.Equal(before + vm.Slots.Count, I18nEventSubscriberCount());
+        }
+        finally
+        {
+            foreach (var slot in firstGeneration) slot.Dispose(); // 防据实失败时泄漏静态订阅
+            vm.Dispose();
+            I18n.CurrentLanguage = original;
+        }
+    }
+
+    [Fact]
+    public void RebuildSlots_OldSlotsBecomeCollectable_AfterDispose()
+    {
+        var original = I18n.CurrentLanguage;
+        var (vm, weak) = CreateRebuiltProfileListWithDeadSlot();
+        try
+        {
+            for (int i = 0; i < 5 && weak.IsAlive; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+
+            Assert.False(weak.IsAlive); // 不再被 I18n 强引用 → 可回收
+        }
+        finally
+        {
+            vm.Dispose();
+            I18n.CurrentLanguage = original;
+        }
+    }
+
+    /// <summary>在独立方法内创建并重建，令旧槽局部引用随方法返回失效（Debug JIT 保活下仍可回收）。</summary>
+    private static (ProfileListViewModel Vm, WeakReference WeakSlot) CreateRebuiltProfileListWithDeadSlot()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+        var weak = new WeakReference(vm.Slots[0]);
+        vm.ApplySectorCount(4); // 重建：旧槽被 Dispose（退订静态事件）并从集合移除
+        return (vm, weak);
+    }
+    [Fact]
+    public void Dispose_DisposesAllRemainingSlots_AndUnsubscribesTheirLanguageHandlers()
+    {
+        var original = I18n.CurrentLanguage;
+        var before = I18nEventSubscriberCount();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+
+        try
+        {
+            vm.Dispose();
+
+            Assert.Empty(vm.Slots);
+            Assert.Equal(before, I18nEventSubscriberCount()); // 槽位全部退订，订阅清零回到基线
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
+    }
+
+    [Fact]
+    public void Dispose_IsIdempotent()
+    {
+        var original = I18n.CurrentLanguage;
+        var before = I18nEventSubscriberCount();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+
+        try
+        {
+            vm.Dispose();
+            vm.Dispose(); // guard：重复释放不重复退订
+
+            Assert.Equal(before, I18nEventSubscriberCount());
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
+    }
+
+    [Fact]
+    public void Dispose_AfterRebuild_StillLeavesNoSubscribers()
+    {
+        var original = I18n.CurrentLanguage;
+        var before = I18nEventSubscriberCount();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile(), MakeProfile("chrome.exe", 4) }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor());
+
+        try
+        {
+            vm.SelectProfile(vm.Profiles[1]);
+            vm.Dispose();
+
+            Assert.Equal(before, I18nEventSubscriberCount());
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
     }
 
     // --- 槽位名称编辑（迁移前行为锁定：直写模型、无验证） -------------------------------

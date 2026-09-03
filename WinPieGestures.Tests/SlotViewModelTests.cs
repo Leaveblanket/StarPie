@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CommunityToolkit.Mvvm.Messaging;
 using WinPieGestures;
 
@@ -14,6 +15,13 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class SlotViewModelTests
 {
+    /// <summary>I18n.LanguageChanged 静态事件当前订阅者数（反射读 backing field；
+    /// 事件是 <see cref="Action"/> 无订阅者时为 null）。</summary>
+    private static int I18nEventSubscriberCount()
+        => ((MulticastDelegate?)typeof(I18n)
+            .GetField(nameof(I18n.LanguageChanged), BindingFlags.Static | BindingFlags.NonPublic)
+            ?.GetValue(null))?.GetInvocationList().Length ?? 0;
+
     private static SlotViewModel MakeSlot(
         ActionItem? action = null,
         TestDialogService? dialogs = null,
@@ -197,6 +205,83 @@ public sealed class SlotViewModelTests
 
         var initial = Assert.Single(dialogs.FolderDialogInitialDirectories);
         Assert.Equal(@"C:\Users", initial);
+    }
+
+    // --- 瞬态生命周期（T27/ADR-0010：自订阅 I18n.LanguageChanged 须成对退订） ------------
+
+    [Fact]
+    public void LanguageChanged_RefreshesResidentComputedProperties()
+    {
+        var original = I18n.CurrentLanguage;
+        var slot = MakeSlot(new ActionItem { Type = "System", IconKey = "TaskManager" });
+        var notified = new List<string?>();
+        slot.PropertyChanged += (s, e) => notified.Add(e.PropertyName);
+        try
+        {
+            var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
+            I18n.CurrentLanguage = target;
+
+            Assert.Contains(nameof(slot.ActionTypes), notified);
+            Assert.Contains(nameof(slot.TestButtonText), notified);
+            Assert.Contains(nameof(slot.IconDisplayText), notified);
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+            slot.Dispose();
+        }
+    }
+
+    [Fact]
+    public void Dispose_UnsubscribesLanguageChangedHandler()
+    {
+        var original = I18n.CurrentLanguage;
+        var before = I18nEventSubscriberCount();
+        var slot = MakeSlot();
+        Assert.Equal(before + 1, I18nEventSubscriberCount()); // 构造即订阅
+        slot.Dispose();
+        Assert.Equal(before, I18nEventSubscriberCount());     // 退订后恢复
+
+        // 退订后切语不再唤醒已释放槽
+        var refreshed = 0;
+        slot.PropertyChanged += (s, e) => refreshed++;
+        try
+        {
+            var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
+            I18n.CurrentLanguage = target;
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
+        Assert.Equal(0, refreshed);
+    }
+
+    [Fact]
+    public void Dispose_IsIdempotent()
+    {
+        var before = I18nEventSubscriberCount();
+        var slot = MakeSlot();
+
+        slot.Dispose();
+        slot.Dispose(); // 重复释放不得重复退订（guard）
+
+        Assert.Equal(before, I18nEventSubscriberCount());
+    }
+
+    [Fact]
+    public void Dispose_IsIdempotent_EvenWhenHandlerWasRemovedExternally()
+    {
+        // 与实现解耦的幂等语义验证：guard 使第二次 Dispose 不产生额外副作用，
+        // 事件计数最终回到基线（等价于"外部早已退订后再次 Dispose 不上抛"）。
+        var before = I18nEventSubscriberCount();
+        var slot = MakeSlot();
+
+        slot.Dispose();
+        Assert.Equal(before, I18nEventSubscriberCount());
+        slot.Dispose(); // 幂等：第二次释放被 guard 拦截
+
+        Assert.Equal(before, I18nEventSubscriberCount());
     }
 
     // --- 类型切换（迁移前绑定直写 + 副作用） ---------------------------------------------
