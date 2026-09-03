@@ -32,8 +32,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                    <TextBlock x:Name="AppearancePageHeader" Text="外观、主题与实时画布" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock x:Name="AppearancePageSubheader" Text="微调轮盘视觉风格、几何形态、光学切缝与配色方案，右侧支持 60FPS 所见即所得交互测试。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <TextBlock Text="{DynamicResource AppearanceHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="{DynamicResource AppearanceSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- Split Pane: Left Config (1.15*) + Right Live Preview (1*) -->
@@ -90,7 +90,7 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"/>
-                                        <Button x:Name="RenameCustomColorPresetButton" Grid.Column="1" Content="✏️ 重命名预设" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="重命名当前选中的自定义配色方案预设"/>
+                                        <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="重命名当前选中的自定义配色方案预设"/>
                                     </Grid>
 
                                                                     <!-- Card 1.5: Custom Advanced Colors (Collapsible) -->
@@ -101,8 +101,8 @@
                                 <Expander x:Name="CustomColorExpander" IsExpanded="{Binding IsCustomColorExpanderExpanded}" Background="Transparent" BorderThickness="0">
                                     <Expander.Header>
                                         <StackPanel Margin="0,2,0,2">
-                                            <TextBlock x:Name="CustomColorsExpanderTitleText" Text="🎨 自定义高级配色与色彩微调" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock x:Name="CustomColorsExpanderDescText" Text="展开后可精准微调扇区底色、高亮光晕、边框线条、文字与光弧等各项色彩。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{DynamicResource CustomColorsExpanderTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{DynamicResource CustomColorsExpanderDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                         </StackPanel>
                                     </Expander.Header>
                                     <StackPanel x:Name="CustomColorsPanel" Margin="0,12,0,4">

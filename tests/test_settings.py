@@ -692,6 +692,11 @@ def test_v138_i18n_multilanguage_support(app):
     # T19 数据驱动侧边栏:标题是 NavTab0 单选钮的内容文本(不再有独立 NavTab0Text 元素)
     tab0_text = win.child_window(auto_id="NavTab0", control_type="RadioButton").window_text()
     assert "Trigger" in tab0_text or "🎯" in tab0_text, f"Tab0 should update, got {tab0_text}"
+
+    # T24 设置页文本经运行时语言字典 DynamicResource 刷新(页面保持挂载, 无 code-behind 回填)
+    advanced_header = win.child_window(auto_id="AdvancedPageHeader", control_type="Text")
+    assert "System Integration & Preferences" in advanced_header.window_text(), \
+        f"Advanced page header should refresh in place, got {advanced_header.window_text()}"
     
     # 5. Check config file persists Language = "en"
     config_path = get_config_path(local_app_data)
@@ -704,6 +709,8 @@ def test_v138_i18n_multilanguage_support(app):
     time.sleep(0.5)
     
     assert "保存" in save_btn.window_text(), f"Save button should update to Japanese, got {save_btn.window_text()}"
+    assert "システム統合と高度な設定" in advanced_header.window_text(), \
+        f"Advanced page header should refresh in place (ja), got {advanced_header.window_text()}"
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
     assert config.get("Language") == "ja", f"Expected config Language='ja', got {config.get('Language')}"
@@ -714,6 +721,8 @@ def test_v138_i18n_multilanguage_support(app):
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
     assert config.get("Language") == "zh-CN", f"Expected config Language='zh-CN', got {config.get('Language')}"
+    assert "系统集成与高级偏好设置" in advanced_header.window_text(), \
+        f"Advanced page header should refresh in place (zh-CN), got {advanced_header.window_text()}"
 
 def test_v139_folder_action_type_and_i18n_consistency(app):
     """
