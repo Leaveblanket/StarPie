@@ -21,6 +21,8 @@ namespace WinPieGestures.Views.Renderers
     /// <summary>
     /// Draws the 60FPS live wheel preview. The page owns only the Canvas and forwards
     /// mouse events; all visual state and geometry construction stays in this View-layer renderer.
+    /// (ADR-0009 白名单 3/4/5: 只读 VM 状态绘制, hover 坐标仅译成高亮; 不订阅事件、不写 VM,
+    /// 深浅色探测经壳层 MainView.IsWindowsInDarkTheme 方法取得。)
     /// </summary>
     public sealed class WheelPreviewRenderer
     {

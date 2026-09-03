@@ -54,16 +54,19 @@ namespace WinPieGestures.Views.Wheel
             _viewModel = viewModel;
             _themeService = themeService;
             DataContext = viewModel;
+
+            // ADR-0009 白名单(INPC 订阅边界/生命周期接线): 订阅 VM PropertyChanged 只驱动
+            // 纯视觉重绘与窗口生命周期动作(IsShown→Show/IsClosed→Close); 在 Closed 成对退订,
+            // 避免每手势窗口实例经事件被 VM 侧引用滞留(同 MainView 的 I18n 退订模式)。
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            Closed += (_, _) => _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
             InitializeThemeAndStyle();
             CoreTextPanel.Visibility = Visibility.Collapsed;
 
-            // Load event to position the window and render sectors
+            // ADR-0009 白名单(生命周期接线/纯视觉渲染): Loaded 按 VM 只读状态一次性定位窗口并绘制扇区;
+            // 订阅源为窗口自身, Close 后随窗口一起回收, 不构成外部泄漏。
             Loaded += RadialWindow_Loaded;
-
-            CoreTitle.Text = _viewModel.CoreTitle;
-            CoreSubtitle.Text = _viewModel.CoreSubtitle;
         }
 
         private void InitializeThemeAndStyle()
@@ -572,8 +575,10 @@ namespace WinPieGestures.Views.Wheel
             return null;
         }
 
-        /// <summary>Reflects engine-driven state mutations onto the view (T05): the
-        /// window is only ever driven through the <see cref="WheelViewModel"/>.</summary>
+        /// <summary>Reflects engine-driven state mutations onto the view (T05; ADR-0009
+        /// INPC 订阅边界): the window is only ever driven through the
+        /// <see cref="WheelViewModel"/> — every case redraws pure visuals or applies a
+        /// lifecycle state (IsShown/IsClosed) to the window; it never writes VM state.</summary>
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
