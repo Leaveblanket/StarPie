@@ -170,6 +170,9 @@ namespace WinPieGestures
             // T24：语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。订阅与首次应用
             // 先于任何页面 View 创建（语言切换经 I18n.LanguageChanged 同步重建，换入不累积）。
             I18n.LanguageChanged += ApplyLanguageDictionary;
+            // T25（ADR-0010 壳外文案）：语言切换按当前暂停态即时刷新托盘 tooltip；
+            // 托盘菜单每次打开经 menuProvider 重建，无需在此刷新。
+            I18n.LanguageChanged += RefreshTrayTooltip;
             ApplyLanguageDictionary();
 
             // 页面 VM 解析点（组合根）：VM 构造即订阅导入广播与落盘消息，时机与迁移前根 VM 构造等价。
@@ -206,7 +209,7 @@ namespace WinPieGestures
                 _themeService,
                 onDoubleClick: () => NavigateAndShow(_navTrigger),
                 menuProvider: BuildTrayMenuEntries);
-            _trayIcon.SetTooltip(DefaultTooltip);
+            _trayIcon.SetTooltip(CurrentTooltip());
 
             _mainView.Show();
         }
@@ -215,9 +218,13 @@ namespace WinPieGestures
         {
             // T24：成对退订语言字典换入（订阅在 Run()），防静态事件在组合根释放后仍持有引用。
             I18n.LanguageChanged -= ApplyLanguageDictionary;
+            I18n.LanguageChanged -= RefreshTrayTooltip;
             _trayIcon?.Dispose();
             _trayIcon = null;
             _mouseHook.Stop();
+
+            // T25（ADR-0010 第 3 条）：进程级 VM 成对退订 I18n 静态事件（容器 dispose 亦覆盖，此处显式保证顺序）。
+            _mainViewModel?.Dispose();
             // T18：容器随组合根释放（单例未持非托管资源，语义与手动形态一致）。
             _provider.Dispose();
         }
@@ -257,6 +264,7 @@ namespace WinPieGestures
         {
             var entries = new List<TrayMenuEntry>
             {
+                // T25（ADR-0010 壳外文案）：托盘 Header 为品牌/版本名（StarPie v1.4.1 + Dev 标记），锁死不翻译。
                 TrayMenuEntry.Header("StarPie v1.4.1" + DevInstance.Suffix),
                 TrayMenuEntry.Separator()
             };
@@ -278,9 +286,21 @@ namespace WinPieGestures
         private void TogglePauseGestures()
         {
             _mouseHook.IsPaused = !_mouseHook.IsPaused;
-            _trayIcon?.SetTooltip(_mouseHook.IsPaused
-                ? $"StarPie ({I18n.T("TrayPause")})"
-                : DefaultTooltip);
+            _trayIcon?.SetTooltip(CurrentTooltip());
+        }
+
+        /// <summary>当前暂停态对应的托盘 tooltip（ADR-0010 壳外文案：语言切换由组合根按暂停态刷新）。</summary>
+        private string CurrentTooltip()
+        {
+            return _mouseHook.IsPaused ? $"StarPie ({I18n.T("TrayPause")})" : DefaultTooltip;
+        }
+
+        private void RefreshTrayTooltip()
+        {
+            if (_trayIcon != null)
+            {
+                _trayIcon.SetTooltip(CurrentTooltip());
+            }
         }
 
         private static string DefaultTooltip => I18n.T("TrayTooltip") + DevInstance.Suffix;

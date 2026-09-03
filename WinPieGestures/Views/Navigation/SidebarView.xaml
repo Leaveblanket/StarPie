@@ -41,7 +41,7 @@
                     </Border>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0,0,0">
                         <TextBlock Text="StarPie" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock x:Name="SidebarSubtitleText" Text="现代鼠标轮盘笔势系统" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                        <TextBlock AutomationProperties.AutomationId="SidebarSubtitleText" Text="{DynamicResource AppSubtitle}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Grid>
             </StackPanel>

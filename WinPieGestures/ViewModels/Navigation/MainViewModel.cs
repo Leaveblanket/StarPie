@@ -11,10 +11,10 @@ namespace WinPieGestures.ViewModels.Navigation
     /// 主框架 ViewModel (T19)：设置控制台窗口 DataContext 的单一根源——
     /// <see cref="CurrentViewModel"/> 供 ContentControl 呈现当前页面（DataTemplate 按 VM 类型
     /// 映射页面 View），<see cref="NavigationItems"/> 供侧边栏数据驱动呈现。
-    /// 导航项选中态随 NavigationStore 当前页同步；标题随 I18n 语言广播刷新（本 VM 容器单例，
-    /// 与应用同生命周期，静态广播订阅无泄漏）。
-    /// </summary>
-    public partial class MainViewModel : ObservableObject
+    /// 导航项选中态随 NavigationStore 当前页同步；导航标题与 WindowTitle 随 I18n 语言广播刷新。
+    /// 生命周期（ADR-0010 第 3 条）：本 VM 为容器单例，同样实现 IDisposable 配对退订静态事件，
+    /// 由组合根随 Composition.Dispose 调用（兼作测试拆卸）。
+    public partial class MainViewModel : ObservableObject, IDisposable
     {
         private readonly NavigationStore _store;
         private readonly IMessenger _messenger;
@@ -29,6 +29,9 @@ namespace WinPieGestures.ViewModels.Navigation
         /// <summary>App 级退出进行中（组合根在托盘退出/提权重启时置位）：主框架 Closing
         /// 据此放行真关窗而非隐藏到托盘（ADR-0003；#27 起退出状态归壳层 VM，View 不再反向依赖 Composition）。</summary>
         public bool IsExiting { get; set; }
+
+        /// <summary>壳层窗口标题（ADR-0010）：WindowTitle 键 + DevInstance 标记；语言切换随本 VM 刷新。</summary>
+        public string WindowTitle => I18n.T("WindowTitle") + DevInstance.Suffix;
 
         public MainViewModel(
             NavigationStore store,
@@ -68,7 +71,8 @@ namespace WinPieGestures.ViewModels.Navigation
                 }
             };
 
-            // 语言切换 → 导航项标题即时刷新（I18n 静态广播，ADR-0002 判据不变）
+            // 语言切换 → 导航项标题 + WindowTitle 即时刷新（I18n 静态广播，ADR-0002 判据不变；
+            // ADR-0010 第 3 条：进程级 VM 配 IDisposable 成对退订）。
             I18n.LanguageChanged += RefreshTitles;
 
             SyncSelection();
@@ -91,13 +95,20 @@ namespace WinPieGestures.ViewModels.Navigation
             }
         }
 
-        /// <summary>语言切换后按导航项的标题键重取本地化文本。</summary>
+        /// <summary>语言切换后按导航项的标题键重取本地化文本，并刷新壳层窗口标题。</summary>
         private void RefreshTitles()
         {
             foreach (NavigationItemViewModel item in NavigationItems)
             {
                 item.Title = I18n.T(item.TitleKey);
             }
+            OnPropertyChanged(nameof(WindowTitle));
+        }
+
+        /// <summary>退订 I18n 静态事件（ADR-0010 第 3 条：进程级 VM 也成对退订；组合根随 Composition.Dispose 调用）。</summary>
+        public void Dispose()
+        {
+            I18n.LanguageChanged -= RefreshTitles;
         }
 
         // 导航图标（迁移前 NavTab{0..4} 的 Path Data 原样搬迁）

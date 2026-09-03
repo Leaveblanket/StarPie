@@ -8,11 +8,11 @@ using WinPieGestures.ViewModels;
 namespace WinPieGestures.Views.Navigation
 {
     /// <summary>
-    /// 设置控制台主框架 (T19)：独立承担窗口职责——关窗隐藏到托盘（含兜底冲刷）、淡入淡出动画、
-    /// 壳层文本本地化、标题本地化；页面区是 ContentControl（DataContext.CurrentViewModel），
-    /// 页面经 DataTemplate 由页面 VM 映射呈现。壳层不感知具体页面，也不持页面 VM 引用。
-    /// 落盘/托盘驻留经 <see cref="IMessenger"/> 广播由组合根承接（RootSettingsViewModel 已删除）。
-    /// </summary>
+    /// 设置控制台主框架 (T19)：独立承担窗口职责——关窗隐藏到托盘（含兜底冲刷）、淡入淡出动画；
+    /// 页面区是 ContentControl（DataContext.CurrentViewModel），页面经 DataTemplate 由页面 VM 映射呈现。
+    /// 壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播由组合根承接
+    /// （RootSettingsViewModel 已删除）。壳层静态文案为声明式 {DynamicResource}（ADR-0010），
+    /// Window.Title 收进 <see cref="MainViewModel.WindowTitle"/>（壳层 VM 生命周期，ADR-0010 第 3 条）。
     public partial class MainView : Window
     {
         private readonly MainViewModel _main;
@@ -26,19 +26,8 @@ namespace WinPieGestures.Views.Navigation
 
             DataContext = _main;
 
-            // ADR-0002：I18n 语言切换广播——壳层文本刷新（导航项标题由主框架 VM 刷新）。
-            I18n.LanguageChanged += ApplyLocalization;
-            Closed += (_, _) => I18n.LanguageChanged -= ApplyLocalization;
-
-            ApplyLocalization();
-        }
-
-        public void ApplyLocalization()
-        {
-            Title = I18n.T("WindowTitle") + DevInstance.Suffix;
-            if (BottomNoteText != null) BottomNoteText.Text = I18n.T("BottomStatusNote");
-            if (SaveButton != null) SaveButton.Content = I18n.T("BtnSave");
-            if (CloseButton != null) CloseButton.Content = I18n.T("BtnClose");
+            // ADR-0010：壳层静态文案声明式化（{DynamicResource}）；Window.Title 绑定壳层 VM，
+            // 语言切换由 MainViewModel（I18n 订阅）刷新，View 不再回填本地化。
         }
 
         /// <summary>应用界面主题到主窗口（窗口视觉是壳层职责：外观页切换主题与导入后同步经此调用，
