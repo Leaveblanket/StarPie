@@ -143,7 +143,7 @@
                         <ColumnDefinition Width="46"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="HueLabelText" Text="色相" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock AutomationProperties.AutomationId="HueLabelText" Text="{DynamicResource ColorPickerHue}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     <Slider x:Name="HueSlider" Grid.Column="1" Minimum="0" Maximum="360" Value="{Binding Hue}" Height="18">
                         <Slider.Background>
                             <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
@@ -165,7 +165,7 @@
                         <ColumnDefinition Width="46"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="AlphaLabelText" Text="不透明" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                    <TextBlock AutomationProperties.AutomationId="AlphaLabelText" Text="{DynamicResource ColorPickerAlpha}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                     <Slider x:Name="AlphaSlider" Grid.Column="1" Minimum="0" Maximum="255" Value="{Binding Alpha}" Height="18"/>
                 </Grid>
             </StackPanel>
@@ -178,10 +178,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock x:Name="EyedropperTitleText" Text="🔍 屏幕取色吸管" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        <TextBlock x:Name="EyedropperDescText" Text="点击后在屏幕任意窗口吸取精准色彩" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock AutomationProperties.AutomationId="EyedropperTitleText" Text="{DynamicResource ColorPickerEyedropperTitle}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock AutomationProperties.AutomationId="EyedropperDescText" Text="{DynamicResource ColorPickerEyedropperDesc}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                    <Button Grid.Column="1" x:Name="EyedropperButton" Content="从屏幕吸色" Style="{StaticResource PrimaryBtn}" Padding="12,4" Height="26" FontSize="11" Command="{Binding EyedropperCommand}"/>
+                    <Button Grid.Column="1" AutomationProperties.AutomationId="EyedropperButton" Content="{DynamicResource ColorPickerEyedropperBtn}" Style="{StaticResource PrimaryBtn}" Padding="12,4" Height="26" FontSize="11" Command="{Binding EyedropperCommand}"/>
                 </Grid>
             </Border>
 
@@ -191,7 +191,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock x:Name="SwatchesTitleText" Grid.Row="0" Text="预设经典配色卡 (Quick Swatches - 滚轮滚动查看全部):" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                <TextBlock AutomationProperties.AutomationId="SwatchesTitleText" Grid.Row="0" Text="{DynamicResource ColorPickerSwatches}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                 <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="6">
                     <ScrollViewer x:Name="SwatchesScrollViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="SwatchesScrollViewer_PreviewMouseWheel">
                         <WrapPanel x:Name="SwatchesPanel" HorizontalAlignment="Center"/>
@@ -207,8 +207,8 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="1" x:Name="CancelButton" Content="取消" Style="{StaticResource ModernBtn}" Margin="0,0,8,0" Width="80" Click="Cancel_Click"/>
-            <Button Grid.Column="2" x:Name="OkButton" Content="应用色彩" Style="{StaticResource PrimaryBtn}" Width="90" Command="{Binding ConfirmCommand}"/>
+            <Button Grid.Column="1" AutomationProperties.AutomationId="CancelButton" Content="{DynamicResource BtnCancel}" Style="{StaticResource ModernBtn}" Margin="0,0,8,0" Width="80" Click="Cancel_Click"/>
+            <Button Grid.Column="2" AutomationProperties.AutomationId="OkButton" Content="{DynamicResource ColorPickerApply}" Style="{StaticResource PrimaryBtn}" Width="90" Command="{Binding ConfirmCommand}"/>
         </Grid>
     </Grid>
 </Window>

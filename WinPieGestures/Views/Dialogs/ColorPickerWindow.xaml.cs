@@ -18,7 +18,7 @@ namespace WinPieGestures.Views.Dialogs
 
     /// <summary>
     /// 颜色选择器窗口 (T08)：HSV 状态机、十六进制输入解析与确认结果全部在
-    /// <see cref="ColorPickerViewModel"/>；code-behind 只剩取色圈定位、本地化文案与把
+    /// <see cref="ColorPickerViewModel"/>；code-behind 只剩取色圈定位与把
     /// VM 完成/取消落成 DialogResult——色盘取点像素坐标翻译在
     /// <see cref="SpectrumCanvasBehavior"/>（ADR-0009）。由 <see cref="DialogService"/> 创建，
     /// Owner 归设置窗口。
@@ -36,7 +36,7 @@ namespace WinPieGestures.Views.Dialogs
             DataContext = _vm;
             PopulateSwatches();
             UpdateSpectrumThumbPosition();
-            ApplyLocalization();
+            Title = $"{I18n.T("ColorPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
@@ -105,18 +105,6 @@ namespace WinPieGestures.Views.Dialogs
             Close();
         }
 
-        private void ApplyLocalization()
-        {
-            this.Title = $"{I18n.T("ColorPickerTitle")} - StarPie";
-            if (HueLabelText != null) HueLabelText.Text = I18n.T("ColorPickerHue");
-            if (AlphaLabelText != null) AlphaLabelText.Text = I18n.T("ColorPickerAlpha");
-            if (EyedropperTitleText != null) EyedropperTitleText.Text = I18n.T("ColorPickerEyedropperTitle");
-            if (EyedropperDescText != null) EyedropperDescText.Text = I18n.T("ColorPickerEyedropperDesc");
-            if (EyedropperButton != null) EyedropperButton.Content = I18n.T("ColorPickerEyedropperBtn");
-            if (SwatchesTitleText != null) SwatchesTitleText.Text = I18n.T("ColorPickerSwatches");
-            if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
-            if (OkButton != null) OkButton.Content = I18n.T("ColorPickerApply");
-        }
     }
 
     #region Screen Eyedropper Overlay Window

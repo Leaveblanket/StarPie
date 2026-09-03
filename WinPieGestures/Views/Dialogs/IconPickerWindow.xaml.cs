@@ -17,7 +17,7 @@ namespace WinPieGestures.Views.Dialogs
     /// <summary>
     /// 图标选择器窗口 (T08)：选中状态、搜索过滤、导入/删除编排与确认结果全部在
     /// <see cref="IconPickerViewModel"/>；code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）、
-    /// 本地化文案与把 VM 的关闭请求落成 DialogResult。由 <see cref="DialogService"/> 创建，
+    /// 把 VM 的关闭请求落成 DialogResult。由 <see cref="DialogService"/> 创建，
     /// Owner 归设置窗口。
     /// </summary>
     public partial class IconPickerWindow : Window
@@ -33,7 +33,7 @@ namespace WinPieGestures.Views.Dialogs
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
-            ApplyLocalization();
+            Title = $"{I18n.T("IconPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
@@ -211,18 +211,5 @@ namespace WinPieGestures.Views.Dialogs
             Close();
         }
 
-        private void ApplyLocalization()
-        {
-            this.Title = $"{I18n.T("IconPickerTitle")} - StarPie";
-            if (HeaderTitleText != null) HeaderTitleText.Text = I18n.T("IconPickerHeader");
-            if (HeaderSubtitleText != null) HeaderSubtitleText.Text = I18n.T("IconPickerSubtitle");
-            if (SearchTextBox != null) SearchTextBox.ToolTip = I18n.T("IconPickerSearchTooltip");
-            if (ImportIconButton != null) ImportIconButton.Content = I18n.T("IconPickerImport");
-            if (ClearIconButton != null) ClearIconButton.Content = I18n.T("IconPickerClear");
-            if (SelectedIconPrefixText != null) SelectedIconPrefixText.Text = I18n.T("IconPickerSelected") + " ";
-            if (ConfirmButton != null) ConfirmButton.Content = I18n.T("BtnConfirm");
-            if (CancelButton != null) CancelButton.Content = I18n.T("BtnCancel");
-            // SelectedIconNameLabel 的文案走 VM 的 SelectedIconDisplayName 绑定，这里不能落本地值覆盖绑定。
-        }
     }
 }
