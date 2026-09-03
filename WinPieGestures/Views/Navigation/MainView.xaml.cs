@@ -15,14 +15,16 @@ namespace WinPieGestures.Views.Navigation
     /// </summary>
     public partial class MainView : Window
     {
+        private readonly MainViewModel _main;
         private readonly IThemeService _themeService;
 
         public MainView(MainViewModel main, IThemeService themeService)
         {
             InitializeComponent();
+            _main = main ?? throw new ArgumentNullException(nameof(main));
             _themeService = themeService;
 
-            DataContext = main ?? throw new ArgumentNullException(nameof(main));
+            DataContext = _main;
 
             // ADR-0002：I18n 语言切换广播——壳层文本刷新（导航项标题由主框架 VM 刷新）。
             I18n.LanguageChanged += ApplyLocalization;
@@ -67,9 +69,10 @@ namespace WinPieGestures.Views.Navigation
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            // App-level exit (ADR-0003): pending edits were already flushed by the
-            // composition root — allow the close. Any other close hides to the tray.
-            if (Composition.IsExiting) return;
+            // App-level exit (ADR-0003, #27): pending edits were already flushed by the
+            // composition root — allow the close. Exit state lives on the shell VM
+            // (MainViewModel.IsExiting), so the View has no reverse dependency on Composition.
+            if (_main.IsExiting) return;
 
             e.Cancel = true;
 

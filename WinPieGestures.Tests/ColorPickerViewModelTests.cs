@@ -208,6 +208,19 @@ public sealed class ColorPickerViewModelTests
     }
 
     [Fact]
+    public void SetSpectrumPointActionCommand_MidValues_ComputesResult()
+    {
+        // T22：附加行为翻译像素坐标后经 SetSpectrumPointActionCommand 进入（ADR-0009）。
+        var vm = Create(); // 初始为纯红（h=0）
+
+        vm.SetSpectrumPointActionCommand.Execute(new SpectrumPoint(0.5, 0.5));
+
+        Assert.Equal(0.5, vm.Saturation);
+        Assert.Equal(0.5, vm.Value);
+        Assert.Equal("#FF7F3F3F", vm.SelectedHexColor);
+    }
+
+    [Fact]
     public void HueChange_UpdatesResultAndHexText()
     {
         var vm = Create(); // 初始为纯红
@@ -239,6 +252,18 @@ public sealed class ColorPickerViewModelTests
 
         Assert.NotNull(result);
         Assert.Equal(vm.SelectedHexColor, result!.HexColor);
+    }
+
+    [Fact]
+    public void Confirm_SetsIsCompleted_WithCurrentColor()
+    {
+        // T22：确认经 ConfirmCommand/IsCompleted 驱动（ADR-0009），视图据此落 DialogResult=true。
+        var vm = Create();
+
+        vm.ConfirmCommand.Execute(null);
+
+        Assert.True(vm.IsCompleted);
+        Assert.Equal(vm.SelectedHexColor, vm.BuildResult()!.HexColor);
     }
 
     // --- 屏上取色（mock 对话框服务） -----------------------------------------------------
