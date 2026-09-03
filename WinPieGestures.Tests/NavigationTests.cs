@@ -293,4 +293,41 @@ public sealed class MainViewModelTests
             I18n.CurrentLanguage = original;
         }
     }
+
+    [Fact]
+    public void WindowTitle_ReflectsI18nAndDevSuffix()
+    {
+        var (vm, _, _) = Create();
+
+        Assert.Equal(I18n.T("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
+    }
+
+    [Fact]
+    public void LanguageChanged_RaisesWindowTitlePropertyChanged_UntilDisposed()
+    {
+        // T25（ADR-0010 第 3 条）：WindowTitle 并入 RefreshTitles 刷新，Dispose 后不再订阅静态事件。
+        var (vm, _, _) = Create();
+        var original = I18n.CurrentLanguage;
+        var changes = new List<string?>();
+        vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.WindowTitle)) changes.Add(e.PropertyName);
+        };
+        try
+        {
+            I18n.SetLanguage("en");
+
+            Assert.Contains(nameof(MainViewModel.WindowTitle), changes);
+            Assert.Equal(I18n.T("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
+
+            changes.Clear();
+            vm.Dispose();
+            I18n.SetLanguage("ja");
+            Assert.DoesNotContain(nameof(MainViewModel.WindowTitle), changes);
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
+    }
 }

@@ -4,7 +4,7 @@
         xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Pages"
         xmlns:pages="clr-namespace:WinPieGestures.Views.Pages"
         xmlns:navigation="clr-namespace:WinPieGestures.Views.Navigation"
-        Title="StarPie 设置控制台 (Preferences)" Height="720" Width="1060"
+        Title="{Binding WindowTitle}" Height="720" Width="1060"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
         Closing="Window_Closing"
@@ -70,10 +70,10 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock x:Name="BottomNoteText" Grid.Column="0" Text="注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+                    <TextBlock AutomationProperties.AutomationId="BottomNoteText" Grid.Column="0" Text="{DynamicResource BottomStatusNote}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
 
-                    <Button x:Name="SaveButton" Grid.Column="1" Content="保存更改" Style="{StaticResource PrimaryButtonStyle}" Width="120" Height="36" Command="{Binding SaveCommand}" Margin="0,0,10,0"/>
-                    <Button x:Name="CloseButton" Grid.Column="2" Content="关闭并隐藏" Style="{StaticResource ModernButtonStyle}" Width="100" Height="36" Click="CloseButton_Click"/>
+                    <Button AutomationProperties.AutomationId="SaveButton" Grid.Column="1" Content="{DynamicResource BtnSave}" Style="{StaticResource PrimaryButtonStyle}" Width="120" Height="36" Command="{Binding SaveCommand}" Margin="0,0,10,0"/>
+                    <Button AutomationProperties.AutomationId="CloseButton" Grid.Column="2" Content="{DynamicResource BtnClose}" Style="{StaticResource ModernButtonStyle}" Width="100" Height="36" Click="CloseButton_Click"/>
                 </Grid>
             </Border>
         </Grid>
