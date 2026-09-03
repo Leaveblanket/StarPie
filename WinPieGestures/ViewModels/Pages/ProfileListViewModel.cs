@@ -24,7 +24,7 @@ namespace WinPieGestures.ViewModels.Pages
     /// 与 <see cref="WheelViewModel.Config"/> 先例同理，直接持有运行态配置的
     /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
     /// </summary>
-    public partial class ProfileListViewModel : ObservableObject
+    public partial class ProfileListViewModel : ObservableObject, IDisposable
     {
         // 方位角标签与缺省动作（自 SettingsWindow 迁入，文案与补齐规则一字未动）
         private static readonly string[] Directions4 = { "右 (E / 0°)", "下 (S / 90°)", "左 (W / 180°)", "上 (N / 270°)" };
@@ -63,6 +63,7 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
         private readonly IActionExecutorService _actionExecutor;
+        private bool _isDisposed;
 
         /// <summary>方案展示列表（按前台进程名展示每个方案，Global 为全局兜底方案）。</summary>
         public ObservableCollection<ProfileItemViewModel> Profiles { get; } = new();
@@ -146,6 +147,7 @@ namespace WinPieGestures.ViewModels.Pages
             {
                 Profiles.Add(new ProfileItemViewModel(profile));
             }
+            DisposeSlots(); // T27：清空槽位前先成对退订（构造/Reload 空列表均可能带旧槽）
             Slots.Clear();
 
             // T21：默认选中/导入回落到首项（与页面 View 迁移前 OnPageLoaded/OnConfigReloaded 语义一致）；
@@ -187,11 +189,14 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>
         /// 重建方向槽位集合（迁移前 RefreshSlots）：扇区数规范化为 4/8/12（非法值按 8 展示，
         /// 不回写模型）、按缺省预设补齐缺失动作、按方位角生成槽位 ViewModel。
+        /// 重建前先逐个 Dispose 旧槽（T27/ADR-0010：槽位自订阅 I18n.LanguageChanged，
+        /// 必须成对退订再释放引用，防静态事件累积）。
         /// </summary>
         public void RebuildSlots()
         {
             try
             {
+                DisposeSlots();
                 Slots.Clear();
 
                 var item = SelectedProfile ?? Profiles.FirstOrDefault();
@@ -383,6 +388,30 @@ namespace WinPieGestures.ViewModels.Pages
             RemoveProfile(selected);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             return true;
+        }
+
+        /// <summary>T27/ADR-0010：逐个 Dispose 当前槽位（幂等），随后由调用方 Clear 集合。
+        /// DisposeSlots 不负责清集合——任一路径保留 Clear 语义（含失败兜底 catch 内的空返回）。
+        /// 容器释放/测试拆卸兜底：<see cref="Dispose"/> 复用本方法清尾。</summary>
+        private void DisposeSlots()
+        {
+            for (int i = 0; i < Slots.Count; i++)
+            {
+                Slots[i].Dispose();
+            }
+        }
+
+        /// <summary>
+        /// 释放剩余槽位（ADR-0010 VM 生命周期契约：页面 VM 为容器单例，由组合根随
+        /// <see cref="Composition.Dispose"/> 自动调用，兼作测试拆卸兜底）。
+        /// 幂等：重复 Dispose 不重复清理；Dispose 后不再重建槽位。
+        /// </summary>
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+            DisposeSlots();
+            Slots.Clear();
         }
 
         /// <summary>按迁移前规则构造新方案：绑定进程名 + 当前选中方案的扇区数 + 占位动作补齐。</summary>

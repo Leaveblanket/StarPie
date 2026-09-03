@@ -32,9 +32,11 @@ namespace WinPieGestures.ViewModels.Gestures
     /// 与迁移前的落盘差异保持一致：程序/图标选择不主动落盘，文件夹选择提交后触发
     /// <see cref="EditApplied"/> 请求落盘（迁移前为 SyncUiToConfigAndSave(true)）。
     /// </summary>
-    public partial class SlotViewModel : ObservableObject
+    public partial class SlotViewModel : ObservableObject, IDisposable
     {
         private readonly IDialogService _dialogs;
+        private readonly Action? _languageChangedHandler;
+        private bool _isDisposed;
         private readonly IActionExecutorService _actionExecutor;
         private readonly IMessenger _messenger;
 
@@ -281,12 +283,29 @@ namespace WinPieGestures.ViewModels.Gestures
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
-            I18n.LanguageChanged += () =>
+            _languageChangedHandler = () =>
             {
                 OnPropertyChanged(nameof(ActionTypes));
                 OnPropertyChanged(nameof(TestButtonText));
                 OnPropertyChanged(nameof(IconDisplayText));
             };
+            I18n.LanguageChanged += _languageChangedHandler;
+        }
+
+        /// <summary>
+        /// 成对退订 <see cref="I18n.LanguageChanged"/>（ADR-0010 VM 生命周期契约：
+        /// 瞬态 VM 自订阅须 IDisposable 成对退订，由持有者 ProfileListViewModel Dispose）。
+        /// 幂等：重复 Dispose 不重复退订；Dispose 后不再对静态事件做任何操作。
+        /// 切语刷新仍走实时计算属性（getter 内 I18n.T()）+ OnPropertyChanged（ADR-0010 机制 ③）。
+        /// </summary>
+        public void Dispose()
+        {
+            if (_isDisposed) return;
+            _isDisposed = true;
+            if (_languageChangedHandler != null)
+            {
+                I18n.LanguageChanged -= _languageChangedHandler;
+            }
         }
 
         /// <summary>
