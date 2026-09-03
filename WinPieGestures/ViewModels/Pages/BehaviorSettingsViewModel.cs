@@ -17,7 +17,7 @@ namespace WinPieGestures.ViewModels.Pages
     /// 落盘经 <see cref="IMessenger"/> 上报组合根编排订阅者（立即请求/防抖请求两类消息，
     /// T19 起取代迁移前的事件上报）。
     /// 导入配置会替换运行态配置实例（JsonConfigService.Import），届时经 <see cref="Reload"/> 重挂；
-    /// <see cref="ConfigReloaded"/> 供页面 View 同步控件显示。
+    /// 绑定控件随属性通知自动刷新（T21：页面 View 不再订阅同步消息）。
     /// </summary>
     public partial class BehaviorSettingsViewModel : ObservableObject
     {
@@ -65,7 +65,7 @@ namespace WinPieGestures.ViewModels.Pages
         public ObservableCollection<string> BlacklistProcesses { get; } = new();
 
         // Reload 批量重挂期间为 true：属性变更通知照发，但 Config 回写与落盘事件被抑制
-        //（值来自配置本身，无需回写；窗口在 _isUpdatingUi 保护内同步控件）。
+        //（值来自配置本身，无需回写；绑定控件随属性通知自动刷新）。
         private bool _isReloading;
 
         public BehaviorSettingsViewModel(AppConfig config, IDialogService dialogs, IMessenger messenger)
@@ -74,11 +74,11 @@ namespace WinPieGestures.ViewModels.Pages
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
-            // T19：导入成功广播 → 以消息携带的新配置自行重挂，并通知页面 View 同步控件。
+            // T19/T21：导入成功广播 → 以消息携带的新配置自行重挂；绑定控件随属性通知自动刷新，
+            // View 不再需要 PageConfigReloaded 同步。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig);
-                _messenger.Send(new PageConfigReloadedMessage(typeof(BehaviorSettingsViewModel)));
             });
 
             Reload(config);
@@ -86,7 +86,7 @@ namespace WinPieGestures.ViewModels.Pages
 
         /// <summary>
         /// 以运行态配置重挂状态（构造与导入配置后调用）。经属性赋值刷新通知，重挂期间
-        /// 抑制 Config 回写与落盘事件（值来自配置本身）；控件同步由窗口在 _isUpdatingUi 保护内完成。
+        /// 抑制 Config 回写与落盘事件（值来自配置本身，无需回写）。
         /// </summary>
         public void Reload(AppConfig config)
         {

@@ -89,14 +89,7 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValuePath="Tag" SelectedValue="{Binding SelectedTheme}">
-                                            <ComboBoxItem Content="跟随系统 (System Auto)" Tag="System"/>
-                                            <ComboBoxItem Content="深色模式 (Dark)" Tag="Dark"/>
-                                            <ComboBoxItem Content="浅色模式 (Light)" Tag="Light"/>
-                                            <ComboBoxItem Content="抹茶森林 (Matcha Forest)" Tag="MatchaForest"/>
-                                            <ComboBoxItem Content="冰川透蓝 (Glacial Ice)" Tag="GlacialIce"/>
-                                            <ComboBoxItem Content="莫兰迪柔灰 (Morandi Muted)" Tag="MorandiMuted"/>
-                                        </ComboBox>
+                                        <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"/>
                                         <Button x:Name="RenameCustomColorPresetButton" Grid.Column="1" Content="✏️ 重命名预设" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="重命名当前选中的自定义配色方案预设"/>
                                     </Grid>
 
@@ -388,8 +381,8 @@
                                     <CheckBox x:Name="ShowCoreIconCheckBox" Content="显示核圆中心图标 / 图案" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
 
                                     <TextBlock Text="核圆图案类型 (Core Pattern):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                    <!-- T17/T19：CoreIconType 双向绑定（SelectedValuePath 取 Tag）；事件处理器只保留核圆预览面板/图标同步等 View 效果。 -->
-                                    <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding CoreIconType, Mode=TwoWay}" SelectionChanged="CoreIconTypeComboBox_SelectionChanged">
+                                    <!-- T17/T21：CoreIconType 双向绑定；面板可见性/图标预览/名称文本均声明式绑定（DataTrigger/MultiBinding）。 -->
+                                    <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding CoreIconType, Mode=TwoWay}">
                                         <ComboBoxItem Content="✕ 默认取消叉号 (Exit / Close)" Tag="Exit"/>
                                         <ComboBoxItem Content="⌖ 十字准心 (Crosshair)" Tag="Crosshair"/>
                                         <ComboBoxItem Content="⊞ Windows 微标 (Windows Logo)" Tag="Windows"/>
@@ -403,22 +396,59 @@
                                     </ComboBox>
 
                                     <!-- Custom Core Vector Icon Row -->
-                                    <Grid x:Name="CustomCoreIconPanel" Visibility="Collapsed" Margin="0,0,0,4">
+                                    <Grid x:Name="CustomCoreIconPanel" Margin="0,0,0,4">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CoreIconType}" Value="Custom">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Path x:Name="CustomCoreIconPreviewPath" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                                <TextBlock x:Name="CustomCoreIconNameLabel" Text="未选择图标" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <Path x:Name="CustomCoreIconPreviewPath" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                    <Path.Data>
+                                                        <MultiBinding Converter="{StaticResource CoreIconGeometryConverter}">
+                                                            <Binding Path="CoreIconType"/>
+                                                            <Binding Path="CoreCustomIconKey"/>
+                                                            <Binding Path="CoreCustomIconSvg"/>
+                                                        </MultiBinding>
+                                                    </Path.Data>
+                                                </Path>
+                                                <TextBlock x:Name="CustomCoreIconNameLabel" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource CoreIconNameConverter}">
+                                                            <Binding Path="CoreCustomIconKey"/>
+                                                            <Binding Path="CoreCustomIconSvg"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
                                             </StackPanel>
                                         </Border>
                                         <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="选择图标..." Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Command="{Binding PickCoreIconCommand}"/>
                                     </Grid>
 
                                     <!-- Custom Core Image Row -->
-                                    <Grid x:Name="CustomCoreImagePanel" Visibility="Collapsed" Margin="0,0,0,4">
+                                    <Grid x:Name="CustomCoreImagePanel" Margin="0,0,0,4">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CoreIconType}" Value="Image">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
@@ -426,9 +456,9 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Border x:Name="CoreImageThumbnailBorder" Width="32" Height="32" CornerRadius="16" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Margin="0,0,8,0" Background="{DynamicResource InputBackgroundBrush}" VerticalAlignment="Center" ClipToBounds="True">
-                                            <Image x:Name="CoreImageThumbnail" Stretch="UniformToFill"/>
+                                            <Image x:Name="CoreImageThumbnail" Stretch="UniformToFill" Source="{Binding CoreCustomImagePath, Converter={StaticResource FilePathToImageConverter}}"/>
                                         </Border>
-                                        <!-- T17/T19：CoreCustomImagePath 双向绑定（逐键更新源，保持迁移前逐键写入语义）；缩略图随 VM PropertyChanged 刷新。 -->
+                                        <!-- T17/T21：CoreCustomImagePath 双向绑定（逐键更新源）；缩略图经 FilePathToImageConverter 随绑定刷新。 -->
                                         <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="自定义图片本地路径"/>
                                     <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="浏览图片..." Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Command="{Binding BrowseCoreImageCommand}"/>
                                     <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="清除" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Command="{Binding ClearCoreImageCommand}"/>

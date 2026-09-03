@@ -93,7 +93,7 @@ public sealed class AppearanceSettingsViewModelTests
     private sealed class EventLog
     {
         private readonly SaveSpy _spy;
-        public int Preview; public int PresetList;
+        public int Preview;
         public int AutoSave { get => _spy.Debounced; set => _spy.Debounced = value; }
         public int SaveNow { get => _spy.Immediate; set => _spy.Immediate = value; }
 
@@ -103,7 +103,6 @@ public sealed class AppearanceSettingsViewModelTests
         {
             var log = new EventLog(spy);
             messenger.Register<AppearancePreviewInvalidatedMessage>(log, (_, _) => log.Preview++);
-            messenger.Register<AppearancePresetListChangedMessage>(log, (_, _) => log.PresetList++);
             return log;
         }
     }
@@ -490,7 +489,9 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal("CustomPreset_" + preset.Id, vm.SelectedTheme);
         Assert.True(vm.IsCustomPresetSelected);
         Assert.True(vm.IsCustomColorExpanderExpanded);
-        Assert.Equal(1, log.PresetList);
+        // T21：预设下拉项 ItemsSource 化——保存后 VM 重建 ThemeOptions（6 固定 + 1 自定义）。
+        Assert.Equal(7, vm.ThemeOptions.Count);
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
         Assert.Equal(1, log.SaveNow);
         // T19：保存成功提示经对话框服务(编排内聚进 VM)
         var info = Assert.Single(dialogs.Infos);
@@ -507,7 +508,7 @@ public sealed class AppearanceSettingsViewModelTests
         vm.SavePresetCommand.Execute(null);
 
         Assert.Empty(config.Current.CustomColorPresets);
-        Assert.Equal(0, log.PresetList);
+        Assert.Equal(6, vm.ThemeOptions.Count); // 取消不新增自定义项
         Assert.Equal(0, log.SaveNow);
         Assert.Empty(dialogs.Infos);
     }
@@ -544,7 +545,8 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal((true, ""), dialogs.LastValidator!.Invoke("新名"));
         Assert.Equal("新名", preset.Name);
         Assert.Equal("CustomPreset_p1", vm.SelectedTheme); // 选中保持不变
-        Assert.Equal(1, log.PresetList);
+        // T21：预设下拉项 ItemsSource 化——改名后 VM 重建 ThemeOptions 刷新标签。
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
         Assert.Equal(1, log.SaveNow);
     }
 
@@ -556,7 +558,7 @@ public sealed class AppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal(0, dialogs.InputCalls);
-        Assert.Equal(0, log.PresetList);
+        Assert.Equal(6, vm.ThemeOptions.Count); // 未选中预设不重建不新增
     }
 
     [Fact]
@@ -573,7 +575,8 @@ public sealed class AppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal("旧名", preset.Name);
-        Assert.Equal(0, log.PresetList);
+        // T21：取消改名不动下拉项。
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
     }
 
     [Fact]
@@ -664,6 +667,53 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Single(config.Current.CustomColorPresets!);
         Assert.Equal(0, log.SaveNow);
         Assert.Empty(dialogs.Infos);
+    }
+
+    [Fact]
+    public void ThemeOptions_Constructor_SeedsStaticAndCustomPresetsInOrder()
+    {
+        var preset = new CustomColorPreset { Id = "p1", Name = "方案一" };
+        var (vm, _, _, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        });
+
+        // T21：配色下拉 ItemsSource 化——固定 6 项在前、自定义预设按配置顺序追加。
+        Assert.Equal(7, vm.ThemeOptions.Count);
+        Assert.Equal("System", vm.ThemeOptions[0].Tag);
+        Assert.Equal("MorandiMuted", vm.ThemeOptions[5].Tag);
+        Assert.Equal("CustomPreset_p1", vm.ThemeOptions[6].Tag);
+        Assert.Contains("方案一", vm.ThemeOptions[6].Label);
+    }
+
+    [Fact]
+    public void ReloadFromConfig_RebuildsThemeOptionsFromImportedConfig()
+    {
+        var oldPreset = new CustomColorPreset { Id = "p1", Name = "旧预设" };
+        var (vm, config, _, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { oldPreset }
+        });
+        Assert.Equal(7, vm.ThemeOptions.Count);
+
+        var imported = new AppConfig
+        {
+            Theme = "System",
+            CustomColorPresets = new List<CustomColorPreset> { new CustomColorPreset { Id = "p2", Name = "导入预设" } }
+        };
+        config.Current = imported;
+        string? selectedNotified = null;
+        vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(vm.SelectedTheme)) selectedNotified = e.PropertyName; };
+        vm.ReloadFromConfig();
+
+        Assert.Equal("System", vm.SelectedTheme);
+        // T21：重建下拉后补发选中通知，保证 ComboBox 能从新 ThemeOptions 恢复选中。
+        Assert.Equal(nameof(vm.SelectedTheme), selectedNotified);
+        Assert.Equal(7, vm.ThemeOptions.Count);
+        Assert.DoesNotContain(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1");
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p2" && o.Label.Contains("导入预设"));
     }
 
     // --- 主题选择边界 -------------------------------------------------------------------

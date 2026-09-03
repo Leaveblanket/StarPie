@@ -8,6 +8,9 @@
         <converters:HexToBrushConverter x:Key="HexToBrushConverter"/>
         <converters:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
         <converters:IntEqualsConverter x:Key="IntEqualsConverter"/>
+        <converters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter"/>
+        <converters:CoreIconNameConverter x:Key="CoreIconNameConverter"/>
+        <converters:FilePathToImageConverter x:Key="FilePathToImageConverter"/>
         <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F8FAFC"/>
         <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF"/>
         <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>

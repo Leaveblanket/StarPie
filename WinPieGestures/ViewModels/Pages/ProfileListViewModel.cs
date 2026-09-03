@@ -20,7 +20,7 @@ namespace WinPieGestures.ViewModels.Pages
     /// code-behind 收编进本 VM（对话框服务已在此）；槽位编辑提交与各编排的落盘请求经
     /// <see cref="IMessenger"/> 上报组合根编排订阅者（取代迁移前 SlotEditCommitted 事件 +
     /// 视图 FlushPendingSave 链）。导入成功经 <see cref="ConfigImportedMessage"/> 广播后自行重挂，
-    /// 并经 <see cref="ConfigReloaded"/> 通知页面 View 同步列表选中。
+    /// 并默认选中新列表首项（T21：默认选中与导入回落自页面 View 收编进 VM，View 不再写选中态）。
     /// 与 <see cref="WheelViewModel.Config"/> 先例同理，直接持有运行态配置的
     /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
     /// </summary>
@@ -122,17 +122,19 @@ namespace WinPieGestures.ViewModels.Pages
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
 
-            // T19：导入成功广播 → 以新配置的方案列表自行重挂，并通知页面 View 同步列表选中。
+            // T19/T21：导入成功广播 → 以新配置的方案列表自行重挂；默认选中首项由
+            // Reload 内部维护（T21 自页面 View 收编），View 不再需要 PageConfigReloaded 同步。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig.Profiles);
-                _messenger.Send(new PageConfigReloadedMessage(typeof(ProfileListViewModel)));
             });
 
             Reload(sourceProfiles);
         }
 
-        /// <summary>以新的运行态方案列表重建展示集合（导入配置后调用）；清空选中态与槽位。</summary>
+        /// <summary>以新的运行态方案列表重建展示集合（构造与导入配置后调用）；
+        /// 有方案时默认选中首项并重建槽位（T21：页面 View 的默认选中/导入回落收编于此），
+        /// 无方案时清空选中态与槽位。</summary>
         public void Reload(List<WheelProfile> sourceProfiles)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
@@ -145,6 +147,13 @@ namespace WinPieGestures.ViewModels.Pages
                 Profiles.Add(new ProfileItemViewModel(profile));
             }
             Slots.Clear();
+
+            // T21：默认选中/导入回落到首项（与页面 View 迁移前 OnPageLoaded/OnConfigReloaded 语义一致）；
+            // 赋值触发 OnSelectedProfileChanged → RebuildSlots，使扇区数、槽位与选中方案一致。
+            if (Profiles.Count > 0)
+            {
+                SelectedProfile = Profiles[0];
+            }
         }
 
         /// <summary>
@@ -353,7 +362,7 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>
         /// 删除选中方案（迁移前 DeleteProfileButton_Click 的编排）：未选中静默返回；
         /// Global 经提示框拦截；确认框通过后移除并请求立即落盘，返回是否完成删除
-        /// （页面 View 据此把列表选中回落到第一项）。
+        /// （列表选中回落由 SelectedProfile 双向绑定与 RebuildSlots 首项兑底维护）。
         /// </summary>
         public bool DeleteSelectedProfileViaDialog()
         {

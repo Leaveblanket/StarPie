@@ -16,7 +16,7 @@ namespace WinPieGestures.ViewModels.Pages
     /// 配色预设增删改的编排（含命名输入与删除确认/结果提示对话框）在此（T19：对话框编排内聚进 VM）。
     /// T19 页面化：构造注入 <see cref="ProfileListViewModel"/> 单例——预览画哪个方案是编译期可见的
     /// 静态已知依赖，不走消息（ADR-0005）；导入成功经 <see cref="ConfigImportedMessage"/> 广播后
-    /// 自行从配置重挂状态（播种快照属性导入后会过期），并经 <see cref="ConfigReloaded"/> 通知页面 View。
+    /// 自行从配置重挂状态（播种快照属性导入后会过期），并重建配色下拉选项（T21 ItemsSource 化）。
     /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
     /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
     /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
@@ -55,7 +55,7 @@ namespace WinPieGestures.ViewModels.Pages
             ProfileList = profileList ?? throw new ArgumentNullException(nameof(profileList));
 
             // T19：导入成功广播 → 从新配置重挂播种快照（透传属性读穿配置本就即时），
-            // 再通知页面 View 做 View 层同步（预设下拉动态项/主题应用/预览重绘）。
+            // 再通知页面 View 做主题应用/预览重绘等 View 效果（状态与下拉项已声明式绑定）。
             messenger.Register<ConfigImportedMessage>(this, (_, _) =>
             {
                 ReloadFromConfig();
@@ -71,6 +71,42 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>自定义配色预设列表（视图重建下拉动态项的数据源；配置可能未初始化，恒不为 null）。</summary>
         public IReadOnlyList<CustomColorPreset> CustomPresets
             => (IReadOnlyList<CustomColorPreset>?)Config.CustomColorPresets ?? Array.Empty<CustomColorPreset>();
+
+        /// <summary>轮盘配色下拉的固定配色项（Tag 与迁移前 XAML 静态 ComboBoxItem 一致）。</summary>
+        private static readonly ThemeOptionItem[] StaticThemeOptions =
+        {
+            new("System", "跟随系统 (System Auto)"),
+            new("Dark", "深色模式 (Dark)"),
+            new("Light", "浅色模式 (Light)"),
+            new("MatchaForest", "抹茶森林 (Matcha Forest)"),
+            new("GlacialIce", "冰川透蓝 (Glacial Ice)"),
+            new("MorandiMuted", "莫兰迪柔灰 (Morandi Muted)")
+        };
+
+        private IReadOnlyList<ThemeOptionItem> _themeOptions = Array.Empty<ThemeOptionItem>();
+
+        /// <summary>轮盘配色下拉选项（固定配色 + 自定义预设；导入/增删改名后重建，T21 ItemsSource 化）。</summary>
+        public IReadOnlyList<ThemeOptionItem> ThemeOptions
+        {
+            get => _themeOptions;
+            private set => SetProperty(ref _themeOptions, value);
+        }
+
+        /// <summary>重建 <see cref="ThemeOptions"/>：固定配色在前、自定义预设按配置顺序追加（Tag=CustomPreset_{id}）。</summary>
+        private void RebuildThemeOptions()
+        {
+            var presets = Config.CustomColorPresets;
+            var options = new List<ThemeOptionItem>(StaticThemeOptions.Length + (presets?.Count ?? 0));
+            options.AddRange(StaticThemeOptions);
+            if (presets != null)
+            {
+                foreach (var preset in presets)
+                {
+                    options.Add(new ThemeOptionItem($"CustomPreset_{preset.Id}", $"🎨 {preset.Name} (自定义预设)"));
+                }
+            }
+            ThemeOptions = options;
+        }
 
         /// <summary>当前选中的自定义配色预设；未选中自定义预设时为 null。</summary>
         public CustomColorPreset? SelectedCustomPreset
@@ -634,8 +670,8 @@ namespace WinPieGestures.ViewModels.Pages
             Config.CustomColorPresets.Add(newPreset);
             Config.Theme = "CustomPreset_" + newPreset.Id;
 
-            // 先发列表变化让视图重建下拉项（新 Tag 才有落点），再切选中触发主题管线
-            _messenger.Send(AppearancePresetListChangedMessage.Instance);
+            // 先重建下拉项（新 Tag 才有落点），再切选中触发主题管线
+            RebuildThemeOptions();
             SelectedTheme = "CustomPreset_" + newPreset.Id;
             _dialogs.ShowInfo("提示", $"配色预设【{presetName}】已成功保存！");
         }
@@ -661,7 +697,7 @@ namespace WinPieGestures.ViewModels.Pages
             if (result == null) return;
 
             preset.Name = result.Text;
-            _messenger.Send(AppearancePresetListChangedMessage.Instance);
+            RebuildThemeOptions();
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
@@ -689,7 +725,7 @@ namespace WinPieGestures.ViewModels.Pages
             Config.CustomColorPresets.Remove(preset);
             Config.Theme = "System";
 
-            _messenger.Send(AppearancePresetListChangedMessage.Instance);
+            RebuildThemeOptions();
             SelectedTheme = "System";
             _dialogs.ShowInfo("提示", $"自定义配色方案【{preset.Name}】已成功删除！");
         }
@@ -699,7 +735,7 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>
         /// 导入配置后从当前配置重挂播种快照状态 (T19)：<see cref="_loading"/> 抑制与构造播种一致
         /// （只落状态不回写配置、不发落盘/预览事件），随后补发绑定通知让透传属性绑定同步拉取新值，
-        /// 并发 <see cref="PresetListChanged"/> 让页面 View 重建配色下拉的动态项。
+        /// 并重建 <see cref="ThemeOptions"/> 供配色下拉（T21 ItemsSource 化）。
         /// </summary>
         public void ReloadFromConfig()
         {
@@ -719,7 +755,9 @@ namespace WinPieGestures.ViewModels.Pages
             OnPropertyChanged(nameof(CoreCustomIconKey));
             OnPropertyChanged(nameof(CoreCustomIconSvg));
             OnPropertyChanged(nameof(CoreCustomImagePath));
-            _messenger.Send(AppearancePresetListChangedMessage.Instance);
+            // T21：重建下拉项后补发选中通知，让 ComboBox 从新 ThemeOptions 中恢复选中（
+            // LoadFromConfig 播种期 SelectedTheme 走 _loading 短路不通知）。
+            OnPropertyChanged(nameof(SelectedTheme));
         }
 
         /// <summary>
@@ -758,6 +796,8 @@ namespace WinPieGestures.ViewModels.Pages
 
             IsCustomPresetSelected = SelectedTheme.StartsWith("CustomPreset_");
             IsCustomColorExpanderExpanded = c.Theme == "Custom" || IsCustomPresetSelected;
+
+            RebuildThemeOptions();
         }
 
         /// <summary>旧版 Shape 标签 → 当前 Combo Tag（迁移前 SetComboBoxSelectedValue 的映射表原样保留）。</summary>
@@ -769,5 +809,22 @@ namespace WinPieGestures.ViewModels.Pages
             return value;
         }
 
+    }
+
+    /// <summary>轮盘配色下拉选项条目（T21 ItemsSource 化）：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
+    public sealed class ThemeOptionItem
+    {
+        public string Tag { get; }
+
+        public string Label { get; }
+
+        public ThemeOptionItem(string tag, string label)
+        {
+            Tag = tag;
+            Label = label;
+        }
+
+        // 兜底展示/UIA 可访问文本（DisplayMemberPath 之外的安全网）。
+        public override string ToString() => Label;
     }
 }
