@@ -100,3 +100,4 @@ Services ---> Models
 | 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 |
 | 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 |
 | 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 |
+| 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） |
