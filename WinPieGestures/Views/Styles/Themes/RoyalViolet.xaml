@@ -1,0 +1,31 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  StarPie RoyalViolet 主题画刷令牌 (ADR-0012)：key 集与其它 Themes/*.xaml 完全一致。  -->
+    <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#0F0A1A" />
+    <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#170F28" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="#1E1435" />
+    <SolidColorBrush x:Key="CardBorderBrush" Color="#322156" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FAF5FF" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#D8B4FE" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#A855F7" />
+    <SolidColorBrush x:Key="InputBackgroundBrush" Color="#130B22" />
+    <SolidColorBrush x:Key="InputBorderBrush" Color="#3D2766" />
+    <SolidColorBrush x:Key="ItemHoverBrush" Color="#2A1B4A" />
+    <SolidColorBrush x:Key="SubtleCardBrush" Color="#130B22" />
+    <SolidColorBrush x:Key="NavTabDefaultBgBrush" Color="#00000000" />
+    <SolidColorBrush x:Key="NavTabDefaultFgBrush" Color="#D8B4FE" />
+    <SolidColorBrush x:Key="NavTabHoverBgBrush" Color="#2A1B4A" />
+    <SolidColorBrush x:Key="NavTabHoverFgBrush" Color="#FAF5FF" />
+    <SolidColorBrush x:Key="NavTabActiveBgBrush" Color="#2A1B4A" />
+    <SolidColorBrush x:Key="NavTabActiveFgBrush" Color="#E9D5FF" />
+    <SolidColorBrush x:Key="ButtonDefaultBgBrush" Color="#251842" />
+    <SolidColorBrush x:Key="ButtonDefaultFgBrush" Color="#FAF5FF" />
+    <SolidColorBrush x:Key="ButtonDefaultBorderBrush" Color="#412970" />
+    <SolidColorBrush x:Key="ButtonHoverBgBrush" Color="#3A2664" />
+    <SolidColorBrush x:Key="AccentPrimaryBrush" Color="#A855F7" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="#C084FC" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="PreviewCanvasBackgroundBrush" Color="#130B22" />
+    <SolidColorBrush x:Key="PreviewCanvasBorderBrush" Color="#322156" />
+</ResourceDictionary>

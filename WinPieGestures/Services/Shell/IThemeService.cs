@@ -14,8 +14,9 @@ namespace WinPieGestures.Services.Shell
         /// "MidnightNavy", "RoyalViolet", "TitaniumGray"); "Light" until the first apply.</summary>
         string CurrentEffectiveTheme { get; }
 
-        /// <summary>Applies the named app theme to the element's resource tree and its
-        /// owner window's title bar; "System" resolves through the live Windows setting.</summary>
+        /// <summary>Applies the named app theme: the host swaps the application-level
+        /// palette (Views/Styles/Themes) and this call updates the owner window's
+        /// title bar; "System" resolves through the live Windows setting (ADR-0012).</summary>
         void ApplyTheme(FrameworkElement? rootElement, string themeName);
 
         /// <summary>"System"/empty resolves to "Dark"/"Light" via the Windows setting;
