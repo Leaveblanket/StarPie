@@ -867,3 +867,72 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     assert "EnableOuterEscapeCancel" in config, "EnableOuterEscapeCancel should be in config.json"
     assert config["EnableOuterEscapeCancel"] is True, "EnableOuterEscapeCancel should default to True"
 
+
+def test_t28_hardcoded_copy_follows_language(app):
+    """
+    T28 (#33): settings-page hardcoded subheaders/headers must follow the
+    runtime language dictionary (T24 mechanism). Locate by AutomationId only.
+    """
+    win, local_app_data = app
+
+    # Advanced & System (NavTab3) -> language combo lives here
+    tab3 = win.child_window(auto_id="NavTab3", control_type="RadioButton")
+    tab3.click_input()
+    time.sleep(0.4)
+    lang_combo = win.child_window(auto_id="LanguageComboBox", control_type="ComboBox")
+    assert lang_combo.exists(timeout=3), "LanguageComboBox should exist"
+
+    # --- English ---
+    lang_combo.select(2)  # en
+    time.sleep(0.6)
+
+    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
+    assert adv_sub.exists(timeout=3), "AdvancedPageSubheader should exist"
+    assert "Manage interface language" in adv_sub.window_text(), \
+        f"Advanced subheader should be en, got {adv_sub.window_text()}"
+
+    # Gestures & Actions (NavTab2)
+    tab2 = win.child_window(auto_id="NavTab2", control_type="RadioButton")
+    tab2.click_input()
+    time.sleep(0.4)
+    ges_sub = win.child_window(auto_id="GesturesPageSubheader", control_type="Text")
+    assert ges_sub.exists(timeout=3), "GesturesPageSubheader should exist"
+    assert "Set dedicated multi-directional gesture wheels" in ges_sub.window_text(), \
+        f"Gestures subheader should be en, got {ges_sub.window_text()}"
+
+    # About (NavTab4)
+    tab4 = win.child_window(auto_id="NavTab4", control_type="RadioButton")
+    tab4.click_input()
+    time.sleep(0.4)
+    about_header = win.child_window(auto_id="AboutPageHeader", control_type="Text")
+    assert about_header.exists(timeout=3), "AboutPageHeader should exist"
+    assert "About & Changelog" in about_header.window_text(), \
+        f"About header should be en, got {about_header.window_text()}"
+    about_sub = win.child_window(auto_id="AboutPageSubheader", control_type="Text")
+    assert "Version info and the complete evolution history" in about_sub.window_text(), \
+        f"About subheader should be en, got {about_sub.window_text()}"
+
+    # Appearance (NavTab1)
+    tab1 = win.child_window(auto_id="NavTab1", control_type="RadioButton")
+    tab1.click_input()
+    time.sleep(0.4)
+    app_sub = win.child_window(auto_id="AppearancePageSubheader", control_type="Text")
+    assert app_sub.exists(timeout=3), "AppearancePageSubheader should exist"
+    assert "Customize visual styles" in app_sub.window_text(), \
+        f"Appearance subheader should be en, got {app_sub.window_text()}"
+
+    # --- Japanese --- (switch back on Advanced, then re-check in place)
+    tab3.click_input()
+    time.sleep(0.4)
+    lang_combo.select(3)  # ja
+    time.sleep(0.6)
+    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
+    assert "インターフェース言語" in adv_sub.window_text(), \
+        f"Advanced subheader should be ja, got {adv_sub.window_text()}"
+
+    # --- back to Simplified Chinese ---
+    lang_combo.select(0)  # zh-CN
+    time.sleep(0.6)
+    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
+    assert "管理界面语言" in adv_sub.window_text(), \
+        f"Advanced subheader should be zh-CN, got {adv_sub.window_text()}"

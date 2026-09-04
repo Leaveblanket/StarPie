@@ -33,7 +33,7 @@
                 
                 <StackPanel Grid.Row="0" Margin="0,0,0,16">
                     <TextBlock Text="{DynamicResource TriggerHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{DynamicResource TriggerSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <TextBlock AutomationProperties.AutomationId="TriggerPageSubheader" Text="{DynamicResource TriggerSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
                 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -67,7 +67,7 @@
                                 <CheckBox x:Name="EnableOuterEscapeCheckBox" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,4" IsChecked="{Binding EnableOuterEscapeCancel, Mode=TwoWay}">
                                     <StackPanel Margin="6,0,0,0">
                                         <TextBlock Text="{DynamicResource OuterEscapeCheckbox}" FontWeight="Medium" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <TextBlock x:Name="OuterEscapeCheckboxDescText" Text="超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        <TextBlock Text="{DynamicResource OuterEscapeDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
                                 </CheckBox>
 
@@ -143,10 +143,10 @@
                                     </TextBox>
                                     <Button Grid.Column="1" Content="{DynamicResource BtnPickProcess}" 
                                             Style="{StaticResource ModernButtonStyle}" Height="34" Padding="14,0" Margin="0,0,8,0" 
-                                            Command="{Binding BrowseBlacklistCommand}" ToolTip="从已安装软件列表中快速选择要排除的程序"/>
+                                            Command="{Binding BrowseBlacklistCommand}" ToolTip="{DynamicResource BlacklistBrowseTooltip}"/>
                                     <Button Grid.Column="2" AutomationProperties.AutomationId="AddBlacklistButton" Content="{DynamicResource BtnAddProcess}" 
                                             Style="{StaticResource PrimaryButtonStyle}" Height="34" Padding="16,0" 
-                                            Command="{Binding AddBlacklistFromInputCommand}" ToolTip="将输入框中的进程名称加入排除黑名单"/>
+                                            Command="{Binding AddBlacklistFromInputCommand}" ToolTip="{DynamicResource BlacklistAddTooltip}"/>
                                 </Grid>
 
                                 <ListBox x:Name="BlacklistListBox" Height="110" Margin="0,0,0,8" ItemsSource="{Binding BlacklistProcesses}" SelectedItem="{Binding SelectedBlacklistProcess, Mode=TwoWay}">

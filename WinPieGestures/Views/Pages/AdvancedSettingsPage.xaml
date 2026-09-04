@@ -34,10 +34,10 @@
                 <TextBlock AutomationProperties.AutomationId="AdvancedPageHeader" FontSize="20" FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimaryBrush}"
                            Text="{DynamicResource AdvancedHeader}" />
-                <TextBlock x:Name="AdvancedPageSubheader" Margin="0,4,0,0"
+                <TextBlock AutomationProperties.AutomationId="AdvancedPageSubheader" Margin="0,4,0,0"
                            FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}"
-                           Text="管理界面语言、Windows 开机自启、管理员提权与配置文件的导入/导出备份。" />
+                           Text="{DynamicResource AdvancedSubheader}" />
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -74,11 +74,11 @@
                                        SelectedValuePath="Tag"
                                        SelectedValue="{Binding LanguageCode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                        Style="{StaticResource FlatComboBoxStyle}">
-                                <ComboBoxItem Content="🇨🇳 简体中文 (Simplified Chinese)" Tag="zh-CN" />
-                                <ComboBoxItem Content="🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)" Tag="zh-TW" />
-                                <ComboBoxItem Content="🇺🇸 English (US/UK)" Tag="en" />
-                                <ComboBoxItem Content="🇯🇵 日本語 (Japanese)" Tag="ja" />
-                                <ComboBoxItem Content="🖥️ 跟随系统 (System Default)" Tag="Auto" />
+                                <ComboBoxItem Content="{DynamicResource LangZhCn}" Tag="zh-CN" />
+                                <ComboBoxItem Content="{DynamicResource LangZhTw}" Tag="zh-TW" />
+                                <ComboBoxItem Content="{DynamicResource LangEn}" Tag="en" />
+                                <ComboBoxItem Content="{DynamicResource LangJa}" Tag="ja" />
+                                <ComboBoxItem Content="{DynamicResource LangAuto}" Tag="Auto" />
                             </ComboBox>
                         </Grid>
                     </Border>
@@ -180,7 +180,7 @@
                                     Padding="14,0" VerticalAlignment="Center"
                                     Command="{Binding TrimMemoryCommand}" Content="{DynamicResource BtnTrimMemory}"
                                     Style="{StaticResource ModernButtonStyle}"
-                                    ToolTip="立即清理未引用的工作集物理内存" />
+                                    ToolTip="{DynamicResource TrimMemoryTooltip}" />
                         </Grid>
                     </Border>
 

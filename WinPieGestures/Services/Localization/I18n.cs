@@ -133,12 +133,12 @@ namespace WinPieGestures.Services.Localization
             },
             ["OuterEscapeDesc"] = new()
             {
-                [LanguageCode.ZhCn] = "手势划出后若想放弃，无需拉回中心，直接顺势向外快速划出即可安全取消，0 误触。",
-                [LanguageCode.ZhTw] = "手勢劃出後若想放棄，無需拉回中心，直接順勢向外快速劃出即可安全取消，0 誤觸。",
-                [LanguageCode.En] = "Flick cursor outwards past the wheel radius to safely cancel without returning to center.",
-                [LanguageCode.Ja] = "ホイールの外側へ素早くスワイプすることで、安全に操作をキャンセルできます。"
+                [LanguageCode.ZhCn] = "超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。",
+                [LanguageCode.ZhTw] = "超過輪盤外圈範圍後立即解除高亮，鬆開右鍵 0 誤觸安全放棄。",
+                [LanguageCode.En] = "De-highlight immediately once the cursor leaves the wheel outer ring; release right-click for a safe cancel.",
+                [LanguageCode.Ja] = "ホイール外側のリングを超えると即座にハイライトを解除し、右クリックを離すだけで安全にキャンセルできます。"
             },
-                        ["OuterEscapeDistanceTitle"] = new()
+            ["OuterEscapeDistanceTitle"] = new()
             {
                 [LanguageCode.ZhCn] = "外甩取消距离灵敏度 (Escape Distance):",
                 [LanguageCode.ZhTw] = "外甩取消距離靈敏度 (Escape Distance):",
@@ -710,10 +710,10 @@ namespace WinPieGestures.Services.Localization
             },
             ["StyleTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "轮盘渲染风格 (Visual Renderer)",
-                [LanguageCode.ZhTw] = "輪盤渲染風格 (Visual Renderer)",
-                [LanguageCode.En] = "Visual Renderer Style",
-                [LanguageCode.Ja] = "ビジュアルレンダラー"
+                [LanguageCode.ZhCn] = "轮盘视觉风格与色彩",
+                [LanguageCode.ZhTw] = "輪盤視覺風格與色彩",
+                [LanguageCode.En] = "Wheel Visual Style & Colors",
+                [LanguageCode.Ja] = "ホイールのビジュアルスタイルと配色"
             },
             ["StyleGlass"] = new()
             {
@@ -745,10 +745,10 @@ namespace WinPieGestures.Services.Localization
             },
             ["ThemeTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "轮盘配色方案 (Color Palette)",
-                [LanguageCode.ZhTw] = "輪盤配色方案 (Color Palette)",
-                [LanguageCode.En] = "Wheel Color Palette",
-                [LanguageCode.Ja] = "ホイール配色パレット"
+                [LanguageCode.ZhCn] = "轮盘配色方案 (Wheel Theme):",
+                [LanguageCode.ZhTw] = "輪盤配色方案 (Wheel Theme):",
+                [LanguageCode.En] = "Wheel Theme:",
+                [LanguageCode.Ja] = "ホイール配色テーマ:"
             },
             ["BtnDeletePreset"] = new()
             {
@@ -759,17 +759,17 @@ namespace WinPieGestures.Services.Localization
             },
             ["GlowTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "高亮边缘光晕 (Highlight Edge Glow)",
-                [LanguageCode.ZhTw] = "高亮邊緣光暈 (Highlight Edge Glow)",
-                [LanguageCode.En] = "Highlight Edge Glow",
-                [LanguageCode.Ja] = "ハイライトエッジグロー発光"
+                [LanguageCode.ZhCn] = "高亮边缘光晕模式 (Highlight Glow):",
+                [LanguageCode.ZhTw] = "高亮邊緣光暈模式 (Highlight Glow):",
+                [LanguageCode.En] = "Highlight Glow Mode:",
+                [LanguageCode.Ja] = "ハイライトグローモード:"
             },
             ["GlowFollowTheme"] = new()
             {
-                [LanguageCode.ZhCn] = "跟随主题高亮色 (Auto)",
-                [LanguageCode.ZhTw] = "跟隨主題高亮色 (Auto)",
-                [LanguageCode.En] = "Follow Theme (Auto)",
-                [LanguageCode.Ja] = "テーマ連動 (自動)"
+                [LanguageCode.ZhCn] = "🌈 跟随主题高亮色 (Auto / Follow Theme)",
+                [LanguageCode.ZhTw] = "🌈 跟隨主題高亮色 (Auto / Follow Theme)",
+                [LanguageCode.En] = "🌈 Follow Theme Highlight (Auto / Follow Theme)",
+                [LanguageCode.Ja] = "🌈 テーマハイライトに追従 (Auto / Follow Theme)"
             },
             ["GlowRadius"] = new()
             {
@@ -787,31 +787,31 @@ namespace WinPieGestures.Services.Localization
             },
             ["GeometryTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "几何形态与尺寸 (Geometry & Dimensions)",
-                [LanguageCode.ZhTw] = "幾何形態與尺寸 (Geometry & Dimensions)",
+                [LanguageCode.ZhCn] = "几何形态与尺寸微调",
+                [LanguageCode.ZhTw] = "幾何形態與尺寸微調",
                 [LanguageCode.En] = "Geometry & Dimensions",
                 [LanguageCode.Ja] = "幾何学形状とサイズ"
             },
             ["ShapeOriginal"] = new()
             {
-                [LanguageCode.ZhCn] = "原生扇区 (Original Sector)",
-                [LanguageCode.ZhTw] = "原生扇區 (Original Sector)",
-                [LanguageCode.En] = "Original Sector",
-                [LanguageCode.Ja] = "オリジナルセクター"
+                [LanguageCode.ZhCn] = "经典紧凑扇区 (Original)",
+                [LanguageCode.ZhTw] = "經典緊湊扇區 (Original)",
+                [LanguageCode.En] = "Classic Compact Sector (Original)",
+                [LanguageCode.Ja] = "クラシックコンパクトセクター (Original)"
             },
             ["ShapeCircle"] = new()
             {
-                [LanguageCode.ZhCn] = "极简圆形 (Floating Circle)",
-                [LanguageCode.ZhTw] = "極簡圓形 (Floating Circle)",
-                [LanguageCode.En] = "Floating Circle",
-                [LanguageCode.Ja] = "フローティングサークル"
+                [LanguageCode.ZhCn] = "独立圆形卡片 (Circle)",
+                [LanguageCode.ZhTw] = "獨立圓形卡片 (Circle)",
+                [LanguageCode.En] = "Standalone Circle Card (Circle)",
+                [LanguageCode.Ja] = "独立円形カード (Circle)"
             },
             ["ShapeRounded"] = new()
             {
-                [LanguageCode.ZhCn] = "平滑圆角 (Rounded Fillet)",
-                [LanguageCode.ZhTw] = "平滑圓角 (Rounded Fillet)",
-                [LanguageCode.En] = "Rounded Fillet",
-                [LanguageCode.Ja] = "角丸フィレット"
+                [LanguageCode.ZhCn] = "悬浮圆角胶囊 (Capsule)",
+                [LanguageCode.ZhTw] = "懸浮圓角膠囊 (Capsule)",
+                [LanguageCode.En] = "Floating Rounded Capsule (Capsule)",
+                [LanguageCode.Ja] = "フローティング角丸カプセル (Capsule)"
             },
             ["ShapeCapsule"] = new()
             {
@@ -822,213 +822,213 @@ namespace WinPieGestures.Services.Localization
             },
             ["ShapeHexagon"] = new()
             {
-                [LanguageCode.ZhCn] = "未来蜂巢 (Hexagon Hive)",
-                [LanguageCode.ZhTw] = "未來蜂巢 (Hexagon Hive)",
-                [LanguageCode.En] = "Hexagon Hive",
-                [LanguageCode.Ja] = "ヘキサゴンハニカム"
+                [LanguageCode.ZhCn] = "蜂巢六边形矩阵 (HexagonHive)",
+                [LanguageCode.ZhTw] = "蜂巢六邊形矩陣 (HexagonHive)",
+                [LanguageCode.En] = "Hexagon Hive Matrix (HexagonHive)",
+                [LanguageCode.Ja] = "ヘキサゴンハニカム (HexagonHive)"
             },
             ["RadiusOuter"] = new()
             {
-                [LanguageCode.ZhCn] = "轮盘外半径 (Outer Radius)",
-                [LanguageCode.ZhTw] = "輪盤外半徑 (Outer Radius)",
-                [LanguageCode.En] = "Outer Radius",
-                [LanguageCode.Ja] = "外側半径"
+                [LanguageCode.ZhCn] = "轮盘整体半径 (外径):",
+                [LanguageCode.ZhTw] = "輪盤整體半徑 (外徑):",
+                [LanguageCode.En] = "Outer Radius:",
+                [LanguageCode.Ja] = "ホイール全体の半径 (外径):"
             },
             ["RadiusInner"] = new()
             {
-                [LanguageCode.ZhCn] = "内环半径 (Inner Radius)",
-                [LanguageCode.ZhTw] = "內環半徑 (Inner Radius)",
-                [LanguageCode.En] = "Inner Radius",
-                [LanguageCode.Ja] = "内側半径"
+                [LanguageCode.ZhCn] = "扇区内半径 (Inner):",
+                [LanguageCode.ZhTw] = "扇區內半徑 (Inner):",
+                [LanguageCode.En] = "Inner Radius:",
+                [LanguageCode.Ja] = "セクター内側半径 (Inner):"
             },
             ["RadiusCore"] = new()
             {
-                [LanguageCode.ZhCn] = "核圆半径 (Core Radius)",
-                [LanguageCode.ZhTw] = "核圓半徑 (Core Radius)",
-                [LanguageCode.En] = "Core Radius",
-                [LanguageCode.Ja] = "コア半径"
+                [LanguageCode.ZhCn] = "中心核心圆半径 (Core):",
+                [LanguageCode.ZhTw] = "中心核心圓半徑 (Core):",
+                [LanguageCode.En] = "Core Radius:",
+                [LanguageCode.Ja] = "中心コア半径 (Core):"
             },
             ["SectorGap"] = new()
             {
-                [LanguageCode.ZhCn] = "扇区间隙 (Sector Gap)",
-                [LanguageCode.ZhTw] = "扇區間隙 (Sector Gap)",
-                [LanguageCode.En] = "Sector Gap",
-                [LanguageCode.Ja] = "セクター間隔"
+                [LanguageCode.ZhCn] = "扇区光学缝隙间距 (Gap):",
+                [LanguageCode.ZhTw] = "扇區光學縫隙間距 (Gap):",
+                [LanguageCode.En] = "Sector Gap:",
+                [LanguageCode.Ja] = "セクター間隔 (Gap):"
             },
             ["SectorCornerRadius"] = new()
             {
-                [LanguageCode.ZhCn] = "扇区倒角 (Corner Radius)",
-                [LanguageCode.ZhTw] = "扇區倒角 (Corner Radius)",
-                [LanguageCode.En] = "Corner Radius",
-                [LanguageCode.Ja] = "角丸半径"
+                [LanguageCode.ZhCn] = "扇区边缘平滑倒角 (Corner Radius):",
+                [LanguageCode.ZhTw] = "扇區邊緣平滑倒角 (Corner Radius):",
+                [LanguageCode.En] = "Corner Radius:",
+                [LanguageCode.Ja] = "角丸半径 (Corner Radius):"
             },
             ["BtnResetGeometry"] = new()
             {
-                [LanguageCode.ZhCn] = "重置形态默认值",
-                [LanguageCode.ZhTw] = "重設形態預設值",
-                [LanguageCode.En] = "Reset Geometry Defaults",
-                [LanguageCode.Ja] = "形状初期値に戻す"
+                [LanguageCode.ZhCn] = "一键重置为推荐几何尺寸",
+                [LanguageCode.ZhTw] = "一鍵重置為推薦幾何尺寸",
+                [LanguageCode.En] = "Reset to Recommended Geometry",
+                [LanguageCode.Ja] = "推奨ジオメトリにリセット"
             },
             ["IconLayoutTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "图标与文字排版 (Layout & Typography)",
-                [LanguageCode.ZhTw] = "圖示與文字排版 (Layout & Typography)",
-                [LanguageCode.En] = "Layout & Typography",
-                [LanguageCode.Ja] = "レイアウトと文字"
+                [LanguageCode.ZhCn] = "图标与排版选项",
+                [LanguageCode.ZhTw] = "圖示與排版選項",
+                [LanguageCode.En] = "Icon & Layout Options",
+                [LanguageCode.Ja] = "アイコンとレイアウトオプション"
             },
             ["LayoutIconText"] = new()
             {
-                [LanguageCode.ZhCn] = "图文并茂 (Icon + Text)",
-                [LanguageCode.ZhTw] = "圖文並茂 (Icon + Text)",
-                [LanguageCode.En] = "Icon & Text",
+                [LanguageCode.ZhCn] = "图标 + 文字 (双行居中)",
+                [LanguageCode.ZhTw] = "圖示 + 文字 (雙行置中)",
+                [LanguageCode.En] = "Icon + Text",
                 [LanguageCode.Ja] = "アイコン＋文字"
             },
             ["LayoutIconOnly"] = new()
             {
-                [LanguageCode.ZhCn] = "仅显示图标 (Icon Only)",
-                [LanguageCode.ZhTw] = "僅顯示圖示 (Icon Only)",
+                [LanguageCode.ZhCn] = "仅显示图标 (极大化居中)",
+                [LanguageCode.ZhTw] = "僅顯示圖示 (極大化置中)",
                 [LanguageCode.En] = "Icon Only",
                 [LanguageCode.Ja] = "アイコンのみ"
             },
             ["LayoutTextOnly"] = new()
             {
-                [LanguageCode.ZhCn] = "仅显示文字 (Text Only)",
-                [LanguageCode.ZhTw] = "僅顯示文字 (Text Only)",
+                [LanguageCode.ZhCn] = "仅显示文字 (纯文字居中)",
+                [LanguageCode.ZhTw] = "僅顯示文字 (純文字置中)",
                 [LanguageCode.En] = "Text Only",
                 [LanguageCode.Ja] = "文字のみ"
             },
             ["SectorIconSize"] = new()
             {
-                [LanguageCode.ZhCn] = "图标大小 (Icon Size)",
-                [LanguageCode.ZhTw] = "圖示大小 (Icon Size)",
-                [LanguageCode.En] = "Icon Size",
-                [LanguageCode.Ja] = "アイコンサイズ"
+                [LanguageCode.ZhCn] = "图标尺寸大小 (Icon Size):",
+                [LanguageCode.ZhTw] = "圖示尺寸大小 (Icon Size):",
+                [LanguageCode.En] = "Icon Size:",
+                [LanguageCode.Ja] = "アイコンサイズ:"
             },
             ["SectorFontSize"] = new()
             {
-                [LanguageCode.ZhCn] = "文字字号 (Font Size)",
-                [LanguageCode.ZhTw] = "文字字級 (Font Size)",
-                [LanguageCode.En] = "Font Size",
-                [LanguageCode.Ja] = "文字サイズ"
+                [LanguageCode.ZhCn] = "文字字号大小 (Font Size):",
+                [LanguageCode.ZhTw] = "文字字號大小 (Font Size):",
+                [LanguageCode.En] = "Font Size:",
+                [LanguageCode.Ja] = "文字サイズ:"
             },
             ["CoreTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "中心核圆图案定制 (Center Core Customization)",
-                [LanguageCode.ZhTw] = "中心核圓圖案自訂 (Center Core Customization)",
-                [LanguageCode.En] = "Center Core Customization",
-                [LanguageCode.Ja] = "中央コアのカスタマイズ"
+                [LanguageCode.ZhCn] = "中心核圆与图案设置",
+                [LanguageCode.ZhTw] = "中心核圓與圖案設定",
+                [LanguageCode.En] = "Center Core & Pattern",
+                [LanguageCode.Ja] = "中心コアとパターン設定"
             },
             ["CoreShowIcon"] = new()
             {
-                [LanguageCode.ZhCn] = "显示中心图案 / 贴图",
-                [LanguageCode.ZhTw] = "顯示中心圖案 / 貼圖",
-                [LanguageCode.En] = "Show Core Icon / Image",
-                [LanguageCode.Ja] = "中央アイコン/画像を表示"
+                [LanguageCode.ZhCn] = "显示核圆中心图标 / 图案",
+                [LanguageCode.ZhTw] = "顯示核圓中心圖示 / 圖案",
+                [LanguageCode.En] = "Show Core Center Icon / Pattern",
+                [LanguageCode.Ja] = "コア中央アイコン/パターンを表示"
             },
             ["CoreIconType"] = new()
             {
-                [LanguageCode.ZhCn] = "核圆图案模式",
-                [LanguageCode.ZhTw] = "核圓圖案模式",
-                [LanguageCode.En] = "Core Pattern Mode",
-                [LanguageCode.Ja] = "コアパターンモード"
+                [LanguageCode.ZhCn] = "核圆图案类型 (Core Pattern):",
+                [LanguageCode.ZhTw] = "核圓圖案類型 (Core Pattern):",
+                [LanguageCode.En] = "Core Pattern:",
+                [LanguageCode.Ja] = "コアパターンタイプ:"
             },
             ["CorePatternExit"] = new()
             {
-                [LanguageCode.ZhCn] = "取消叉号 (Cancel Cross)",
-                [LanguageCode.ZhTw] = "取消叉號 (Cancel Cross)",
-                [LanguageCode.En] = "Cancel Cross",
-                [LanguageCode.Ja] = "キャンセルバツ"
+                [LanguageCode.ZhCn] = "✕ 默认取消叉号 (Exit / Close)",
+                [LanguageCode.ZhTw] = "✕ 預設取消叉號 (Exit / Close)",
+                [LanguageCode.En] = "✕ Default Cancel Cross (Exit / Close)",
+                [LanguageCode.Ja] = "✕ デフォルトキャンセルバツ (Exit / Close)"
             },
             ["CorePatternCrosshair"] = new()
             {
-                [LanguageCode.ZhCn] = "精准准心 (Crosshair)",
-                [LanguageCode.ZhTw] = "精準準心 (Crosshair)",
-                [LanguageCode.En] = "Crosshair",
-                [LanguageCode.Ja] = "照準レティクル"
+                [LanguageCode.ZhCn] = "⌖ 十字准心 (Crosshair)",
+                [LanguageCode.ZhTw] = "⌖ 十字準心 (Crosshair)",
+                [LanguageCode.En] = "⌖ Crosshair",
+                [LanguageCode.Ja] = "⌖ 照準"
             },
             ["CorePatternWindows"] = new()
             {
-                [LanguageCode.ZhCn] = "Windows 微标",
-                [LanguageCode.ZhTw] = "Windows 微標",
-                [LanguageCode.En] = "Windows Emblem",
-                [LanguageCode.Ja] = "Windows ロゴ"
+                [LanguageCode.ZhCn] = "⊞ Windows 微标 (Windows Logo)",
+                [LanguageCode.ZhTw] = "⊞ Windows 微標 (Windows Logo)",
+                [LanguageCode.En] = "⊞ Windows Logo",
+                [LanguageCode.Ja] = "⊞ Windows ロゴ"
             },
             ["CorePatternDot"] = new()
             {
-                [LanguageCode.ZhCn] = "极简圆点 (Minimal Dot)",
-                [LanguageCode.ZhTw] = "極簡圓點 (Minimal Dot)",
-                [LanguageCode.En] = "Minimal Dot",
-                [LanguageCode.Ja] = "ミニマルドット"
+                [LanguageCode.ZhCn] = "⦿ 极简靶心圆点 (Bullseye Dot)",
+                [LanguageCode.ZhTw] = "⦿ 極簡靶心圓點 (Bullseye Dot)",
+                [LanguageCode.En] = "⦿ Bullseye Dot",
+                [LanguageCode.Ja] = "⦿ ブルズアイドット"
             },
             ["CorePatternHome"] = new()
             {
-                [LanguageCode.ZhCn] = "主页图标 (Home)",
-                [LanguageCode.ZhTw] = "首頁圖示 (Home)",
-                [LanguageCode.En] = "Home",
-                [LanguageCode.Ja] = "ホーム"
+                [LanguageCode.ZhCn] = "⌂ 快捷主页 (Home)",
+                [LanguageCode.ZhTw] = "⌂ 快捷首頁 (Home)",
+                [LanguageCode.En] = "⌂ Home",
+                [LanguageCode.Ja] = "⌂ ホーム"
             },
             ["CorePatternPower"] = new()
             {
-                [LanguageCode.ZhCn] = "电源图标 (Power)",
-                [LanguageCode.ZhTw] = "電源圖示 (Power)",
-                [LanguageCode.En] = "Power",
-                [LanguageCode.Ja] = "電源"
+                [LanguageCode.ZhCn] = "⏻ 电源能量 (Power)",
+                [LanguageCode.ZhTw] = "⏻ 電源能量 (Power)",
+                [LanguageCode.En] = "⏻ Power",
+                [LanguageCode.Ja] = "⏻ 電源"
             },
             ["CorePatternCompass"] = new()
             {
-                [LanguageCode.ZhCn] = "星空罗盘 (Compass)",
-                [LanguageCode.ZhTw] = "星空羅盤 (Compass)",
-                [LanguageCode.En] = "Compass",
-                [LanguageCode.Ja] = "コンパス"
+                [LanguageCode.ZhCn] = "🧭 极简罗盘 (Compass)",
+                [LanguageCode.ZhTw] = "🧭 極簡羅盤 (Compass)",
+                [LanguageCode.En] = "🧭 Compass",
+                [LanguageCode.Ja] = "🧭 コンパス"
             },
             ["CorePatternCatPaw"] = new()
             {
-                [LanguageCode.ZhCn] = "萌宠猫爪 (Cat Paw)",
-                [LanguageCode.ZhTw] = "萌寵貓爪 (Cat Paw)",
-                [LanguageCode.En] = "Cat Paw",
-                [LanguageCode.Ja] = "肉球"
+                [LanguageCode.ZhCn] = "🐾 萌宠猫爪 (Cute Cat Paw)",
+                [LanguageCode.ZhTw] = "🐾 萌寵貓爪 (Cute Cat Paw)",
+                [LanguageCode.En] = "🐾 Cute Cat Paw",
+                [LanguageCode.Ja] = "🐾 キュートな肉球"
             },
             ["CorePatternImage"] = new()
             {
-                [LanguageCode.ZhCn] = "🖼️ 自定义本地图片贴图...",
-                [LanguageCode.ZhTw] = "🖼️ 自訂本機圖片貼圖...",
-                [LanguageCode.En] = "🖼️ Custom Local Image...",
-                [LanguageCode.Ja] = "🖼️ カスタム画像ファイル..."
+                [LanguageCode.ZhCn] = "🖼️ 自定义图片文件 (Custom Image)",
+                [LanguageCode.ZhTw] = "🖼️ 自訂圖片檔案 (Custom Image)",
+                [LanguageCode.En] = "🖼️ Custom Image",
+                [LanguageCode.Ja] = "🖼️ カスタム画像"
             },
             ["BtnBrowseImage"] = new()
             {
-                [LanguageCode.ZhCn] = "浏览选择图片",
-                [LanguageCode.ZhTw] = "瀏覽選擇圖片",
-                [LanguageCode.En] = "Browse Image",
-                [LanguageCode.Ja] = "画像を選択"
+                [LanguageCode.ZhCn] = "浏览图片...",
+                [LanguageCode.ZhTw] = "瀏覽圖片...",
+                [LanguageCode.En] = "Browse Image...",
+                [LanguageCode.Ja] = "画像を参照..."
             },
             ["ConsoleThemeTitle"] = new()
             {
-                [LanguageCode.ZhCn] = "软件控制台主题 (Console Theme)",
-                [LanguageCode.ZhTw] = "軟體控制台主題 (Console Theme)",
-                [LanguageCode.En] = "Console Theme",
-                [LanguageCode.Ja] = "コントロールパネルテーマ"
+                [LanguageCode.ZhCn] = "软件控制台界面主题 (App Theme)",
+                [LanguageCode.ZhTw] = "軟體控制台介面主題 (App Theme)",
+                [LanguageCode.En] = "Console Theme (App Theme)",
+                [LanguageCode.Ja] = "コンソールテーマ (App Theme)"
             },
             ["ThemeSystem"] = new()
             {
-                [LanguageCode.ZhCn] = "🖥️ 跟随 Windows 系统 (Auto)",
-                [LanguageCode.ZhTw] = "🖥️ 跟隨 Windows 系統 (Auto)",
-                [LanguageCode.En] = "🖥️ Follow Windows System",
-                [LanguageCode.Ja] = "🖥️ Windows システムに従う"
+                [LanguageCode.ZhCn] = "🌓 跟随系统 (System Auto)",
+                [LanguageCode.ZhTw] = "🌓 跟隨系統 (System Auto)",
+                [LanguageCode.En] = "🌓 System Auto",
+                [LanguageCode.Ja] = "🌓 システム自動"
             },
             ["ThemeLight"] = new()
             {
-                [LanguageCode.ZhCn] = "☀️ 极简纯白 (Pure Light)",
-                [LanguageCode.ZhTw] = "☀️ 極簡純白 (Pure Light)",
-                [LanguageCode.En] = "☀️ Pure Light",
-                [LanguageCode.Ja] = "☀️ ピュアライト"
+                [LanguageCode.ZhCn] = "☀️ 极简纯白 (Modern Light)",
+                [LanguageCode.ZhTw] = "☀️ 極簡純白 (Modern Light)",
+                [LanguageCode.En] = "☀️ Modern Light",
+                [LanguageCode.Ja] = "☀️ モダンライト"
             },
             ["ThemeDark"] = new()
             {
-                [LanguageCode.ZhCn] = "🌙 极夜曜黑 (Oled Dark)",
-                [LanguageCode.ZhTw] = "🌙 極夜曜黑 (Oled Dark)",
-                [LanguageCode.En] = "🌙 OLED Dark",
-                [LanguageCode.Ja] = "🌙 OLEDダーク"
+                [LanguageCode.ZhCn] = "🌙 极夜曜黑 (Obsidian Dark)",
+                [LanguageCode.ZhTw] = "🌙 極夜曜黑 (Obsidian Dark)",
+                [LanguageCode.En] = "🌙 Obsidian Dark",
+                [LanguageCode.Ja] = "🌙 オブシディアンダーク"
             },
             ["ThemeNavy"] = new()
             {
@@ -1218,7 +1218,6 @@ namespace WinPieGestures.Services.Localization
                 [LanguageCode.En] = "🖥️ System Default",
                 [LanguageCode.Ja] = "🖥️ システム既定 (System Default)"
             },
-
             ["StartupTitle"] = new()
             {
                 [LanguageCode.ZhCn] = "开机自启动",
@@ -1307,10 +1306,10 @@ namespace WinPieGestures.Services.Localization
             // Tab 4: About & Updates
             ["AboutHeader"] = new()
             {
-                [LanguageCode.ZhCn] = "关于 StarPie & 版本记录",
-                [LanguageCode.ZhTw] = "關於 StarPie & 版本記錄",
-                [LanguageCode.En] = "About StarPie & Changelog",
-                [LanguageCode.Ja] = "StarPie について & 更新履歴"
+                [LanguageCode.ZhCn] = "关于与更新日志",
+                [LanguageCode.ZhTw] = "關於與更新日誌",
+                [LanguageCode.En] = "About & Changelog",
+                [LanguageCode.Ja] = "情報と更新履歴"
             },
             ["AboutDesc"] = new()
             {
@@ -1432,7 +1431,372 @@ namespace WinPieGestures.Services.Localization
                 [LanguageCode.ZhTw] = "StarPie v1.4.1 - 現代化滑鼠輪盤手勢",
                 [LanguageCode.En] = "StarPie v1.4.1 - Modern Mouse Radial Gestures",
                 [LanguageCode.Ja] = "StarPie v1.4.1 - 次世代マウスラジアルジェスチャー"
-            }
+            },
+            ["LivePreviewFps"] = new()
+            {
+                [LanguageCode.ZhCn] = "60FPS 同步渲染",
+                [LanguageCode.ZhTw] = "60FPS 同步渲染",
+                [LanguageCode.En] = "60FPS Live Rendering",
+                [LanguageCode.Ja] = "60FPS ライブレンダリング"
+            },
+            ["AdvancedSubheader"] = new()
+            {
+                [LanguageCode.ZhCn] = "管理界面语言、Windows 开机自启、管理员提权与配置文件的导入/导出备份。",
+                [LanguageCode.ZhTw] = "管理介面語言、Windows 開機自啟、系統管理員提權與設定檔的匯入/匯出備份。",
+                [LanguageCode.En] = "Manage interface language, Windows startup, administrator elevation, and config import/export backups.",
+                [LanguageCode.Ja] = "インターフェース言語、Windows 自動起動、管理者権限、設定のインポート/エクスポートを管理します。"
+            },
+            ["TrimMemoryTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "立即清理未引用的工作集物理内存",
+                [LanguageCode.ZhTw] = "立即清理未引用的工作集實體記憶體",
+                [LanguageCode.En] = "Instantly trim unused working-set physical memory",
+                [LanguageCode.Ja] = "未使用のワーキングセット物理メモリを即時クリアします"
+            },
+            ["GesturesSubheader"] = new()
+            {
+                [LanguageCode.ZhCn] = "支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。",
+                [LanguageCode.ZhTw] = "支援針對不同前景應用程式設定專屬的多向手勢輪盤、按鍵動作與向量圖示。",
+                [LanguageCode.En] = "Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.",
+                [LanguageCode.Ja] = "フォアグラウンドアプリごとに専用の多方向ジェスチャーホイール、キー操作、ベクターアイコンを設定できます。"
+            },
+            ["AddProfileTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "从已安装软件或开始菜单中选择程序创建专属配置",
+                [LanguageCode.ZhTw] = "從已安裝軟體或開始功能表中選擇程式建立專屬設定",
+                [LanguageCode.En] = "Create a dedicated profile by choosing an installed app from the Start menu",
+                [LanguageCode.Ja] = "スタートメニューのインストール済みアプリから専用プロファイルを作成します"
+            },
+            ["AddCustomProfileTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "自定义命名创建新的轮盘配置方案",
+                [LanguageCode.ZhTw] = "自訂命名建立新的輪盤設定方案",
+                [LanguageCode.En] = "Create a new wheel profile with a custom name",
+                [LanguageCode.Ja] = "任意の名前で新しいホイールプロファイルを作成します"
+            },
+            ["RenameProfileTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "重命名选中的配置方案",
+                [LanguageCode.ZhTw] = "重新命名選取的設定方案",
+                [LanguageCode.En] = "Rename the selected profile",
+                [LanguageCode.Ja] = "選択中のプロファイル名を変更します"
+            },
+            ["DeleteProfileTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "删除选中的配置方案",
+                [LanguageCode.ZhTw] = "刪除選取的設定方案",
+                [LanguageCode.En] = "Delete the selected profile",
+                [LanguageCode.Ja] = "選択中のプロファイルを削除します"
+            },
+            ["PickIconTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "点击选取矢量图标",
+                [LanguageCode.ZhTw] = "點擊選取向量圖示",
+                [LanguageCode.En] = "Click to pick a vector icon",
+                [LanguageCode.Ja] = "クリックしてベクターアイコンを選択"
+            },
+            ["SelectedAppPathTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "选择的应用程序路径",
+                [LanguageCode.ZhTw] = "選擇的應用程式路徑",
+                [LanguageCode.En] = "Path of the selected application",
+                [LanguageCode.Ja] = "選択したアプリケーションのパス"
+            },
+            ["SelectedFolderPathTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "选择的本地文件夹路径",
+                [LanguageCode.ZhTw] = "選擇的本機資料夾路徑",
+                [LanguageCode.En] = "Path of the selected local folder",
+                [LanguageCode.Ja] = "選択したローカルフォルダーのパス"
+            },
+            ["LaunchArgsTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "启动参数 (如命令行参数或URL)",
+                [LanguageCode.ZhTw] = "啟動參數 (如命令列參數或URL)",
+                [LanguageCode.En] = "Launch arguments (e.g. command-line args or URL)",
+                [LanguageCode.Ja] = "起動引数（コマンドライン引数やURLなど）"
+            },
+            ["BlacklistBrowseTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "从已安装软件列表中快速选择要排除的程序",
+                [LanguageCode.ZhTw] = "從已安裝軟體清單中快速選擇要排除的程式",
+                [LanguageCode.En] = "Quickly pick an app to exclude from the installed apps list",
+                [LanguageCode.Ja] = "インストール済みアプリ一覧から除外するアプリを選択します"
+            },
+            ["BlacklistAddTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "将输入框中的进程名称加入排除黑名单",
+                [LanguageCode.ZhTw] = "將輸入框中的處理程序名稱加入排除黑名單",
+                [LanguageCode.En] = "Add the process name in the input box to the exclusion blacklist",
+                [LanguageCode.Ja] = "入力欄のプロセス名を除外ブラックリストに追加します"
+            },
+            ["ConsoleThemeDesc"] = new()
+            {
+                [LanguageCode.ZhCn] = "定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。",
+                [LanguageCode.ZhTw] = "自訂 StarPie 控制台整體介面的視覺色彩風格，支援跟隨 Windows 系統深淺色切換。",
+                [LanguageCode.En] = "Customize the console's visual color style and follow Windows light/dark mode.",
+                [LanguageCode.Ja] = "コンソール全体の配色をカスタマイズし、Windows のライト/ダークモードに追従できます。"
+            },
+            ["StyleTypeLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "主题风格 (UiStyle):",
+                [LanguageCode.ZhTw] = "主題風格 (UiStyle):",
+                [LanguageCode.En] = "Renderer Style (UiStyle):",
+                [LanguageCode.Ja] = "レンダースタイル (UiStyle):"
+            },
+            ["RenamePresetTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "重命名当前选中的自定义配色方案预设",
+                [LanguageCode.ZhTw] = "重新命名目前選取的自訂配色方案預設",
+                [LanguageCode.En] = "Rename the currently selected custom color preset",
+                [LanguageCode.Ja] = "選択中のカスタムカラープリセット名を変更します"
+            },
+            ["CustomColorsLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "自定义十六进制色彩 (色盘调色 / 屏幕吸色):",
+                [LanguageCode.ZhTw] = "自訂十六進位色彩 (色盤調色 / 螢幕吸色):",
+                [LanguageCode.En] = "Custom hex colors (color wheel / screen picker):",
+                [LanguageCode.Ja] = "カスタム16進色（カラーホイール/スクリーンピッカー）:"
+            },
+            ["CustomSectorBgLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "扇区底色:",
+                [LanguageCode.ZhTw] = "扇區底色:",
+                [LanguageCode.En] = "Sector fill:",
+                [LanguageCode.Ja] = "セクター背景色:"
+            },
+            ["CustomSectorBorderLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "扇区边框:",
+                [LanguageCode.ZhTw] = "扇區邊框:",
+                [LanguageCode.En] = "Sector border:",
+                [LanguageCode.Ja] = "セクター枠線:"
+            },
+            ["CustomHighlightBgLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "高亮底色:",
+                [LanguageCode.ZhTw] = "高亮底色:",
+                [LanguageCode.En] = "Highlight fill:",
+                [LanguageCode.Ja] = "ハイライト背景色:"
+            },
+            ["CustomHighlightBorderLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "高亮边框:",
+                [LanguageCode.ZhTw] = "高亮邊框:",
+                [LanguageCode.En] = "Highlight border:",
+                [LanguageCode.Ja] = "ハイライト枠線:"
+            },
+            ["CustomTextColorLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "文字颜色:",
+                [LanguageCode.ZhTw] = "文字顏色:",
+                [LanguageCode.En] = "Text color:",
+                [LanguageCode.Ja] = "文字色:"
+            },
+            ["PickColorTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "打开调色板选取颜色",
+                [LanguageCode.ZhTw] = "開啟調色盤選取顏色",
+                [LanguageCode.En] = "Open the color picker",
+                [LanguageCode.Ja] = "カラーピッカーを開く"
+            },
+            ["PickEyedropperTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "从屏幕任意位置吸取颜色",
+                [LanguageCode.ZhTw] = "從螢幕任意位置吸取顏色",
+                [LanguageCode.En] = "Pick a color from anywhere on screen",
+                [LanguageCode.Ja] = "画面上の任意の場所から色を取得"
+            },
+            ["GlowColorLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "光晕色值:",
+                [LanguageCode.ZhTw] = "光暈色值:",
+                [LanguageCode.En] = "Glow color:",
+                [LanguageCode.Ja] = "グロー色:"
+            },
+            ["PickGlowColorTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "打开调色板选取光晕颜色",
+                [LanguageCode.ZhTw] = "開啟調色盤選取光暈顏色",
+                [LanguageCode.En] = "Open the color picker for the glow color",
+                [LanguageCode.Ja] = "グロー色のカラーピッカーを開く"
+            },
+            ["PickGlowEyedropperTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "从屏幕任意位置吸取光晕颜色",
+                [LanguageCode.ZhTw] = "從螢幕任意位置吸取光暈顏色",
+                [LanguageCode.En] = "Pick a glow color from anywhere on screen",
+                [LanguageCode.Ja] = "画面上の任意の場所からグロー色を取得"
+            },
+            ["ShowTextLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "在轮盘扇区中显示动作名称文字",
+                [LanguageCode.ZhTw] = "在輪盤扇區中顯示動作名稱文字",
+                [LanguageCode.En] = "Show action names inside wheel sectors",
+                [LanguageCode.Ja] = "ホイールセクターにアクション名を表示"
+            },
+            ["BtnChooseIcon"] = new()
+            {
+                [LanguageCode.ZhCn] = "选择图标...",
+                [LanguageCode.ZhTw] = "選擇圖示...",
+                [LanguageCode.En] = "Choose Icon...",
+                [LanguageCode.Ja] = "アイコンを選択..."
+            },
+            ["CoreCustomImageTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "自定义图片本地路径",
+                [LanguageCode.ZhTw] = "自訂圖片本機路徑",
+                [LanguageCode.En] = "Local path of the custom image",
+                [LanguageCode.Ja] = "カスタム画像のローカルパス"
+            },
+            ["BtnClear"] = new()
+            {
+                [LanguageCode.ZhCn] = "清除",
+                [LanguageCode.ZhTw] = "清除",
+                [LanguageCode.En] = "Clear",
+                [LanguageCode.Ja] = "クリア"
+            },
+            ["LivePreviewTitle"] = new()
+            {
+                [LanguageCode.ZhCn] = "实时交互画布 (Live Preview)",
+                [LanguageCode.ZhTw] = "即時互動畫布 (Live Preview)",
+                [LanguageCode.En] = "Live Preview",
+                [LanguageCode.Ja] = "ライブプレビュー"
+            },
+            ["LivePreviewHint"] = new()
+            {
+                [LanguageCode.ZhCn] = "💡 移动鼠标至下方轮盘可实时测试高亮与磁吸手感",
+                [LanguageCode.ZhTw] = "💡 移動滑鼠至下方輪盤可即時測試高亮與磁吸手感",
+                [LanguageCode.En] = "💡 Hover the wheel below to test highlight and snap feel in real time",
+                [LanguageCode.Ja] = "💡 下のホイールにカーソルを合わせてハイライトとスナップ感をリアルタイムで試せます"
+            },
+            ["LayoutModeLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "排版模式 (Layout Mode):",
+                [LanguageCode.ZhTw] = "排版模式 (Layout Mode):",
+                [LanguageCode.En] = "Layout Mode:",
+                [LanguageCode.Ja] = "レイアウトモード:"
+            },
+            ["ShapeTypeLabel"] = new()
+            {
+                [LanguageCode.ZhCn] = "扇区切削形态 (Shape):",
+                [LanguageCode.ZhTw] = "扇區切削形態 (Shape):",
+                [LanguageCode.En] = "Sector Shape:",
+                [LanguageCode.Ja] = "セクター形状:"
+            },
+            ["CorePatternCustom"] = new()
+            {
+                [LanguageCode.ZhCn] = "✨ 自定义矢量图标 (Custom Icon)",
+                [LanguageCode.ZhTw] = "✨ 自訂向量圖示 (Custom Icon)",
+                [LanguageCode.En] = "✨ Custom Icon",
+                [LanguageCode.Ja] = "✨ カスタムアイコン"
+            },
+            ["ColorPickerHeader"] = new()
+            {
+                [LanguageCode.ZhCn] = "调色板与屏幕取色",
+                [LanguageCode.ZhTw] = "調色盤與螢幕取色",
+                [LanguageCode.En] = "Palette & Screen Picker",
+                [LanguageCode.Ja] = "パレットとスクリーンピッカー"
+            },
+            ["ColorPickerSubtitle"] = new()
+            {
+                [LanguageCode.ZhCn] = "在色盘中精调色彩，或使用屏幕吸管捕获任意像素。",
+                [LanguageCode.ZhTw] = "在色盤中精調色彩，或使用螢幕吸管擷取任意像素。",
+                [LanguageCode.En] = "Fine-tune colors on the palette, or capture any pixel with the screen eyedropper.",
+                [LanguageCode.Ja] = "パレットで色を微調整するか、スクリーンスポイトで任意のピクセルを取得します。"
+            },
+            ["IconPickerImportTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "支持导入本地 SVG 矢量图或 PNG / ICO / JPG 图片图标",
+                [LanguageCode.ZhTw] = "支援匯入本機 SVG 向量圖或 PNG / ICO / JPG 圖片圖示",
+                [LanguageCode.En] = "Import local SVG vector or PNG / ICO / JPG image icons",
+                [LanguageCode.Ja] = "ローカルのSVGベクターまたはPNG / ICO / JPG画像アイコンをインポート"
+            },
+            ["ClearHotkeyTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "清空快捷键",
+                [LanguageCode.ZhTw] = "清空快速鍵",
+                [LanguageCode.En] = "Clear hotkey",
+                [LanguageCode.Ja] = "ショートカットをクリア"
+            },
+            ["SaveCustomPresetButton"] = new()
+            {
+                [LanguageCode.ZhCn] = "💾 保存当前颜色为自定义配色预设...",
+                [LanguageCode.ZhTw] = "💾 儲存目前顏色為自訂配色預設...",
+                [LanguageCode.En] = "💾 Save Current Colors as Preset...",
+                [LanguageCode.Ja] = "💾 現在の色をプリセットとして保存..."
+            },
+            ["DeletePresetTooltip"] = new()
+            {
+                [LanguageCode.ZhCn] = "删除当前选中的自定义配色方案预设",
+                [LanguageCode.ZhTw] = "刪除目前選取的自訂配色方案預設",
+                [LanguageCode.En] = "Delete the currently selected custom color preset",
+                [LanguageCode.Ja] = "選択中のカスタムカラープリセットを削除します"
+            },
+            ["AboutSubheader"] = new()
+            {
+                [LanguageCode.ZhCn] = "StarPie 现代鼠标轮盘笔势工具版本信息与完整演进历程。",
+                [LanguageCode.ZhTw] = "StarPie 現代滑鼠輪盤手勢工具版本資訊與完整演進歷程。",
+                [LanguageCode.En] = "Version info and the complete evolution history of StarPie.",
+                [LanguageCode.Ja] = "StarPie のバージョン情報と進化の歴史。"
+            },
+            ["GlowPresetLilac"] = new()
+            {
+                [LanguageCode.ZhCn] = "💜 丁香晶紫 (Lilac Violet #A855F7)",
+                [LanguageCode.ZhTw] = "💜 丁香晶紫 (Lilac Violet #A855F7)",
+                [LanguageCode.En] = "💜 Lilac Violet (#A855F7)",
+                [LanguageCode.Ja] = "💜 ライラックバイオレット (#A855F7)"
+            },
+            ["GlowPresetBlue"] = new()
+            {
+                [LanguageCode.ZhCn] = "💙 冰川湛蓝 (Glacial Blue #3B82F6)",
+                [LanguageCode.ZhTw] = "💙 冰川湛藍 (Glacial Blue #3B82F6)",
+                [LanguageCode.En] = "💙 Glacial Blue (#3B82F6)",
+                [LanguageCode.Ja] = "💙 グレイシャルブルー (#3B82F6)"
+            },
+            ["GlowPresetEmerald"] = new()
+            {
+                [LanguageCode.ZhCn] = "💚 翡翠荧绿 (Emerald Green #10B981)",
+                [LanguageCode.ZhTw] = "💚 翡翠螢綠 (Emerald Green #10B981)",
+                [LanguageCode.En] = "💚 Emerald Green (#10B981)",
+                [LanguageCode.Ja] = "💚 エメラルドグリーン (#10B981)"
+            },
+            ["GlowPresetRose"] = new()
+            {
+                [LanguageCode.ZhCn] = "💖 樱花粉晕 (Sakura Rose #EC4899)",
+                [LanguageCode.ZhTw] = "💖 櫻花粉暈 (Sakura Rose #EC4899)",
+                [LanguageCode.En] = "💖 Sakura Rose (#EC4899)",
+                [LanguageCode.Ja] = "💖 さくらローズ (#EC4899)"
+            },
+            ["GlowPresetAmber"] = new()
+            {
+                [LanguageCode.ZhCn] = "🧡 琥珀金光 (Amber Gold #F59E0B)",
+                [LanguageCode.ZhTw] = "🧡 琥珀金光 (Amber Gold #F59E0B)",
+                [LanguageCode.En] = "🧡 Amber Gold (#F59E0B)",
+                [LanguageCode.Ja] = "🧡 アンバーゴールド (#F59E0B)"
+            },
+            ["GlowPresetRed"] = new()
+            {
+                [LanguageCode.ZhCn] = "🔴 珊瑚赤光 (Coral Red #EF4444)",
+                [LanguageCode.ZhTw] = "🔴 珊瑚赤光 (Coral Red #EF4444)",
+                [LanguageCode.En] = "🔴 Coral Red (#EF4444)",
+                [LanguageCode.Ja] = "🔴 コーラルレッド (#EF4444)"
+            },
+            ["GlowPresetWhite"] = new()
+            {
+                [LanguageCode.ZhCn] = "⚪ 冰魄纯白 (Pure Ice White #FFFFFF)",
+                [LanguageCode.ZhTw] = "⚪ 冰魄純白 (Pure Ice White #FFFFFF)",
+                [LanguageCode.En] = "⚪ Pure Ice White (#FFFFFF)",
+                [LanguageCode.Ja] = "⚪ ピュアアイスホワイト (#FFFFFF)"
+            },
+            ["GlowPresetCustom"] = new()
+            {
+                [LanguageCode.ZhCn] = "🎨 自定义光晕颜色 (Custom Glow Color)",
+                [LanguageCode.ZhTw] = "🎨 自訂光暈顏色 (Custom Glow Color)",
+                [LanguageCode.En] = "🎨 Custom Glow Color",
+                [LanguageCode.Ja] = "🎨 カスタムグロー色"
+            },
+
         };
     }
 }
