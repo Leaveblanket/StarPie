@@ -64,7 +64,7 @@ namespace WinPieGestures.Services.Dialogs
         public EyedropResult? ShowEyedropper()
         {
             // 全屏置顶工具，刻意不用 Owner（ADR-0004）。
-            var eyedropper = new ScreenEyedropperOverlay(new ScreenEyedropperViewModel());
+            var eyedropper = new ScreenEyedropperWindow(new ScreenEyedropperViewModel());
             return eyedropper.ShowDialog() == true && !string.IsNullOrEmpty(eyedropper.CapturedHexColor)
                 ? new EyedropResult(eyedropper.CapturedHexColor!)
                 : null;
