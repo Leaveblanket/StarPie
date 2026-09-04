@@ -110,4 +110,10 @@ Accepted（grilling 共识 Q9-B/Q10-A/Q11 四项全做/Q12 轮盘配色范围外
     显式实现。强类型属性用于静态引用点与键完整性。
   - 文件落位与生成类命名由 #44 定稿；本环境 NuGet restore 需经 127.0.0.1:7897
     代理（GitHub Actions 不需）。
-- #48：`UISettings.ColorValuesChanged` 在 net8.0-windows WPF 的引用/线程/生命周期结论。
+- #48（2026-09-04）：系统深浅色实时跟随
+  - spike：TFM 提升为 `net8.0-windows10.0.19041.0` 后 `UISettings.ColorValuesChanged`
+    纯 CLI 编译通过（SDK 自带 WinRT 投影，无额外包）；主/测试两个 csproj 同步提升。
+  - 实现：`ThemeService.EnableSystemThemeTracking()`（UISettings 实例保活 + 后台线程 →
+    UI Dispatcher 封送 → `RefreshSystemTheme()`）；`RequestedTheme` 记录原始请求名，
+    仅 System/空模式跟随，固定主题 no-op；AppHost.Run 初始主题应用后启动跟踪。
+  - 单测以可变探针模拟系统切换（xUnit 398 绿）；真实系统切换由人工/e2e 冒烟验证。
