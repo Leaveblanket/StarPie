@@ -10,14 +10,14 @@ namespace WinPieGestures.ViewModels.Dialogs
 {
     /// <summary>
     /// 程序选择器 ViewModel (T06, ADR-0001/0004)：完整接管扫描编排（注入扫描委托，测试可换假实现）、
-    /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把 <see cref="CloseRequested"/>
+    /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把 <see cref="IsCompleted"/>
     /// 落成 DialogResult。确认结果遵循可空结果对象约定：未选中时 <see cref="BuildResult"/> 为 null，
-    /// 由视图层弹"请选择"提示；取消与无效不产生结果。
+    /// VM 经对话框服务弹提示并保持窗口打开；取消与无效不产生结果。
     /// </summary>
     public partial class ProgramPickerViewModel : ObservableObject
     {
-        /// <summary>手动浏览的系统文件对话框过滤器（与迁移前一致）。</summary>
-        public const string ManualBrowseFilter = "可执行程序 (*.exe)|*.exe|快捷方式 (*.lnk)|*.lnk|所有文件 (*.*)|*.*";
+        /// <summary>手动浏览的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
+        public string ManualBrowseFilter => _localization.GetString("ProgramPickerExeFilter");
 
         private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
         private readonly IDialogService _dialogs;
@@ -111,7 +111,9 @@ namespace WinPieGestures.ViewModels.Dialogs
             Result = BuildResult();
             if (Result == null)
             {
-                _dialogs.ShowInfo("未选择", "请选择一个程序，或者点击“手动浏览文件...”");
+                _dialogs.ShowInfo(
+                    _localization.GetString("ProgramPickerNone"),
+                    string.Format(_localization.GetString("ProgramPickerNoneHint"), _localization.GetString("BtnManualBrowse")));
                 return;
             }
 

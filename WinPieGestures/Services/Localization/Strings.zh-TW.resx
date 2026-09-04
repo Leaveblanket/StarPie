@@ -160,6 +160,9 @@
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>搜尋軟體名稱、執行檔或路徑...</value></data>
   <data name="ProgramPickerScanning" xml:space="preserve"><value>正在智慧檢索系統中已安裝的軟體，請稍候...</value></data>
   <data name="BtnManualBrowse" xml:space="preserve"><value>手動瀏覽檔案...</value></data>
+  <data name="ProgramPickerExeFilter" xml:space="preserve"><value>可執行程式 (*.exe)|*.exe|捷徑 (*.lnk)|*.lnk|所有檔案 (*.*)|*.*</value></data>
+  <data name="ProgramPickerNone" xml:space="preserve"><value>未選擇</value></data>
+  <data name="ProgramPickerNoneHint" xml:space="preserve"><value>請選擇一個程式，或點擊「{0}」</value></data>
   <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 簡體中文 (Simplified Chinese)</value></data>
   <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</value></data>
   <data name="LangEn" xml:space="preserve"><value>🇺🇸 English (US/UK)</value></data>
@@ -227,6 +230,8 @@
   <data name="ShowTextLabel" xml:space="preserve"><value>在輪盤扇區中顯示動作名稱文字</value></data>
   <data name="BtnChooseIcon" xml:space="preserve"><value>選擇圖示...</value></data>
   <data name="CoreCustomImageTooltip" xml:space="preserve"><value>自訂圖片本機路徑</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>圖片檔案 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有檔案 (*.*)|*.*</value></data>
+  <data name="CoreImageBrowseTitle" xml:space="preserve"><value>選擇中心核圓圖案圖片</value></data>
   <data name="BtnClear" xml:space="preserve"><value>清除</value></data>
   <data name="LivePreviewTitle" xml:space="preserve"><value>即時互動畫布 (Live Preview)</value></data>
   <data name="LivePreviewHint" xml:space="preserve"><value>💡 移動滑鼠至下方輪盤可即時測試高亮與磁吸手感</value></data>
@@ -236,6 +241,11 @@
   <data name="ColorPickerHeader" xml:space="preserve"><value>調色盤與螢幕取色</value></data>
   <data name="ColorPickerSubtitle" xml:space="preserve"><value>在色盤中精調色彩，或使用螢幕吸管擷取任意像素。</value></data>
   <data name="IconPickerImportTooltip" xml:space="preserve"><value>支援匯入本機 SVG 向量圖或 PNG / ICO / JPG 圖片圖示</value></data>
+  <data name="IconPickerImportFileFilter" xml:space="preserve"><value>所有支援的圖示 (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVG 向量圖 (*.svg)|*.svg|圖片檔案 (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|所有檔案 (*.*)|*.*</value></data>
+  <data name="IconPickerImportFileTitle" xml:space="preserve"><value>匯入自訂圖示 (SVG / PNG / ICO / JPG)</value></data>
+  <data name="IconPickerCustomSuffix" xml:space="preserve"><value> (自訂)</value></data>
+  <data name="IconPickerNoIcon" xml:space="preserve"><value>(無圖示)</value></data>
+  <data name="IconPickerImportFailed" xml:space="preserve"><value>匯入圖示失敗:&#10;{0}</value></data>
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>清空快速鍵</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 儲存目前顏色為自訂配色預設...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>刪除目前選取的自訂配色方案預設</value></data>

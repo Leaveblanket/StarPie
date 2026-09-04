@@ -7,8 +7,8 @@ namespace WinPieGestures.ViewModels.Dialogs
     /// <summary>
     /// 输入对话框 ViewModel (T07, ADR-0001/0004)：接管迁移前 InputDialog code-behind 的全部确认逻辑——
     /// 去除首尾空白、空输入拦截（固定文案）、验证回调判定。有效性规则收在 VM：确认无效时经
-    /// <see cref="ValidationFailed"/> 携带提示文案交视图层弹窗（窗口保持打开）；确认有效时经
-    /// <see cref="CloseRequested"/> 携带结果请求关窗；取消不经过事件，由视图直接关窗。
+    /// 对话框服务弹提示（窗口保持打开）；确认有效时置 <see cref="IsCompleted"/> 请求关窗；
+    /// 取消不经过状态，由视图直接关窗。
     /// 结果遵循可空结果对象约定（ADR-0004）：取消与无效输入不产生结果，<see cref="BuildResult"/> 为 null。
     /// </summary>
     public partial class InputViewModel : ObservableObject

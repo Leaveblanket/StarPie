@@ -19,19 +19,20 @@ namespace WinPieGestures.ViewModels.Dialogs
     /// <summary>
     /// 图标选择器 ViewModel (T08, ADR-0001/0004)：选中状态、搜索过滤、导入/删除编排与确认结果
     /// 全部在此；窗口 code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）与把
-    /// <see cref="CloseRequested"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
+    /// <see cref="IsCompleted"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
     /// </summary>
     public partial class IconPickerViewModel : ObservableObject
     {
-        /// <summary>导入自定义图标的系统文件对话框过滤器（与迁移前一致）。</summary>
-        public const string ImportIconFilter =
-            "所有支持的图标 (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVG 矢量图 (*.svg)|*.svg|图片文件 (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|所有文件 (*.*)|*.*";
+        /// <summary>导入自定义图标的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
+        public string ImportIconFilter => _localization.GetString("IconPickerImportFileFilter");
 
-        /// <summary>导入自定义图标的系统文件对话框标题（与迁移前一致）。</summary>
-        public const string ImportIconDialogTitle = "导入自定义图标 (SVG / PNG / ICO / JPG)";
+        /// <summary>导入自定义图标的系统文件对话框标题（即时取词）。</summary>
+        public string ImportIconDialogTitle => _localization.GetString("IconPickerImportFileTitle");
 
-        private const string CustomSuffix = " (自定义)";
+        /// <summary>自定义图标名称后缀（即时取词）。</summary>
+        private string CustomSuffix => _localization.GetString("IconPickerCustomSuffix");
 
+        private readonly ILocalizationService _localization;
         private readonly Func<IReadOnlyList<IconHelper.CustomIconItem>> _getCustomIcons;
         private readonly Func<IReadOnlyList<VectorIconItem>> _getVectorIcons;
         private readonly Func<string, bool> _deleteCustomIcon;
@@ -67,13 +68,15 @@ namespace WinPieGestures.ViewModels.Dialogs
             _getCustomIcons = getCustomIcons;
             _getVectorIcons = getVectorIcons;
             _dialogs = dialogs;
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _deleteCustomIcon = deleteCustomIcon ?? IconHelper.DeleteCustomIcon;
             // ImportCustomIcon 带可选第二参，方法组不能直接转 Func<string, T>，用 lambda 适配。
             _importCustomIcon = importCustomIcon ?? (path => IconHelper.ImportCustomIcon(path));
 
             SelectedIconKey = initialKey;
-            // 迁移前：初始键为空时本地化为 "(未选择)"，非空但未匹配到卡片时停留在 XAML 默认文案。
-            _selectedIconDisplayName = string.IsNullOrEmpty(initialKey) ? localization.GetString("IconPickerNone") : "(未选择)";
+            // 迁移前：初始键非空但未匹配到卡片时停留在 XAML 默认“(未选择)”文案（未本地化）。
+            // 此处统一走 IconPickerNone 键；若键匹配卡片，ApplyFilter 的选择恢复会覆写为卡片名。
+            _selectedIconDisplayName = localization.GetString("IconPickerNone");
             ApplyFilter("");
         }
 
@@ -142,12 +145,12 @@ namespace WinPieGestures.ViewModels.Dialogs
         private void ClearIcon()
         {
             SelectedIconKey = "";
-            SelectedIconDisplayName = "(无图标)";
+            SelectedIconDisplayName = _localization.GetString("IconPickerNoIcon");
         }
 
         /// <summary>
         /// 导入自定义图标：经对话框服务选文件，导入成功后选中新图标并按当前过滤重建列表
-        /// （旧按钮行为）；取消则停留原状，导入异常经 <see cref="ImportFailed"/> 交视图提示。
+        /// （旧按钮行为）；取消则停留原状，导入异常经对话框服务弹提示。
         /// </summary>
         [RelayCommand]
         private void ImportIcon()
@@ -166,7 +169,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             }
             catch (Exception ex)
             {
-                _dialogs.ShowInfo("StarPie", $"导入图标失败:\n{ex.Message}");
+                _dialogs.ShowInfo("StarPie", string.Format(_localization.GetString("IconPickerImportFailed"), ex.Message));
             }
         }
 

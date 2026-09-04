@@ -186,3 +186,28 @@
 |---|---|---|---|---|---|
 | `BtnRecordHotkey`（复用，值对齐 XAML 现值） | 点击录制快捷键... | 點擊錄製快速鍵... | Click to Record Hotkey... | クリックしてショートカットを記録... | `GesturesSettingsPage.xaml` HotkeyRecorderBox `Placeholder` |
 | `HotkeyRecorderHint` | 🔴 请按下快捷键组合... | 🔴 請按下快速鍵組合... | 🔴 Press a key combination... | 🔴 キーの組み合わせを押してください... | `ModernControls.xaml` HotkeyRecorderBox 模板 `PART_HintText` |
+
+## 2026-09-04 更新：C7（#49）已实现——对话框 VM 文案键化与 Models 默认值去中文
+
+> 对应 #39 C7：IconPicker/ProgramPicker 对话框 VM 的文件过滤器、标题、后缀、未选/清空
+> 占位与失败提示硬编码中文清零（对话框为瞬态呈现，均按即时取词 `I18n.T`/服务取词）；
+> 外观 VM 中心核图文件对话框文案同步键化。三个对话框 VM（IconPicker/Input/ProgramPicker）
+> XML 注释中指向不存在成员的 `CloseRequested`/`ValidationFailed`/`ImportFailed` 引用改为
+> `IsCompleted`/纯文本描述。
+> Models 默认值（数据/文案边界）：`ActionItem.Name`、`CustomColorPreset.Name` 中文种子
+> 改为空串——模型持数据不持文案，命名由产生方（VM/服务）负责。
+> 边界：外观 VM 的轮盘配色（SelectedTheme）选项标签与自定义预设对话框文案属 #51 暂存，
+> 本批未动。
+
+| 键 | zh-CN | zh-TW | en | ja | 消费点 |
+|---|---|---|---|---|---|
+| `IconPickerImportFileFilter` | 所有支持的图标 (...)\|... | 所有支援的圖示 (...)\|... | All Supported Icons (...)\|... | 対応アイコン (...)\|... | `IconPickerViewModel.ImportIconFilter`（系统文件对话框过滤器） |
+| `IconPickerImportFileTitle` | 导入自定义图标 (SVG / PNG / ICO / JPG) | 匯入自訂圖示 (SVG / PNG / ICO / JPG) | Import Custom Icon (SVG / PNG / ICO / JPG) | カスタムアイコンをインポート (SVG / PNG / ICO / JPG) | `IconPickerViewModel.ImportIconDialogTitle` |
+| `IconPickerCustomSuffix` |  (自定义) |  (自訂) |  (Custom) |  (カスタム) | `IconPickerViewModel.Select`（自定义图标后缀） |
+| `IconPickerNoIcon` | (无图标) | (無圖示) | (None) | (なし) | `IconPickerViewModel.ClearIcon` 清空占位 |
+| `IconPickerImportFailed` | 导入图标失败:\n{0} | 匯入圖示失敗:\n{0} | Failed to import icon:\n{0} | アイコンのインポートに失敗しました:\n{0} | `IconPickerViewModel.ImportIcon` 失败提示（{0}=异常） |
+| `ProgramPickerExeFilter` | 可执行程序 (*.exe)\|... | 可執行程式 (*.exe)\|... | Executable Files (*.exe)\|... | 実行ファイル (*.exe)\|... | `ProgramPickerViewModel.ManualBrowseFilter` |
+| `ProgramPickerNone` | 未选择 | 未選擇 | Nothing Selected | 未選択 | `ProgramPickerViewModel.Confirm` 未选标题 |
+| `ProgramPickerNoneHint` | 请选择一个程序，或者点击“{0}” | 請選擇一個程式，或點擊「{0}」 | Select a program, or click "{0}" | プログラムを選択してください。または「{0}」をクリック | `ProgramPickerViewModel.Confirm` 未选提示（{0}=BtnManualBrowse） |
+| `ImageFileFilter` | 图片文件 (*.png;...)\|... | 圖片檔案 (*.png;...)\|... | Image Files (*.png;...)\|... | 画像ファイル (*.png;...)\|... | `AppearanceSettingsViewModel.BrowseCoreImage` 文件过滤器 |
+| `CoreImageBrowseTitle` | 选择中心核圆图案图片 | 選擇中心核圓圖案圖片 | Choose Center Core Image | コア中央画像を選択 | `AppearanceSettingsViewModel.BrowseCoreImage` 对话框标题 |
