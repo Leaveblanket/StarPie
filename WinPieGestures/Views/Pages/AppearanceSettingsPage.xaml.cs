@@ -12,15 +12,22 @@ namespace WinPieGestures.Views.Pages
     /// ADR-0009 白名单项（页面文本经 T24 语言字典声明式化）。页面 VM 是单例：
     /// PreviewInvalidated/PageConfigReloaded 视图消息在
     /// Loaded/Unloaded 成对订阅退订，防过期页面引用泄漏。
+    /// #55（ADR-0014 决策 8）：实时预览渲染/交互路径只依赖轮盘模块只读状态接口
+    /// <see cref="IWheelAppearanceState"/>，不再以具体聚合 VM 类型为参数；具体聚合 VM 引用仅保留
+    /// 给窗口主题应用等非预览职责（#54/#56 收窄）。
     /// </summary>
     public partial class AppearanceSettingsPage : SettingsPageBase
     {
         private readonly WheelPreviewRenderer _previewRenderer = new();
 
         // 页面 VM 在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)。
+        // 预览桥接缓存独立为 IWheelAppearanceState：渲染/交互代码路径只读该接口。
         private AppearanceSettingsViewModel _vm = null!;
+        private IWheelAppearanceState _previewState = null!;
 
         private AppearanceSettingsViewModel Vm => _vm;
+
+        private IWheelAppearanceState PreviewState => _previewState;
 
         public AppearanceSettingsPage()
         {
@@ -30,6 +37,7 @@ namespace WinPieGestures.Views.Pages
         protected override void OnPageLoaded()
         {
             _vm = (AppearanceSettingsViewModel)DataContext;
+            _previewState = _vm;
             WeakReferenceMessenger.Default.Register<AppearancePreviewInvalidatedMessage>(this, (_, _) => OnAppearancePreviewInvalidated());
             WeakReferenceMessenger.Default.Register<PageConfigReloadedMessage>(this, (_, m) =>
             {
@@ -44,6 +52,7 @@ namespace WinPieGestures.Views.Pages
             WeakReferenceMessenger.Default.Unregister<AppearancePreviewInvalidatedMessage>(this);
             WeakReferenceMessenger.Default.Unregister<PageConfigReloadedMessage>(this);
             _vm = null!;
+            _previewState = null!;
         }
 
         private void OnConfigReloaded()
@@ -56,7 +65,7 @@ namespace WinPieGestures.Views.Pages
 
         private void ShowCoreIconCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            if (_vm == null) return;
+            if (_previewState == null) return;
             // VM ShowCoreIcon 只上报落盘不报预览事件；本处理器只剩实时预览重绘这一 View 效果（ADR-0009）。
             RenderLiveWheelPreview();
         }
@@ -78,14 +87,14 @@ namespace WinPieGestures.Views.Pages
 
         private void RenderLiveWheelPreview()
         {
-            if (LiveWheelPreviewCanvas == null || _vm == null) return;
-            _previewRenderer.Render(LiveWheelPreviewCanvas, Vm, Window.GetWindow(this) as MainView);
+            if (LiveWheelPreviewCanvas == null || _previewState == null) return;
+            _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, Window.GetWindow(this) as MainView);
         }
 
         private void LiveWheelPreviewCanvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_vm == null) return;
-            _previewRenderer.HandleMouseMove(LiveWheelPreviewCanvas, e, Vm);
+            if (_previewState == null) return;
+            _previewRenderer.HandleMouseMove(LiveWheelPreviewCanvas, e, PreviewState);
         }
 
         private void LiveWheelPreviewCanvas_MouseLeave(object sender, MouseEventArgs e)

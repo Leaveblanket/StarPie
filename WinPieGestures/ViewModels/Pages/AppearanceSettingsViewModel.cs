@@ -20,8 +20,11 @@ namespace WinPieGestures.ViewModels.Pages
     /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
     /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
     /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
+    /// #55 起本聚合 VM 临时实现轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>（ADR-0014
+    /// 决策 8）：预览渲染器与页面预览 code-behind 只依赖该接口；抽取轮盘外观设置子 VM（#56）后
+    /// 接口实现随状态迁移。
     /// </summary>
-    public partial class AppearanceSettingsViewModel : ObservableObject, IDisposable
+    public partial class AppearanceSettingsViewModel : ObservableObject, IWheelAppearanceState, IDisposable
     {
         private readonly IConfigService _config;
         private readonly IDialogService _dialogs;
@@ -44,6 +47,11 @@ namespace WinPieGestures.ViewModels.Pages
         /// <summary>运行态配置访问（T19：预览渲染初始化等 View 层读取；导入后自动取到新实例，
         /// 与迁移前根 VM 的 CurrentConfig 语义一致）。</summary>
         public AppConfig CurrentConfig => _config.Current;
+
+        /// <summary>预览渲染所用 Profile 上下文（#55 临时承接口径）：优先选中方案，无选中时回落
+        /// 列表首项——与迁移前 WheelPreviewRenderer 的取值链一致；空列表兜底仍留在渲染器。</summary>
+        public WheelProfile? PreviewProfile
+            => ProfileList.SelectedProfile?.Model ?? ProfileList.Profiles.FirstOrDefault()?.Model;
 
         public AppearanceSettingsViewModel(
             IConfigService config,

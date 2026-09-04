@@ -955,4 +955,72 @@ public sealed class AppearanceSettingsViewModelTests
 
         Assert.Equal("", config.Current.CoreCustomIconKey);
     }
+
+    // --- 预览输入接口（#55 IWheelAppearanceState 临时承接口径） ---------------------
+
+    [Fact]
+    public void AppearanceSettingsViewModel_ImplementsIWheelAppearanceState_ReadsThroughSamePreviewSurface()
+    {
+        var profile = new WheelProfile { ProcessName = "chrome.exe", SectorCount = 8 };
+        var config = new AppConfig
+        {
+            UiStyle = "Glassmorphism", Theme = "MatchaForest", Shape = "Circle",
+            WheelRadius = 160, InnerRadius = 60, CoreRadius = 55, SectorGap = 3, SectorCornerRadius = 6,
+            IconLayoutMode = "TextOnly", ShowText = true, SectorIconSize = 28, SectorFontSize = 12.5,
+            ShowCoreIcon = false, CoreIconType = "Crosshair",
+            CoreCustomIconKey = "custom:star", CoreCustomIconSvg = "M0,0L1,1", CoreCustomImagePath = "C:\\core.png",
+            Profiles = new List<WheelProfile> { profile }
+        };
+        var (vm, configService, _, _) = Create(config);
+
+        IWheelAppearanceState state = vm;
+
+        Assert.Equal("Glassmorphism", state.UiStyle);
+        Assert.Equal("MatchaForest", state.SelectedTheme);
+        Assert.Equal("Circle", state.Shape);
+        Assert.Equal(160, state.WheelRadius);
+        Assert.Equal(60, state.InnerRadius);
+        Assert.Equal(55, state.CoreRadius);
+        Assert.Equal(3, state.SectorGap);
+        Assert.Equal(6, state.SectorCornerRadius);
+        Assert.Equal("TextOnly", state.IconLayoutMode);
+        Assert.True(state.ShowText);
+        Assert.Equal(28, state.SectorIconSize);
+        Assert.Equal(12.5, state.SectorFontSize);
+        Assert.False(state.ShowCoreIcon);
+        Assert.Equal("Crosshair", state.CoreIconType);
+        Assert.Equal("custom:star", state.CoreCustomIconKey);
+        Assert.Equal("M0,0L1,1", state.CoreCustomIconSvg);
+        Assert.Equal("C:\\core.png", state.CoreCustomImagePath);
+        Assert.Same(configService.Current, state.CurrentConfig);
+        // 预览 Profile 上下文：构造后默认选中首项；无选中回落与迁移前渲染器取值链一致。
+        Assert.Same(profile, state.PreviewProfile);
+    }
+
+    [Fact]
+    public void PreviewProfile_FollowsProfileListSelection()
+    {
+        var first = new WheelProfile { ProcessName = "a.exe", SectorCount = 4 };
+        var second = new WheelProfile { ProcessName = "b.exe", SectorCount = 12 };
+        var (vm, _, _, _) = Create(new AppConfig
+        {
+            Profiles = new List<WheelProfile> { first, second }
+        });
+        IWheelAppearanceState state = vm;
+
+        Assert.Same(first, state.PreviewProfile);
+
+        vm.ProfileList.SelectProfile(vm.ProfileList.Profiles[1]);
+
+        Assert.Same(second, state.PreviewProfile);
+    }
+
+    [Fact]
+    public void PreviewProfile_NoProfiles_IsNull()
+    {
+        var (vm, _, _, _) = Create(new AppConfig());
+        IWheelAppearanceState state = vm;
+
+        Assert.Null(state.PreviewProfile);
+    }
 }
