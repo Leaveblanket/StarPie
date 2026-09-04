@@ -149,7 +149,8 @@
   <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ キーボードショートカット</value></data>
   <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 アプリ起動 / Webを開く</value></data>
   <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ システム制御コマンド</value></data>
-  <data name="BtnRecordHotkey" xml:space="preserve"><value>クリックしてショートカット録画</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>クリックしてショートカットを記録...</value></data>
+  <data name="HotkeyRecorderHint" xml:space="preserve"><value>🔴 キーの組み合わせを押してください...</value></data>
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 アプリケーションを選択...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>システム統合と高度な設定</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>表示言語 (Display Language)</value></data>

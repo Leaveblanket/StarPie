@@ -149,7 +149,8 @@
   <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ 键盘快捷键</value></data>
   <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 启动程序/打开网页</value></data>
   <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ 系统控制指令</value></data>
-  <data name="BtnRecordHotkey" xml:space="preserve"><value>点击录制热键</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>点击录制快捷键...</value></data>
+  <data name="HotkeyRecorderHint" xml:space="preserve"><value>🔴 请按下快捷键组合...</value></data>
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 选择应用程序...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>系统集成与高级偏好设置</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>界面语言 (Display Language)</value></data>

@@ -149,7 +149,8 @@
   <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ 鍵盤快速鍵</value></data>
   <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 啟動程式/開啟網頁</value></data>
   <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ 系統控制指令</value></data>
-  <data name="BtnRecordHotkey" xml:space="preserve"><value>點擊錄製快速鍵</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>點擊錄製快速鍵...</value></data>
+  <data name="HotkeyRecorderHint" xml:space="preserve"><value>🔴 請按下快速鍵組合...</value></data>
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 選擇應用程式...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>系統整合與進階偏好設定</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>介面語言 (Display Language)</value></data>
