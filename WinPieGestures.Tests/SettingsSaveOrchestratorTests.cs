@@ -14,21 +14,10 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class SettingsSaveOrchestratorTests
 {
-    /// <summary>内存配置服务假实现：记录 Save 调用。</summary>
-    private sealed class FakeConfigService : IConfigService
-    {
-        public AppConfig Current { get; set; } = new();
-        public int SaveCalls;
-        public void Load() { }
-        public void Save() => SaveCalls++;
-        public WheelProfile GetProfileForProcess(string processName) => Current.Profiles[0];
-        public WheelProfile GetGlobalProfile() => Current.Profiles[0];
-    }
-
-    private static (SettingsSaveOrchestrator Orchestrator, FakeConfigService Config, TestSaveDebouncer Debouncer, WeakReferenceMessenger Messenger)
+    private static (SettingsSaveOrchestrator Orchestrator, TestConfigService Config, TestSaveDebouncer Debouncer, WeakReferenceMessenger Messenger)
         Create()
     {
-        var config = new FakeConfigService();
+        var config = new TestConfigService();
         var debouncer = new TestSaveDebouncer();
         var messenger = TestHub.NewMessenger();
         var orchestrator = new SettingsSaveOrchestrator(config, debouncer, messenger);

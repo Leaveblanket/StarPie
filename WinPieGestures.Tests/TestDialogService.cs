@@ -6,8 +6,7 @@ namespace WinPieGestures.Tests;
 /// <summary>
 /// IDialogService 的测试替身（工程约定：mock 直接 new，不使用 mocking 框架）：
 /// 按方法预设返回值并记录调用参数，供对话框编排类 ViewModel 测试断言外部行为。
-/// 未预设的方法返回 null；与本票无关的对话框方法抛出 NotSupportedException，
-/// 避免测试静默走过不相关的编排路径。
+/// 未预设返回值的方法返回 null；所有对话框方法都会记录调用，测试按需断言。
 /// </summary>
 public sealed class TestDialogService : IDialogService
 {
@@ -51,7 +50,10 @@ public sealed class TestDialogService : IDialogService
         string prompt,
         string defaultText = "",
         Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
-        => throw new NotSupportedException("本测试场景不涉及输入框。");
+    {
+        InputDialogCalls.Add((title, prompt, defaultText));
+        return InputToPick;
+    }
 
     public IconPickResult? ShowIconPicker(string? currentIconKey)
     {
@@ -60,10 +62,16 @@ public sealed class TestDialogService : IDialogService
     }
 
     public ColorPickResult? ShowColorPicker(string initialHex)
-        => throw new NotSupportedException("本测试场景不涉及颜色选择器。");
+    {
+        ColorPickerCalls.Add(initialHex);
+        return ColorToPick;
+    }
 
     public EyedropResult? ShowEyedropper()
-        => throw new NotSupportedException("本测试场景不涉及屏上取色。");
+    {
+        EyedropCalls++;
+        return EyedropToPick;
+    }
 
     public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
     {
@@ -91,6 +99,48 @@ public sealed class TestDialogService : IDialogService
 
     /// <summary>每次 ShowInfo 收到的 (title, message) 实参。</summary>
     public List<(string Title, string Message)> InfoCalls { get; } = new();
+
+    /// <summary>ShowInputDialog 的预设返回值。</summary>
+    public InputDialogResult? InputToPick { get; set; }
+
+    /// <summary>每次 ShowInputDialog 收到的 (title, prompt, defaultText) 实参。</summary>
+    public List<(string Title, string Prompt, string DefaultText)> InputDialogCalls { get; } = new();
+
+    /// <summary>ShowInputDialog 调用次数。</summary>
+    public int InputCalls => InputDialogCalls.Count;
+
+    /// <summary>最近一次 ShowInputDialog 收到的 title。</summary>
+    public string? LastInputTitle => InputDialogCalls.Count == 0 ? null : InputDialogCalls[^1].Title;
+
+    /// <summary>最近一次 ShowInputDialog 收到的 prompt。</summary>
+    public string? LastInputPrompt => InputDialogCalls.Count == 0 ? null : InputDialogCalls[^1].Prompt;
+
+    /// <summary>最近一次 ShowInputDialog 收到的 defaultText。</summary>
+    public string? LastInputDefaultText => InputDialogCalls.Count == 0 ? null : InputDialogCalls[^1].DefaultText;
+
+    /// <summary>ShowColorPicker 的预设返回值。</summary>
+    public ColorPickResult? ColorToPick { get; set; }
+
+    /// <summary>每次 ShowColorPicker 收到的初始色值。</summary>
+    public List<string> ColorPickerCalls { get; } = new();
+
+    /// <summary>ShowColorPicker 调用次数。</summary>
+    public int ColorCalls => ColorPickerCalls.Count;
+
+    /// <summary>最近一次 ShowColorPicker 收到的初始色值。</summary>
+    public string? LastColorPickerInitial => ColorPickerCalls.Count == 0 ? null : ColorPickerCalls[^1];
+
+    /// <summary>ShowEyedropper 的预设返回值。</summary>
+    public EyedropResult? EyedropToPick { get; set; }
+
+    /// <summary>ShowEyedropper 调用次数。</summary>
+    public int EyedropCalls { get; private set; }
+
+    /// <summary>ShowIconPicker 调用次数（<see cref="IconPickerCalls"/> 的便捷计数）。</summary>
+    public int IconCalls => IconPickerCalls.Count;
+
+    /// <summary>最近一次 ShowIconPicker 收到的 currentIconKey。</summary>
+    public string? LastIconPickerCurrentKey => IconPickerCalls.Count == 0 ? null : IconPickerCalls[^1];
 
     public bool Confirm(string title, string message)
     {

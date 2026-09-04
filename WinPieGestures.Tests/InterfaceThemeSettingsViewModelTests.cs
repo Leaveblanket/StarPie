@@ -12,16 +12,6 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class InterfaceThemeSettingsViewModelTests
 {
-    private sealed class FakeConfigService : IConfigService
-    {
-        public AppConfig Current { get; set; } = new();
-        public int SaveCalls;
-        public void Load() { }
-        public void Save() => SaveCalls++;
-        public WheelProfile GetProfileForProcess(string processName) => Current.Profiles[0];
-        public WheelProfile GetGlobalProfile() => Current.Profiles[0];
-    }
-
     /// <summary>主题应用消息记录器（壳层主窗口订阅语义的测试投影）。</summary>
     private sealed class ThemeApplyLog
     {
@@ -37,7 +27,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
 
     private sealed class Harness
     {
-        public FakeConfigService ConfigService { get; } = new();
+        public TestConfigService ConfigService { get; } = new();
         public LocalizationService Localization { get; } = new();
         public WeakReferenceMessenger Messenger { get; } = TestHub.NewMessenger();
         public SaveSpy Spy { get; }

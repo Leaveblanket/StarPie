@@ -19,80 +19,6 @@ public sealed class WheelAppearanceSettingsViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    /// <summary>内存配置服务假实现：直接持有 POCO，记录 Save 调用。</summary>
-    private sealed class FakeConfigService : IConfigService
-    {
-        public AppConfig Current { get; set; } = new();
-        public int SaveCalls;
-        public void Load() { }
-        public void Save() => SaveCalls++;
-        public WheelProfile GetProfileForProcess(string processName) => Current.Profiles[0];
-        public WheelProfile GetGlobalProfile() => Current.Profiles[0];
-    }
-
-    /// <summary>对话框服务假实现：只落地 VM 用到的三类方法，其余不该被调用。</summary>
-    private sealed class FakeDialogService : IDialogService
-    {
-        public InputDialogResult? InputResult;
-        public int InputCalls;
-        public string? LastInputTitle;
-        public string? LastInputPrompt;
-        public string? LastInputDefaultText;
-        public Func<string, (bool IsValid, string ErrorMessage)>? LastValidator;
-
-        public ColorPickResult? ColorResult;
-        public int ColorCalls;
-        public string? LastColorPickerInitial;
-
-        public EyedropResult? EyedropResult;
-        public int EyedropCalls;
-
-        public IconPickResult? IconResult;
-        public int IconCalls;
-        public string? LastIconPickerCurrentKey;
-
-        public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
-        {
-            InputCalls++;
-            LastInputTitle = title;
-            LastInputPrompt = prompt;
-            LastInputDefaultText = defaultText;
-            LastValidator = validator;
-            return InputResult;
-        }
-
-        public IconPickResult? ShowIconPicker(string? currentIconKey)
-        {
-            IconCalls++;
-            LastIconPickerCurrentKey = currentIconKey;
-            return IconResult;
-        }
-
-        public ColorPickResult? ShowColorPicker(string initialHex)
-        {
-            ColorCalls++;
-            LastColorPickerInitial = initialHex;
-            return ColorResult;
-        }
-
-        public EyedropResult? ShowEyedropper()
-        {
-            EyedropCalls++;
-            return EyedropResult;
-        }
-
-        public bool ConfirmResult = true;
-        public readonly List<(string Title, string Message)> Confirms = new();
-        public readonly List<(string Title, string Message)> Infos = new();
-
-        public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
-        public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
-        public bool Confirm(string title, string message) { Confirms.Add((title, message)); return ConfirmResult; }
-        public void ShowInfo(string title, string message) => Infos.Add((title, message));
-    }
-
     /// <summary>
     /// 事件/消息计数器 (T19)：视图事件（预览/预设列表）照旧订阅；落盘请求转发到
     /// <see cref="SaveSpy"/> 消息计数（可赋值以支持用例中途清零）；删除确认与保存提示
@@ -115,11 +41,11 @@ public sealed class WheelAppearanceSettingsViewModelTests
         }
     }
 
-    private static (WheelAppearanceSettingsViewModel Vm, FakeConfigService Config, FakeDialogService Dialogs, EventLog Log)
+    private static (WheelAppearanceSettingsViewModel Vm, TestConfigService Config, TestDialogService Dialogs, EventLog Log)
         Create(AppConfig? config = null, ILocalizationService? localization = null)
     {
-        var configService = new FakeConfigService { Current = config ?? new AppConfig() };
-        var dialogs = new FakeDialogService();
+        var configService = new TestConfigService { Current = config ?? new AppConfig() };
+        var dialogs = new TestDialogService();
         var (messenger, spy) = SaveSpy.Create();
         var loc = localization ?? Localization;
         var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), loc);
@@ -425,7 +351,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void PickColorCommand_PickedHex_AppliesToTargetField()
     {
         var (vm, config, dialogs, _) = Create();
-        dialogs.ColorResult = new ColorPickResult("#ABCDEF");
+        dialogs.ColorToPick = new ColorPickResult("#ABCDEF");
 
         vm.PickColorCommand.Execute("CustomText");
 
@@ -440,7 +366,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var (vm, _, dialogs, _) = Create();
         vm.HighlightGlowColorText = "#111111";
-        dialogs.ColorResult = null;
+        dialogs.ColorToPick = null;
 
         vm.PickColorCommand.Execute("HighlightGlowColor");
 
@@ -452,7 +378,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var (vm, _, dialogs, _) = Create();
         vm.CustomTextText = "#000000";
-        dialogs.ColorResult = null;
+        dialogs.ColorToPick = null;
 
         vm.PickColorCommand.Execute("CustomText");
 
@@ -463,7 +389,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void PickEyedropperCommand_PickedHex_AppliesToTargetField()
     {
         var (vm, config, dialogs, _) = Create();
-        dialogs.EyedropResult = new EyedropResult("#654321");
+        dialogs.EyedropToPick = new EyedropResult("#654321");
 
         vm.PickEyedropperCommand.Execute("CustomSectorBg");
 
@@ -482,7 +408,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.CustomHighlightBgText = "#333333";
         vm.CustomHighlightBorderText = "#444444";
         vm.CustomTextText = "#555555";
-        dialogs.InputResult = new InputDialogResult("我的预设");
+        dialogs.InputToPick = new InputDialogResult("我的预设");
 
         vm.SavePresetCommand.Execute(null);
 
@@ -503,7 +429,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
         Assert.Equal(1, log.SaveNow);
         // T19/#53：保存成功提示经对话框服务(编排内聚进 VM)，文案即时取词键化
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(Localization.GetString("SaveCustomPresetSuccess"), "我的预设"), info.Message);
     }
@@ -512,14 +438,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void SavePreset_Cancelled_DoesNothing()
     {
         var (vm, config, dialogs, log) = Create();
-        dialogs.InputResult = null;
+        dialogs.InputToPick = null;
 
         vm.SavePresetCommand.Execute(null);
 
         Assert.Empty(config.Current.CustomColorPresets);
         Assert.Equal(6, vm.ThemeOptions.Count); // 取消不新增自定义项
         Assert.Equal(0, log.SaveNow);
-        Assert.Empty(dialogs.Infos);
+        Assert.Empty(dialogs.InfoCalls);
     }
 
     [Fact]
@@ -527,7 +453,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var (vm, config, dialogs, _) = Create();
         config.Current.CustomColorPresets = null!;
-        dialogs.InputResult = new InputDialogResult("首次预设");
+        dialogs.InputToPick = new InputDialogResult("首次预设");
 
         vm.SavePresetCommand.Execute(null);
 
@@ -539,7 +465,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void SavePreset_DialogCopyAndDefaultName_AreLocalizedTemplatePlusTimestamp()
     {
         var (vm, _, dialogs, _) = Create();
-        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+        dialogs.InputToPick = null; // 取消一次即可捕获对话框实参
 
         vm.SavePresetCommand.Execute(null);
 
@@ -555,7 +481,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void SavePreset_TrimsNameBeforeStoring()
     {
         var (vm, config, dialogs, _) = Create();
-        dialogs.InputResult = new InputDialogResult("  我的预设  ");
+        dialogs.InputToPick = new InputDialogResult("  我的预设  ");
 
         vm.SavePresetCommand.Execute(null);
 
@@ -567,14 +493,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void SavePreset_TrimmedEmptyResult_IsRejectedWithoutCreatingPreset()
     {
         var (vm, config, dialogs, log) = Create();
-        dialogs.InputResult = new InputDialogResult("   ");
+        dialogs.InputToPick = new InputDialogResult("   ");
 
         vm.SavePresetCommand.Execute(null);
 
         Assert.Empty(config.Current.CustomColorPresets);
         Assert.Equal(6, vm.ThemeOptions.Count); // 空名拒绝：不新增自定义项
         Assert.Equal(0, log.SaveNow);
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(Localization.GetString("CustomPresetNameEmpty"), info.Message);
     }
@@ -588,7 +514,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
-        dialogs.InputResult = new InputDialogResult("新名");
+        dialogs.InputToPick = new InputDialogResult("新名");
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -609,7 +535,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
-        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+        dialogs.InputToPick = null; // 取消一次即可捕获对话框实参
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -627,7 +553,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
-        dialogs.InputResult = new InputDialogResult("  新名  ");
+        dialogs.InputToPick = new InputDialogResult("  新名  ");
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -644,7 +570,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
-        dialogs.InputResult = new InputDialogResult("   ");
+        dialogs.InputToPick = new InputDialogResult("   ");
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -652,7 +578,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal(0, log.SaveNow);
         // 空名拒绝：不改名不重建下拉，错误信息键化
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(Localization.GetString("CustomPresetNameEmpty"), info.Message);
     }
@@ -677,7 +603,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
-        dialogs.InputResult = null;
+        dialogs.InputToPick = null;
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -695,14 +621,15 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
+        dialogs.ConfirmResult = true;
 
         vm.DeletePresetCommand.Execute(null);
 
         // T19/#53：删除确认对话框编排内聚进 VM——确认即删除并提示成功，文案键化
-        var confirm = Assert.Single(dialogs.Confirms);
+        var confirm = Assert.Single(dialogs.ConfirmCalls);
         Assert.Equal(Localization.GetString("DeleteCustomPresetTitle"), confirm.Title);
         Assert.Equal(string.Format(Localization.GetString("MsgConfirmDeletePreset"), "待删"), confirm.Message);
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(Localization.GetString("DeleteCustomPresetSuccess"), "待删"), info.Message);
     }
@@ -721,7 +648,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.DeletePresetCommand.Execute(null);
 
         Assert.Single(config.Current.CustomColorPresets!);
-        Assert.Empty(dialogs.Infos);
+        Assert.Empty(dialogs.InfoCalls);
     }
 
     [Fact]
@@ -731,7 +658,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         vm.DeletePresetCommand.Execute(null);
 
-        Assert.Empty(dialogs.Confirms);
+        Assert.Empty(dialogs.ConfirmCalls);
     }
 
     [Fact]
@@ -753,7 +680,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.DoesNotContain(preset, config.Current.CustomColorPresets!);
         Assert.Contains(other, config.Current.CustomColorPresets!);
         // T19/#53：删除成功提示经对话框服务，文案键化
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(Localization.GetString("DeleteCustomPresetSuccess"), "待删"), info.Message);
         Assert.Equal(1, log.SaveNow);
@@ -774,7 +701,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         Assert.Single(config.Current.CustomColorPresets!);
         Assert.Equal(0, log.SaveNow);
-        Assert.Empty(dialogs.Infos);
+        Assert.Empty(dialogs.InfoCalls);
     }
 
     // --- 预设对话框文案语言切换（#53） ----------------------------------------------
@@ -787,7 +714,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var loc = new LocalizationService();
         loc.SetLanguage("en");
         var (vm, _, dialogs, _) = Create(localization: loc);
-        dialogs.InputResult = new InputDialogResult("My Preset");
+        dialogs.InputToPick = new InputDialogResult("My Preset");
 
         vm.SavePresetCommand.Execute(null);
 
@@ -796,7 +723,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.NotNull(dialogs.LastInputDefaultText);
         Assert.StartsWith(loc.GetString("CustomPresetDefaultName").Replace("{0}", ""), dialogs.LastInputDefaultText!);
         Assert.Matches(@"\d{4}-\d{4}$", dialogs.LastInputDefaultText!);
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(loc.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(loc.GetString("SaveCustomPresetSuccess"), "My Preset"), info.Message);
     }
@@ -810,7 +737,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         // 先取消一次取到当前语言（zh-CN）默认名，再以该默认名保存，模拟用户直接确认默认建议
         vm.SavePresetCommand.Execute(null);
         string? defaultName = dialogs.LastInputDefaultText;
-        dialogs.InputResult = new InputDialogResult(defaultName!);
+        dialogs.InputToPick = new InputDialogResult(defaultName!);
         vm.SavePresetCommand.Execute(null);
 
         string savedName = config.Current.CustomColorPresets!.Single().Name;
@@ -836,7 +763,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         }, loc);
-        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+        dialogs.InputToPick = null; // 取消一次即可捕获对话框实参
 
         vm.RenamePresetCommand.Execute(null);
 
@@ -856,13 +783,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
             Theme = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         }, loc);
+        dialogs.ConfirmResult = true;
 
         vm.DeletePresetCommand.Execute(null);
 
-        var confirm = Assert.Single(dialogs.Confirms);
+        var confirm = Assert.Single(dialogs.ConfirmCalls);
         Assert.Equal(loc.GetString("DeleteCustomPresetTitle"), confirm.Title);
         Assert.Equal(string.Format(loc.GetString("MsgConfirmDeletePreset"), "My Preset"), confirm.Message);
-        var info = Assert.Single(dialogs.Infos);
+        var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(loc.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(loc.GetString("DeleteCustomPresetSuccess"), "My Preset"), info.Message);
     }
@@ -1093,7 +1021,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void PickCoreIcon_Confirmed_RaisesSaveNow()
     {
         var (vm, config, dialogs, log) = Create();
-        dialogs.IconResult = new IconPickResult("custom:star");
+        dialogs.IconToPick = new IconPickResult("custom:star");
 
         vm.PickCoreIconCommand.Execute(null);
 
@@ -1107,7 +1035,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var (vm, config, dialogs, _) = Create();
         config.Current.CoreCustomIconKey = "Copy";
-        dialogs.IconResult = null;
+        dialogs.IconToPick = null;
 
         vm.PickCoreIconCommand.Execute(null);
 
@@ -1120,7 +1048,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void PickCoreIcon_Confirmed_WritesIconKeyAndReturnsTrue()
     {
         var (vm, config, dialogs, _) = Create();
-        dialogs.IconResult = new IconPickResult("custom:star");
+        dialogs.IconToPick = new IconPickResult("custom:star");
 
         vm.PickCoreIconCommand.Execute(null);
 
@@ -1132,7 +1060,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var (vm, config, dialogs, _) = Create();
         config.Current.CoreCustomIconKey = "Copy";
-        dialogs.IconResult = new IconPickResult(null);
+        dialogs.IconToPick = new IconPickResult(null);
 
         vm.PickCoreIconCommand.Execute(null);
 
