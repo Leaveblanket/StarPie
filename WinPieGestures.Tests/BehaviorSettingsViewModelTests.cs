@@ -191,7 +191,7 @@ public sealed class BehaviorSettingsViewModelTests
         vm.AddBlacklistFromInputCommand.Execute(null);
 
         // 与迁移前一致：重复项仅选中并滚动，不清输入框、不落盘、不重复入列
-        Assert.Single(vm.BlacklistProcesses.Where(p => p == "mstsc.exe"));
+        Assert.Single(vm.BlacklistProcesses, p => p == "mstsc.exe");
         Assert.Equal("mstsc.exe", vm.SelectedBlacklistProcess);
         // 输入框保留用户原始输入（迁移前重复分支不触碰 TextBox）
         Assert.Equal("MSTSC", vm.NewBlacklistProcess);

@@ -1,4 +1,5 @@
-# 如果要从更高级别的目录继承 .editorconfig 设置，请删除以下行
+# 仓库级统一 .editorconfig（#62/#39 C8）：覆盖主工程外的测试工程与其余目录。
+# 说明：原 WinPieGestures/.editorconfig 已收敛至此为单一真源，子目录无需重复全量规则。
 root = true
 
 # c# 文件
@@ -29,7 +30,7 @@ dotnet_search_reference_assemblies = true
 
 # 组织 Using
 dotnet_separate_import_directive_groups = false
-dotnet_sort_system_directives_first = false
+dotnet_sort_system_directives_first = true
 file_header_template = unset
 
 # this. 和 Me. 首选项

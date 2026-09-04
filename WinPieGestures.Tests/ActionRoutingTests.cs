@@ -321,6 +321,6 @@ public sealed class ActionRoutingTests
     public void ActionRoute_HasNoValueBeyondTheKnownRoutes()
     {
         // Guards against accidentally widening the enum without covering the new route.
-        Assert.Equal(Enum.GetValues<ActionRoute>().Length, 5);
+        Assert.Equal(5, Enum.GetValues<ActionRoute>().Length);
     }
 }
