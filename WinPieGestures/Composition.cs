@@ -44,7 +44,7 @@ namespace WinPieGestures
             var messenger = _provider.GetRequiredService<IMessenger>();
             var mouseHook = _provider.GetRequiredService<MouseHook>();
             var dialogService = _provider.GetRequiredService<DialogService>();
-            var themeService = _provider.GetRequiredService<IThemeService>();
+            var themeService = _provider.GetRequiredService<ThemeService>();
             var saveOrchestrator = _provider.GetRequiredService<SettingsSaveOrchestrator>();
 
             var navTrigger = _provider.GetRequiredService<INavigationService<BehaviorSettingsViewModel>>();
