@@ -28,7 +28,7 @@ namespace WinPieGestures.Views.Dialogs
         public IconPickerWindow(IThemeService themeService, IconPickerViewModel viewModel, ILocalizationService localization)
         {
             InitializeComponent();
-            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
+            themeService.ApplyWindowTheme(this);
             _vm = viewModel;
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;

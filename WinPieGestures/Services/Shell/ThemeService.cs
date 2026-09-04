@@ -6,20 +6,24 @@ using System.Windows.Interop;
 namespace WinPieGestures.Services.Shell
 {
     /// <summary>
-    /// App theme application (T09/ADR-0012): owns the current effective theme and the
-    /// Win32 title-bar surface of the former static AppThemeManager, behind the
-    /// IThemeService seam. Theme palettes live as XAML under Views/Styles/Themes and
-    /// are applied to the Application resource tree by the host (AppHost) — this
-    /// service only resolves, records state and drives the DWM title bar, so it never
-    /// depends on Views. The Windows dark-mode probe is injectable so "follow system"
-    /// resolution is unit-testable; production reads the personalize registry key live.
+    /// App theme service (T09/ADR-0012/ADR-0013 #47): owns the current effective theme and
+    /// the Win32 title-bar surface behind the IThemeService seam. <see cref="SetTheme"/> is
+    /// the single state entry point — it resolves, records <see cref="CurrentEffectiveTheme"/>,
+    /// raises <see cref="ThemeChanged"/> and triggers the host palette replacement via the
+    /// attached applier. Theme palettes live as XAML under Views/Styles/Themes and are swapped
+    /// wholesale by ThemePaletteManager (host layer), so this service never depends on Views.
+    /// The Windows dark-mode probe is injectable so "follow system" resolution is
+    /// unit-testable; production reads the personalize registry key live.
     /// </summary>
     public sealed class ThemeService : IThemeService
     {
         public string CurrentEffectiveTheme { get; private set; } = "Light";
 
+        public event Action? ThemeChanged;
+
         private readonly Func<bool> _windowsInDarkModeProbe;
         private Action<string>? _paletteApplier;
+        private bool _hasApplied;
 
         public ThemeService() : this(null)
         {
@@ -30,8 +34,8 @@ namespace WinPieGestures.Services.Shell
             _windowsInDarkModeProbe = windowsInDarkModeProbe ?? ProbeWindowsDarkMode;
         }
 
-        /// <summary>绑定宿主层调色板应用回调（ADR-0012）：AppHost 构造后调用；主题切换时由
-        /// ApplyTheme 触发，宿主把 Views/Styles/Themes 调色板写入 Application 资源。</summary>
+        /// <summary>绑定宿主层调色板应用回调（ADR-0012/0013）：AppHost 构造后调用；SetTheme 时
+        /// 宿主经 ThemePaletteManager 整项替换 MergedDictionaries 活动主题槽。</summary>
         internal void AttachPaletteApplier(Action<string> paletteApplier)
         {
             _paletteApplier = paletteApplier;
@@ -54,19 +58,27 @@ namespace WinPieGestures.Services.Shell
         [DllImport("dwmapi.dll", PreserveSig = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-        /// <summary>应用主题：解析有效主题名 → 记录状态 → 触发宿主调色板应用（App 级资源，
-        /// ADR-0012）→ 设置窗口标题栏深色模式。rootElement 仅用于定位标题栏窗口。</summary>
-        public void ApplyTheme(FrameworkElement? rootElement, string themeName)
+        /// <summary>唯一状态/资源入口（ADR-0013）：解析 → 记录 <see cref="CurrentEffectiveTheme"/>
+        /// → 触发宿主调色板整项替换 → 广播 <see cref="ThemeChanged"/>。同一有效主题重复设置是
+        /// no-op；首次应用恒执行（保证 App.xaml 静态 Light 首帧后 manager 调色板也入槽）。</summary>
+        public void SetTheme(string themeName)
+        {
+            string effectiveTheme = ResolveEffectiveTheme(themeName);
+            if (_hasApplied && string.Equals(CurrentEffectiveTheme, effectiveTheme, StringComparison.Ordinal)) return;
+
+            CurrentEffectiveTheme = effectiveTheme;
+            _paletteApplier?.Invoke(effectiveTheme);
+            _hasApplied = true;
+            ThemeChanged?.Invoke();
+        }
+
+        /// <summary>把当前有效主题应用到窗口 DWM 标题栏（资源已是 App 级，无需重复换入）。
+        /// null root 安全且不改状态；SourceInitialized 前调用经事件兜底重试。</summary>
+        public void ApplyWindowTheme(FrameworkElement? rootElement)
         {
             if (rootElement == null) return;
 
-            string effectiveTheme = ResolveEffectiveTheme(themeName);
-
-            CurrentEffectiveTheme = effectiveTheme;
-
-            _paletteApplier?.Invoke(effectiveTheme);
-
-            bool isDark = !string.Equals(effectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
+            bool isDark = !string.Equals(CurrentEffectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
             var window = rootElement as Window ?? Window.GetWindow(rootElement);
             if (window != null)
             {
