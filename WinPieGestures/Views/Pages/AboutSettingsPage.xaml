@@ -7,11 +7,7 @@
                         d:DesignHeight="600" d:DesignWidth="760"
                         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
                         RenderOptions.BitmapScalingMode="HighQuality"
-                        RenderOptions.ClearTypeHint="Enabled"
-                        SnapsToDevicePixels="True"
-                        TextOptions.TextFormattingMode="Display"
-                        TextOptions.TextRenderingMode="ClearType"
-                        UseLayoutRounding="True" mc:Ignorable="d">
+                        mc:Ignorable="d">
 
     <Grid d:Background="Yellow" d:Height="900">
         <Grid>
@@ -83,7 +79,6 @@
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
                             BorderThickness="1" CornerRadius="12"
-                            RenderOptions.ClearTypeHint="Enabled"
                             SnapsToDevicePixels="True" UseLayoutRounding="True">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="12" Opacity="0.03" ShadowDepth="1"
