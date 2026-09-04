@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ プリセット名を変更</value></data>
+  <data name="RenameCustomPresetTitle" xml:space="preserve"><value>カラープリセット名を変更</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>カラープリセットの新しい名前を入力してください:</value></data>
+  <data name="OuterEscapeTitle" xml:space="preserve"><value>外側スワイプでキャンセル (Outer Escape)</value></data>
+  <data name="OuterEscapeDesc" xml:space="preserve"><value>ホイール外側のリングを超えると即座にハイライトを解除し、右クリックを離すだけで安全にキャンセルできます。</value></data>
+  <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>キャンセルスワイプ距離 (感度設定):</value></data>
+  <data name="OuterEscapeDistanceDesc" xml:space="preserve"><value>中心からどれだけ離れたらキャンセルとするかを設定します。値が小さいほど敏感になり、大きいほど遠くへのスワイプが必要になります。</value></data>
+  <data name="OuterEscapeCheckbox" xml:space="preserve"><value>外側スワイプキャンセルを有効化 (推奨)</value></data>
+  <data name="IconPickerImport" xml:space="preserve"><value>➕ カスタムアイコンをインポート...</value></data>
+  <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 高度なカラーカスタマイズ</value></data>
+  <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>セクター、ハイライト、ボーダー、テキストなどの色を個別に調整します。</value></data>
+  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 過去の更新履歴を表示</value></data>
+  <data name="BrowseAppTooltip" xml:space="preserve"><value>アプリまたはショートカットを参照...</value></data>
+  <data name="BrowseFolderTooltip" xml:space="preserve"><value>フォルダーを参照...</value></data>
+  <data name="BtnConfirm" xml:space="preserve"><value>確定</value></data>
+  <data name="BtnCancel" xml:space="preserve"><value>キャンセル</value></data>
+  <data name="BtnOk" xml:space="preserve"><value>OK</value></data>
+  <data name="BtnApply" xml:space="preserve"><value>適用</value></data>
+  <data name="BtnTest" xml:space="preserve"><value>テスト</value></data>
+  <data name="BtnBrowseFolder" xml:space="preserve"><value>フォルダーを選択...</value></data>
+  <data name="ActionTypeFolder" xml:space="preserve"><value>📂 フォルダーを開く</value></data>
+  <data name="ActionTypeHotkeyShort" xml:space="preserve"><value>ショートカット</value></data>
+  <data name="ActionTypeLaunchShort" xml:space="preserve"><value>アプリ起動</value></data>
+  <data name="ActionTypeFolderShort" xml:space="preserve"><value>フォルダー</value></data>
+  <data name="ActionTypeSystemShort" xml:space="preserve"><value>システム</value></data>
+  <data name="ProfileCardTitle" xml:space="preserve"><value>プロファイル設定</value></data>
+  <data name="ProfileCardDesc" xml:space="preserve"><value>アプリ（Chrome、VS Codeなど）やワークフローごとに専用のプロファイルを設定します（ダブルクリックで名前変更）。</value></data>
+  <data name="BtnAddAppProfile" xml:space="preserve"><value>➕ アプリ専用設定を追加</value></data>
+  <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ カスタム設定を追加</value></data>
+  <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ 名前を変更</value></data>
+  <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ 設定を削除</value></data>
+  <data name="SectorCountOptionTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
+  <data name="SectorCountOptionDesc" xml:space="preserve"><value>セクター数を切り替えます。4キー（誤操作防止）、8キー（標準全方位）、12キー（高密度機能）。</value></data>
+  <data name="SectorActionListTitle" xml:space="preserve"><value>セクターアクションマッピング</value></data>
+  <data name="SectorActionListDesc" xml:space="preserve"><value>各方向の動作とアイコンを設定します。ショートカット（Ctrl+C等）、アプリ起動、フォルダー、システム制御に対応。</value></data>
+  <data name="IconPickerTitle" xml:space="preserve"><value>ベクターアイコンを選択</value></data>
+  <data name="IconPickerHeader" xml:space="preserve"><value>セクターアイコンを選択</value></data>
+  <data name="IconPickerSubtitle" xml:space="preserve"><value>30種類以上の高精細ベクターアイコン。あらゆるDPIで美しく描画されます。</value></data>
+  <data name="IconPickerSearchTooltip" xml:space="preserve"><value>アイコン名またはカテゴリで検索...</value></data>
+  <data name="IconPickerClear" xml:space="preserve"><value>アイコンをクリア (なし)</value></data>
+  <data name="IconPickerSelected" xml:space="preserve"><value>選択中のアイコン:</value></data>
+  <data name="IconPickerNone" xml:space="preserve"><value>(未選択)</value></data>
+  <data name="ColorPickerTitle" xml:space="preserve"><value>カラーピッカー＆スポイト</value></data>
+  <data name="ColorPickerHue" xml:space="preserve"><value>色相</value></data>
+  <data name="ColorPickerAlpha" xml:space="preserve"><value>不透明度</value></data>
+  <data name="ColorPickerEyedropperTitle" xml:space="preserve"><value>🔍 画面スポイト</value></data>
+  <data name="ColorPickerEyedropperDesc" xml:space="preserve"><value>画面上の任意のウィンドウから正確な色を抽出します</value></data>
+  <data name="ColorPickerEyedropperBtn" xml:space="preserve"><value>画面から吸色</value></data>
+  <data name="ColorPickerSwatches" xml:space="preserve"><value>プリセットカラーパレット (スクロールで全表示):</value></data>
+  <data name="ColorPickerApply" xml:space="preserve"><value>色を適用</value></data>
+  <data name="InputDialogTitle" xml:space="preserve"><value>プロファイル - StarPie</value></data>
+  <data name="InputDialogEmpty" xml:space="preserve"><value>名前を入力してください。</value></data>
+  <data name="Notice" xml:space="preserve"><value>お知らせ</value></data>
+  <data name="Error" xml:space="preserve"><value>エラー</value></data>
+  <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>次世代マウスラジアルジェスチャー</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie 環境設定コンソール</value></data>
+  <data name="TabTrigger" xml:space="preserve"><value>🎯 トリガーとシーン</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
+  <data name="TabGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
+  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
+  <data name="TabAbout" xml:space="preserve"><value>📋 情報と更新</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更はメモリ上で即座に有効になります。[変更を保存] で設定ファイルに永続化されます。</value></data>
+  <data name="BtnSave" xml:space="preserve"><value>変更を保存</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>閉じて隠す</value></data>
+  <data name="TriggerHeader" xml:space="preserve"><value>トリガーとシーンの分離設定</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>マウスジェスチャーの感度、フルスクリーンゲームでの自動回避、除外プロセスを設定します。</value></data>
+  <data name="SensitivityTitle" xml:space="preserve"><value>ジェスチャー起動感度</value></data>
+  <data name="SensitivityDesc" xml:space="preserve"><value>右クリックを押しながら指定ピクセル以上移動するとホイールを呼び出します。値が小さいほど高感度です。</value></data>
+  <data name="SceneIsolationTitle" xml:space="preserve"><value>シーン分離と誤操作防止</value></data>
+  <data name="SceneIsolationDesc" xml:space="preserve"><value>特定の環境や修飾キー操作時にホイールを無効化し、通常の右クリックを通過させます。</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>全画面ゲーム/専用アプリでジェスチャーを自動無効化</value></data>
+  <data name="FullScreenOptionDesc" xml:space="preserve"><value>アクティブなウィンドウが全画面かどうかを検知し、ゲームの照準等の右クリック操作を邪魔しません。</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>修飾キーバイパス (押下中はジェスチャーを無効化):</value></data>
+  <data name="ModifierCtrl" xml:space="preserve"><value>Ctrl 押下時にバイパス</value></data>
+  <data name="ModifierShift" xml:space="preserve"><value>Shift 押下時にバイパス</value></data>
+  <data name="ModifierAlt" xml:space="preserve"><value>Alt 押下時にバイパス</value></data>
+  <data name="BlacklistTitle" xml:space="preserve"><value>除外プロセスブラックリスト</value></data>
+  <data name="BlacklistDesc" xml:space="preserve"><value>登録されたアプリ（リモートデスクトップ、ペイント、3Dモデリング等）では右クリックを直接通します。</value></data>
+  <data name="BtnAddProcess" xml:space="preserve"><value>➕ プロセス追加</value></data>
+  <data name="BtnPickProcess" xml:space="preserve"><value>🔍 アプリを選択...</value></data>
+  <data name="BtnDeleteProcess" xml:space="preserve"><value>🗑️ 選択項目を削除</value></data>
+  <data name="BlacklistPlaceholder" xml:space="preserve"><value>プロセス名を入力 (例: solidworks.exe) またはアプリを選択...</value></data>
+  <data name="AppearanceHeader" xml:space="preserve"><value>外観と形状のカスタマイズ</value></data>
+  <data name="AppearanceSubheader" xml:space="preserve"><value>ビジュアルスタイル、配色テーマ、グロー発光、幾何学形状、アイコン配置、コアバッジをカスタマイズします。</value></data>
+  <data name="StyleTitle" xml:space="preserve"><value>ホイールのビジュアルスタイルと配色</value></data>
+  <data name="StyleGlass" xml:space="preserve"><value>リキッドグラスモーフィズム</value></data>
+  <data name="StyleClassic" xml:space="preserve"><value>クラシックリング</value></data>
+  <data name="StyleClean" xml:space="preserve"><value>クリーンセクター</value></data>
+  <data name="StyleCatPaw" xml:space="preserve"><value>キュートキャットポー (肉球)</value></data>
+  <data name="ThemeTitle" xml:space="preserve"><value>ホイール配色テーマ:</value></data>
+  <data name="WheelCoreTitle" xml:space="preserve"><value>グローバル操作</value></data>
+  <data name="WheelCoreSubtitle" xml:space="preserve"><value>{0} アクション</value></data>
+  <data name="WheelSectorEmpty" xml:space="preserve"><value>未設定</value></data>
+  <data name="BtnDeletePreset" xml:space="preserve"><value>🗑️ プリセット削除</value></data>
+  <data name="GlowTitle" xml:space="preserve"><value>ハイライトグローモード:</value></data>
+  <data name="GlowFollowTheme" xml:space="preserve"><value>🌈 テーマハイライトに追従 (Auto / Follow Theme)</value></data>
+  <data name="GlowRadius" xml:space="preserve"><value>グロー拡散半径</value></data>
+  <data name="GlowOpacity" xml:space="preserve"><value>グロー不透明度</value></data>
+  <data name="GeometryTitle" xml:space="preserve"><value>幾何学形状とサイズ</value></data>
+  <data name="ShapeOriginal" xml:space="preserve"><value>クラシックコンパクトセクター (Original)</value></data>
+  <data name="ShapeCircle" xml:space="preserve"><value>独立円形カード (Circle)</value></data>
+  <data name="ShapeRounded" xml:space="preserve"><value>フローティング角丸カプセル (Capsule)</value></data>
+  <data name="ShapeCapsule" xml:space="preserve"><value>ピルカプセル</value></data>
+  <data name="ShapeHexagon" xml:space="preserve"><value>ヘキサゴンハニカム (HexagonHive)</value></data>
+  <data name="RadiusOuter" xml:space="preserve"><value>ホイール全体の半径 (外径):</value></data>
+  <data name="RadiusInner" xml:space="preserve"><value>セクター内側半径 (Inner):</value></data>
+  <data name="RadiusCore" xml:space="preserve"><value>中心コア半径 (Core):</value></data>
+  <data name="SectorGap" xml:space="preserve"><value>セクター間隔 (Gap):</value></data>
+  <data name="SectorCornerRadius" xml:space="preserve"><value>角丸半径 (Corner Radius):</value></data>
+  <data name="BtnResetGeometry" xml:space="preserve"><value>推奨ジオメトリにリセット</value></data>
+  <data name="IconLayoutTitle" xml:space="preserve"><value>アイコンとレイアウトオプション</value></data>
+  <data name="LayoutIconText" xml:space="preserve"><value>アイコン＋文字</value></data>
+  <data name="LayoutIconOnly" xml:space="preserve"><value>アイコンのみ</value></data>
+  <data name="LayoutTextOnly" xml:space="preserve"><value>文字のみ</value></data>
+  <data name="SectorIconSize" xml:space="preserve"><value>アイコンサイズ:</value></data>
+  <data name="SectorFontSize" xml:space="preserve"><value>文字サイズ:</value></data>
+  <data name="CoreTitle" xml:space="preserve"><value>中心コアとパターン設定</value></data>
+  <data name="CoreShowIcon" xml:space="preserve"><value>コア中央アイコン/パターンを表示</value></data>
+  <data name="CoreIconType" xml:space="preserve"><value>コアパターンタイプ:</value></data>
+  <data name="CorePatternExit" xml:space="preserve"><value>✕ デフォルトキャンセルバツ (Exit / Close)</value></data>
+  <data name="CorePatternCrosshair" xml:space="preserve"><value>⌖ 照準</value></data>
+  <data name="CorePatternWindows" xml:space="preserve"><value>⊞ Windows ロゴ</value></data>
+  <data name="CorePatternDot" xml:space="preserve"><value>⦿ ブルズアイドット</value></data>
+  <data name="CorePatternHome" xml:space="preserve"><value>⌂ ホーム</value></data>
+  <data name="CorePatternPower" xml:space="preserve"><value>⏻ 電源</value></data>
+  <data name="CorePatternCompass" xml:space="preserve"><value>🧭 コンパス</value></data>
+  <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 キュートな肉球</value></data>
+  <data name="CorePatternImage" xml:space="preserve"><value>🖼️ カスタム画像</value></data>
+  <data name="BtnBrowseImage" xml:space="preserve"><value>画像を参照...</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>コンソールテーマ (App Theme)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>🌓 システム自動</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>☀️ モダンライト</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>🌙 オブシディアンダーク</value></data>
+  <data name="ThemeNavy" xml:space="preserve"><value>🌌 ミッドナイトネイビー</value></data>
+  <data name="ThemeViolet" xml:space="preserve"><value>🔮 ロイヤルバイオレット</value></data>
+  <data name="ThemeGray" xml:space="preserve"><value>⚙️ チタングレー</value></data>
+  <data name="GesturesHeader" xml:space="preserve"><value>セクター配置とアクション設定</value></data>
+  <data name="SectorCountTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
+  <data name="SectorCount4" xml:space="preserve"><value>4キー (十字方向)</value></data>
+  <data name="SectorCount8" xml:space="preserve"><value>8キー (全方向8方位)</value></data>
+  <data name="SectorCount12" xml:space="preserve"><value>12キー (時計盤12方位)</value></data>
+  <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ キーボードショートカット</value></data>
+  <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 アプリ起動 / Webを開く</value></data>
+  <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ システム制御コマンド</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>クリックしてショートカット録画</value></data>
+  <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 アプリケーションを選択...</value></data>
+  <data name="AdvancedHeader" xml:space="preserve"><value>システム統合と高度な設定</value></data>
+  <data name="LanguageTitle" xml:space="preserve"><value>表示言語 (Display Language)</value></data>
+  <data name="LanguageDesc" xml:space="preserve"><value>StarPieの表示言語を選択します。再起動不要で即時に切り替わります。</value></data>
+  <data name="ProgramPickerTitle" xml:space="preserve"><value>プログラムを選択</value></data>
+  <data name="ProgramPickerHeader" xml:space="preserve"><value>インストール済みアプリやスタートメニューから選択</value></data>
+  <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>アプリ名、実行可能ファイル、またはパスを検索...</value></data>
+  <data name="ProgramPickerScanning" xml:space="preserve"><value>インストール済みアプリをスキャンしています...</value></data>
+  <data name="BtnManualBrowse" xml:space="preserve"><value>手動で参照...</value></data>
+  <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 簡体字中国語 (Simplified Chinese)</value></data>
+  <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁体字中国語 (Traditional Chinese)</value></data>
+  <data name="LangEn" xml:space="preserve"><value>🇺🇸 英語 (English)</value></data>
+  <data name="LangJa" xml:space="preserve"><value>🇯🇵 日本語 (Japanese)</value></data>
+  <data name="LangAuto" xml:space="preserve"><value>🖥️ システム既定 (System Default)</value></data>
+  <data name="StartupTitle" xml:space="preserve"><value>Windows起動時に自動起動</value></data>
+  <data name="StartupDesc" xml:space="preserve"><value>Windows起動時に自動でタスクトレイに常駐します。</value></data>
+  <data name="MemoryTitle" xml:space="preserve"><value>メモリ最適化 (ワーキングセット圧縮)</value></data>
+  <data name="MemoryDesc" xml:space="preserve"><value>メモリを自動トリムし、バックグラウンド使用量を15〜25MBに維持します。</value></data>
+  <data name="BtnTrimMemory" xml:space="preserve"><value>今すぐメモリ圧縮</value></data>
+  <data name="ElevateTitle" xml:space="preserve"><value>管理者権限で実行</value></data>
+  <data name="ElevateDesc" xml:space="preserve"><value>管理者権限で再起動し、タスクマネージャー等の高権限画面でも動作可能にします。</value></data>
+  <data name="BtnElevate" xml:space="preserve"><value>🛡️ 管理者として再起動</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>バックアップとリセット</value></data>
+  <data name="BtnExportConfig" xml:space="preserve"><value>設定をエクスポート</value></data>
+  <data name="BtnImportConfig" xml:space="preserve"><value>設定をインポート</value></data>
+  <data name="BtnResetConfig" xml:space="preserve"><value>初期設定にリセット</value></data>
+  <data name="AboutHeader" xml:space="preserve"><value>情報と更新履歴</value></data>
+  <data name="AboutDesc" xml:space="preserve"><value>洗練されたデザインと高速な応答性を誇る次世代マウスジェスチャーツール</value></data>
+  <data name="BtnOpenChangelog" xml:space="preserve"><value>完全な更新履歴を表示</value></data>
+  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md はアプリケーション フォルダーにあります。</value></data>
+  <data name="ChangelogOpenFailed" xml:space="preserve"><value>CHANGELOG.md を開けません。</value></data>
+  <data name="MilestonesTitle" xml:space="preserve"><value>バージョン履歴</value></data>
+  <data name="MsgSaveSuccess" xml:space="preserve"><value>設定が正常に保存されました！</value></data>
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>このカスタム配色プリセットを削除してもよろしいですか？
+削除後は復元できません。</value></data>
+  <data name="MsgConfirmReset" xml:space="preserve"><value>工場出荷時の初期設定に戻してもよろしいですか？すべてのカスタム設定がリセットされます。</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ ジェスチャーを一時停止</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ ジェスチャーを再開</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 環境設定 (Settings)</value></data>
+  <data name="TrayAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
+  <data name="TrayGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
+  <data name="TrayAbout" xml:space="preserve"><value>📋 情報と更新履歴</value></data>
+  <data name="TrayElevate" xml:space="preserve"><value>🛡️ 管理者として再起動</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>❌ StarPie を終了</value></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルジェスチャー</value></data>
+  <data name="LivePreviewFps" xml:space="preserve"><value>60FPS ライブレンダリング</value></data>
+  <data name="AdvancedSubheader" xml:space="preserve"><value>インターフェース言語、Windows 自動起動、管理者権限、設定のインポート/エクスポートを管理します。</value></data>
+  <data name="TrimMemoryTooltip" xml:space="preserve"><value>未使用のワーキングセット物理メモリを即時クリアします</value></data>
+  <data name="GesturesSubheader" xml:space="preserve"><value>フォアグラウンドアプリごとに専用の多方向ジェスチャーホイール、キー操作、ベクターアイコンを設定できます。</value></data>
+  <data name="AddProfileTooltip" xml:space="preserve"><value>スタートメニューのインストール済みアプリから専用プロファイルを作成します</value></data>
+  <data name="AddCustomProfileTooltip" xml:space="preserve"><value>任意の名前で新しいホイールプロファイルを作成します</value></data>
+  <data name="RenameProfileTooltip" xml:space="preserve"><value>選択中のプロファイル名を変更します</value></data>
+  <data name="DeleteProfileTooltip" xml:space="preserve"><value>選択中のプロファイルを削除します</value></data>
+  <data name="PickIconTooltip" xml:space="preserve"><value>クリックしてベクターアイコンを選択</value></data>
+  <data name="SelectedAppPathTooltip" xml:space="preserve"><value>選択したアプリケーションのパス</value></data>
+  <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>選択したローカルフォルダーのパス</value></data>
+  <data name="LaunchArgsTooltip" xml:space="preserve"><value>起動引数（コマンドライン引数やURLなど）</value></data>
+  <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>インストール済みアプリ一覧から除外するアプリを選択します</value></data>
+  <data name="BlacklistAddTooltip" xml:space="preserve"><value>入力欄のプロセス名を除外ブラックリストに追加します</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>コンソール全体の配色をカスタマイズし、Windows のライト/ダークモードに追従できます。</value></data>
+  <data name="StyleTypeLabel" xml:space="preserve"><value>レンダースタイル (UiStyle):</value></data>
+  <data name="RenamePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセット名を変更します</value></data>
+  <data name="CustomColorsLabel" xml:space="preserve"><value>カスタム16進色（カラーホイール/スクリーンピッカー）:</value></data>
+  <data name="CustomSectorBgLabel" xml:space="preserve"><value>セクター背景色:</value></data>
+  <data name="CustomSectorBorderLabel" xml:space="preserve"><value>セクター枠線:</value></data>
+  <data name="CustomHighlightBgLabel" xml:space="preserve"><value>ハイライト背景色:</value></data>
+  <data name="CustomHighlightBorderLabel" xml:space="preserve"><value>ハイライト枠線:</value></data>
+  <data name="CustomTextColorLabel" xml:space="preserve"><value>文字色:</value></data>
+  <data name="PickColorTooltip" xml:space="preserve"><value>カラーピッカーを開く</value></data>
+  <data name="PickEyedropperTooltip" xml:space="preserve"><value>画面上の任意の場所から色を取得</value></data>
+  <data name="GlowColorLabel" xml:space="preserve"><value>グロー色:</value></data>
+  <data name="PickGlowColorTooltip" xml:space="preserve"><value>グロー色のカラーピッカーを開く</value></data>
+  <data name="PickGlowEyedropperTooltip" xml:space="preserve"><value>画面上の任意の場所からグロー色を取得</value></data>
+  <data name="ShowTextLabel" xml:space="preserve"><value>ホイールセクターにアクション名を表示</value></data>
+  <data name="BtnChooseIcon" xml:space="preserve"><value>アイコンを選択...</value></data>
+  <data name="CoreCustomImageTooltip" xml:space="preserve"><value>カスタム画像のローカルパス</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>クリア</value></data>
+  <data name="LivePreviewTitle" xml:space="preserve"><value>ライブプレビュー</value></data>
+  <data name="LivePreviewHint" xml:space="preserve"><value>💡 下のホイールにカーソルを合わせてハイライトとスナップ感をリアルタイムで試せます</value></data>
+  <data name="LayoutModeLabel" xml:space="preserve"><value>レイアウトモード:</value></data>
+  <data name="ShapeTypeLabel" xml:space="preserve"><value>セクター形状:</value></data>
+  <data name="CorePatternCustom" xml:space="preserve"><value>✨ カスタムアイコン</value></data>
+  <data name="ColorPickerHeader" xml:space="preserve"><value>パレットとスクリーンピッカー</value></data>
+  <data name="ColorPickerSubtitle" xml:space="preserve"><value>パレットで色を微調整するか、スクリーンスポイトで任意のピクセルを取得します。</value></data>
+  <data name="IconPickerImportTooltip" xml:space="preserve"><value>ローカルのSVGベクターまたはPNG / ICO / JPG画像アイコンをインポート</value></data>
+  <data name="ClearHotkeyTooltip" xml:space="preserve"><value>ショートカットをクリア</value></data>
+  <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 現在の色をプリセットとして保存...</value></data>
+  <data name="DeletePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセットを削除します</value></data>
+  <data name="AboutSubheader" xml:space="preserve"><value>StarPie のバージョン情報と進化の歴史。</value></data>
+  <data name="GlowPresetLilac" xml:space="preserve"><value>💜 ライラックバイオレット (#A855F7)</value></data>
+  <data name="GlowPresetBlue" xml:space="preserve"><value>💙 グレイシャルブルー (#3B82F6)</value></data>
+  <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 エメラルドグリーン (#10B981)</value></data>
+  <data name="GlowPresetRose" xml:space="preserve"><value>💖 さくらローズ (#EC4899)</value></data>
+  <data name="GlowPresetAmber" xml:space="preserve"><value>🧡 アンバーゴールド (#F59E0B)</value></data>
+  <data name="GlowPresetRed" xml:space="preserve"><value>🔴 コーラルレッド (#EF4444)</value></data>
+  <data name="GlowPresetWhite" xml:space="preserve"><value>⚪ ピュアアイスホワイト (#FFFFFF)</value></data>
+  <data name="GlowPresetCustom" xml:space="preserve"><value>🎨 カスタムグロー色</value></data>
+</root>

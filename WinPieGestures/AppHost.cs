@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures
 {
@@ -21,6 +22,7 @@ namespace WinPieGestures
         private readonly MouseHook _mouseHook;
         private readonly DialogService _dialogService;
         private readonly ThemeService _themeService;
+        private readonly ILocalizationService _localization;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         private readonly INavigationService<BehaviorSettingsViewModel> _navTrigger;
         private readonly INavigationService<AppearanceSettingsViewModel> _navAppearance;
@@ -53,6 +55,7 @@ namespace WinPieGestures
             MouseHook mouseHook,
             DialogService dialogService,
             ThemeService themeService,
+            ILocalizationService localization,
             SettingsSaveOrchestrator saveOrchestrator,
             INavigationService<BehaviorSettingsViewModel> navTrigger,
             INavigationService<AppearanceSettingsViewModel> navAppearance,
@@ -68,6 +71,7 @@ namespace WinPieGestures
             _mouseHook = mouseHook;
             _dialogService = dialogService;
             _themeService = themeService;
+            _localization = localization;
             _saveOrchestrator = saveOrchestrator;
             _navTrigger = navTrigger;
             _navAppearance = navAppearance;
@@ -93,12 +97,12 @@ namespace WinPieGestures
         {
             _mouseHook.Start();
 
-            // T24：语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。订阅与首次应用
-            // 先于任何页面 View 创建（语言切换经 I18n.LanguageChanged 同步重建，换入不累积）。
-            I18n.LanguageChanged += ApplyLanguageDictionary;
+            // T24/ADR-0013：语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。
+            // 订阅与首次应用先于任何页面 View 创建（语言切换经服务 LanguageChanged 同步重建，换入不累积）。
+            _localization.LanguageChanged += ApplyLanguageDictionary;
             // T25（ADR-0010 壳外文案）：语言切换按当前暂停态即时刷新托盘 tooltip；
             // 托盘菜单每次打开经 menuProvider 重建，无需在此刷新。
-            I18n.LanguageChanged += RefreshTrayTooltip;
+            _localization.LanguageChanged += RefreshTrayTooltip;
             ApplyLanguageDictionary();
 
             // 托盘驻留气泡：宿主订阅消息后直调通用 VM（文案与编排仍在 VM）。
@@ -132,9 +136,9 @@ namespace WinPieGestures
 
         public void Dispose()
         {
-            // T24：成对退订语言字典换入（订阅在 Run()），防静态事件在宿主释放后仍持有引用。
-            I18n.LanguageChanged -= ApplyLanguageDictionary;
-            I18n.LanguageChanged -= RefreshTrayTooltip;
+            // T24/ADR-0013：成对退订语言字典换入（订阅在 Run()），防事件在宿主释放后仍持有引用。
+            _localization.LanguageChanged -= ApplyLanguageDictionary;
+            _localization.LanguageChanged -= RefreshTrayTooltip;
             _trayIcon?.Dispose();
             _trayIcon = null;
             _mouseHook.Stop();
@@ -169,12 +173,12 @@ namespace WinPieGestures
             return palette;
         }
 
-        // T24：运行时语言字典——单一 C# 源（I18n.Translations）的 XAML 投影，只持当前语言一份；
+        // T24/ADR-0013：运行时语言字典——resx 数据源（ILocalizationService）的 XAML 投影，只持当前语言一份；
         // 原地 Clear 重建（replace 语义），不向 MergedDictionaries 累积旧语言。
         private static readonly ResourceDictionary LanguageDictionary = new();
 
         /// <summary>用当前语言重建 Application 级语言字典（设置页文本 DynamicResource 的数据源）。</summary>
-        private static void ApplyLanguageDictionary()
+        private void ApplyLanguageDictionary()
         {
             if (Application.Current is not { } app)
             {
@@ -187,7 +191,7 @@ namespace WinPieGestures
             }
 
             LanguageDictionary.Clear();
-            foreach ((string key, string value) in I18n.EnumerateCurrentEntries())
+            foreach ((string key, string value) in _localization.EnumerateCurrentEntries())
             {
                 LanguageDictionary[key] = value;
             }
