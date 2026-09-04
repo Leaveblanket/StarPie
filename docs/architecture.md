@@ -23,7 +23,7 @@
 | 某个路径放什么 / 新增文件落位 | [layout.md](architecture/layout.md) |
 | 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
 | 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
-| 启动退出 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
+| 启动退出 / AppHost 编排 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
 | 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
 | 设置页导航 / 页面 DataTemplate 映射 | [navigation.md](architecture/navigation.md) |
 | 对话框实现 / 对话框唯一形态 | [dialogs.md](architecture/dialogs.md) |
@@ -67,7 +67,7 @@ StarPie/
 ## 5. 分层速览
 
 ```text
-App / Composition            # 装配与生命周期（唯一解析点）
+App / AppHost / Composition  # 宿主编排（AppHost）+ 装配与解析（Composition，唯一解析点）
       |
       v
 ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
@@ -99,3 +99,4 @@ Services ---> Models
 | 0008 | `docs/adr/0008-strict-viewmodel-view-boundary.md` | VM/View 严格边界 |
 | 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 |
 | 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 |
+| 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 |

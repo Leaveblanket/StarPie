@@ -1,46 +1,33 @@
 <Window x:Class="WinPieGestures.Views.Dialogs.ScreenEyedropperWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        WindowStyle="None"
-        AllowsTransparency="True"
-        Background="#01000000"
-        Topmost="True"
-        ShowInTaskbar="False"
-        Cursor="Cross"
-        MouseMove="ScreenEyedropperWindow_MouseMove"
+        AllowsTransparency="True" Background="#01000000"
+        Cursor="Cross" KeyDown="ScreenEyedropperWindow_KeyDown"
         MouseDown="ScreenEyedropperWindow_MouseDown"
-        KeyDown="ScreenEyedropperWindow_KeyDown">
-    <!-- 全屏置顶取色覆盖层（ADR-0004：不用 Owner）。拾取状态与结果在 ScreenEyedropperViewModel；
-         code-behind 只保留 Win32 取像素与放大镜摆放（ADR-0009 纯视觉白名单）。 -->
+        MouseMove="ScreenEyedropperWindow_MouseMove"
+        ShowInTaskbar="False" Topmost="True" WindowStyle="None">
+    <!--
+        全屏置顶取色覆盖层（ADR-0004：不用 Owner）。拾取状态与结果在 ScreenEyedropperViewModel；
+        code-behind 只保留 Win32 取像素与放大镜摆放（ADR-0009 纯视觉白名单）。
+    -->
     <Canvas IsHitTestVisible="False">
-        <Border x:Name="LoupeBorder"
-                Width="110" Height="60"
-                CornerRadius="8"
-                Background="#EB0F172A"
-                BorderBrush="#B4FFFFFF"
-                BorderThickness="1.5"
-                Padding="6">
+        <Border x:Name="LoupeBorder" Width="110" Height="60"
+                Padding="6" Background="#EB0F172A" BorderBrush="#B4FFFFFF"
+                BorderThickness="1.5" CornerRadius="8">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.4"/>
+                <DropShadowEffect BlurRadius="10" Opacity="0.4" ShadowDepth="2" />
             </Border.Effect>
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Border Width="18" Height="18"
-                            CornerRadius="4"
-                            BorderBrush="White"
-                            BorderThickness="1"
-                            Margin="0,0,6,0"
-                            Background="{Binding SwatchHex, Converter={StaticResource HexToBrushConverter}}"/>
-                    <TextBlock FontSize="12" FontWeight="Bold"
+                <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                    <Border Width="18" Height="18" Margin="0,0,6,0"
+                            Background="{Binding SwatchHex, Converter={StaticResource HexToBrushConverter}}"
+                            BorderBrush="White" BorderThickness="1" CornerRadius="4" />
+                    <TextBlock VerticalAlignment="Center" FontSize="12" FontWeight="Bold"
                                Foreground="White"
-                               VerticalAlignment="Center"
-                               Text="{Binding HexText}"/>
+                               Text="{Binding HexText}" />
                 </StackPanel>
-                <TextBlock Text="单击取色 / Esc取消"
-                           FontSize="9"
-                           Foreground="#C8CBD5E1"
-                           HorizontalAlignment="Center"
-                           Margin="0,3,0,0"/>
+                <TextBlock Margin="0,3,0,0" HorizontalAlignment="Center" FontSize="9"
+                           Foreground="#C8CBD5E1" Text="单击取色 / Esc取消" />
             </StackPanel>
         </Border>
     </Canvas>
