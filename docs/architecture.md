@@ -102,3 +102,4 @@ Services ---> Models
 | 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 |
 | 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） |
 | 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） |
+| 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分（界面主题模块边界 + 预设名语义） |
