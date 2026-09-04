@@ -9,7 +9,8 @@
 ```text
 WinPieGestures/
 ├── App.xaml / App.xaml.cs      # 宿主生命周期：单实例、异常、启动/退出编排
-├── Composition.cs              # DI 组合根（唯一）
+├── AppHost.cs                  # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
+├── Composition.cs              # DI 组合根（唯一）：注册与解析
 ├── AssemblyInfo.cs             # 程序集元数据
 ├── GlobalUsings.cs             # 工程级全局 using
 ├── WinPieGestures.csproj       # SDK 工程文件（.slnx 同层）
@@ -84,7 +85,8 @@ WinPieGestures/
 ## 根级文件规则
 
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
-- `Composition.cs`：唯一 DI 组合根（见 [host.md](host.md)）。
+- `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
+- `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - 源码根目录**只允许**上表列出的项；原型、HTML、临时脚本不得留在 `WinPieGestures/` 下。
 

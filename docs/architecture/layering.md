@@ -5,7 +5,7 @@
 ## 分层总览
 
 ```text
-App / Composition            # 装配与生命周期（唯一解析点）
+App / AppHost / Composition  # 宿主编排（AppHost）+ 装配与解析（Composition，唯一解析点）
       |
       v
 ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
@@ -16,13 +16,13 @@ Services ---> Models
 
 ## 依赖矩阵
 
-| 引用方 \ 被引用方 | App/Composition | Models | Services | ViewModels | Views | Messages |
+| 引用方 \ 被引用方 | App/AppHost/Composition | Models | Services | ViewModels | Views | Messages |
 |---|---|---|---|---|---|---|
 | Models | ✗ | △（同层值类型互用） | ✗ | ✗ | ✗ | ✗ |
 | Services | ✗ | ✅ | ✅（经接口，见下） | ✗ | ✗ | ✅ |
 | ViewModels | ✗ | ✅ | ✅（接口/委托） | △（仅静态已知依赖，见下） | ✗ | ✅ |
 | Views | ✗ | △（仅 WPF-free 值类型经绑定/转换器） | △（仅白名单服务构造注入，见下） | ✅（DataContext/DataTemplate） | △（同层控件/样式/转换器） | ✗ |
-| App/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App/AppHost/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 必须遵守的例外与说明
 
@@ -34,12 +34,12 @@ Services ---> Models
 
 ## 命名空间与可见性
 
-- **命名空间 = 物理目录**：`WinPieGestures.Services.Actions`、`WinPieGestures.ViewModels.Dialogs`、`WinPieGestures.Views.Navigation`；根级类型（`App`、`Composition`）在 `WinPieGestures`。
+- **命名空间 = 物理目录**：`WinPieGestures.Services.Actions`、`WinPieGestures.ViewModels.Dialogs`、`WinPieGestures.Views.Navigation`；根级类型（`App`、`AppHost`、`Composition`）在 `WinPieGestures`。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
-  - `Composition` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
+  - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
 - 页面 View 无参构造、不注册容器，因此不需要 public 构造注入（`MainView`、对话框 Window 是仅有的、经组合根/服务显式 `new` 的窗口）。
 
 ## Models
