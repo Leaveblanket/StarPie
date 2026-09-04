@@ -35,18 +35,9 @@ namespace WinPieGestures
         // #27：壳层 VM（MainViewModel）承担 App 退出状态，主框架 Closing 据此放行真关窗而非隐藏到托盘。
         private readonly MainViewModel _mainViewModel;
         private readonly AppHostDelegates _hostDelegates;
-        // ADR-0012：主题调色板缓存——宿主是唯一加载 Views/Styles/Themes XAML 的层。
-        private readonly Dictionary<string, ResourceDictionary> _themePalettes = new(StringComparer.OrdinalIgnoreCase);
-        // 配置名/遗留别名 → 主题文件规范名（T09 语义：ObsidianDark 等价 Dark）。
-        private static readonly Dictionary<string, string> ThemeFileNames = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Light"] = "Light",
-            ["Dark"] = "Dark",
-            ["ObsidianDark"] = "Dark",
-            ["MidnightNavy"] = "MidnightNavy",
-            ["RoyalViolet"] = "RoyalViolet",
-            ["TitaniumGray"] = "TitaniumGray"
-        };
+        // ADR-0013/#46：主题调色板换入下沉到 ThemePaletteManager（整项替换活动主题槽），
+        // AppHost 只编排（Attach 回调），不再实现直接键覆盖。
+        private readonly ThemePaletteManager _paletteManager = new();
         private TrayIconManager? _trayIcon;
         private MainView? _mainView;
 
@@ -83,8 +74,9 @@ namespace WinPieGestures
             _mainViewModel = mainViewModel;
             _hostDelegates = hostDelegates;
 
-            // ADR-0012：主题画刷换入归宿主（宿主可引用 Views；ThemeService 不接触 Views 资源）。
-            themeService.AttachPaletteApplier(ApplyThemePalette);
+            // ADR-0013/#46：主题画刷换入归宿主层 ThemePaletteManager（整项替换 MergedDictionaries 主题槽；
+            // ThemeService 仍不接触 Views 资源，只经回调触发换入）。
+            themeService.AttachPaletteApplier(effectiveTheme => _paletteManager.Apply(effectiveTheme, Application.Current!));
 
             // 回填宿主回调：GeneralSettingsViewModel 注册时持的是转发委托，此刻起
             // 托盘气泡与退出动作指向本宿主实例（ADR-0011）。
@@ -145,32 +137,6 @@ namespace WinPieGestures
 
             // T25（ADR-0010 第 3 条）：进程级 VM 成对退订 I18n 静态事件（容器 dispose 亦覆盖，此处显式保证顺序）。
             _mainViewModel.Dispose();
-        }
-
-        /// <summary>把目标主题调色板写入 Application 直接资源（覆盖 App.xaml 静态合并的
-        /// Light 默认）；全部画刷引用均为 DynamicResource，全树自动刷新。</summary>
-        private void ApplyThemePalette(string effectiveTheme)
-        {
-            if (Application.Current is not { } app) return;
-
-            ResourceDictionary palette = LoadPalette(effectiveTheme);
-            foreach (DictionaryEntry entry in palette)
-            {
-                if (entry.Key is not string key || entry.Value is not SolidColorBrush brush) continue;
-                if (brush.CanFreeze) brush.Freeze();
-                app.Resources[key] = brush;
-            }
-        }
-
-        private ResourceDictionary LoadPalette(string theme)
-        {
-            string file = ThemeFileNames.TryGetValue(theme, out string? name) ? name : "Light";
-            if (_themePalettes.TryGetValue(file, out ResourceDictionary? cached)) return cached;
-
-            var source = new Uri($"pack://application:,,,/StarPie;component/Views/Styles/Themes/{file}.xaml", UriKind.Absolute);
-            var palette = new ResourceDictionary { Source = source };
-            _themePalettes[file] = palette;
-            return palette;
         }
 
         // T24/ADR-0013：运行时语言字典——resx 数据源（ILocalizationService）的 XAML 投影，只持当前语言一份；
