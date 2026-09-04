@@ -24,7 +24,7 @@ namespace WinPieGestures.Views.Dialogs
         public ColorPickerWindow(IThemeService themeService, ColorPickerViewModel viewModel, ILocalizationService localization)
         {
             InitializeComponent();
-            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
+            themeService.ApplyWindowTheme(this);
             _vm = viewModel;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
             DataContext = _vm;

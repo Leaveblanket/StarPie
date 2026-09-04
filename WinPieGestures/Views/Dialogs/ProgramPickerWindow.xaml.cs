@@ -16,7 +16,7 @@ namespace WinPieGestures.Views.Dialogs
         public ProgramPickerWindow(IThemeService themeService, ProgramPickerViewModel viewModel, ILocalizationService localization)
         {
             InitializeComponent();
-            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
+            themeService.ApplyWindowTheme(this);
             _vm = viewModel;
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;

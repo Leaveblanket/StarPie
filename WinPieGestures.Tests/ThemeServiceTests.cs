@@ -4,15 +4,15 @@ using WinPieGestures;
 namespace WinPieGestures.Tests;
 
 /// <summary>
-/// Theme-service state coverage (T09): "follow system" resolution through the
-/// injected dark-mode probe, named-theme passthrough, the CurrentEffectiveTheme
-/// lifecycle, and null-element safety. Brush application itself is view-layer and
-/// covered by the Python end-to-end suite, not here.
+/// Theme-service state coverage (T09/ADR-0013 #47): "follow system" resolution through the
+/// injected dark-mode probe, named-theme passthrough, the CurrentEffectiveTheme lifecycle,
+/// the SetTheme single-entry/ThemeChanged contract and null-window safety. Brush application
+/// itself is view-layer and covered by the Python end-to-end suite, not here.
 /// </summary>
 public sealed class ThemeServiceTests
 {
     [Fact]
-    public void CurrentEffectiveTheme_DefaultsToLight_BeforeAnyApply()
+    public void CurrentEffectiveTheme_DefaultsToLight_BeforeAnySetTheme()
     {
         var service = new ThemeService(() => true);
 
@@ -58,12 +58,47 @@ public sealed class ThemeServiceTests
     }
 
     [Fact]
-    public void ApplyTheme_NullElement_IsSafeAndKeepsStateUnchanged()
+    public void SetTheme_ResolvesStateAndShortCircuitsOnSameTheme()
     {
         var service = new ThemeService(() => true);
+        int fired = 0;
+        service.ThemeChanged += () => fired++;
 
-        service.ApplyTheme(null, "MidnightNavy");
+        service.SetTheme("MidnightNavy");
+        Assert.Equal("MidnightNavy", service.CurrentEffectiveTheme);
+        Assert.Equal(1, fired);
 
+        service.SetTheme("MidnightNavy"); // 同主题 no-op：不重复换入/广播
+        Assert.Equal(1, fired);
+
+        service.SetTheme("System"); // probe dark → Dark
+        Assert.Equal("Dark", service.CurrentEffectiveTheme);
+        Assert.Equal(2, fired);
+    }
+
+    [Fact]
+    public void SetTheme_FirstApply_ExecutesEvenWhenEffectiveThemeMatchesInitialLight()
+    {
+        var service = new ThemeService(() => false);
+        int fired = 0;
+        service.ThemeChanged += () => fired++;
+
+        service.SetTheme("Light"); // 首次应用：状态虽同默认仍执行换入，保证 manager 调色板入槽
         Assert.Equal("Light", service.CurrentEffectiveTheme);
+        Assert.Equal(1, fired);
+
+        service.SetTheme("Light");
+        Assert.Equal(1, fired);
+    }
+
+    [Fact]
+    public void ApplyWindowTheme_NullElement_IsSafeAndKeepsStateUnchanged()
+    {
+        var service = new ThemeService(() => true);
+        service.SetTheme("MidnightNavy");
+
+        service.ApplyWindowTheme(null);
+
+        Assert.Equal("MidnightNavy", service.CurrentEffectiveTheme);
     }
 }

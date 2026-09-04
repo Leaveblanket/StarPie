@@ -31,10 +31,11 @@ namespace WinPieGestures.Views.Navigation
         }
 
         /// <summary>应用界面主题到主窗口（窗口视觉是壳层职责：外观页切换主题与导入后同步经此调用，
-        /// 页面不持 IThemeService——保持无参构造不经容器）。</summary>
+        /// 页面不持 IThemeService——保持无参构造不经容器）。单一入口 SetTheme + 本窗口 DWM 应用。</summary>
         public void ApplyAppTheme(string theme)
         {
-            _themeService.ApplyTheme(this, theme);
+            _themeService.SetTheme(theme);
+            _themeService.ApplyWindowTheme(this);
         }
 
         /// <summary>Windows 系统深浅色探测（外观页预览渲染取主题用；同属壳层主题职责）。</summary>

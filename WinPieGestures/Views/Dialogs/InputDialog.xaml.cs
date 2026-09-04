@@ -17,7 +17,7 @@ namespace WinPieGestures.Views.Dialogs
         public InputDialog(IThemeService themeService, InputViewModel viewModel)
         {
             InitializeComponent();
-            themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
+            themeService.ApplyWindowTheme(this);
             _vm = viewModel;
             DataContext = _vm;
 
