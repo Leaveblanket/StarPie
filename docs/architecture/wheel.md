@@ -8,11 +8,28 @@
 
 ## 组成文件
 
-`ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、`Views/Wheel/RadialWindow.xaml(.cs)`、`Views/Renderers/`（`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、`CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）；轮盘配色解析属本模块：`Models/WheelPalette.cs`（色值组）、`Models/WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/系统预设/紧急回落）、`Models/WheelPaletteParser.cs`（方案名→色值组解析）。
+`ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、`ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，单例落位页面 VM 目录，ADR-0014 决策 6）、`Views/Wheel/RadialWindow.xaml(.cs)`、`Views/Renderers/`（`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、`CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）；轮盘配色解析属本模块：`Models/WheelPalette.cs`（色值组）、`Models/WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/系统预设/紧急回落）、`Models/WheelPaletteParser.cs`（方案名→色值组解析）。
 
 > `IWheelAppearanceState` 是轮盘模块的预览只读状态接口（ADR-0014 决策 8）：`WheelPreviewRenderer`
-> 只依赖它读取外观状态。外观聚合页 VM 当前临时实现该接口；#56 抽取轮盘外观设置子 VM 后由后者
-> 承接实现。
+> 只依赖它读取外观状态。#56 起实现方为轮盘外观设置子 VM `WheelAppearanceSettingsViewModel`
+>（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观聚合 VM 不再实现该接口。
+
+## 外观配置面（设置子 VM，#56）
+
+- **范围**：外观页去掉界面主题卡后的全部轮盘外观设置——皮肤（UiStyle）、轮盘配色方案与自定义
+  预设（含预设 CRUD 与下拉选项重建）、高亮光晕、几何/尺寸、排版与文字显示、中心核图标（透传 +
+  选取编排）与一键重置；界面主题（AppTheme）由 `InterfaceThemeSettingsViewModel` 独占（见
+  [shell.md](shell.md)）。
+- **承载**：`WheelAppearanceSettingsViewModel`（`ViewModels/Pages`，DI 单例）实现
+  `IWheelAppearanceState`；构造注入 `ProfileListViewModel`（预览 Profile 上下文，静态已知依赖）、
+  `IConfigService`/`IDialogService`/`IMessenger`/`ILocalizationService`；全部状态写穿运行态配置
+  （立即生效），落盘经防抖/立即消息上报；配色下拉选项（`ThemeOptions`）随语言切换重建并补发选中
+  通知，`Dispose` 成对退订（ADR-0010 第 3 条）。
+- **页面接线**：外观聚合 VM `AppearanceSettingsViewModel` 收薄为页壳，只暴露
+  `InterfaceTheme`/`WheelAppearance` 两个子 VM（页面整体 DataContext 仍为聚合 VM；各设置卡
+  DataContext 指向对应子 VM，不新增导航页）。预览属性变更（含 ShowCoreIcon，#56 起补发）经
+  `AppearancePreviewInvalidatedMessage` 触发页面重绘；配置导入后子 VM 自订阅重挂、聚合壳广播
+  `PageConfigReloadedMessage` 收尾 View 效果（ShowCoreIconCheckBox 事件处理器已删除）。
 
 ## 关键流程
 

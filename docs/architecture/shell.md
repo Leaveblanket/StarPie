@@ -26,7 +26,8 @@
      `InterfaceThemeSettingsViewModel`（`ViewModels/Pages`，DI 单例，注入外观聚合 VM 暴露为
      `InterfaceTheme`）；写穿配置后发布 `AppThemeChangedMessage`，由 `MainView`（壳层 code-behind
      白名单）订阅执行 `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后
-     的窗口主题应用重挂路径同样经该消息由壳层执行。
+     的窗口主题应用重挂路径同样经该消息由壳层执行。#56 起外观聚合 VM 注入两个设置子 VM
+     （另一为轮盘外观设置子 VM `WheelAppearanceSettingsViewModel`，见 [wheel.md](wheel.md)）。
    - `ThemeService`（`Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/
      `CurrentEffectiveTheme` 状态、`ResolveEffectiveTheme`（`System`/空经注册表探测实时判定）、
      `SetTheme`（唯一状态/资源入口，解析→记录→触发调色板替换→广播 `ThemeChanged`；同有效主题 no-op）、

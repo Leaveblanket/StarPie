@@ -24,8 +24,9 @@
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，
    不 code-behind 回填**（[ADR-0010](../adr/0010-localization-copy-principles.md)）。
 3. **文案分类**（术语见 `CONTEXT.md`）：声明式（`{DynamicResource}`）/ 驻留（长期 VM 持有、
-   语言切换时刷新：`MainViewModel.WindowTitle`/导航标题、`AppearanceSettingsViewModel.ThemeOptions`
-   （轮盘配色）、`InterfaceThemeSettingsViewModel.AppThemeOptions`（界面主题，#54）等）/
+   语言切换时刷新：`MainViewModel.WindowTitle`/导航标题、
+   `WheelAppearanceSettingsViewModel.ThemeOptions`（轮盘配色，#56 起随轮盘外观子 VM 迁址）、
+   `InterfaceThemeSettingsViewModel.AppThemeOptions`（界面主题，#54）等）/
    即时取词（每次展示读当前语言：通知、对话框标题与系统文件对话框文案、托盘菜单）/
    壳外（托盘 tooltip：`AppHost` 订阅 `LanguageChanged` 按暂停态刷新）。
 4. **消息**：`Services/Messages/Messages.cs` 放 IMessenger 消息（不可变空载体/record，如
