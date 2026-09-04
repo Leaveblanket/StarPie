@@ -62,19 +62,63 @@ public sealed class WheelViewModelTests
     [Fact]
     public void Ctor_GlobalProfile_TitleIsGlobalActions_SubtitleShowsSectorCount()
     {
-        var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
+        var original = I18n.CurrentLanguage;
+        try
+        {
+            I18n.CurrentLanguage = LanguageCode.ZhCn;
 
-        Assert.Equal("全局动作", vm.CoreTitle);
-        Assert.Equal("8 键动作", vm.CoreSubtitle);
+            var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
+
+            Assert.Equal("全局动作", vm.CoreTitle);
+            Assert.Equal("8 键动作", vm.CoreSubtitle);
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
     }
 
     [Fact]
     public void Ctor_ProcessProfile_TitleIsProcessName()
     {
-        var vm = Create(Profile(4));
+        var original = I18n.CurrentLanguage;
+        try
+        {
+            I18n.CurrentLanguage = LanguageCode.ZhCn;
 
-        Assert.Equal("chrome.exe", vm.CoreTitle);
-        Assert.Equal("4 键动作", vm.CoreSubtitle);
+            var vm = Create(Profile(4));
+
+            Assert.Equal("chrome.exe", vm.CoreTitle);
+            Assert.Equal("4 键动作", vm.CoreSubtitle);
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
+    }
+
+    [Theory]
+    [InlineData(LanguageCode.ZhCn, "全局动作", "8 键动作")]
+    [InlineData(LanguageCode.ZhTw, "全域動作", "8 鍵動作")]
+    [InlineData(LanguageCode.En, "Global Actions", "8 Actions")]
+    [InlineData(LanguageCode.Ja, "グローバル操作", "8 アクション")]
+    public void Ctor_GlobalProfile_CoreCopyFollowsCurrentLanguageAtCreation(
+        LanguageCode language, string expectedTitle, string expectedSubtitle)
+    {
+        var original = I18n.CurrentLanguage;
+        try
+        {
+            I18n.CurrentLanguage = language;
+
+            var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
+
+            Assert.Equal(expectedTitle, vm.CoreTitle);
+            Assert.Equal(expectedSubtitle, vm.CoreSubtitle);
+        }
+        finally
+        {
+            I18n.CurrentLanguage = original;
+        }
     }
 
     [Fact]

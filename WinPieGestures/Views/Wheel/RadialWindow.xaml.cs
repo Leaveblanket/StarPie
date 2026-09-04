@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using WinPieGestures.Services.Localization;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
@@ -375,7 +376,7 @@ namespace WinPieGestures.Views.Wheel
                 container.Children.Add(stackPanel);
 
                 WheelSectorViewModel sector = _viewModel.Sectors[i];
-                string actionText = sector.HasAction ? sector.Name : "未设置";
+                string actionText = sector.HasAction ? sector.Name : I18n.T("WheelSectorEmpty");
                 string actionType = sector.Type;
                 string parameter = sector.Parameter;
                 string iconKey = sector.IconKey;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures.ViewModels.Wheel
 {
@@ -62,8 +63,8 @@ namespace WinPieGestures.ViewModels.Wheel
             _profile = profile;
             Config = config;
 
-            CoreTitle = profile.ProcessName == "Global" ? "全局动作" : profile.ProcessName;
-            CoreSubtitle = $"{profile.SectorCount} 键动作";
+            CoreTitle = profile.ProcessName == "Global" ? I18n.T("WheelCoreTitle") : profile.ProcessName;
+            CoreSubtitle = string.Format(I18n.T("WheelCoreSubtitle"), profile.SectorCount);
 
             Sectors = Enumerable.Range(0, Math.Max(0, profile.SectorCount))
                 .Select(i => new WheelSectorViewModel(i, i < profile.Actions.Count ? profile.Actions[i] : null))
