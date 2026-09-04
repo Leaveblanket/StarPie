@@ -11,6 +11,7 @@ namespace WinPieGestures
     {
         private static Mutex? _singleInstanceMutex;
         private Composition? _composition;
+        private AppHost? _appHost;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
@@ -71,14 +72,15 @@ namespace WinPieGestures
 
             try
             {
-                // Manual composition root: assemble services and create the initial
-                // settings window explicitly (no StartupUri — see ADR-0003)
+                // Manual composition root + application host: Composition assembles the
+                // object graph (no StartupUri — see ADR-0003), AppHost runs startup orchestration.
                 _composition = new Composition();
 
                 // Initialize configuration through the injected config service
                 _composition.Config.Load();
 
-                _composition.Run();
+                _appHost = _composition.CreateAppHost();
+                _appHost.Run();
 
                 // Initial memory optimization after startup
                 MemoryOptimizer.TrimMemory(true);
@@ -112,7 +114,10 @@ namespace WinPieGestures
             }
             catch { }
 
-            // Tray and mouse hook lifecycle belong to the app layer (ADR-0003)
+            // Tray, mouse hook and shell VM lifecycle belong to the app host; the DI
+            // container is disposed last by the composition root (ADR-0011).
+            _appHost?.Dispose();
+            _appHost = null;
             _composition?.Dispose();
             _composition = null;
 
