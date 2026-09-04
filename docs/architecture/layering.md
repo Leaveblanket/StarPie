@@ -30,7 +30,9 @@ Services ---> Models
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
    子 VM `WheelAppearanceSettingsViewModel → ProfileListViewModel` 读方案列表）；动态/广播协调
    一律走 IMessenger；同页状态不得用 messenger 替代绑定。
-3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，唯一例外是 `NavigationService<T>` 持有 `IServiceProvider`（开放泛型注册，[ADR-0005](../adr/0005-di-container-for-navigation.md)）。
+3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
+   - `NavigationService<T>` 持有 `IServiceProvider`（开放泛型注册，[ADR-0005](../adr/0005-di-container-for-navigation.md)）；
+   - `WheelFactory`（Services/Gestures）在服务内组合 `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与 [wheel.md](wheel.md)），仅经 Composition 注册的 `IWheelFactory` 暴露。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
 5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0008/0009）。
 
