@@ -4,16 +4,19 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using Control = System.Windows.Controls.Control;
 using Button = System.Windows.Controls.Button;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
-using Color = System.Windows.Media.Color;
-using ColorConverter = System.Windows.Media.ColorConverter;
 using Cursors = System.Windows.Input.Cursors;
 
 namespace WinPieGestures.Views.Controls
 {
+    /// <summary>
+    /// 热键录制输入框（ADR-0012/#49 C2）：文案与状态配色一律声明式——占位文案由消费方
+    /// 经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键），录制提示与录制态
+    /// 配色由控件模板（ModernControls.xaml）持有；code-behind 只负责输入逻辑与动态
+    /// 文本/可见性编排，不出现静态文案或 hex 画刷。
+    /// </summary>
     public class HotkeyRecorderBox : Control
     {
         public static readonly DependencyProperty HotkeyTextProperty =
@@ -35,7 +38,7 @@ namespace WinPieGestures.Views.Controls
                 nameof(Placeholder), 
                 typeof(string), 
                 typeof(HotkeyRecorderBox), 
-                new PropertyMetadata("点击录制快捷键..."));
+                new PropertyMetadata(string.Empty, OnPlaceholderChanged));
 
         public string HotkeyText
         {
@@ -56,8 +59,9 @@ namespace WinPieGestures.Views.Controls
         }
 
         private TextBlock? _displayTextBlock;
+        private TextBlock? _placeholderTextBlock;
+        private TextBlock? _hintTextBlock;
         private Button? _clearButton;
-        private Border? _mainBorder;
 
         static HotkeyRecorderBox()
         {
@@ -76,8 +80,9 @@ namespace WinPieGestures.Views.Controls
             base.OnApplyTemplate();
 
             _displayTextBlock = GetTemplateChild("PART_DisplayText") as TextBlock;
+            _placeholderTextBlock = GetTemplateChild("PART_PlaceholderText") as TextBlock;
+            _hintTextBlock = GetTemplateChild("PART_HintText") as TextBlock;
             _clearButton = GetTemplateChild("PART_ClearButton") as Button;
-            _mainBorder = GetTemplateChild("PART_Border") as Border;
 
             if (_clearButton != null)
             {
@@ -192,21 +197,16 @@ namespace WinPieGestures.Views.Controls
             if ((Keyboard.Modifiers & ModifierKeys.Alt) != 0) sb.Append("Alt + ");
             if ((Keyboard.Modifiers & ModifierKeys.Windows) != 0 || Keyboard.IsKeyDown(Key.LWin) || Keyboard.IsKeyDown(Key.RWin)) sb.Append("Win + ");
 
-            if (sb.Length > 0)
+            bool hasModifier = sb.Length > 0;
+            if (_displayTextBlock != null)
             {
-                if (_displayTextBlock != null)
-                {
-                    _displayTextBlock.Text = sb.ToString() + "...";
-                    _displayTextBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2563EB"));
-                }
+                _displayTextBlock.Text = hasModifier ? sb.ToString() + "..." : string.Empty;
+                _displayTextBlock.Visibility = hasModifier ? Visibility.Visible : Visibility.Collapsed;
             }
-            else
+
+            if (_hintTextBlock != null)
             {
-                if (_displayTextBlock != null)
-                {
-                    _displayTextBlock.Text = "🔴 请按下快捷键组合...";
-                    _displayTextBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E11D48"));
-                }
+                _hintTextBlock.Visibility = hasModifier ? Visibility.Collapsed : Visibility.Visible;
             }
         }
 
@@ -311,41 +311,33 @@ namespace WinPieGestures.Views.Controls
 
         private void UpdateVisualDisplay()
         {
-            if (_displayTextBlock == null) return;
+            bool isRecording = IsRecording;
+            bool hasText = !string.IsNullOrEmpty(HotkeyText);
+            bool showPlaceholder = !isRecording && !hasText && !string.IsNullOrEmpty(Placeholder);
 
-            if (IsRecording)
+            if (_placeholderTextBlock != null)
             {
-                _displayTextBlock.Text = "🔴 请按下快捷键组合...";
-                _displayTextBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E11D48"));
-                if (_mainBorder != null)
-                {
-                    _mainBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2563EB"));
-                    _mainBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#EFF6FF"));
-                }
+                _placeholderTextBlock.Visibility = showPlaceholder ? Visibility.Visible : Visibility.Collapsed;
             }
-            else
-            {
-                if (string.IsNullOrEmpty(HotkeyText))
-                {
-                    _displayTextBlock.Text = Placeholder;
-                    _displayTextBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
-                }
-                else
-                {
-                    _displayTextBlock.Text = HotkeyText;
-                    _displayTextBlock.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#0F172A"));
-                }
 
-                if (_mainBorder != null)
+            if (_hintTextBlock != null)
+            {
+                _hintTextBlock.Visibility = isRecording ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            if (_displayTextBlock != null)
+            {
+                if (!isRecording)
                 {
-                    _mainBorder.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#CBD5E1"));
-                    _mainBorder.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFF"));
+                    // 仅回填动态内容（已录制热键）；占位/提示静态文案由模板声明式提供。
+                    _displayTextBlock.Text = HotkeyText;
                 }
+                _displayTextBlock.Visibility = (!isRecording && hasText) ? Visibility.Visible : Visibility.Collapsed;
             }
 
             if (_clearButton != null)
             {
-                _clearButton.Visibility = (!string.IsNullOrEmpty(HotkeyText) && !IsRecording) ? Visibility.Visible : Visibility.Collapsed;
+                _clearButton.Visibility = (!isRecording && hasText) ? Visibility.Visible : Visibility.Collapsed;
             }
         }
 
@@ -358,6 +350,14 @@ namespace WinPieGestures.Views.Controls
         }
 
         private static void OnIsRecordingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is HotkeyRecorderBox control)
+            {
+                control.UpdateVisualDisplay();
+            }
+        }
+
+        private static void OnPlaceholderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is HotkeyRecorderBox control)
             {

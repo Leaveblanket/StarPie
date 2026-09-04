@@ -173,3 +173,16 @@
 | `WheelCoreTitle` | 全局动作 | 全域動作 | Global Actions | グローバル操作 | `WheelViewModel` 构造（Global Profile 核心标题） |
 | `WheelCoreSubtitle` | {0} 键动作 | {0} 鍵動作 | {0} Actions | {0} アクション | `WheelViewModel` 构造（{0}=扇区数） |
 | `WheelSectorEmpty` | 未设置 | 未設定 | Not set | 未設定 | `RadialWindow.RenderSectors` 空扇区占位 |
+
+## 2026-09-04 更新：C2（#49）已实现——HotkeyRecorderBox 文案键与视觉令牌化
+
+> 对应 #39 C2：`Views/Controls/HotkeyRecorderBox.cs` 占位/录制提示硬编码中文与 hex
+> 画刷已清零。文案与配色改声明式：占位经消费页 XAML `Placeholder="{DynamicResource
+> BtnRecordHotkey}"` 接线（确认原 XAML 未覆盖、本次补齐）；录制提示由控件模板
+> `ModernControls.xaml` 直接 `{DynamicResource}`；录制态配色走主题令牌（新增
+> `DangerBrush`，五套主题同 key 集）。code-behind 仅保留输入逻辑与动态热键文本编排。
+
+| 键 | zh-CN | zh-TW | en | ja | 消费点 |
+|---|---|---|---|---|---|
+| `BtnRecordHotkey`（复用，值对齐 XAML 现值） | 点击录制快捷键... | 點擊錄製快速鍵... | Click to Record Hotkey... | クリックしてショートカットを記録... | `GesturesSettingsPage.xaml` HotkeyRecorderBox `Placeholder` |
+| `HotkeyRecorderHint` | 🔴 请按下快捷键组合... | 🔴 請按下快速鍵組合... | 🔴 Press a key combination... | 🔴 キーの組み合わせを押してください... | `ModernControls.xaml` HotkeyRecorderBox 模板 `PART_HintText` |

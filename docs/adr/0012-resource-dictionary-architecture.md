@@ -33,7 +33,8 @@ Accepted（grilling 共识 1C/2C/3B + T1/S1/U2；#35 起分批实施）。
 ## Decision
 
 1. **主题令牌**：`Views/Styles/Themes/{Light,Dark,MidnightNavy,RoyalViolet,TitaniumGray}.xaml`，
-   每文件同一 key 集（26 个在用令牌；删除无消费者的 `PreviewGridLineBrush`）。`App.xaml`
+   每文件同一 key 集（27 个在用令牌；#49 C2 增 `DangerBrush`，删除无消费者的
+   `PreviewGridLineBrush`）。`App.xaml`
    静态合并 `Light.xaml` 作设计时/首帧默认。
 2. **宿主换入**：`AppHost` 是唯一加载/持有主题 XAML 的层；`ApplyTheme` 时把目标调色板
    画刷写入 `Application.Resources` 直接资源（覆盖静态 Light，沿用旧 SetBrush 的

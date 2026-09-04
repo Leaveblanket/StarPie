@@ -117,6 +117,7 @@
                                                 <Grid Grid.Column="4" Margin="0,0,8,0">
                                                     <!-- 1. Hotkey Interactive Recorder Box -->
                                                     <controls:HotkeyRecorderBox HotkeyText="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                                                 Placeholder="{DynamicResource BtnRecordHotkey}"
                                                                                  Visibility="{Binding IsHotkeyType, Converter={StaticResource BoolToVis}}" Height="30" FontSize="12"/>
 
                                                     <!-- 2. Program Launch -->

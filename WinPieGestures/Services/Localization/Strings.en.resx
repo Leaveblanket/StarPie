@@ -149,7 +149,8 @@
   <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ Keyboard Hotkey</value></data>
   <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 Launch App / Open URL</value></data>
   <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ System Action</value></data>
-  <data name="BtnRecordHotkey" xml:space="preserve"><value>Click to Record Hotkey</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>Click to Record Hotkey...</value></data>
+  <data name="HotkeyRecorderHint" xml:space="preserve"><value>🔴 Press a key combination...</value></data>
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 Select Application...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>System Integration &amp; Preferences</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>Display Language</value></data>

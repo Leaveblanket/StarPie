@@ -9,6 +9,7 @@
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FAF5FF" />
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#D8B4FE" />
     <SolidColorBrush x:Key="TextMutedBrush" Color="#A855F7" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#F87171" />
     <SolidColorBrush x:Key="InputBackgroundBrush" Color="#130B22" />
     <SolidColorBrush x:Key="InputBorderBrush" Color="#3D2766" />
     <SolidColorBrush x:Key="ItemHoverBrush" Color="#2A1B4A" />

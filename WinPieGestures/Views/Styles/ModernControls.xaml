@@ -464,10 +464,29 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
+                            <!--  #49 C2：占位/录制提示为静态文案 → 语言键 {DynamicResource}；
+                                  状态配色 → 主题令牌 + IsRecording 触发器。code-behind 只编排
+                                  动态热键文本（PART_DisplayText）与三块文本的可见性。  -->
+                            <TextBlock x:Name="PART_PlaceholderText" Grid.Column="0"
+                                       VerticalAlignment="Center" FontSize="12" FontWeight="Medium"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Opacity="0.6"
+                                       Text="{TemplateBinding Placeholder}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="Collapsed" />
+
+                            <TextBlock x:Name="PART_HintText" Grid.Column="0"
+                                       VerticalAlignment="Center" FontSize="12" FontWeight="Medium"
+                                       Foreground="{DynamicResource DangerBrush}"
+                                       Text="{DynamicResource HotkeyRecorderHint}"
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="Collapsed" />
+
                             <TextBlock x:Name="PART_DisplayText" Grid.Column="0"
                                        VerticalAlignment="Center" FontSize="12" FontWeight="Medium"
                                        Foreground="{DynamicResource TextPrimaryBrush}"
-                                       TextTrimming="CharacterEllipsis" />
+                                       TextTrimming="CharacterEllipsis"
+                                       Visibility="Collapsed" />
 
                             <Button x:Name="PART_ClearButton" Grid.Column="1" Width="16"
                                     Height="16" Margin="4,0,0,0" Padding="0"
@@ -479,6 +498,13 @@
                                     ToolTip="{DynamicResource ClearHotkeyTooltip}" />
                         </Grid>
                     </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsRecording" Value="True">
+                            <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
+                            <Setter TargetName="PART_Border" Property="Background" Value="{DynamicResource NavTabActiveBgBrush}" />
+                            <Setter TargetName="PART_DisplayText" Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
