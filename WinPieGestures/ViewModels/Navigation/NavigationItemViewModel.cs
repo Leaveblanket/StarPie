@@ -39,11 +39,12 @@ namespace WinPieGestures.ViewModels.Navigation
             string titleKey,
             string iconData,
             Type targetViewModelType,
-            Action navigate)
+            Action navigate,
+            ILocalizationService localization)
         {
             AutomationId = automationId ?? throw new ArgumentNullException(nameof(automationId));
             TitleKey = titleKey ?? throw new ArgumentNullException(nameof(titleKey));
-            _title = I18n.T(titleKey);
+            _title = localization.GetString(titleKey);
             IconData = iconData ?? throw new ArgumentNullException(nameof(iconData));
             TargetViewModelType = targetViewModelType ?? throw new ArgumentNullException(nameof(targetViewModelType));
 

@@ -213,16 +213,16 @@ namespace WinPieGestures
                 TrayMenuEntry.Separator()
             };
 
-            string pauseText = _mouseHook.IsPaused ? I18n.T("TrayResume") : I18n.T("TrayPause");
+            string pauseText = _mouseHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
             entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
             // T19：托盘四项直达改类型化导航（原 ShowSettings(0/1/2/4) 的页面映射保持不变）。
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayPreferences"), () => NavigateAndShow(_navTrigger)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAppearance"), () => NavigateAndShow(_navAppearance)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayGestures"), () => NavigateAndShow(_navGestures)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayAbout"), () => NavigateAndShow(_navAbout)));
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayElevate"), () => _general?.ElevateAndRestart()));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(_navTrigger)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(_navAppearance)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(_navGestures)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAbout"), () => NavigateAndShow(_navAbout)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), () => _general?.ElevateAndRestart()));
             entries.Add(TrayMenuEntry.Separator());
-            entries.Add(TrayMenuEntry.Item(I18n.T("TrayExit"), ExitApplication));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
             return entries;
         }
@@ -241,7 +241,7 @@ namespace WinPieGestures
         /// <summary>当前暂停态对应的托盘 tooltip（ADR-0010 壳外文案：语言切换由宿主按暂停态刷新）。</summary>
         private string CurrentTooltip()
         {
-            return _mouseHook.IsPaused ? $"StarPie ({I18n.T("TrayPause")})" : DefaultTooltip;
+            return _mouseHook.IsPaused ? $"StarPie ({_localization.GetString("TrayPause")})" : DefaultTooltip;
         }
 
         private void RefreshTrayTooltip()
@@ -252,7 +252,7 @@ namespace WinPieGestures
             }
         }
 
-        private static string DefaultTooltip => I18n.T("TrayTooltip") + DevInstance.Suffix;
+        private string DefaultTooltip => _localization.GetString("TrayTooltip") + DevInstance.Suffix;
 
         private void ExitApplication()
         {

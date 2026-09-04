@@ -13,6 +13,8 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class ProgramPickerViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
     private sealed class FakeDialogService : IDialogService
     {
@@ -46,7 +48,7 @@ public sealed class ProgramPickerViewModelTests
     private static ProgramPickerViewModel Create(
         Func<IReadOnlyList<ProgramEntry>>? scan = null,
         FakeDialogService? dialogs = null)
-        => new(scan ?? (() => new List<ProgramEntry>()), dialogs ?? new FakeDialogService());
+        => new(scan ?? (() => new List<ProgramEntry>()), dialogs ?? new FakeDialogService(), Localization);
 
     // --- 扫描编排 ---------------------------------------------------------------
 

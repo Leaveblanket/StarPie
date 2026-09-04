@@ -7,6 +7,8 @@ namespace WinPieGestures.Tests;
 
 public sealed class JsonConfigServiceTests : IDisposable
 {
+    private static readonly LocalizationService Localization = new();
+
     private readonly string _tempDir;
     private readonly string _configPath;
 
@@ -39,7 +41,7 @@ public sealed class JsonConfigServiceTests : IDisposable
               ]
             }
             """);
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
 
         service.Load();
 
@@ -56,7 +58,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     [Fact]
     public void Load_WithMissingFile_CreatesDefaultConfigOnDisk()
     {
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
 
         service.Load();
 
@@ -72,7 +74,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     {
         const string corrupt = "{ this is not json";
         File.WriteAllText(_configPath, corrupt);
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
 
         service.Load();
 
@@ -85,7 +87,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     [Fact]
     public void Save_PersistsChanges_ForNextLoad()
     {
-        var writer = new JsonConfigService(_configPath);
+        var writer = new JsonConfigService(_configPath, Localization);
         writer.Load();
         writer.Current.DragThreshold = 77.5;
         writer.Current.Profiles.Add(new WheelProfile
@@ -100,7 +102,7 @@ public sealed class JsonConfigServiceTests : IDisposable
 
         writer.Save();
 
-        var reader = new JsonConfigService(_configPath);
+        var reader = new JsonConfigService(_configPath, Localization);
         reader.Load();
         Assert.Equal(77.5, reader.Current.DragThreshold);
         var profile = reader.Current.Profiles.Find(p => p.ProcessName == "explorer.exe");
@@ -118,7 +120,7 @@ public sealed class JsonConfigServiceTests : IDisposable
               "Profiles": [ { "processname": "code.exe", "sectorcount": 8, "actions": [] }, ],
             }
             """);
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
 
         service.Load();
 
@@ -130,7 +132,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     [Fact]
     public void GetProfileForProcess_MatchesCaseInsensitively_AndFallsBackToGlobal()
     {
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
         service.Load();
 
         Assert.Equal("chrome.exe", service.GetProfileForProcess("CHROME.EXE").ProcessName);
@@ -141,7 +143,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     [Fact]
     public void GetGlobalProfile_ReinsertsGlobalWhenMissing()
     {
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
         service.Load();
         service.Current.Profiles.Clear();
 
@@ -154,7 +156,7 @@ public sealed class JsonConfigServiceTests : IDisposable
     [Fact]
     public void Current_NeverNull_BeforeAnyLoad()
     {
-        var service = new JsonConfigService(_configPath);
+        var service = new JsonConfigService(_configPath, Localization);
 
         Assert.Equal(25.0, service.Current.DragThreshold);
     }

@@ -19,6 +19,7 @@ namespace WinPieGestures.ViewModels.Navigation
         private readonly NavigationStore _store;
         private readonly IMessenger _messenger;
         private readonly IDialogService _dialogs;
+        private readonly ILocalizationService _localization;
 
         /// <summary>五个导航项（触发与场景/外观与形态/手势与动作/高级与系统/关于与更新），顺序即侧边栏顺序。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
@@ -31,7 +32,7 @@ namespace WinPieGestures.ViewModels.Navigation
         public bool IsExiting { get; set; }
 
         /// <summary>壳层窗口标题（ADR-0010）：WindowTitle 键 + DevInstance 标记；语言切换随本 VM 刷新。</summary>
-        public string WindowTitle => I18n.T("WindowTitle") + DevInstance.Suffix;
+        public string WindowTitle => _localization.GetString("WindowTitle") + DevInstance.Suffix;
 
         public MainViewModel(
             NavigationStore store,
@@ -41,7 +42,8 @@ namespace WinPieGestures.ViewModels.Navigation
             INavigationService<GeneralSettingsViewModel> navAdvanced,
             INavigationService<AboutViewModel> navAbout,
             IMessenger messenger,
-            IDialogService dialogs)
+            IDialogService dialogs,
+            ILocalizationService localization)
         {
             if (store == null) throw new ArgumentNullException(nameof(store));
             if (navTrigger == null) throw new ArgumentNullException(nameof(navTrigger));
@@ -51,15 +53,16 @@ namespace WinPieGestures.ViewModels.Navigation
             if (navAbout == null) throw new ArgumentNullException(nameof(navAbout));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _store = store;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>
             {
-                new("NavTab0", "TabTrigger", IconTrigger, typeof(BehaviorSettingsViewModel), navTrigger.Navigate),
-                new("NavTab1", "TabAppearance", IconAppearance, typeof(AppearanceSettingsViewModel), navAppearance.Navigate),
-                new("NavTab2", "TabGestures", IconGestures, typeof(ProfileListViewModel), navGestures.Navigate),
-                new("NavTab3", "TabAdvanced", IconAdvanced, typeof(GeneralSettingsViewModel), navAdvanced.Navigate),
-                new("NavTab4", "TabAbout", IconAbout, typeof(AboutViewModel), navAbout.Navigate)
+                new("NavTab0", "TabTrigger", IconTrigger, typeof(BehaviorSettingsViewModel), navTrigger.Navigate, _localization),
+                new("NavTab1", "TabAppearance", IconAppearance, typeof(AppearanceSettingsViewModel), navAppearance.Navigate, _localization),
+                new("NavTab2", "TabGestures", IconGestures, typeof(ProfileListViewModel), navGestures.Navigate, _localization),
+                new("NavTab3", "TabAdvanced", IconAdvanced, typeof(GeneralSettingsViewModel), navAdvanced.Navigate, _localization),
+                new("NavTab4", "TabAbout", IconAbout, typeof(AboutViewModel), navAbout.Navigate, _localization)
             };
 
             store.PropertyChanged += (_, e) =>
@@ -73,7 +76,7 @@ namespace WinPieGestures.ViewModels.Navigation
 
             // 语言切换 → 导航项标题 + WindowTitle 即时刷新（I18n 静态广播，ADR-0002 判据不变；
             // ADR-0010 第 3 条：进程级 VM 配 IDisposable 成对退订）。
-            I18n.LanguageChanged += RefreshTitles;
+            _localization.LanguageChanged += RefreshTitles;
 
             SyncSelection();
         }
@@ -82,7 +85,7 @@ namespace WinPieGestures.ViewModels.Navigation
         private void Save()
         {
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            _dialogs.ShowInfo(I18n.T("Notice"), I18n.T("MsgSaveSuccess"));
+            _dialogs.ShowInfo(_localization.GetString("Notice"), _localization.GetString("MsgSaveSuccess"));
         }
 
         /// <summary>随导航当前页同步各导航项选中态（目标类型比对，数据驱动不再依赖 Tag 数字索引）。</summary>
@@ -100,7 +103,7 @@ namespace WinPieGestures.ViewModels.Navigation
         {
             foreach (NavigationItemViewModel item in NavigationItems)
             {
-                item.Title = I18n.T(item.TitleKey);
+                item.Title = _localization.GetString(item.TitleKey);
             }
             OnPropertyChanged(nameof(WindowTitle));
         }
@@ -108,7 +111,7 @@ namespace WinPieGestures.ViewModels.Navigation
         /// <summary>退订 I18n 静态事件（ADR-0010 第 3 条：进程级 VM 也成对退订；组合根随 Composition.Dispose 调用）。</summary>
         public void Dispose()
         {
-            I18n.LanguageChanged -= RefreshTitles;
+            _localization.LanguageChanged -= RefreshTitles;
         }
 
         // 导航图标（迁移前 NavTab{0..4} 的 Path Data 原样搬迁）

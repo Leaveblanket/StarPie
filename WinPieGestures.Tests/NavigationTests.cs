@@ -114,6 +114,8 @@ public sealed class NavigationServiceTests
 
 public sealed class MainViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     /// <summary>
     /// 五页面 VM 的真实实例夹具：MainViewModel 按具体页面 VM 类型导航，
     /// 用最简依赖构造真实对象（替代 mock 派生，锁定类型精确性）。
@@ -137,9 +139,9 @@ public sealed class MainViewModelTests
         public PageVmFixture()
         {
             Behavior = new BehaviorSettingsViewModel(Config, Dialogs, Messenger);
-            Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor);
+            Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization);
             Appearance = new AppearanceSettingsViewModel(
-                new FakeConfigService { Current = Config }, Dialogs, Messenger, Profiles);
+                new FakeConfigService { Current = Config }, Dialogs, Messenger, Profiles, Localization);
             General = new GeneralSettingsViewModel(
                 Config,
                 Dialogs,
@@ -150,8 +152,9 @@ public sealed class MainViewModelTests
                 _ => true,
                 _ => true,
                 currentConfig: () => Config,
-                messenger: Messenger);
-            About = new AboutViewModel(Dialogs, () => true);
+                messenger: Messenger,
+                localization: Localization);
+            About = new AboutViewModel(Dialogs, () => true, Localization);
         }
     }
 
@@ -198,7 +201,8 @@ public sealed class MainViewModelTests
             new FakeNavigationService<GeneralSettingsViewModel>(store, fixture.General),
             new FakeNavigationService<AboutViewModel>(store, fixture.About),
             fixture.Messenger,
-            fixture.Dialogs);
+            fixture.Dialogs,
+            Localization);
         return (vm, store, fixture);
     }
 
@@ -222,11 +226,11 @@ public sealed class MainViewModelTests
     {
         var (vm, _, _) = Create();
 
-        Assert.Equal(I18n.T("TabTrigger"), vm.NavigationItems[0].Title);
-        Assert.Equal(I18n.T("TabAppearance"), vm.NavigationItems[1].Title);
-        Assert.Equal(I18n.T("TabGestures"), vm.NavigationItems[2].Title);
-        Assert.Equal(I18n.T("TabAdvanced"), vm.NavigationItems[3].Title);
-        Assert.Equal(I18n.T("TabAbout"), vm.NavigationItems[4].Title);
+        Assert.Equal(Localization.GetString("TabTrigger"), vm.NavigationItems[0].Title);
+        Assert.Equal(Localization.GetString("TabAppearance"), vm.NavigationItems[1].Title);
+        Assert.Equal(Localization.GetString("TabGestures"), vm.NavigationItems[2].Title);
+        Assert.Equal(Localization.GetString("TabAdvanced"), vm.NavigationItems[3].Title);
+        Assert.Equal(Localization.GetString("TabAbout"), vm.NavigationItems[4].Title);
     }
 
     [Fact]
@@ -280,17 +284,17 @@ public sealed class MainViewModelTests
     public void LanguageChanged_RefreshesItemTitles()
     {
         var (vm, _, _) = Create();
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         try
         {
-            I18n.SetLanguage("en");
+            Localization.SetLanguage("en");
 
-            Assert.Equal(I18n.T("TabTrigger"), vm.NavigationItems[0].Title);
-            Assert.Equal(I18n.T("TabAbout"), vm.NavigationItems[4].Title);
+            Assert.Equal(Localization.GetString("TabTrigger"), vm.NavigationItems[0].Title);
+            Assert.Equal(Localization.GetString("TabAbout"), vm.NavigationItems[4].Title);
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 
@@ -299,7 +303,7 @@ public sealed class MainViewModelTests
     {
         var (vm, _, _) = Create();
 
-        Assert.Equal(I18n.T("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
+        Assert.Equal(Localization.GetString("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
     }
 
     [Fact]
@@ -307,7 +311,7 @@ public sealed class MainViewModelTests
     {
         // T25（ADR-0010 第 3 条）：WindowTitle 并入 RefreshTitles 刷新，Dispose 后不再订阅静态事件。
         var (vm, _, _) = Create();
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         var changes = new List<string?>();
         vm.PropertyChanged += (_, e) =>
         {
@@ -315,19 +319,19 @@ public sealed class MainViewModelTests
         };
         try
         {
-            I18n.SetLanguage("en");
+            Localization.SetLanguage("en");
 
             Assert.Contains(nameof(MainViewModel.WindowTitle), changes);
-            Assert.Equal(I18n.T("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
+            Assert.Equal(Localization.GetString("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
 
             changes.Clear();
             vm.Dispose();
-            I18n.SetLanguage("ja");
+            Localization.SetLanguage("ja");
             Assert.DoesNotContain(nameof(MainViewModel.WindowTitle), changes);
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 }

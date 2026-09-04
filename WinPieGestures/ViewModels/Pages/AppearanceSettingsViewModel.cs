@@ -26,6 +26,7 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly IConfigService _config;
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
+        private readonly ILocalizationService _localization;
 
         // Re-entrancy guards（与迁移前窗口 _isUpdatingUi 语义一致）：
         // _loading     构造播种期：只落状态字段，不回写配置、不发事件（绑定随后一次性读取）
@@ -47,12 +48,14 @@ namespace WinPieGestures.ViewModels.Pages
             IConfigService config,
             IDialogService dialogs,
             IMessenger messenger,
-            ProfileListViewModel profileList)
+            ProfileListViewModel profileList,
+            ILocalizationService localization)
         {
             _config = config;
             _dialogs = dialogs;
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             ProfileList = profileList ?? throw new ArgumentNullException(nameof(profileList));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
             // T19：导入成功广播 → 从新配置重挂播种快照（透传属性读穿配置本就即时），
             // 再通知页面 View 做主题应用/预览重绘等 View 效果（状态与下拉项已声明式绑定）。
@@ -685,8 +688,8 @@ namespace WinPieGestures.ViewModels.Pages
 
             string oldName = preset.Name;
             var result = _dialogs.ShowInputDialog(
-                title: I18n.T("RenameCustomPresetTitle"),
-                prompt: $"{I18n.T("RenameCustomPresetPrompt")}「{oldName}」",
+                title: _localization.GetString("RenameCustomPresetTitle"),
+                prompt: $"{_localization.GetString("RenameCustomPresetPrompt")}「{oldName}」",
                 defaultText: oldName,
                 validator: input =>
                 {

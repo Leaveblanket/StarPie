@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures.Services.Dialogs
 {
@@ -13,11 +14,13 @@ namespace WinPieGestures.Services.Dialogs
     public sealed class DialogService : IDialogService
     {
         private readonly IThemeService _themeService;
+        private readonly ILocalizationService _localization;
         private Window? _owner;
 
-        public DialogService(IThemeService themeService)
+        public DialogService(IThemeService themeService, ILocalizationService localization)
         {
             _themeService = themeService;
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         }
 
         /// <summary>组合根在设置窗口创建完成后回填 Owner；此前调用任何 Show* 都不带 Owner。</summary>
@@ -25,8 +28,8 @@ namespace WinPieGestures.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var viewModel = new ProgramPickerViewModel(ProgramScanner.ScanInstalledPrograms, this);
-            var window = new ProgramPickerWindow(_themeService, viewModel) { Owner = _owner };
+            var viewModel = new ProgramPickerViewModel(ProgramScanner.ScanInstalledPrograms, this, _localization);
+            var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
         }
@@ -38,7 +41,7 @@ namespace WinPieGestures.Services.Dialogs
             Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             // T07：确认与验证逻辑已迁 InputViewModel，窗口只剩布局接线（ADR-0004）。
-            var viewModel = new InputViewModel(title, prompt, defaultText, validator, this);
+            var viewModel = new InputViewModel(title, prompt, this, _localization, defaultText, validator);
             var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
             return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
         }
@@ -49,15 +52,16 @@ namespace WinPieGestures.Services.Dialogs
                 IconHelper.GetCustomIcons,
                 () => IconHelper.VectorIconList,
                 this,
+                _localization,
                 currentIconKey);
-            var picker = new IconPickerWindow(_themeService, viewModel) { Owner = _owner };
+            var picker = new IconPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
         {
             var viewModel = new ColorPickerViewModel(this, initialHex);
-            var dialog = new ColorPickerWindow(_themeService, viewModel) { Owner = _owner };
+            var dialog = new ColorPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             return dialog.ShowDialog() == true ? dialog.BuildResult() : null;
         }
 

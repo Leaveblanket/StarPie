@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures.Services.Configuration
 {
@@ -18,11 +19,13 @@ namespace WinPieGestures.Services.Configuration
     public sealed class JsonConfigService : IConfigService
     {
         private readonly string _configPath;
+        private readonly ILocalizationService _localization;
         private AppConfig _config;
 
-        public JsonConfigService(string configPath)
+        public JsonConfigService(string configPath, ILocalizationService localization)
         {
             _configPath = configPath;
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _config = CreateDefaultConfig();
         }
 
@@ -52,13 +55,13 @@ namespace WinPieGestures.Services.Configuration
                 }
 
                 // Initialize internationalization language
-                I18n.SetLanguage(_config.Language);
+                _localization.SetLanguage(_config.Language);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to load config: {ex.Message}");
                 _config = CreateDefaultConfig();
-                I18n.SetLanguage(_config.Language);
+                _localization.SetLanguage(_config.Language);
             }
         }
 

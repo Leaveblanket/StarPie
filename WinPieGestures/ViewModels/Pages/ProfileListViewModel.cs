@@ -63,6 +63,7 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
         private readonly IActionExecutorService _actionExecutor;
+        private readonly ILocalizationService _localization;
         private bool _isDisposed;
 
         /// <summary>方案展示列表（按前台进程名展示每个方案，Global 为全局兜底方案）。</summary>
@@ -116,12 +117,14 @@ namespace WinPieGestures.ViewModels.Pages
             List<WheelProfile> sourceProfiles,
             IDialogService dialogs,
             IMessenger messenger,
-            IActionExecutorService actionExecutor)
+            IActionExecutorService actionExecutor,
+            ILocalizationService localization)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
             // T19/T21：导入成功广播 → 以新配置的方案列表自行重挂；默认选中首项由
             // Reload 内部维护（T21 自页面 View 收编），View 不再需要 PageConfigReloaded 同步。
@@ -240,7 +243,7 @@ namespace WinPieGestures.ViewModels.Pages
 
                 for (int i = 0; i < count; i++)
                 {
-                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger);
+                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger, _localization);
                     Slots.Add(slot);
                 }
             }

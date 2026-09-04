@@ -15,12 +15,14 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class SlotViewModelTests
 {
-    /// <summary>I18n.LanguageChanged 静态事件当前订阅者数（反射读 backing field；
+    private static readonly LocalizationService Localization = new();
+
+    /// <summary>LocalizationService 实例 LanguageChanged 事件当前订阅者数（反射读 backing field；
     /// 事件是 <see cref="Action"/> 无订阅者时为 null）。</summary>
     private static int I18nEventSubscriberCount()
-        => ((MulticastDelegate?)typeof(I18n)
-            .GetField(nameof(I18n.LanguageChanged), BindingFlags.Static | BindingFlags.NonPublic)
-            ?.GetValue(null))?.GetInvocationList().Length ?? 0;
+        => ((MulticastDelegate?)typeof(LocalizationService)
+            .GetField(nameof(LocalizationService.LanguageChanged), BindingFlags.Instance | BindingFlags.NonPublic)
+            ?.GetValue(Localization))?.GetInvocationList().Length ?? 0;
 
     private static SlotViewModel MakeSlot(
         ActionItem? action = null,
@@ -31,7 +33,8 @@ public sealed class SlotViewModelTests
             action ?? new ActionItem(),
             dialogs ?? new TestDialogService(),
             new TestActionExecutor(),
-            messenger ?? TestHub.NewMessenger());
+            messenger ?? TestHub.NewMessenger(),
+            Localization);
 
     // --- 图标设置（迁移前 PickIcon_Click） ---------------------------------------------
 
@@ -153,7 +156,8 @@ public sealed class SlotViewModelTests
             new ActionItem { Type = "Folder", Name = "快捷动作 1" },
             dialogs,
             new TestActionExecutor(),
-            messenger);
+            messenger,
+            Localization);
 
         slot.BrowseFolderCommand.Execute(null);
 
@@ -186,7 +190,8 @@ public sealed class SlotViewModelTests
             new ActionItem { Name = "动作 1", Parameter = "old" },
             dialogs,
             new TestActionExecutor(),
-            messenger);
+            messenger,
+            Localization);
 
         slot.BrowseFolderCommand.Execute(null);
 
@@ -207,19 +212,19 @@ public sealed class SlotViewModelTests
         Assert.Equal(@"C:\Users", initial);
     }
 
-    // --- 瞬态生命周期（T27/ADR-0010：自订阅 I18n.LanguageChanged 须成对退订） ------------
+    // --- 瞬态生命周期（T27/ADR-0010：自订阅 Localization.LanguageChanged 须成对退订） ------------
 
     [Fact]
     public void LanguageChanged_RefreshesResidentComputedProperties()
     {
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         var slot = MakeSlot(new ActionItem { Type = "System", IconKey = "TaskManager" });
         var notified = new List<string?>();
         slot.PropertyChanged += (s, e) => notified.Add(e.PropertyName);
         try
         {
             var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
-            I18n.CurrentLanguage = target;
+            Localization.SetLanguage(target);
 
             Assert.Contains(nameof(slot.ActionTypes), notified);
             Assert.Contains(nameof(slot.TestButtonText), notified);
@@ -227,7 +232,7 @@ public sealed class SlotViewModelTests
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
             slot.Dispose();
         }
     }
@@ -235,7 +240,7 @@ public sealed class SlotViewModelTests
     [Fact]
     public void Dispose_UnsubscribesLanguageChangedHandler()
     {
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         var before = I18nEventSubscriberCount();
         var slot = MakeSlot();
         Assert.Equal(before + 1, I18nEventSubscriberCount()); // 构造即订阅
@@ -248,11 +253,11 @@ public sealed class SlotViewModelTests
         try
         {
             var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
-            I18n.CurrentLanguage = target;
+            Localization.SetLanguage(target);
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
         Assert.Equal(0, refreshed);
     }
@@ -295,7 +300,7 @@ public sealed class SlotViewModelTests
 
         Assert.Equal("Folder", slot.Action.Type);
         Assert.Equal("Folder", slot.Action.IconKey);
-        Assert.Equal(I18n.T("ActionTypeFolderShort"), slot.Action.Name);
+        Assert.Equal(Localization.GetString("ActionTypeFolderShort"), slot.Action.Name);
     }
 
     [Fact]

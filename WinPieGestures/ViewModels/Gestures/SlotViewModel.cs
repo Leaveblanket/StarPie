@@ -35,6 +35,7 @@ namespace WinPieGestures.ViewModels.Gestures
     public partial class SlotViewModel : ObservableObject, IDisposable
     {
         private readonly IDialogService _dialogs;
+        private readonly ILocalizationService _localization;
         private readonly Action? _languageChangedHandler;
         private bool _isDisposed;
         private readonly IActionExecutorService _actionExecutor;
@@ -121,7 +122,7 @@ namespace WinPieGestures.ViewModels.Gestures
                         IconKey = "Folder";
                         if (string.IsNullOrEmpty(Name) || Name.StartsWith("快捷动作") || Name.StartsWith("动作"))
                         {
-                            Name = I18n.T("ActionTypeFolderShort");
+                            Name = _localization.GetString("ActionTypeFolderShort");
                         }
                     }
                     OnPropertyChanged(nameof(Type));
@@ -267,21 +268,28 @@ namespace WinPieGestures.ViewModels.Gestures
 
         public List<ActionTypeOption> ActionTypes => new List<ActionTypeOption>
         {
-            new ActionTypeOption { Tag = "Hotkey", DisplayText = I18n.T("ActionTypeHotkeyShort") },
-            new ActionTypeOption { Tag = "Launch", DisplayText = I18n.T("ActionTypeLaunchShort") },
-            new ActionTypeOption { Tag = "Folder", DisplayText = I18n.T("ActionTypeFolderShort") },
-            new ActionTypeOption { Tag = "System", DisplayText = I18n.T("ActionTypeSystemShort") }
+            new ActionTypeOption { Tag = "Hotkey", DisplayText = _localization.GetString("ActionTypeHotkeyShort") },
+            new ActionTypeOption { Tag = "Launch", DisplayText = _localization.GetString("ActionTypeLaunchShort") },
+            new ActionTypeOption { Tag = "Folder", DisplayText = _localization.GetString("ActionTypeFolderShort") },
+            new ActionTypeOption { Tag = "System", DisplayText = _localization.GetString("ActionTypeSystemShort") }
         };
 
-        public string TestButtonText => I18n.T("BtnTest");
+        public string TestButtonText => _localization.GetString("BtnTest");
 
-        public SlotViewModel(string directionLabel, ActionItem action, IDialogService dialogs, IActionExecutorService actionExecutor, IMessenger messenger)
+        public SlotViewModel(
+            string directionLabel,
+            ActionItem action,
+            IDialogService dialogs,
+            IActionExecutorService actionExecutor,
+            IMessenger messenger,
+            ILocalizationService localization)
         {
             DirectionLabel = directionLabel;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
             _languageChangedHandler = () =>
             {
@@ -289,11 +297,11 @@ namespace WinPieGestures.ViewModels.Gestures
                 OnPropertyChanged(nameof(TestButtonText));
                 OnPropertyChanged(nameof(IconDisplayText));
             };
-            I18n.LanguageChanged += _languageChangedHandler;
+            _localization.LanguageChanged += _languageChangedHandler;
         }
 
         /// <summary>
-        /// 成对退订 <see cref="I18n.LanguageChanged"/>（ADR-0010 VM 生命周期契约：
+        /// 成对退订本地化服务 <see cref="ILocalizationService.LanguageChanged"/>（ADR-0010 VM 生命周期契约：
         /// 瞬态 VM 自订阅须 IDisposable 成对退订，由持有者 ProfileListViewModel Dispose）。
         /// 幂等：重复 Dispose 不重复退订；Dispose 后不再对静态事件做任何操作。
         /// 切语刷新仍走实时计算属性（getter 内 I18n.T()）+ OnPropertyChanged（ADR-0010 机制 ③）。
@@ -304,7 +312,7 @@ namespace WinPieGestures.ViewModels.Gestures
             _isDisposed = true;
             if (_languageChangedHandler != null)
             {
-                I18n.LanguageChanged -= _languageChangedHandler;
+                _localization.LanguageChanged -= _languageChangedHandler;
             }
         }
 
@@ -358,7 +366,7 @@ namespace WinPieGestures.ViewModels.Gestures
         {
             try
             {
-                var picked = _dialogs.ShowFolderDialog(Parameter, I18n.T("BtnBrowseFolder"));
+                var picked = _dialogs.ShowFolderDialog(Parameter, _localization.GetString("BtnBrowseFolder"));
                 if (picked != null && !string.IsNullOrEmpty(picked.Path))
                 {
                     Parameter = picked.Path;

@@ -21,6 +21,7 @@ namespace WinPieGestures.ViewModels.Dialogs
 
         private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
         private readonly IDialogService _dialogs;
+        private readonly ILocalizationService _localization;
         private readonly List<ProgramEntry> _allPrograms = new();
 
         /// <summary>当前过滤条件下的展示列表。</summary>
@@ -50,11 +51,15 @@ namespace WinPieGestures.ViewModels.Dialogs
         [ObservableProperty]
         private bool _isCompleted;
 
-        public ProgramPickerViewModel(Func<IReadOnlyList<ProgramEntry>> scanPrograms, IDialogService dialogs)
+        public ProgramPickerViewModel(
+            Func<IReadOnlyList<ProgramEntry>> scanPrograms,
+            IDialogService dialogs,
+            ILocalizationService localization)
         {
             _scanPrograms = scanPrograms;
             _dialogs = dialogs;
-            _statusText = I18n.T("ProgramPickerScanning");
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _statusText = _localization.GetString("ProgramPickerScanning");
             _ = LoadAsync();
         }
 
@@ -68,7 +73,7 @@ namespace WinPieGestures.ViewModels.Dialogs
         private async Task LoadCoreAsync()
         {
             HasError = false;
-            StatusText = I18n.T("ProgramPickerScanning");
+                StatusText = _localization.GetString("ProgramPickerScanning");
 
             try
             {
@@ -81,7 +86,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             catch (Exception ex)
             {
                 HasError = true;
-                StatusText = $"{I18n.T("Error")}: {ex.Message}";
+                StatusText = $"{_localization.GetString("Error")}: {ex.Message}";
             }
         }
 
@@ -118,7 +123,7 @@ namespace WinPieGestures.ViewModels.Dialogs
         [RelayCommand]
         private void BrowseManually()
         {
-            var picked = _dialogs.ShowOpenFileDialog(ManualBrowseFilter, I18n.T("BtnBrowseApp"));
+            var picked = _dialogs.ShowOpenFileDialog(ManualBrowseFilter, _localization.GetString("BtnBrowseApp"));
             if (picked == null) return;
 
             string chosenPath = picked.Path;

@@ -31,6 +31,7 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly Func<string, bool> _importConfig;
         private readonly Func<AppConfig> _currentConfig;
         private readonly IMessenger _messenger;
+        private readonly ILocalizationService _localization;
         private readonly Action<string> _startElevated;
         private readonly Func<bool> _isAdministratorProbe;
 
@@ -60,6 +61,7 @@ namespace WinPieGestures.ViewModels.Pages
             Func<string, bool> importConfig,
             Func<AppConfig> currentConfig,
             IMessenger messenger,
+            ILocalizationService localization,
             Action<string>? startElevated = null,
             Func<bool>? isAdministrator = null)
         {
@@ -73,6 +75,7 @@ namespace WinPieGestures.ViewModels.Pages
             _importConfig = importConfig ?? throw new ArgumentNullException(nameof(importConfig));
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _startElevated = startElevated ?? StartElevatedProcess;
             _isAdministratorProbe = isAdministrator ?? (() => false);
 
@@ -120,7 +123,7 @@ namespace WinPieGestures.ViewModels.Pages
         {
             if (string.IsNullOrEmpty(langCode)) return;
             _config.Language = langCode;
-            I18n.SetLanguage(langCode);
+            _localization.SetLanguage(langCode);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 

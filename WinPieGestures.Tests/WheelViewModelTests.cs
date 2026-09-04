@@ -12,6 +12,8 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class WheelViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     private static WheelProfile Profile(int sectorCount, params ActionItem[] actions)
     {
         var profile = new WheelProfile { ProcessName = "chrome.exe", SectorCount = sectorCount };
@@ -20,7 +22,7 @@ public sealed class WheelViewModelTests
     }
 
     private static WheelViewModel Create(WheelProfile profile, AppConfig? config = null)
-        => new(new GesturePoint(120, 96), profile, config ?? new AppConfig());
+        => new(new GesturePoint(120, 96), profile, config ?? new AppConfig(), Localization);
 
     // --- Construction ---------------------------------------------------------
 
@@ -62,10 +64,10 @@ public sealed class WheelViewModelTests
     [Fact]
     public void Ctor_GlobalProfile_TitleIsGlobalActions_SubtitleShowsSectorCount()
     {
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         try
         {
-            I18n.CurrentLanguage = LanguageCode.ZhCn;
+            Localization.SetLanguage(LanguageCode.ZhCn);
 
             var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
 
@@ -74,17 +76,17 @@ public sealed class WheelViewModelTests
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 
     [Fact]
     public void Ctor_ProcessProfile_TitleIsProcessName()
     {
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         try
         {
-            I18n.CurrentLanguage = LanguageCode.ZhCn;
+            Localization.SetLanguage(LanguageCode.ZhCn);
 
             var vm = Create(Profile(4));
 
@@ -93,7 +95,7 @@ public sealed class WheelViewModelTests
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 
@@ -105,10 +107,10 @@ public sealed class WheelViewModelTests
     public void Ctor_GlobalProfile_CoreCopyFollowsCurrentLanguageAtCreation(
         LanguageCode language, string expectedTitle, string expectedSubtitle)
     {
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         try
         {
-            I18n.CurrentLanguage = language;
+            Localization.SetLanguage(language);
 
             var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
 
@@ -117,7 +119,7 @@ public sealed class WheelViewModelTests
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 
