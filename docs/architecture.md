@@ -1,177 +1,101 @@
-# WinPieGestures 开发规范
+# WinPieGestures 架构文档（入口）
 
-## 1. 技术栈
+> **阅读方式**：先读本文，按任务跳转到 `docs/architecture/` 下的叶子文件；不要把整卷叶子一次性注入上下文。
+>
+> 现行架构规范（as-built normative）分散在叶子文件中；代码结构、注册、映射或规范变化时，**同步更新对应叶子**，并保持本文路由表登记正确。
 
-- .NET 8、WPF、CommunityToolkit.Mvvm、Microsoft.Extensions.DependencyInjection。
-- MVVM 仅使用 CommunityToolkit.Mvvm；DI 仅在 `Composition.cs` 组合。
-- 页面 VM 单元测试直接构造并注入依赖；不从容器解析测试对象。
-- `releases/` 为旧版本，不修改、不作为当前实现依据。
+## 1. 文档体系与分工
 
-## 2. 目录
+| 文档 | 内容 | 何时读 |
+|---|---|---|
+| `CONTEXT.md`（仓库根） | 领域术语词汇表 | 术语疑问、新增领域术语时 |
+| `docs/adr/` | 难逆转/令人惊讶/真实权衡的决策理由 | 想了解“为什么这样设计”时 |
+| `docs/architecture.md`（本文） | 架构文档入口与任务路由 | 任何架构问题先读这里 |
+| `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
+| `docs/i18n-copy-inventory.md` | 界面文案键位盘点 | 新增/修改用户可见文案时 |
+
+冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
+
+## 2. 按任务路由（渐进式披露）
+
+| 你要做什么 | 读哪个文件 |
+|---|---|
+| 某个路径放什么 / 新增文件落位 | [layout.md](architecture/layout.md) |
+| 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
+| 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
+| 启动退出 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
+| 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
+| 设置页导航 / 页面 DataTemplate 映射 | [navigation.md](architecture/navigation.md) |
+| 对话框实现 / 对话框唯一形态 | [dialogs.md](architecture/dialogs.md) |
+| 手势状态机 / 动作路由与执行 | [gestures.md](architecture/gestures.md) |
+| 轮盘 VM / RadialWindow / 样式渲染器 | [wheel.md](architecture/wheel.md) |
+| 程序扫描与图标 | [programs.md](architecture/programs.md) |
+| 主题 / 托盘 / 单实例 / 内存 / 自启 | [shell.md](architecture/shell.md) |
+| I18n 文案键 / IMessenger 消息 | [localization.md](architecture/localization.md) |
+| 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
+| 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
+
+## 3. 技术栈
+
+- .NET 8 / WPF（`net8.0-windows`、`UseWPF`，程序集名 `StarPie`）。
+- `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
+- `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
+- 单元测试：`WinPieGestures.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
+- e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开。
+- 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
+
+## 4. 仓库边界
 
 ```text
-WinPieGestures/
-├── App.xaml / App.xaml.cs      # 宿主生命周期
-├── Composition.cs              # DI 组合根
-├── Models/                     # 纯配置模型
-├── Services/                   # 服务与副作用
-├── ViewModels/                 # 状态、命令、消息
-└── Views/                      # XAML、样式、渲染器
+StarPie/
+├── CONTEXT.md
+├── AGENTS.md
+├── docs/
+│   ├── architecture.md          # 本文（入口）
+│   ├── architecture/            # 架构叶子文档
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0010）
+│   ├── agents/                  # Agent 工作流文档
+│   └── i18n-copy-inventory.md   # 文案盘点
+├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
+├── WinPieGestures.Tests/        # xUnit 单元测试
+├── tests/                       # pywinauto e2e（不在本文档体系展开）
+└── releases/                    # 旧版本，冻结：不修改、不作为当前实现依据
 ```
 
-依赖方向：
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+
+## 5. 分层速览
 
 ```text
-App / Composition
+App / Composition            # 装配与生命周期（唯一解析点）
       |
       v
-ViewModels ---> Views
+ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
       |
       v
 Services ---> Models
 ```
 
-## 3. 分层规范
+完整依赖矩阵、命名空间与可见性、Models/Services/ViewModels/Views 边界见 [layering.md](architecture/layering.md)。
 
-### 3.1 App 与 Composition
+## 6. 维护义务
 
-- `App.xaml.cs` 只处理单实例、异常、启动、退出和资源释放。
-- `Composition.cs` 是唯一 DI 组合根；服务和页面 VM在此注册。
-- 启动顺序：加载配置 → 启动鼠标钩子 → 解析 VM → 创建窗口/托盘 → 显示窗口。
-- 退出前冲刷挂起保存；不得恢复 `StartupUri`。
+1. 规范内容变更只改**对应叶子文件**；新增主题时先建叶子并在本文路由表登记。
+2. 新增决策若满足 ADR 三条件，先新增 ADR，再把结论回填对应叶子；反之只改叶子。
+3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja），并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](architecture/localization.md)）。
+4. 叶子增删、文件路径变化时同步更新本文（文档体系表 + 路由表 + 仓库边界树）。
 
-### 3.2 Models
+## 附录：ADR 索引
 
-- 只放纯 POCO：`AppConfig`、`WheelProfile`、`ActionItem`、`CustomColorPreset`。
-- 不引用 WPF、服务、命令或消息。
-- 新字段必须有默认值；保持 `config.json` 向后兼容。
-
-### 3.3 Services
-
-- 服务负责可注入、可 mock 的副作用；接口与实现同目录。
-- 服务只由 Composition 注册；View/ViewModel 不自行 `new` 服务或使用服务定位器。
-- Win32 静态工具仅限无状态、无需 mock 的调用，并记录原因。
-
-### 3.4 ViewModels
-
-- 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
-- 页面 VM 注册为单例；轮盘 VM 按手势创建，不注册为单例。
-- 仅暴露可观察状态、命令和必要消息；不得引用 WPF 类型，不暴露临时 `event Action`。
-- 状态传输：View 通过 `DataContext`/`Binding` 读取；可编辑值使用 `Mode=TwoWay`；VM 使用 `INotifyPropertyChanged`（本项目使用 `ObservableObject`）。
-- 用户动作：使用 `ICommand`；`Button` 绑定 `Command`，不得在代码后置中调用 `Vm.Command.Execute(...)`。
-- 跨 VM/页面协调：使用不可变 `IMessenger` 消息；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或委托编排；VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
-
-官方 API：
-
-- [WPF data binding overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/data/data-binding-overview)
-- [FrameworkElement.DataContext](https://learn.microsoft.com/en-us/dotnet/api/system.windows.frameworkelement.datacontext)
-- [WPF commanding overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/commanding-overview)
-- [ICommandSource](https://learn.microsoft.com/en-us/dotnet/api/system.windows.input.icommandsource)
-- [RelayCommand generator](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/relaycommand)
-- [ObservableProperty generator](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/generators/observableproperty)
-- [MVVM Toolkit messenger](https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/messenger)
-
-### 3.5 Views
-
-- XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态。
-- 代码后置仅处理本地化、主题、Canvas 绘制、鼠标坐标、生命周期等纯 View 效果。
-- 不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态。
-- 页面通过 DataTemplate 映射 VM，必须无参构造，不注册进容器。
-- 页面卸载时成对取消静态事件和 messenger 订阅。
-- WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口。参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)。
-- 没有 `Command` 属性的控件优先使用属性绑定；只有无等价绑定且仍属纯 UI 适配时才使用行为/附加属性。
-
-`AdvancedSettingsPage` 绑定规范：
-
-- 导入、导出、提权、内存整理按钮绑定 VM 命令；当前提权和内存整理动作需先在 VM 中生成命令。
-- `AutoStartCheckBox.IsChecked` 双向绑定 `AutoStartEnabled`；注册表写入和保存请求放在 VM 属性变更回调。
-- `LanguageComboBox` 设置 `SelectedValuePath="Tag"`，双向绑定可写的 `LanguageCode`；语言切换和持久化放在 VM。
-- `UacWarningCard.Visibility` 绑定 VM 布尔状态并使用转换器。
-- `MessageBox` 仅可作为 View 显示适配；副作用和提示内容由 VM/服务决定。
-
-## 4. 目录与命名
-
-```text
-Services/{Feature}/
-ViewModels/Pages/{领域}SettingsViewModel.cs
-ViewModels/Dialogs/{Dialog}ViewModel.cs
-ViewModels/Navigation/
-ViewModels/Gestures/
-ViewModels/Wheel/
-Views/Pages/{页面}Page.xaml
-Views/Dialogs/{Dialog}Window.xaml
-Views/Controls/
-Views/Converters/
-Views/Renderers/
-Views/Styles/
-```
-
-- 服务：`IXxxService` / `XxxService`。
-- 页面 VM：`XxxSettingsViewModel`；页面 View：`XxxSettingsPage`。
-- 消息：`XxxRequestedMessage`、`XxxChangedMessage`、`XxxImportedMessage`。
-- 转换器：`XxxToYyyConverter`；渲染器：`XxxRenderer`。
-- 消息放 `Services/Messages/Messages.cs`；带数据消息使用不可变 record/class。
-
-页面映射：
-
-| ViewModel | View |
-|---|---|
-| `BehaviorSettingsViewModel` | `TriggerSettingsPage` |
-| `AppearanceSettingsViewModel` | `AppearanceSettingsPage` |
-| `ProfileListViewModel` | `GesturesSettingsPage` |
-| `GeneralSettingsViewModel` | `AdvancedSettingsPage` |
-| `AboutViewModel` | `AboutSettingsPage` |
-
-## 5. 关键流程
-
-### 5.1 导航
-
-1. `MainViewModel` 创建导航项和目标 VM 类型。
-2. `NavigationService<T>` 从容器解析页面 VM。
-3. 写入 `NavigationStore.CurrentViewModel`。
-4. `MainView` 的 `ContentControl` 通过 DataTemplate 显示 View。
-
-### 5.2 保存
-
-1. VM 修改运行态 `AppConfig`。
-2. 发送 `DebouncedSaveRequestedMessage.Instance`。
-3. `SettingsSaveOrchestrator` 通过 `ISaveDebouncer` 延迟保存。
-4. 显式保存、隐藏、退出和导入前调用 `FlushPendingSave()`。
-
-### 5.3 对话框
-
-1. VM 仅依赖 `IDialogService`。
-2. `DialogService` 创建 View、设置 Owner 并返回可空结果 record。
-3. 取消或无效输入返回 `null`。
-4. VM 不暴露 Window、MessageBox 或文件对话框类型。
-
-### 5.4 手势与动作
-
-1. `MouseHook` → `GestureController` → `GestureEngine`。
-2. `GestureEngine` 只负责纯手势判定并返回 `GestureReleaseResult`。
-3. `GestureController` 通过 `IActionExecutorService` 执行副作用。
-4. `WheelFactory` 在 UI 线程创建 `WheelViewModel` 和 `RadialWindow`。
-
-### 5.5 渲染
-
-- `RadialWindow` 观察 `WheelViewModel` 状态并绘制。
-- `IRadialStyleRenderer` 和 `StyleRendererFactory` 负责轮盘样式。
-- `WheelPreviewRenderer` 负责外观页 Canvas 预览。
-
-## 6. 禁止事项
-
-- 不得在 ViewModel 使用 WPF 表现类型或暴露临时事件。
-- 不得在 View 中写业务、配置、服务调用或副作用。
-- 不得在使用处创建 ServiceCollection、服务实例或静态服务定位器。
-- 不得改变现有 `config.json` 字段语义。
-- 不得修改 `releases/` 旧版本代码。
-
-## 7. 新功能检查
-
-1. 确认功能域、模型和配置兼容性。
-2. 纯逻辑放 Services；副作用放可注入服务。
-3. VM 只含状态、命令、消息；View 只含布局和纯 UI 效果。
-4. 在 Composition 注册服务/VM；配置页同步 DataTemplate 和导航项。
-5. 跨页协调使用消息；本地状态使用绑定。
-6. 用户可见文本使用 `I18n.T(key)`。
+| 编号 | 文件 | 主题 |
+|---|---|---|
+| 0001 | `docs/adr/0001-mvvm-with-communitytoolkit.md` | MVVM 采用 CommunityToolkit |
+| 0002 | `docs/adr/0002-manual-composition-root.md` | 手动组合根与接缝 |
+| 0003 | `docs/adr/0003-application-host-restructure.md` | 应用宿主重构 |
+| 0004 | `docs/adr/0004-dialog-service-design.md` | 对话框服务设计 |
+| 0005 | `docs/adr/0005-di-container-for-navigation.md` | 容器化导航 |
+| 0006 | `docs/adr/0006-viewmodel-service-folder-architecture.md` | VM/服务目录架构 |
+| 0007 | `docs/adr/0007-views-folder-and-namespace-architecture.md` | Views 目录与命名空间 |
+| 0008 | `docs/adr/0008-strict-viewmodel-view-boundary.md` | VM/View 严格边界 |
+| 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 |
+| 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 |
