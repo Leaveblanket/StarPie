@@ -361,8 +361,8 @@ namespace WinPieGestures.ViewModels.Pages
         private void BrowseCoreImage()
         {
             var picked = _dialogs.ShowOpenFileDialog(
-                "图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*",
-                "选择中心核圆图案图片");
+                _localization.GetString("ImageFileFilter"),
+                _localization.GetString("CoreImageBrowseTitle"));
             if (picked == null) return;
 
             CoreCustomImagePath = picked.Path;

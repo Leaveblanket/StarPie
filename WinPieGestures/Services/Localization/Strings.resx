@@ -160,6 +160,9 @@
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>搜索软件名称、可执行文件或路径...</value></data>
   <data name="ProgramPickerScanning" xml:space="preserve"><value>正在智能检索系统中已安装的软件，请稍候...</value></data>
   <data name="BtnManualBrowse" xml:space="preserve"><value>手动浏览文件...</value></data>
+  <data name="ProgramPickerExeFilter" xml:space="preserve"><value>可执行程序 (*.exe)|*.exe|快捷方式 (*.lnk)|*.lnk|所有文件 (*.*)|*.*</value></data>
+  <data name="ProgramPickerNone" xml:space="preserve"><value>未选择</value></data>
+  <data name="ProgramPickerNoneHint" xml:space="preserve"><value>请选择一个程序，或者点击“{0}”</value></data>
   <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 简体中文 (Simplified Chinese)</value></data>
   <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</value></data>
   <data name="LangEn" xml:space="preserve"><value>🇺🇸 English (US/UK)</value></data>
@@ -227,6 +230,8 @@
   <data name="ShowTextLabel" xml:space="preserve"><value>在轮盘扇区中显示动作名称文字</value></data>
   <data name="BtnChooseIcon" xml:space="preserve"><value>选择图标...</value></data>
   <data name="CoreCustomImageTooltip" xml:space="preserve"><value>自定义图片本地路径</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>图片文件 (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|所有文件 (*.*)|*.*</value></data>
+  <data name="CoreImageBrowseTitle" xml:space="preserve"><value>选择中心核圆图案图片</value></data>
   <data name="BtnClear" xml:space="preserve"><value>清除</value></data>
   <data name="LivePreviewTitle" xml:space="preserve"><value>实时交互画布 (Live Preview)</value></data>
   <data name="LivePreviewHint" xml:space="preserve"><value>💡 移动鼠标至下方轮盘可实时测试高亮与磁吸手感</value></data>
@@ -236,6 +241,11 @@
   <data name="ColorPickerHeader" xml:space="preserve"><value>调色板与屏幕取色</value></data>
   <data name="ColorPickerSubtitle" xml:space="preserve"><value>在色盘中精调色彩，或使用屏幕吸管捕获任意像素。</value></data>
   <data name="IconPickerImportTooltip" xml:space="preserve"><value>支持导入本地 SVG 矢量图或 PNG / ICO / JPG 图片图标</value></data>
+  <data name="IconPickerImportFileFilter" xml:space="preserve"><value>所有支持的图标 (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVG 矢量图 (*.svg)|*.svg|图片文件 (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|所有文件 (*.*)|*.*</value></data>
+  <data name="IconPickerImportFileTitle" xml:space="preserve"><value>导入自定义图标 (SVG / PNG / ICO / JPG)</value></data>
+  <data name="IconPickerCustomSuffix" xml:space="preserve"><value> (自定义)</value></data>
+  <data name="IconPickerNoIcon" xml:space="preserve"><value>(无图标)</value></data>
+  <data name="IconPickerImportFailed" xml:space="preserve"><value>导入图标失败:&#10;{0}</value></data>
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>清空快捷键</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 保存当前颜色为自定义配色预设...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>删除当前选中的自定义配色方案预设</value></data>

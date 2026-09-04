@@ -160,6 +160,9 @@
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>Search app name, executable, or path...</value></data>
   <data name="ProgramPickerScanning" xml:space="preserve"><value>Scanning installed programs, please wait...</value></data>
   <data name="BtnManualBrowse" xml:space="preserve"><value>Browse File...</value></data>
+  <data name="ProgramPickerExeFilter" xml:space="preserve"><value>Executable Files (*.exe)|*.exe|Shortcuts (*.lnk)|*.lnk|All Files (*.*)|*.*</value></data>
+  <data name="ProgramPickerNone" xml:space="preserve"><value>Nothing Selected</value></data>
+  <data name="ProgramPickerNoneHint" xml:space="preserve"><value>Select a program, or click "{0}"</value></data>
   <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 简体中文 (Simplified Chinese)</value></data>
   <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</value></data>
   <data name="LangEn" xml:space="preserve"><value>🇺🇸 English (US/UK)</value></data>
@@ -227,6 +230,8 @@ This cannot be undone.</value></data>
   <data name="ShowTextLabel" xml:space="preserve"><value>Show action names inside wheel sectors</value></data>
   <data name="BtnChooseIcon" xml:space="preserve"><value>Choose Icon...</value></data>
   <data name="CoreCustomImageTooltip" xml:space="preserve"><value>Local path of the custom image</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>Image Files (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|All Files (*.*)|*.*</value></data>
+  <data name="CoreImageBrowseTitle" xml:space="preserve"><value>Choose Center Core Image</value></data>
   <data name="BtnClear" xml:space="preserve"><value>Clear</value></data>
   <data name="LivePreviewTitle" xml:space="preserve"><value>Live Preview</value></data>
   <data name="LivePreviewHint" xml:space="preserve"><value>💡 Hover the wheel below to test highlight and snap feel in real time</value></data>
@@ -236,6 +241,11 @@ This cannot be undone.</value></data>
   <data name="ColorPickerHeader" xml:space="preserve"><value>Palette &amp; Screen Picker</value></data>
   <data name="ColorPickerSubtitle" xml:space="preserve"><value>Fine-tune colors on the palette, or capture any pixel with the screen eyedropper.</value></data>
   <data name="IconPickerImportTooltip" xml:space="preserve"><value>Import local SVG vector or PNG / ICO / JPG image icons</value></data>
+  <data name="IconPickerImportFileFilter" xml:space="preserve"><value>All Supported Icons (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVG Vector (*.svg)|*.svg|Image Files (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|All Files (*.*)|*.*</value></data>
+  <data name="IconPickerImportFileTitle" xml:space="preserve"><value>Import Custom Icon (SVG / PNG / ICO / JPG)</value></data>
+  <data name="IconPickerCustomSuffix" xml:space="preserve"><value> (Custom)</value></data>
+  <data name="IconPickerNoIcon" xml:space="preserve"><value>(None)</value></data>
+  <data name="IconPickerImportFailed" xml:space="preserve"><value>Failed to import icon:&#10;{0}</value></data>
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>Clear hotkey</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 Save Current Colors as Preset...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>Delete the currently selected custom color preset</value></data>

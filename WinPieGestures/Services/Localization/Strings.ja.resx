@@ -160,6 +160,9 @@
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>アプリ名、実行可能ファイル、またはパスを検索...</value></data>
   <data name="ProgramPickerScanning" xml:space="preserve"><value>インストール済みアプリをスキャンしています...</value></data>
   <data name="BtnManualBrowse" xml:space="preserve"><value>手動で参照...</value></data>
+  <data name="ProgramPickerExeFilter" xml:space="preserve"><value>実行ファイル (*.exe)|*.exe|ショートカット (*.lnk)|*.lnk|すべてのファイル (*.*)|*.*</value></data>
+  <data name="ProgramPickerNone" xml:space="preserve"><value>未選択</value></data>
+  <data name="ProgramPickerNoneHint" xml:space="preserve"><value>プログラムを選択してください。または「{0}」をクリック</value></data>
   <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 簡体字中国語 (Simplified Chinese)</value></data>
   <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁体字中国語 (Traditional Chinese)</value></data>
   <data name="LangEn" xml:space="preserve"><value>🇺🇸 英語 (English)</value></data>
@@ -227,6 +230,8 @@
   <data name="ShowTextLabel" xml:space="preserve"><value>ホイールセクターにアクション名を表示</value></data>
   <data name="BtnChooseIcon" xml:space="preserve"><value>アイコンを選択...</value></data>
   <data name="CoreCustomImageTooltip" xml:space="preserve"><value>カスタム画像のローカルパス</value></data>
+  <data name="ImageFileFilter" xml:space="preserve"><value>画像ファイル (*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif)|*.png;*.jpg;*.jpeg;*.bmp;*.webp;*.ico;*.gif|すべてのファイル (*.*)|*.*</value></data>
+  <data name="CoreImageBrowseTitle" xml:space="preserve"><value>コア中央画像を選択</value></data>
   <data name="BtnClear" xml:space="preserve"><value>クリア</value></data>
   <data name="LivePreviewTitle" xml:space="preserve"><value>ライブプレビュー</value></data>
   <data name="LivePreviewHint" xml:space="preserve"><value>💡 下のホイールにカーソルを合わせてハイライトとスナップ感をリアルタイムで試せます</value></data>
@@ -236,6 +241,11 @@
   <data name="ColorPickerHeader" xml:space="preserve"><value>パレットとスクリーンピッカー</value></data>
   <data name="ColorPickerSubtitle" xml:space="preserve"><value>パレットで色を微調整するか、スクリーンスポイトで任意のピクセルを取得します。</value></data>
   <data name="IconPickerImportTooltip" xml:space="preserve"><value>ローカルのSVGベクターまたはPNG / ICO / JPG画像アイコンをインポート</value></data>
+  <data name="IconPickerImportFileFilter" xml:space="preserve"><value>対応アイコン (*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp)|*.svg;*.png;*.ico;*.jpg;*.jpeg;*.bmp;*.webp|SVGベクター (*.svg)|*.svg|画像ファイル (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp|すべてのファイル (*.*)|*.*</value></data>
+  <data name="IconPickerImportFileTitle" xml:space="preserve"><value>カスタムアイコンをインポート (SVG / PNG / ICO / JPG)</value></data>
+  <data name="IconPickerCustomSuffix" xml:space="preserve"><value> (カスタム)</value></data>
+  <data name="IconPickerNoIcon" xml:space="preserve"><value>(なし)</value></data>
+  <data name="IconPickerImportFailed" xml:space="preserve"><value>アイコンのインポートに失敗しました:&#10;{0}</value></data>
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>ショートカットをクリア</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 現在の色をプリセットとして保存...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセットを削除します</value></data>
