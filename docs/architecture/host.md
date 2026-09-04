@@ -22,7 +22,9 @@
 2. `Composition.ConfigureServices`（全部单例）：
    - 基础设施：`JsonConfigService`（具体类）+ `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
    - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、`DialogService`(+`IDialogService`)、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。
-   - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、`AppearanceSettingsViewModel`、`GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`。
+   - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、
+     `AppearanceSettingsViewModel`（#54 起构造注入界面主题子 VM `InterfaceThemeSettingsViewModel`）、
+     `GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：

@@ -133,6 +133,7 @@ public sealed class MainViewModelTests
         public BehaviorSettingsViewModel Behavior { get; }
         public ProfileListViewModel Profiles { get; }
         public AppearanceSettingsViewModel Appearance { get; }
+        public InterfaceThemeSettingsViewModel InterfaceTheme { get; }
         public GeneralSettingsViewModel General { get; }
         public AboutViewModel About { get; }
 
@@ -140,8 +141,10 @@ public sealed class MainViewModelTests
         {
             Behavior = new BehaviorSettingsViewModel(Config, Dialogs, Messenger);
             Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization);
+            InterfaceTheme = new InterfaceThemeSettingsViewModel(
+                new FakeConfigService { Current = Config }, Messenger, Localization);
             Appearance = new AppearanceSettingsViewModel(
-                new FakeConfigService { Current = Config }, Dialogs, Messenger, Profiles, Localization);
+                new FakeConfigService { Current = Config }, Dialogs, Messenger, Profiles, Localization, InterfaceTheme);
             General = new GeneralSettingsViewModel(
                 Config,
                 Dialogs,

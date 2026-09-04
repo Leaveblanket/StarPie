@@ -116,8 +116,45 @@ public sealed class AppearanceSettingsViewModelTests
         var dialogs = new FakeDialogService();
         var (messenger, spy) = SaveSpy.Create();
         var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
-        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);
+        var interfaceTheme = new InterfaceThemeSettingsViewModel(configService, messenger, Localization);
+        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization, interfaceTheme);
         return (vm, configService, dialogs, EventLog.Attach(messenger, spy));
+    }
+
+    [Fact]
+    public void Constructor_InjectsInterfaceThemeChildViewModel()
+    {
+        // #54（ADR-0014 决策 6）：外观聚合 VM 注入界面主题设置子 VM 单例并暴露给页面界面主题卡。
+        var configService = new FakeConfigService();
+        var dialogs = new FakeDialogService();
+        var (messenger, _) = SaveSpy.Create();
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
+        var interfaceTheme = new InterfaceThemeSettingsViewModel(configService, messenger, Localization);
+        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization, interfaceTheme);
+
+        Assert.Same(interfaceTheme, vm.InterfaceTheme);
+    }
+
+    [Fact]
+    public void ConfigImport_PublishesThemeApplyOnceViaInterfaceThemeChild()
+    {
+        // #54（ADR-0014 决策 7）：主题应用消息由界面主题子 VM 独占发布——导入重挂只发一条
+        // AppThemeChangedMessage（外观聚合 VM 自身不再发布主题应用）。
+        var configService = new FakeConfigService { Current = new AppConfig { AppTheme = "Dark" } };
+        var dialogs = new FakeDialogService();
+        var (messenger, _) = SaveSpy.Create();
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
+        var interfaceTheme = new InterfaceThemeSettingsViewModel(configService, messenger, Localization);
+        var applied = new List<string>();
+        messenger.Register<AppThemeChangedMessage>(applied, (_, m) => applied.Add(m.Theme));
+        _ = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization, interfaceTheme);
+
+        var imported = new AppConfig { AppTheme = "RoyalViolet" };
+        configService.Current = imported;
+        messenger.Send(new ConfigImportedMessage(imported));
+
+        var apply = Assert.Single(applied);
+        Assert.Equal("RoyalViolet", apply);
     }
 
     // --- 构造播种 -------------------------------------------------------------------
@@ -792,30 +829,28 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal(0, log.AutoSave);
     }
 
-    // --- 界面主题与中心核图标（T16 自窗口收编的透传属性） ---------------------------
+    // --- 中心核图标透传属性（T16 自窗口收编；界面主题 AppTheme 已随 #54 迁入
+    //     InterfaceThemeSettingsViewModelTests） -------------------------------------
 
     [Fact]
     public void PassThroughProperties_ReadThroughLiveConfig_WithLegacyFallbacks()
     {
         var config = new AppConfig
         {
-            AppTheme = "Dark", ShowCoreIcon = true,
+            ShowCoreIcon = true,
             CoreIconType = "Crosshair", CoreCustomIconKey = "Copy", CoreCustomImagePath = "C:\\i.png"
         };
         var (vm, _, _, _) = Create(config);
 
-        Assert.Equal("Dark", vm.AppTheme);
         Assert.True(vm.ShowCoreIcon);
         Assert.Equal("Crosshair", vm.CoreIconType);
         Assert.Equal("Copy", vm.CoreCustomIconKey);
         Assert.Equal("C:\\i.png", vm.CoreCustomImagePath);
 
-        // 空值回落与迁移前窗口读取点一致：主题 System、核图标 Exit、键与路径空串
-        config.AppTheme = null!;
+        // 空值回落与迁移前窗口读取点一致：核图标 Exit、键与路径空串
         config.CoreIconType = null!;
         config.CoreCustomIconKey = null!;
         config.CoreCustomImagePath = null!;
-        Assert.Equal("System", vm.AppTheme);
         Assert.Equal("Exit", vm.CoreIconType);
         Assert.Equal("", vm.CoreCustomIconKey);
         Assert.Equal("", vm.CoreCustomImagePath);
@@ -829,45 +864,31 @@ public sealed class AppearanceSettingsViewModelTests
         int propertyNotifications = 0;
         vm.PropertyChanged += (_, _) => propertyNotifications++;
 
-        vm.AppTheme = "MidnightNavy";
         vm.ShowCoreIcon = false;
         vm.CoreIconType = "Image";
         vm.CoreCustomIconKey = "custom:star";
         vm.CoreCustomImagePath = "  C:\\imgs\\core.png  ";
 
-        Assert.Equal("MidnightNavy", config.Current.AppTheme);
         Assert.False(config.Current.ShowCoreIcon);
         Assert.Equal("Image", config.Current.CoreIconType);
         Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
         Assert.Equal("C:\\imgs\\core.png", config.Current.CoreCustomImagePath);
 
-        // T17：透传属性归队 Live-apply 管线——AppTheme/ShowCoreIcon 上报防抖落盘；
+        // T17：透传属性归队 Live-apply 管线——ShowCoreIcon 上报防抖落盘；
         // CoreIconType/CoreCustomImagePath 同时上报预览重绘；CoreCustomIconKey 保持纯通知
         //（其落盘由 PickCoreIcon 经 SaveNowRequested 驱动）。
-        Assert.Equal(5, propertyNotifications);
+        Assert.Equal(4, propertyNotifications);
         Assert.Equal(2, log.Preview);
-        Assert.Equal(4, log.AutoSave);
+        Assert.Equal(3, log.AutoSave);
         Assert.Equal(0, log.SaveNow);
 
         // 同值写入不再通知、不再触发管线
-        vm.AppTheme = "MidnightNavy";
-        Assert.Equal(5, propertyNotifications);
-        Assert.Equal(4, log.AutoSave);
+        vm.CoreCustomImagePath = "C:\\imgs\\core.png";
+        Assert.Equal(4, propertyNotifications);
+        Assert.Equal(3, log.AutoSave);
     }
 
     // --- 透传属性管线逐项语义 (T17) -------------------------------------------------
-
-    [Fact]
-    public void AppTheme_Setter_RaisesAutoSaveOnly()
-    {
-        var (vm, _, _, log) = Create();
-
-        vm.AppTheme = "Dark";
-
-        Assert.Equal(1, log.AutoSave);
-        Assert.Equal(0, log.Preview);
-        Assert.Equal(0, log.SaveNow);
-    }
 
     [Fact]
     public void ShowCoreIcon_Setter_RaisesAutoSaveOnly()
