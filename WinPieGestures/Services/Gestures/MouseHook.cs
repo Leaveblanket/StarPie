@@ -81,9 +81,9 @@ namespace WinPieGestures.Services.Gestures
 
         public bool IsPaused { get; set; } = false;
 
-        public event EventHandler<MouseHookEventArgs> OnRightButtonDown;
-        public event EventHandler<MouseHookEventArgs> OnRightButtonUp;
-        public event EventHandler<MouseHookEventArgs> OnMouseMove;
+        public event EventHandler<MouseHookEventArgs>? OnRightButtonDown;
+        public event EventHandler<MouseHookEventArgs>? OnRightButtonUp;
+        public event EventHandler<MouseHookEventArgs>? OnMouseMove;
 
         private LowLevelMouseProc _proc;
         private IntPtr _hookId = IntPtr.Zero;
@@ -93,7 +93,7 @@ namespace WinPieGestures.Services.Gestures
         private bool _ignoreNextRButtonUp = false;
 
         // Hook stability and health check variables
-        private System.Threading.Timer _healthCheckTimer;
+        private System.Threading.Timer? _healthCheckTimer;
         private POINT _lastSystemCursorPos;
         private int _hookEventsCountSinceLastCheck = 0;
 
@@ -134,7 +134,7 @@ namespace WinPieGestures.Services.Gestures
             }
         }
 
-        private void CheckHookHealth(object state)
+        private void CheckHookHealth(object? state)
         {
             if (_hookId == IntPtr.Zero) return;
 
@@ -175,7 +175,8 @@ namespace WinPieGestures.Services.Gestures
         private IntPtr SetHook(LowLevelMouseProc proc)
         {
             using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule)
+            using (ProcessModule curModule = curProcess.MainModule
+                ?? throw new InvalidOperationException("Failed to retrieve the current process main module."))
             {
                 return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
             }

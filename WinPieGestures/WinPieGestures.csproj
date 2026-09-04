@@ -34,11 +34,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Remove="D:\CSharp\StarPie\WinPieGestures\.editorconfig" />
+    <EditorConfigFiles Remove=".editorconfig" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="D:\CSharp\StarPie\WinPieGestures\.editorconfig" />
+    <None Include=".editorconfig" />
   </ItemGroup>
 
 </Project>
