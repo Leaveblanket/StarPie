@@ -10,11 +10,13 @@ namespace WinPieGestures.ViewModels.Pages
     {
         private readonly IDialogService _dialogs;
         private readonly Func<bool> _openChangelog;
+        private readonly ILocalizationService _localization;
 
-        public AboutViewModel(IDialogService dialogs, Func<bool> openChangelog)
+        public AboutViewModel(IDialogService dialogs, Func<bool> openChangelog, ILocalizationService localization)
         {
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _openChangelog = openChangelog ?? throw new ArgumentNullException(nameof(openChangelog));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         }
 
         [RelayCommand]
@@ -24,12 +26,12 @@ namespace WinPieGestures.ViewModels.Pages
             {
                 if (!_openChangelog())
                 {
-                    _dialogs.ShowInfo(I18n.T("Notice"), I18n.T("ChangelogNotFound"));
+                    _dialogs.ShowInfo(_localization.GetString("Notice"), _localization.GetString("ChangelogNotFound"));
                 }
             }
             catch (Exception ex)
             {
-                _dialogs.ShowInfo(I18n.T("Error"), $"{I18n.T("ChangelogOpenFailed")}\n{ex.Message}");
+                _dialogs.ShowInfo(_localization.GetString("Error"), $"{_localization.GetString("ChangelogOpenFailed")}\n{ex.Message}");
             }
         }
     }

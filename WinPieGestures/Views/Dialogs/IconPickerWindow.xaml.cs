@@ -25,7 +25,7 @@ namespace WinPieGestures.Views.Dialogs
         private readonly IconPickerViewModel _vm;
         private Border? _selectedCard;
 
-        public IconPickerWindow(IThemeService themeService, IconPickerViewModel viewModel)
+        public IconPickerWindow(IThemeService themeService, IconPickerViewModel viewModel, ILocalizationService localization)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
@@ -33,7 +33,7 @@ namespace WinPieGestures.Views.Dialogs
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
-            Title = $"{I18n.T("IconPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
+            Title = $"{localization.GetString("IconPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>

@@ -12,6 +12,8 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class IconPickerViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
     private sealed class FakeDialogService : IDialogService
     {
@@ -56,6 +58,7 @@ public sealed class IconPickerViewModelTests
             () => customs ?? new List<IconHelper.CustomIconItem>(),
             () => vectors ?? new List<VectorIconItem>(),
             dialogs ?? new FakeDialogService(),
+            Localization,
             initialKey,
             deleteIcon,
             importIcon);
@@ -156,7 +159,7 @@ public sealed class IconPickerViewModelTests
         vm.ApplyFilter(null);
 
         Assert.Null(vm.SelectedIconKey);
-        Assert.Equal(I18n.T("IconPickerNone"), vm.SelectedIconDisplayName);
+        Assert.Equal(Localization.GetString("IconPickerNone"), vm.SelectedIconDisplayName);
     }
 
     // --- 选择 / 清空 / 确认 ---------------------------------------------------------

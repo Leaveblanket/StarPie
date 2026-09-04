@@ -13,6 +13,8 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class GeneralSettingsViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     /// <summary>常用装配：记录型托盘/退出/自启/提权委托（export/import 默认成功）。</summary>
     private static GeneralSettingsViewModel Create(
         AppConfig config,
@@ -40,6 +42,7 @@ public sealed class GeneralSettingsViewModelTests
             importConfig ?? (_ => true),
             currentConfig: () => config,
             messenger: messenger,
+            localization: Localization,
             startElevated);
         if (notices != null)
         {
@@ -82,7 +85,7 @@ public sealed class GeneralSettingsViewModelTests
     public void ApplyLanguage_WritesConfigSwitchesI18nAndRequestsSave(string code, LanguageCode expected)
     {
         var config = MakeConfig();
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         var save = new SaveSpy();
         var vm = Create(config, save: save);
         try
@@ -90,12 +93,12 @@ public sealed class GeneralSettingsViewModelTests
             vm.ApplyLanguage(code);
 
             Assert.Equal(code, config.Language);
-            Assert.Equal(expected, I18n.CurrentLanguage);
+            Assert.Equal(expected, Localization.CurrentLanguage);
             Assert.Equal(1, save.Immediate);
         }
         finally
         {
-            I18n.CurrentLanguage = original;
+            Localization.SetLanguage(original);
         }
     }
 
@@ -103,15 +106,15 @@ public sealed class GeneralSettingsViewModelTests
     public void ApplyLanguage_BroadcastsLanguageChanged()
     {
         var config = MakeConfig();
-        var original = I18n.CurrentLanguage;
+        var original = Localization.CurrentLanguage;
         var fired = 0;
         void Handler() => fired++;
-        I18n.LanguageChanged += Handler;
+        Localization.LanguageChanged += Handler;
         var vm = Create(config);
         try
         {
             // 基准化，避免静态语言状态受其他测试影响
-            I18n.SetLanguage("zh-CN");
+            Localization.SetLanguage("zh-CN");
             fired = 0;
 
             vm.ApplyLanguage("en");
@@ -120,8 +123,8 @@ public sealed class GeneralSettingsViewModelTests
         }
         finally
         {
-            I18n.LanguageChanged -= Handler;
-            I18n.CurrentLanguage = original;
+            Localization.LanguageChanged -= Handler;
+            Localization.SetLanguage(original);
         }
     }
 

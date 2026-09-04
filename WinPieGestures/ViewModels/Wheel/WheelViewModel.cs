@@ -57,14 +57,14 @@ namespace WinPieGestures.ViewModels.Wheel
 
         public bool ShowCoreIcon { get; }
 
-        public WheelViewModel(GesturePoint center, WheelProfile profile, AppConfig config)
+        public WheelViewModel(GesturePoint center, WheelProfile profile, AppConfig config, ILocalizationService localization)
         {
             Center = center;
             _profile = profile;
             Config = config;
 
-            CoreTitle = profile.ProcessName == "Global" ? I18n.T("WheelCoreTitle") : profile.ProcessName;
-            CoreSubtitle = string.Format(I18n.T("WheelCoreSubtitle"), profile.SectorCount);
+            CoreTitle = profile.ProcessName == "Global" ? localization.GetString("WheelCoreTitle") : profile.ProcessName;
+            CoreSubtitle = string.Format(localization.GetString("WheelCoreSubtitle"), profile.SectorCount);
 
             Sectors = Enumerable.Range(0, Math.Max(0, profile.SectorCount))
                 .Select(i => new WheelSectorViewModel(i, i < profile.Actions.Count ? profile.Actions[i] : null))

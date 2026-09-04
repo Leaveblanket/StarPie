@@ -15,6 +15,7 @@ namespace WinPieGestures.ViewModels.Dialogs
     {
         private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;
         private readonly IDialogService _dialogs;
+        private readonly ILocalizationService _localization;
         private InputDialogResult? _result;
 
         /// <summary>对话框标题（窗口标题与头部文案共用）。</summary>
@@ -37,15 +38,17 @@ namespace WinPieGestures.ViewModels.Dialogs
         public InputViewModel(
             string title,
             string prompt,
+            IDialogService dialogs,
+            ILocalizationService localization,
             string defaultText = "",
-            Func<string, (bool IsValid, string ErrorMessage)>? validator = null,
-            IDialogService? dialogs = null)
+            Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             Title = title;
             Prompt = prompt;
             _inputText = defaultText;
             _validator = validator;
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         }
 
         /// <summary>确认结果：仅在确认有效后非空；取消与无效输入为 null。</summary>
@@ -57,7 +60,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             string trimmed = (InputText ?? "").Trim();
             if (string.IsNullOrEmpty(trimmed))
             {
-                _dialogs.ShowInfo(I18n.T("Notice"), I18n.T("InputDialogEmpty"));
+                _dialogs.ShowInfo(_localization.GetString("Notice"), _localization.GetString("InputDialogEmpty"));
                 RejectedText = null;
                 return;
             }
@@ -67,7 +70,7 @@ namespace WinPieGestures.ViewModels.Dialogs
                 var (isValid, errorMessage) = _validator(trimmed);
                 if (!isValid)
                 {
-                    _dialogs.ShowInfo(I18n.T("Notice"), errorMessage);
+                    _dialogs.ShowInfo(_localization.GetString("Notice"), errorMessage);
                     RejectedText = trimmed;
                     return;
                 }

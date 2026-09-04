@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures.Services.Gestures
 {
@@ -15,11 +16,13 @@ namespace WinPieGestures.Services.Gestures
     {
         private readonly IConfigService _config;
         private readonly IThemeService _themeService;
+        private readonly ILocalizationService _localization;
 
-        public WheelFactory(IConfigService config, IThemeService themeService)
+        public WheelFactory(IConfigService config, IThemeService themeService, ILocalizationService localization)
         {
             _config = config;
             _themeService = themeService;
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
         }
 
         public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
@@ -29,8 +32,8 @@ namespace WinPieGestures.Services.Gestures
             RadialWindow? window = null;
             dispatcher.Invoke(() =>
             {
-                viewModel = new WheelViewModel(center, profile, _config.Current);
-                window = new RadialWindow(viewModel, _themeService);
+                viewModel = new WheelViewModel(center, profile, _config.Current, _localization);
+                window = new RadialWindow(viewModel, _themeService, _localization);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
         }

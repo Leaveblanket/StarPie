@@ -11,11 +11,13 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class InputViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     private static InputViewModel Create(
         TestDialogService dialogs,
         string defaultText = "",
         Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
-        => new("测试标题", "测试提示", defaultText, validator, dialogs);
+        => new("测试标题", "测试提示", dialogs, Localization, defaultText, validator);
 
     // --- 构造状态 -----------------------------------------------------------------
 
@@ -89,8 +91,8 @@ public sealed class InputViewModelTests
 
         // 空输入固定文案经对话框服务提示，窗口保持打开、无结果
         var call = Assert.Single(dialogs.InfoCalls);
-        Assert.Equal(I18n.T("Notice"), call.Title);
-        Assert.Equal(I18n.T("InputDialogEmpty"), call.Message);
+        Assert.Equal(Localization.GetString("Notice"), call.Title);
+        Assert.Equal(Localization.GetString("InputDialogEmpty"), call.Message);
         Assert.False(vm.IsCompleted);
         Assert.Null(vm.RejectedText); // 空输入不携带被拒文本（区别于 validator 拒绝）
         Assert.Null(vm.BuildResult());
@@ -105,7 +107,7 @@ public sealed class InputViewModelTests
         vm.ConfirmCommand.Execute(null);
 
         var call = Assert.Single(dialogs.InfoCalls);
-        Assert.Equal(I18n.T("InputDialogEmpty"), call.Message);
+        Assert.Equal(Localization.GetString("InputDialogEmpty"), call.Message);
         Assert.False(vm.IsCompleted);
         Assert.Null(vm.RejectedText);
         Assert.Null(vm.BuildResult());

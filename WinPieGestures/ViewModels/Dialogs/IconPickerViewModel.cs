@@ -59,6 +59,7 @@ namespace WinPieGestures.ViewModels.Dialogs
             Func<IReadOnlyList<IconHelper.CustomIconItem>> getCustomIcons,
             Func<IReadOnlyList<VectorIconItem>> getVectorIcons,
             IDialogService dialogs,
+            ILocalizationService localization,
             string? initialKey = null,
             Func<string, bool>? deleteCustomIcon = null,
             Func<string, IconHelper.CustomIconItem?>? importCustomIcon = null)
@@ -72,7 +73,7 @@ namespace WinPieGestures.ViewModels.Dialogs
 
             SelectedIconKey = initialKey;
             // 迁移前：初始键为空时本地化为 "(未选择)"，非空但未匹配到卡片时停留在 XAML 默认文案。
-            _selectedIconDisplayName = string.IsNullOrEmpty(initialKey) ? I18n.T("IconPickerNone") : "(未选择)";
+            _selectedIconDisplayName = string.IsNullOrEmpty(initialKey) ? localization.GetString("IconPickerNone") : "(未选择)";
             ApplyFilter("");
         }
 

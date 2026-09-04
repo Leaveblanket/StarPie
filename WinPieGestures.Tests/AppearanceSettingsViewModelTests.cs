@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
@@ -15,6 +15,8 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class AppearanceSettingsViewModelTests
 {
+    private static readonly LocalizationService Localization = new();
+
     /// <summary>内存配置服务假实现：直接持有 POCO，记录 Save 调用。</summary>
     private sealed class FakeConfigService : IConfigService
     {
@@ -113,8 +115,8 @@ public sealed class AppearanceSettingsViewModelTests
         var configService = new FakeConfigService { Current = config ?? new AppConfig() };
         var dialogs = new FakeDialogService();
         var (messenger, spy) = SaveSpy.Create();
-        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor());
-        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList);
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
+        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);
         return (vm, configService, dialogs, EventLog.Attach(messenger, spy));
     }
 

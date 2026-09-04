@@ -37,10 +37,6 @@ namespace WinPieGestures
             ConfigureServices(services);
             _provider = services.BuildServiceProvider();
 
-            // ADR-0013/#44：本地化服务单例注册到静态门面——先于任何配置 Load/页面 VM，
-            // 保证 JsonConfigService.Load() 的 I18n.SetLanguage 与声明式投影都走同一实例。
-            I18n.Initialize(_provider.GetRequiredService<ILocalizationService>());
-
             _config = _provider.GetRequiredService<JsonConfigService>();
         }
 
@@ -96,7 +92,9 @@ namespace WinPieGestures
         /// 无宿主状态副作用仍由组合根接线。</summary>
         private void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton(new JsonConfigService(Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json")));
+            services.AddSingleton(sp => new JsonConfigService(
+                Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json"),
+                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<MouseHook>();
             services.AddSingleton(new ThemeService());
@@ -128,12 +126,14 @@ namespace WinPieGestures
                 sp.GetRequiredService<IConfigService>().Current.Profiles,
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<IActionExecutorService>()));
+                sp.GetRequiredService<IActionExecutorService>(),
+                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<ProfileListViewModel>()));
+                sp.GetRequiredService<ProfileListViewModel>(),
+                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton(sp => new GeneralSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,
                 sp.GetRequiredService<IDialogService>(),
@@ -151,6 +151,7 @@ namespace WinPieGestures
                 },
                 currentConfig: () => sp.GetRequiredService<IConfigService>().Current,
                 messenger: sp.GetRequiredService<IMessenger>(),
+                localization: sp.GetRequiredService<ILocalizationService>(),
                 isAdministrator: IsRunningAsAdministrator));
             services.AddSingleton<AboutViewModel>(sp => new AboutViewModel(
                 sp.GetRequiredService<IDialogService>(),
@@ -160,7 +161,8 @@ namespace WinPieGestures
                     if (!File.Exists(changelogPath)) return false;
                     Process.Start(new ProcessStartInfo(changelogPath) { UseShellExecute = true });
                     return true;
-                }));
+                },
+                sp.GetRequiredService<ILocalizationService>()));
 
             services.AddSingleton<MainViewModel>();
         }

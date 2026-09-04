@@ -27,6 +27,7 @@ namespace WinPieGestures.Views.Wheel
     {
         private readonly WheelViewModel _viewModel;
         private readonly IThemeService _themeService;
+        private readonly ILocalizationService _localization;
         private readonly List<Path> _sectorPaths = new List<Path>();
         private readonly List<StackPanel> _contentPanels = new List<StackPanel>();
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
@@ -48,12 +49,13 @@ namespace WinPieGestures.Views.Wheel
         private double _borderThickness = 1.0;
         private double _highlightBorderThickness = 1.5;
 
-        public RadialWindow(WheelViewModel viewModel, IThemeService themeService)
+        public RadialWindow(WheelViewModel viewModel, IThemeService themeService, ILocalizationService localization)
         {
             InitializeComponent();
 
             _viewModel = viewModel;
             _themeService = themeService;
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             DataContext = viewModel;
 
             // ADR-0009 白名单(INPC 订阅边界/生命周期接线): 订阅 VM PropertyChanged 只驱动
@@ -376,7 +378,7 @@ namespace WinPieGestures.Views.Wheel
                 container.Children.Add(stackPanel);
 
                 WheelSectorViewModel sector = _viewModel.Sectors[i];
-                string actionText = sector.HasAction ? sector.Name : I18n.T("WheelSectorEmpty");
+            string actionText = sector.HasAction ? sector.Name : _localization.GetString("WheelSectorEmpty");
                 string actionType = sector.Type;
                 string parameter = sector.Parameter;
                 string iconKey = sector.IconKey;

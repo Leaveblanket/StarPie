@@ -13,14 +13,14 @@ namespace WinPieGestures.Views.Dialogs
     {
         private readonly ProgramPickerViewModel _vm;
 
-        public ProgramPickerWindow(IThemeService themeService, ProgramPickerViewModel viewModel)
+        public ProgramPickerWindow(IThemeService themeService, ProgramPickerViewModel viewModel, ILocalizationService localization)
         {
             InitializeComponent();
             themeService.ApplyTheme(this, themeService.CurrentEffectiveTheme);
             _vm = viewModel;
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
-            Title = $"{I18n.T("ProgramPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
+            Title = $"{localization.GetString("ProgramPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
