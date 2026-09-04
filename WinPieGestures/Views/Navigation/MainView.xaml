@@ -18,11 +18,6 @@
 
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <!-- 设置界面共享样式 (T19)：隐式控件样式只由主框架合并，不泄漏到其它窗口 -->
-                <ResourceDictionary Source="../Styles/SettingsStyles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-
             <!-- 页面映射 (T19)：页面 VM → 页面 View；View 无参构造、按导航重建，不经容器 -->
             <DataTemplate DataType="{x:Type vm:BehaviorSettingsViewModel}">
                 <pages:TriggerSettingsPage/>

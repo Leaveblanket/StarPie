@@ -1,7 +1,6 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:controls="clr-namespace:WinPieGestures.Views.Controls">
-
-    <BooleanToVisibilityConverter x:Key="BoolToVis" />
-
+    <!--  全局控件样式字典 (ADR-0012)：隐式默认样式 + 键控变体 + 共享模板；仅由 App.xaml 合并一次。
+          原 SettingsStyles.xaml (仅 MainView 合并) 于 #36 收敛为 App 级单点，窗口/页面不再自合并。  -->
     <!--  Sleek Theme-Aware ScrollBar Style  -->
     <Style TargetType="{x:Type ScrollBar}">
         <Setter Property="Background" Value="Transparent" />
