@@ -49,7 +49,9 @@
                             </Border>
 
                             <!-- Theme & Style Preset -->
-                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                            <!-- #56：本卡（含内部"自定义高级配色"与光晕控件区）DataContext 指向轮盘外观设置子 VM，
+                                 XAML 结构/控件 AutoId/选项顺序保持不变，仅绑定源从聚合 VM 换到 WheelAppearance。 -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
@@ -236,7 +238,8 @@
                             </Border>
 
                             <!-- Geometry Dimensions & Advanced Shapes -->
-                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                            <!-- #56：DataContext 指向轮盘外观设置子 VM（WheelAppearance）。 -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
@@ -310,7 +313,8 @@
                             </Border>
 
                             <!-- Typography & Layout Options -->
-                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                            <!-- #56：DataContext 指向轮盘外观设置子 VM（WheelAppearance）。 -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
@@ -351,15 +355,18 @@
                             </Border>
 
                             <!-- Center Core & Pattern Options -->
-                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                            <!-- #56：DataContext 指向轮盘外观设置子 VM（WheelAppearance）。 -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
                                     <TextBlock Text="{DynamicResource CoreTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
-                                    <!-- T17/T19：ShowCoreIcon 双向绑定；事件处理器只保留预览重绘 View 效果。 -->
-                                    <CheckBox x:Name="ShowCoreIconCheckBox" Content="{DynamicResource CoreShowIcon}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
+                                    <!-- T17/T19/#56：ShowCoreIcon 双向绑定；#56 起 setter 补发
+                                         AppearancePreviewInvalidatedMessage（预览重绘全部经消息管线），
+                                         Checked/Unchecked 事件处理器已删除。 -->
+                                    <CheckBox x:Name="ShowCoreIconCheckBox" Content="{DynamicResource CoreShowIcon}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}"/>
 
                                     <TextBlock Text="{DynamicResource CoreIconType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <!-- T17/T21：CoreIconType 双向绑定；面板可见性/图标预览/名称文本均声明式绑定（DataTrigger/MultiBinding）。 -->
@@ -488,7 +495,8 @@
                             </Border>
 
                             <!-- Quick Reset Button -->
-                            <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="{DynamicResource BtnResetGeometry}" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding ResetDimensionsCommand}" HorizontalAlignment="Right"/>
+                            <!-- #56：一键重置属轮盘外观命令，绑定改经聚合 VM 的 WheelAppearance 子 VM。 -->
+                            <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="{DynamicResource BtnResetGeometry}" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding WheelAppearance.ResetDimensionsCommand}" HorizontalAlignment="Right"/>
                         </Grid>
                     </Border>
                 </Grid>
