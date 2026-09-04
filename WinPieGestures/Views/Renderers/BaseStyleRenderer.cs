@@ -12,13 +12,14 @@ namespace WinPieGestures.Views.Renderers
 {
     public abstract class BaseStyleRenderer : IRadialStyleRenderer
     {
-        public Brush DefaultSectorBrush { get; protected set; }
-        public Brush HighlightSectorBrush { get; protected set; }
-        public Brush SectorBorderBrush { get; protected set; }
-        public Brush HighlightBorderBrush { get; protected set; }
-        public Brush TextColorBrush { get; protected set; }
-        public Brush CoreBgBrush { get; protected set; }
-        public Brush CoreBorderBrush { get; protected set; }
+        // 由 Initialize 依据解析出的 WheelPalette 构造画刷后填充（调用方保证先 Initialize 再使用）。
+        public Brush DefaultSectorBrush { get; protected set; } = null!;
+        public Brush HighlightSectorBrush { get; protected set; } = null!;
+        public Brush SectorBorderBrush { get; protected set; } = null!;
+        public Brush HighlightBorderBrush { get; protected set; } = null!;
+        public Brush TextColorBrush { get; protected set; } = null!;
+        public Brush CoreBgBrush { get; protected set; } = null!;
+        public Brush CoreBorderBrush { get; protected set; } = null!;
 
         public double BorderThickness { get; protected set; } = 1.0;
         public double HighlightBorderThickness { get; protected set; } = 1.5;
