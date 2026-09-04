@@ -16,25 +16,7 @@ namespace WinPieGestures.Views.Renderers
     /// </summary>
     public class ClassicRingRenderer : BaseStyleRenderer
     {
-        protected override void GetDefaultColors(string theme, out string sectorBgHex, out string sectorBorderHex, out string highlightBgHex, out string highlightBorderHex, out string textHex)
-        {
-            if (theme == "Light")
-            {
-                sectorBgHex = "#F5F8FAFC";
-                sectorBorderHex = "#3564748B";
-                highlightBgHex = "#FF2563EB";  // Vivid Royal Cobalt
-                highlightBorderHex = "#FF93C5FD";
-                textHex = "#FF0F172A";
-            }
-            else
-            {
-                sectorBgHex = "#F018181B";     // Deep obsidian zinc
-                sectorBorderHex = "#40FFFFFF"; // Fine crisp ring border
-                highlightBgHex = "#FF2563EB";  // Pure vivid Cobalt Blue
-                highlightBorderHex = "#FF93C5FD";
-                textHex = "#FFF8FAFC";
-            }
-        }
+        protected override string WheelStyleName => "ClassicRing";
 
         protected override void PostInitialize()
         {

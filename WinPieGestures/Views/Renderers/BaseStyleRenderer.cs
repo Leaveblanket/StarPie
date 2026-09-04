@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using WinPieGestures.Models;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -25,135 +26,35 @@ namespace WinPieGestures.Views.Renderers
         public bool IsLightTheme { get; protected set; } = false;
         protected AppConfig? _config;
 
+        /// <summary>轮盘配色目录中的风格键（与 <see cref="StyleRendererFactory"/> 分支同名），
+        /// 决定该风格的默认深浅观感与 Light 方案是否套用标准浅色表。</summary>
+        protected abstract string WheelStyleName { get; }
+
         public virtual void Initialize(string theme, AppConfig config, bool windowsInDarkMode)
         {
             _config = config;
             BorderThickness = 1.0;
             HighlightBorderThickness = 1.5;
 
-            string effectiveTheme = theme;
-            if (string.Equals(theme, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(theme))
-            {
-                effectiveTheme = windowsInDarkMode ? "Dark" : "Light";
-            }
-
+            string effectiveTheme = WheelPaletteParser.ResolveEffectiveTheme(theme, windowsInDarkMode);
             IsLightTheme = string.Equals(effectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
 
-            string sectorBgHex, sectorBorderHex, highlightBgHex, highlightBorderHex, textHex;
-            GetDefaultColors(effectiveTheme, out sectorBgHex, out sectorBorderHex, out highlightBgHex, out highlightBorderHex, out textHex);
+            // ADR-0014 决策 10：方案名→色值组只在解析层发生；渲染器只消费解析结果构造画刷。
+            WheelPalette palette = WheelPaletteParser.Resolve(theme, config, windowsInDarkMode, WheelStyleName);
 
-            string coreBgHex = sectorBgHex;
-            string coreBorderHex = sectorBorderHex;
-
-            if (theme == "Light" && UseStandardLightThemeFallback())
-            {
-                sectorBgHex = "#F0F8FAFC";
-                sectorBorderHex = "#3064748B";
-                highlightBgHex = "#FF2563EB";
-                highlightBorderHex = "#FF60A5FA";
-                textHex = "#FF0F172A";
-                coreBgHex = "#FFF8FAFC";
-                coreBorderHex = "#3064748B";
-            }
-            else if (theme == "MatchaForest")
-            {
-                sectorBgHex = "#E6142E1F";
-                sectorBorderHex = "#4034D399";
-                highlightBgHex = "#FF10B981";
-                highlightBorderHex = "#FF6EE7B7";
-                textHex = "#FFF0FDF4";
-                coreBgHex = "#F0142E1F";
-                coreBorderHex = "#4034D399";
-            }
-            else if (theme == "GlacialIce")
-            {
-                sectorBgHex = "#E0E0F2FE";
-                sectorBorderHex = "#6038BDF8";
-                highlightBgHex = "#FF0284C7";
-                highlightBorderHex = "#FFBAE6FD";
-                textHex = "#FF0C4A6E";
-                coreBgHex = "#F0E0F2FE";
-                coreBorderHex = "#6038BDF8";
-            }
-            else if (theme == "MorandiMuted")
-            {
-                sectorBgHex = "#E62C302E";
-                sectorBorderHex = "#409CA3AF";
-                highlightBgHex = "#FF78716C";
-                highlightBorderHex = "#FFD6D3D1";
-                textHex = "#FFF5F5F4";
-                coreBgHex = "#F02C302E";
-                coreBorderHex = "#409CA3AF";
-            }
-            else if (theme.StartsWith("CustomPreset_") || (config.CustomColorPresets != null && config.CustomColorPresets.Exists(p => p.Id == theme || p.Name == theme)))
-            {
-                var preset = config.CustomColorPresets?.Find(p => p.Id == theme || p.Name == theme || ("CustomPreset_" + p.Id) == theme);
-                if (preset != null)
-                {
-                    sectorBgHex = preset.SectorBg;
-                    sectorBorderHex = preset.SectorBorder;
-                    highlightBgHex = preset.HighlightBg;
-                    highlightBorderHex = preset.HighlightBorder;
-                    textHex = preset.TextColor;
-                }
-            }
-            else if (theme == "Custom")
-            {
-                sectorBgHex = config.CustomSectorBg ?? sectorBgHex;
-                sectorBorderHex = config.CustomSectorBorder ?? sectorBorderHex;
-                highlightBgHex = config.CustomHighlightBg ?? highlightBgHex;
-                highlightBorderHex = config.CustomHighlightBorder ?? highlightBorderHex;
-                textHex = config.CustomText ?? textHex;
-                coreBgHex = sectorBgHex;
-                coreBorderHex = sectorBorderHex;
-            }
-
-            coreBgHex = sectorBgHex;
-            coreBorderHex = sectorBorderHex;
-
-            try
-            {
-                DefaultSectorBrush = CreateSolidBrush(sectorBgHex);
-                HighlightSectorBrush = CreateSolidBrush(highlightBgHex);
-                SectorBorderBrush = CreateSolidBrush(sectorBorderHex);
-                HighlightBorderBrush = CreateSolidBrush(highlightBorderHex);
-                TextColorBrush = CreateSolidBrush(textHex);
-                CoreBgBrush = CreateSolidBrush(coreBgHex);
-                CoreBorderBrush = CreateSolidBrush(coreBorderHex);
-            }
-            catch
-            {
-                DefaultSectorBrush = CreateSolidBrush("#E618181B");
-                HighlightSectorBrush = CreateSolidBrush("#FF3B82F6");
-                SectorBorderBrush = CreateSolidBrush("#35FFFFFF");
-                HighlightBorderBrush = CreateSolidBrush("#A0FFFFFF");
-                TextColorBrush = CreateSolidBrush("#F8FAFC");
-                CoreBgBrush = CreateSolidBrush("#F018181B");
-                CoreBorderBrush = CreateSolidBrush("#30FFFFFF");
-            }
+            DefaultSectorBrush = CreateBrush(palette.SectorBg);
+            HighlightSectorBrush = CreateBrush(palette.HighlightBg);
+            SectorBorderBrush = CreateBrush(palette.SectorBorder);
+            HighlightBorderBrush = CreateBrush(palette.HighlightBorder);
+            TextColorBrush = CreateBrush(palette.TextColor);
+            CoreBgBrush = CreateBrush(palette.CoreBg);
+            CoreBorderBrush = CreateBrush(palette.CoreBorder);
 
             PostInitialize();
         }
 
-        protected SolidColorBrush CreateSolidBrush(string hex)
-        {
-            return new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));
-        }
-
-        protected virtual void GetDefaultColors(string theme, out string sectorBgHex, out string sectorBorderHex, out string highlightBgHex, out string highlightBorderHex, out string textHex)
-        {
-            // Modern Dark Neutral Base with Electric Blue Accent
-            sectorBgHex = "#EB18181B";     // Dark slate-zinc
-            sectorBorderHex = "#30FFFFFF"; // Subtle hairline
-            highlightBgHex = "#FF2563EB";  // Pure vivid Cobalt/Blue
-            highlightBorderHex = "#FF60A5FA";
-            textHex = "#FFF8FAFC";
-        }
-
-        protected virtual bool UseStandardLightThemeFallback()
-        {
-            return true;
-        }
+        protected static SolidColorBrush CreateBrush(RgbColor color)
+            => new SolidColorBrush(Color.FromArgb(color.A, color.R, color.G, color.B));
 
         protected virtual void PostInitialize()
         {

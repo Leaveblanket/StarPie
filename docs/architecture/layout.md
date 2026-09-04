@@ -26,7 +26,10 @@ WinPieGestures/
 │   ├── WheelProfile.cs
 │   ├── ActionItem.cs
 │   ├── CustomColorPreset.cs
-│   └── ColorMath.cs            # RgbColor（readonly struct）与纯颜色换算
+│   ├── ColorMath.cs            # RgbColor（readonly struct）与纯颜色换算
+│   ├── WheelPalette.cs         # 轮盘配色色值组（WPF-free）
+│   ├── WheelPaletteCatalog.cs  # 轮盘配色静态色值目录（唯一 hex 来源）
+│   └── WheelPaletteParser.cs   # 轮盘配色方案解析（System/预设/Custom/坏值回落）
 ├── Services/                   # 服务、副作用与横切件，按功能分子目录
 │   ├── Actions/                # 动作执行
 │   ├── Configuration/          # 配置读写、防抖保存、自启注册表
@@ -58,7 +61,7 @@ WinPieGestures/
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
-| `Models/` | 配置 POCO（`AppConfig`、`WheelProfile`、`ActionItem`、`CustomColorPreset`）与 WPF-free 领域值类型（`RgbColor`/`ColorMath`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
+| `Models/` | 配置 POCO（`AppConfig`、`WheelProfile`、`ActionItem`、`CustomColorPreset`）与 WPF-free 领域值类型/纯函数（`RgbColor`/`ColorMath`、轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
 | `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；不跨目录“借用”他人实现；静态工具需符合 [layering.md](layering.md)（Services） |
 | `Services/Actions/` | `IActionExecutorService`、`ActionExecutorService`（系统调用层）、`ActionRouting`（纯函数 + `ActionRoute`/`KeyStroke`） | 路由决策不得散落进 VM/View；实现见 [gestures.md](gestures.md) |
 | `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
@@ -80,7 +83,7 @@ WinPieGestures/
 | `Views/Wheel/` | `RadialWindow.xaml(.cs)` | 轮盘状态决策在 `WheelViewModel`，窗口只做视觉呈现与生命周期；见 [wheel.md](wheel.md) |
 | `Views/Controls/` | 自定义控件与附加行为（`HotkeyRecorderBox.cs`、`SpectrumCanvasBehavior.cs`），仅纯 UI 适配 | 有 `Command`/绑定等价物时不得新增行为 |
 | `Views/Converters/` | `XxxToYyyConverter` | 转换器保持无状态、可静态复用 |
-| `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer` | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
+| `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷，不内联方案 hex 表 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
 | `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集）、`ModernControls.xaml`（隐式默认/键控变体/共享模板，仅由 `App.xaml` 合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
 
 ## 根级文件规则
