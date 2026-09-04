@@ -50,6 +50,23 @@ Accepted（grilling 共识 1C/2C/3B + T1/S1/U2；#35 起分批实施）。
    显式 `Style={x:Null}`。转换器统一实例（`BoolToVis`）。
 6. **排版与几何令牌**：排版属性归一层；`CornerRadius` 等魔法数令牌化（#38 实施）。
 
+## Appendix: U2 按钮触发器与模板去重（#37 spike 结论）
+
+`ModernButtonStyle`/`PrimaryButtonStyle` 原本各持一份整段 `ControlTemplate`，
+hover/pressed 视觉硬编码在模板触发器内，派生样式无法复用单模板。#37 spike
+（net8.0-windows STA；派生 Style「同属性、同触发值」覆盖实验 + `XamlReader`
+整段解析最终 XAML 形态）确认 WPF 派生样式语义：
+
+- 派生 Style 中与基样式「同属性、同触发值」的 `Style.Triggers` 触发器会覆盖基
+  样式触发器，条件退出后干净回落到派生 Setter，不残留基样式触发值；
+- 基样式触发器优先级高于派生样式 Setter——派生若不复写触发器，hover 仍取基值。
+
+据此决定按钮链：**Button 隐式样式（唯一完整模板）→ 键控 `ModernButtonStyle`
+兼容别名（BasedOn 隐式）→ `PrimaryButtonStyle`（BasedOn 别名，仅覆盖颜色与
+触发器）**。hover/pressed 触发器统一上移到 `Style.Triggers`，`ControlTemplate`
+不再含触发器，三份按钮模板收敛为一份；透明/无边框特例（如 HotkeyRecorderBox
+✕ 清除钮）显式 `Style={x:Null}` 复位，不落入隐式默认。
+
 ## Consequences
 
 - 页面/侧栏不再携带本地画刷，深色系主题在设置内容区恢复生效；资源字典由 7+ 处合并收敛
