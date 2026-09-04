@@ -34,8 +34,8 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                <TextBlock Text="{DynamicResource GesturesHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                <TextBlock x:Name="GesturesPageSubheader" Text="支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                <TextBlock AutomationProperties.AutomationId="GesturesPageHeader" Text="{DynamicResource GesturesHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock AutomationProperties.AutomationId="GesturesPageSubheader" Text="{DynamicResource GesturesSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -56,10 +56,10 @@
                                 <ListBox x:Name="ProfilesListBox" Height="100" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile, Mode=TwoWay}" DisplayMemberPath="ProcessName"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
-                                <Button AutomationProperties.AutomationId="AddProfileButton" Content="{DynamicResource BtnAddAppProfile}" Style="{StaticResource PrimaryButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddProfileFromPickerCommand}" ToolTip="从已安装软件或开始菜单中选择程序创建专属配置"/>
-                                <Button AutomationProperties.AutomationId="AddCustomProfileButton" Content="{DynamicResource BtnAddCustomProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddCustomProfileFromDialogCommand}" ToolTip="自定义命名创建新的轮盘配置方案"/>
-                                <Button AutomationProperties.AutomationId="RenameProfileButton" Content="{DynamicResource BtnRenameProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding RenameSelectedProfileCommand}" ToolTip="重命名选中的配置方案"/>
-                                <Button AutomationProperties.AutomationId="DeleteProfileButton" Content="{DynamicResource BtnDeleteProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Command="{Binding DeleteSelectedProfileCommand}" ToolTip="删除选中的配置方案"/>
+                                <Button AutomationProperties.AutomationId="AddProfileButton" Content="{DynamicResource BtnAddAppProfile}" Style="{StaticResource PrimaryButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddProfileFromPickerCommand}" ToolTip="{DynamicResource AddProfileTooltip}"/>
+                                <Button AutomationProperties.AutomationId="AddCustomProfileButton" Content="{DynamicResource BtnAddCustomProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding AddCustomProfileFromDialogCommand}" ToolTip="{DynamicResource AddCustomProfileTooltip}"/>
+                                <Button AutomationProperties.AutomationId="RenameProfileButton" Content="{DynamicResource BtnRenameProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="0,0,0,5" Command="{Binding RenameSelectedProfileCommand}" ToolTip="{DynamicResource RenameProfileTooltip}"/>
+                                <Button AutomationProperties.AutomationId="DeleteProfileButton" Content="{DynamicResource BtnDeleteProfile}" Style="{StaticResource ModernButtonStyle}" Height="30" Command="{Binding DeleteSelectedProfileCommand}" ToolTip="{DynamicResource DeleteProfileTooltip}"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -108,7 +108,7 @@
                                                 <TextBlock Text="{Binding DirectionLabel}" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center" FontSize="12"/>
 
                                                 <!-- Col 1: Icon Selector Button -->
-                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" Command="{Binding PickIconCommand}" ToolTip="点击选取矢量图标">
+                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" Command="{Binding PickIconCommand}" ToolTip="{DynamicResource PickIconTooltip}">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Path Width="14" Height="14" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,4,0"
                                                               Data="{Binding VectorIconPathData, Converter={StaticResource StringToGeometryConverter}}" Visibility="{Binding HasVectorIcon, Converter={StaticResource BoolToVis}}"/>
@@ -141,8 +141,8 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                                     IsReadOnly="True" Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextSecondaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="选择的应用程序路径"/>
-                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="选择应用程序或快捷方式...">
+                                                                     IsReadOnly="True" Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextSecondaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="{DynamicResource SelectedAppPathTooltip}"/>
+                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="{DynamicResource BrowseAppTooltip}">
                                                             <TextBlock Text="📁" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </Grid>
@@ -154,8 +154,8 @@
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                                     Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="选择的本地文件夹路径"/>
-                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseFolderCommand}" Height="30" ToolTip="选择本地文件夹...">
+                                                                     Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="{DynamicResource SelectedFolderPathTooltip}"/>
+                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseFolderCommand}" Height="30" ToolTip="{DynamicResource BrowseFolderTooltip}">
                                                             <TextBlock Text="📂" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </Grid>
@@ -170,7 +170,7 @@
 
                                                 <!-- Col 5: Launch Arguments -->
                                                 <TextBox Grid.Column="5" Text="{Binding Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
-                                                             IsEnabled="{Binding IsLaunchType}" Margin="0,0,8,0" Height="30" FontSize="11" ToolTip="启动参数 (如命令行参数或URL)" VerticalContentAlignment="Center"/>
+                                                             IsEnabled="{Binding IsLaunchType}" Margin="0,0,8,0" Height="30" FontSize="11" ToolTip="{DynamicResource LaunchArgsTooltip}" VerticalContentAlignment="Center"/>
 
                                                 <!-- Col 6: Test Button -->
                                                 <Button Grid.Column="6" Content="{Binding TestButtonText}" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="12,0" Command="{Binding TestCommand}"/>

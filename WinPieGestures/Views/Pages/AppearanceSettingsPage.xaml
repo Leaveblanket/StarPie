@@ -33,7 +33,7 @@
 
                 <StackPanel Grid.Row="0" Margin="0,0,0,16">
                     <TextBlock Text="{DynamicResource AppearanceHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                    <TextBlock Text="{DynamicResource AppearanceSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    <TextBlock AutomationProperties.AutomationId="AppearancePageSubheader" Text="{DynamicResource AppearanceSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
 
                 <!-- Split Pane: Left Config (1.15*) + Right Live Preview (1*) -->
@@ -52,17 +52,17 @@
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="软件控制台界面主题 (App Theme)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                                    <TextBlock Text="定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{DynamicResource ConsoleThemeTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource ConsoleThemeDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
 
                                     <!-- T17/T19：AppTheme 双向绑定(页面 DataContext 即外观 VM;T17 的根路径在此等价)（SelectedValuePath 取 Tag），选中后事件处理器只驱动窗口主题应用与预览重绘等 View 效果。 -->
                                     <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}" SelectionChanged="AppThemeComboBox_SelectionChanged">
-                                        <ComboBoxItem Content="🌓 跟随系统 (System Auto)" Tag="System"/>
-                                        <ComboBoxItem Content="☀️ 极简纯白 (Modern Light)" Tag="Light"/>
-                                        <ComboBoxItem Content="🌙 极夜曜黑 (Obsidian Dark)" Tag="Dark"/>
-                                        <ComboBoxItem Content="🌌 午夜深蓝 (Midnight Navy)" Tag="MidnightNavy"/>
-                                        <ComboBoxItem Content="🔮 暗夜紫罗兰 (Royal Violet)" Tag="RoyalViolet"/>
-                                        <ComboBoxItem Content="⚙️ 钛金深灰 (Titanium Gray)" Tag="TitaniumGray"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeSystem}" Tag="System"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeLight}" Tag="Light"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeDark}" Tag="Dark"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeNavy}" Tag="MidnightNavy"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeViolet}" Tag="RoyalViolet"/>
+                                        <ComboBoxItem Content="{DynamicResource ThemeGray}" Tag="TitaniumGray"/>
                                     </ComboBox>
                                 </StackPanel>
                             </Border>
@@ -73,24 +73,24 @@
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="轮盘视觉风格与色彩" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{DynamicResource StyleTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
-                                    <TextBlock Text="主题风格 (UiStyle):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource StyleTypeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding UiStyle}">
-                                        <ComboBoxItem Content="经典圆环 (Classic Ring)" Tag="ClassicRing"/>
-                                        <ComboBoxItem Content="极简扇区 (Clean Sectors)" Tag="CleanSectors"/>
-                                        <ComboBoxItem Content="液态毛玻璃 (Glassmorphism)" Tag="Glassmorphism"/>
+                                        <ComboBoxItem Content="{DynamicResource StyleClassic}" Tag="ClassicRing"/>
+                                        <ComboBoxItem Content="{DynamicResource StyleClean}" Tag="CleanSectors"/>
+                                        <ComboBoxItem Content="{DynamicResource StyleGlass}" Tag="Glassmorphism"/>
 
                                     </ComboBox>
 
-                                    <TextBlock Text="轮盘配色方案 (Wheel Theme):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource ThemeTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <Grid Margin="0,0,0,10">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"/>
-                                        <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="重命名当前选中的自定义配色方案预设"/>
+                                        <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="{DynamicResource RenamePresetTooltip}"/>
                                     </Grid>
 
                                                                     <!-- Card 1.5: Custom Advanced Colors (Collapsible) -->
@@ -106,7 +106,7 @@
                                         </StackPanel>
                                     </Expander.Header>
                                     <StackPanel x:Name="CustomColorsPanel" Margin="0,12,0,4">
-                                        <TextBlock Text="自定义十六进制色彩 (色盘调色 / 屏幕吸色):" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                                        <TextBlock Text="{DynamicResource CustomColorsLabel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
 
                                         <!-- Sector Normal Color -->
                                         <Grid Margin="0,0,0,6">
@@ -116,12 +116,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="扇区底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{DynamicResource CustomSectorBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!-- Sector Normal Border -->
@@ -132,12 +132,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="扇区边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{DynamicResource CustomSectorBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!-- Sector Highlight Color -->
@@ -148,12 +148,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="高亮底色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{DynamicResource CustomHighlightBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!-- Sector Highlight Border -->
@@ -164,12 +164,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="高亮边框:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{DynamicResource CustomHighlightBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!-- Text Color -->
@@ -180,12 +180,12 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="文字颜色:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{DynamicResource CustomTextColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" Text="{Binding CustomTextText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取颜色" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <Grid Margin="0,6,0,0">
@@ -193,25 +193,25 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Button x:Name="SaveCustomColorPresetButton" Content="💾 保存当前颜色为自定义配色预设..." Style="{StaticResource ModernButtonStyle}" Height="30" FontWeight="Medium" Command="{Binding SavePresetCommand}"/>
-                                            <Button x:Name="DeletePresetInPanelButton" Grid.Column="1" Content="🗑️ 删除预设" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding DeletePresetCommand}" ToolTip="删除当前选中的自定义配色方案预设"/>
+                                            <Button x:Name="SaveCustomColorPresetButton" Content="{DynamicResource SaveCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="30" FontWeight="Medium" Command="{Binding SavePresetCommand}"/>
+                                            <Button x:Name="DeletePresetInPanelButton" Grid.Column="1" Content="{DynamicResource BtnDeletePreset}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding DeletePresetCommand}" ToolTip="{DynamicResource DeletePresetTooltip}"/>
                                         </Grid>
                                     </StackPanel>
                                 </Expander>
                             </Border>
 
                             <!-- Highlight Glow & Luminous Halo Controls (高亮边缘光晕与发光特效) -->
-                                    <TextBlock Text="高亮边缘光晕模式 (Highlight Glow):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,4"/>
+                                    <TextBlock Text="{DynamicResource GlowTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,4"/>
                                     <ComboBox x:Name="HighlightGlowPresetComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,8" SelectedValuePath="Tag" SelectedValue="{Binding HighlightGlowPreset}">
-                                        <ComboBoxItem Content="🌈 跟随主题高亮色 (Auto / Follow Theme)" Tag="Auto"/>
-                                        <ComboBoxItem Content="💜 丁香晶紫 (Lilac Violet #A855F7)" Tag="Lilac"/>
-                                        <ComboBoxItem Content="💙 冰川湛蓝 (Glacial Blue #3B82F6)" Tag="Blue"/>
-                                        <ComboBoxItem Content="💚 翡翠荧绿 (Emerald Green #10B981)" Tag="Emerald"/>
-                                        <ComboBoxItem Content="💖 樱花粉晕 (Sakura Rose #EC4899)" Tag="Rose"/>
-                                        <ComboBoxItem Content="🧡 琥珀金光 (Amber Gold #F59E0B)" Tag="Amber"/>
-                                        <ComboBoxItem Content="🔴 珊瑚赤光 (Coral Red #EF4444)" Tag="Red"/>
-                                        <ComboBoxItem Content="⚪ 冰魄纯白 (Pure Ice White #FFFFFF)" Tag="White"/>
-                                        <ComboBoxItem Content="🎨 自定义光晕颜色 (Custom Glow Color)" Tag="Custom"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowFollowTheme}" Tag="Auto"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetLilac}" Tag="Lilac"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetBlue}" Tag="Blue"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetEmerald}" Tag="Emerald"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetRose}" Tag="Rose"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetAmber}" Tag="Amber"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetRed}" Tag="Red"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetWhite}" Tag="White"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetCustom}" Tag="Custom"/>
                                     </ComboBox>
 
                                     <!-- Custom Highlight Glow Color Row -->
@@ -222,16 +222,16 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="光晕色值:" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource GlowColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" Text="{Binding HighlightGlowColorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                        <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="打开调色板选取光晕颜色" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
+                                        <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickGlowColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
                                             <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorText, Converter={StaticResource HexToBrushConverter}}"/>
                                         </Button>
-                                        <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="从屏幕任意位置吸取光晕颜色" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
+                                        <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickGlowEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
                                     </Grid>
 
                                     <!-- Highlight Glow Blur Radius -->
-                                    <TextBlock Text="光晕弥散半径 (Glow Radius):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource GlowRadius}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -242,7 +242,7 @@
                                     </Grid>
 
                                     <!-- Highlight Glow Opacity -->
-                                    <TextBlock Text="光晕不透明度 (Glow Opacity):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource GlowOpacity}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -260,19 +260,19 @@
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="几何形态与尺寸微调" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,10"/>
+                                    <TextBlock Text="{DynamicResource GeometryTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,10"/>
 
                                     <!-- Shape Selector -->
-                                    <TextBlock Text="扇区切削形态 (Shape):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource ShapeTypeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding Shape}">
-                                        <ComboBoxItem Content="经典紧凑扇区 (Original)" Tag="Original"/>
-                                        <ComboBoxItem Content="独立圆形卡片 (Circle)" Tag="Circle"/>
-                                        <ComboBoxItem Content="悬浮圆角胶囊 (Capsule)" Tag="RoundedCapsule"/>
-                                        <ComboBoxItem Content="蜂巢六边形矩阵 (HexagonHive)" Tag="HexagonHive"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeOriginal}" Tag="Original"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeCircle}" Tag="Circle"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeRounded}" Tag="RoundedCapsule"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeHexagon}" Tag="HexagonHive"/>
                                     </ComboBox>
 
                                     <!-- Sector Gap -->
-                                    <TextBlock Text="扇区光学缝隙间距 (Gap):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource SectorGap}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -283,7 +283,7 @@
                                     </Grid>
 
                                     <!-- Sector Corner Radius / Fillet -->
-                                    <TextBlock Text="扇区边缘平滑倒角 (Corner Radius):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource SectorCornerRadius}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -294,7 +294,7 @@
                                     </Grid>
 
                                     <!-- Wheel Radius -->
-                                    <TextBlock Text="轮盘整体半径 (外径):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource RadiusOuter}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -305,7 +305,7 @@
                                     </Grid>
 
                                     <!-- Inner Radius -->
-                                    <TextBlock Text="扇区内半径 (Inner):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource RadiusInner}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -316,7 +316,7 @@
                                     </Grid>
 
                                     <!-- Core Radius -->
-                                    <TextBlock Text="中心核心圆半径 (Core):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource RadiusCore}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -334,17 +334,17 @@
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="图标与排版选项" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{DynamicResource IconLayoutTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
-                                    <TextBlock Text="排版模式 (Layout Mode):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource LayoutModeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding IconLayoutMode}">
-                                        <ComboBoxItem Content="图标 + 文字 (双行居中)" Tag="IconAndText"/>
-                                        <ComboBoxItem Content="仅显示图标 (极大化居中)" Tag="IconOnly"/>
-                                        <ComboBoxItem Content="仅显示文字 (纯文字居中)" Tag="TextOnly"/>
+                                        <ComboBoxItem Content="{DynamicResource LayoutIconText}" Tag="IconAndText"/>
+                                        <ComboBoxItem Content="{DynamicResource LayoutIconOnly}" Tag="IconOnly"/>
+                                        <ComboBoxItem Content="{DynamicResource LayoutTextOnly}" Tag="TextOnly"/>
                                     </ComboBox>
 
                                     <!-- Sector Icon Size -->
-                                    <TextBlock Text="图标尺寸大小 (Icon Size):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource SectorIconSize}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -355,7 +355,7 @@
                                     </Grid>
 
                                     <!-- Sector Font Size -->
-                                    <TextBlock Text="文字字号大小 (Font Size):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource SectorFontSize}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <Grid Margin="0,2,0,8">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -365,7 +365,7 @@
                                         <TextBlock x:Name="SectorFontSizeLabel" Grid.Column="1" Text="{Binding SectorFontSizeLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
 
-                                    <CheckBox x:Name="ShowTextCheckBox" Content="在轮盘扇区中显示动作名称文字" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,0" IsChecked="{Binding ShowText}"/>
+                                    <CheckBox x:Name="ShowTextCheckBox" Content="{DynamicResource ShowTextLabel}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,0" IsChecked="{Binding ShowText}"/>
                                 </StackPanel>
                             </Border>
 
@@ -375,24 +375,24 @@
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
                                 <StackPanel>
-                                    <TextBlock Text="中心核圆与图案设置" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                                    <TextBlock Text="{DynamicResource CoreTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
                                     <!-- T17/T19：ShowCoreIcon 双向绑定；事件处理器只保留预览重绘 View 效果。 -->
-                                    <CheckBox x:Name="ShowCoreIconCheckBox" Content="显示核圆中心图标 / 图案" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
+                                    <CheckBox x:Name="ShowCoreIconCheckBox" Content="{DynamicResource CoreShowIcon}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}" Checked="ShowCoreIconCheckBox_Changed" Unchecked="ShowCoreIconCheckBox_Changed"/>
 
-                                    <TextBlock Text="核圆图案类型 (Core Pattern):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource CoreIconType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <!-- T17/T21：CoreIconType 双向绑定；面板可见性/图标预览/名称文本均声明式绑定（DataTrigger/MultiBinding）。 -->
                                     <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding CoreIconType, Mode=TwoWay}">
-                                        <ComboBoxItem Content="✕ 默认取消叉号 (Exit / Close)" Tag="Exit"/>
-                                        <ComboBoxItem Content="⌖ 十字准心 (Crosshair)" Tag="Crosshair"/>
-                                        <ComboBoxItem Content="⊞ Windows 微标 (Windows Logo)" Tag="Windows"/>
-                                        <ComboBoxItem Content="⦿ 极简靶心圆点 (Bullseye Dot)" Tag="Dot"/>
-                                        <ComboBoxItem Content="⌂ 快捷主页 (Home)" Tag="Home"/>
-                                        <ComboBoxItem Content="⏻ 电源能量 (Power)" Tag="Power"/>
-                                        <ComboBoxItem Content="🧭 极简罗盘 (Compass)" Tag="Compass"/>
-                                        <ComboBoxItem Content="🐾 萌宠猫爪 (Cute Cat Paw)" Tag="CatPaw"/>
-                                        <ComboBoxItem Content="✨ 自定义矢量图标 (Custom Icon)" Tag="Custom"/>
-                                        <ComboBoxItem Content="🖼️ 自定义图片文件 (Custom Image)" Tag="Image"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternExit}" Tag="Exit"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCrosshair}" Tag="Crosshair"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternWindows}" Tag="Windows"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternDot}" Tag="Dot"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternHome}" Tag="Home"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternPower}" Tag="Power"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCompass}" Tag="Compass"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCatPaw}" Tag="CatPaw"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCustom}" Tag="Custom"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternImage}" Tag="Image"/>
                                     </ComboBox>
 
                                     <!-- Custom Core Vector Icon Row -->
@@ -433,7 +433,7 @@
                                                 </TextBlock>
                                             </StackPanel>
                                         </Border>
-                                        <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="选择图标..." Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Command="{Binding PickCoreIconCommand}"/>
+                                        <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="{DynamicResource BtnChooseIcon}" Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Command="{Binding PickCoreIconCommand}"/>
                                     </Grid>
 
                                     <!-- Custom Core Image Row -->
@@ -459,9 +459,9 @@
                                             <Image x:Name="CoreImageThumbnail" Stretch="UniformToFill" Source="{Binding CoreCustomImagePath, Converter={StaticResource FilePathToImageConverter}}"/>
                                         </Border>
                                         <!-- T17/T21：CoreCustomImagePath 双向绑定（逐键更新源）；缩略图经 FilePathToImageConverter 随绑定刷新。 -->
-                                        <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="自定义图片本地路径"/>
-                                    <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="浏览图片..." Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Command="{Binding BrowseCoreImageCommand}"/>
-                                    <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="清除" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Command="{Binding ClearCoreImageCommand}"/>
+                                        <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="{DynamicResource CoreCustomImageTooltip}"/>
+                                    <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="{DynamicResource BtnBrowseImage}" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Command="{Binding BrowseCoreImageCommand}"/>
+                                    <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="{DynamicResource BtnClear}" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Command="{Binding ClearCoreImageCommand}"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -486,12 +486,12 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Text="实时交互画布 (Live Preview)" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{DynamicResource LivePreviewTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                     <Border Grid.Column="1" Background="#ECFDF5" CornerRadius="4" Padding="6,2">
-                                        <TextBlock Text="60FPS 同步渲染" FontSize="10" FontWeight="Bold" Foreground="#059669"/>
+                                        <TextBlock Text="{DynamicResource LivePreviewFps}" FontSize="10" FontWeight="Bold" Foreground="#059669"/>
                                     </Border>
                                 </Grid>
-                                <TextBlock Text="💡 移动鼠标至下方轮盘可实时测试高亮与磁吸手感" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource LivePreviewHint}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
                             </StackPanel>
 
                             <!-- Live Canvas Area -->
@@ -507,7 +507,7 @@
                             </Border>
 
                             <!-- Quick Reset Button -->
-                            <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="一键重置为推荐几何尺寸" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding ResetDimensionsCommand}" HorizontalAlignment="Right"/>
+                            <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="{DynamicResource BtnResetGeometry}" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding ResetDimensionsCommand}" HorizontalAlignment="Right"/>
                         </Grid>
                     </Border>
                 </Grid>

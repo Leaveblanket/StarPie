@@ -484,7 +484,7 @@
                                     BorderThickness="0" Content="✕" Cursor="Hand"
                                     FontSize="10"
                                     Foreground="{DynamicResource TextMutedBrush}"
-                                    ToolTip="清空快捷键" />
+                                    ToolTip="{DynamicResource ClearHotkeyTooltip}" />
                         </Grid>
                     </Border>
                 </ControlTemplate>

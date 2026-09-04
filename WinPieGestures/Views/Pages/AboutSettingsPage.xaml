@@ -31,12 +31,12 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                <TextBlock FontSize="20" FontWeight="Bold"
+                <TextBlock AutomationProperties.AutomationId="AboutPageHeader" FontSize="20" FontWeight="Bold"
                            Foreground="{DynamicResource TextPrimaryBrush}"
-                           Text="关于与更新日志" />
-                <TextBlock Margin="0,4,0,0" FontSize="12"
+                           Text="{DynamicResource AboutHeader}" />
+                <TextBlock AutomationProperties.AutomationId="AboutPageSubheader" Margin="0,4,0,0" FontSize="12"
                            Foreground="{DynamicResource TextSecondaryBrush}"
-                           Text="StarPie 现代鼠标轮盘笔势工具版本信息与完整演进历程。" />
+                           Text="{DynamicResource AboutSubheader}" />
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
@@ -80,7 +80,7 @@
                                 </StackPanel>
                                 <TextBlock Margin="0,4,0,0" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="高质感、极速现代 Windows 鼠标轮盘笔势工具" />
+                                           Text="{DynamicResource AboutDesc}" />
                             </StackPanel>
                             <Button Grid.Column="2" AutomationProperties.AutomationId="OpenChangelogButton" Height="34"
                                     VerticalAlignment="Center" Command="{Binding OpenChangelogCommand}"
@@ -195,7 +195,7 @@
                         <StackPanel>
                             <TextBlock Margin="0,0,0,14" FontSize="14" FontWeight="SemiBold"
                                        Foreground="{DynamicResource TextPrimaryBrush}"
-                                       Text="版本演进里程碑 (Milestones)" />
+                                       Text="{DynamicResource MilestonesTitle}" />
 
                             <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                     BorderBrush="{DynamicResource CardBorderBrush}"
