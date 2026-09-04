@@ -17,26 +17,7 @@ namespace WinPieGestures.Views.Renderers
     /// </summary>
     public class CatPawRenderer : BaseStyleRenderer
     {
-        protected override void GetDefaultColors(string theme, out string sectorBgHex, out string sectorBorderHex, out string highlightBgHex, out string highlightBorderHex, out string textHex)
-        {
-            if (theme != "Custom")
-            {
-                sectorBgHex = "#FFF7F9";       // Creamy soft sakura white
-                sectorBorderHex = "#F472B6";   // Soft pink border
-                highlightBgHex = "#FB7185";    // Sweet Sakura Rose
-                highlightBorderHex = "#FFE4E6";
-                textHex = "#881337";           // Deep rosy cocoa text
-            }
-            else
-            {
-                base.GetDefaultColors(theme, out sectorBgHex, out sectorBorderHex, out highlightBgHex, out highlightBorderHex, out textHex);
-            }
-        }
-
-        protected override bool UseStandardLightThemeFallback()
-        {
-            return false;
-        }
+        protected override string WheelStyleName => "CatPaw";
 
         protected override void PostInitialize()
         {

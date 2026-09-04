@@ -17,25 +17,7 @@ namespace WinPieGestures.Views.Renderers
     /// </summary>
     public class GlassmorphismRenderer : BaseStyleRenderer
     {
-        protected override void GetDefaultColors(string theme, out string sectorBgHex, out string sectorBorderHex, out string highlightBgHex, out string highlightBorderHex, out string textHex)
-        {
-            if (theme == "Light")
-            {
-                sectorBgHex = "#45FFFFFF";     // Translucent frosted crystalline white (40% opacity)
-                sectorBorderHex = "#85FFFFFF"; // Specular glass refraction rim
-                highlightBgHex = "#D86366F1";  // Luminous indigo-violet crystal
-                highlightBorderHex = "#FFFFFFFF"; // Pure specular white rim
-                textHex = "#FF0F172A";         // High-contrast slate text
-            }
-            else
-            {
-                sectorBgHex = "#40181E32";     // Deep midnight acrylic frosted glass (translucent deep blue-violet)
-                sectorBorderHex = "#50E2E8F0"; // Specular glass hairline rim (semi-transparent highlight)
-                highlightBgHex = "#D07C3AED";  // Rich royal amethyst lilac crystal on hover
-                highlightBorderHex = "#FFF5F3FF"; // Glowing lilac-white rim
-                textHex = "#FFF8FAFC";         // Pure morning snow white text
-            }
-        }
+        protected override string WheelStyleName => "Glassmorphism";
 
         protected override void PostInitialize()
         {

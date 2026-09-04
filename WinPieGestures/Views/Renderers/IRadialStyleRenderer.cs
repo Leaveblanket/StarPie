@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
+using WinPieGestures.Models;
 using Brush = System.Windows.Media.Brush;
 
 namespace WinPieGestures.Views.Renderers
@@ -22,7 +23,9 @@ namespace WinPieGestures.Views.Renderers
         double HighlightBorderThickness { get; }
 
         /// <summary>The theme name as configured; when it is "System"/empty the
-        /// renderer resolves with the caller-provided live Windows dark-mode flag.</summary>
+        /// renderer resolves with the caller-provided live Windows dark-mode flag.
+        /// Scheme→palette resolution happens in <see cref="WheelPaletteParser"/>; the
+        /// renderer only turns the resolved <see cref="WheelPalette"/> into brushes.</summary>
         void Initialize(string theme, AppConfig config, bool windowsInDarkMode);
 
         /// <summary>Draws the style's decorations; wheel state (geometry, whether the
