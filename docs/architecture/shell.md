@@ -20,8 +20,13 @@
    - `ThemePaletteManager`（宿主层，自包含）加载/缓存/冻结主题 XAML，把目标调色板**整项替换**
      Application `MergedDictionaries` 中含 `/Themes/` 的活动槽（切 Light 亦整项替换，无直接键残留）。
    - `AppHost` 只编排：构造时 `AttachPaletteApplier(effectiveTheme => paletteManager.Apply(...))`，
-     初始主题经 `MainView.ApplyAppTheme(_appearance.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），
+     初始主题经 `MainView.ApplyAppTheme(_interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），
      `Run()` 末尾 `EnableSystemThemeTracking()` 启动系统跟随。
+   - #54（ADR-0014 决策 6/7）：AppTheme 设置面归界面主题模块设置子 VM
+     `InterfaceThemeSettingsViewModel`（`ViewModels/Pages`，DI 单例，注入外观聚合 VM 暴露为
+     `InterfaceTheme`）；写穿配置后发布 `AppThemeChangedMessage`，由 `MainView`（壳层 code-behind
+     白名单）订阅执行 `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后
+     的窗口主题应用重挂路径同样经该消息由壳层执行。
    - `ThemeService`（`Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/
      `CurrentEffectiveTheme` 状态、`ResolveEffectiveTheme`（`System`/空经注册表探测实时判定）、
      `SetTheme`（唯一状态/资源入口，解析→记录→触发调色板替换→广播 `ThemeChanged`；同有效主题 no-op）、
