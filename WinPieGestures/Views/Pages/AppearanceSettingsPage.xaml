@@ -14,16 +14,6 @@
         RenderOptions.ClearTypeHint="Enabled"
         RenderOptions.BitmapScalingMode="HighQuality">
 
-    <pages:SettingsPageBase.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <!-- 页面解析期(未挂入主框架树)即需解析 StaticResource:自合并共享样式字典 -->
-                <ResourceDictionary Source="../Styles/SettingsStyles.xaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </pages:SettingsPageBase.Resources>
-
-
     <Grid>
 <Grid>
                 <Grid.RowDefinitions>

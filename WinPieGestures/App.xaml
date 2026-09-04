@@ -11,7 +11,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <!--  Light 主题默认/设计时画刷 (ADR-0012)：运行时由 AppHost 按主题覆盖为 Application 直接资源  -->
                 <ResourceDictionary Source="Views/Styles/Themes/Light.xaml" />
+                <!--  全局控件样式 (ADR-0012)：隐式默认 + 键控变体 + 共享模板，App 级单点合并  -->
+                <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
             <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
             <converters:StringToGeometryConverter x:Key="StringToGeometryConverter" />
             <converters:IntEqualsConverter x:Key="IntEqualsConverter" />
