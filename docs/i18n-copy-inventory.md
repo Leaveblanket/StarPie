@@ -229,3 +229,26 @@
 | `WheelThemeGlacialIce` | 冰川透蓝 (Glacial Ice) | 冰川透藍 (Glacial Ice) | Glacial Ice | グレイシャルアイス | 同上（Tag=GlacialIce） |
 | `WheelThemeMorandiMuted` | 莫兰迪柔灰 (Morandi Muted) | 莫蘭迪柔灰 (Morandi Muted) | Morandi Muted | モランディミュート | 同上（Tag=MorandiMuted） |
 | `WheelThemeCustomPreset` | 🎨 {0} (自定义预设) | 🎨 {0} (自訂預設) | 🎨 {0} (Custom Preset) | 🎨 {0} (カスタムプリセット) | `RebuildThemeOptions` 自定义预设后缀（{0}=preset.Name） |
+
+## 2026-09-04 更新：C8（#53）已实现——自定义预设对话框文案键化与名称语义落地
+
+> 对应 ADR-0014 决策 9 的预设对话框部分（#53）：外观页保存/重命名/删除自定义配色预设的
+> 整段对话框文案（标题/提示/确认/成功信息/空名校验/默认名建议）全部键化、随语言即时取词；
+> 预设名保持用户数据、原样展示；默认名 = 本地化模板 + 时间戳，落库后不再随语言切换；
+> 保存与重命名 trim 后入库，trim 后为空拒绝（键化报错）。
+> 新增 7 键 × 四语言，并改造既有 `RenameCustomPresetPrompt`（{0}=旧名原样插入）与
+> `MsgConfirmDeletePreset`（{0}=预设名原样插入）两个键值并接线；空输入在输入框层的通用
+> 拦截仍走 `InputDialogEmpty`，命令管线另设 `CustomPresetNameEmpty` 兜底守卫（xUnit 覆盖）。
+> 消费点均为 `AppearanceSettingsViewModel` 的预设 CRUD 命令（即时取词，切语后下次执行即新语言）。
+
+| 键 | zh-CN | zh-TW | en | ja | 消费点 |
+|---|---|---|---|---|---|
+| `SaveCustomPresetTitle` | 保存配色预设 | 儲存配色預設 | Save Color Preset | カラープリセットを保存 | `SavePreset` 输入框标题 |
+| `SaveCustomPresetPrompt` | 请输入自定义配色方案名称: | 請輸入自訂配色方案名稱: | Enter a name for the custom color preset: | カスタムカラープリセットの名前を入力してください: | `SavePreset` 输入框提示 |
+| `CustomPresetDefaultName` | 自定义配色 {0} | 自訂配色 {0} | Custom Palette {0} | カスタム配色 {0} | `SavePreset` 默认名建议（{0}=MMdd-HHmm 时间戳） |
+| `SaveCustomPresetSuccess` | 配色预设【{0}】已成功保存！ | 配色預設【{0}】已成功儲存！ | Color preset "{0}" saved successfully! | カラープリセット「{0}」を保存しました！ | `SavePreset` 成功提示（{0}=preset.Name） |
+| `CustomPresetNameEmpty` | 配色方案名称不能为空！ | 配色方案名稱不能為空！ | Preset name cannot be empty! | プリセット名を入力してください。 | `SavePreset`/`RenamePreset` trim 后空名拒绝提示 |
+| `DeleteCustomPresetTitle` | 确认删除配色方案 | 確認刪除配色方案 | Delete Color Preset | カラープリセットの削除 | `DeletePreset` 确认框标题 |
+| `DeleteCustomPresetSuccess` | 自定义配色方案【{0}】已成功删除！ | 自訂配色方案【{0}】已成功刪除！ | Custom color preset "{0}" deleted successfully! | カラープリセット「{0}」を削除しました！ | `ConfirmDeleteCustomColorPreset` 成功提示（{0}=preset.Name） |
+| `RenameCustomPresetPrompt`（改造） | 请输入配色方案预设的新名称：「{0}」 | 請輸入配色方案預設的新名稱：「{0}」 | Enter a new name for the color preset: "{0}" | カラープリセットの新しい名前を入力してください:「{0}」 | `RenamePreset` 输入框提示（{0}=旧名原样插入，取代原硬编码「旧名」拼接） |
+| `MsgConfirmDeletePreset`（改造并接线） | 确定要永久删除自定义配色方案预设【{0}】吗？\n删除后不可恢复。 | 確定要永久刪除自訂配色方案預設【{0}】嗎？\n刪除後無法恢復。 | Are you sure you want to permanently delete the custom color preset "{0}"?\nThis cannot be undone. | このカラープリセット「{0}」を削除してもよろしいですか？\n削除後は復元できません。 | `DeletePreset` 确认框文案（{0}=preset.Name；键原已存在未接线，本次补 {0} 并接线） |

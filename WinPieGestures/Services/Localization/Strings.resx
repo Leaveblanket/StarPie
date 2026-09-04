@@ -6,7 +6,14 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ 重命名预设</value></data>
   <data name="RenameCustomPresetTitle" xml:space="preserve"><value>重命名配色方案预设</value></data>
-  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>请输入配色方案预设的新名称：</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>请输入配色方案预设的新名称：「{0}」</value></data>
+  <data name="SaveCustomPresetTitle" xml:space="preserve"><value>保存配色预设</value></data>
+  <data name="SaveCustomPresetPrompt" xml:space="preserve"><value>请输入自定义配色方案名称:</value></data>
+  <data name="SaveCustomPresetSuccess" xml:space="preserve"><value>配色预设【{0}】已成功保存！</value></data>
+  <data name="CustomPresetDefaultName" xml:space="preserve"><value>自定义配色 {0}</value></data>
+  <data name="CustomPresetNameEmpty" xml:space="preserve"><value>配色方案名称不能为空！</value></data>
+  <data name="DeleteCustomPresetTitle" xml:space="preserve"><value>确认删除配色方案</value></data>
+  <data name="DeleteCustomPresetSuccess" xml:space="preserve"><value>自定义配色方案【{0}】已成功删除！</value></data>
   <data name="OuterEscapeTitle" xml:space="preserve"><value>顺势外甩脱离取消 (Outer Escape Cancel)</value></data>
   <data name="OuterEscapeDesc" xml:space="preserve"><value>超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。</value></data>
   <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>外甩取消距离灵敏度 (Escape Distance):</value></data>
@@ -194,7 +201,7 @@
   <data name="ChangelogOpenFailed" xml:space="preserve"><value>无法打开 CHANGELOG.md。</value></data>
   <data name="MilestonesTitle" xml:space="preserve"><value>版本演进里程碑 (Milestones)</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>设置已成功保存至硬盘！</value></data>
-  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>确定要永久删除此自定义配色方案吗？
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>确定要永久删除自定义配色方案预设【{0}】吗？
 删除后不可恢复。</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>确定要恢复出厂默认设置吗？所有自定义手势与样式将被重置。</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ 暂停手势</value></data>
