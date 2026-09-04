@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Media.Animation;
+using CommunityToolkit.Mvvm.Messaging;
 using Application = System.Windows.Application;
 using WinPieGestures.ViewModels;
 
@@ -13,6 +14,9 @@ namespace WinPieGestures.Views.Navigation
     /// 壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播由组合根承接
     /// （RootSettingsViewModel 已删除）。壳层静态文案为声明式 {DynamicResource}（ADR-0010），
     /// Window.Title 收进 <see cref="MainViewModel.WindowTitle"/>（壳层 VM 生命周期，ADR-0010 第 3 条）。
+    /// #54（ADR-0014 决策 7）：界面主题应用改消息驱动——订阅 <see cref="AppThemeChangedMessage"/>
+    /// 执行 <see cref="ApplyAppTheme"/>（页面主题 SelectionChanged 处理器已删除；配置导入后重挂
+    /// 路径同样经此消息由壳层执行），初始主题仍由 AppHost.Run 直调本方法。
     public partial class MainView : Window
     {
         private readonly MainViewModel _main;
@@ -28,6 +32,10 @@ namespace WinPieGestures.Views.Navigation
 
             // ADR-0010：壳层静态文案声明式化（{DynamicResource}）；Window.Title 绑定壳层 VM，
             // 语言切换由 MainViewModel（I18n 订阅）刷新，View 不再回填本地化。
+
+            // #54：主题变更消息订阅（壳层 code-behind 白名单，ADR-0009）——界面主题子 VM 写穿
+            // 配置后发布，此处执行窗口主题应用；消息接收方为弱引用，壳层随窗口生命周期常驻。
+            WeakReferenceMessenger.Default.Register<AppThemeChangedMessage>(this, (_, m) => ApplyAppTheme(m.Theme));
         }
 
         /// <summary>应用界面主题到主窗口（窗口视觉是壳层职责：外观页切换主题与导入后同步经此调用，

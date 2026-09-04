@@ -12,13 +12,17 @@ namespace WinPieGestures.ViewModels.Pages
     /// 高亮边缘光晕、几何尺寸、排版与文字显示。全部设置改动即时写穿 <see cref="IConfigService.Current"/>
     /// （立即生效语义）；落盘请求经 <see cref="IMessenger"/> 上报组合根编排订阅者
     /// （防抖/立即两类消息，T19 起取代迁移前的事件上报）。
+    /// #54（ADR-0014 决策 6/7）：软件界面主题（AppTheme）设置面已拆入界面主题模块设置子 VM
+    /// <see cref="InterfaceThemeSettingsViewModel"/>（本 VM 注入并暴露为 <see cref="InterfaceTheme"/>，
+    /// 外观页界面主题卡 DataContext 指向该子 VM）；本 VM 只保留轮盘外观配置面（#56 前原位驻留）。
     /// 实时预览的绘制留在视图层：视图经 <see cref="PreviewInvalidated"/> 用当前属性值重绘画布。
     /// 配色预设增删改的编排（含命名输入与删除确认/结果提示对话框）在此（T19：对话框编排内聚进 VM）。
     /// T19 页面化：构造注入 <see cref="ProfileListViewModel"/> 单例——预览画哪个方案是编译期可见的
     /// 静态已知依赖，不走消息（ADR-0005）；导入成功经 <see cref="ConfigImportedMessage"/> 广播后
     /// 自行从配置重挂状态（播种快照属性导入后会过期），并重建配色下拉选项（T21 ItemsSource 化）。
-    /// T16 收编窗口 code-behind 残留的界面主题（AppTheme）与中心核图标状态（透传属性，
-    /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
+    /// T16 收编窗口 code-behind 残留的中心核图标状态（透传属性，读直取、写直穿运行态配置）
+    /// 与中心核图标选取编排（<see cref="PickCoreIcon"/>）；界面主题（AppTheme）透传已随 #54
+    /// 迁入 <see cref="InterfaceThemeSettingsViewModel"/>（独占）。
     /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
     /// </summary>
     public partial class AppearanceSettingsViewModel : ObservableObject, IDisposable
@@ -41,6 +45,10 @@ namespace WinPieGestures.ViewModels.Pages
         /// 走构造注入不走消息（ADR-0005，Spec 决策 13）。</summary>
         public ProfileListViewModel ProfileList { get; }
 
+        /// <summary>界面主题模块设置子 VM 单例（#54 构造注入）：外观页界面主题卡 DataContext 指向
+        /// 本属性；AppTheme 透传/选项目录/主题应用消息由该子 VM 独占。</summary>
+        public InterfaceThemeSettingsViewModel InterfaceTheme { get; }
+
         /// <summary>运行态配置访问（T19：预览渲染初始化等 View 层读取；导入后自动取到新实例，
         /// 与迁移前根 VM 的 CurrentConfig 语义一致）。</summary>
         public AppConfig CurrentConfig => _config.Current;
@@ -50,16 +58,19 @@ namespace WinPieGestures.ViewModels.Pages
             IDialogService dialogs,
             IMessenger messenger,
             ProfileListViewModel profileList,
-            ILocalizationService localization)
+            ILocalizationService localization,
+            InterfaceThemeSettingsViewModel interfaceTheme)
         {
             _config = config;
             _dialogs = dialogs;
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             ProfileList = profileList ?? throw new ArgumentNullException(nameof(profileList));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            InterfaceTheme = interfaceTheme ?? throw new ArgumentNullException(nameof(interfaceTheme));
 
-            // T19：导入成功广播 → 从新配置重挂播种快照（透传属性读穿配置本就即时），
-            // 再通知页面 View 做主题应用/预览重绘等 View 效果（状态与下拉项已声明式绑定）。
+            // T19/#54：导入成功广播 → 从新配置重挂播种快照（透传属性读穿配置本就即时），
+            // 再通知页面 View 做预览重绘等 View 效果（状态与下拉项已声明式绑定；主题应用由
+            // InterfaceTheme 子 VM 发 AppThemeChangedMessage、壳层主窗口订阅执行）。
             messenger.Register<ConfigImportedMessage>(this, (_, _) =>
             {
                 ReloadFromConfig();
@@ -286,28 +297,14 @@ namespace WinPieGestures.ViewModels.Pages
         public string SectorIconSizeLabel => $"{SectorIconSize:0} px";
         public string SectorFontSizeLabel => $"{SectorFontSize:0.0} px";
 
-        // ---- 界面主题与中心核图标（T16 自窗口 code-behind 收编） --------------------
+        // ---- 中心核图标（T16 自窗口 code-behind 收编） ------------------------------
         //
         // 透传属性：状态直接住运行态配置（读直取、写直穿），不持副本——配置导入替换实例后
         // 无需重挂即取到新值，与迁移前窗口处理器在保存点对配置对象的直读直写逐字等价。
-        // T17：变更归队 Live-apply 管线——AppTheme/ShowCoreIcon 上报防抖落盘；CoreIconType/
+        // 界面主题（AppTheme）已随 #54 拆入 InterfaceThemeSettingsViewModel（见类头）。
+        // T17：变更归队 Live-apply 管线——ShowCoreIcon 上报防抖落盘；CoreIconType/
         // CoreCustomImagePath 同时上报预览重绘（对应迁移前各自 SelectionChanged/TextChanged
         // 处理器里的重绘与落盘调用；绑定初始化回推同值时被 setter 的等值守卫短路，不触发事件）。
-
-        /// <summary>软件控制台界面主题（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。
-        /// 主题应用到窗口属视图效果，经 IThemeService 由窗口驱动。</summary>
-        public string AppTheme
-        {
-            get => Config.AppTheme ?? "System";
-            set
-            {
-                value ??= "System";
-                if (string.Equals(Config.AppTheme, value, StringComparison.Ordinal)) return;
-                Config.AppTheme = value;
-                OnPropertyChanged();
-                _messenger.Send(DebouncedSaveRequestedMessage.Instance);
-            }
-        }
 
         /// <summary>是否显示核圆中心图标/图案。</summary>
         public bool ShowCoreIcon
@@ -778,7 +775,6 @@ namespace WinPieGestures.ViewModels.Pages
                 _loading = false;
             }
 
-            OnPropertyChanged(nameof(AppTheme));
             OnPropertyChanged(nameof(ShowCoreIcon));
             OnPropertyChanged(nameof(CoreIconType));
             OnPropertyChanged(nameof(CoreCustomIconKey));

@@ -63,7 +63,9 @@ namespace WinPieGestures
             // Config.Load 之后、AppHost.Run 之前，与迁移前根 VM 构造语义等价。
             _ = _provider.GetRequiredService<BehaviorSettingsViewModel>();
             _ = _provider.GetRequiredService<ProfileListViewModel>();
-            var appearance = _provider.GetRequiredService<AppearanceSettingsViewModel>();
+            // #54：外观聚合 VM（含注入的界面主题子 VM）仍须在宿主启动前构造订阅。
+            _ = _provider.GetRequiredService<AppearanceSettingsViewModel>();
+            var interfaceTheme = _provider.GetRequiredService<InterfaceThemeSettingsViewModel>();
             var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
             _ = _provider.GetRequiredService<AboutViewModel>();
             var mainViewModel = _provider.GetRequiredService<MainViewModel>();
@@ -80,7 +82,7 @@ namespace WinPieGestures
                 navGestures,
                 navAdvanced,
                 navAbout,
-                appearance,
+                interfaceTheme,
                 general,
                 mainViewModel,
                 _hostDelegates);
@@ -128,12 +130,19 @@ namespace WinPieGestures
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<IActionExecutorService>(),
                 sp.GetRequiredService<ILocalizationService>()));
+            // #54（ADR-0014 决策 6/7）：界面主题模块设置子 VM——外观聚合 VM 构造注入，
+            // 解析随 AppearanceSettingsViewModel（CreateAppHost）同步触发。
+            services.AddSingleton(sp => new InterfaceThemeSettingsViewModel(
+                sp.GetRequiredService<IConfigService>(),
+                sp.GetRequiredService<IMessenger>(),
+                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<ProfileListViewModel>(),
-                sp.GetRequiredService<ILocalizationService>()));
+                sp.GetRequiredService<ILocalizationService>(),
+                sp.GetRequiredService<InterfaceThemeSettingsViewModel>()));
             services.AddSingleton(sp => new GeneralSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,
                 sp.GetRequiredService<IDialogService>(),

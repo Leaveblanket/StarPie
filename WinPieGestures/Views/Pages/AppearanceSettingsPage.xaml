@@ -32,7 +32,9 @@
                     <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,14,0">
                         <StackPanel Margin="0,0,6,0">
                             <!-- Card 0: App Interface Theme (软件界面主题风格) -->
-                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                            <!-- #54：界面主题卡 DataContext 指向界面主题设置子 VM（外观聚合 VM 的 InterfaceTheme 属性）；
+                                 选项 ItemsSource 化（驻留目录随语言重建，新增主题不再改页面 XAML），主题应用经消息由壳层执行。 -->
+                            <Border DataContext="{Binding InterfaceTheme}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
                                 </Border.Effect>
@@ -40,15 +42,9 @@
                                     <TextBlock Text="{DynamicResource ConsoleThemeTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                                     <TextBlock Text="{DynamicResource ConsoleThemeDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
 
-                                    <!-- T17/T19：AppTheme 双向绑定(页面 DataContext 即外观 VM;T17 的根路径在此等价)（SelectedValuePath 取 Tag），选中后事件处理器只驱动窗口主题应用与预览重绘等 View 效果。 -->
-                                    <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}" SelectionChanged="AppThemeComboBox_SelectionChanged">
-                                        <ComboBoxItem Content="{DynamicResource ThemeSystem}" Tag="System"/>
-                                        <ComboBoxItem Content="{DynamicResource ThemeLight}" Tag="Light"/>
-                                        <ComboBoxItem Content="{DynamicResource ThemeDark}" Tag="Dark"/>
-                                        <ComboBoxItem Content="{DynamicResource ThemeNavy}" Tag="MidnightNavy"/>
-                                        <ComboBoxItem Content="{DynamicResource ThemeViolet}" Tag="RoyalViolet"/>
-                                        <ComboBoxItem Content="{DynamicResource ThemeGray}" Tag="TitaniumGray"/>
-                                    </ComboBox>
+                                    <!-- #54：AppTheme 双向绑定（SelectedValuePath 取 Tag）+ 选项目录 ItemsSource 化；
+                                         主题应用由子 VM 发布 AppThemeChangedMessage、壳层主窗口订阅执行，页面不再挂 SelectionChanged。 -->
+                                    <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding AppThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}"/>
                                 </StackPanel>
                             </Border>
 

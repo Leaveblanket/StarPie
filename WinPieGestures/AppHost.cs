@@ -29,7 +29,9 @@ namespace WinPieGestures
         private readonly INavigationService<ProfileListViewModel> _navGestures;
         private readonly INavigationService<GeneralSettingsViewModel> _navAdvanced;
         private readonly INavigationService<AboutViewModel> _navAbout;
-        private readonly AppearanceSettingsViewModel _appearance;
+        // #54（ADR-0014 决策 6/7）：界面主题设置子 VM——壳层启动时读取 AppTheme 做初始主题应用；
+        // 运行时变更经 AppThemeChangedMessage 由 MainView 订阅执行（本宿主不再直读外观聚合 VM）。
+        private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
         // 通用分区 VM：托盘提权重启与托盘驻留气泡由宿主直调/订阅。
         private readonly GeneralSettingsViewModel _general;
         // #27：壳层 VM（MainViewModel）承担 App 退出状态，主框架 Closing 据此放行真关窗而非隐藏到托盘。
@@ -53,7 +55,7 @@ namespace WinPieGestures
             INavigationService<ProfileListViewModel> navGestures,
             INavigationService<GeneralSettingsViewModel> navAdvanced,
             INavigationService<AboutViewModel> navAbout,
-            AppearanceSettingsViewModel appearance,
+            InterfaceThemeSettingsViewModel interfaceTheme,
             GeneralSettingsViewModel general,
             MainViewModel mainViewModel,
             AppHostDelegates hostDelegates)
@@ -69,7 +71,7 @@ namespace WinPieGestures
             _navGestures = navGestures;
             _navAdvanced = navAdvanced;
             _navAbout = navAbout;
-            _appearance = appearance;
+            _interfaceTheme = interfaceTheme;
             _general = general;
             _mainViewModel = mainViewModel;
             _hostDelegates = hostDelegates;
@@ -113,7 +115,7 @@ namespace WinPieGestures
                     _messenger.Send(MinimizedToTrayMessage.Instance);
                 }
             };
-            _mainView.ApplyAppTheme(_appearance.AppTheme);
+            _mainView.ApplyAppTheme(_interfaceTheme.AppTheme);
             // ADR-0013/#48：初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）。
             _themeService.EnableSystemThemeTracking();
             // 惰性回填 Owner：此后所有模态对话框归属主框架。

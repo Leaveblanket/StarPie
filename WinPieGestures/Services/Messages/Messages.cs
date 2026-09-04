@@ -44,6 +44,23 @@ namespace WinPieGestures.Services.Messages
         private MinimizedToTrayMessage() { }
     }
 
+    /// <summary>
+    /// 界面主题（AppTheme）变更消息（#54，ADR-0014 决策 7）：<see cref="WinPieGestures.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
+    /// 写穿运行态配置后发布，由壳层主窗口（MainView，ADR-0009 白名单）订阅执行窗口主题应用
+    /// （<c>ApplyAppTheme</c>）——页面 SelectionChanged 处理器移除后主题应用改归消息驱动；
+    /// 配置导入后的重挂路径同样经本消息触发壳层执行。
+    /// </summary>
+    public sealed class AppThemeChangedMessage
+    {
+        public AppThemeChangedMessage(string theme)
+        {
+            Theme = theme ?? string.Empty;
+        }
+
+        /// <summary>变更后的界面主题名（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。</summary>
+        public string Theme { get; }
+    }
+
     /// <summary>外观设置页请求 View 重绘实时预览。</summary>
     public sealed class AppearancePreviewInvalidatedMessage
     {
