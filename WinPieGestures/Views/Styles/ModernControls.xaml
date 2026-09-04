@@ -112,8 +112,8 @@
         <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
-    <!--  Modern Button Style  -->
-    <Style x:Key="ModernButtonStyle" TargetType="Button">
+    <!--  U2 隐式默认按钮样式 (#37)：无 Style 的 Button 即现代外观  -->
+    <Style TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource ButtonDefaultBgBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -131,48 +131,38 @@
                             CornerRadius="6" SnapsToDevicePixels="True">
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ButtonHoverBgBrush}" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ButtonHoverBgBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource ItemHoverBrush}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
-    <!--  Primary Accent Button Style  -->
+    <!--  键控兼容别名 (U2)：既有显式 Style="{StaticResource ModernButtonStyle}" 引用继续生效  -->
+    <Style x:Key="ModernButtonStyle" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}" />
+
+    <!--  Primary Accent Button Style (#37)：BasedOn 共享单模板，仅覆盖颜色与触发器  -->
     <Style x:Key="PrimaryButtonStyle" BasedOn="{StaticResource ModernButtonStyle}" TargetType="Button">
         <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6" SnapsToDevicePixels="True">
-                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
-                            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
-                            <Setter Property="Opacity" Value="0.9" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                <Setter Property="Opacity" Value="0.9" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!--  Modern ComboBox ToggleButton Template  -->
@@ -458,6 +448,7 @@
                                     Height="16" Margin="4,0,0,0" Padding="0"
                                     VerticalAlignment="Center" Background="Transparent"
                                     BorderThickness="0" Content="✕" Cursor="Hand"
+                                    Style="{x:Null}"
                                     FontSize="10"
                                     Foreground="{DynamicResource TextMutedBrush}"
                                     ToolTip="{DynamicResource ClearHotkeyTooltip}" />
