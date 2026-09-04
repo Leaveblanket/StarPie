@@ -162,3 +162,14 @@
 3. **B 类补键**（约 40 键 × 4 语言）→ I18n.cs 后接线。
 4. **B2 待产品决策**。
 5. **e2e**：在 `tests/test_settings.py` 扩展语言切换断言（按 AutomationId 定位，禁按文本定位）；重点页：Advanced（语言下拉五项即时切换）、Appearance（主题/风格/形态下拉文案随切语）、About（页头/副标题/里程碑折叠）。
+
+## 2026-09-04 更新：C1（#40）已实现——轮盘瞬态叠加层文案键
+
+> 上文为 #33/T28 盘点快照（范围：设置界面）；本组键为 #40 落地时新增，已实现，非待办缺口。
+> 语义：轮盘按手势瞬态创建/绘制，属即时取词——创建/绘制时读当前语言，不随切换刷新。
+
+| 键 | zh-CN | zh-TW | en | ja | 消费点 |
+|---|---|---|---|---|---|
+| `WheelCoreTitle` | 全局动作 | 全域動作 | Global Actions | グローバル操作 | `WheelViewModel` 构造（Global Profile 核心标题） |
+| `WheelCoreSubtitle` | {0} 键动作 | {0} 鍵動作 | {0} Actions | {0} アクション | `WheelViewModel` 构造（{0}=扇区数） |
+| `WheelSectorEmpty` | 未设置 | 未設定 | Not set | 未設定 | `RadialWindow.RenderSectors` 空扇区占位 |

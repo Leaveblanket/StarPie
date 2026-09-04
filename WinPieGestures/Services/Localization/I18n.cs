@@ -750,6 +750,28 @@ namespace WinPieGestures.Services.Localization
                 [LanguageCode.En] = "Wheel Theme:",
                 [LanguageCode.Ja] = "ホイール配色テーマ:"
             },
+            // 轮盘瞬态叠加层文案（#40：按手势创建/绘制时即时取词）
+            ["WheelCoreTitle"] = new()
+            {
+                [LanguageCode.ZhCn] = "全局动作",
+                [LanguageCode.ZhTw] = "全域動作",
+                [LanguageCode.En] = "Global Actions",
+                [LanguageCode.Ja] = "グローバル操作"
+            },
+            ["WheelCoreSubtitle"] = new()
+            {
+                [LanguageCode.ZhCn] = "{0} 键动作",
+                [LanguageCode.ZhTw] = "{0} 鍵動作",
+                [LanguageCode.En] = "{0} Actions",
+                [LanguageCode.Ja] = "{0} アクション"
+            },
+            ["WheelSectorEmpty"] = new()
+            {
+                [LanguageCode.ZhCn] = "未设置",
+                [LanguageCode.ZhTw] = "未設定",
+                [LanguageCode.En] = "Not set",
+                [LanguageCode.Ja] = "未設定"
+            },
             ["BtnDeletePreset"] = new()
             {
                 [LanguageCode.ZhCn] = "🗑️ 删除预设",
