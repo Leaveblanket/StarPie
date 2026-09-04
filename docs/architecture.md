@@ -101,3 +101,4 @@ Services ---> Models
 | 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 |
 | 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 |
 | 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） |
+| 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） |

@@ -50,6 +50,18 @@ _Avoid_: 切换Tab、页签切换
 设置控制台窗口中页面之外的窗口职责集合：窗口生命周期（关窗驻留托盘、淡入淡出）、界面主题应用、导航外围与壳层文本本地化。
 _Avoid_: 外壳、主窗口容器
 
+**界面主题 (App Theme)**:
+设置控制台与对话框等窗口的 UI 配色体系：由同 key 令牌集（Light / Dark / MidnightNavy / RoyalViolet / TitaniumGray）加“跟随系统 (System)”模式构成。
+_Avoid_: 主题、皮肤、配色方案
+
+**轮盘配色 (Wheel Palette)**:
+手势轮盘自身（扇区底色与边框、高亮、文字、光弧）的配色方案，含系统预设与自定义预设，属用户配置数据而非窗口 UI 主题。
+_Avoid_: 主题、界面主题、皮肤
+
+**主题风格 (Wheel Style / UiStyle)**:
+轮盘渲染形态模板（ClassicRing / CleanSectors / Glassmorphism 等），决定扇区切削形状、排版与绘制方式。
+_Avoid_: 皮肤、主题、界面主题
+
 **重挂 (Reload/remount)**:
 页面在配置导入或重新进入后，按当前运行态配置重新同步内容（回填、重绘）的语义。
 _Avoid_: 刷新（指语言切换时的即时文本刷新，二者不同）
