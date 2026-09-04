@@ -673,14 +673,24 @@ namespace WinPieGestures.ViewModels.Pages
             }
         }
 
-        /// <summary>把当前自定义配色保存为预设（命名输入 → 新建 → 选中 → 落盘；取消则不动）。</summary>
+        /// <summary>把当前自定义配色保存为预设（命名输入 → 新建 → 选中 → 落盘；取消则不动）。
+        /// 对话框文案即时取词（标题/提示/默认名模板/成功提示键化）；名称 trim 后入库，
+        /// trim 后为空拒绝（键化报错）——默认名 = 本地化模板 + 时间戳，落库后即用户数据。</summary>
         [RelayCommand]
         private void SavePreset()
         {
-            var result = _dialogs.ShowInputDialog("保存配色预设", "请输入自定义配色方案名称:", $"自定义配色 {DateTime.Now:MMdd-HHmm}");
+            string defaultName = string.Format(
+                _localization.GetString("CustomPresetDefaultName"),
+                DateTime.Now.ToString("MMdd-HHmm"));
+            var result = _dialogs.ShowInputDialog(
+                _localization.GetString("SaveCustomPresetTitle"),
+                _localization.GetString("SaveCustomPresetPrompt"),
+                defaultName);
             if (result == null) return;
 
-            string presetName = result.Text;
+            string presetName = result.Text.Trim();
+            if (RejectBlankPresetName(presetName)) return;
+
             if (Config.CustomColorPresets == null)
             {
                 Config.CustomColorPresets = new List<CustomColorPreset>();
@@ -702,10 +712,13 @@ namespace WinPieGestures.ViewModels.Pages
             // 先重建下拉项（新 Tag 才有落点），再切选中触发主题管线
             RebuildThemeOptions();
             SelectedTheme = "CustomPreset_" + newPreset.Id;
-            _dialogs.ShowInfo("提示", $"配色预设【{presetName}】已成功保存！");
+            _dialogs.ShowInfo(
+                _localization.GetString("Notice"),
+                string.Format(_localization.GetString("SaveCustomPresetSuccess"), presetName));
         }
 
-        /// <summary>重命名当前选中的自定义配色预设（仅选中自定义预设时有效；取消则不动）。</summary>
+        /// <summary>重命名当前选中的自定义配色预设（仅选中自定义预设时有效；取消则不动）。
+        /// 对话框文案即时取词（标题/含旧名提示键化）；新名 trim 后入库，trim 后为空拒绝（键化报错）。</summary>
         [RelayCommand]
         private void RenamePreset()
         {
@@ -715,37 +728,38 @@ namespace WinPieGestures.ViewModels.Pages
             string oldName = preset.Name;
             var result = _dialogs.ShowInputDialog(
                 title: _localization.GetString("RenameCustomPresetTitle"),
-                prompt: $"{_localization.GetString("RenameCustomPresetPrompt")}「{oldName}」",
-                defaultText: oldName,
-                validator: input =>
-                {
-                    if (string.IsNullOrWhiteSpace(input)) return (false, "配色方案名称不能为空！");
-                    return (true, "");
-                });
+                prompt: string.Format(_localization.GetString("RenameCustomPresetPrompt"), oldName),
+                defaultText: oldName);
 
             if (result == null) return;
 
-            preset.Name = result.Text;
+            string newName = result.Text.Trim();
+            if (RejectBlankPresetName(newName)) return;
+
+            preset.Name = newName;
             RebuildThemeOptions();
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
         /// <summary>删除当前选中的自定义配色预设（T19：删除确认与结果提示对话框编排内聚进本 VM）：
-        /// 确认框 → 移除预设、回落 System 配色并落盘（事件由主题管线统一发出）→ 成功提示。</summary>
+        /// 确认框（标题/含预设名的确认文案键化）→ 移除预设、回落 System 配色并落盘
+        /// （事件由主题管线统一发出）→ 成功提示（键化）。</summary>
         [RelayCommand]
         private void DeletePreset()
         {
             var preset = SelectedCustomPreset;
             if (preset == null) return;
 
-            if (_dialogs.Confirm("确认删除配色方案", $"确定要删除自定义配色方案预设【{preset.Name}】吗？"))
+            if (_dialogs.Confirm(
+                _localization.GetString("DeleteCustomPresetTitle"),
+                string.Format(_localization.GetString("MsgConfirmDeletePreset"), preset.Name)))
             {
                 ConfirmDeleteCustomColorPreset(preset);
             }
         }
 
-        /// <summary>确认后执行删除：移除预设、回落 System 配色并落盘，随后提示删除成功。</summary>
+        /// <summary>确认后执行删除：移除预设、回落 System 配色并落盘，随后提示删除成功（键化）。</summary>
         public void ConfirmDeleteCustomColorPreset(CustomColorPreset preset)
         {
             if (preset == null) return;
@@ -756,7 +770,17 @@ namespace WinPieGestures.ViewModels.Pages
 
             RebuildThemeOptions();
             SelectedTheme = "System";
-            _dialogs.ShowInfo("提示", $"自定义配色方案【{preset.Name}】已成功删除！");
+            _dialogs.ShowInfo(
+                _localization.GetString("Notice"),
+                string.Format(_localization.GetString("DeleteCustomPresetSuccess"), preset.Name));
+        }
+
+        /// <summary>保存/重命名共用空名守卫：trim 后为空即弹键化提示并返回 true（不动配置、不入库）。</summary>
+        private bool RejectBlankPresetName(string name)
+        {
+            if (name.Length > 0) return false;
+            _dialogs.ShowInfo(_localization.GetString("Notice"), _localization.GetString("CustomPresetNameEmpty"));
+            return true;
         }
 
         // ---- 播种与纯函数 ----------------------------------------------------------

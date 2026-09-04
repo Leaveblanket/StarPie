@@ -6,7 +6,14 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ Rename Preset</value></data>
   <data name="RenameCustomPresetTitle" xml:space="preserve"><value>Rename Color Preset</value></data>
-  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>Enter a new name for the color preset:</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>Enter a new name for the color preset: "{0}"</value></data>
+  <data name="SaveCustomPresetTitle" xml:space="preserve"><value>Save Color Preset</value></data>
+  <data name="SaveCustomPresetPrompt" xml:space="preserve"><value>Enter a name for the custom color preset:</value></data>
+  <data name="SaveCustomPresetSuccess" xml:space="preserve"><value>Color preset "{0}" saved successfully!</value></data>
+  <data name="CustomPresetDefaultName" xml:space="preserve"><value>Custom Palette {0}</value></data>
+  <data name="CustomPresetNameEmpty" xml:space="preserve"><value>Preset name cannot be empty!</value></data>
+  <data name="DeleteCustomPresetTitle" xml:space="preserve"><value>Delete Color Preset</value></data>
+  <data name="DeleteCustomPresetSuccess" xml:space="preserve"><value>Custom color preset "{0}" deleted successfully!</value></data>
   <data name="OuterEscapeTitle" xml:space="preserve"><value>Outer Escape Cancel</value></data>
   <data name="OuterEscapeDesc" xml:space="preserve"><value>De-highlight immediately once the cursor leaves the wheel outer ring; release right-click for a safe cancel.</value></data>
   <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>Escape Distance Threshold (Sensitivity):</value></data>
@@ -194,7 +201,7 @@
   <data name="ChangelogOpenFailed" xml:space="preserve"><value>Unable to open CHANGELOG.md.</value></data>
   <data name="MilestonesTitle" xml:space="preserve"><value>Version Milestones</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>Settings successfully saved to disk!</value></data>
-  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>Are you sure you want to delete this custom color preset?
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>Are you sure you want to permanently delete the custom color preset "{0}"?
 This cannot be undone.</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>Are you sure you want to restore factory defaults? All customizations will be reset.</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ Pause Gestures</value></data>

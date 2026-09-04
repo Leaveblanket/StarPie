@@ -33,6 +33,8 @@ public sealed class AppearanceSettingsViewModelTests
     {
         public InputDialogResult? InputResult;
         public int InputCalls;
+        public string? LastInputTitle;
+        public string? LastInputPrompt;
         public string? LastInputDefaultText;
         public Func<string, (bool IsValid, string ErrorMessage)>? LastValidator;
 
@@ -50,6 +52,8 @@ public sealed class AppearanceSettingsViewModelTests
         public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
             InputCalls++;
+            LastInputTitle = title;
+            LastInputPrompt = prompt;
             LastInputDefaultText = defaultText;
             LastValidator = validator;
             return InputResult;
@@ -110,13 +114,14 @@ public sealed class AppearanceSettingsViewModelTests
     }
 
     private static (AppearanceSettingsViewModel Vm, FakeConfigService Config, FakeDialogService Dialogs, EventLog Log)
-        Create(AppConfig? config = null)
+        Create(AppConfig? config = null, ILocalizationService? localization = null)
     {
         var configService = new FakeConfigService { Current = config ?? new AppConfig() };
         var dialogs = new FakeDialogService();
         var (messenger, spy) = SaveSpy.Create();
-        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
-        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);
+        var loc = localization ?? Localization;
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), loc);
+        var vm = new AppearanceSettingsViewModel(configService, dialogs, messenger, profileList, loc);
         return (vm, configService, dialogs, EventLog.Attach(messenger, spy));
     }
 
@@ -495,10 +500,10 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal(7, vm.ThemeOptions.Count);
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
         Assert.Equal(1, log.SaveNow);
-        // T19：保存成功提示经对话框服务(编排内聚进 VM)
+        // T19/#53：保存成功提示经对话框服务(编排内聚进 VM)，文案即时取词键化
         var info = Assert.Single(dialogs.Infos);
-        Assert.Equal("提示", info.Title);
-        Assert.Equal("配色预设【我的预设】已成功保存！", info.Message);
+        Assert.Equal(Localization.GetString("Notice"), info.Title);
+        Assert.Equal(string.Format(Localization.GetString("SaveCustomPresetSuccess"), "我的预设"), info.Message);
     }
 
     [Fact]
@@ -529,6 +534,50 @@ public sealed class AppearanceSettingsViewModelTests
     }
 
     [Fact]
+    public void SavePreset_DialogCopyAndDefaultName_AreLocalizedTemplatePlusTimestamp()
+    {
+        var (vm, _, dialogs, _) = Create();
+        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+
+        vm.SavePresetCommand.Execute(null);
+
+        Assert.Equal(Localization.GetString("SaveCustomPresetTitle"), dialogs.LastInputTitle);
+        Assert.Equal(Localization.GetString("SaveCustomPresetPrompt"), dialogs.LastInputPrompt);
+        // 默认名建议 = 本地化模板 + 时间戳（模板 {0} 被 MMdd-HHmm 替换）
+        Assert.NotNull(dialogs.LastInputDefaultText);
+        Assert.StartsWith(Localization.GetString("CustomPresetDefaultName").Replace("{0}", ""), dialogs.LastInputDefaultText!);
+        Assert.Matches(@"\d{4}-\d{4}$", dialogs.LastInputDefaultText!);
+    }
+
+    [Fact]
+    public void SavePreset_TrimsNameBeforeStoring()
+    {
+        var (vm, config, dialogs, _) = Create();
+        dialogs.InputResult = new InputDialogResult("  我的预设  ");
+
+        vm.SavePresetCommand.Execute(null);
+
+        Assert.Equal("我的预设", config.Current.CustomColorPresets!.Single().Name);
+        Assert.Contains(vm.ThemeOptions, o => o.Label.Contains("我的预设"));
+    }
+
+    [Fact]
+    public void SavePreset_TrimmedEmptyResult_IsRejectedWithoutCreatingPreset()
+    {
+        var (vm, config, dialogs, log) = Create();
+        dialogs.InputResult = new InputDialogResult("   ");
+
+        vm.SavePresetCommand.Execute(null);
+
+        Assert.Empty(config.Current.CustomColorPresets);
+        Assert.Equal(6, vm.ThemeOptions.Count); // 空名拒绝：不新增自定义项
+        Assert.Equal(0, log.SaveNow);
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal(Localization.GetString("Notice"), info.Title);
+        Assert.Equal(Localization.GetString("CustomPresetNameEmpty"), info.Message);
+    }
+
+    [Fact]
     public void RenamePreset_RenamesAndRebuildsList()
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
@@ -542,14 +591,68 @@ public sealed class AppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal("旧名", dialogs.LastInputDefaultText);
-        Assert.NotNull(dialogs.LastValidator);
-        Assert.Equal((false, "配色方案名称不能为空！"), dialogs.LastValidator!.Invoke(" "));
-        Assert.Equal((true, ""), dialogs.LastValidator!.Invoke("新名"));
         Assert.Equal("新名", preset.Name);
         Assert.Equal("CustomPreset_p1", vm.SelectedTheme); // 选中保持不变
         // T21：预设下拉项 ItemsSource 化——改名后 VM 重建 ThemeOptions 刷新标签。
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
         Assert.Equal(1, log.SaveNow);
+    }
+
+    [Fact]
+    public void RenamePreset_DialogCopy_IsKeyedWithCurrentName()
+    {
+        var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
+        var (vm, _, dialogs, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        });
+        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+
+        vm.RenamePresetCommand.Execute(null);
+
+        Assert.Equal(Localization.GetString("RenameCustomPresetTitle"), dialogs.LastInputTitle);
+        Assert.Equal(string.Format(Localization.GetString("RenameCustomPresetPrompt"), "旧名"), dialogs.LastInputPrompt);
+        Assert.Equal("旧名", dialogs.LastInputDefaultText);
+    }
+
+    [Fact]
+    public void RenamePreset_TrimsNameBeforeStoring()
+    {
+        var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
+        var (vm, _, dialogs, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        });
+        dialogs.InputResult = new InputDialogResult("  新名  ");
+
+        vm.RenamePresetCommand.Execute(null);
+
+        Assert.Equal("新名", preset.Name);
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
+    }
+
+    [Fact]
+    public void RenamePreset_TrimmedEmptyResult_IsRejectedAndKeepsName()
+    {
+        var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
+        var (vm, _, dialogs, log) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        });
+        dialogs.InputResult = new InputDialogResult("   ");
+
+        vm.RenamePresetCommand.Execute(null);
+
+        Assert.Equal("旧名", preset.Name);
+        Assert.Equal(0, log.SaveNow);
+        // 空名拒绝：不改名不重建下拉，错误信息键化
+        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal(Localization.GetString("Notice"), info.Title);
+        Assert.Equal(Localization.GetString("CustomPresetNameEmpty"), info.Message);
     }
 
     [Fact]
@@ -593,12 +696,13 @@ public sealed class AppearanceSettingsViewModelTests
 
         vm.DeletePresetCommand.Execute(null);
 
-        // T19：删除确认对话框编排内聚进 VM——确认即删除并提示成功
+        // T19/#53：删除确认对话框编排内聚进 VM——确认即删除并提示成功，文案键化
         var confirm = Assert.Single(dialogs.Confirms);
-        Assert.Equal("确认删除配色方案", confirm.Title);
-        Assert.Contains("待删", confirm.Message);
+        Assert.Equal(Localization.GetString("DeleteCustomPresetTitle"), confirm.Title);
+        Assert.Equal(string.Format(Localization.GetString("MsgConfirmDeletePreset"), "待删"), confirm.Message);
         var info = Assert.Single(dialogs.Infos);
-        Assert.Contains("待删", info.Message);
+        Assert.Equal(Localization.GetString("Notice"), info.Title);
+        Assert.Equal(string.Format(Localization.GetString("DeleteCustomPresetSuccess"), "待删"), info.Message);
     }
 
     [Fact]
@@ -646,10 +750,10 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.False(vm.IsCustomPresetSelected);
         Assert.DoesNotContain(preset, config.Current.CustomColorPresets!);
         Assert.Contains(other, config.Current.CustomColorPresets!);
-        // T19：删除成功提示经对话框服务
+        // T19/#53：删除成功提示经对话框服务，文案键化
         var info = Assert.Single(dialogs.Infos);
-        Assert.Equal("提示", info.Title);
-        Assert.Contains("待删", info.Message);
+        Assert.Equal(Localization.GetString("Notice"), info.Title);
+        Assert.Equal(string.Format(Localization.GetString("DeleteCustomPresetSuccess"), "待删"), info.Message);
         Assert.Equal(1, log.SaveNow);
         Assert.True(log.Preview > 0);
     }
@@ -669,6 +773,96 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Single(config.Current.CustomColorPresets!);
         Assert.Equal(0, log.SaveNow);
         Assert.Empty(dialogs.Infos);
+    }
+
+    // --- 预设对话框文案语言切换（#53） ----------------------------------------------
+    // 对话框/成功提示属即时取词：每次命令执行读当前语言；预设名落库后是用户数据，
+    // 切语只重建下拉后缀（WheelThemeCustomPreset），名称永不翻译。
+
+    [Fact]
+    public void SavePreset_UsesDialogCopyAndDefaultNameOfCurrentLanguage()
+    {
+        var loc = new LocalizationService();
+        loc.SetLanguage("en");
+        var (vm, _, dialogs, _) = Create(localization: loc);
+        dialogs.InputResult = new InputDialogResult("My Preset");
+
+        vm.SavePresetCommand.Execute(null);
+
+        Assert.Equal(loc.GetString("SaveCustomPresetTitle"), dialogs.LastInputTitle);
+        Assert.Equal(loc.GetString("SaveCustomPresetPrompt"), dialogs.LastInputPrompt);
+        Assert.NotNull(dialogs.LastInputDefaultText);
+        Assert.StartsWith(loc.GetString("CustomPresetDefaultName").Replace("{0}", ""), dialogs.LastInputDefaultText!);
+        Assert.Matches(@"\d{4}-\d{4}$", dialogs.LastInputDefaultText!);
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal(loc.GetString("Notice"), info.Title);
+        Assert.Equal(string.Format(loc.GetString("SaveCustomPresetSuccess"), "My Preset"), info.Message);
+    }
+
+    [Fact]
+    public void SavedPresetName_IsUserData_NotTranslatedOnLanguageSwitch()
+    {
+        var loc = new LocalizationService();
+        var (vm, config, dialogs, _) = Create(localization: loc);
+
+        // 先取消一次取到当前语言（zh-CN）默认名，再以该默认名保存，模拟用户直接确认默认建议
+        vm.SavePresetCommand.Execute(null);
+        string? defaultName = dialogs.LastInputDefaultText;
+        dialogs.InputResult = new InputDialogResult(defaultName!);
+        vm.SavePresetCommand.Execute(null);
+
+        string savedName = config.Current.CustomColorPresets!.Single().Name;
+        Assert.Equal(defaultName, savedName);
+
+        loc.SetLanguage("en");
+
+        // 名称保持用户数据原样；下拉标签仅后缀随语言切换（模板 WheelThemeCustomPreset）
+        Assert.Equal(savedName, config.Current.CustomColorPresets!.Single().Name);
+        string label = Assert.Single(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + config.Current.CustomColorPresets[0].Id).Label;
+        Assert.Contains(savedName, label);
+        Assert.Equal(string.Format(loc.GetString("WheelThemeCustomPreset"), savedName), label);
+    }
+
+    [Fact]
+    public void RenamePreset_UsesDialogCopyOfCurrentLanguage()
+    {
+        var loc = new LocalizationService();
+        loc.SetLanguage("en");
+        var preset = new CustomColorPreset { Id = "p1", Name = "My Preset" };
+        var (vm, _, dialogs, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        }, loc);
+        dialogs.InputResult = null; // 取消一次即可捕获对话框实参
+
+        vm.RenamePresetCommand.Execute(null);
+
+        Assert.Equal(loc.GetString("RenameCustomPresetTitle"), dialogs.LastInputTitle);
+        Assert.Equal(string.Format(loc.GetString("RenameCustomPresetPrompt"), "My Preset"), dialogs.LastInputPrompt);
+        Assert.Equal("My Preset", dialogs.LastInputDefaultText);
+    }
+
+    [Fact]
+    public void DeletePreset_UsesConfirmAndSuccessCopyOfCurrentLanguage()
+    {
+        var loc = new LocalizationService();
+        loc.SetLanguage("en");
+        var preset = new CustomColorPreset { Id = "p1", Name = "My Preset" };
+        var (vm, _, dialogs, _) = Create(new AppConfig
+        {
+            Theme = "CustomPreset_p1",
+            CustomColorPresets = new List<CustomColorPreset> { preset }
+        }, loc);
+
+        vm.DeletePresetCommand.Execute(null);
+
+        var confirm = Assert.Single(dialogs.Confirms);
+        Assert.Equal(loc.GetString("DeleteCustomPresetTitle"), confirm.Title);
+        Assert.Equal(string.Format(loc.GetString("MsgConfirmDeletePreset"), "My Preset"), confirm.Message);
+        var info = Assert.Single(dialogs.Infos);
+        Assert.Equal(loc.GetString("Notice"), info.Title);
+        Assert.Equal(string.Format(loc.GetString("DeleteCustomPresetSuccess"), "My Preset"), info.Message);
     }
 
     [Fact]

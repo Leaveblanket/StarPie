@@ -6,7 +6,14 @@
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ プリセット名を変更</value></data>
   <data name="RenameCustomPresetTitle" xml:space="preserve"><value>カラープリセット名を変更</value></data>
-  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>カラープリセットの新しい名前を入力してください:</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>カラープリセットの新しい名前を入力してください:「{0}」</value></data>
+  <data name="SaveCustomPresetTitle" xml:space="preserve"><value>カラープリセットを保存</value></data>
+  <data name="SaveCustomPresetPrompt" xml:space="preserve"><value>カスタムカラープリセットの名前を入力してください:</value></data>
+  <data name="SaveCustomPresetSuccess" xml:space="preserve"><value>カラープリセット「{0}」を保存しました！</value></data>
+  <data name="CustomPresetDefaultName" xml:space="preserve"><value>カスタム配色 {0}</value></data>
+  <data name="CustomPresetNameEmpty" xml:space="preserve"><value>プリセット名を入力してください。</value></data>
+  <data name="DeleteCustomPresetTitle" xml:space="preserve"><value>カラープリセットの削除</value></data>
+  <data name="DeleteCustomPresetSuccess" xml:space="preserve"><value>カラープリセット「{0}」を削除しました！</value></data>
   <data name="OuterEscapeTitle" xml:space="preserve"><value>外側スワイプでキャンセル (Outer Escape)</value></data>
   <data name="OuterEscapeDesc" xml:space="preserve"><value>ホイール外側のリングを超えると即座にハイライトを解除し、右クリックを離すだけで安全にキャンセルできます。</value></data>
   <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>キャンセルスワイプ距離 (感度設定):</value></data>
@@ -194,7 +201,7 @@
   <data name="ChangelogOpenFailed" xml:space="preserve"><value>CHANGELOG.md を開けません。</value></data>
   <data name="MilestonesTitle" xml:space="preserve"><value>バージョン履歴</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>設定が正常に保存されました！</value></data>
-  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>このカスタム配色プリセットを削除してもよろしいですか？
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>このカラープリセット「{0}」を削除してもよろしいですか？
 削除後は復元できません。</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>工場出荷時の初期設定に戻してもよろしいですか？すべてのカスタム設定がリセットされます。</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ ジェスチャーを一時停止</value></data>
