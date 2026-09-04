@@ -97,5 +97,17 @@ Accepted（grilling 共识 Q9-B/Q10-A/Q11 四项全做/Q12 轮盘配色范围外
 
 ## Appendix（spike 结论回填位）
 
-- #43：resx 强类型资源生成机制选型与四语言迁移方案。
+- #43（2026-09-04）：resx 强类型机制选型与迁移方案
+  - 实验证实：内置 `<Generator>ResXFileCodeGenerator</Generator>` 在纯 `dotnet build`
+    （无 VS）不执行自定义工具、不产出 Designer.cs，不可用于 agent/CI 工作流。
+  - 选型：NuGet `VocaDb.ResXFileCodeGenerator` v3.2.1（Roslyn source generator，
+    `PrivateAssets="all"`；`dotnet build` 直接生成 `internal static class Strings`：
+    `string?` 属性 + `ResourceManager` + 可设置 `CultureInfo`）。拼错键产生
+    **CS0117** 编译错误（已验证）。
+  - 语言资产：`Strings.resx`（中性）+ `Strings.zh-CN/zh-TW/en/ja.resx`（卫星）；
+    服务经 `ResourceManager.GetString(key, culture)` 动态取词与
+    `GetResourceSet` 枚举键集（XAML 投影桥）；回退链（目标 → zh-CN → 键名）由服务
+    显式实现。强类型属性用于静态引用点与键完整性。
+  - 文件落位与生成类命名由 #44 定稿；本环境 NuGet restore 需经 127.0.0.1:7897
+    代理（GitHub Actions 不需）。
 - #48：`UISettings.ColorValuesChanged` 在 net8.0-windows WPF 的引用/线程/生命周期结论。
