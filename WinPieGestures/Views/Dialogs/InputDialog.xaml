@@ -11,88 +11,6 @@
     SizeToContent="Height"
     WindowStartupLocation="CenterOwner">
 
-    <Window.Resources>
-        <!--  Modern Button Style  -->
-        <Style x:Key="DialogButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource ButtonDefaultBgBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultFgBrush}" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="16,0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6"
-                            SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource ButtonHoverBgBrush}" />
-                                <Setter Property="BorderBrush"
-                                    Value="{DynamicResource AccentPrimaryBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource ItemHoverBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <!--  Primary Dialog Button Style  -->
-        <Style
-            x:Key="DialogPrimaryButtonStyle"
-            BasedOn="{StaticResource DialogButtonStyle}"
-            TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="border"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6"
-                            SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource AccentHoverBrush}" />
-                                <Setter Property="BorderBrush"
-                                    Value="{DynamicResource AccentHoverBrush}" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource AccentHoverBrush}" />
-                                <Setter Property="Opacity" Value="0.9" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
     <Border
         Margin="10"
         Padding="22"
@@ -144,17 +62,19 @@
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button
                     Width="80"
+                    Height="34"
                     Margin="0,0,10,0"
                     AutomationProperties.AutomationId="CancelButton"
                     Click="CancelButton_Click"
                     Content="{DynamicResource BtnCancel}"
-                    Style="{StaticResource DialogButtonStyle}" />
+                    Style="{StaticResource ModernButtonStyle}" />
                 <Button
                     Width="80"
+                    Height="34"
                     AutomationProperties.AutomationId="OkButton"
                     Command="{Binding ConfirmCommand}"
                     Content="{DynamicResource BtnConfirm}"
-                    Style="{StaticResource DialogPrimaryButtonStyle}" />
+                    Style="{StaticResource PrimaryButtonStyle}" />
             </StackPanel>
         </StackPanel>
     </Border>

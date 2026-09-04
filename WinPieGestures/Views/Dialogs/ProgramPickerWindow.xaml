@@ -10,74 +10,6 @@
     ShowInTaskbar="False"
     WindowStartupLocation="CenterOwner">
 
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-
-        <Style x:Key="PickerBtn" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource ButtonDefaultBgBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultFgBrush}" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6">
-                            <ContentPresenter
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource ButtonHoverBgBrush}" />
-                                <Setter Property="BorderBrush"
-                                    Value="{DynamicResource AccentPrimaryBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style
-            x:Key="PrimaryPickerBtn"
-            BasedOn="{StaticResource PickerBtn}"
-            TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6">
-                            <ContentPresenter
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background"
-                                    Value="{DynamicResource AccentHoverBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -204,7 +136,7 @@
             FontSize="12"
             FontWeight="Medium"
             Text="{Binding StatusText}"
-            Visibility="{Binding IsStatusVisible, Converter={StaticResource BoolToVisibility}}">
+            Visibility="{Binding IsStatusVisible, Converter={StaticResource BoolToVis}}">
             <!--  颜色必须走 Style 触发器：本地 Foreground 值会压过 DataTrigger  -->
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
@@ -233,7 +165,7 @@
                 AutomationProperties.AutomationId="ManualBrowseButton"
                 Command="{Binding BrowseManuallyCommand}"
                 Content="{DynamicResource BtnManualBrowse}"
-                Style="{StaticResource PickerBtn}" />
+                Style="{StaticResource ModernButtonStyle}" />
             <Button
                 Grid.Column="2"
                 Width="84"
@@ -243,7 +175,7 @@
                 Command="{Binding ConfirmCommand}"
                 Content="{DynamicResource BtnConfirm}"
                 FontWeight="Bold"
-                Style="{StaticResource PrimaryPickerBtn}" />
+                Style="{StaticResource PrimaryButtonStyle}" />
             <Button
                 Grid.Column="3"
                 Width="84"
@@ -251,7 +183,7 @@
                 AutomationProperties.AutomationId="CancelButton"
                 Click="Cancel_Click"
                 Content="{DynamicResource BtnCancel}"
-                Style="{StaticResource PickerBtn}" />
+                Style="{StaticResource ModernButtonStyle}" />
         </Grid>
     </Grid>
 </Window>

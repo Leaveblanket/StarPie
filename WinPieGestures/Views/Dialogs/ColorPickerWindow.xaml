@@ -47,41 +47,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="ModernBtn" TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource ButtonDefaultBgBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource ButtonDefaultBorderBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="{DynamicResource ButtonDefaultFgBrush}" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Padding" Value="14,6" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="6">
-                            <ContentPresenter
-                                Margin="{TemplateBinding Padding}"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style
-            x:Key="PrimaryBtn"
-            BasedOn="{StaticResource ModernBtn}"
-            TargetType="Button">
-            <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentHoverBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
-        </Style>
     </Window.Resources>
 
     <Grid Margin="18">
@@ -302,7 +267,7 @@
                         Command="{Binding EyedropperCommand}"
                         Content="{DynamicResource ColorPickerEyedropperBtn}"
                         FontSize="11"
-                        Style="{StaticResource PrimaryBtn}" />
+                        Style="{StaticResource PrimaryButtonStyle}" />
                 </Grid>
             </Border>
 
@@ -352,14 +317,14 @@
                 AutomationProperties.AutomationId="CancelButton"
                 Click="Cancel_Click"
                 Content="{DynamicResource BtnCancel}"
-                Style="{StaticResource ModernBtn}" />
+                Style="{StaticResource ModernButtonStyle}" />
             <Button
                 Grid.Column="2"
                 Width="90"
                 AutomationProperties.AutomationId="OkButton"
                 Command="{Binding ConfirmCommand}"
                 Content="{DynamicResource ColorPickerApply}"
-                Style="{StaticResource PrimaryBtn}" />
+                Style="{StaticResource PrimaryButtonStyle}" />
         </Grid>
     </Grid>
 </Window>
