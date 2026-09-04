@@ -230,7 +230,7 @@ public sealed class ActionExecutorServiceTests
         var seams = new FakeSeams();
         var service = seams.BuildService();
 
-        service.Execute(null);
+        service.Execute(null!);
 
         Assert.Empty(seams.Started);
         Assert.Empty(seams.SentKeyStrokes);

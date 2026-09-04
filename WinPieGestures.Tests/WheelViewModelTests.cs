@@ -176,7 +176,7 @@ public sealed class WheelViewModelTests
     {
         var vm = Create(Profile(8));
         var changes = new List<string>();
-        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName!);
 
         vm.HighlightSector(3);
 
@@ -204,7 +204,7 @@ public sealed class WheelViewModelTests
         var vm = Create(Profile(8));
         vm.HighlightSector(2);
         var changes = new List<string>();
-        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName!);
 
         vm.HighlightSector(2);
 
@@ -217,7 +217,7 @@ public sealed class WheelViewModelTests
     {
         var vm = Create(Profile(8));
         var changes = new List<string>();
-        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName!);
 
         vm.SetOuterEscapeState(false);
 
@@ -229,7 +229,7 @@ public sealed class WheelViewModelTests
     {
         var vm = Create(Profile(8));
         var changes = new List<string>();
-        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName!);
 
         vm.SetOuterEscapeState(true);
         Assert.True(vm.IsOuterEscaped);
@@ -244,7 +244,7 @@ public sealed class WheelViewModelTests
     {
         var vm = Create(Profile(8));
         var changes = new List<string>();
-        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        vm.PropertyChanged += (_, e) => changes.Add(e.PropertyName!);
 
         vm.Show();
         Assert.True(vm.IsShown);
