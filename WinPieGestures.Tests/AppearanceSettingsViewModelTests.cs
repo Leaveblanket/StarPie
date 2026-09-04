@@ -14,16 +14,6 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class AppearanceSettingsViewModelTests
 {
-    private sealed class FakeConfigService : IConfigService
-    {
-        public AppConfig Current { get; set; } = new();
-        public int SaveCalls;
-        public void Load() { }
-        public void Save() => SaveCalls++;
-        public WheelProfile GetProfileForProcess(string processName) => Current.Profiles[0];
-        public WheelProfile GetGlobalProfile() => Current.Profiles[0];
-    }
-
     /// <summary>
     /// 页面级消息记录器：PageConfigReloadedMessage（外观页 View 重绘实时预览的广播目标）与
     /// AppThemeChangedMessage（壳层主窗口主题应用的广播目标）。
@@ -44,7 +34,7 @@ public sealed class AppearanceSettingsViewModelTests
 
     private sealed class Harness
     {
-        public FakeConfigService ConfigService { get; }
+        public TestConfigService ConfigService { get; }
         public TestDialogService Dialogs { get; } = new();
         public LocalizationService Localization { get; } = new();
         public WeakReferenceMessenger Messenger { get; }
@@ -57,7 +47,7 @@ public sealed class AppearanceSettingsViewModelTests
 
         public Harness(AppConfig? config = null)
         {
-            ConfigService = new FakeConfigService { Current = config ?? new AppConfig() };
+            ConfigService = new TestConfigService { Current = config ?? new AppConfig() };
             var (messenger, spy) = SaveSpy.Create();
             Messenger = messenger;
             Spy = spy;

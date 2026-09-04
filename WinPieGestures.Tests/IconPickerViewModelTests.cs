@@ -14,33 +14,6 @@ public sealed class IconPickerViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
-    private sealed class FakeDialogService : IDialogService
-    {
-        public FilePickResult? OpenFileDialogResult;
-        public string? LastFilter;
-        public int OpenFileCalls;
-        public List<(string Title, string Message)> InfoCalls { get; } = new();
-
-        public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
-        {
-            OpenFileCalls++;
-            LastFilter = filter;
-            return OpenFileDialogResult;
-        }
-
-        public void ShowInfo(string title, string message) => InfoCalls.Add((title, message));
-
-        public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
-        public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();
-        public IconPickResult? ShowIconPicker(string? currentIconKey) => throw new NotSupportedException();
-        public ColorPickResult? ShowColorPicker(string initialHex) => throw new NotSupportedException();
-        public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
-        public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public EyedropResult? ShowEyedropper() => throw new NotSupportedException();
-    }
-
     private static IconHelper.CustomIconItem Custom(string key, string displayName, bool isSvg = false)
         => new() { Key = key, DisplayName = displayName, FilePath = @"C:\icons\" + key + (isSvg ? ".svg" : ".png"), SvgData = isSvg ? "M0,0L1,1" : "" };
 
@@ -50,14 +23,14 @@ public sealed class IconPickerViewModelTests
     private static IconPickerViewModel Create(
         List<IconHelper.CustomIconItem>? customs = null,
         List<VectorIconItem>? vectors = null,
-        FakeDialogService? dialogs = null,
+        TestDialogService? dialogs = null,
         string? initialKey = null,
         Func<string, bool>? deleteIcon = null,
         Func<string, IconHelper.CustomIconItem?>? importIcon = null)
         => new(
             () => customs ?? new List<IconHelper.CustomIconItem>(),
             () => vectors ?? new List<VectorIconItem>(),
-            dialogs ?? new FakeDialogService(),
+            dialogs ?? new TestDialogService(),
             Localization,
             initialKey,
             deleteIcon,
@@ -218,7 +191,7 @@ public sealed class IconPickerViewModelTests
     public void Import_PickedFile_SelectsImportedKeyAndRebuildsList()
     {
         var customs = new List<IconHelper.CustomIconItem> { Custom("custom:old", "old") };
-        var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\icons\new.svg") };
+        var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\icons\new.svg") };
         var vm = Create(
             customs: customs,
             dialogs: dialogs,
@@ -228,8 +201,8 @@ public sealed class IconPickerViewModelTests
 
         vm.ImportIconCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.OpenFileCalls);
-        Assert.Contains("*.svg", dialogs.LastFilter);
+        var openCall = Assert.Single(dialogs.OpenFileDialogCalls);
+        Assert.Contains("*.svg", openCall.Filter);
         Assert.Equal("custom:new", vm.SelectedIconKey);
         Assert.Equal("new (自定义)", vm.SelectedIconDisplayName);
         Assert.Contains(vm.DisplayedIcons, e => e.Key == "custom:new");
@@ -238,14 +211,14 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void Import_Cancelled_StaysOpenWithoutChange()
     {
-        var dialogs = new FakeDialogService { OpenFileDialogResult = null };
+        var dialogs = new TestDialogService { OpenFileToPick = null };
         var importCalls = 0;
         var vm = Create(dialogs: dialogs, importIcon: _ => { importCalls++; return null; });
         vm.ApplyFilter(null);
 
         vm.ImportIconCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.OpenFileCalls);
+        Assert.Single(dialogs.OpenFileDialogCalls);
         Assert.Equal(0, importCalls); // 取消后不应尝试导入
         Assert.Null(vm.SelectedIconKey);
     }
@@ -253,7 +226,7 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void Import_Throws_ShowsInfo()
     {
-        var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\icons\broken.svg") };
+        var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\icons\broken.svg") };
         var vm = Create(dialogs: dialogs, importIcon: _ => throw new InvalidOperationException("disk full"));
         vm.ApplyFilter(null);
 

@@ -10,33 +10,10 @@ namespace WinPieGestures.Tests;
 /// </summary>
 public sealed class ColorPickerViewModelTests
 {
-    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowEyedropper，其余不该被调用。</summary>
-    private sealed class FakeDialogService : IDialogService
-    {
-        public EyedropResult? EyedropperResult;
-        public int EyedropperCalls;
-
-        public EyedropResult? ShowEyedropper()
-        {
-            EyedropperCalls++;
-            return EyedropperResult;
-        }
-
-        public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
-        public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();
-        public IconPickResult? ShowIconPicker(string? currentIconKey) => throw new NotSupportedException();
-        public ColorPickResult? ShowColorPicker(string initialHex) => throw new NotSupportedException();
-        public FilePickResult? ShowOpenFileDialog(string filter, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
-        public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public void ShowInfo(string title, string message) => throw new NotSupportedException();
-    }
-
     private static RgbColor Rgb(byte r, byte g, byte b) => new(255, r, g, b);
 
-    private static ColorPickerViewModel Create(FakeDialogService? dialogs = null, string initialHex = "#FFFF0000")
-        => new(dialogs ?? new FakeDialogService(), initialHex);
+    private static ColorPickerViewModel Create(TestDialogService? dialogs = null, string initialHex = "#FFFF0000")
+        => new(dialogs ?? new TestDialogService(), initialHex);
 
     // --- HSV / RGB 纯函数 ---------------------------------------------------------
 
@@ -148,7 +125,7 @@ public sealed class ColorPickerViewModelTests
     public void SetColorFromHex_RefreshesSpectrumHex()
     {
         // 色盘底色（当前色相纯色）经可观察 SpectrumHex 驱动绑定，取代旧 SpectrumChanged 事件。
-        var vm = Create(dialogs: new FakeDialogService(), initialHex: "#FF000000");
+        var vm = Create(initialHex: "#FF000000");
 
         vm.SetColorFromHex("#FF00FF00");
 
@@ -271,12 +248,12 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void Eyedropper_PickedColor_AppliesToCurrentColor()
     {
-        var dialogs = new FakeDialogService { EyedropperResult = new EyedropResult("#FF00FF00") };
+        var dialogs = new TestDialogService { EyedropToPick = new EyedropResult("#FF00FF00") };
         var vm = Create(dialogs: dialogs);
 
         vm.EyedropperCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.EyedropperCalls);
+        Assert.Equal(1, dialogs.EyedropCalls);
         Assert.Equal("#FF00FF00", vm.SelectedHexColor);
         Assert.Equal("#FF00FF00", vm.HexText);
     }
@@ -284,13 +261,13 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void Eyedropper_Cancelled_KeepsCurrentColor()
     {
-        var dialogs = new FakeDialogService { EyedropperResult = null };
+        var dialogs = new TestDialogService { EyedropToPick = null };
         var vm = Create(dialogs: dialogs);
         var before = vm.SelectedHexColor;
 
         vm.EyedropperCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.EyedropperCalls);
+        Assert.Equal(1, dialogs.EyedropCalls);
         Assert.Equal(before, vm.SelectedHexColor);
     }
 }

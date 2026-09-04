@@ -142,7 +142,7 @@ public sealed class MainViewModelTests
         {
             Behavior = new BehaviorSettingsViewModel(Config, Dialogs, Messenger);
             Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization);
-            var configService = new FakeConfigService { Current = Config };
+        var configService = new TestConfigService { Current = Config };
             InterfaceTheme = new InterfaceThemeSettingsViewModel(configService, Messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 configService, Dialogs, Messenger, Profiles, Localization);
@@ -161,15 +161,6 @@ public sealed class MainViewModelTests
                 localization: Localization);
             About = new AboutViewModel(Dialogs, () => true, Localization);
         }
-    }
-
-    private sealed class FakeConfigService : IConfigService
-    {
-        public AppConfig Current { get; set; } = new();
-        public void Load() { }
-        public void Save() { }
-        public WheelProfile GetProfileForProcess(string processName) => Current.Profiles[0];
-        public WheelProfile GetGlobalProfile() => Current.Profiles[0];
     }
 
     /// <summary>类型化导航服务替身：记录导航调用并把 store 切到夹具实例。</summary>

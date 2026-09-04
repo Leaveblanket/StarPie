@@ -15,40 +15,13 @@ public sealed class ProgramPickerViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    /// <summary>对话框服务假实现：只落地 VM 依赖的 ShowOpenFileDialog/ShowInfo，其余不该被调用。</summary>
-    private sealed class FakeDialogService : IDialogService
-    {
-        public FilePickResult? OpenFileDialogResult;
-        public string? LastFilter;
-        public int OpenFileCalls;
-        public List<(string Title, string Message)> InfoCalls { get; } = new();
-
-        public FilePickResult? ShowOpenFileDialog(string filter, string? title = null)
-        {
-            OpenFileCalls++;
-            LastFilter = filter;
-            return OpenFileDialogResult;
-        }
-
-        public FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null) => throw new NotSupportedException();
-        public FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null) => throw new NotSupportedException();
-        public bool Confirm(string title, string message) => throw new NotSupportedException();
-        public void ShowInfo(string title, string message) => InfoCalls.Add((title, message));
-
-        public ProgramPickResult? ShowProgramPicker() => throw new NotSupportedException();
-        public InputDialogResult? ShowInputDialog(string title, string prompt, string defaultText = "", Func<string, (bool IsValid, string ErrorMessage)>? validator = null) => throw new NotSupportedException();
-        public IconPickResult? ShowIconPicker(string? currentIconKey) => throw new NotSupportedException();
-        public ColorPickResult? ShowColorPicker(string initialHex) => throw new NotSupportedException();
-        public EyedropResult? ShowEyedropper() => throw new NotSupportedException();
-    }
-
     private static ProgramEntry Entry(string name, string path)
         => new(name, path, path, IconSource: null);
 
     private static ProgramPickerViewModel Create(
         Func<IReadOnlyList<ProgramEntry>>? scan = null,
-        FakeDialogService? dialogs = null)
-        => new(scan ?? (() => new List<ProgramEntry>()), dialogs ?? new FakeDialogService(), Localization);
+        TestDialogService? dialogs = null)
+        => new(scan ?? (() => new List<ProgramEntry>()), dialogs ?? new TestDialogService(), Localization);
 
     // --- 扫描编排 ---------------------------------------------------------------
 
@@ -132,7 +105,7 @@ public sealed class ProgramPickerViewModelTests
     [Fact]
     public void Confirm_WithoutSelection_ShowsNoticeAndDoesNotComplete()
     {
-        var dialogs = new FakeDialogService();
+        var dialogs = new TestDialogService();
         var vm = Create(dialogs: dialogs);
 
         vm.ConfirmCommand.Execute(null);
@@ -164,13 +137,13 @@ public sealed class ProgramPickerViewModelTests
     [Fact]
     public void BrowseManually_PickedExe_CompletesWithNameFromFileName()
     {
-        var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\Tools\mytool.exe") };
+        var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\Tools\mytool.exe") };
         var vm = Create(dialogs: dialogs);
 
         vm.BrowseManuallyCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.OpenFileCalls);
-        Assert.Contains("*.exe", dialogs.LastFilter);
+        var openCall = Assert.Single(dialogs.OpenFileDialogCalls);
+        Assert.Contains("*.exe", openCall.Filter);
         Assert.True(vm.IsCompleted);
         Assert.NotNull(vm.Result);
         Assert.Equal("mytool", vm.Result!.Name);
@@ -180,12 +153,12 @@ public sealed class ProgramPickerViewModelTests
     [Fact]
     public void BrowseManually_PickerCancelled_StaysOpenWithoutCompleting()
     {
-        var dialogs = new FakeDialogService { OpenFileDialogResult = null };
+        var dialogs = new TestDialogService { OpenFileToPick = null };
         var vm = Create(dialogs: dialogs);
 
         vm.BrowseManuallyCommand.Execute(null);
 
-        Assert.Equal(1, dialogs.OpenFileCalls);
+        Assert.Single(dialogs.OpenFileDialogCalls);
         Assert.False(vm.IsCompleted);
         Assert.Null(vm.Result);
     }
@@ -195,7 +168,7 @@ public sealed class ProgramPickerViewModelTests
     {
         // 不存在的 .lnk 解析失败（IconHelper 早退于 File.Exists，测试中不触 COM），
         // 沿用旧行为：路径回落为所选 .lnk 本身，显示名取文件名。
-        var dialogs = new FakeDialogService { OpenFileDialogResult = new FilePickResult(@"C:\fake\missing.lnk") };
+        var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\fake\missing.lnk") };
         var vm = Create(dialogs: dialogs);
 
         vm.BrowseManuallyCommand.Execute(null);
