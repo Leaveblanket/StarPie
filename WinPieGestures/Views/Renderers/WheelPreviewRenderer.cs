@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WinPieGestures.ViewModels.Pages;
+using WinPieGestures.ViewModels.Wheel;
 using WinPieGestures.Views.Navigation;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
@@ -23,6 +23,8 @@ namespace WinPieGestures.Views.Renderers
     /// mouse events; all visual state and geometry construction stays in this View-layer renderer.
     /// (ADR-0009 白名单 3/4/5: 只读 VM 状态绘制, hover 坐标仅译成高亮; 不订阅事件、不写 VM,
     /// 深浅色探测经壳层 MainView.IsWindowsInDarkTheme 方法取得。)
+    /// #55 (ADR-0014 决策 8): 输入契约收窄为轮盘模块只读接口 <see cref="IWheelAppearanceState"/>,
+    /// 不再依赖具体外观聚合 VM 类型。
     /// </summary>
     public sealed class WheelPreviewRenderer
     {
@@ -42,7 +44,7 @@ namespace WinPieGestures.Views.Renderers
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        public void Render(Canvas canvas, AppearanceSettingsViewModel vm, MainView? shell)
+        public void Render(Canvas canvas, IWheelAppearanceState state, MainView? shell)
         {
             if (canvas == null) return;
 
@@ -58,26 +60,26 @@ namespace WinPieGestures.Views.Renderers
                 double cx = canvasSize / 2.0;
                 double cy = canvasSize / 2.0;
 
-                double maxR = Math.Max(80.0, vm.WheelRadius);
+                double maxR = Math.Max(80.0, state.WheelRadius);
                 double scale = 135.0 / Math.Max(135.0, maxR);
 
-                double outerR = Math.Max(30.0, vm.WheelRadius * scale);
-                double innerR = Math.Max(15.0, vm.InnerRadius * scale);
-                double coreR = Math.Max(10.0, vm.CoreRadius * scale);
-                double gap = Math.Max(0.0, vm.SectorGap * scale);
-                double cornerRadius = Math.Max(0.0, vm.SectorCornerRadius * scale);
+                double outerR = Math.Max(30.0, state.WheelRadius * scale);
+                double innerR = Math.Max(15.0, state.InnerRadius * scale);
+                double coreR = Math.Max(10.0, state.CoreRadius * scale);
+                double gap = Math.Max(0.0, state.SectorGap * scale);
+                double cornerRadius = Math.Max(0.0, state.SectorCornerRadius * scale);
 
                 if (innerR >= outerR) innerR = outerR * 0.5;
                 if (coreR >= innerR) coreR = innerR * 0.8;
 
-                string uiStyle = vm.UiStyle ?? "ClassicRing";
-                string theme = vm.SelectedTheme ?? "System";
-                string shape = vm.Shape ?? "Original";
-                string layoutMode = vm.IconLayoutMode ?? "IconAndText";
-                bool showText = vm.ShowText && layoutMode != "IconOnly";
+                string uiStyle = state.UiStyle ?? "ClassicRing";
+                string theme = state.SelectedTheme ?? "System";
+                string shape = state.Shape ?? "Original";
+                string layoutMode = state.IconLayoutMode ?? "IconAndText";
+                bool showText = state.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
-                _previewStyleRenderer.Initialize(theme, vm.CurrentConfig, shell?.IsWindowsInDarkTheme() ?? false);
+                _previewStyleRenderer.Initialize(theme, state.CurrentConfig, shell?.IsWindowsInDarkTheme() ?? false);
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;
@@ -102,7 +104,7 @@ namespace WinPieGestures.Views.Renderers
                 previewCoreGrid.Children.Add(_previewCoreCircle);
 
                 double exitSize = Math.Max(12, coreR * 0.42);
-                string coreType = vm.CoreIconType;
+                string coreType = state.CoreIconType;
 
                 if (coreType == "Image")
                 {
@@ -116,15 +118,15 @@ namespace WinPieGestures.Views.Renderers
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
-                        Visibility = (vm.ShowCoreIcon && vm.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
-                    if (!string.IsNullOrEmpty(vm.CoreCustomImagePath) && File.Exists(vm.CoreCustomImagePath))
+                    if (!string.IsNullOrEmpty(state.CoreCustomImagePath) && File.Exists(state.CoreCustomImagePath))
                     {
                         try
                         {
                             var bmp = new BitmapImage();
                             bmp.BeginInit();
-                            bmp.UriSource = new Uri(vm.CoreCustomImagePath, UriKind.Absolute);
+                            bmp.UriSource = new Uri(state.CoreCustomImagePath, UriKind.Absolute);
                             bmp.CacheOption = BitmapCacheOption.OnLoad;
                             bmp.EndInit();
                             coreImg.Source = bmp;
@@ -138,7 +140,7 @@ namespace WinPieGestures.Views.Renderers
                     _previewExitIcon = new System.Windows.Shapes.Path
                     {
                         Name = "CoreExitIcon",
-                        Data = IconHelper.GetCoreIconGeometry(coreType, vm.CoreCustomIconKey, vm.CoreCustomIconSvg),
+                        Data = IconHelper.GetCoreIconGeometry(coreType, state.CoreCustomIconKey, state.CoreCustomIconSvg),
                         Fill = _previewTextBrush,
                         Width = exitSize,
                         Height = exitSize,
@@ -146,15 +148,14 @@ namespace WinPieGestures.Views.Renderers
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
-                        Visibility = (vm.ShowCoreIcon && vm.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }
 
-                _previewStyleRenderer.RenderDecorations(canvas, previewCoreGrid, cx, cy, outerR, coreR, 1, vm.ShowCoreIcon);
+                _previewStyleRenderer.RenderDecorations(canvas, previewCoreGrid, cx, cy, outerR, coreR, 1, state.ShowCoreIcon);
 
-                var profile = vm.ProfileList.SelectedProfile?.Model
-                    ?? vm.ProfileList.Profiles.FirstOrDefault()?.Model
+                var profile = state.PreviewProfile
                     ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
                 int n = profile.SectorCount > 0 ? profile.SectorCount : 8;
                 double sectorSize = 360.0 / n;
@@ -229,7 +230,7 @@ namespace WinPieGestures.Views.Renderers
                         else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconHelper.GetSvgPathByKey("Folder");
                         else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconHelper.GetSvgPathByKey(parameter);
 
-                        double configuredIconSize = vm.SectorIconSize > 0 ? vm.SectorIconSize : 20.0;
+                        double configuredIconSize = state.SectorIconSize > 0 ? state.SectorIconSize : 20.0;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
                         double previewIconSize = ((layoutMode == "IconOnly") ? configuredIconSize * 1.35 : configuredIconSize) * 0.72 * scaleFactor;
 
@@ -307,7 +308,7 @@ namespace WinPieGestures.Views.Renderers
 
                     if (showText && !string.IsNullOrEmpty(actionName))
                     {
-                        double baseFontSize = vm.SectorFontSize > 0 ? vm.SectorFontSize : 10.5;
+                        double baseFontSize = state.SectorFontSize > 0 ? state.SectorFontSize : 10.5;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
                         double previewFs = ((layoutMode == "TextOnly") ? baseFontSize + 1.0 : baseFontSize) * 0.85 * scaleFactor;
                         double textMaxW = n == 12 ? 44.0 : (n == 4 ? 76.0 : 64.0);
@@ -354,7 +355,7 @@ namespace WinPieGestures.Views.Renderers
             }
         }
 
-        public void HandleMouseMove(Canvas canvas, MouseEventArgs e, AppearanceSettingsViewModel vm)
+        public void HandleMouseMove(Canvas canvas, MouseEventArgs e, IWheelAppearanceState state)
         {
             if (_previewSectorPaths.Count == 0) return;
 
@@ -365,11 +366,11 @@ namespace WinPieGestures.Views.Renderers
                 double dy = p.Y - 150.0;
                 double dist = Math.Sqrt(dx * dx + dy * dy);
 
-                double maxR = Math.Max(80.0, vm.WheelRadius);
+                double maxR = Math.Max(80.0, state.WheelRadius);
                 double scale = 135.0 / Math.Max(135.0, maxR);
-                double outerR = vm.WheelRadius * scale;
-                double innerR = vm.InnerRadius * scale;
-                double coreR = vm.CoreRadius * scale;
+                double outerR = state.WheelRadius * scale;
+                double innerR = state.InnerRadius * scale;
+                double coreR = state.CoreRadius * scale;
 
                 int hoveredIndex = -2;
                 if (dist <= coreR)
