@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ 重新命名預設</value></data>
+  <data name="RenameCustomPresetTitle" xml:space="preserve"><value>重新命名配色方案預設</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>請輸入配色方案預設的新名稱：</value></data>
+  <data name="OuterEscapeTitle" xml:space="preserve"><value>順勢外甩脫離取消 (Outer Escape Cancel)</value></data>
+  <data name="OuterEscapeDesc" xml:space="preserve"><value>超過輪盤外圈範圍後立即解除高亮，鬆開右鍵 0 誤觸安全放棄。</value></data>
+  <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>外甩取消距離靈敏度 (Escape Distance):</value></data>
+  <data name="OuterEscapeDistanceDesc" xml:space="preserve"><value>設定游標劃出距離中心多遠時判定為放棄。數值越小越靈敏（更易甩出取消），數值越大越沉穩（需甩得更遠）。</value></data>
+  <data name="OuterEscapeCheckbox" xml:space="preserve"><value>啟用向外順勢甩出取消手勢 (推薦開啟)</value></data>
+  <data name="IconPickerImport" xml:space="preserve"><value>➕ 匯入自訂圖示...</value></data>
+  <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 自訂進階配色與色彩微調</value></data>
+  <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>展開後可精準微調扇區底色、高亮光暈、邊框線條、文字與光弧等各項色彩。</value></data>
+  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 展開查看更早的歷史版本演進 (Older Milestones)</value></data>
+  <data name="BrowseAppTooltip" xml:space="preserve"><value>選擇應用程式或捷徑...</value></data>
+  <data name="BrowseFolderTooltip" xml:space="preserve"><value>選擇本機資料夾...</value></data>
+  <data name="BtnConfirm" xml:space="preserve"><value>確定</value></data>
+  <data name="BtnCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="BtnOk" xml:space="preserve"><value>確定</value></data>
+  <data name="BtnApply" xml:space="preserve"><value>套用</value></data>
+  <data name="BtnTest" xml:space="preserve"><value>測試</value></data>
+  <data name="BtnBrowseFolder" xml:space="preserve"><value>選擇資料夾...</value></data>
+  <data name="ActionTypeFolder" xml:space="preserve"><value>📂 開啟資料夾</value></data>
+  <data name="ActionTypeHotkeyShort" xml:space="preserve"><value>快捷熱鍵</value></data>
+  <data name="ActionTypeLaunchShort" xml:space="preserve"><value>啟動程式</value></data>
+  <data name="ActionTypeFolderShort" xml:space="preserve"><value>開啟資料夾</value></data>
+  <data name="ActionTypeSystemShort" xml:space="preserve"><value>系統控制</value></data>
+  <data name="ProfileCardTitle" xml:space="preserve"><value>當前配置方案 (Profile)</value></data>
+  <data name="ProfileCardDesc" xml:space="preserve"><value>選擇或新建針對特定程式（如 Chrome、VS Code）或特定工作流程的輪盤配置方案（支援按兩下重新命名）。</value></data>
+  <data name="BtnAddAppProfile" xml:space="preserve"><value>➕ 新增程式專屬配置</value></data>
+  <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ 新建自訂配置</value></data>
+  <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ 重新命名當前配置</value></data>
+  <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ 刪除當前配置</value></data>
+  <data name="SectorCountOptionTitle" xml:space="preserve"><value>扇區方位數量 (Sector Count)</value></data>
+  <data name="SectorCountOptionDesc" xml:space="preserve"><value>切換手勢輪盤的切分數量。4 鍵最快最不易誤觸，8 鍵為標準全能方位，12 鍵適合功能密集場景。</value></data>
+  <data name="SectorActionListTitle" xml:space="preserve"><value>扇區動作對應列表</value></data>
+  <data name="SectorActionListDesc" xml:space="preserve"><value>為每個方位指定觸發動作與圖示。支援快捷熱鍵組合（如 Ctrl+C）、啟動本地程式、開啟資料夾與系統級操作。</value></data>
+  <data name="IconPickerTitle" xml:space="preserve"><value>選擇動作向量圖示</value></data>
+  <data name="IconPickerHeader" xml:space="preserve"><value>選擇扇區動作向量圖示</value></data>
+  <data name="IconPickerSubtitle" xml:space="preserve"><value>精選 30+ 常用高保真向量圖形，支援在不同解析度及 DPI 下無損清晰渲染。</value></data>
+  <data name="IconPickerSearchTooltip" xml:space="preserve"><value>輸入圖示名稱或分類進行快速篩選...</value></data>
+  <data name="IconPickerClear" xml:space="preserve"><value>清空圖示 (無圖示)</value></data>
+  <data name="IconPickerSelected" xml:space="preserve"><value>已選圖示:</value></data>
+  <data name="IconPickerNone" xml:space="preserve"><value>(未選擇)</value></data>
+  <data name="ColorPickerTitle" xml:space="preserve"><value>色彩選擇器與螢幕吸管 (Color Picker)</value></data>
+  <data name="ColorPickerHue" xml:space="preserve"><value>色相</value></data>
+  <data name="ColorPickerAlpha" xml:space="preserve"><value>不透明</value></data>
+  <data name="ColorPickerEyedropperTitle" xml:space="preserve"><value>🔍 螢幕取色吸管</value></data>
+  <data name="ColorPickerEyedropperDesc" xml:space="preserve"><value>點擊後在螢幕任意視窗吸取精準色彩</value></data>
+  <data name="ColorPickerEyedropperBtn" xml:space="preserve"><value>從螢幕吸色</value></data>
+  <data name="ColorPickerSwatches" xml:space="preserve"><value>預設經典配色卡 (Quick Swatches - 滾輪滾動查看全部):</value></data>
+  <data name="ColorPickerApply" xml:space="preserve"><value>套用色彩</value></data>
+  <data name="InputDialogTitle" xml:space="preserve"><value>配置方案 - StarPie</value></data>
+  <data name="InputDialogEmpty" xml:space="preserve"><value>名稱不能為空，請輸入有效的配置名稱。</value></data>
+  <data name="Notice" xml:space="preserve"><value>提示</value></data>
+  <data name="Error" xml:space="preserve"><value>錯誤</value></data>
+  <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>現代滑鼠輪盤手勢系統</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie 設定控制台 (Preferences)</value></data>
+  <data name="TabTrigger" xml:space="preserve"><value>🎯 觸發與場景</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>🎨 外觀與形態</value></data>
+  <data name="TabGestures" xml:space="preserve"><value>⚡ 手勢與動作</value></data>
+  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ 進階與系統</value></data>
+  <data name="TabAbout" xml:space="preserve"><value>📋 關於與更新</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>註: 所有修改均在記憶體中即時生效，點擊【儲存變更】持久化儲存至硬碟。</value></data>
+  <data name="BtnSave" xml:space="preserve"><value>儲存變更</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>關閉並隱藏</value></data>
+  <data name="TriggerHeader" xml:space="preserve"><value>觸發與場景隔離設定</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>在此配置全域滑鼠手勢的觸發靈敏度、全螢幕遊戲自動攔截與排除程式黑名單。</value></data>
+  <data name="SensitivityTitle" xml:space="preserve"><value>手勢觸發靈敏度</value></data>
+  <data name="SensitivityDesc" xml:space="preserve"><value>按住滑鼠右鍵移動超過指定像素距離後呼出手勢輪盤。距離越小越靈敏，過小可能造成右鍵微抖動誤觸。</value></data>
+  <data name="SceneIsolationTitle" xml:space="preserve"><value>場景隔離與防誤觸</value></data>
+  <data name="SceneIsolationDesc" xml:space="preserve"><value>當處於特定場景或配合修飾鍵操作時，自動繞過輪盤攔截，放行原生右鍵事件。</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>全螢幕遊戲/獨佔應用自動禁用手勢</value></data>
+  <data name="FullScreenOptionDesc" xml:space="preserve"><value>自動檢測當前前台視窗是否處於全螢幕獨佔狀態，避免遊戲瞄準等右鍵操作被攔截。</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>快速鍵旁路穿透 (按住以下修飾鍵拖曳時不觸發手勢):</value></data>
+  <data name="ModifierCtrl" xml:space="preserve"><value>按住 Ctrl 鍵時旁路</value></data>
+  <data name="ModifierShift" xml:space="preserve"><value>按住 Shift 鍵時旁路</value></data>
+  <data name="ModifierAlt" xml:space="preserve"><value>按住 Alt 鍵時旁路</value></data>
+  <data name="BlacklistTitle" xml:space="preserve"><value>行程排除黑名單</value></data>
+  <data name="BlacklistDesc" xml:space="preserve"><value>在排除名單中的應用程式（如遠端桌面、小畫家、3D建模軟體）中，完全放行滑鼠右鍵。</value></data>
+  <data name="BtnAddProcess" xml:space="preserve"><value>➕ 新增處理程序</value></data>
+  <data name="BtnPickProcess" xml:space="preserve"><value>🔍 選擇應用程式...</value></data>
+  <data name="BtnDeleteProcess" xml:space="preserve"><value>🗑️ 移除選取</value></data>
+  <data name="BlacklistPlaceholder" xml:space="preserve"><value>輸入處理程序名稱 (如 solidworks.exe) 或點擊右側選擇應用程式...</value></data>
+  <data name="AppearanceHeader" xml:space="preserve"><value>輪盤外觀與形態自訂</value></data>
+  <data name="AppearanceSubheader" xml:space="preserve"><value>自由配置輪盤視覺風格、配色方案、高亮邊緣光暈、幾何切削、圖示排版與中心核圓貼圖。</value></data>
+  <data name="StyleTitle" xml:space="preserve"><value>輪盤視覺風格與色彩</value></data>
+  <data name="StyleGlass" xml:space="preserve"><value>液態毛玻璃 (Glassmorphism)</value></data>
+  <data name="StyleClassic" xml:space="preserve"><value>經典圓環 (Classic Ring)</value></data>
+  <data name="StyleClean" xml:space="preserve"><value>極簡扇區 (Clean Sectors)</value></data>
+  <data name="StyleCatPaw" xml:space="preserve"><value>萌寵貓爪 (Cute Cat Paw)</value></data>
+  <data name="ThemeTitle" xml:space="preserve"><value>輪盤配色方案 (Wheel Theme):</value></data>
+  <data name="WheelCoreTitle" xml:space="preserve"><value>全域動作</value></data>
+  <data name="WheelCoreSubtitle" xml:space="preserve"><value>{0} 鍵動作</value></data>
+  <data name="WheelSectorEmpty" xml:space="preserve"><value>未設定</value></data>
+  <data name="BtnDeletePreset" xml:space="preserve"><value>🗑️ 刪除預設</value></data>
+  <data name="GlowTitle" xml:space="preserve"><value>高亮邊緣光暈模式 (Highlight Glow):</value></data>
+  <data name="GlowFollowTheme" xml:space="preserve"><value>🌈 跟隨主題高亮色 (Auto / Follow Theme)</value></data>
+  <data name="GlowRadius" xml:space="preserve"><value>光暈彌散半徑 (Glow Radius)</value></data>
+  <data name="GlowOpacity" xml:space="preserve"><value>光暈不透明度 (Glow Opacity)</value></data>
+  <data name="GeometryTitle" xml:space="preserve"><value>幾何形態與尺寸微調</value></data>
+  <data name="ShapeOriginal" xml:space="preserve"><value>經典緊湊扇區 (Original)</value></data>
+  <data name="ShapeCircle" xml:space="preserve"><value>獨立圓形卡片 (Circle)</value></data>
+  <data name="ShapeRounded" xml:space="preserve"><value>懸浮圓角膠囊 (Capsule)</value></data>
+  <data name="ShapeCapsule" xml:space="preserve"><value>圓潤膠囊 (Pill Capsules)</value></data>
+  <data name="ShapeHexagon" xml:space="preserve"><value>蜂巢六邊形矩陣 (HexagonHive)</value></data>
+  <data name="RadiusOuter" xml:space="preserve"><value>輪盤整體半徑 (外徑):</value></data>
+  <data name="RadiusInner" xml:space="preserve"><value>扇區內半徑 (Inner):</value></data>
+  <data name="RadiusCore" xml:space="preserve"><value>中心核心圓半徑 (Core):</value></data>
+  <data name="SectorGap" xml:space="preserve"><value>扇區光學縫隙間距 (Gap):</value></data>
+  <data name="SectorCornerRadius" xml:space="preserve"><value>扇區邊緣平滑倒角 (Corner Radius):</value></data>
+  <data name="BtnResetGeometry" xml:space="preserve"><value>一鍵重置為推薦幾何尺寸</value></data>
+  <data name="IconLayoutTitle" xml:space="preserve"><value>圖示與排版選項</value></data>
+  <data name="LayoutIconText" xml:space="preserve"><value>圖示 + 文字 (雙行置中)</value></data>
+  <data name="LayoutIconOnly" xml:space="preserve"><value>僅顯示圖示 (極大化置中)</value></data>
+  <data name="LayoutTextOnly" xml:space="preserve"><value>僅顯示文字 (純文字置中)</value></data>
+  <data name="SectorIconSize" xml:space="preserve"><value>圖示尺寸大小 (Icon Size):</value></data>
+  <data name="SectorFontSize" xml:space="preserve"><value>文字字號大小 (Font Size):</value></data>
+  <data name="CoreTitle" xml:space="preserve"><value>中心核圓與圖案設定</value></data>
+  <data name="CoreShowIcon" xml:space="preserve"><value>顯示核圓中心圖示 / 圖案</value></data>
+  <data name="CoreIconType" xml:space="preserve"><value>核圓圖案類型 (Core Pattern):</value></data>
+  <data name="CorePatternExit" xml:space="preserve"><value>✕ 預設取消叉號 (Exit / Close)</value></data>
+  <data name="CorePatternCrosshair" xml:space="preserve"><value>⌖ 十字準心 (Crosshair)</value></data>
+  <data name="CorePatternWindows" xml:space="preserve"><value>⊞ Windows 微標 (Windows Logo)</value></data>
+  <data name="CorePatternDot" xml:space="preserve"><value>⦿ 極簡靶心圓點 (Bullseye Dot)</value></data>
+  <data name="CorePatternHome" xml:space="preserve"><value>⌂ 快捷首頁 (Home)</value></data>
+  <data name="CorePatternPower" xml:space="preserve"><value>⏻ 電源能量 (Power)</value></data>
+  <data name="CorePatternCompass" xml:space="preserve"><value>🧭 極簡羅盤 (Compass)</value></data>
+  <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 萌寵貓爪 (Cute Cat Paw)</value></data>
+  <data name="CorePatternImage" xml:space="preserve"><value>🖼️ 自訂圖片檔案 (Custom Image)</value></data>
+  <data name="BtnBrowseImage" xml:space="preserve"><value>瀏覽圖片...</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>軟體控制台介面主題 (App Theme)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>🌓 跟隨系統 (System Auto)</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>☀️ 極簡純白 (Modern Light)</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>🌙 極夜曜黑 (Obsidian Dark)</value></data>
+  <data name="ThemeNavy" xml:space="preserve"><value>🌌 午夜深藍 (Midnight Navy)</value></data>
+  <data name="ThemeViolet" xml:space="preserve"><value>🔮 暗夜紫羅蘭 (Royal Violet)</value></data>
+  <data name="ThemeGray" xml:space="preserve"><value>⚙️ 鈦金深灰 (Titanium Gray)</value></data>
+  <data name="GesturesHeader" xml:space="preserve"><value>手勢輪盤分位與動作配置</value></data>
+  <data name="SectorCountTitle" xml:space="preserve"><value>輪盤方位按鍵數 (Sector Count)</value></data>
+  <data name="SectorCount4" xml:space="preserve"><value>4 鍵 (十字方位 / Cross 4-Way)</value></data>
+  <data name="SectorCount8" xml:space="preserve"><value>8 鍵 (八卦全向 / Standard 8-Way)</value></data>
+  <data name="SectorCount12" xml:space="preserve"><value>12 鍵 (鐘錶錶盤 / Clock Dial 12-Way)</value></data>
+  <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ 鍵盤快速鍵</value></data>
+  <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 啟動程式/開啟網頁</value></data>
+  <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ 系統控制指令</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>點擊錄製快速鍵</value></data>
+  <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 選擇應用程式...</value></data>
+  <data name="AdvancedHeader" xml:space="preserve"><value>系統整合與進階偏好設定</value></data>
+  <data name="LanguageTitle" xml:space="preserve"><value>介面語言 (Display Language)</value></data>
+  <data name="LanguageDesc" xml:space="preserve"><value>選擇軟體控制台與輪盤的顯示語言，支援即時熱切換並自動儲存。</value></data>
+  <data name="ProgramPickerTitle" xml:space="preserve"><value>選擇程式</value></data>
+  <data name="ProgramPickerHeader" xml:space="preserve"><value>從已安裝的軟體與開始功能表中選擇</value></data>
+  <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>搜尋軟體名稱、執行檔或路徑...</value></data>
+  <data name="ProgramPickerScanning" xml:space="preserve"><value>正在智慧檢索系統中已安裝的軟體，請稍候...</value></data>
+  <data name="BtnManualBrowse" xml:space="preserve"><value>手動瀏覽檔案...</value></data>
+  <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 簡體中文 (Simplified Chinese)</value></data>
+  <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</value></data>
+  <data name="LangEn" xml:space="preserve"><value>🇺🇸 English (US/UK)</value></data>
+  <data name="LangJa" xml:space="preserve"><value>🇯🇵 日本語 (Japanese)</value></data>
+  <data name="LangAuto" xml:space="preserve"><value>🖥️ 跟隨系統 (System Default)</value></data>
+  <data name="StartupTitle" xml:space="preserve"><value>開機自啟動</value></data>
+  <data name="StartupDesc" xml:space="preserve"><value>在 Windows 開機登入時靜默自啟動並在後台托盤駐留。</value></data>
+  <data name="MemoryTitle" xml:space="preserve"><value>極簡記憶體最佳化 (Working Set Trim)</value></data>
+  <data name="MemoryDesc" xml:space="preserve"><value>啟用 Windows 行程工作集深度修剪，後台常駐記憶體低至 15~25MB。</value></data>
+  <data name="BtnTrimMemory" xml:space="preserve"><value>立即壓縮實體記憶體</value></data>
+  <data name="ElevateTitle" xml:space="preserve"><value>系統管理員權限提升 (Run as Admin)</value></data>
+  <data name="ElevateDesc" xml:space="preserve"><value>以系統管理員身分重啟，可在工作管理員、系統設定等高權限視窗中正常呼出手勢。</value></data>
+  <data name="BtnElevate" xml:space="preserve"><value>🛡️ 以系統管理員身分重啟</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>配置備份與恢復 (Backup &amp; Reset)</value></data>
+  <data name="BtnExportConfig" xml:space="preserve"><value>匯出配置備份</value></data>
+  <data name="BtnImportConfig" xml:space="preserve"><value>匯入設定檔</value></data>
+  <data name="BtnResetConfig" xml:space="preserve"><value>恢復原廠設定</value></data>
+  <data name="AboutHeader" xml:space="preserve"><value>關於與更新日誌</value></data>
+  <data name="AboutDesc" xml:space="preserve"><value>高質感、極速現代 Windows 滑鼠輪盤手勢工具</value></data>
+  <data name="BtnOpenChangelog" xml:space="preserve"><value>檢視完整 CHANGELOG</value></data>
+  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md 檔案位於應用程式根目錄。</value></data>
+  <data name="ChangelogOpenFailed" xml:space="preserve"><value>無法開啟 CHANGELOG.md。</value></data>
+  <data name="MilestonesTitle" xml:space="preserve"><value>版本演進里程碑 (Milestones)</value></data>
+  <data name="MsgSaveSuccess" xml:space="preserve"><value>設定已成功儲存至硬碟！</value></data>
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>確定要永久刪除此自訂配色方案嗎？
+刪除後不可恢復。</value></data>
+  <data name="MsgConfirmReset" xml:space="preserve"><value>確定要恢復原廠預設設定嗎？所有自訂手勢與樣式將被重設。</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ 暫停手勢</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ 恢復手勢</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好設定 (Settings)</value></data>
+  <data name="TrayAppearance" xml:space="preserve"><value>🎨 外觀與形態 (Appearance)</value></data>
+  <data name="TrayGestures" xml:space="preserve"><value>⚡ 手勢與動作 (Mappings)</value></data>
+  <data name="TrayAbout" xml:space="preserve"><value>📋 更新日誌與關於 (About)</value></data>
+  <data name="TrayElevate" xml:space="preserve"><value>🛡️ 以系統管理員身分重啟</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 現代化滑鼠輪盤手勢</value></data>
+  <data name="LivePreviewFps" xml:space="preserve"><value>60FPS 同步渲染</value></data>
+  <data name="AdvancedSubheader" xml:space="preserve"><value>管理介面語言、Windows 開機自啟、系統管理員提權與設定檔的匯入/匯出備份。</value></data>
+  <data name="TrimMemoryTooltip" xml:space="preserve"><value>立即清理未引用的工作集實體記憶體</value></data>
+  <data name="GesturesSubheader" xml:space="preserve"><value>支援針對不同前景應用程式設定專屬的多向手勢輪盤、按鍵動作與向量圖示。</value></data>
+  <data name="AddProfileTooltip" xml:space="preserve"><value>從已安裝軟體或開始功能表中選擇程式建立專屬設定</value></data>
+  <data name="AddCustomProfileTooltip" xml:space="preserve"><value>自訂命名建立新的輪盤設定方案</value></data>
+  <data name="RenameProfileTooltip" xml:space="preserve"><value>重新命名選取的設定方案</value></data>
+  <data name="DeleteProfileTooltip" xml:space="preserve"><value>刪除選取的設定方案</value></data>
+  <data name="PickIconTooltip" xml:space="preserve"><value>點擊選取向量圖示</value></data>
+  <data name="SelectedAppPathTooltip" xml:space="preserve"><value>選擇的應用程式路徑</value></data>
+  <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>選擇的本機資料夾路徑</value></data>
+  <data name="LaunchArgsTooltip" xml:space="preserve"><value>啟動參數 (如命令列參數或URL)</value></data>
+  <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>從已安裝軟體清單中快速選擇要排除的程式</value></data>
+  <data name="BlacklistAddTooltip" xml:space="preserve"><value>將輸入框中的處理程序名稱加入排除黑名單</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>自訂 StarPie 控制台整體介面的視覺色彩風格，支援跟隨 Windows 系統深淺色切換。</value></data>
+  <data name="StyleTypeLabel" xml:space="preserve"><value>主題風格 (UiStyle):</value></data>
+  <data name="RenamePresetTooltip" xml:space="preserve"><value>重新命名目前選取的自訂配色方案預設</value></data>
+  <data name="CustomColorsLabel" xml:space="preserve"><value>自訂十六進位色彩 (色盤調色 / 螢幕吸色):</value></data>
+  <data name="CustomSectorBgLabel" xml:space="preserve"><value>扇區底色:</value></data>
+  <data name="CustomSectorBorderLabel" xml:space="preserve"><value>扇區邊框:</value></data>
+  <data name="CustomHighlightBgLabel" xml:space="preserve"><value>高亮底色:</value></data>
+  <data name="CustomHighlightBorderLabel" xml:space="preserve"><value>高亮邊框:</value></data>
+  <data name="CustomTextColorLabel" xml:space="preserve"><value>文字顏色:</value></data>
+  <data name="PickColorTooltip" xml:space="preserve"><value>開啟調色盤選取顏色</value></data>
+  <data name="PickEyedropperTooltip" xml:space="preserve"><value>從螢幕任意位置吸取顏色</value></data>
+  <data name="GlowColorLabel" xml:space="preserve"><value>光暈色值:</value></data>
+  <data name="PickGlowColorTooltip" xml:space="preserve"><value>開啟調色盤選取光暈顏色</value></data>
+  <data name="PickGlowEyedropperTooltip" xml:space="preserve"><value>從螢幕任意位置吸取光暈顏色</value></data>
+  <data name="ShowTextLabel" xml:space="preserve"><value>在輪盤扇區中顯示動作名稱文字</value></data>
+  <data name="BtnChooseIcon" xml:space="preserve"><value>選擇圖示...</value></data>
+  <data name="CoreCustomImageTooltip" xml:space="preserve"><value>自訂圖片本機路徑</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>清除</value></data>
+  <data name="LivePreviewTitle" xml:space="preserve"><value>即時互動畫布 (Live Preview)</value></data>
+  <data name="LivePreviewHint" xml:space="preserve"><value>💡 移動滑鼠至下方輪盤可即時測試高亮與磁吸手感</value></data>
+  <data name="LayoutModeLabel" xml:space="preserve"><value>排版模式 (Layout Mode):</value></data>
+  <data name="ShapeTypeLabel" xml:space="preserve"><value>扇區切削形態 (Shape):</value></data>
+  <data name="CorePatternCustom" xml:space="preserve"><value>✨ 自訂向量圖示 (Custom Icon)</value></data>
+  <data name="ColorPickerHeader" xml:space="preserve"><value>調色盤與螢幕取色</value></data>
+  <data name="ColorPickerSubtitle" xml:space="preserve"><value>在色盤中精調色彩，或使用螢幕吸管擷取任意像素。</value></data>
+  <data name="IconPickerImportTooltip" xml:space="preserve"><value>支援匯入本機 SVG 向量圖或 PNG / ICO / JPG 圖片圖示</value></data>
+  <data name="ClearHotkeyTooltip" xml:space="preserve"><value>清空快速鍵</value></data>
+  <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 儲存目前顏色為自訂配色預設...</value></data>
+  <data name="DeletePresetTooltip" xml:space="preserve"><value>刪除目前選取的自訂配色方案預設</value></data>
+  <data name="AboutSubheader" xml:space="preserve"><value>StarPie 現代滑鼠輪盤手勢工具版本資訊與完整演進歷程。</value></data>
+  <data name="GlowPresetLilac" xml:space="preserve"><value>💜 丁香晶紫 (Lilac Violet #A855F7)</value></data>
+  <data name="GlowPresetBlue" xml:space="preserve"><value>💙 冰川湛藍 (Glacial Blue #3B82F6)</value></data>
+  <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 翡翠螢綠 (Emerald Green #10B981)</value></data>
+  <data name="GlowPresetRose" xml:space="preserve"><value>💖 櫻花粉暈 (Sakura Rose #EC4899)</value></data>
+  <data name="GlowPresetAmber" xml:space="preserve"><value>🧡 琥珀金光 (Amber Gold #F59E0B)</value></data>
+  <data name="GlowPresetRed" xml:space="preserve"><value>🔴 珊瑚赤光 (Coral Red #EF4444)</value></data>
+  <data name="GlowPresetWhite" xml:space="preserve"><value>⚪ 冰魄純白 (Pure Ice White #FFFFFF)</value></data>
+  <data name="GlowPresetCustom" xml:space="preserve"><value>🎨 自訂光暈顏色 (Custom Glow Color)</value></data>
+</root>

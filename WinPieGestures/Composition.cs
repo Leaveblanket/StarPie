@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures
 {
@@ -35,6 +36,11 @@ namespace WinPieGestures
             var services = new ServiceCollection();
             ConfigureServices(services);
             _provider = services.BuildServiceProvider();
+
+            // ADR-0013/#44：本地化服务单例注册到静态门面——先于任何配置 Load/页面 VM，
+            // 保证 JsonConfigService.Load() 的 I18n.SetLanguage 与声明式投影都走同一实例。
+            I18n.Initialize(_provider.GetRequiredService<ILocalizationService>());
+
             _config = _provider.GetRequiredService<JsonConfigService>();
         }
 
@@ -45,6 +51,7 @@ namespace WinPieGestures
             var mouseHook = _provider.GetRequiredService<MouseHook>();
             var dialogService = _provider.GetRequiredService<DialogService>();
             var themeService = _provider.GetRequiredService<ThemeService>();
+            var localization = _provider.GetRequiredService<ILocalizationService>();
             var saveOrchestrator = _provider.GetRequiredService<SettingsSaveOrchestrator>();
 
             var navTrigger = _provider.GetRequiredService<INavigationService<BehaviorSettingsViewModel>>();
@@ -70,6 +77,7 @@ namespace WinPieGestures
                 mouseHook,
                 dialogService,
                 themeService,
+                localization,
                 saveOrchestrator,
                 navTrigger,
                 navAppearance,
@@ -93,6 +101,7 @@ namespace WinPieGestures
             services.AddSingleton<MouseHook>();
             services.AddSingleton(new ThemeService());
             services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<ThemeService>());
+            services.AddSingleton<ILocalizationService, LocalizationService>();
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<IWheelFactory, WheelFactory>();

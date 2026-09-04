@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="RenameCustomPresetButton" xml:space="preserve"><value>✏️ Rename Preset</value></data>
+  <data name="RenameCustomPresetTitle" xml:space="preserve"><value>Rename Color Preset</value></data>
+  <data name="RenameCustomPresetPrompt" xml:space="preserve"><value>Enter a new name for the color preset:</value></data>
+  <data name="OuterEscapeTitle" xml:space="preserve"><value>Outer Escape Cancel</value></data>
+  <data name="OuterEscapeDesc" xml:space="preserve"><value>De-highlight immediately once the cursor leaves the wheel outer ring; release right-click for a safe cancel.</value></data>
+  <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>Escape Distance Threshold (Sensitivity):</value></data>
+  <data name="OuterEscapeDistanceDesc" xml:space="preserve"><value>How far past the center the cursor must travel to cancel. Smaller values cancel easier, larger values require a farther flick.</value></data>
+  <data name="OuterEscapeCheckbox" xml:space="preserve"><value>Enable Outer Escape Cancel (Recommended)</value></data>
+  <data name="IconPickerImport" xml:space="preserve"><value>➕ Import Custom Icon...</value></data>
+  <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 Custom Advanced Color Tuning</value></data>
+  <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>Expand to fine-tune individual colors for sectors, highlights, borders, text, and glow.</value></data>
+  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 View Older Milestones</value></data>
+  <data name="BrowseAppTooltip" xml:space="preserve"><value>Browse application or shortcut...</value></data>
+  <data name="BrowseFolderTooltip" xml:space="preserve"><value>Browse local folder...</value></data>
+  <data name="BtnConfirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="BtnCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="BtnOk" xml:space="preserve"><value>OK</value></data>
+  <data name="BtnApply" xml:space="preserve"><value>Apply</value></data>
+  <data name="BtnTest" xml:space="preserve"><value>Test</value></data>
+  <data name="BtnBrowseFolder" xml:space="preserve"><value>Browse Folder...</value></data>
+  <data name="ActionTypeFolder" xml:space="preserve"><value>📂 Open Folder</value></data>
+  <data name="ActionTypeHotkeyShort" xml:space="preserve"><value>Hotkey</value></data>
+  <data name="ActionTypeLaunchShort" xml:space="preserve"><value>Run App</value></data>
+  <data name="ActionTypeFolderShort" xml:space="preserve"><value>Open Folder</value></data>
+  <data name="ActionTypeSystemShort" xml:space="preserve"><value>System</value></data>
+  <data name="ProfileCardTitle" xml:space="preserve"><value>Active Profiles</value></data>
+  <data name="ProfileCardDesc" xml:space="preserve"><value>Select or create dedicated pie wheel profiles for specific apps (e.g. Chrome, VS Code) or workflows (double-click to rename).</value></data>
+  <data name="BtnAddAppProfile" xml:space="preserve"><value>➕ Add App Profile</value></data>
+  <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ Add Custom Profile</value></data>
+  <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ Rename Profile</value></data>
+  <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ Delete Profile</value></data>
+  <data name="SectorCountOptionTitle" xml:space="preserve"><value>Sector Count</value></data>
+  <data name="SectorCountOptionDesc" xml:space="preserve"><value>Switch sector counts: 4-way for fast blind flicks, 8-way for balanced productivity, 12-way for high-density actions.</value></data>
+  <data name="SectorActionListTitle" xml:space="preserve"><value>Sector Action Mappings</value></data>
+  <data name="SectorActionListDesc" xml:space="preserve"><value>Assign actions and icons for each sector. Supports hotkeys (e.g. Ctrl+C), app launching, folder opening, and system actions.</value></data>
+  <data name="IconPickerTitle" xml:space="preserve"><value>Select Vector Icon</value></data>
+  <data name="IconPickerHeader" xml:space="preserve"><value>Select Sector Vector Icon</value></data>
+  <data name="IconPickerSubtitle" xml:space="preserve"><value>30+ high-fidelity vector icons with lossless crisp rendering across all DPI displays.</value></data>
+  <data name="IconPickerSearchTooltip" xml:space="preserve"><value>Search icon name or category...</value></data>
+  <data name="IconPickerClear" xml:space="preserve"><value>Clear Icon (No Icon)</value></data>
+  <data name="IconPickerSelected" xml:space="preserve"><value>Selected Icon:</value></data>
+  <data name="IconPickerNone" xml:space="preserve"><value>(None)</value></data>
+  <data name="ColorPickerTitle" xml:space="preserve"><value>Color Picker &amp; Eyedropper</value></data>
+  <data name="ColorPickerHue" xml:space="preserve"><value>Hue</value></data>
+  <data name="ColorPickerAlpha" xml:space="preserve"><value>Opacity</value></data>
+  <data name="ColorPickerEyedropperTitle" xml:space="preserve"><value>🔍 Screen Eyedropper</value></data>
+  <data name="ColorPickerEyedropperDesc" xml:space="preserve"><value>Pick color accurately from any window or desktop on screen</value></data>
+  <data name="ColorPickerEyedropperBtn" xml:space="preserve"><value>Pick Color</value></data>
+  <data name="ColorPickerSwatches" xml:space="preserve"><value>Preset Color Swatches (Scroll to browse):</value></data>
+  <data name="ColorPickerApply" xml:space="preserve"><value>Apply Color</value></data>
+  <data name="InputDialogTitle" xml:space="preserve"><value>Profile - StarPie</value></data>
+  <data name="InputDialogEmpty" xml:space="preserve"><value>Name cannot be empty. Please enter a valid profile name.</value></data>
+  <data name="Notice" xml:space="preserve"><value>Notice</value></data>
+  <data name="Error" xml:space="preserve"><value>Error</value></data>
+  <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Modern Mouse Radial Gestures</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie Preferences Console</value></data>
+  <data name="TabTrigger" xml:space="preserve"><value>🎯 Trigger &amp; Scenes</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
+  <data name="TabGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
+  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
+  <data name="TabAbout" xml:space="preserve"><value>📋 About &amp; Updates</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes take effect in memory immediately. Click [Save Changes] to persist to disk.</value></data>
+  <data name="BtnSave" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>Close &amp; Hide</value></data>
+  <data name="TriggerHeader" xml:space="preserve"><value>Trigger &amp; Scene Isolation</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>Configure mouse gesture sensitivity, full-screen gaming bypass, and exclusion blacklist.</value></data>
+  <data name="SensitivityTitle" xml:space="preserve"><value>Trigger Sensitivity</value></data>
+  <data name="SensitivityDesc" xml:space="preserve"><value>Hold right-click and move beyond this pixel distance to trigger radial menu. Lower values are more sensitive.</value></data>
+  <data name="SceneIsolationTitle" xml:space="preserve"><value>Scene Isolation &amp; Guard</value></data>
+  <data name="SceneIsolationDesc" xml:space="preserve"><value>Automatically bypass radial menu and pass-through native right-click in specific scenarios.</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>Auto-disable in Full-screen games / Exclusive apps</value></data>
+  <data name="FullScreenOptionDesc" xml:space="preserve"><value>Detects whether active window is running in full-screen to avoid intercepting gaming right-clicks.</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>Modifier Pass-Through (hold to bypass gestures):</value></data>
+  <data name="ModifierCtrl" xml:space="preserve"><value>Bypass on Ctrl</value></data>
+  <data name="ModifierShift" xml:space="preserve"><value>Bypass on Shift</value></data>
+  <data name="ModifierAlt" xml:space="preserve"><value>Bypass on Alt</value></data>
+  <data name="BlacklistTitle" xml:space="preserve"><value>Process Exclusion Blacklist</value></data>
+  <data name="BlacklistDesc" xml:space="preserve"><value>Native right-click is fully allowed within blacklisted applications (e.g. Remote Desktop, Paint, CAD).</value></data>
+  <data name="BtnAddProcess" xml:space="preserve"><value>➕ Add Process</value></data>
+  <data name="BtnPickProcess" xml:space="preserve"><value>🔍 Select App...</value></data>
+  <data name="BtnDeleteProcess" xml:space="preserve"><value>🗑️ Remove Selected</value></data>
+  <data name="BlacklistPlaceholder" xml:space="preserve"><value>Enter process name (e.g. solidworks.exe) or browse...</value></data>
+  <data name="AppearanceHeader" xml:space="preserve"><value>Appearance &amp; Shapes Customization</value></data>
+  <data name="AppearanceSubheader" xml:space="preserve"><value>Customize visual styles, color palettes, highlight glow, geometry shapes, typography, and core image.</value></data>
+  <data name="StyleTitle" xml:space="preserve"><value>Wheel Visual Style &amp; Colors</value></data>
+  <data name="StyleGlass" xml:space="preserve"><value>Liquid Glassmorphism</value></data>
+  <data name="StyleClassic" xml:space="preserve"><value>Classic Ring</value></data>
+  <data name="StyleClean" xml:space="preserve"><value>Clean Sectors</value></data>
+  <data name="StyleCatPaw" xml:space="preserve"><value>Cute Cat Paw</value></data>
+  <data name="ThemeTitle" xml:space="preserve"><value>Wheel Theme:</value></data>
+  <data name="WheelCoreTitle" xml:space="preserve"><value>Global Actions</value></data>
+  <data name="WheelCoreSubtitle" xml:space="preserve"><value>{0} Actions</value></data>
+  <data name="WheelSectorEmpty" xml:space="preserve"><value>Not set</value></data>
+  <data name="BtnDeletePreset" xml:space="preserve"><value>🗑️ Delete Preset</value></data>
+  <data name="GlowTitle" xml:space="preserve"><value>Highlight Glow Mode:</value></data>
+  <data name="GlowFollowTheme" xml:space="preserve"><value>🌈 Follow Theme Highlight (Auto / Follow Theme)</value></data>
+  <data name="GlowRadius" xml:space="preserve"><value>Glow Radius</value></data>
+  <data name="GlowOpacity" xml:space="preserve"><value>Glow Opacity</value></data>
+  <data name="GeometryTitle" xml:space="preserve"><value>Geometry &amp; Dimensions</value></data>
+  <data name="ShapeOriginal" xml:space="preserve"><value>Classic Compact Sector (Original)</value></data>
+  <data name="ShapeCircle" xml:space="preserve"><value>Standalone Circle Card (Circle)</value></data>
+  <data name="ShapeRounded" xml:space="preserve"><value>Floating Rounded Capsule (Capsule)</value></data>
+  <data name="ShapeCapsule" xml:space="preserve"><value>Pill Capsules</value></data>
+  <data name="ShapeHexagon" xml:space="preserve"><value>Hexagon Hive Matrix (HexagonHive)</value></data>
+  <data name="RadiusOuter" xml:space="preserve"><value>Outer Radius:</value></data>
+  <data name="RadiusInner" xml:space="preserve"><value>Inner Radius:</value></data>
+  <data name="RadiusCore" xml:space="preserve"><value>Core Radius:</value></data>
+  <data name="SectorGap" xml:space="preserve"><value>Sector Gap:</value></data>
+  <data name="SectorCornerRadius" xml:space="preserve"><value>Corner Radius:</value></data>
+  <data name="BtnResetGeometry" xml:space="preserve"><value>Reset to Recommended Geometry</value></data>
+  <data name="IconLayoutTitle" xml:space="preserve"><value>Icon &amp; Layout Options</value></data>
+  <data name="LayoutIconText" xml:space="preserve"><value>Icon + Text</value></data>
+  <data name="LayoutIconOnly" xml:space="preserve"><value>Icon Only</value></data>
+  <data name="LayoutTextOnly" xml:space="preserve"><value>Text Only</value></data>
+  <data name="SectorIconSize" xml:space="preserve"><value>Icon Size:</value></data>
+  <data name="SectorFontSize" xml:space="preserve"><value>Font Size:</value></data>
+  <data name="CoreTitle" xml:space="preserve"><value>Center Core &amp; Pattern</value></data>
+  <data name="CoreShowIcon" xml:space="preserve"><value>Show Core Center Icon / Pattern</value></data>
+  <data name="CoreIconType" xml:space="preserve"><value>Core Pattern:</value></data>
+  <data name="CorePatternExit" xml:space="preserve"><value>✕ Default Cancel Cross (Exit / Close)</value></data>
+  <data name="CorePatternCrosshair" xml:space="preserve"><value>⌖ Crosshair</value></data>
+  <data name="CorePatternWindows" xml:space="preserve"><value>⊞ Windows Logo</value></data>
+  <data name="CorePatternDot" xml:space="preserve"><value>⦿ Bullseye Dot</value></data>
+  <data name="CorePatternHome" xml:space="preserve"><value>⌂ Home</value></data>
+  <data name="CorePatternPower" xml:space="preserve"><value>⏻ Power</value></data>
+  <data name="CorePatternCompass" xml:space="preserve"><value>🧭 Compass</value></data>
+  <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 Cute Cat Paw</value></data>
+  <data name="CorePatternImage" xml:space="preserve"><value>🖼️ Custom Image</value></data>
+  <data name="BtnBrowseImage" xml:space="preserve"><value>Browse Image...</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>Console Theme (App Theme)</value></data>
+  <data name="ThemeSystem" xml:space="preserve"><value>🌓 System Auto</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>☀️ Modern Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>🌙 Obsidian Dark</value></data>
+  <data name="ThemeNavy" xml:space="preserve"><value>🌌 Midnight Navy</value></data>
+  <data name="ThemeViolet" xml:space="preserve"><value>🔮 Royal Violet</value></data>
+  <data name="ThemeGray" xml:space="preserve"><value>⚙️ Titanium Gray</value></data>
+  <data name="GesturesHeader" xml:space="preserve"><value>Gesture Sectors &amp; Action Mappings</value></data>
+  <data name="SectorCountTitle" xml:space="preserve"><value>Sector Count</value></data>
+  <data name="SectorCount4" xml:space="preserve"><value>4 Sectors (Cross 4-Way)</value></data>
+  <data name="SectorCount8" xml:space="preserve"><value>8 Sectors (Standard 8-Way)</value></data>
+  <data name="SectorCount12" xml:space="preserve"><value>12 Sectors (Clock Dial 12-Way)</value></data>
+  <data name="ActionTypeHotkey" xml:space="preserve"><value>⌨️ Keyboard Hotkey</value></data>
+  <data name="ActionTypeLaunch" xml:space="preserve"><value>🚀 Launch App / Open URL</value></data>
+  <data name="ActionTypeSystem" xml:space="preserve"><value>⚙️ System Action</value></data>
+  <data name="BtnRecordHotkey" xml:space="preserve"><value>Click to Record Hotkey</value></data>
+  <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 Select Application...</value></data>
+  <data name="AdvancedHeader" xml:space="preserve"><value>System Integration &amp; Preferences</value></data>
+  <data name="LanguageTitle" xml:space="preserve"><value>Display Language</value></data>
+  <data name="LanguageDesc" xml:space="preserve"><value>Select language for StarPie. Applies immediately without restarting.</value></data>
+  <data name="ProgramPickerTitle" xml:space="preserve"><value>Select Program</value></data>
+  <data name="ProgramPickerHeader" xml:space="preserve"><value>Select from Installed Apps &amp; Start Menu</value></data>
+  <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>Search app name, executable, or path...</value></data>
+  <data name="ProgramPickerScanning" xml:space="preserve"><value>Scanning installed programs, please wait...</value></data>
+  <data name="BtnManualBrowse" xml:space="preserve"><value>Browse File...</value></data>
+  <data name="LangZhCn" xml:space="preserve"><value>🇨🇳 简体中文 (Simplified Chinese)</value></data>
+  <data name="LangZhTw" xml:space="preserve"><value>🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</value></data>
+  <data name="LangEn" xml:space="preserve"><value>🇺🇸 English (US/UK)</value></data>
+  <data name="LangJa" xml:space="preserve"><value>🇯🇵 日本語 (Japanese)</value></data>
+  <data name="LangAuto" xml:space="preserve"><value>🖥️ System Default</value></data>
+  <data name="StartupTitle" xml:space="preserve"><value>Run on Windows Startup</value></data>
+  <data name="StartupDesc" xml:space="preserve"><value>Automatically start StarPie silently minimized to tray on login.</value></data>
+  <data name="MemoryTitle" xml:space="preserve"><value>Memory Optimization</value></data>
+  <data name="MemoryDesc" xml:space="preserve"><value>Deep trims working set, keeping background RAM usage under 20MB.</value></data>
+  <data name="BtnTrimMemory" xml:space="preserve"><value>Trim RAM Now</value></data>
+  <data name="ElevateTitle" xml:space="preserve"><value>Run as Administrator</value></data>
+  <data name="ElevateDesc" xml:space="preserve"><value>Relaunch with administrator privileges to interact with elevated windows.</value></data>
+  <data name="BtnElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
+  <data name="BackupTitle" xml:space="preserve"><value>Backup &amp; Reset</value></data>
+  <data name="BtnExportConfig" xml:space="preserve"><value>Export Backup</value></data>
+  <data name="BtnImportConfig" xml:space="preserve"><value>Import Config</value></data>
+  <data name="BtnResetConfig" xml:space="preserve"><value>Restore Factory Defaults</value></data>
+  <data name="AboutHeader" xml:space="preserve"><value>About &amp; Changelog</value></data>
+  <data name="AboutDesc" xml:space="preserve"><value>High-aesthetic, ultra-fast modern Windows mouse radial gestures tool.</value></data>
+  <data name="BtnOpenChangelog" xml:space="preserve"><value>View Full CHANGELOG</value></data>
+  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md is located in the application directory.</value></data>
+  <data name="ChangelogOpenFailed" xml:space="preserve"><value>Unable to open CHANGELOG.md.</value></data>
+  <data name="MilestonesTitle" xml:space="preserve"><value>Version Milestones</value></data>
+  <data name="MsgSaveSuccess" xml:space="preserve"><value>Settings successfully saved to disk!</value></data>
+  <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>Are you sure you want to delete this custom color preset?
+This cannot be undone.</value></data>
+  <data name="MsgConfirmReset" xml:space="preserve"><value>Are you sure you want to restore factory defaults? All customizations will be reset.</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ Pause Gestures</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ Resume Gestures</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Preferences (Settings)</value></data>
+  <data name="TrayAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
+  <data name="TrayGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
+  <data name="TrayAbout" xml:space="preserve"><value>📋 About &amp; Changelog</value></data>
+  <data name="TrayElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
+  <data name="LivePreviewFps" xml:space="preserve"><value>60FPS Live Rendering</value></data>
+  <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup, administrator elevation, and config import/export backups.</value></data>
+  <data name="TrimMemoryTooltip" xml:space="preserve"><value>Instantly trim unused working-set physical memory</value></data>
+  <data name="GesturesSubheader" xml:space="preserve"><value>Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.</value></data>
+  <data name="AddProfileTooltip" xml:space="preserve"><value>Create a dedicated profile by choosing an installed app from the Start menu</value></data>
+  <data name="AddCustomProfileTooltip" xml:space="preserve"><value>Create a new wheel profile with a custom name</value></data>
+  <data name="RenameProfileTooltip" xml:space="preserve"><value>Rename the selected profile</value></data>
+  <data name="DeleteProfileTooltip" xml:space="preserve"><value>Delete the selected profile</value></data>
+  <data name="PickIconTooltip" xml:space="preserve"><value>Click to pick a vector icon</value></data>
+  <data name="SelectedAppPathTooltip" xml:space="preserve"><value>Path of the selected application</value></data>
+  <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>Path of the selected local folder</value></data>
+  <data name="LaunchArgsTooltip" xml:space="preserve"><value>Launch arguments (e.g. command-line args or URL)</value></data>
+  <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>Quickly pick an app to exclude from the installed apps list</value></data>
+  <data name="BlacklistAddTooltip" xml:space="preserve"><value>Add the process name in the input box to the exclusion blacklist</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>Customize the console's visual color style and follow Windows light/dark mode.</value></data>
+  <data name="StyleTypeLabel" xml:space="preserve"><value>Renderer Style (UiStyle):</value></data>
+  <data name="RenamePresetTooltip" xml:space="preserve"><value>Rename the currently selected custom color preset</value></data>
+  <data name="CustomColorsLabel" xml:space="preserve"><value>Custom hex colors (color wheel / screen picker):</value></data>
+  <data name="CustomSectorBgLabel" xml:space="preserve"><value>Sector fill:</value></data>
+  <data name="CustomSectorBorderLabel" xml:space="preserve"><value>Sector border:</value></data>
+  <data name="CustomHighlightBgLabel" xml:space="preserve"><value>Highlight fill:</value></data>
+  <data name="CustomHighlightBorderLabel" xml:space="preserve"><value>Highlight border:</value></data>
+  <data name="CustomTextColorLabel" xml:space="preserve"><value>Text color:</value></data>
+  <data name="PickColorTooltip" xml:space="preserve"><value>Open the color picker</value></data>
+  <data name="PickEyedropperTooltip" xml:space="preserve"><value>Pick a color from anywhere on screen</value></data>
+  <data name="GlowColorLabel" xml:space="preserve"><value>Glow color:</value></data>
+  <data name="PickGlowColorTooltip" xml:space="preserve"><value>Open the color picker for the glow color</value></data>
+  <data name="PickGlowEyedropperTooltip" xml:space="preserve"><value>Pick a glow color from anywhere on screen</value></data>
+  <data name="ShowTextLabel" xml:space="preserve"><value>Show action names inside wheel sectors</value></data>
+  <data name="BtnChooseIcon" xml:space="preserve"><value>Choose Icon...</value></data>
+  <data name="CoreCustomImageTooltip" xml:space="preserve"><value>Local path of the custom image</value></data>
+  <data name="BtnClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="LivePreviewTitle" xml:space="preserve"><value>Live Preview</value></data>
+  <data name="LivePreviewHint" xml:space="preserve"><value>💡 Hover the wheel below to test highlight and snap feel in real time</value></data>
+  <data name="LayoutModeLabel" xml:space="preserve"><value>Layout Mode:</value></data>
+  <data name="ShapeTypeLabel" xml:space="preserve"><value>Sector Shape:</value></data>
+  <data name="CorePatternCustom" xml:space="preserve"><value>✨ Custom Icon</value></data>
+  <data name="ColorPickerHeader" xml:space="preserve"><value>Palette &amp; Screen Picker</value></data>
+  <data name="ColorPickerSubtitle" xml:space="preserve"><value>Fine-tune colors on the palette, or capture any pixel with the screen eyedropper.</value></data>
+  <data name="IconPickerImportTooltip" xml:space="preserve"><value>Import local SVG vector or PNG / ICO / JPG image icons</value></data>
+  <data name="ClearHotkeyTooltip" xml:space="preserve"><value>Clear hotkey</value></data>
+  <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 Save Current Colors as Preset...</value></data>
+  <data name="DeletePresetTooltip" xml:space="preserve"><value>Delete the currently selected custom color preset</value></data>
+  <data name="AboutSubheader" xml:space="preserve"><value>Version info and the complete evolution history of StarPie.</value></data>
+  <data name="GlowPresetLilac" xml:space="preserve"><value>💜 Lilac Violet (#A855F7)</value></data>
+  <data name="GlowPresetBlue" xml:space="preserve"><value>💙 Glacial Blue (#3B82F6)</value></data>
+  <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 Emerald Green (#10B981)</value></data>
+  <data name="GlowPresetRose" xml:space="preserve"><value>💖 Sakura Rose (#EC4899)</value></data>
+  <data name="GlowPresetAmber" xml:space="preserve"><value>🧡 Amber Gold (#F59E0B)</value></data>
+  <data name="GlowPresetRed" xml:space="preserve"><value>🔴 Coral Red (#EF4444)</value></data>
+  <data name="GlowPresetWhite" xml:space="preserve"><value>⚪ Pure Ice White (#FFFFFF)</value></data>
+  <data name="GlowPresetCustom" xml:space="preserve"><value>🎨 Custom Glow Color</value></data>
+</root>
