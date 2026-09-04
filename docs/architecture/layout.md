@@ -75,12 +75,12 @@ WinPieGestures/
 | `ViewModels/Wheel/` | `IWheelViewModel`、`WheelViewModel` | 不注册容器；按手势由 `WheelFactory` 瞬态创建；见 [wheel.md](wheel.md) |
 | `Views/Pages/` | `{Page}Page.xaml(.cs)`、`SettingsPageBase.cs`；页面无参构造 | 不注册容器；不编排业务/写配置/调服务 |
 | `Views/Dialogs/` | `{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |
-| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 内集中页面 DataTemplate 映射 | 其它窗口不得合并 `SettingsStyles.xaml` 之外的页面级样式 |
+| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 内集中页面 DataTemplate 映射 | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
 | `Views/Wheel/` | `RadialWindow.xaml(.cs)` | 轮盘状态决策在 `WheelViewModel`，窗口只做视觉呈现与生命周期；见 [wheel.md](wheel.md) |
 | `Views/Controls/` | 自定义控件与附加行为（`HotkeyRecorderBox.cs`、`SpectrumCanvasBehavior.cs`），仅纯 UI 适配 | 有 `Command`/绑定等价物时不得新增行为 |
 | `Views/Converters/` | `XxxToYyyConverter` | 转换器保持无状态、可静态复用 |
 | `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer` | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
-| `Views/Styles/` | `SettingsStyles.xaml`（仅由 `MainView` 合并） | 对话框/轮盘窗口不隐式继承设置页样式 |
+| `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集）、`ModernControls.xaml`（隐式默认/键控变体/共享模板，仅由 `App.xaml` 合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
 
 ## 根级文件规则
 
@@ -96,6 +96,7 @@ WinPieGestures/
 
 已消除的历史偏差（2026-09-04）：
 
+- 页面/侧栏各自合并 `SettingsStyles.xaml`（7 处）收敛为 App 级单点合并 `ModernControls.xaml`；样式资源字典四层化（主题令牌/排版/控件样式/宿主装配，见 [ADR-0012](../adr/0012-resource-dictionary-architecture.md)）。
 - 删除空目录 `WinPieGestures/Controls/`（自定义控件统一在 `Views/Controls/`）。
 - 移除源码根杂项 `DashboardPrototype.html`（原型/杂项不进源码根）。
 - 把 code-only 的 `ScreenEyedropperOverlay`（位于 `ColorPickerWindow.xaml.cs` 的 `#region`）拆分为独立 `Views/Dialogs/ScreenEyedropperWindow.xaml(.cs)`（见 [dialogs.md](dialogs.md)/[naming.md](naming.md)）。
