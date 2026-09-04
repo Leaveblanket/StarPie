@@ -1,17 +1,15 @@
-<Application x:Class="WinPieGestures.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:converters="clr-namespace:WinPieGestures.Views.Converters">
-    <!--
-        No StartupUri: the initial settings window is created by the composition root
-        (Composition.Run) so constructor-injected services are wired first. ADR-0003.
-    -->
+<Application
+    x:Class="WinPieGestures.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:WinPieGestures.Views.Converters">
+
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!--  Light 主题默认/设计时画刷 (ADR-0012)：运行时由 AppHost 按主题覆盖为 Application 直接资源  -->
+                <!--  Light 主题默认/设计时画刷  -->
                 <ResourceDictionary Source="Views/Styles/Themes/Light.xaml" />
-                <!--  全局控件样式 (ADR-0012)：隐式默认 + 键控变体 + 共享模板，App 级单点合并  -->
+                <!--  全局控件样式 (ADR-0012)  -->
                 <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
@@ -21,7 +19,6 @@
             <converters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />
             <converters:CoreIconNameConverter x:Key="CoreIconNameConverter" />
             <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
-            <!--  全局文本排版已并入 ModernControls.xaml 隐式样式（#38，避免本地样式遮蔽合并字典）  -->
         </ResourceDictionary>
     </Application.Resources>
 </Application>

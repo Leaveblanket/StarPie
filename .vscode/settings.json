@@ -47,7 +47,7 @@
         "editor.insertSpaces": true
     },
     "[xml]": {
-        "editor.defaultFormatter": "redhat.vscode-xml",
+        "editor.defaultFormatter": "dabbinavo.xamlstyler",
         "editor.tabSize": 4,
         "editor.insertSpaces": true
     },
