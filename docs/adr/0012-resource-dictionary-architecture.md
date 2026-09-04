@@ -67,6 +67,32 @@ hover/pressed 视觉硬编码在模板触发器内，派生样式无法复用单
 不再含触发器，三份按钮模板收敛为一份；透明/无边框特例（如 HotkeyRecorderBox
 ✕ 清除钮）显式 `Style={x:Null}` 复位，不落入隐式默认。
 
+## Appendix: 排版与几何令牌归一（#38）
+
+**实证发现**：WPF 资源查找「同字典本地项优先于 MergedDictionaries」。因此
+#36 后 `App.xaml` 本地隐式 TextBox（仅排版）实际**遮蔽** ModernControls 合并
+字典中的完整 TextBox 模板——现代 TextBox 外观全 App 失效，而非 issue 原描述
+的「排版样式被模板顶掉」。#38 spike（STA + Window 实测）确认。
+
+排版机制决定为**隐式样式单一来源**（覆盖所有窗口，不依赖窗口根继承）：
+
+- `RenderOptions.ClearTypeHint` 不走 DP 继承，必须落在每个文本控件自身的隐式
+  样式上；
+- `TextOptions.*`、`SnapsToDevicePixels`、`UseLayoutRounding` 会沿可视树继承，
+  但隐式样式 Setter 优先级高于继承值，作为统一来源同样成立；
+- 故两份隐式排版样式移入 `ModernControls.xaml`：隐式 TextBlock 保留，
+  TextBox 隐式样式把排版 setters 与完整模板合一（消除遮蔽）；
+- `App.xaml` 不再定义任何隐式 TextBlock/TextBox；MainView 与五个页面根上的
+  TextFormattingMode/TextRenderingMode/ClearTypeHint 冗余删除；MainView 根
+  保留 `UseLayoutRounding`/`SnapsToDevicePixels` 作为非文本布局提示；
+- 本地覆盖 TextBlock 隐式样式处（ProgramPicker 占位/状态文案）改为
+  `BasedOn="{StaticResource {x:Type TextBlock}}"`，排版不被局部 Style 重置。
+
+几何令牌：`ModernControls.xaml` 顶部新增 7 个 `CornerRadius` 令牌
+（Control/Item/Card/NavTab/ToggleTrack/ScrollThumb/SliderTrack），全部模板
+魔法数（6/5/8/11/4/2.5）逐一替换；本次仅令牌化 ModernControls 模板内取值，
+页面/对话框卡片圆角与 ListView 观感不在 #38 范围。
+
 ## Consequences
 
 - 页面/侧栏不再携带本地画刷，深色系主题在设置内容区恢复生效；资源字典由 7+ 处合并收敛

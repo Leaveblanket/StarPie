@@ -11,9 +11,6 @@
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
-        TextOptions.TextFormattingMode="Display"
-        TextOptions.TextRenderingMode="ClearType"
-        RenderOptions.ClearTypeHint="Enabled"
         RenderOptions.BitmapScalingMode="HighQuality">
 
     <Window.Resources>
