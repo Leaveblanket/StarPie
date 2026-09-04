@@ -4,6 +4,11 @@ T24（#29）已把 5 个设置页的 code-behind 回填改为“应用级语言�
 
 > **状态**：accepted
 
+> **修订（ADR-0013，#41 起）**：决策 1（`I18n` 静态唯一源 + 不引入 `ILocalizationService`）
+> 已被 [ADR-0013](0013-localization-theme-overhaul.md) 取代——本地化数据与取词改
+> `resx` + `ILocalizationService` 实例服务，静态 `I18n` 于 S4（#45）删除；其余条款
+> （文案四分类、VM 生命周期契约、e2e AutomationId）维持不变。
+
 ## 术语（已落档 CONTEXT.md）
 
 - **声明式文案 (Declarative Copy)**：界面静态展示、语言切换后自动随当前语言更新的文案，呈现者无需逐项回填。

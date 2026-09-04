@@ -31,6 +31,10 @@ def app(sandbox_env, request):
     # Locate the executable
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
+        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows10.0.19041.0", "StarPie.exe"),
+        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows10.0.19041.0", "WinPieGestures.exe"),
+        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows10.0.19041.0", "StarPie.exe"),
+        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows10.0.19041.0", "WinPieGestures.exe"),
         os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows", "StarPie.exe"),
         os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows", "WinPieGestures.exe"),
         os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows", "StarPie.exe"),

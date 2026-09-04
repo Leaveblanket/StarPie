@@ -31,15 +31,16 @@
 | 轮盘 VM / RadialWindow / 样式渲染器 | [wheel.md](architecture/wheel.md) |
 | 程序扫描与图标 | [programs.md](architecture/programs.md) |
 | 主题 / 托盘 / 单实例 / 内存 / 自启 | [shell.md](architecture/shell.md) |
-| I18n 文案键 / IMessenger 消息 | [localization.md](architecture/localization.md) |
+| 本地化文案键(resx) / IMessenger 消息 | [localization.md](architecture/localization.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
 ## 3. 技术栈
 
-- .NET 8 / WPF（`net8.0-windows`、`UseWPF`，程序集名 `StarPie`）。
+- .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
+- 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
 - 单元测试：`WinPieGestures.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
 - e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
@@ -53,13 +54,12 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0010）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0013）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
 ├── WinPieGestures.Tests/        # xUnit 单元测试
-├── tests/                       # pywinauto e2e（不在本文档体系展开）
-└── releases/                    # 旧版本，冻结：不修改、不作为当前实现依据
+└── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
 测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。

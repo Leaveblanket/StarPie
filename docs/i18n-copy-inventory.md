@@ -190,7 +190,7 @@
 ## 2026-09-04 更新：C7（#49）已实现——对话框 VM 文案键化与 Models 默认值去中文
 
 > 对应 #39 C7：IconPicker/ProgramPicker 对话框 VM 的文件过滤器、标题、后缀、未选/清空
-> 占位与失败提示硬编码中文清零（对话框为瞬态呈现，均按即时取词 `I18n.T`/服务取词）；
+> 占位与失败提示硬编码中文清零（对话框为瞬态呈现，均按即时取词 `ILocalizationService.GetString`）；
 > 外观 VM 中心核图文件对话框文案同步键化。三个对话框 VM（IconPicker/Input/ProgramPicker）
 > XML 注释中指向不存在成员的 `CloseRequested`/`ValidationFailed`/`ImportFailed` 引用改为
 > `IsCompleted`/纯文本描述。

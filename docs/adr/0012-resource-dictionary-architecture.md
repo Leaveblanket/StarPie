@@ -11,6 +11,12 @@
 
 Accepted（grilling 共识 1C/2C/3B + T1/S1/U2；#35 起分批实施）。
 
+> **修订（ADR-0013，#41 起）**：决策 2（`ApplyTheme` 把目标调色板写入 Application 直接资源，
+> 直接键覆盖）已被 [ADR-0013](0013-localization-theme-overhaul.md) 第 4–5 条取代——改由
+> `ThemePaletteManager` 整项替换 MergedDictionaries 活动主题槽 + `IThemeService.SetTheme`/
+> `ThemeChanged` 单一入口（#46/#47）。其余（令牌 XAML 化、App 单点合并、五套同 key 集）保留；
+> 令牌数随 #49 C2 增 `DangerBrush` 后为 27 个。
+
 ## Considered Options
 
 - **最小收敛**（只删两文件重复、保留对话框本地样式拷贝）：被否——键控样式三份拷贝

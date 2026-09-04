@@ -11,6 +11,7 @@ WinPieGestures/
 ├── App.xaml / App.xaml.cs      # 宿主生命周期：单实例、异常、启动/退出编排
 ├── AppHost.cs                  # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
 ├── Composition.cs              # DI 组合根（唯一）：注册与解析
+├── ThemePaletteManager.cs      # 主题调色板整项替换（宿主层 internal，#46/ADR-0013）
 ├── AssemblyInfo.cs             # 程序集元数据
 ├── GlobalUsings.cs             # 工程级全局 using
 ├── WinPieGestures.csproj       # SDK 工程文件（.slnx 同层）
@@ -31,7 +32,7 @@ WinPieGestures/
 │   ├── Configuration/          # 配置读写、防抖保存、自启注册表
 │   ├── Dialogs/                # 对话框服务（接口 + 实现 + 结果 record）
 │   ├── Gestures/               # 手势管线、窗口上下文、轮盘工厂
-│   ├── Localization/           # I18n
+│   ├── Localization/           # ILocalizationService + Strings*.resx
 │   ├── Messages/               # IMessenger 消息与跨层通知载体
 │   ├── Navigation/             # 导航状态与导航服务
 │   ├── Programs/               # 程序扫描、目录与图标
@@ -63,7 +64,7 @@ WinPieGestures/
 | `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
 | `Services/Dialogs/` | `IDialogService`/`DialogService` + 各 `ShowXxx` 的可空结果 record | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
 | `Services/Gestures/` | `MouseHook`、`GestureController`、`GestureEngine`（含 `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory` | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
-| `Services/Localization/` | `I18n`（含 `LanguageCode`） | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
+| `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口） | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体） | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>` | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Programs/` | `ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）、`IconHelper` | 集成性质扫描逻辑不进 VM 单测；实现见 [programs.md](programs.md) |
@@ -87,6 +88,7 @@ WinPieGestures/
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
+- `ThemePaletteManager.cs`：宿主层主题调色板整项替换（internal，自包含加载/缓存/冻结；仅 `AppHost` 编排调用，见 [shell.md](shell.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - 源码根目录**只允许**上表列出的项；原型、HTML、临时脚本不得留在 `WinPieGestures/` 下。
 
@@ -105,5 +107,4 @@ WinPieGestures/
 长期接受的例外（新代码不得新增同类）：
 
 - `InputViewModel ↔ InputDialog`：遗留命名错位，见 [naming.md](naming.md)。
-- `releases/`：冻结目录，永不作为实现依据。
 - 页面 VM 与页面 View 的领域/区块命名错位（`GeneralSettingsViewModel → AdvancedSettingsPage` 等）：**允许且是正典**，见 [naming.md](naming.md)。
