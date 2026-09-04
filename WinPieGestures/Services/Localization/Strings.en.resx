@@ -141,6 +141,13 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 Midnight Navy</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 Royal Violet</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ Titanium Gray</value></data>
+  <data name="WheelThemeSystem" xml:space="preserve"><value>System Auto</value></data>
+  <data name="WheelThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="WheelThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="WheelThemeMatchaForest" xml:space="preserve"><value>Matcha Forest</value></data>
+  <data name="WheelThemeGlacialIce" xml:space="preserve"><value>Glacial Ice</value></data>
+  <data name="WheelThemeMorandiMuted" xml:space="preserve"><value>Morandi Muted</value></data>
+  <data name="WheelThemeCustomPreset" xml:space="preserve"><value>🎨 {0} (Custom Preset)</value></data>
   <data name="GesturesHeader" xml:space="preserve"><value>Gesture Sectors &amp; Action Mappings</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>Sector Count</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4 Sectors (Cross 4-Way)</value></data>

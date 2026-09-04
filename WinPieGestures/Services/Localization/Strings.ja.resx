@@ -141,6 +141,13 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 ミッドナイトネイビー</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 ロイヤルバイオレット</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ チタングレー</value></data>
+  <data name="WheelThemeSystem" xml:space="preserve"><value>システム自動</value></data>
+  <data name="WheelThemeLight" xml:space="preserve"><value>ライト</value></data>
+  <data name="WheelThemeDark" xml:space="preserve"><value>ダーク</value></data>
+  <data name="WheelThemeMatchaForest" xml:space="preserve"><value>抹茶フォレスト</value></data>
+  <data name="WheelThemeGlacialIce" xml:space="preserve"><value>グレイシャルアイス</value></data>
+  <data name="WheelThemeMorandiMuted" xml:space="preserve"><value>モランディミュート</value></data>
+  <data name="WheelThemeCustomPreset" xml:space="preserve"><value>🎨 {0} (カスタムプリセット)</value></data>
   <data name="GesturesHeader" xml:space="preserve"><value>セクター配置とアクション設定</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4キー (十字方向)</value></data>
