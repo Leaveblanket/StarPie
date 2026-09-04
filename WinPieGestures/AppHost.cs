@@ -114,6 +114,8 @@ namespace WinPieGestures
                 }
             };
             _mainView.ApplyAppTheme(_appearance.AppTheme);
+            // ADR-0013/#48：初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）。
+            _themeService.EnableSystemThemeTracking();
             // 惰性回填 Owner：此后所有模态对话框归属主框架。
             _dialogService.SetOwner(_mainView);
 

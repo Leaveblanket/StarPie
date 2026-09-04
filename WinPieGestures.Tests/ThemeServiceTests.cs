@@ -101,4 +101,42 @@ public sealed class ThemeServiceTests
 
         Assert.Equal("MidnightNavy", service.CurrentEffectiveTheme);
     }
+
+    [Fact]
+    public void RefreshSystemTheme_WhenFollowingSystem_ReResolvesOnProbeChange()
+    {
+        bool dark = false;
+        var service = new ThemeService(() => dark);
+        int fired = 0;
+        service.ThemeChanged += () => fired++;
+
+        service.SetTheme("System"); // probe light
+        Assert.Equal("Light", service.CurrentEffectiveTheme);
+        Assert.Equal(1, fired);
+
+        dark = true; // 模拟 Windows 深浅色切换
+        service.RefreshSystemTheme();
+        Assert.Equal("Dark", service.CurrentEffectiveTheme);
+        Assert.Equal(2, fired);
+
+        service.RefreshSystemTheme(); // 系统未再变化 → no-op
+        Assert.Equal(2, fired);
+    }
+
+    [Fact]
+    public void RefreshSystemTheme_WhenFixedTheme_DoesNothing()
+    {
+        bool dark = false;
+        var service = new ThemeService(() => dark);
+        int fired = 0;
+        service.ThemeChanged += () => fired++;
+
+        service.SetTheme("MidnightNavy");
+        Assert.Equal(1, fired);
+
+        dark = true;
+        service.RefreshSystemTheme(); // 固定主题不跟随系统
+        Assert.Equal("MidnightNavy", service.CurrentEffectiveTheme);
+        Assert.Equal(1, fired);
+    }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Threading;
+using Windows.UI.ViewManagement;
 
 namespace WinPieGestures.Services.Shell
 {
@@ -19,11 +21,15 @@ namespace WinPieGestures.Services.Shell
     {
         public string CurrentEffectiveTheme { get; private set; } = "Light";
 
+        /// <summary>当前请求的主题名（"System"/空 = 跟随系统；固定名 = 不跟随）。</summary>
+        public string RequestedTheme { get; private set; } = "System";
+
         public event Action? ThemeChanged;
 
         private readonly Func<bool> _windowsInDarkModeProbe;
         private Action<string>? _paletteApplier;
         private bool _hasApplied;
+        private UISettings? _systemThemeWatcher;
 
         public ThemeService() : this(null)
         {
@@ -63,6 +69,7 @@ namespace WinPieGestures.Services.Shell
         /// no-op；首次应用恒执行（保证 App.xaml 静态 Light 首帧后 manager 调色板也入槽）。</summary>
         public void SetTheme(string themeName)
         {
+            RequestedTheme = string.IsNullOrEmpty(themeName) ? "System" : themeName;
             string effectiveTheme = ResolveEffectiveTheme(themeName);
             if (_hasApplied && string.Equals(CurrentEffectiveTheme, effectiveTheme, StringComparison.Ordinal)) return;
 
@@ -70,6 +77,38 @@ namespace WinPieGestures.Services.Shell
             _paletteApplier?.Invoke(effectiveTheme);
             _hasApplied = true;
             ThemeChanged?.Invoke();
+        }
+
+        /// <summary>开始监听 Windows 深浅色变化（宿主 AppHost.Run 在初始主题应用后调用；
+        /// UISettings 实例保活至进程结束）。回调在后台线程触发，经 UI Dispatcher 封送后
+        /// 仅当请求主题为 System/空时重新解析并换肤。</summary>
+        public void EnableSystemThemeTracking()
+        {
+            if (_systemThemeWatcher != null) return;
+            var watcher = new UISettings();
+            watcher.ColorValuesChanged += (_, _) =>
+            {
+                Dispatcher? dispatcher = Application.Current?.Dispatcher;
+                if (dispatcher != null && !dispatcher.CheckAccess())
+                {
+                    dispatcher.InvokeAsync(RefreshSystemTheme);
+                }
+                else
+                {
+                    RefreshSystemTheme();
+                }
+            };
+            _systemThemeWatcher = watcher;
+        }
+
+        /// <summary>若当前跟随系统，则按最新系统状态重新 SetTheme("System")（有效主题未变时 no-op）；
+        /// 固定主题下为 no-op。公开以便系统回调与注入探针单测共用同一路径。</summary>
+        public void RefreshSystemTheme()
+        {
+            if (string.Equals(RequestedTheme, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(RequestedTheme))
+            {
+                SetTheme("System");
+            }
         }
 
         /// <summary>把当前有效主题应用到窗口 DWM 标题栏（资源已是 App 级，无需重复换入）。
