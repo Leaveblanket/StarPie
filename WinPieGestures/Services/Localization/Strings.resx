@@ -141,6 +141,13 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 午夜深蓝 (Midnight Navy)</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 暗夜紫罗兰 (Royal Violet)</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ 钛金深灰 (Titanium Gray)</value></data>
+  <data name="WheelThemeSystem" xml:space="preserve"><value>跟随系统 (System Auto)</value></data>
+  <data name="WheelThemeLight" xml:space="preserve"><value>浅色模式 (Light)</value></data>
+  <data name="WheelThemeDark" xml:space="preserve"><value>深色模式 (Dark)</value></data>
+  <data name="WheelThemeMatchaForest" xml:space="preserve"><value>抹茶森林 (Matcha Forest)</value></data>
+  <data name="WheelThemeGlacialIce" xml:space="preserve"><value>冰川透蓝 (Glacial Ice)</value></data>
+  <data name="WheelThemeMorandiMuted" xml:space="preserve"><value>莫兰迪柔灰 (Morandi Muted)</value></data>
+  <data name="WheelThemeCustomPreset" xml:space="preserve"><value>🎨 {0} (自定义预设)</value></data>
   <data name="GesturesHeader" xml:space="preserve"><value>手势轮盘分位与动作配置</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>轮盘方位按键数 (Sector Count)</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4 键 (十字方位 / Cross 4-Way)</value></data>

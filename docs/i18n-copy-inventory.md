@@ -211,3 +211,21 @@
 | `ProgramPickerNoneHint` | 请选择一个程序，或者点击“{0}” | 請選擇一個程式，或點擊「{0}」 | Select a program, or click "{0}" | プログラムを選択してください。または「{0}」をクリック | `ProgramPickerViewModel.Confirm` 未选提示（{0}=BtnManualBrowse） |
 | `ImageFileFilter` | 图片文件 (*.png;...)\|... | 圖片檔案 (*.png;...)\|... | Image Files (*.png;...)\|... | 画像ファイル (*.png;...)\|... | `AppearanceSettingsViewModel.BrowseCoreImage` 文件过滤器 |
 | `CoreImageBrowseTitle` | 选择中心核圆图案图片 | 選擇中心核圓圖案圖片 | Choose Center Core Image | コア中央画像を選択 | `AppearanceSettingsViewModel.BrowseCoreImage` 对话框标题 |
+
+## 2026-09-04 更新：C7 追加（#49/#51 边界裁决 A）——外观 VM 轮盘配色标签键化
+
+> 裁决：轮盘配色选项标签/自定义预设后缀属文案（copy），并入 #49 键化；`preset.Name`
+> 仍是用户数据，不翻译、原样展示。`AppearanceSettingsViewModel` 的 `ThemeOptions` 成为
+> 驻留文案：订阅 `ILocalizationService.LanguageChanged` 重建选项（单例 VM 配 IDisposable
+> 成对退订，同 MainViewModel 范式）。#51 剩余：轮盘配色与界面主题模块拆分、预设名显示
+> 语义、渲染器画刷数据流审计。
+
+| 键 | zh-CN | zh-TW | en | ja | 消费点 |
+|---|---|---|---|---|---|
+| `WheelThemeSystem` | 跟随系统 (System Auto) | 跟隨系統 (System Auto) | System Auto | システム自動 | `AppearanceSettingsViewModel.BuildStaticThemeOptions`（Tag=System） |
+| `WheelThemeLight` | 浅色模式 (Light) | 淺色模式 (Light) | Light | ライト | 同上（Tag=Light） |
+| `WheelThemeDark` | 深色模式 (Dark) | 深色模式 (Dark) | Dark | ダーク | 同上（Tag=Dark） |
+| `WheelThemeMatchaForest` | 抹茶森林 (Matcha Forest) | 抹茶森林 (Matcha Forest) | Matcha Forest | 抹茶フォレスト | 同上（Tag=MatchaForest） |
+| `WheelThemeGlacialIce` | 冰川透蓝 (Glacial Ice) | 冰川透藍 (Glacial Ice) | Glacial Ice | グレイシャルアイス | 同上（Tag=GlacialIce） |
+| `WheelThemeMorandiMuted` | 莫兰迪柔灰 (Morandi Muted) | 莫蘭迪柔灰 (Morandi Muted) | Morandi Muted | モランディミュート | 同上（Tag=MorandiMuted） |
+| `WheelThemeCustomPreset` | 🎨 {0} (自定义预设) | 🎨 {0} (自訂預設) | 🎨 {0} (Custom Preset) | 🎨 {0} (カスタムプリセット) | `RebuildThemeOptions` 自定义预设后缀（{0}=preset.Name） |

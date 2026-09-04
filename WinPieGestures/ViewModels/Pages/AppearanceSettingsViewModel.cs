@@ -21,12 +21,13 @@ namespace WinPieGestures.ViewModels.Pages
     /// 读直取、写直穿运行态配置）与中心核图标选取编排（<see cref="PickCoreIcon"/>）；
     /// T17 起透传属性变更归队 Live-apply 管线（上报落盘/预览事件，与迁移前窗口处理器逐一对应）。
     /// </summary>
-    public partial class AppearanceSettingsViewModel : ObservableObject
+    public partial class AppearanceSettingsViewModel : ObservableObject, IDisposable
     {
         private readonly IConfigService _config;
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
+        private bool _disposed;
 
         // Re-entrancy guards（与迁移前窗口 _isUpdatingUi 语义一致）：
         // _loading     构造播种期：只落状态字段，不回写配置、不发事件（绑定随后一次性读取）
@@ -67,6 +68,9 @@ namespace WinPieGestures.ViewModels.Pages
 
             LoadFromConfig();
             _loading = false;
+
+            // ADR-0010 驻留文案机制：轮盘配色选项标签随语言切换重建（单例 VM 成对退订）。
+            _localization.LanguageChanged += OnLanguageChanged;
         }
 
         private AppConfig Config => _config.Current;
@@ -75,16 +79,19 @@ namespace WinPieGestures.ViewModels.Pages
         public IReadOnlyList<CustomColorPreset> CustomPresets
             => (IReadOnlyList<CustomColorPreset>?)Config.CustomColorPresets ?? Array.Empty<CustomColorPreset>();
 
-        /// <summary>轮盘配色下拉的固定配色项（Tag 与迁移前 XAML 静态 ComboBoxItem 一致）。</summary>
-        private static readonly ThemeOptionItem[] StaticThemeOptions =
+        /// <summary>轮盘配色下拉的固定配色项（Tag 与迁移前 XAML 静态 ComboBoxItem 一致；标签即时取词）。</summary>
+        private ThemeOptionItem[] BuildStaticThemeOptions()
         {
-            new("System", "跟随系统 (System Auto)"),
-            new("Dark", "深色模式 (Dark)"),
-            new("Light", "浅色模式 (Light)"),
-            new("MatchaForest", "抹茶森林 (Matcha Forest)"),
-            new("GlacialIce", "冰川透蓝 (Glacial Ice)"),
-            new("MorandiMuted", "莫兰迪柔灰 (Morandi Muted)")
-        };
+            return new ThemeOptionItem[]
+            {
+                new("System", _localization.GetString("WheelThemeSystem")),
+                new("Dark", _localization.GetString("WheelThemeDark")),
+                new("Light", _localization.GetString("WheelThemeLight")),
+                new("MatchaForest", _localization.GetString("WheelThemeMatchaForest")),
+                new("GlacialIce", _localization.GetString("WheelThemeGlacialIce")),
+                new("MorandiMuted", _localization.GetString("WheelThemeMorandiMuted"))
+            };
+        }
 
         private IReadOnlyList<ThemeOptionItem> _themeOptions = Array.Empty<ThemeOptionItem>();
 
@@ -99,16 +106,35 @@ namespace WinPieGestures.ViewModels.Pages
         private void RebuildThemeOptions()
         {
             var presets = Config.CustomColorPresets;
-            var options = new List<ThemeOptionItem>(StaticThemeOptions.Length + (presets?.Count ?? 0));
-            options.AddRange(StaticThemeOptions);
+            var staticOptions = BuildStaticThemeOptions();
+            var options = new List<ThemeOptionItem>(staticOptions.Length + (presets?.Count ?? 0));
+            options.AddRange(staticOptions);
             if (presets != null)
             {
                 foreach (var preset in presets)
                 {
-                    options.Add(new ThemeOptionItem($"CustomPreset_{preset.Id}", $"🎨 {preset.Name} (自定义预设)"));
+                    options.Add(new ThemeOptionItem(
+                        $"CustomPreset_{preset.Id}",
+                        string.Format(_localization.GetString("WheelThemeCustomPreset"), preset.Name)));
                 }
             }
             ThemeOptions = options;
+        }
+
+        /// <summary>语言切换后重建轮盘配色下拉选项（固定标签 + 自定义预设后缀均为文案，预设名保持用户数据）。</summary>
+        private void OnLanguageChanged()
+        {
+            RebuildThemeOptions();
+            // 同 ReloadFromConfig 语义：补发选中通知，让 ComboBox 从新 ThemeOptions 恢复选中。
+            OnPropertyChanged(nameof(SelectedTheme));
+        }
+
+        /// <summary>退订本地化事件（ADR-0010 第 3 条：单例 VM 配 IDisposable，组合根随 Composition.Dispose 调用）。</summary>
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+            _localization.LanguageChanged -= OnLanguageChanged;
         }
 
         /// <summary>当前选中的自定义配色预设；未选中自定义预设时为 null。</summary>
