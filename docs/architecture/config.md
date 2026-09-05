@@ -9,7 +9,8 @@
 ## 组成文件
 
 `Services/Configuration/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、
-`SettingsSaveOrchestrator`、`AppDataPaths`；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
+`SettingsSaveOrchestrator`、`AppDataPaths`（自启注册表 `AutostartRegistry` 归 M5，已随 #70 收编
+`Services/Shell/`，见 [shell.md](shell.md)）；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
 `ImmediateSaveRequestedMessage` 定义于 S4 hub `Services/Messages/Messages.cs`（放行共享面，见
 [messages.md](messages.md)）。
 

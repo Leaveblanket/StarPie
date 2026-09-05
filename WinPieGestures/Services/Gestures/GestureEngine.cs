@@ -3,19 +3,6 @@ using System.Diagnostics;
 
 namespace WinPieGestures.Services.Gestures
 {
-    /// <summary>UI-framework-free screen point flowing through the gesture pipeline.</summary>
-    public readonly struct GesturePoint
-    {
-        public double X { get; }
-        public double Y { get; }
-
-        public GesturePoint(double x, double y)
-        {
-            X = x;
-            Y = y;
-        }
-    }
-
     /// <summary>States of the gesture state machine: idle → press and wait for threshold → drag-select.</summary>
     public enum GestureState
     {

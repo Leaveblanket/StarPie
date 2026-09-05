@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Services.Configuration
+namespace WinPieGestures.Services.Shell
 {
     /// <summary>
     /// 开机自启注册表读写 (T16 自静态配置门面收编，ADR-0002)：HKCU Run 键的

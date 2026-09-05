@@ -10,6 +10,7 @@
 WinPieGestures/
 ├── App.xaml / App.xaml.cs      # 宿主生命周期：单实例、异常、启动/退出编排
 ├── AppHost.cs                  # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
+├── DevInstance.cs              # 开发实例标记（H1）：--dev 互斥/配置目录/触发键/自启保护
 ├── Composition.cs              # DI 组合根（唯一）：注册与解析
 ├── ThemePaletteManager.cs      # 主题调色板整项替换（宿主层 internal，#46/ADR-0013）
 ├── AssemblyInfo.cs             # 程序集元数据
@@ -27,12 +28,13 @@ WinPieGestures/
 │   ├── ActionItem.cs
 │   ├── CustomColorPreset.cs
 │   ├── ColorMath.cs            # RgbColor（readonly struct）与纯颜色换算
+│   ├── GesturePoint.cs         # 手势坐标点（WPF-free readonly struct）
 │   ├── WheelPalette.cs         # 轮盘配色色值组（WPF-free）
 │   ├── WheelPaletteCatalog.cs  # 轮盘配色静态色值目录（唯一 hex 来源）
 │   └── WheelPaletteParser.cs   # 轮盘配色方案解析（System/预设/Custom/坏值回落）
 ├── Services/                   # 服务、副作用与横切件，按功能分子目录
 │   ├── Actions/                # 动作执行
-│   ├── Configuration/          # 配置读写、防抖保存、自启注册表
+│   ├── Configuration/          # 配置读写、防抖保存
 │   ├── Dialogs/                # 对话框服务（接口 + 实现 + 结果 record）
 │   ├── Gestures/               # 手势管线、窗口上下文、轮盘工厂
 │   ├── Icons/                  # 共享图标资产（S1 出口）
@@ -40,7 +42,7 @@ WinPieGestures/
 │   ├── Messages/               # IMessenger 消息与跨层通知载体
 │   ├── Navigation/             # 导航状态与导航服务
 │   ├── Programs/               # 程序扫描与目录（M3）
-│   ├── Shell/                  # 主题、托盘、开发实例、内存整理
+│   ├── Shell/                  # 主题、托盘、自启注册表、内存整理
 │   └── Wheel/                  # 轮盘视觉几何（M2 出口）
 ├── ViewModels/
 │   ├── Pages/                  # 设置页 VM（单例）
@@ -63,18 +65,18 @@ WinPieGestures/
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
-| `Models/` | 配置 POCO（`AppConfig`、`WheelProfile`、`ActionItem`、`CustomColorPreset`）与 WPF-free 领域值类型/纯函数（`RgbColor`/`ColorMath`、轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
+| `Models/` | 配置 POCO（`AppConfig`、`WheelProfile`、`ActionItem`、`CustomColorPreset`）与 WPF-free 领域值类型/纯函数（`RgbColor`/`ColorMath`、`GesturePoint`、轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
 | `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；不跨目录“借用”他人实现；静态工具需符合 [layering.md](layering.md)（Services） |
 | `Services/Actions/` | `IActionExecutorService`、`ActionExecutorService`（系统调用层）、`ActionRouting`（纯函数 + `ActionRoute`/`KeyStroke`） | 路由决策不得散落进 VM/View；实现见 [gestures.md](gestures.md) |
-| `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
+| `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
 | `Services/Dialogs/` | `IDialogService`/`DialogService` + 各 `ShowXxx` 的可空结果 record | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
-| `Services/Gestures/` | `MouseHook`、`GestureController`、`GestureEngine`（含 `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory` | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
+| `Services/Gestures/` | `MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory` | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
 | `Services/Icons/` | `IconAssets`（S1 共享图标资产出口：矢量清单/SVG 键目录/自定义图标存储/文件图标提取）、`VectorIconItem`（矢量图标条目，T3d/#68 收编入本目录） | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口） | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体） | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>` | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Programs/` | `ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）、`ShortcutResolver`（M3 快捷方式解析出口） | 集成性质扫描逻辑不进 VM 单测；图标资产在 `Services/Icons/`；实现见 [programs.md](programs.md) |
-| `Services/Shell/` | `IThemeService`/`ThemeService`、`TrayIconManager`、`DevInstance`、`MemoryOptimizer` | 托盘/主题决策不进 VM/View；实现见 [shell.md](shell.md) |
+| `Services/Shell/` | `IThemeService`/`ThemeService`、`TrayIconManager`、`AutostartRegistry`（R1，M5）、`MemoryOptimizer` | 托盘/自启/主题决策不进 VM/View；实现见 [shell.md](shell.md) |
 | `Services/Wheel/` | `WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何） | 实现见 [wheel.md](wheel.md) |
 | `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
@@ -95,6 +97,7 @@ WinPieGestures/
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
+- `DevInstance.cs`：开发实例标记（H1）——`--dev` 隔离互斥/配置目录/触发键并保护正式自启项（见 [host.md](host.md)）。
 - `ThemePaletteManager.cs`：宿主层主题调色板整项替换（internal，自包含加载/缓存/冻结；仅 `AppHost` 编排调用，见 [shell.md](shell.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - 源码根目录**只允许**上表列出的项；原型、HTML、临时脚本不得留在 `WinPieGestures/` 下。

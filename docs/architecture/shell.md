@@ -12,7 +12,7 @@
 
 - `Services/Shell/TrayIconManager.cs`、`Services/Shell/MemoryOptimizer.cs`（R3：`MemoryOptimizer` 归 M5；
   同目录另含 M4 的类型（见 [interface-theme.md](interface-theme.md)），水平目录不按模块分属，按类型登记）。
-- `Services/Configuration/AutostartRegistry.cs`（R1：`AutostartRegistry` 归 M5，物理暂居 S2 目录）。
+- `Services/Shell/AutostartRegistry.cs`（R1：`AutostartRegistry` 归 M5，物理已随 #70 收编本目录）。
 - `Views/Navigation/MainView.xaml.cs`（R4：壳层 code-behind 归 M5；`MainView.xaml` 的 DataTemplate 映射见
   [navigation.md](navigation.md)）。
 - 设置面：`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`
