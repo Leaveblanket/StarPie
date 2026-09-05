@@ -195,7 +195,7 @@ namespace WinPieGestures.Views.Wheel
                 else
                 {
                     CoreCustomImage.Visibility = Visibility.Collapsed;
-                    var coreGeom = IconHelper.GetCoreIconGeometry(
+                    var coreGeom = WheelGeometry.GetCoreIconGeometry(
                         coreType,
                         _viewModel.Config.CoreCustomIconKey,
                         _viewModel.Config.CoreCustomIconSvg);
@@ -336,7 +336,7 @@ namespace WinPieGestures.Views.Wheel
                 double lx = cx + Math.Cos(midAngleRad) * layoutRadius;
                 double ly = cy + Math.Sin(midAngleRad) * layoutRadius;
 
-                Geometry geometry = IconHelper.CreateAdvancedSectorGeometry(
+                Geometry geometry = WheelGeometry.CreateAdvancedSectorGeometry(
                     cx, cy, startAngle, endAngle, _innerRadius, _outerRadius, shape, gap, cornerRadius);
 
                 var pathTransform = new TranslateTransform(0, 0);
@@ -415,7 +415,7 @@ namespace WinPieGestures.Views.Wheel
                     {
                         if (iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                         {
-                            var custom = IconHelper.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
+                            var custom = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
                             if (custom != null)
                             {
                                 if (custom.IsSvg)
@@ -441,14 +441,14 @@ namespace WinPieGestures.Views.Wheel
                                         Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
                                         HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                                     };
-                                    img.Source = IconHelper.GetCustomImageSource(custom.FilePath);
+                                    img.Source = IconAssets.GetCustomImageSource(custom.FilePath);
                                     iconElement = img;
                                 }
                             }
                         }
                         else
                         {
-                            string? svgData = IconHelper.GetSvgPathByKey(iconKey);
+                            string? svgData = IconAssets.GetSvgPathByKey(iconKey);
                             if (!string.IsNullOrEmpty(svgData))
                             {
                                 iconElement = new Path
@@ -467,7 +467,7 @@ namespace WinPieGestures.Views.Wheel
 
                     if (iconElement == null && actionType == "Launch" && !string.IsNullOrEmpty(parameter))
                     {
-                        System.Windows.Media.Imaging.BitmapSource? iconSrc = IconHelper.GetIcon(parameter);
+                        System.Windows.Media.Imaging.BitmapSource? iconSrc = IconAssets.GetIcon(parameter);
                         if (iconSrc != null)
                         {
                             iconElement = new System.Windows.Controls.Image
@@ -547,7 +547,7 @@ namespace WinPieGestures.Views.Wheel
         {
             if (type == "Folder" || type == "OpenFolder")
             {
-                return IconHelper.GetSvgPathByKey("Folder");
+                return IconAssets.GetSvgPathByKey("Folder");
             }
 
             if (type == "Hotkey")
@@ -561,17 +561,17 @@ namespace WinPieGestures.Views.Wheel
                 switch (parameter.Trim().ToLower())
                 {
                     case "lock":
-                        return IconHelper.GetSvgPathByKey("Lock");
+                        return IconAssets.GetSvgPathByKey("Lock");
                     case "volumeup":
-                        return IconHelper.GetSvgPathByKey("VolumeUp");
+                        return IconAssets.GetSvgPathByKey("VolumeUp");
                     case "volumedown":
-                        return IconHelper.GetSvgPathByKey("VolumeDown");
+                        return IconAssets.GetSvgPathByKey("VolumeDown");
                     case "volumemute":
-                        return IconHelper.GetSvgPathByKey("VolumeMute");
+                        return IconAssets.GetSvgPathByKey("VolumeMute");
                     case "showdesktop":
-                        return IconHelper.GetSvgPathByKey("ShowDesktop");
+                        return IconAssets.GetSvgPathByKey("ShowDesktop");
                     case "screenshot":
-                        return IconHelper.GetSvgPathByKey("Screenshot");
+                        return IconAssets.GetSvgPathByKey("Screenshot");
                 }
             }
 

@@ -140,7 +140,7 @@ namespace WinPieGestures.Views.Renderers
                     _previewExitIcon = new System.Windows.Shapes.Path
                     {
                         Name = "CoreExitIcon",
-                        Data = IconHelper.GetCoreIconGeometry(coreType, state.CoreCustomIconKey, state.CoreCustomIconSvg),
+                        Data = WheelGeometry.GetCoreIconGeometry(coreType, state.CoreCustomIconKey, state.CoreCustomIconSvg),
                         Fill = _previewTextBrush,
                         Width = exitSize,
                         Height = exitSize,
@@ -171,7 +171,7 @@ namespace WinPieGestures.Views.Renderers
                     double lx = cx + Math.Cos(midAngleRad) * layoutR;
                     double ly = cy + Math.Sin(midAngleRad) * layoutR;
 
-                    Geometry geom = IconHelper.CreateAdvancedSectorGeometry(
+                    Geometry geom = WheelGeometry.CreateAdvancedSectorGeometry(
                         cx, cy, startAngle, endAngle, innerR, outerR, shape, gap, cornerRadius);
 
                     var transform = new TranslateTransform(0, 0);
@@ -218,17 +218,17 @@ namespace WinPieGestures.Views.Renderers
                         string? customSvg = (profile.Actions != null && i < profile.Actions.Count) ? profile.Actions[i]?.CustomIconSvg : null;
                         string? svgData = null;
 
-                        IconHelper.CustomIconItem? customItem = null;
+                        IconAssets.CustomIconItem? customItem = null;
                         if (!string.IsNullOrEmpty(iconKey) && iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                         {
-                            customItem = IconHelper.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
+                            customItem = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
                         }
 
                         if (!string.IsNullOrEmpty(customSvg)) svgData = customSvg;
                         else if (customItem != null && customItem.IsSvg) svgData = customItem.SvgData;
-                        else if (!string.IsNullOrEmpty(iconKey) && customItem == null) svgData = IconHelper.GetSvgPathByKey(iconKey);
-                        else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconHelper.GetSvgPathByKey("Folder");
-                        else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconHelper.GetSvgPathByKey(parameter);
+                        else if (!string.IsNullOrEmpty(iconKey) && customItem == null) svgData = IconAssets.GetSvgPathByKey(iconKey);
+                        else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconAssets.GetSvgPathByKey("Folder");
+                        else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconAssets.GetSvgPathByKey(parameter);
 
                         double configuredIconSize = state.SectorIconSize > 0 ? state.SectorIconSize : 20.0;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
@@ -254,7 +254,7 @@ namespace WinPieGestures.Views.Renderers
                         }
                         else if (customItem != null && !customItem.IsSvg)
                         {
-                            var iconSrc = IconHelper.GetCustomImageSource(customItem.FilePath);
+                            var iconSrc = IconAssets.GetCustomImageSource(customItem.FilePath);
                             if (iconSrc != null)
                             {
                                 var img = new Image
@@ -271,7 +271,7 @@ namespace WinPieGestures.Views.Renderers
                         }
                         else if (actionType == "Launch" && !string.IsNullOrEmpty(parameter))
                         {
-                            var iconSrc = IconHelper.GetIcon(parameter);
+                            var iconSrc = IconAssets.GetIcon(parameter);
                             if (iconSrc != null)
                             {
                                 var img = new Image
