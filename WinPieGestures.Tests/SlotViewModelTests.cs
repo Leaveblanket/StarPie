@@ -86,7 +86,7 @@ public sealed class SlotViewModelTests
     [Fact]
     public void VectorIconPathData_WithVectorKey_ReturnsSvgFromS1Export()
     {
-        // T3c/#67：图标取值经 S1 共享图标资产出口 IconAssets（与旧入口委托语义一致）。
+        // T3c/#67：图标取值经 S1 共享图标资产出口 IconAssets。
         var slot = MakeSlot(new ActionItem { IconKey = "Copy" });
 
         Assert.Equal(IconAssets.GetSvgPathByKey("Copy"), slot.VectorIconPathData);

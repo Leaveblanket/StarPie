@@ -16,16 +16,14 @@ namespace WinPieGestures.Services.Icons
     /// <summary>
     /// 共享「图标资产」（S1）出口（R6/ADR-0015 三分，T3a 扩展）：矢量图标清单、SVG 键目录/取值、
     /// 自定义图标存储（列表/导入/删除/图像源）与文件/程序图标提取（<c>GetIcon</c>）。消费方：
-    /// M1 动作编辑、M2 轮盘渲染、S6 图标选择器。旧入口 <see cref="IconHelper"/> 在 T3a 扩展阶段
-    /// 全量委托本出口，调用方暂不改动；矢量条目类型 <c>VectorIconItem</c> 过渡期仍居旧命名空间，
-    /// 待接线迁移时随调用方收编至本模块。
+    /// M1 动作编辑、M2 轮盘渲染、S6 图标选择器；条目类型 <see cref="VectorIconItem"/> 与本类
+    /// 同处本命名空间（T3d/#68 收编）。
     /// </summary>
     public static class IconAssets
     {
         /// <summary>
         /// 自定义图标条目（模块 S1「图标资产」，R6/ADR-0015 三分）：自用户图标目录导入的 SVG 路径数据
-        /// 或位图文件描述；旧入口 <see cref="IconHelper.CustomIconItem"/> 在 T3a 过渡期为源码兼容保留为
-        /// 本类型的子类，待 T3c/T3d 接线迁移后收口。
+        /// 或位图文件描述；T3d/#68 起旧入口兼容子类随旧入口一并删除，仅余本类型。
         /// </summary>
         public class CustomIconItem
         {
