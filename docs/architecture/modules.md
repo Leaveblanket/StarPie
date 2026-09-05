@@ -44,7 +44,7 @@
 
 #### M2 轮盘与渲染
 - **职责**：手势轮盘瞬态 VM、窗口呈现、样式渲染体系、外观配置面、轮盘配色解析、实时预览。
-- **关键内部**：`ViewModels/Wheel/*`、`WheelAppearanceSettingsViewModel`、`Views/Wheel/RadialWindow`、`Views/Renderers/*`、`Models/WheelPalette/Catalog/Parser`、轮盘视觉几何（目标态收编 `IconHelper` 的几何成员，见 R6）。
+- **关键内部**：`ViewModels/Wheel/*`、`WheelAppearanceSettingsViewModel`、`Views/Wheel/RadialWindow`、`Views/Renderers/*`、`Models/WheelPalette/Catalog/Parser`、轮盘视觉几何（`Services/Wheel/WheelGeometry.cs`，R6 三分物理收编）。
 - **对外契约**：由 M1 经 `IWheelFactory` 装配；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`；预览 Profile 上下文经 M1 只读 `IProfilePreviewSource` 转发（#69 已落地）。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
@@ -69,7 +69,7 @@
 
 #### S1 图标资产
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
-- **关键内部**：目标态自 `IconHelper` 拆出（R6）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。
+- **关键内部**：`Services/Icons/IconAssets.cs`、`Services/Icons/VectorIconItem.cs`（R6 三分物理收编，T3a–T3d/#65–#68）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
 
 #### S2 配置与保存
@@ -114,7 +114,7 @@
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 已清零（B1/#64：navigation.md/shell.md 文件级登记） |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Services/Gestures/` | 候选 B5 |
-| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | `Services/Programs/IconHelper.cs` | 候选 B3 |
+| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 接缝整理候选 B4 |
 | R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 已清零（B1/#64：gestures.md/wheel.md 语义登记） |
 
@@ -166,7 +166,9 @@
 > **B1（#64，纯文档基线）已完成**：`localization.md`/`shell.md` 按 S3+S4 / M4+M5 拆分表述（新建
 > [messages.md](messages.md)/[interface-theme.md](interface-theme.md)），`config.md`/`host.md`/
 > `navigation.md`/`gestures.md`/`wheel.md` 按 §4 归属裁定回填（R1 文档摘除、R2/R3 去重、R4 文件级登记、
-> R8 语义登记、D3/D4 叶子表述）。下表剩余差异均需代码或物理迁移，已无「仅文档」待办。
+> R8 语义登记、D3/D4 叶子表述）。**B3（图标/几何/解析三分，T3a–T3d/#65–#68）已完成**：S1/M2/M3
+> 出口与接线落地（#65–#67）、旧入口删除与条目物理收编（#68），programs.md/wheel.md 差异行随本批
+> 清零。下表剩余差异均需代码或物理迁移，已无「仅文档」待办。
 
 | 现状叶子 | 目标归属 | 差异（待批次） |
 |---|---|---|
@@ -177,22 +179,22 @@
 | [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
 | [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
 | [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
-| [programs.md](programs.md) | M3 + S1（几何 → M2） | R6 三分（B3） |
+| [programs.md](programs.md) | M3 | —（B3/T3a–T3d/#65–#68 已清零：三分收口与叶子回填） |
 | [shell.md](shell.md) | M5 | —（B1/#64 已清零） |
 | [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零） |
-| [wheel.md](wheel.md) | M2 | 几何收编（B3） |
+| [wheel.md](wheel.md) | M2 | —（B3/T3a–T3d/#65–#68 已清零：几何收编与叶子回填） |
 
 ## 8. 候选路线（非规范，方向性）
 
 > 每个批次：构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除/降级。
 >
 > B1（#64，纯文档基线）已完成并回填（见 §7 注记）；B2 的 `IProfilePreviewSource` 只读接口化
-> 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填），下表为剩余批次。
+> 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填）；B3（图标/几何/程序解析
+> 三分收口）已按 #65–#68 落地（S1/M2/M3 出口、接线与物理收编，见 §7 注记），下表为剩余批次。
 
 | 批次 | 内容 | 依据 |
 |---|---|---|
 | B2 | M1 配置方案设置面叶子补全（`ProfileList`/`Slot`/`Gestures` 页组成与 D1 细节；`IProfilePreviewSource` 接口化已按 #69 落地） | D1/#55 同款接口化模式 |
-| B3 | `IconHelper` 三分落地：S1 图标资产 / M2 几何 / M3 程序侧；`ProgramScanner`/`DialogService` 接线随迁 | R6 |
 | B4 | S6 提供者接线整理：`DialogService` 与对话框 VM 不再直连 M3/S1 静态，改经注入提供者 | R7 |
 | B5 | 物理小件迁移：`AutostartRegistry`→M5 侧目录、`DevInstance`→H1 侧、`GesturePoint`→`Models`；`MainViewModel` 若壳层职责膨胀再拆壳层 VM | R1/R2/R5/D3 |
 | B6 | 页面壳子 VM 化：出现新页面级聚合需求时，按 #56 Appearance 先例拆子 VM | D6/原型 B |

@@ -30,7 +30,7 @@
 | 对话框实现 / 对话框唯一形态 | [dialogs.md](architecture/dialogs.md) |
 | 手势状态机 / 动作路由与执行 | [gestures.md](architecture/gestures.md) |
 | 轮盘 VM / RadialWindow / 样式渲染器 | [wheel.md](architecture/wheel.md) |
-| 程序扫描与图标 | [programs.md](architecture/programs.md) |
+| 程序扫描与目录 | [programs.md](architecture/programs.md) |
 | 界面主题(AppTheme)配置与解析 / XAML 令牌与整项替换 / 主题设置面 | [interface-theme.md](architecture/interface-theme.md) |
 | 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级与关于设置面 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
