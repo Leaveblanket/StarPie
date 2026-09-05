@@ -8,7 +8,11 @@
 
 ## 组成文件
 
-`Services/Navigation/`（`NavigationStore`、`INavigationService<T>`/`NavigationService<T>`）、`ViewModels/Navigation/`（`MainViewModel`、`NavigationItemViewModel`）、`Views/Navigation/MainView.xaml`（DataTemplate 映射）。
+- `Services/Navigation/`：`NavigationStore`、`INavigationService<T>`/`NavigationService<T>`。
+- `ViewModels/Navigation/`：`MainViewModel`（主归属 S5；壳层成员 `WindowTitle`/`IsExiting`/`Save()` 按
+  [modules.md](modules.md) §5 D3 借调 M5）、`NavigationItemViewModel`。
+- `Views/Navigation/MainView.xaml`（R4：文件级归 S5，DataTemplate 映射；`MainView.xaml.cs` 壳层
+  code-behind 见 [shell.md](shell.md)）。
 
 ## 关键流程
 

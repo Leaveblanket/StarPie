@@ -10,6 +10,9 @@
 
 `ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、`ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，单例落位页面 VM 目录，ADR-0014 决策 6）、`Views/Wheel/RadialWindow.xaml(.cs)`、`Views/Renderers/`（`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、`CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）；轮盘配色解析属本模块：`Models/WheelPalette.cs`（色值组）、`Models/WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/系统预设/紧急回落）、`Models/WheelPaletteParser.cs`（方案名→色值组解析）。
 
+> R8 语义归属（[modules.md](modules.md) §4）：`WheelPalette*`/`CustomColorPreset`（自定义配色预设）语义归 M2；
+> 动作侧 `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)；物理文件均居 `Models/` 共享内核。
+
 > `IWheelAppearanceState` 是轮盘模块的预览只读状态接口（ADR-0014 决策 8）：`WheelPreviewRenderer`
 > 只依赖它读取外观状态。#56 起实现方为轮盘外观设置子 VM `WheelAppearanceSettingsViewModel`
 >（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观聚合 VM 不再实现该接口。

@@ -10,7 +10,8 @@
 
 - `Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory`。
 - `Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
-- `Models/ActionItem.cs`。
+- `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
+  `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
 
 ## 关键流程
 

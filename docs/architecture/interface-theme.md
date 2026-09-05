@@ -11,8 +11,8 @@
 
 ## 组成文件
 
-- `Services/Shell/`：`IThemeService`/`ThemeService`（物理暂居水平目录，按类型归 M4；同目录另含 M5 的
-  `TrayIconManager`/`MemoryOptimizer` 与 H1 的 `DevInstance`，见 [shell.md](shell.md)/[host.md](host.md)）。
+- `Services/Shell/`：`IThemeService`/`ThemeService`（物理暂居水平目录，按类型归 M4；同目录还按类型登记着
+  其它模块的类型，见 [shell.md](shell.md) 与 [host.md](host.md)）。
 - `ThemePaletteManager.cs`（项目根，宿主层主题调色板整项替换）。
 - `Views/Styles/Themes/*.xaml`（五套同 key 集）。
 - `ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，#54/ADR-0014 决策 6/7）。
@@ -26,7 +26,7 @@
    设计时/首帧默认，并单点合并 `ModernControls.xaml`）。
 2. **整项替换**：`ThemePaletteManager`（宿主层，自包含）加载/缓存/冻结主题 XAML，把目标调色板**整项替换**
    Application `MergedDictionaries` 中含 `/Themes/` 的活动槽（切 Light 亦整项替换，无直接键残留）。
-3. **宿主编排（H1 放行面）**：`AppHost`（归 H1，见 [host.md](host.md)）只编排：构造时
+3. **宿主编排（H1 放行面）**：`AppHost` 只编排（宿主流程见 [host.md](host.md)）：构造时
    `AttachPaletteApplier(effectiveTheme => paletteManager.Apply(...))`，初始主题经
    `MainView.ApplyAppTheme(_interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），`Run()` 末尾
    `EnableSystemThemeTracking()` 启动系统跟随。
