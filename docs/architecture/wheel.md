@@ -15,7 +15,9 @@
 
 > `IWheelAppearanceState` 是轮盘模块的预览只读状态接口（ADR-0014 决策 8）：`WheelPreviewRenderer`
 > 只依赖它读取外观状态。#56 起实现方为轮盘外观设置子 VM `WheelAppearanceSettingsViewModel`
->（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观聚合 VM 不再实现该接口。
+>（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观聚合 VM 不再实现该接口。#69（B2）起该接口的
+> 预览 Profile 上下文成员转发自 M1 只读 `IProfilePreviewSource`（见 [gestures.md](gestures.md)），
+> 轮盘侧代码不引用具体配置方案列表 VM 类型。
 
 ## 外观配置面（设置子 VM，#56）
 
@@ -24,10 +26,10 @@
   选取编排）与一键重置；界面主题（AppTheme）由 `InterfaceThemeSettingsViewModel` 独占（见
   [interface-theme.md](interface-theme.md)）。
 - **承载**：`WheelAppearanceSettingsViewModel`（`ViewModels/Pages`，DI 单例）实现
-  `IWheelAppearanceState`；构造注入 `ProfileListViewModel`（预览 Profile 上下文，静态已知依赖）、
-  `IConfigService`/`IDialogService`/`IMessenger`/`ILocalizationService`；全部状态写穿运行态配置
-  （立即生效），落盘经防抖/立即消息上报；配色下拉选项（`ThemeOptions`）随语言切换重建并补发选中
-  通知，`Dispose` 成对退订（ADR-0010 第 3 条）。
+  `IWheelAppearanceState`；构造注入 M1 只读 `IProfilePreviewSource`（预览 Profile 来源，静态已知
+  依赖走接口；#69 起不再引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/`IMessenger`/
+  `ILocalizationService`；全部状态写穿运行态配置（立即生效），落盘经防抖/立即消息上报；配色下拉
+  选项（`ThemeOptions`）随语言切换重建并补发选中通知，`Dispose` 成对退订（ADR-0010 第 3 条）。
 - **页面接线**：外观聚合 VM `AppearanceSettingsViewModel` 收薄为页壳，只暴露
   `InterfaceTheme`/`WheelAppearance` 两个子 VM（页面整体 DataContext 仍为聚合 VM；各设置卡
   DataContext 指向对应子 VM，不新增导航页）。预览属性变更（含 ShowCoreIcon，#56 起补发）经
@@ -42,7 +44,8 @@
 4. `IRadialStyleRenderer` 是纯视觉契约：只消费主题/配置与绘制参数；不订阅事件、不读写 VM、不反向依赖 Composition/服务；实例随窗口/预览随用随建。
 5. 外观页 Canvas 预览走 `WheelPreviewRenderer`（与实轮盘同一渲染契约），保证所见即所得；渲染器输入
    为 `IWheelAppearanceState`（皮肤/配色、几何/排版、核图标、运行态配置与预览 Profile 上下文），
-   不依赖具体聚合 VM 类型。
+   不依赖具体聚合 VM 类型；预览 Profile 上下文由外观设置子 VM 经 M1 的 `IProfilePreviewSource`
+   转发取值（#69），选中/首项回落语义由该来源实现方维护。
 
 ## 扩展点
 

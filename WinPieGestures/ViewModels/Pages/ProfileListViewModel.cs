@@ -24,7 +24,7 @@ namespace WinPieGestures.ViewModels.Pages
     /// 与 <see cref="WheelViewModel.Config"/> 先例同理，直接持有运行态配置的
     /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
     /// </summary>
-    public partial class ProfileListViewModel : ObservableObject, IDisposable
+    public partial class ProfileListViewModel : ObservableObject, IProfilePreviewSource, IDisposable
     {
         // 方位角标签与缺省动作（自 SettingsWindow 迁入，文案与补齐规则一字未动）
         private static readonly string[] Directions4 = { "右 (E / 0°)", "下 (S / 90°)", "左 (W / 180°)", "上 (N / 270°)" };
@@ -71,6 +71,14 @@ namespace WinPieGestures.ViewModels.Pages
 
         /// <summary>选中方案的方向槽位集合：选中方案或扇区数变更时整体重建。</summary>
         public ObservableCollection<SlotViewModel> Slots { get; } = new();
+
+        /// <summary>
+        /// 预览 Profile 上下文（<see cref="IProfilePreviewSource"/>，#69 由本 VM 实现）：优先选中
+        /// 方案，无选中时回落列表首项——与轮盘外观预览既有取值链一致；空列表为 null，兜底留在
+        /// 消费方（预览渲染器）。只读语义由本 VM 的选中/首项回落维护，轮盘侧经接口取值。
+        /// </summary>
+        public WheelProfile? PreviewProfile
+            => SelectedProfile?.Model ?? Profiles.FirstOrDefault()?.Model;
 
         /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步列表选中。</summary>
         [ObservableProperty]

@@ -41,6 +41,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
         }
     }
 
+    /// <summary>只实现 M1 只读预览 Profile 来源接口的测试替身（#69）：用于编译期钉住外观设置子
+    /// VM 的构造签名依赖接口而非具体 <c>ProfileListViewModel</c>（若签名回退为具体类型，本类将
+    /// 无法传入），兼作转发行为取值源。</summary>
+    private sealed class FakeProfilePreviewSource : IProfilePreviewSource
+    {
+        public WheelProfile? PreviewProfile { get; set; }
+    }
+
     private static (WheelAppearanceSettingsViewModel Vm, TestConfigService Config, TestDialogService Dialogs, EventLog Log)
         Create(AppConfig? config = null, ILocalizationService? localization = null)
     {
@@ -1067,7 +1075,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("", config.Current.CoreCustomIconKey);
     }
 
-    // --- 预览输入接口（#55/#56 IWheelAppearanceState：轮盘外观设置子 VM 实现方） ----------------
+    // --- 预览输入接口（#55/#56 IWheelAppearanceState：轮盘外观设置子 VM 实现方；#69 起预览
+    // Profile 上下文经 M1 只读 IProfilePreviewSource 注入转发） ------------------------------
 
     [Fact]
     public void WheelAppearanceSettingsViewModel_ImplementsIWheelAppearanceState_ReadsThroughSamePreviewSurface()
@@ -1109,19 +1118,48 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
+    public void Constructor_AcceptsIProfilePreviewSource_NotConcreteProfileListVm_AndForwardsToPreviewState()
+    {
+        // #69（B2）：外观设置子 VM 的预览 Profile 上下文来源改经 M1 只读接口构造注入——若签名回退
+        // 为具体 ProfileListViewModel（或同族具体类型），仅实现接口的替身将无法编译（同
+        // WheelPreviewRendererTests 方法组钉签名的编译期验证思路）。
+        var profile = new WheelProfile { ProcessName = "chrome.exe", SectorCount = 8 };
+        var configService = new TestConfigService { Current = new AppConfig() };
+        var dialogs = new TestDialogService();
+        var (messenger, _) = SaveSpy.Create();
+        var source = new FakeProfilePreviewSource { PreviewProfile = profile };
+
+        var vm = new WheelAppearanceSettingsViewModel(configService, dialogs, messenger, source, Localization);
+        IWheelAppearanceState state = vm;
+
+        Assert.Same(profile, state.PreviewProfile);
+
+        // 来源（M1 实现方选中态）变化即时反映到预览状态面
+        var other = new WheelProfile { ProcessName = "b.exe", SectorCount = 4 };
+        source.PreviewProfile = other;
+        Assert.Same(other, state.PreviewProfile);
+    }
+
+    [Fact]
     public void PreviewProfile_FollowsProfileListSelection()
     {
         var first = new WheelProfile { ProcessName = "a.exe", SectorCount = 4 };
         var second = new WheelProfile { ProcessName = "b.exe", SectorCount = 12 };
-        var (vm, _, _, _) = Create(new AppConfig
+        var configService = new TestConfigService
         {
-            Profiles = new List<WheelProfile> { first, second }
-        });
+            Current = new AppConfig { Profiles = new List<WheelProfile> { first, second } }
+        };
+        var dialogs = new TestDialogService();
+        var (messenger, _) = SaveSpy.Create();
+        // 以真实方案列表 VM（M1 实现方）作接口来源注入——镜像 Composition 装配（IProfilePreviewSource 别名）。
+        var profileList = new ProfileListViewModel(
+            configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
+        var vm = new WheelAppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);
         IWheelAppearanceState state = vm;
 
         Assert.Same(first, state.PreviewProfile);
 
-        vm.ProfileList.SelectProfile(vm.ProfileList.Profiles[1]);
+        profileList.SelectProfile(profileList.Profiles[1]);
 
         Assert.Same(second, state.PreviewProfile);
     }

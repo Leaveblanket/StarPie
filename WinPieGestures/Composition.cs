@@ -131,6 +131,9 @@ namespace WinPieGestures
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<IActionExecutorService>(),
                 sp.GetRequiredService<ILocalizationService>()));
+            // #69（B2）：配置方案列表 VM 以 M1 只读契约 IProfilePreviewSource 暴露给轮盘侧——
+            // 轮盘外观设置子 VM 经接口解析，不引用具体 VM 类型。
+            services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
             // #54/#56（ADR-0014 决策 6/7）：两个设置子 VM——界面主题模块设置子 VM 与轮盘模块
             // 外观设置子 VM——均由外观聚合 VM 构造注入，解析随 AppearanceSettingsViewModel
             // （CreateAppHost）同步触发。
@@ -142,7 +145,7 @@ namespace WinPieGestures
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<ProfileListViewModel>(),
+                sp.GetRequiredService<IProfilePreviewSource>(),
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IMessenger>(),

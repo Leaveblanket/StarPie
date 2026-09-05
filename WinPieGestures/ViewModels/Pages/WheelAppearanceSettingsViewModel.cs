@@ -16,14 +16,18 @@ namespace WinPieGestures.ViewModels.Pages
     /// 实时预览的绘制留在视图层：预览属性变更（含 <see cref="ShowCoreIcon"/>，#56 起一并）经
     /// <see cref="AppearancePreviewInvalidatedMessage"/> 通知页面 View 重绘画布；配色预设增删改的
     /// 编排（命名输入与删除确认/结果提示对话框）在此（T19 对话框编排内聚进 VM；#53 名称语义原样保留）。
-    /// T19 页面化：构造注入 <see cref="ProfileListViewModel"/> 单例——预览画哪个方案是编译期可见的
-    /// 静态已知依赖，不走消息（ADR-0005）；导入成功经 <see cref="ConfigImportedMessage"/> 广播后
-    /// 自行从配置重挂状态（播种快照属性导入后会过期），并重建配色下拉选项（T21 ItemsSource 化）。
+    /// T19 页面化起：预览画哪个方案是编译期可见的静态已知依赖，走构造注入不走消息（ADR-0005）；
+    /// #69（B2）该依赖收窄为 M1 只读契约 <see cref="IProfilePreviewSource"/>——实现方为 M1 配置
+    /// 方案设置面 VM，本 VM 不引用其具体类型；导入成功经
+    /// <see cref="ConfigImportedMessage"/> 广播后自行从配置重挂状态（播种快照属性导入后会过期），
+    /// 并重建配色下拉选项（T21 ItemsSource 化）。
     /// T16 收编窗口 code-behind 残留的中心核图标状态（透传属性，读直取、写直穿运行态配置）与
     /// 中心核图标选取编排（<see cref="PickCoreIcon"/>）；界面主题（AppTheme）由 #54 拆入
     /// <see cref="InterfaceThemeSettingsViewModel"/>（本 VM 不持有）。
     /// #55/#56（ADR-0014 决策 8）：本子 VM 实现轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>
     /// ——预览渲染器与页面预览 code-behind 只依赖该接口，不再以具体聚合 VM 类型为参数。
+    /// #69：其中预览 Profile 上下文成员（<see cref="IWheelAppearanceState.PreviewProfile"/>）转发自
+    /// 构造注入的 <see cref="IProfilePreviewSource"/>，M2 侧不引用具体配置方案列表 VM。
     /// 生命周期（ADR-0010 第 3 条）：DI 单例注入外观聚合 VM <see cref="AppearanceSettingsViewModel"/>
     /// （暴露为 <see cref="AppearanceSettingsViewModel.WheelAppearance"/>）；语言订阅成对退订并随
     /// 容器释放（组合根随 Composition.Dispose 调用）。
@@ -34,6 +38,7 @@ namespace WinPieGestures.ViewModels.Pages
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
+        private readonly IProfilePreviewSource _profileSource;
         private bool _disposed;
 
         // Re-entrancy guards（与迁移前窗口 _isUpdatingUi 语义一致）：
@@ -44,30 +49,26 @@ namespace WinPieGestures.ViewModels.Pages
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>方案列表分区 ViewModel 单例（T19 构造注入）：预览读取选中方案——静态已知依赖
-        /// 走构造注入不走消息（ADR-0005，Spec 决策 13）。</summary>
-        public ProfileListViewModel ProfileList { get; }
-
         /// <summary>运行态配置访问（T19：预览渲染初始化等 View 层读取；导入后自动取到新实例，
         /// 与迁移前根 VM / #56 前聚合 VM 的 CurrentConfig 语义一致）。</summary>
         public AppConfig CurrentConfig => _config.Current;
 
-        /// <summary>预览渲染所用 Profile 上下文（#55 接口成员，#56 起由本子 VM 实现）：优先选中方案，
-        /// 无选中时回落列表首项——与迁移前 WheelPreviewRenderer 的取值链一致；空列表兜底仍留在渲染器。</summary>
-        public WheelProfile? PreviewProfile
-            => ProfileList.SelectedProfile?.Model ?? ProfileList.Profiles.FirstOrDefault()?.Model;
+        /// <summary>预览渲染所用 Profile 上下文（#55 接口成员，#56 起由本子 VM 实现，#69 起转发自
+        /// M1 只读 <see cref="IProfilePreviewSource"/>）：选中/首项回落语义由来源实现方维护；
+        /// 空列表兜底仍留在渲染器。</summary>
+        public WheelProfile? PreviewProfile => _profileSource.PreviewProfile;
 
         public WheelAppearanceSettingsViewModel(
             IConfigService config,
             IDialogService dialogs,
             IMessenger messenger,
-            ProfileListViewModel profileList,
+            IProfilePreviewSource profileSource,
             ILocalizationService localization)
         {
             _config = config;
             _dialogs = dialogs;
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-            ProfileList = profileList ?? throw new ArgumentNullException(nameof(profileList));
+            _profileSource = profileSource ?? throw new ArgumentNullException(nameof(profileSource));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
             // #56（ADR-0014 决策 6）：轮盘外观设置子 VM 承接聚合 VM 的轮盘外观配置面——导入成功
