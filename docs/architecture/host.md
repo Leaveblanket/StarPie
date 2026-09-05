@@ -26,7 +26,9 @@
      `MemoryOptimizer.TrimMemory(true)`（见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition.ConfigureServices`（全部单例）：
    - 基础设施：`JsonConfigService`（具体类）+ `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
-   - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、`DialogService`(+`IDialogService`)、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。
+   - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
+     `DialogService`（T3c/#67：构造注入 M3 程序扫描委托，以 `ProgramScanner.ScanInstalledPrograms`
+     登记；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。
    - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
      `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、

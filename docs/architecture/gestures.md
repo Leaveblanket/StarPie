@@ -12,6 +12,8 @@
 - `Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
+- M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产出口
+  `IconAssets`（R6 三分，T3c/#67 接线；不再引用旧入口 `IconHelper`）。
 
 ## 配置方案设置面的对外只读契约（#69，B2）
 
