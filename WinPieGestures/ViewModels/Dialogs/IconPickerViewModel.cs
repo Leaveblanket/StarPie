@@ -20,6 +20,8 @@ namespace WinPieGestures.ViewModels.Dialogs
     /// 图标选择器 ViewModel (T08, ADR-0001/0004)：选中状态、搜索过滤、导入/删除编排与确认结果
     /// 全部在此；窗口 code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
+    /// 自定义图标条目与默认实现引用 S1 共享图标资产出口 <see cref="IconAssets"/>
+    /// （T3c/#67，R6/ADR-0015），不再引用旧入口 <c>IconHelper</c>。
     /// </summary>
     public partial class IconPickerViewModel : ObservableObject
     {
@@ -33,10 +35,10 @@ namespace WinPieGestures.ViewModels.Dialogs
         private string CustomSuffix => _localization.GetString("IconPickerCustomSuffix");
 
         private readonly ILocalizationService _localization;
-        private readonly Func<IReadOnlyList<IconHelper.CustomIconItem>> _getCustomIcons;
+        private readonly Func<IReadOnlyList<IconAssets.CustomIconItem>> _getCustomIcons;
         private readonly Func<IReadOnlyList<VectorIconItem>> _getVectorIcons;
         private readonly Func<string, bool> _deleteCustomIcon;
-        private readonly Func<string, IconHelper.CustomIconItem?> _importCustomIcon;
+        private readonly Func<string, IconAssets.CustomIconItem?> _importCustomIcon;
         private readonly IDialogService _dialogs;
 
         /// <summary>当前过滤条件下的展示列表（自定义图标在前、内置矢量在后，与迁移前一致）。</summary>
@@ -57,21 +59,21 @@ namespace WinPieGestures.ViewModels.Dialogs
         private bool _isCompleted;
 
         public IconPickerViewModel(
-            Func<IReadOnlyList<IconHelper.CustomIconItem>> getCustomIcons,
+            Func<IReadOnlyList<IconAssets.CustomIconItem>> getCustomIcons,
             Func<IReadOnlyList<VectorIconItem>> getVectorIcons,
             IDialogService dialogs,
             ILocalizationService localization,
             string? initialKey = null,
             Func<string, bool>? deleteCustomIcon = null,
-            Func<string, IconHelper.CustomIconItem?>? importCustomIcon = null)
+            Func<string, IconAssets.CustomIconItem?>? importCustomIcon = null)
         {
             _getCustomIcons = getCustomIcons;
             _getVectorIcons = getVectorIcons;
             _dialogs = dialogs;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
-            _deleteCustomIcon = deleteCustomIcon ?? IconHelper.DeleteCustomIcon;
+            _deleteCustomIcon = deleteCustomIcon ?? IconAssets.DeleteCustomIcon;
             // ImportCustomIcon 带可选第二参，方法组不能直接转 Func<string, T>，用 lambda 适配。
-            _importCustomIcon = importCustomIcon ?? (path => IconHelper.ImportCustomIcon(path));
+            _importCustomIcon = importCustomIcon ?? (path => IconAssets.ImportCustomIcon(path));
 
             SelectedIconKey = initialKey;
             // 迁移前：初始键非空但未匹配到卡片时停留在 XAML 默认“(未选择)”文案（未本地化）。
