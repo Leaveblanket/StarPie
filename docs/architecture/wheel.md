@@ -8,14 +8,14 @@
 
 ## 组成文件
 
+`Services/Wheel/WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标几何，R6 三分）、
 `ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、`ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，单例落位页面 VM 目录，ADR-0014 决策 6）、`Views/Wheel/RadialWindow.xaml(.cs)`、`Views/Renderers/`（`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、`CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）；轮盘配色解析属本模块：`Models/WheelPalette.cs`（色值组）、`Models/WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/系统预设/紧急回落）、`Models/WheelPaletteParser.cs`（方案名→色值组解析）。
 
-> T3b 扩展注记（#66，过渡态）：轮盘侧 RadialWindow/WheelPreviewRenderer/CoreIconGeometryConverter
-> 已直连轮盘视觉几何出口 `WinPieGestures.Services.Wheel.WheelGeometry`（`Services/Wheel/`，
-> `CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`），动作图标渲染直连共享「图标资产」出口
-> `WinPieGestures.Services.Icons.IconAssets`（S1，见 [layout.md](layout.md)）；`IconHelper` 旧入口
-> 保留（T3a 起委托新出口）至 T3d/#68 收口，其余非轮盘侧消费方接线随 #67/#68 迁移。modules.md §7
-> 的“几何收编（B3）”差异在 T3b–T3d 收口时清零。
+> 图标/几何三分收口（R6/ADR-0015，T3a–T3d/#65–#68）：轮盘侧 RadialWindow/
+> WheelPreviewRenderer/CoreIconGeometryConverter 直连本模块几何出口 `WheelGeometry`
+> （`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）；动作图标渲染（含核图标 Custom 分支
+> 按 SVG 键回退取值）消费 S1 共享「图标资产」出口 `IconAssets`（见 [layout.md](layout.md)）。
+> modules.md §7“几何收编（B3）”差异已清零。
 
 > R8 语义归属（[modules.md](modules.md) §4）：`WheelPalette*`/`CustomColorPreset`（自定义配色预设）语义归 M2；
 > 动作侧 `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)；物理文件均居 `Models/` 共享内核。

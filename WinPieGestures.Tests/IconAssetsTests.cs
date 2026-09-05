@@ -5,7 +5,7 @@ namespace WinPieGestures.Tests;
 
 /// <summary>
 /// 共享「图标资产」出口（S1）纯函数覆盖（T3a/#65，R6/ADR-0015）：矢量图标目录完整性、
-/// SVG 键目录/取值（大小写不敏感）与 SVG 路径数据解析；旧入口委托一致性随附验证。
+/// SVG 键目录/取值（大小写不敏感）与 SVG 路径数据解析。
 /// 自定义图标存储与文件图标提取属 IO/Win32 集成面，按仓库惯例不在此单测。
 /// </summary>
 public sealed class IconAssetsTests
@@ -81,13 +81,4 @@ public sealed class IconAssetsTests
         Assert.True(new IconAssets.CustomIconItem { SvgData = "M0,0 L1,1 Z" }.IsSvg);
     }
 
-    [Fact]
-    public void LegacyIconHelper_DelegatesToIconAssetsCatalog()
-    {
-        const string svgDocument = "<svg><path d=\"M1,1 L2,2 Z\"/></svg>";
-
-        Assert.Same(IconAssets.VectorIconList, IconHelper.VectorIconList);
-        Assert.Equal(IconAssets.GetSvgPathByKey("Folder"), IconHelper.GetSvgPathByKey("Folder"));
-        Assert.Equal(IconAssets.ExtractSvgPathData(svgDocument), IconHelper.ExtractSvgPathData(svgDocument));
-    }
 }

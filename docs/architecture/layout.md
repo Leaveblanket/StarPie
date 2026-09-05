@@ -35,13 +35,13 @@ WinPieGestures/
 │   ├── Configuration/          # 配置读写、防抖保存、自启注册表
 │   ├── Dialogs/                # 对话框服务（接口 + 实现 + 结果 record）
 │   ├── Gestures/               # 手势管线、窗口上下文、轮盘工厂
-│   ├── Icons/                  # 共享图标资产（S1 出口，T3a 扩展）
+│   ├── Icons/                  # 共享图标资产（S1 出口）
 │   ├── Localization/           # ILocalizationService + Strings*.resx
 │   ├── Messages/               # IMessenger 消息与跨层通知载体
 │   ├── Navigation/             # 导航状态与导航服务
-│   ├── Programs/               # 程序扫描与目录（M3）+ 图标旧入口过渡
+│   ├── Programs/               # 程序扫描与目录（M3）
 │   ├── Shell/                  # 主题、托盘、开发实例、内存整理
-│   └── Wheel/                  # 轮盘视觉几何（M2 出口，T3a 扩展）
+│   └── Wheel/                  # 轮盘视觉几何（M2 出口）
 ├── ViewModels/
 │   ├── Pages/                  # 设置页 VM（单例）
 │   ├── Dialogs/                # 对话框 VM
@@ -69,13 +69,13 @@ WinPieGestures/
 | `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
 | `Services/Dialogs/` | `IDialogService`/`DialogService` + 各 `ShowXxx` 的可空结果 record | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
 | `Services/Gestures/` | `MouseHook`、`GestureController`、`GestureEngine`（含 `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory` | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
-| `Services/Icons/` | `IconAssets`（S1 共享图标资产出口：矢量清单/SVG 键目录/自定义图标存储/文件图标提取，T3a 扩展，T3c/#67 起编辑/对话框/扫描侧已接线） | 旧入口 `IconHelper` 委托本出口，仅余定义与轮盘侧引用（#66/#68 收口）；归属见 [modules.md](modules.md) §3 S1 |
+| `Services/Icons/` | `IconAssets`（S1 共享图标资产出口：矢量清单/SVG 键目录/自定义图标存储/文件图标提取）、`VectorIconItem`（矢量图标条目，T3d/#68 收编入本目录） | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口） | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体） | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>` | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
-| `Services/Programs/` | `ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）、`ShortcutResolver`（M3 快捷方式解析出口，T3a 扩展）、`IconHelper`（旧入口，委托过渡）、`VectorIconItem`（S1 条目，过渡期居此） | 集成性质扫描逻辑不进 VM 单测；实现见 [programs.md](programs.md) |
+| `Services/Programs/` | `ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）、`ShortcutResolver`（M3 快捷方式解析出口） | 集成性质扫描逻辑不进 VM 单测；图标资产在 `Services/Icons/`；实现见 [programs.md](programs.md) |
 | `Services/Shell/` | `IThemeService`/`ThemeService`、`TrayIconManager`、`DevInstance`、`MemoryOptimizer` | 托盘/主题决策不进 VM/View；实现见 [shell.md](shell.md) |
-| `Services/Wheel/` | `WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何，T3a 扩展） | 旧入口 `IconHelper` 委托本出口，调用方暂不改动；实现见 [wheel.md](wheel.md) |
+| `Services/Wheel/` | `WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何） | 实现见 [wheel.md](wheel.md) |
 | `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | 轮盘扇区等子 VM（如 `SlotViewModel`） | 不放服务 |

@@ -53,9 +53,8 @@ namespace WinPieGestures.Services.Programs
 
     /// <summary>
     /// 程序快捷方式解析出口（模块 M3「程序扫描与目录」，R6/ADR-0015 三分）：把 Windows 快捷方式
-    /// （.lnk）解析为真实目标路径与图标位置。旧入口 <see cref="IconHelper.ResolveShortcutTarget"/>
-    /// 在 T3a 扩展阶段委托本出口；消费方 ProgramScanner/ProgramPickerViewModel 暂不改动，
-    /// 待 T3c 接线迁移。
+    /// （.lnk）解析为真实目标路径与图标位置。消费方 ProgramScanner/ProgramPickerViewModel 自
+    /// T3c/#67 起直连本出口；T3d/#68 起旧入口删除。
     /// </summary>
     public static class ShortcutResolver
     {

@@ -21,7 +21,7 @@ namespace WinPieGestures.ViewModels.Dialogs
     /// 全部在此；窗口 code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
     /// 自定义图标条目与默认实现引用 S1 共享图标资产出口 <see cref="IconAssets"/>
-    /// （T3c/#67，R6/ADR-0015），不再引用旧入口 <c>IconHelper</c>。
+    /// （T3c/#67，R6/ADR-0015）。
     /// </summary>
     public partial class IconPickerViewModel : ObservableObject
     {

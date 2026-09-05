@@ -4,8 +4,8 @@ namespace WinPieGestures.Tests;
 
 /// <summary>
 /// 程序快捷方式解析出口（M3）纯路径覆盖（T3a/#65，R6/ADR-0015）：空/空白与不存在的 .lnk
-/// 在触达 COM 前按 <c>File.Exists</c> 早退并复位 out 参数（与旧入口一致，测试不触 COM）；
-/// 旧入口委托一致性随附验证。真实 .lnk COM 解析属集成面，按仓库惯例不在此单测。
+/// 在触达 COM 前按 <c>File.Exists</c> 早退并复位 out 参数（测试不触 COM）。
+/// 真实 .lnk COM 解析属集成面，按仓库惯例不在此单测。
 /// </summary>
 public sealed class ShortcutResolverTests
 {
@@ -36,21 +36,5 @@ public sealed class ShortcutResolverTests
         Assert.Equal("", targetPath);
         Assert.Equal("", iconPath);
         Assert.Equal(0, iconIndex);
-    }
-
-    [Fact]
-    public void LegacyIconHelper_DelegatesToShortcutResolver()
-    {
-        const string missingPath = @"C:\StarPie-Tests\missing-delegation.lnk";
-
-        bool legacy = IconHelper.ResolveShortcutTarget(
-            missingPath, out string legacyTarget, out string legacyIcon, out int legacyIndex);
-        bool current = ShortcutResolver.ResolveShortcutTarget(
-            missingPath, out string currentTarget, out string currentIcon, out int currentIndex);
-
-        Assert.Equal(current, legacy);
-        Assert.Equal(currentTarget, legacyTarget);
-        Assert.Equal(currentIcon, legacyIcon);
-        Assert.Equal(currentIndex, legacyIndex);
     }
 }

@@ -10,7 +10,7 @@ namespace WinPieGestures.Services.Wheel
     /// 轮盘视觉几何出口（模块 M2「轮盘与渲染」，R6/ADR-0015 三分）：扇区切削几何
     /// （<c>CreateAdvancedSectorGeometry</c>）与中心核图标几何（<c>GetCoreIconGeometry</c>）。
     /// 几何成员唯一消费方是轮盘 RadialWindow / WheelPreviewRenderer / CoreIconGeometryConverter，
-    /// 自 T3b/#66 起直连本出口；旧入口自 T3a 扩展阶段委托本出口并保留至 T3d/#68 收口删除。
+    /// 自 T3b/#66 起直连本出口，T3d/#68 起旧入口删除。
     /// 核图标 Custom 分支按 SVG 键回退取值时消费共享「图标资产」（S1）目录。
     /// </summary>
     public static class WheelGeometry
