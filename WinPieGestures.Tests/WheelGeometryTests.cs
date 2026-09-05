@@ -5,9 +5,9 @@ using System.Windows.Media;
 namespace WinPieGestures.Tests;
 
 /// <summary>
-/// 轮盘视觉几何出口（M2）纯几何推导覆盖（T3a/#65，R6/ADR-0015）：扇区切削形态
-/// （Original 标准扇区 / Circle / HexagonHive / RoundedCapsule 系）与中心核图标几何
-/// （内置类型、Custom 的 SVG 键回退与星形回落）；旧入口委托一致性随附验证。
+/// 轮盘视觉几何出口（M2）纯几何推导覆盖（T3a/#65，R6/ADR-0015；T3b/#66 起轮盘侧直连本出口）：
+/// 扇区切削形态（Original 标准扇区 / Circle / HexagonHive / RoundedCapsule 系）与中心核图标几何
+/// （内置类型、Custom 的 SVG 键回退与星形回落）。
 /// </summary>
 public sealed class WheelGeometryTests
 {
@@ -137,14 +137,4 @@ public sealed class WheelGeometryTests
         AssertBoundsEqual(starSvg, WheelGeometry.GetCoreIconGeometry("Custom", customKey: "NoSuchKey", customSvg: "not-a-path"));
     }
 
-    [Fact]
-    public void LegacyIconHelper_DelegatesToWheelGeometry()
-    {
-        Assert.Equal(
-            WheelGeometry.CreateAdvancedSectorGeometry(100, 100, 0, 90, 40, 60, "Original").GetType(),
-            IconHelper.CreateAdvancedSectorGeometry(100, 100, 0, 90, 40, 60, "Original").GetType());
-        AssertBoundsEqual(
-            "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z",
-            IconHelper.GetCoreIconGeometry(null));
-    }
 }
