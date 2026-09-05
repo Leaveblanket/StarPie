@@ -19,7 +19,7 @@
 - **范围**：外观页去掉界面主题卡后的全部轮盘外观设置——皮肤（UiStyle）、轮盘配色方案与自定义
   预设（含预设 CRUD 与下拉选项重建）、高亮光晕、几何/尺寸、排版与文字显示、中心核图标（透传 +
   选取编排）与一键重置；界面主题（AppTheme）由 `InterfaceThemeSettingsViewModel` 独占（见
-  [shell.md](shell.md)）。
+  [interface-theme.md](interface-theme.md)）。
 - **承载**：`WheelAppearanceSettingsViewModel`（`ViewModels/Pages`，DI 单例）实现
   `IWheelAppearanceState`；构造注入 `ProfileListViewModel`（预览 Profile 上下文，静态已知依赖）、
   `IConfigService`/`IDialogService`/`IMessenger`/`ILocalizationService`；全部状态写穿运行态配置
