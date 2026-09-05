@@ -72,6 +72,60 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Slots);
     }
 
+    // --- IProfilePreviewSource 只读预览 Profile 来源（#69：M1 对外契约，选中/首项回落语义） ----
+
+    [Fact]
+    public void ImplementsIProfilePreviewSource_DefaultSelection_ReturnsSelectedProfileModel()
+    {
+        var profile = MakeProfile("Global", 8);
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
+
+        IProfilePreviewSource source = vm;
+
+        // 构造默认选中首项：预览上下文 = 选中方案的模型实例（与轮盘外观预览既有取值链一致）。
+        Assert.Same(profile, source.PreviewProfile);
+    }
+
+    [Fact]
+    public void ImplementsIProfilePreviewSource_SelectionChange_UpdatesPreviewProfile()
+    {
+        var first = MakeProfile("Global", 4);
+        var second = MakeProfile("chrome.exe", 12);
+        var vm = new ProfileListViewModel(
+            new List<WheelProfile> { first, second },
+            Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
+        IProfilePreviewSource source = vm;
+
+        Assert.Same(first, source.PreviewProfile);
+
+        vm.SelectProfile(vm.Profiles[1]);
+
+        Assert.Same(second, source.PreviewProfile);
+    }
+
+    [Fact]
+    public void ImplementsIProfilePreviewSource_Reload_ResetsToFirstOfNewList()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("old.exe") }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
+        IProfilePreviewSource source = vm;
+        var imported = MakeProfile("imported.exe", 4);
+
+        vm.Reload(new List<WheelProfile> { imported });
+
+        // 导入回落语义：预览上下文随新列表首项（与选中回落一致）。
+        Assert.Same(imported, source.PreviewProfile);
+    }
+
+    [Fact]
+    public void ImplementsIProfilePreviewSource_NoProfiles_ReturnsNull()
+    {
+        var vm = new ProfileListViewModel(new List<WheelProfile>(), Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
+
+        IProfilePreviewSource source = vm;
+
+        Assert.Null(source.PreviewProfile);
+    }
+
     // --- 方案选择 -------------------------------------------------------------------
 
     [Fact]

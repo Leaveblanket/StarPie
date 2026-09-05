@@ -39,13 +39,13 @@
 #### M1 手势与动作
 - **职责**：手势触发判定与执行全链、动作系统端到端、配置方案（Profile）编辑面。
 - **关键内部**：`Services/Gestures/*`（MouseHook、GestureController、GestureEngine、WindowContext、WheelFactory）、`Services/Actions/*`（路由/执行/系统命令映射）、动作系统预设目录、`Models/ActionItem` 语义、触发与场景设置面（`BehaviorSettingsViewModel`/`TriggerSettingsPage`）、配置方案设置面（`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）。
-- **对外契约**：经 `IWheelFactory` 装配 M2 瞬态轮盘（例外见 §5 D5）；消费 S2 配置模型、S3、S4、S6；目标态向 M2 提供只读 `IProfilePreviewSource`（预览上下文，见 §8 B2）。
+- **对外契约**：经 `IWheelFactory` 装配 M2 瞬态轮盘（例外见 §5 D5）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读 `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，#69 已落地）。
 - **扩展局部性**：新增动作类型（原型 D）、新增触发条件/场景规则 → M1 内部；新图标资产 → S1；新文案 → S3。
 
 #### M2 轮盘与渲染
 - **职责**：手势轮盘瞬态 VM、窗口呈现、样式渲染体系、外观配置面、轮盘配色解析、实时预览。
 - **关键内部**：`ViewModels/Wheel/*`、`WheelAppearanceSettingsViewModel`、`Views/Wheel/RadialWindow`、`Views/Renderers/*`、`Models/WheelPalette/Catalog/Parser`、轮盘视觉几何（目标态收编 `IconHelper` 的几何成员，见 R6）。
-- **对外契约**：由 M1 经 `IWheelFactory` 装配；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`；预览 Profile 上下文经 `IProfilePreviewSource`（目标态）。
+- **对外契约**：由 M1 经 `IWheelFactory` 装配；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`；预览 Profile 上下文经 M1 只读 `IProfilePreviewSource` 转发（#69 已落地）。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
 #### M3 程序扫描与目录
@@ -180,17 +180,18 @@
 | [programs.md](programs.md) | M3 + S1（几何 → M2） | R6 三分（B3） |
 | [shell.md](shell.md) | M5 | —（B1/#64 已清零） |
 | [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零） |
-| [wheel.md](wheel.md) | M2 | 几何收编（B3）；`IProfilePreviewSource`（B2） |
+| [wheel.md](wheel.md) | M2 | 几何收编（B3） |
 
 ## 8. 候选路线（非规范，方向性）
 
 > 每个批次：构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除/降级。
 >
-> B1（#64，纯文档基线）已完成并回填（见 §7 注记），下表为剩余批次。
+> B1（#64，纯文档基线）已完成并回填（见 §7 注记）；B2 的 `IProfilePreviewSource` 只读接口化
+> 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填），下表为剩余批次。
 
 | 批次 | 内容 | 依据 |
 |---|---|---|
-| B2 | M1 配置方案设置面叶子补全 + `IProfilePreviewSource` 只读接口化（M2 预览不再依赖具体 `ProfileListViewModel`） | #55 同款接口化模式 |
+| B2 | M1 配置方案设置面叶子补全（`ProfileList`/`Slot`/`Gestures` 页组成与 D1 细节；`IProfilePreviewSource` 接口化已按 #69 落地） | D1/#55 同款接口化模式 |
 | B3 | `IconHelper` 三分落地：S1 图标资产 / M2 几何 / M3 程序侧；`ProgramScanner`/`DialogService` 接线随迁 | R6 |
 | B4 | S6 提供者接线整理：`DialogService` 与对话框 VM 不再直连 M3/S1 静态，改经注入提供者 | R7 |
 | B5 | 物理小件迁移：`AutostartRegistry`→M5 侧目录、`DevInstance`→H1 侧、`GesturePoint`→`Models`；`MainViewModel` 若壳层职责膨胀再拆壳层 VM | R1/R2/R5/D3 |

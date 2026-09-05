@@ -13,6 +13,14 @@
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
 
+## 配置方案设置面的对外只读契约（#69，B2）
+
+`ViewModels/Pages/IProfilePreviewSource.cs`：M1 对外只读「预览 Profile 来源」契约——实现方为同目录
+配置方案设置面 VM `ProfileListViewModel`（选中/首项回落语义，见 [modules.md](modules.md) §3 M1），
+被 M2 轮盘外观设置面消费（`WheelAppearanceSettingsViewModel` 构造注入本接口并转发给
+`IWheelAppearanceState.PreviewProfile`，见 [wheel.md](wheel.md)）；接口只读，轮盘侧不引用具体
+方案列表 VM 类型。
+
 ## 关键流程
 
 1. `MouseHook`（Win32 钩子线程）产生 `OnRightButtonDown/Up`、`OnMouseMove` 事件 → `GestureController` 订阅并喂给 `GestureEngine`。
