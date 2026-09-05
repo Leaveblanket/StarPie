@@ -8,10 +8,12 @@
 
 ## 组成文件
 
-- `Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory`。
+- `Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory`。
 - `Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
+- `Models/GesturePoint.cs`（R5：手势坐标点归共享内核（Models 语义）；物理已随 #70 收编 `Models/`，
+  见 [modules.md](modules.md) §4 R5）。
 - M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产出口
   `IconAssets`（R6 三分，T3c/#67 起接线）。
 

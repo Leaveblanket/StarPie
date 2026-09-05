@@ -10,8 +10,8 @@
 
 ## 组成文件
 
-`App.xaml(.cs)`、`Composition.cs`、`AppHost.cs`、`Services/Shell/DevInstance.cs`（R2：`DevInstance` 归 H1，
-物理暂居 `Services/Shell/`）。
+`App.xaml(.cs)`、`Composition.cs`、`AppHost.cs`、`DevInstance.cs`（R2：`DevInstance` 归 H1，物理已随
+#70 收编工程根）。
 
 > 归属边界（[modules.md](modules.md) §5 D4）：`AppHost` 的语言字典投影与壳外文案刷新是 H1 对 S3 的消费，
 > 不是本地化组成文件（见 [localization.md](localization.md)）。
