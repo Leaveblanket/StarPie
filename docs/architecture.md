@@ -12,6 +12,7 @@
 | `docs/adr/` | 难逆转/令人惊讶/真实权衡的决策理由 | 想了解“为什么这样设计”时 |
 | `docs/architecture.md`（本文） | 架构文档入口与任务路由 | 任何架构问题先读这里 |
 | `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
+| `docs/architecture/modules.md` | 模块划分地图与模块化路线（目标态 + 方向性，见 ADR-0015） | 归属争议、模块化候选、扩展点验收时 |
 | `docs/i18n-copy-inventory.md` | 界面文案键位盘点 | 新增/修改用户可见文案时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
@@ -32,6 +33,7 @@
 | 程序扫描与图标 | [programs.md](architecture/programs.md) |
 | 主题 / 托盘 / 单实例 / 内存 / 自启 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / IMessenger 消息 | [localization.md](architecture/localization.md) |
+| 模块划分 / 归属争议 / 模块化候选 | [modules.md](architecture/modules.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
@@ -54,7 +56,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0013）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0015）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
@@ -103,3 +105,4 @@ Services ---> Models
 | 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） |
 | 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） |
 | 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分（界面主题模块边界 + 预设名语义） |
+| 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） |
