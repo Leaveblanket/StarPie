@@ -10,6 +10,11 @@
 
 `ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、`ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，单例落位页面 VM 目录，ADR-0014 决策 6）、`Views/Wheel/RadialWindow.xaml(.cs)`、`Views/Renderers/`（`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、`CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）；轮盘配色解析属本模块：`Models/WheelPalette.cs`（色值组）、`Models/WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/系统预设/紧急回落）、`Models/WheelPaletteParser.cs`（方案名→色值组解析）。
 
+> T3a 扩展注记（#65，过渡态）：轮盘视觉几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）
+> 的新归属出口为 `WinPieGestures.Services.Wheel.WheelGeometry`（`Services/Wheel/`）；`IconHelper`
+> 旧入口保留并委托本出口，RadialWindow/WheelPreviewRenderer/CoreIconGeometryConverter 等调用方
+> 暂不改动，待 T3b 接线迁移。modules.md §7 的“几何收编（B3）”差异在 T3b–T3d 收口时清零。
+
 > R8 语义归属（[modules.md](modules.md) §4）：`WheelPalette*`/`CustomColorPreset`（自定义配色预设）语义归 M2；
 > 动作侧 `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)；物理文件均居 `Models/` 共享内核。
 
