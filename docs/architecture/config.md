@@ -8,7 +8,10 @@
 
 ## 组成文件
 
-`Services/Configuration/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry`；`Services/Messages/Messages.cs` 中的保存消息。
+`Services/Configuration/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、
+`SettingsSaveOrchestrator`、`AppDataPaths`；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
+`ImmediateSaveRequestedMessage` 定义于 S4 hub `Services/Messages/Messages.cs`（放行共享面，见
+[messages.md](messages.md)）。
 
 ## 生命周期与关键流程
 
@@ -22,7 +25,7 @@
 
 - 新设置变更：变更处发保存消息即可，不直接写文件。
 - 调整落盘节奏：改 `AutoSaveDelay`。
-- 改配置路径：只动 `AppDataPaths`/`DevInstance`。
+- 改配置路径：S2 内只动 `AppDataPaths`（开发配置夹分支依赖 `DevInstance`，见 [host.md](host.md)）。
 
 ## 参见 ADR
 

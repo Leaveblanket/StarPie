@@ -109,14 +109,14 @@
 
 | # | 项 | 归属 | 物理现状 | 迁移 |
 |---|---|---|---|---|
-| R1 | `AutostartRegistry` | M5 壳层 | `Services/Configuration/` | 候选 B5（文档先行：从 [config.md](config.md) 组成摘除） |
-| R2 | `DevInstance` | H1 宿主 | `Services/Shell/` | 候选 B5 |
-| R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 仅文档去重（host.md 摘除） |
-| R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 仅文档登记 |
+| R1 | `AutostartRegistry` | M5 壳层 | `Services/Configuration/` | 候选 B5（物理迁移；文档摘除已按 B1/#64 完成） |
+| R2 | `DevInstance` | H1 宿主 | `Services/Shell/` | 候选 B5（物理迁移；文档去重已按 B1/#64 完成） |
+| R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
+| R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 已清零（B1/#64：navigation.md/shell.md 文件级登记） |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Services/Gestures/` | 候选 B5 |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | `Services/Programs/IconHelper.cs` | 候选 B3 |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 接缝整理候选 B4 |
-| R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 仅文档登记（物理不迁） |
+| R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 已清零（B1/#64：gestures.md/wheel.md 语义登记） |
 
 ## 5. 登记表（子职责 / 双职责 / 装配点）
 
@@ -129,8 +129,12 @@
 ### D3 MainViewModel 类型级双职责
 主归属 **S5 导航**（导航项/当前页/选中同步）；壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）登记为“借调 M5”，属类型级双职责例外（一个类内成员混装，无法按文件切分）。若壳层职责继续膨胀，候选拆出独立壳层 VM（§8 B5）。
 
+（navigation.md 已按 B1/#64 登记。）
+
 ### D4 AppHost 语言字典投影
 `AppHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属（防旧 localization.md 把 AppHost 列入“组成文件”造成的误解；随 B1 修订叶子表述）。
+
+（B1/#64 已修订：localization.md 不再把 AppHost 列入组成文件，host.md 登记投影为 H1 对 S3 的消费。）
 
 ### D5 WheelFactory 装配点例外
 `WheelFactory`（M1 文件）承担 M2 瞬态轮盘（VM+Window）装配，`layering.md` 已登记；M2 构造契约变更会波及该装配点，视为放行装配面。若装配职责迁入 M2 且 M1 只依赖工厂接口，需另行 ADR（当前不推动）。
@@ -159,25 +163,33 @@
 
 ## 7. 现状叶子 → 目标模块对照与差异
 
+> **B1（#64，纯文档基线）已完成**：`localization.md`/`shell.md` 按 S3+S4 / M4+M5 拆分表述（新建
+> [messages.md](messages.md)/[interface-theme.md](interface-theme.md)），`config.md`/`host.md`/
+> `navigation.md`/`gestures.md`/`wheel.md` 按 §4 归属裁定回填（R1 文档摘除、R2/R3 去重、R4 文件级登记、
+> R8 语义登记、D3/D4 叶子表述）。下表剩余差异均需代码或物理迁移，已无「仅文档」待办。
+
 | 现状叶子 | 目标归属 | 差异（待批次） |
 |---|---|---|
-| [config.md](config.md) | S2（摘除 `AutostartRegistry`） | R1 归属；B5 |
+| [config.md](config.md) | S2 | R1 物理迁移（B5） |
 | [dialogs.md](dialogs.md) | S6 | R7 接缝；B4 |
-| [gestures.md](gestures.md) | M1 | 叶子补 ProfileList/Slot/Gestures 页组成（B2）；R5 |
-| [host.md](host.md) | H1 | R2/R3 去重；B5 |
-| [localization.md](localization.md) | S3 + S4 | 拆为两模块描述（B1） |
-| [navigation.md](navigation.md) | S5 | R4/D3 登记 |
+| [gestures.md](gestures.md) | M1 | ProfileList/Slot/Gestures 页组成补全（B2）；R5（B5） |
+| [host.md](host.md) | H1 | R2 物理迁移（B5） |
+| [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
+| [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
+| [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
 | [programs.md](programs.md) | M3 + S1（几何 → M2） | R6 三分（B3） |
-| [shell.md](shell.md) | M4 + M5 | 拆为两模块描述（B1） |
+| [shell.md](shell.md) | M5 | —（B1/#64 已清零） |
+| [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零） |
 | [wheel.md](wheel.md) | M2 | 几何收编（B3）；`IProfilePreviewSource`（B2） |
 
 ## 8. 候选路线（非规范，方向性）
 
 > 每个批次：构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除/降级。
+>
+> B1（#64，纯文档基线）已完成并回填（见 §7 注记），下表为剩余批次。
 
 | 批次 | 内容 | 依据 |
 |---|---|---|
-| B1 | 文档收尾：`localization.md`/`shell.md` 按 S3+S4 / M4+M5 拆分表述；`config.md`/`host.md`/`navigation.md`/`gestures.md`/`wheel.md` 按 §7 修订；新叶子 `interface-theme.md`（M4） | 差异表 §7 |
 | B2 | M1 配置方案设置面叶子补全 + `IProfilePreviewSource` 只读接口化（M2 预览不再依赖具体 `ProfileListViewModel`） | #55 同款接口化模式 |
 | B3 | `IconHelper` 三分落地：S1 图标资产 / M2 几何 / M3 程序侧；`ProgramScanner`/`DialogService` 接线随迁 | R6 |
 | B4 | S6 提供者接线整理：`DialogService` 与对话框 VM 不再直连 M3/S1 静态，改经注入提供者 | R7 |

@@ -24,15 +24,17 @@
 | 某个路径放什么 / 新增文件落位 | [layout.md](architecture/layout.md) |
 | 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
 | 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
-| 启动退出 / AppHost 编排 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
+| 启动退出 / 单实例与开发实例 / AppHost 编排 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
 | 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
 | 设置页导航 / 页面 DataTemplate 映射 | [navigation.md](architecture/navigation.md) |
 | 对话框实现 / 对话框唯一形态 | [dialogs.md](architecture/dialogs.md) |
 | 手势状态机 / 动作路由与执行 | [gestures.md](architecture/gestures.md) |
 | 轮盘 VM / RadialWindow / 样式渲染器 | [wheel.md](architecture/wheel.md) |
 | 程序扫描与图标 | [programs.md](architecture/programs.md) |
-| 主题 / 托盘 / 单实例 / 内存 / 自启 | [shell.md](architecture/shell.md) |
-| 本地化文案键(resx) / IMessenger 消息 | [localization.md](architecture/localization.md) |
+| 界面主题(AppTheme)配置与解析 / XAML 令牌与整项替换 / 主题设置面 | [interface-theme.md](architecture/interface-theme.md) |
+| 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级与关于设置面 | [shell.md](architecture/shell.md) |
+| 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
+| IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
 | 模块划分 / 归属争议 / 模块化候选 | [modules.md](architecture/modules.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
