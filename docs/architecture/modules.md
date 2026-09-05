@@ -96,7 +96,7 @@
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
 - **关键内部**：`Services/Dialogs/*`、`ViewModels/Dialogs/*`、`Views/Dialogs/*`。
-- **对外契约**：领域数据经注入提供者获得（R7 接缝整理见 §8 B4），不直穿 M3/S1 内部。
+- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选由组合根注入委托提供，图标资产/快捷方式解析经 S1/M3 出口接线（R7，T3c/#67 已落地，见 §8）；不直穿 M3/S1 内部。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行。
 
 ### 宿主（1）
@@ -116,7 +116,7 @@
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 已清零（B1/#64：navigation.md/shell.md 文件级登记） |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
-| R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 接缝整理候选 B4 |
+| R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
 | R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 已清零（B1/#64：gestures.md/wheel.md 语义登记） |
 
 ## 5. 登记表（子职责 / 双职责 / 装配点）
@@ -171,13 +171,13 @@
 > 出口与接线落地（#65–#67）、旧入口删除与条目物理收编（#68），programs.md/wheel.md 差异行随本批
 > 清零。**B5（#70，物理小件迁移）已完成**：`GesturePoint`→`Models/`（R5）、`AutostartRegistry`→
 > `Services/Shell/`（R1）、`DevInstance`→工程根（R2），config.md/host.md/gestures.md/shell.md/layout.md
-> 差异行随本批清零；MainViewModel 未拆分（D3 非目标登记）。下表剩余差异：gestures.md 的 B2 叶子补全
-> 与 dialogs.md 的 B4 接缝整理（均需代码 + 叶子回填），已无「仅文档」待办。
+> 差异行随本批清零；MainViewModel 未拆分（D3 非目标登记）。**B2/B4/B6 已按 #71 收口**：gestures.md 按 as-built 补全 M1 配置方案设置面（B2，见 [gestures.md](gestures.md)）；dialogs.md 的 R7 接缝整理代码已在 T3c/#67 落地，本批登记清零（B4）；
+> B6 降级为方向性注记（见 §8）。下表逐叶对照已无差异。
 
-| 现状叶子 | 目标归属 | 差异（待批次） |
+| 现状叶子 | 目标归属 | 差异（批次登记） |
 |---|---|---|
-| [dialogs.md](dialogs.md) | S6 | R7 接缝；B4 |
-| [gestures.md](gestures.md) | M1 | ProfileList/Slot/Gestures 页组成补全（B2） |
+| [dialogs.md](dialogs.md) | S6 | —（B4/T3c–#67 接线落地 + #71 登记清零） |
+| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全） |
 | [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
 | [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
 | [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
@@ -193,13 +193,14 @@
 > B1（#64，纯文档基线）已完成并回填（见 §7 注记）；B2 的 `IProfilePreviewSource` 只读接口化
 > 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填）；B3（图标/几何/程序解析
 > 三分收口）已按 #65–#68 落地（S1/M2/M3 出口、接线与物理收编，见 §7 注记）；B5（物理小件迁移）
-> 已按 #70 落地（R1/R2/R5 收编与叶子回填，见 §7 注记），下表为剩余批次。
-
-| 批次 | 内容 | 依据 |
-|---|---|---|
-| B2 | M1 配置方案设置面叶子补全（`ProfileList`/`Slot`/`Gestures` 页组成与 D1 细节；`IProfilePreviewSource` 接口化已按 #69 落地） | D1/#55 同款接口化模式 |
-| B4 | S6 提供者接线整理：`DialogService` 与对话框 VM 不再直连 M3/S1 静态，改经注入提供者 | R7 |
-| B6 | 页面壳子 VM 化：出现新页面级聚合需求时，按 #56 Appearance 先例拆子 VM | D6/原型 B |
+> 已按 #70 落地（R1/R2/R5 收编与叶子回填，见 §7 注记）。
+>
+> **收口批次（#71，纯文档）**：B2 配置方案设置面叶子补全落地（[gestures.md](gestures.md)，含 D1 子面细节）；B4（R7 接缝整理）代码已在 T3c/#67 落地
+> （组合根注入程序扫描委托 + S1/M3 出口，不直穿内部），本批登记移除；B6 降级为方向性注记——现有聚合页已按
+> D6/#56 先例立规（Appearance 页 = 聚合壳先例），出现新页面级聚合需求时直接走 [extending.md](extending.md)
+> 原型 B + #56 先例即可，无需独立批次。
+>
+> **当前已无排期中的模块化批次。**
 
 ## 参见 ADR
 

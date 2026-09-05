@@ -1,6 +1,6 @@
 # 模块：手势与动作
 
-> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及手势管线、动作执行/路由时读本篇。
+> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及手势管线、动作执行/路由与配置方案（Profile）设置面时读本篇。
 
 ## 职责
 
@@ -17,13 +17,43 @@
 - M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产出口
   `IconAssets`（R6 三分，T3c/#67 起接线）。
 
-## 配置方案设置面的对外只读契约（#69，B2）
+## 配置方案设置面的对外只读契约（#69）
 
 `ViewModels/Pages/IProfilePreviewSource.cs`：M1 对外只读「预览 Profile 来源」契约——实现方为同目录
 配置方案设置面 VM `ProfileListViewModel`（选中/首项回落语义，见 [modules.md](modules.md) §3 M1），
 被 M2 轮盘外观设置面消费（`WheelAppearanceSettingsViewModel` 构造注入本接口并转发给
 `IWheelAppearanceState.PreviewProfile`，见 [wheel.md](wheel.md)）；接口只读，轮盘侧不引用具体
 方案列表 VM 类型。
+
+## 配置方案设置面（D1 子面组成，B2/#71 补全）
+
+> 配置方案设置面是 M1 内部三子面之一（触发与场景 / 动作执行 / 配置方案编辑，见
+> [modules.md](modules.md) §5 D1）。页面壳原则见 [modules.md](modules.md) §5 D6；本页导航登记见
+> [naming.md](naming.md) 页面映射表。
+
+### 页面与 VM 组成
+
+- `ViewModels/Pages/ProfileListViewModel.cs`（「手势与动作」导航页 `GesturesSettingsPage` 的
+  DataContext；同文件嵌套 `ProfileItemViewModel` 作单条方案展示包装）。方案列表侧职责全部收编于此
+  （T19/T21/T24 起页面 code-behind 无业务）：`Profiles`/`SelectedProfile` 选中态与首项回落
+  （`PreviewProfile` = 选中 ?? 首项，实现 `IProfilePreviewSource`）、方案增删改/重命名/导入的
+  对话框编排（经 `IDialogService`）、导入后订阅 `ConfigImportedMessage` 自行重挂、扇区数切换
+  （`ApplySectorCount`，按 4/8/12 规范化）与方向槽位集合重建（`Slots`/`RebuildSlots`）。直持运行态
+  配置 `Profiles` 引用 live-apply（与 `WheelViewModel` 持有运行态配置同先例）；落盘请求经
+  `IMessenger` 发送保存消息（见 [config.md](config.md)）。
+- `ViewModels/Gestures/SlotViewModel.cs`：方向槽位 VM（+ 同文件 `SystemPresetItem`/
+  `ActionTypeOption`），包装扇区绑定的 `ActionItem` 提供编辑绑定——名称直写模型（无额外验证）、
+  类型切换、热键录制（`Parameter` 绑定）与参数/图标文本派生；动作编辑闭环（程序/文件夹选择、
+  图标设置）经 `IDialogService` 完成，图标取值消费 S1 共享图标资产出口 `IconAssets`
+  （R6 三分，T3c/#67 起接线，见 [modules.md](modules.md) §4 R6）；编辑提交的落盘请求经 `IMessenger`
+  发送保存消息上报（如 `ImmediateSaveRequestedMessage`，见 [config.md](config.md)）。
+- `Views/Pages/GesturesSettingsPage.xaml(.cs)`：聚合壳页面（D6），卡片式承载 Profile 选择/增删改、
+  扇区数切换与方向槽位编辑；code-behind 无业务。
+
+### 扩展点
+
+- 新增动作类型 = 新增系统预设条目与槽位编辑 UI 选项（清单见 [extending.md](extending.md) 原型 D）；
+  新图标资产走 S1（放行共享面，见 [modules.md](modules.md) §2.3）。
 
 ## 关键流程
 
