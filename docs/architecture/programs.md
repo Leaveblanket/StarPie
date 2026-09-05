@@ -8,7 +8,15 @@
 
 ## 组成文件
 
-`Services/Programs/`：`ProgramScanner`、`ProgramCatalog`、`IconHelper`。
+`Services/Programs/`：`ProgramScanner`、`ProgramCatalog`、`ShortcutResolver`（M3 快捷方式解析
+出口，T3a 扩展）、`IconHelper`（旧入口，T3a 起委托新出口）、`VectorIconItem`（S1 矢量图标条目，
+T3a 过渡期仍居此命名空间）。共享图标资产出口 `IconAssets` 见 [layout.md](layout.md)（`Services/Icons/`）。
+
+> T3a 扩展注记（#65，过渡态）：R6 三分的新出口已落地——图标资产 →
+> `WinPieGestures.Services.Icons.IconAssets`（S1）、轮盘几何 →
+> `WinPieGestures.Services.Wheel.WheelGeometry`（M2，见 [wheel.md](wheel.md)）、快捷方式解析 →
+> `WinPieGestures.Services.Programs.ShortcutResolver`（M3）；`IconHelper` 保留 public 签名并全量
+> 委托，现有调用方零改动。物理目录与模块归属的最终收口在 T3b–T3d，modules.md §7 差异届时清零。
 
 ## 关键流程
 
