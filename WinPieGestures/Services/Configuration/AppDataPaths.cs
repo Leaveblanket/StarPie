@@ -5,8 +5,9 @@ namespace WinPieGestures.Services.Configuration
 {
     /// <summary>
     /// 应用数据目录解析 (T16 自静态配置门面收编，ADR-0002)：dev 实例沙箱隔离与
-    /// legacy 目录迁移，供组合根构造 <see cref="JsonConfigService"/> 与 IconHelper 自定义
-    /// 图标目录使用。与 DevInstance 同类的环境派生静态工具：无运行态状态、分支仅取决于
+    /// legacy 目录迁移，供组合根构造 <see cref="JsonConfigService"/> 与共享图标资产（S1）
+    /// <see cref="IconAssets"/> 自定义图标目录使用。与 DevInstance 同类的环境派生静态工具：
+    /// 无运行态状态、分支仅取决于
     /// 环境变量与启动参数，无测试缝需要 mock。
     /// </summary>
     internal static class AppDataPaths
