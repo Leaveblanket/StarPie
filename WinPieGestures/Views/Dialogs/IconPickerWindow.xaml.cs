@@ -119,7 +119,7 @@ namespace WinPieGestures.Views.Dialogs
                     HorizontalAlignment = HorizontalAlignment.Center,
                     Margin = new Thickness(0, 0, 0, 4)
                 };
-                img.Source = IconHelper.GetCustomImageSource(entry.FilePath);
+                img.Source = IconAssets.GetCustomImageSource(entry.FilePath);
                 iconElem = img;
             }
 

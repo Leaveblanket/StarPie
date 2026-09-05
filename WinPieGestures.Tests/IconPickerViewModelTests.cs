@@ -14,21 +14,21 @@ public sealed class IconPickerViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    private static IconHelper.CustomIconItem Custom(string key, string displayName, bool isSvg = false)
+    private static IconAssets.CustomIconItem Custom(string key, string displayName, bool isSvg = false)
         => new() { Key = key, DisplayName = displayName, FilePath = @"C:\icons\" + key + (isSvg ? ".svg" : ".png"), SvgData = isSvg ? "M0,0L1,1" : "" };
 
     private static VectorIconItem Vector(string key, string displayName, string category = "测试分类")
         => new() { Key = key, Category = category, DisplayName = displayName, SvgData = "M0,0L1,1" };
 
     private static IconPickerViewModel Create(
-        List<IconHelper.CustomIconItem>? customs = null,
+        List<IconAssets.CustomIconItem>? customs = null,
         List<VectorIconItem>? vectors = null,
         TestDialogService? dialogs = null,
         string? initialKey = null,
         Func<string, bool>? deleteIcon = null,
-        Func<string, IconHelper.CustomIconItem?>? importIcon = null)
+        Func<string, IconAssets.CustomIconItem?>? importIcon = null)
         => new(
-            () => customs ?? new List<IconHelper.CustomIconItem>(),
+            () => customs ?? new List<IconAssets.CustomIconItem>(),
             () => vectors ?? new List<VectorIconItem>(),
             dialogs ?? new TestDialogService(),
             Localization,
@@ -42,7 +42,7 @@ public sealed class IconPickerViewModelTests
     public void ApplyFilter_Empty_ShowsCustomsFirstThenVectors()
     {
         var vm = Create(
-            customs: new List<IconHelper.CustomIconItem> { Custom("custom:star", "star") },
+            customs: new List<IconAssets.CustomIconItem> { Custom("custom:star", "star") },
             vectors: new List<VectorIconItem> { Vector("Copy", "复制 (Copy)") });
         vm.ApplyFilter(null);
 
@@ -55,7 +55,7 @@ public sealed class IconPickerViewModelTests
     public void SearchText_FiltersCustomsByDisplayNameOrKey_CaseInsensitive()
     {
         var vm = Create(
-            customs: new List<IconHelper.CustomIconItem> { Custom("custom:star", "MyStar"), Custom("custom:moon", "月亮") },
+            customs: new List<IconAssets.CustomIconItem> { Custom("custom:star", "MyStar"), Custom("custom:moon", "月亮") },
             vectors: new List<VectorIconItem> { Vector("Copy", "复制 (Copy)") });
 
         vm.SearchText = "STAR"; // 只命中自定义的显示名（忽略大小写）
@@ -118,7 +118,7 @@ public sealed class IconPickerViewModelTests
     public void InitialKey_MatchingCustom_RestoresLabelWithCustomSuffix()
     {
         var vm = Create(
-            customs: new List<IconHelper.CustomIconItem> { Custom("custom:star", "star") },
+            customs: new List<IconAssets.CustomIconItem> { Custom("custom:star", "star") },
             initialKey: "custom:star");
         vm.ApplyFilter(null);
 
@@ -190,12 +190,12 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void Import_PickedFile_SelectsImportedKeyAndRebuildsList()
     {
-        var customs = new List<IconHelper.CustomIconItem> { Custom("custom:old", "old") };
+        var customs = new List<IconAssets.CustomIconItem> { Custom("custom:old", "old") };
         var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\icons\new.svg") };
         var vm = Create(
             customs: customs,
             dialogs: dialogs,
-            // 真实 IconHelper 导入后刷新缓存，这里同样把新图标并入来源列表。
+            // 真实 IconAssets 导入后刷新缓存，这里同样把新图标并入来源列表。
             importIcon: _ => { var item = Custom("custom:new", "new", isSvg: true); customs.Add(item); return item; });
         vm.ApplyFilter(null);
 
@@ -242,7 +242,7 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void DeleteCustomIcon_Success_RebuildsList()
     {
-        var customs = new List<IconHelper.CustomIconItem> { Custom("custom:star", "star") };
+        var customs = new List<IconAssets.CustomIconItem> { Custom("custom:star", "star") };
         var deleted = new List<string>();
         var vm = Create(
             customs: customs,
@@ -260,7 +260,7 @@ public sealed class IconPickerViewModelTests
     public void DeleteCustomIcon_Failure_ListUnchanged()
     {
         var vm = Create(
-            customs: new List<IconHelper.CustomIconItem> { Custom("custom:star", "star") },
+            customs: new List<IconAssets.CustomIconItem> { Custom("custom:star", "star") },
             deleteIcon: _ => false);
         vm.ApplyFilter(null);
 

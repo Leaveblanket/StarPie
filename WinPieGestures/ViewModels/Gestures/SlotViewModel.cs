@@ -214,12 +214,12 @@ namespace WinPieGestures.ViewModels.Gestures
                 {
                     if (IconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                     {
-                        var custom = IconHelper.GetCustomIcons().FirstOrDefault(c => c.Key == IconKey);
+                        var custom = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == IconKey);
                         if (custom != null && custom.IsSvg) data = custom.SvgData;
                     }
                     else
                     {
-                        data = IconHelper.GetSvgPathByKey(IconKey);
+                        data = IconAssets.GetSvgPathByKey(IconKey);
                     }
                 }
 

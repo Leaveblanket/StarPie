@@ -48,7 +48,7 @@ namespace WinPieGestures.Services.Programs
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
             var merged = ProgramCatalog.MergeSources(candidates);
             var list = merged
-                .Select(e => e with { IconSource = IconHelper.GetIcon(e.Path) })
+                .Select(e => e with { IconSource = IconAssets.GetIcon(e.Path) })
                 .ToList();
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
             return list;
@@ -139,7 +139,7 @@ namespace WinPieGestures.Services.Programs
                         string name = Path.GetFileNameWithoutExtension(file);
 
                         // 解析目标路径并拒绝失效快捷方式
-                        if (IconHelper.ResolveShortcutTarget(file, out string targetPath, out _, out _))
+                        if (ShortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
                         {
                             if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath) && targetPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                             {
@@ -174,7 +174,7 @@ namespace WinPieGestures.Services.Programs
                     {
                         string name = Path.GetFileNameWithoutExtension(file);
 
-                        if (IconHelper.ResolveShortcutTarget(file, out string targetPath, out _, out _))
+                        if (ShortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
                         {
                             if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath) && targetPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                             {

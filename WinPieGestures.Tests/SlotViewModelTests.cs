@@ -83,6 +83,33 @@ public sealed class SlotViewModelTests
         Assert.Equal("", slot.Action.IconKey);
     }
 
+    [Fact]
+    public void VectorIconPathData_WithVectorKey_ReturnsSvgFromS1Export()
+    {
+        // T3c/#67：图标取值经 S1 共享图标资产出口 IconAssets（与旧入口委托语义一致）。
+        var slot = MakeSlot(new ActionItem { IconKey = "Copy" });
+
+        Assert.Equal(IconAssets.GetSvgPathByKey("Copy"), slot.VectorIconPathData);
+    }
+
+    [Fact]
+    public void VectorIconPathData_WithUnknownVectorKey_ReturnsNull()
+    {
+        var slot = MakeSlot(new ActionItem { IconKey = "Not-A-Real-Key" });
+
+        Assert.Null(slot.VectorIconPathData);
+        Assert.False(slot.HasVectorIcon);
+    }
+
+    [Fact]
+    public void VectorIconPathData_PrefersCustomSvgDataOverVectorKey()
+    {
+        var slot = MakeSlot(new ActionItem { IconKey = "Copy", CustomIconSvg = "M0,0L5,5" });
+
+        Assert.Equal("M0,0L5,5", slot.VectorIconPathData);
+        Assert.True(slot.HasVectorIcon);
+    }
+
     // --- 程序选择（迁移前 Browse_Click） -------------------------------------------------
 
     [Fact]

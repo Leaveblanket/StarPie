@@ -166,7 +166,7 @@ public sealed class ProgramPickerViewModelTests
     [Fact]
     public void BrowseManually_UnresolvableLnk_FallsBackToLnkPathItself()
     {
-        // 不存在的 .lnk 解析失败（IconHelper 早退于 File.Exists，测试中不触 COM），
+        // 不存在的 .lnk 解析失败（ShortcutResolver 早退于 File.Exists，测试中不触 COM），
         // 沿用旧行为：路径回落为所选 .lnk 本身，显示名取文件名。
         var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\fake\missing.lnk") };
         var vm = Create(dialogs: dialogs);

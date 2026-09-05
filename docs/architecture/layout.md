@@ -69,7 +69,7 @@ WinPieGestures/
 | `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`、`AutostartRegistry` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
 | `Services/Dialogs/` | `IDialogService`/`DialogService` + 各 `ShowXxx` 的可空结果 record | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
 | `Services/Gestures/` | `MouseHook`、`GestureController`、`GestureEngine`（含 `GesturePoint`/`GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`、`IWheelFactory`/`WheelFactory` | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
-| `Services/Icons/` | `IconAssets`（S1 共享图标资产出口：矢量清单/SVG 键目录/自定义图标存储/文件图标提取，T3a 扩展） | 旧入口 `IconHelper` 委托本出口，调用方暂不改动；归属见 [modules.md](modules.md) §3 S1 |
+| `Services/Icons/` | `IconAssets`（S1 共享图标资产出口：矢量清单/SVG 键目录/自定义图标存储/文件图标提取，T3a 扩展，T3c/#67 起编辑/对话框/扫描侧已接线） | 旧入口 `IconHelper` 委托本出口，仅余定义与轮盘侧引用（#66/#68 收口）；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口） | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体） | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>` | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |

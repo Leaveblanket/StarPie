@@ -130,7 +130,7 @@ namespace WinPieGestures.ViewModels.Dialogs
 
             string chosenPath = picked.Path;
             if (chosenPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) &&
-                IconHelper.ResolveShortcutTarget(chosenPath, out string targetPath, out _, out _) &&
+                ShortcutResolver.ResolveShortcutTarget(chosenPath, out string targetPath, out _, out _) &&
                 !string.IsNullOrEmpty(targetPath) && File.Exists(targetPath))
             {
                 chosenPath = targetPath;

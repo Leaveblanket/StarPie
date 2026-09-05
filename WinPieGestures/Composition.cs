@@ -107,7 +107,12 @@ namespace WinPieGestures
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<IWheelFactory, WheelFactory>();
             services.AddSingleton<GestureEngine>();
-            services.AddSingleton<DialogService>();
+            // T3c/#67（R6/R7）：M3 程序扫描能力经委托注入对话框服务——S6 不再直连
+            // ProgramScanner 静态内部，DialogService 只持委托并转发给程序选择器 VM。
+            services.AddSingleton(sp => new DialogService(
+                sp.GetRequiredService<IThemeService>(),
+                sp.GetRequiredService<ILocalizationService>(),
+                ProgramScanner.ScanInstalledPrograms));
             services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
             services.AddSingleton<GestureController>();
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using WinPieGestures.Services.Localization;
 
@@ -10,17 +11,25 @@ namespace WinPieGestures.Services.Dialogs
     /// 的循环。Owner 的用法是实现内部自由，不泄露进接口。
     /// 迁移期混装：程序选择器（T06）、输入框（T07）与图标/颜色选择器、屏上取色（T08）
     /// 已走 VM 化链路；接口保持不变。
+    /// 领域数据接线（T3c/#67，R6/R7/ADR-0015）：程序扫描候选来源经构造注入的 M3 扫描委托
+    /// （组合根以 <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产默认实现
+    /// 引用 S1 共享图标资产出口 <see cref="IconAssets"/>——对话框模块不再直连业务模块静态内部。
     /// </summary>
     public sealed class DialogService : IDialogService
     {
         private readonly IThemeService _themeService;
         private readonly ILocalizationService _localization;
+        private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
         private Window? _owner;
 
-        public DialogService(IThemeService themeService, ILocalizationService localization)
+        public DialogService(
+            IThemeService themeService,
+            ILocalizationService localization,
+            Func<IReadOnlyList<ProgramEntry>> scanPrograms)
         {
             _themeService = themeService;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _scanPrograms = scanPrograms ?? throw new ArgumentNullException(nameof(scanPrograms));
         }
 
         /// <summary>组合根在设置窗口创建完成后回填 Owner；此前调用任何 Show* 都不带 Owner。</summary>
@@ -28,7 +37,7 @@ namespace WinPieGestures.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var viewModel = new ProgramPickerViewModel(ProgramScanner.ScanInstalledPrograms, this, _localization);
+            var viewModel = new ProgramPickerViewModel(_scanPrograms, this, _localization);
             var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
@@ -49,8 +58,8 @@ namespace WinPieGestures.Services.Dialogs
         public IconPickResult? ShowIconPicker(string? currentIconKey)
         {
             var viewModel = new IconPickerViewModel(
-                IconHelper.GetCustomIcons,
-                () => IconHelper.VectorIconList,
+                IconAssets.GetCustomIcons,
+                () => IconAssets.VectorIconList,
                 this,
                 _localization,
                 currentIconKey);
