@@ -74,7 +74,8 @@
 
 #### S2 配置与保存
 - **职责**：`config.json` 读写/宽松解析/默认播种/向后兼容、运行态配置、防抖与立即保存编排、导入/导出、`AppDataPaths`。
-- **关键内部**：`Services/Configuration/*`（不含 `AutostartRegistry`，R1）；`Models/` 配置 POCO 的物理居所（语义归属见 R8）。
+- **关键内部**：`Services/Configuration/*`（不含 `AutostartRegistry`——R1 已随 #70 迁至 M5 侧
+  `Services/Shell/`，见 §4）；`Models/` 配置 POCO 的物理居所（语义归属见 R8）。
 - **扩展局部性**：加配置字段（原型 A 模型步）→ S2 + 所属模块 VM（放行共享面）。
 
 #### S3 本地化
@@ -109,11 +110,11 @@
 
 | # | 项 | 归属 | 物理现状 | 迁移 |
 |---|---|---|---|---|
-| R1 | `AutostartRegistry` | M5 壳层 | `Services/Configuration/` | 候选 B5（物理迁移；文档摘除已按 B1/#64 完成） |
-| R2 | `DevInstance` | H1 宿主 | `Services/Shell/` | 候选 B5（物理迁移；文档去重已按 B1/#64 完成） |
+| R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
+| R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 已清零（B1/#64：navigation.md/shell.md 文件级登记） |
-| R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Services/Gestures/` | 候选 B5 |
+| R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 接缝整理候选 B4 |
 | R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 已清零（B1/#64：gestures.md/wheel.md 语义登记） |
@@ -127,9 +128,9 @@
 子职责：托盘 / 自启 / 内存 / 主窗口壳层行为 / 高级与关于设置面。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
 
 ### D3 MainViewModel 类型级双职责
-主归属 **S5 导航**（导航项/当前页/选中同步）；壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）登记为“借调 M5”，属类型级双职责例外（一个类内成员混装，无法按文件切分）。若壳层职责继续膨胀，候选拆出独立壳层 VM（§8 B5）。
+主归属 **S5 导航**（导航项/当前页/选中同步）；壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）登记为“借调 M5”，属类型级双职责例外（一个类内成员混装，无法按文件切分）。若壳层职责继续膨胀，再另行评估拆出独立壳层 VM。
 
-（navigation.md 已按 B1/#64 登记。）
+（navigation.md 已按 B1/#64 登记；B5/#70 确认为非目标——壳层职责膨胀条件未触发，维持“主归属导航 + 双职责登记”。）
 
 ### D4 AppHost 语言字典投影
 `AppHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属（防旧 localization.md 把 AppHost 列入“组成文件”造成的误解；随 B1 修订叶子表述）。
@@ -168,14 +169,15 @@
 > `navigation.md`/`gestures.md`/`wheel.md` 按 §4 归属裁定回填（R1 文档摘除、R2/R3 去重、R4 文件级登记、
 > R8 语义登记、D3/D4 叶子表述）。**B3（图标/几何/解析三分，T3a–T3d/#65–#68）已完成**：S1/M2/M3
 > 出口与接线落地（#65–#67）、旧入口删除与条目物理收编（#68），programs.md/wheel.md 差异行随本批
-> 清零。下表剩余差异均需代码或物理迁移，已无「仅文档」待办。
+> 清零。**B5（#70，物理小件迁移）已完成**：`GesturePoint`→`Models/`（R5）、`AutostartRegistry`→
+> `Services/Shell/`（R1）、`DevInstance`→工程根（R2），config.md/host.md/gestures.md/shell.md/layout.md
+> 差异行随本批清零；MainViewModel 未拆分（D3 非目标登记）。下表剩余差异：gestures.md 的 B2 叶子补全
+> 与 dialogs.md 的 B4 接缝整理（均需代码 + 叶子回填），已无「仅文档」待办。
 
 | 现状叶子 | 目标归属 | 差异（待批次） |
 |---|---|---|
-| [config.md](config.md) | S2 | R1 物理迁移（B5） |
 | [dialogs.md](dialogs.md) | S6 | R7 接缝；B4 |
-| [gestures.md](gestures.md) | M1 | ProfileList/Slot/Gestures 页组成补全（B2）；R5（B5） |
-| [host.md](host.md) | H1 | R2 物理迁移（B5） |
+| [gestures.md](gestures.md) | M1 | ProfileList/Slot/Gestures 页组成补全（B2） |
 | [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
 | [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
 | [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
@@ -190,13 +192,13 @@
 >
 > B1（#64，纯文档基线）已完成并回填（见 §7 注记）；B2 的 `IProfilePreviewSource` 只读接口化
 > 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填）；B3（图标/几何/程序解析
-> 三分收口）已按 #65–#68 落地（S1/M2/M3 出口、接线与物理收编，见 §7 注记），下表为剩余批次。
+> 三分收口）已按 #65–#68 落地（S1/M2/M3 出口、接线与物理收编，见 §7 注记）；B5（物理小件迁移）
+> 已按 #70 落地（R1/R2/R5 收编与叶子回填，见 §7 注记），下表为剩余批次。
 
 | 批次 | 内容 | 依据 |
 |---|---|---|
 | B2 | M1 配置方案设置面叶子补全（`ProfileList`/`Slot`/`Gestures` 页组成与 D1 细节；`IProfilePreviewSource` 接口化已按 #69 落地） | D1/#55 同款接口化模式 |
 | B4 | S6 提供者接线整理：`DialogService` 与对话框 VM 不再直连 M3/S1 静态，改经注入提供者 | R7 |
-| B5 | 物理小件迁移：`AutostartRegistry`→M5 侧目录、`DevInstance`→H1 侧、`GesturePoint`→`Models`；`MainViewModel` 若壳层职责膨胀再拆壳层 VM | R1/R2/R5/D3 |
 | B6 | 页面壳子 VM 化：出现新页面级聚合需求时，按 #56 Appearance 先例拆子 VM | D6/原型 B |
 
 ## 参见 ADR
