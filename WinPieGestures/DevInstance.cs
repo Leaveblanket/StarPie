@@ -15,9 +15,6 @@ namespace WinPieGestures
         /// <summary>Visible marker appended to window titles and tray tooltip.</summary>
         public static string Suffix => IsActive ? " (Dev)" : string.Empty;
 
-        /// <summary>Dev instances sandbox into their own config folder; release keeps the default.</summary>
-        public static string FolderName => IsActive ? "StarPie-Dev" : "StarPie";
-
         /// <summary>
         /// Single-instance mutex per flavor: a dev instance and the release instance can
         /// run simultaneously, while duplicates of the same flavor stay mutually exclusive.

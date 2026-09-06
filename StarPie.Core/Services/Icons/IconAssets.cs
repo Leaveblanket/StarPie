@@ -21,6 +21,18 @@ namespace WinPieGestures.Services.Icons
     /// </summary>
     public static class IconAssets
     {
+        /// <summary>快捷方式目标解析接缝（B2/#75 Core 抽取）：.lnk 解析属 M3
+        /// <c>ShortcutResolver</c> 出口（StarPie.Programs），共享内核不反向依赖业务模块；
+        /// 宿主组合根在启动装配时把该出口回填到 <see cref="ResolveShortcutTarget"/>。</summary>
+        public delegate bool ShortcutTargetResolver(
+            string shortcutPath,
+            out string targetPath,
+            out string iconPath,
+            out int iconIndex);
+
+        /// <summary>当前快捷方式目标解析器（宿主装配回填；未回填时 .lnk 分支跳过提取）。</summary>
+        public static ShortcutTargetResolver? ResolveShortcutTarget { get; set; }
+
         /// <summary>
         /// 自定义图标条目（模块 S1「图标资产」，R6/ADR-0015 三分）：自用户图标目录导入的 SVG 路径数据
         /// 或位图文件描述；T3d/#68 起旧入口兼容子类随旧入口一并删除，仅余本类型。
@@ -369,7 +381,8 @@ namespace WinPieGestures.Services.Icons
                 // 1. If it's a shortcut (.lnk), resolve to the actual target executable or icon file
                 if (resolvedPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (ShortcutResolver.ResolveShortcutTarget(resolvedPath, out string targetPath, out string iconPath, out int iconIndex))
+                    if (ResolveShortcutTarget is { } resolveShortcut
+                        && resolveShortcut(resolvedPath, out string targetPath, out string iconPath, out int iconIndex))
                     {
                         // Priority A: Custom icon file specified in shortcut
                         if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))

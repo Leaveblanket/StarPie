@@ -25,7 +25,12 @@
    - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()` → 内存整理兜底
      `MemoryOptimizer.TrimMemory(true)`（见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition.ConfigureServices`（全部单例）：
-   - 基础设施：`JsonConfigService`（具体类）+ `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
+   - B2/#75 装配前回填跨程序集缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`（S2 dev 目录
+     分支）与 `IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget`（S1 .lnk
+     提取）——Core 不反向引用宿主/业务模块（见 [layering.md](layering.md) 程序集层）。
+   - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
+     `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` =
+     `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
    - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
      `DialogService`（T3c/#67：构造注入 M3 程序扫描委托，以 `ProgramScanner.ScanInstalledPrograms`
      登记；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。

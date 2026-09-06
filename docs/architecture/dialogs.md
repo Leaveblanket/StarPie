@@ -8,7 +8,12 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 ## 组成文件
 
-`Services/Dialogs/`（`IDialogService`/`DialogService` + 结果 record）、`ViewModels/Dialogs/`、`Views/Dialogs/`。
+- **S6 契约（共享内核 `StarPie.Core/Services/Dialogs/`，B2/#75 起）**：`IDialogService` +
+  各 `ShowXxx` 的可空结果 record（`InputDialogResult`/`ColorPickResult`/`EyedropResult`/
+  `FilePickResult`/`ProgramPickResult`/`IconPickResult`）。
+- **实现与界面（宿主 `WinPieGestures/`）**：`Services/Dialogs/DialogService.cs`、
+  `ViewModels/Dialogs/`、`Views/Dialogs/`（契约与实现跨程序集，接口稳定；窗口主题应用依赖
+  M4 `IThemeService`，宿主侧消费）。
 
 ## 唯一形态（正典）
 

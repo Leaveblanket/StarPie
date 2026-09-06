@@ -9,9 +9,11 @@
 
 ## 组成文件
 
-`Services/Localization/ILocalizationService.cs`、`Services/Localization/LocalizationService.cs`、
-`Services/Localization/Strings.resx`（中性 = zh-CN）与 `Strings.zh-TW/en/ja.resx`（卫星，
-`VocaDb.ResXFileCodeGenerator` 强类型资源）。
+**共享内核（`StarPie.Core/Services/Localization/`，B2/#75 起）**：
+`ILocalizationService.cs`、`LocalizationService.cs`、`Strings.resx`（中性 = zh-CN）与
+`Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
+`EmbeddedResource` 条目随 S3 迁入 `StarPie.Core.csproj`；`RootNamespace=WinPieGestures`
+使强类型类仍落 `WinPieGestures.Services.Localization`，B10 前命名空间不变）。
 
 > 宿主消费边界（[modules.md](modules.md) §5 D4）：运行时语言字典投影与壳外文案刷新由宿主侧（H1，
 > 见 [host.md](host.md)）维护，属 H1 对 S3 的消费，不是本模块组成文件。

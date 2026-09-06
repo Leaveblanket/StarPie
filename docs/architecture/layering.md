@@ -14,6 +14,20 @@ ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引�
 Services ---> Models
 ```
 
+## 程序集层（B2/#75 起）
+
+```text
+WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
+WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core（显式引用，不依赖传递）
+```
+
+- Core 承载 S1–S6 共享件与 Models（`StarPie.Core/` 目录树见 [layout.md](layout.md)）；**Core 不引用
+  Host/业务模块**，跨模块依赖一律经 Core 契约（方向见 [assemblies.md](assemblies.md) §3）。
+- 两个跨程序集回填缝（B2/#75，属 H1 装配职责，不是 Core 反向依赖）：
+  - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支）；
+  - `IconAssets.ResolveShortcutTarget`：组合根装配前以 M3 `ShortcutResolver.ResolveShortcutTarget`
+    回填（S1 .lnk 图标提取）。
+
 ## 依赖矩阵
 
 | 引用方 \ 被引用方 | App/AppHost/Composition | Models | Services | ViewModels | Views | Messages |
@@ -39,8 +53,12 @@ Services ---> Models
 ## 命名空间与可见性
 
 - **命名空间 = 物理目录**：`WinPieGestures.Services.Actions`、`WinPieGestures.ViewModels.Dialogs`、`WinPieGestures.Views.Navigation`；根级类型（`App`、`AppHost`、`Composition`）在 `WinPieGestures`。
+- **命名空间不随程序集改名**（ADR-0016 决策 12）：`StarPie.Core/` 内文件仍声明 `WinPieGestures.*`
+  命名空间，B10 统一收尾前保持不变。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
+  - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（B2 先例：`AppDataPaths`——
+    原 internal，随 S2 迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
