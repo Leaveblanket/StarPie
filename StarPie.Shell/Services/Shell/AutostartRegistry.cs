@@ -1,4 +1,5 @@
 using System;
+using WinPieGestures.Services.Configuration;
 
 namespace WinPieGestures.Services.Shell
 {
@@ -7,6 +8,9 @@ namespace WinPieGestures.Services.Shell
     /// StarPie 值维护（含 legacy WinPieGestures 键清理）。dev 实例绝不改写正式版自启项。
     /// 与 MemoryOptimizer 同类的无状态系统调用静态工具，经委托由组合根接线进
     /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表本身）。
+    /// B6/#79：随 M5 迁入 StarPie.Shell。dev 分支原直读 Host 的 DevInstance；跨程序集形态下
+    /// Shell 不得反向引用 Host，改读 Core 的 <see cref="AppDataPaths.IsDevInstance"/> 回填缝
+    /// （组合根装配前以 DevInstance.IsActive 回填，语义与迁移前一致，见 layering.md）。
     /// </summary>
     internal static class AutostartRegistry
     {
@@ -28,7 +32,7 @@ namespace WinPieGestures.Services.Shell
         internal static void SetAutoStart(bool enable)
         {
             // Dev instances must not repoint the real autostart entry at the dev executable
-            if (DevInstance.IsActive) return;
+            if (AppDataPaths.IsDevInstance) return;
 
             try
             {

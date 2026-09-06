@@ -29,11 +29,13 @@
 
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
-- `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 M1/M5/Host 临时注册器 `RegisterNavigation` +
-  模块页面模板字典 + [naming.md](naming.md) 映射表；页面 VM DI 注册在 B6/B9 前仍集中组合根；
-  程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
+- `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 M1/Host 临时注册器 + M5 正式注册器
+  `ShellModuleRegistrar`（B6/#79 迁入 `StarPie.Shell`）`RegisterNavigation` + 模块页面模板字典 +
+  [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar，M1/Host 在 B9 前
+  仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
-- 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`，无业务归属，非模块）；
+- 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
+  （`SettingsPageBase`，B6/#79 迁入），无业务归属，非模块）；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
 
 ## 3. 模块地图（目标划分，12 个模块）
@@ -65,7 +67,7 @@
 
 #### M5 壳层与系统集成
 - **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级与关于设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
-- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`。（`MainView.xaml.cs` 不再归 M5——R4/ADR-0016 重新归属 Host 壳窗口）
+- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`；**B6/#79 起物理居独立模块程序集 `StarPie.Shell/`（Services/Shell、ViewModels|Views/Pages、Modules 注册器/模板字典）**。（`MainView.xaml.cs` 不再归 M5——R4/ADR-0016 重新归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
 
@@ -98,8 +100,10 @@
   `INavigationExecutor`（B3/#76 目录执行缝）、`NavigationItemViewModel`、`MainViewModel`（纯导航目录驱动，
   ADR-0016 拆分 D3；B3/#76 已随导航内核迁入 Core）、`SidebarView`（导航壳 UI 属 Host，见
   [assemblies.md](assemblies.md) §4）。
-- **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典（B3/#76 起
-  exe 内先行；页面 VM DI 注册随 B6/B9 下放）；目标态为 S5/H1 之外的模块自治（见 [assemblies.md](assemblies.md) §5）。
+- **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
+  （B3/#76 起 exe 内先行；B6/#79 起 M5 已跨程序集自治——新增 M5 页面只动模块内部，页面 VM DI 注册
+  随 ShellModuleRegistrar 下放；M1 页面 VM DI 注册随 B9 下放）；目标态为 S5/H1 之外的模块自治
+  （见 [assemblies.md](assemblies.md) §5）。
 
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
@@ -111,7 +115,9 @@
 
 #### H1 宿主与组合根
 - **职责**：进程生命周期（单实例、全局异常、启动/退出/隐藏协调）、DI 组合根注册与解析、宿主回调委托、开发实例。
-- **关键内部**：`App`/`AppHost`/`Composition`/`AppHostDelegates`、`DevInstance`（R2）。
+- **关键内部**：`App`/`AppHost`/`Composition`/`DevInstance`（R2）；宿主回调委托包
+  `AppHostDelegates` 为 H1 职责——类型本体已上提 Core 契约（B6/#79，`StarPie.Core/Services/`），
+  回填实现仍归 Host（见 [host.md](host.md)/[layering.md](layering.md)）。
 - **扩展局部性**：新服务/页面 VM 注册一行（放行）；不承载业务逻辑。
 
 ## 4. 归属裁定表（R1–R8）
@@ -121,7 +127,7 @@
 | R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
 | R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
-| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（exe 内模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/B9 随模块程序集迁出；目标态见 [assemblies.md](assemblies.md) §4 |
+| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9 M1 再迁；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
@@ -154,7 +160,8 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 ### D6 页面壳
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳（#56 已实现）；
-- Advanced/About 设置页 = M5 的设置面；
+- Advanced/About 设置页 = M5 的设置面（B6/#79 已随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
+  均在模块程序集内，新增页面不碰 Host）；
 - 新增设置页按原型 B 走导航登记，不预设归属模块。
 
 ## 6. 扩展点验收表（“只动相关内部”）
@@ -162,7 +169,7 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 | 原型/场景 | 示例 | 只动 | 放行共享面 |
 |---|---|---|---|
 | A 新增设置项 | 现有页加开关 | 所属模块 VM | S2 模型字段、S3 文案键 |
-| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B3/#76 起（exe 内先行）：所属模块临时注册器 `RegisterNavigation` + 模板字典；页面 VM DI 注册仍 H1，随 B6/B9 下放；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B6/#79 起 M5：只动 `StarPie.Shell` 模块内部（ShellModuleRegistrar 的 RegisterNavigation/RegisterServices + ShellPageTemplates.xaml + 页面 VM/View），不碰 Host；M1/Host：B9 前仍 exe 内临时注册器 + 模板字典、页面 VM DI 注册在组合根；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框 | 新模态 | S6 内部 | 调用方模块一行（经 `IDialogService`） |
 | D 新增动作类型 | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射） | 新图标资产 → S1；S3 文案；config 兼容 |
 | E 新增轮盘样式 | 新 Renderer | M2 内部（渲染器/工厂/配色目录/外观选项） | S3 文案 |

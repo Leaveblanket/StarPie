@@ -18,12 +18,18 @@
   导航项顺序/标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责已拆至
   Host `ShellViewModel`，见 [shell.md](shell.md)）。
 
+M5 模块程序集（`StarPie.Shell/`，B6/#79 起）：
+
+- `Modules/ShellModuleRegistrar.cs`（正式模块注册器：`RegisterNavigation(NavigationCatalog)` +
+  `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册随 M5 下放）与 `Modules/ShellPageTemplates.xaml`
+  （页面模板字典；Host App.xaml 经跨程序集 pack URI 单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
+
 宿主（`WinPieGestures/`）：
 
-- `Modules/`（B3/#76 单程序集内先行，随 B6/B9 模块拆集迁出）：exe 内 M1/M5/Host 临时注册器
-  （`M1ModuleRegistrar`/`M5ModuleRegistrar`/`HostModuleRegistrar`，各含 `RegisterNavigation(NavigationCatalog)`）
-  与页面模板字典（`M1PageTemplates.xaml`/`M5PageTemplates.xaml`/`HostPageTemplates.xaml`，App 级每模块
-  一次静态合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
+- `Modules/`（B3/#76 单程序集内先行；M5 部分已随 B6/#79 迁出，M1/Host 部分留 exe 至 B9）：exe 内
+  M1/Host 临时注册器（`M1ModuleRegistrar`/`HostModuleRegistrar`，各含 `RegisterNavigation(NavigationCatalog)`）
+  与页面模板字典（`M1PageTemplates.xaml`/`HostPageTemplates.xaml`，App 级每模块一次静态合并，
+  见 [assemblies.md](assemblies.md) §5.1/§6）。
 - `ViewModels/Navigation/`：`ShellViewModel`（Host 壳窗口壳层 VM，见 [shell.md](shell.md)）。
 - `Views/Navigation/MainView.xaml`（R4/ADR-0016：Host 壳窗口（H1）文件；B3/#76 起**不再含页面
   DataTemplate 映射**——纯壳；分区 DataContext 与 `MainView.xaml.cs` 壳层 code-behind 见
@@ -31,9 +37,10 @@
 
 ## 关键流程
 
-1. `Composition` 装配目录：构造时依次调 `M1/M5/HostModuleRegistrar.RegisterNavigation(catalog)` 并
-   `catalog.Validate()`（五槽收口），目录单例注册；页面 VM 的 DI 注册在 B6/B9 前仍集中
-   `Composition.ConfigureServices`（含宿主回调接线）。
+1. `Composition` 装配目录：构造时依次调 `M1ModuleRegistrar`/`ShellModuleRegistrar`/
+   `HostModuleRegistrar.RegisterNavigation(catalog)` 并 `catalog.Validate()`（五槽收口），目录单例注册；
+   M5 页面 VM 的 DI 注册由 `ShellModuleRegistrar.RegisterServices` 下放模块程序集（B6/#79，含宿主
+   回调经 Core `AppHostDelegates` 的接线）；M1/Host 页面 VM 在 B9 前仍集中 `Composition.ConfigureServices`。
 2. `MainViewModel`（Core，B3/#76 目录驱动）按 `catalog.Entries` 构造 `NavigationItemViewModel` 列表：
    `AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType` 均来自目录注册，导航 `Action` =
    `INavigationExecutor.Navigate(槽位)`。
@@ -49,11 +56,15 @@
 
 ## 扩展点
 
-新增页面（B3/#76 起，exe 内先行）= 页面 VM + 所属模块注册器 `RegisterNavigation` 一行（槽位/
-AutomationId/TitleKey/IconData）+ 所属模块页面模板字典 `DataTemplate` 一行 + [naming.md](naming.md)
-映射表登记；页面 VM 的 DI 注册在 B6/B9 前仍须在 `Composition.ConfigureServices` 加一行（下放随模块
-拆集）。任何一步缺失都算未完成。完整清单见 [extending.md](extending.md)（原型 B）。目标态（模块
-程序集化后）：新增页面只动所属模块内部，不碰 Host。
+新增页面 = 页面 VM + 所属模块注册器 `RegisterNavigation` 一行（槽位/AutomationId/TitleKey/IconData）
++ 所属模块页面模板字典 `DataTemplate` 一行 + [naming.md](naming.md) 映射表登记；任何一步缺失都算
+未完成。完整清单见 [extending.md](extending.md)（原型 B）。
+
+as-built（B6/#79 起）：
+- M5（`StarPie.Shell`）：新增页面只动模块内部——`ShellModuleRegistrar` 的 RegisterNavigation/
+  RegisterServices + `ShellPageTemplates.xaml` + 页面 VM/View 文件，**不碰 Host**（跨程序集形态成立）；
+- M1/Host：B9 前仍在 exe 内以临时注册器登记；页面 VM 的 DI 注册仍在 `Composition.ConfigureServices`
+  加一行（M1 随 B9 下放）。
 
 ## 参见 ADR
 

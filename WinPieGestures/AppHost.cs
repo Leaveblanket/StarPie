@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using WinPieGestures.Services;
 using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures
@@ -73,8 +74,9 @@ namespace WinPieGestures
             // ThemeService 仍不接触 Views 资源，只经回调触发换入）。
             themeService.AttachPaletteApplier(effectiveTheme => _paletteManager.Apply(effectiveTheme, Application.Current!));
 
-            // 回填宿主回调：GeneralSettingsViewModel 注册时持的是转发委托，此刻起
-            // 托盘气泡与退出动作指向本宿主实例（ADR-0011）。
+            // 回填宿主回调（B6/#79：AppHostDelegates 上提 Core 后经容器单例解析）：M5 注册器
+            // 装配 GeneralSettingsViewModel 时持的是转发委托，此刻起托盘气泡与退出动作
+            // 指向本宿主实例（ADR-0011/0016）。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
         }
@@ -114,8 +116,11 @@ namespace WinPieGestures
             // 惰性回填 Owner：此后所有模态对话框归属主框架。
             _dialogService.SetOwner(_mainView);
 
+            // B6/#79：TrayIconManager 随 M5 迁入 StarPie.Shell（M5 → Core 单向）；托盘菜单
+            // 深色配色原直读 M4 IThemeService（B7 前仍驻 Host），此处由宿主以委托注入
+            // 深色探针，Shell 不反向引用 Host/M4（与 M3 图标委托同模式）。
             _trayIcon = new TrayIconManager(
-                _themeService,
+                windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
                 onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
                 menuProvider: BuildTrayMenuEntries);
             _trayIcon.SetTooltip(CurrentTooltip());

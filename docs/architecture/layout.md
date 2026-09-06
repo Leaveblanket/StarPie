@@ -4,7 +4,8 @@
 
 ## Canonical 目录树
 
-以下为**应然结构**（正典）。当前代码与正典一致（B3/#76 临时面见文末“当前登记偏差”）。
+以下为**应然结构**（正典）。当前代码与正典一致（B3/#76 临时面见文末“当前登记偏差”；M5 部分
+已随 B6/#79 迁出 exe）。
 
 ```text
 StarPie/
@@ -13,7 +14,7 @@ StarPie/
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
 │   ├── Composition.cs             # DI 组合根（唯一）：注册与解析（含 B2 跨程序集回填缝，见 layering.md）
 │   ├── DevInstance.cs             # 开发实例标记（H1）：--dev 互斥/触发键/自启保护
-│   ├── Modules/                   # B3/#76 临时：M1/M5/Host 注册器 + 页面模板字典（随模块拆集迁出，见 navigation.md）
+│   ├── Modules/                   # B3/#76 临时：M1/Host 注册器 + 页面模板字典（M5 已随 B6/#79 迁出；M1 随 B9 迁出，见 navigation.md）
 │   ├── ThemePaletteManager.cs     # 主题调色板整项替换（宿主层 internal，#46/ADR-0013）
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
@@ -27,7 +28,7 @@ StarPie/
 │   │   ├── Actions/               # 动作执行（M1）
 │   │   ├── Dialogs/               # DialogService.cs 实现（S6 契约在 Core，见 dialogs.md）
 │   │   ├── Gestures/              # 手势管线、窗口上下文、轮盘工厂（M1）
-│   │   ├── Shell/                 # 主题（M4）、托盘/自启/内存（M5）
+│   │   ├── Shell/                 # 主题（M4：IThemeService/ThemeService，B7 前驻留；M5 三件已迁 StarPie.Shell，B6/#79）
 │   │   └── Wheel/                 # 轮盘视觉几何（M2 出口）
 │   ├── ViewModels/
 │   │   ├── Pages/                 # 设置页 VM（单例）
@@ -36,7 +37,7 @@ StarPie/
 │   │   ├── Navigation/            # ShellViewModel（MainViewModel 已迁 Core，B3/#76）
 │   │   └── Wheel/                 # 轮盘 VM（按手势瞬态创建）
 │   └── Views/
-│       ├── Pages/                 # 页面 View（XAML + code-behind）
+│       ├── Pages/                 # M1/Host 页面 View（XAML + code-behind；M5 两页已迁 StarPie.Shell，B6/#79）
 │       ├── Dialogs/               # 对话框 Window
 │       ├── Navigation/            # MainView、SidebarView
 │       ├── Wheel/                 # RadialWindow
@@ -58,6 +59,7 @@ StarPie/
 │   │   ├── WheelPaletteCatalog.cs # 轮盘配色静态色值目录（唯一 hex 来源）
 │   │   └── WheelPaletteParser.cs  # 轮盘配色方案解析（System/预设/Custom/坏值回落）
 │   ├── Services/
+│   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（B6/#79 上提；Host 组合根注册单例、AppHost 回填）
 │   │   ├── Configuration/         # S2：配置读写、防抖保存、AppDataPaths（dev 分支经组合根回填）
 │   │   ├── Dialogs/               # S6 契约：IDialogService + 结果 record
 │   │   ├── Icons/                 # S1：IconAssets/VectorIconItem（.lnk 解析经组合根回填缝）
@@ -66,22 +68,34 @@ StarPie/
 │   │   └── Navigation/            # S5：导航内核 + NavigationCatalog/NavigationSlots（槽位表 0–4）
 │   ├── ViewModels/
 │       └── Navigation/            # S5：NavigationItemViewModel、MainViewModel（B3/#76 迁入，目录驱动）
-│   └── Views/                     # 共享 UI 基建（B5/#78 迁入）
+│   └── Views/                     # 共享 UI 基建（B5/#78 迁入；B6/#79 增共享页面基类）
 │       ├── Converters/            # 通用共享转换器：HexToBrush/StringToGeometry/IntEquals/FilePathToImage
 │       ├── Controls/              # 共享自定义控件：HotkeyRecorderBox（模板样式在 Styles/ModernControls.xaml）
+│       ├── Pages/                 # 共享页面基类：SettingsPageBase.cs（B6/#79 迁入，跨集页面共用）
 │       └── Styles/                # ModernControls.xaml 全局控件样式字典（仅由 Host App.xaml 合并）
 ├── StarPie.Programs/              # M3 模块程序集（WPF 类库，程序集 StarPie.Programs；命名空间 WinPieGestures.*，B10 收口；B4/#77 起）
 │   ├── StarPie.Programs.csproj    # SDK 工程文件（RootNamespace=WinPieGestures；零 Core/Host 依赖）
 │   └── Services/Programs/         # M3：ProgramScanner、ProgramCatalog(+ProgramEntry)、ShortcutResolver
-└── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host、Core 与 Programs）
+├── StarPie.Shell/                 # M5 壳层模块程序集（WPF 类库，程序集 StarPie.Shell；命名空间 WinPieGestures.*，B10 收口；B6/#79 起；单向 Core）
+│   ├── StarPie.Shell.csproj       # SDK 工程文件（RootNamespace=WinPieGestures；引用 Core）
+│   ├── GlobalUsings.cs            # 工程级全局 using（模块所需 Core 命名空间）
+│   ├── Modules/                   # ShellModuleRegistrar.cs（RegisterServices+RegisterNavigation）+ ShellPageTemplates.xaml
+│   ├── Services/Shell/            # M5：TrayIconManager(+TrayMenuEntry)、AutostartRegistry、MemoryOptimizer
+│   ├── ViewModels/Pages/          # M5：GeneralSettingsViewModel、AboutViewModel
+│   └── Views/Pages/               # M5：AdvancedSettingsPage、AboutSettingsPage（根基类 SettingsPageBase 在 Core）
+└── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host、Core、Programs 与 Shell）
 ```
 
-> 程序集归属：目录名在 `StarPie.Core/` 与 `WinPieGestures/` 中各自保持“命名空间 = 物理目录”；
+> 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Shell/` 与 `WinPieGestures/`
+> 中各自保持“命名空间 = 物理目录”；
 > 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Icons|Localization|Messages|Navigation、
-> ViewModels/Navigation/NavigationItemViewModel.cs）与共享 UI 基建（Views/Converters|Controls、
-> Views/Styles/ModernControls.xaml，B5/#78 迁入）只存在于 `StarPie.Core/`，业务目录只存在于
-> `WinPieGestures/`；M3 业务目录（`Services/Programs/`）只存在于 `StarPie.Programs/`（B4/#77 起），
-> 其余业务目录在 B6–B10 前仍留 `WinPieGestures/`。依赖方向见 [assemblies.md](assemblies.md) §3。
+> Services/AppHostDelegates.cs（B6/#79）、ViewModels/Navigation/NavigationItemViewModel.cs）与共享
+> UI 基建（Views/Converters|Controls、Views/Styles/ModernControls.xaml（B5/#78 迁入）、
+> Views/Pages/SettingsPageBase.cs（B6/#79 迁入））只存在于 `StarPie.Core/`；M3 业务目录
+> （`Services/Programs/`）只存在于 `StarPie.Programs/`（B4/#77 起）；M5 业务目录
+> （`Services/Shell/`、`ViewModels/Pages/` 的 M5 两 VM、`Views/Pages/` 的 M5 两页、`Modules/`）只
+> 存在于 `StarPie.Shell/`（B6/#79 起）；其余业务目录在 B9–B10 前仍留 `WinPieGestures/`。
+> 依赖方向见 [assemblies.md](assemblies.md) §3。
 
 ## 各目录职责细则
 
@@ -89,9 +103,10 @@ StarPie/
 > `Dialogs`(契约)|`Icons`|`Localization`|`Messages`|`Navigation`、`ViewModels/Navigation/`
 > （`NavigationItemViewModel.cs`，B2/#75）与 `MainViewModel.cs`（B3/#76 迁入），以及共享 UI 基建
 > `Views/Converters/`（通用转换器）、`Views/Controls/`（`HotkeyRecorderBox`）、`Views/Styles/`
-> （`ModernControls.xaml`，B5/#78 迁入）；M3 三件（`ProgramScanner`/`ProgramCatalog`/
-> `ShortcutResolver`，B4/#77 迁入）位于 `StarPie.Programs/Services/Programs/`；其余位于
-> `WinPieGestures/`（Host）。
+> （`ModernControls.xaml`，B5/#78 迁入）、`Views/Pages/`（`SettingsPageBase`，B6/#79 迁入）与
+> `Services/AppHostDelegates.cs`（B6/#79 上提）；M3 三件（`ProgramScanner`/`ProgramCatalog`/
+> `ShortcutResolver`，B4/#77 迁入）位于 `StarPie.Programs/Services/Programs/`；M5 三件与两页
+> （B6/#79 迁入）位于 `StarPie.Shell/`（见下模块程序集目录表）；其余位于 `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
@@ -105,22 +120,22 @@ StarPie/
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口）；**B2/#75 起在 `StarPie.Core/`** | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体）；**B2/#75 起在 `StarPie.Core/`** | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>`、`NavigationCatalog`/`NavigationSlots`（槽位表 0–4）；**B2/#75 起在 `StarPie.Core/`** | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
-| `Services/Shell/` | `IThemeService`/`ThemeService`、`TrayIconManager`、`AutostartRegistry`（R1，M5）、`MemoryOptimizer` | 托盘/自启/主题决策不进 VM/View；实现见 [shell.md](shell.md) |
+| `Services/Shell/` | Host 只留 M4：`IThemeService`/`ThemeService`（B7 前驻留）；M5 的 `TrayIconManager`/`AutostartRegistry`（R1）/`MemoryOptimizer` 已迁 `StarPie.Shell/Services/Shell/`（B6/#79） | 托盘/自启/主题决策不进 VM/View；实现见 [shell.md](shell.md) / [interface-theme.md](interface-theme.md) |
 | `Services/Wheel/` | `WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何） | 实现见 [wheel.md](wheel.md) |
-| `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
+| `ViewModels/Pages/` | Host：M1/Host 设置页 VM（`BehaviorSettingsViewModel`/`ProfileListViewModel`/`AppearanceSettingsViewModel`/`InterfaceThemeSettingsViewModel`/`WheelAppearanceSettingsViewModel` 等，单例）；M5 两 VM（`GeneralSettingsViewModel`/`AboutViewModel`）已迁 `StarPie.Shell/ViewModels/Pages/`（B6/#79） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | 轮盘扇区等子 VM（如 `SlotViewModel`） | 不放服务 |
 | `ViewModels/Navigation/` | Core：`NavigationItemViewModel`（B2/#75）、`MainViewModel`（B3/#76 迁入且目录驱动）；Host：`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM） | 导航项文案/图标规则见 [navigation.md](navigation.md) |
 | `ViewModels/Wheel/` | `IWheelViewModel`、`WheelViewModel` | 不注册容器；按手势由 `WheelFactory` 瞬态创建；见 [wheel.md](wheel.md) |
-| `Views/Pages/` | `{Page}Page.xaml(.cs)`、`SettingsPageBase.cs`；页面无参构造 | 不注册容器；不编排业务/写配置/调服务 |
+| `Views/Pages/` | Host：M1/Host 页面（`{Page}Page.xaml(.cs)`，无参构造）；M5 两页（`AdvancedSettingsPage`/`AboutSettingsPage`）已迁 `StarPie.Shell/Views/Pages/`（B6/#79）；共享基类 `SettingsPageBase.cs` 在 Core `Views/Pages/` | 不注册容器；不编排业务/写配置/调服务 |
 | `Views/Dialogs/` | `{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |
-| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 为纯壳（B3/#76 起页面 DataTemplate 已迁出至 `Modules/` 模块模板字典） | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
+| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 为纯壳（B3/#76 起页面 DataTemplate 已迁出至 App 级模块页面模板字典——M5 在 `StarPie.Shell/Modules/`，M1/Host 在 exe `Modules/`） | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
 | `Views/Wheel/` | `RadialWindow.xaml(.cs)` | 轮盘状态决策在 `WheelViewModel`，窗口只做视觉呈现与生命周期；见 [wheel.md](wheel.md) |
 | `Views/Controls/` | Host 只留附加行为 `SpectrumCanvasBehavior.cs`（S6 取色对话框专用，依赖 Host VM `SpectrumPoint`）；共享自定义控件 `HotkeyRecorderBox.cs` 已迁 Core（B5/#78） | 有 `Command`/绑定等价物时不得新增行为 |
 | `Views/Converters/` | Host 只留 M2 核图标预览转换器（`CoreIconGeometryConverter`/`CoreIconNameConverter`，B5/#78 暂留，B8 随 M2 收编时裁决归属）；通用转换器已迁 Core | 转换器保持无状态、可静态复用 |
 | `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷，不内联方案 hex 表 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
 | `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集，M4/B7 拆集迁出）；全局控件样式字典 `ModernControls.xaml` 已迁 Core（B5/#78，Host `App.xaml` 经跨程序集 pack URI 单点合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
-| `Modules/`（B3/#76 临时） | M1/M5/Host 模块注册器（`RegisterNavigation`）+ 页面模板字典（`M1/M5/HostPageTemplates.xaml`，App 级每模块一次静态合并） | 不承载业务；导航自治样板，随 B6/B9 模块拆集迁出 |
+| `Modules/`（B3/#76 临时，B6/#79 起仅剩 M1/Host） | exe 内 M1/Host 模块注册器（`M1ModuleRegistrar`/`HostModuleRegistrar`，`RegisterNavigation`）+ 页面模板字典（`M1PageTemplates.xaml`/`HostPageTemplates.xaml`，App 级每模块一次静态合并）；M5 对应件已迁 `StarPie.Shell/Modules/` | 不承载业务；导航自治样板，M1 部分随 B9 拆集迁出 |
 
 ### 共享内核 UI 目录（B5/#78 起）
 
@@ -128,13 +143,18 @@ StarPie/
 |---|---|---|
 | `StarPie.Core/Views/Converters/` | 通用共享转换器：`HexToBrushConverter`（hex→Brush，配 Core `Models/RgbColor`）、`StringToGeometryConverter`（SVG 路径→Geometry）、`IntEqualsConverter`、`FilePathToImageConverter`（本地图片→缩略图）；实例由 Host `App.xaml` App 级单点持有（ADR-0012 决策 5） | 不得引用 Host/业务模块类型（Core 反向依赖禁区）；M2 核图标预览转换器不在此目录（留 Host，B8 裁决） |
 | `StarPie.Core/Views/Controls/` | 共享自定义控件 `HotkeyRecorderBox`（隐式默认样式模板在 `Views/Styles/ModernControls.xaml`） | 不放对话框专用行为（`SpectrumCanvasBehavior` 留 Host，依赖 Host VM） |
+| `StarPie.Core/Views/Pages/` | 共享页面基类 `SettingsPageBase`（Load/Unload 钩子；跨集页面共用，B6/#79 迁入） | 不放具体页面（页面在所属模块程序集或 Host）；不引用业务类型 |
 | `StarPie.Core/Views/Styles/` | `ModernControls.xaml` 全局控件样式字典（隐式默认/键控变体/共享模板；仅由 Host `App.xaml` 经 `pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml` 合并） | 不放主题画刷令牌（`Themes/*.xaml` 属 M4，B7 前居 Host） |
 
-### 模块程序集目录（B4/#77 起）
+### 模块程序集目录（B4/#77 起；B6/#79 起含首个带 DI 的模块程序集）
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
 | `StarPie.Programs/Services/Programs/` | M3 程序扫描与目录：`ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）+ `ProgramEntry`、`ShortcutResolver`（快捷方式解析出口） | 集成性质扫描逻辑不进 VM 单测；图标资产在 Core `Services/Icons/`（组合根注入的 S1 委托补全，本程序集零 Core 依赖）；实现见 [programs.md](programs.md) |
+| `StarPie.Shell/Services/Shell/` | M5 壳层服务：`TrayIconManager`（+ `TrayMenuEntry`，public——Host AppHost 装配托盘与菜单 provider 用）、`AutostartRegistry`（internal，注册器接线）、`MemoryOptimizer` | 托盘/自启/内存决策不进 VM/View；不反向引用 Host/M4（深色配色经组合根注入 `Func<bool>` 探针）；实现见 [shell.md](shell.md) |
+| `StarPie.Shell/ViewModels/Pages/` | M5 设置页 VM：`GeneralSettingsViewModel`、`AboutViewModel`（容器单例，由 `ShellModuleRegistrar.RegisterServices` 注册） | 不得引用 WPF 类型；不得反向引用 Host 类 |
+| `StarPie.Shell/Views/Pages/` | M5 页面 View：`AdvancedSettingsPage`、`AboutSettingsPage`（根基类 `SettingsPageBase` 在 Core `Views/Pages/`，XAML xmlns 经 `assembly=StarPie.Core` 引用） | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
+| `StarPie.Shell/Modules/` | 正式模块注册器 `ShellModuleRegistrar.cs`（`RegisterServices(IServiceCollection)` + `RegisterNavigation(NavigationCatalog)`）+ 模块页面模板字典 `ShellPageTemplates.xaml`（Host App.xaml 经跨程序集 pack URI 单点合并） | 不承载业务；注册器只注册不解析；M1/Host 临时注册器不在此目录（exe `Modules/`，B9 收编 M1） |
 
 ## 根级文件规则
 
@@ -145,24 +165,36 @@ StarPie/
 - `ThemePaletteManager.cs`：宿主层主题调色板整项替换（internal，自包含加载/缓存/冻结；仅 `AppHost` 编排调用，见 [shell.md](shell.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - `StarPie.Core.csproj` / `GlobalUsings.cs`：共享内核工程入口；`StarPie.Core/` 源码根目录**只允许**
-  上表列出的共享内核目录与文件（B2/#75 起；B5/#78 起含 `Views/Converters|Controls|Styles` 共享 UI 基建）。
+  上表列出的共享内核目录与文件（B2/#75 起；B5/#78 起含 `Views/Converters|Controls|Styles` 共享 UI 基建；
+  B6/#79 起含 `Views/Pages/SettingsPageBase.cs` 与 `Services/AppHostDelegates.cs`）。
 - `StarPie.Programs.csproj`：M3 模块程序集工程入口（B4/#77 起）；`StarPie.Programs/` 源码根目录
   **只允许** `Services/Programs/`（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`）。
+- `StarPie.Shell.csproj` / `GlobalUsings.cs`：M5 模块程序集工程入口（B6/#79 起，单向引用 Core）；
+  `StarPie.Shell/` 源码根目录**只允许** `Modules/`、`Services/Shell/`、`ViewModels/Pages/`、
+  `Views/Pages/`（仅上表列出的 M5 文件）。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
-  `WinPieGestures/`、`StarPie.Core/` 或 `StarPie.Programs/` 下。
+  `WinPieGestures/`、`StarPie.Core/`、`StarPie.Programs/` 或 `StarPie.Shell/` 下。
 
 ## 现状偏差与待清理项
 
-当前代码与正典目录结构一致（B3/#76 临时面见下）。
+当前代码与正典目录结构一致（exe `Modules/` 的 M1/Host 临时面见下；M5 已随 B6/#79 迁出）。
 
-### 当前登记偏差（临时，B3/#76）
+### 当前登记偏差（临时，B3/#76；B6/#79 后仅剩 M1/Host）
 
-- `WinPieGestures/Modules/`：M1/M5/Host 模块注册器与页面模板字典（`M1/M5/HostPageTemplates.xaml`，
+- `WinPieGestures/Modules/`：M1/Host 模块注册器与页面模板字典（`M1/HostPageTemplates.xaml`，
   App 级每模块一次静态合并）。ADR-0016 目标态中注册器/模板字典属模块程序集，B3 在单程序集内以临时面
-  先行验证“新增页面不碰 Host”路径；本目录随 B6/B9 模块拆集迁出，届时自本表移除。
+  先行验证“新增页面不碰 Host”路径；M5 部分已随 B6/#79 迁入 `StarPie.Shell/Modules/`
+  （ShellModuleRegistrar + ShellPageTemplates.xaml），本目录余下 M1/Host 部分随 B9 迁出后自本表移除。
 
 已消除的历史偏差（2026-09-04）：
 
+- **B6/#79（2026-09-06）**：M5 壳层服务与系统设置面迁入首个带 DI 的独立模块程序集
+  `StarPie.Shell/`——TrayIconManager/AutostartRegistry/MemoryOptimizer、GeneralSettingsViewModel+
+  AdvancedSettingsPage、AboutViewModel+AboutSettingsPage 随迁（命名空间不变）；共享页面基类
+  `SettingsPageBase` 迁入 `StarPie.Core/Views/Pages/`；宿主回调委托包 `AppHostDelegates` 上提
+  `StarPie.Core/Services/`；exe 内 M5 临时注册器/模板字典替换为 `ShellModuleRegistrar` +
+  `ShellPageTemplates.xaml`（Host App.xaml 经跨程序集 pack URI 合并）；Host/Tests 显式引用、
+  slnx 登记（见 [assemblies.md](assemblies.md) §9）。
 - **B5/#78（2026-09-06）**：共享 UI 基建迁共享内核——通用转换器（`HexToBrushConverter`/
   `StringToGeometryConverter`/`IntEqualsConverter`/`FilePathToImageConverter`）、共享自定义控件
   `HotkeyRecorderBox` 与全局控件样式字典 `ModernControls.xaml` 迁入 `StarPie.Core/Views/`

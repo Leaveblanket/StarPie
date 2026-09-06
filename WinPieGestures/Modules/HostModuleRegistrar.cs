@@ -4,11 +4,12 @@ using WinPieGestures.ViewModels.Pages;
 namespace WinPieGestures.Modules
 {
     /// <summary>
-    /// Host 侧页面注册器（B3/#76 临时形态）：外观与形态聚合页壳（#54/#56，D6）目标态留 Host
-    /// （ADR-0016 决策 1/§2，见 assemblies.md §5.2 槽位 1），不随 M1–M5 拆集；为统一
-    /// “注册器 + 模板字典 + 目录”接线，B3 在 exe 内以同形注册器先行验证，后续批次拆 M1/M5
-    /// 时本注册器保留由 Composition 直调。<see cref="RegisterNavigation"/> 把本页写入
-    /// <see cref="NavigationCatalog"/>，页面 DataTemplate 收进 HostPageTemplates.xaml。
+    /// Host 侧页面注册器（B3/#76 临时形态，B6/#79 仍居 exe）：外观与形态聚合页壳（#54/#56，D6）
+    /// 目标态留 Host（ADR-0016 决策 1/§2，见 assemblies.md §5.2 槽位 1），不随 M1–M5 拆集；
+    /// 为统一“注册器 + 模板字典 + 目录”接线，B3 在 exe 内以同形注册器先行验证，M5 部分已随
+    /// B6/#79 迁入 StarPie.Shell 的 ShellModuleRegistrar，本注册器继续由 Composition 直调。
+    /// <see cref="RegisterNavigation"/> 把本页写入 <see cref="NavigationCatalog"/>，页面
+    /// DataTemplate 收进 HostPageTemplates.xaml。
     /// </summary>
     public static class HostModuleRegistrar
     {

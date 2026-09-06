@@ -4,12 +4,15 @@ using WinPieGestures.ViewModels.Pages;
 namespace WinPieGestures.Modules
 {
     /// <summary>
-    /// M1 手势与动作模块注册器（B3/#76：单程序集内先行；B9 随 M1 抽取为 StarPie.Gestures）——
+    /// M1 手势与动作模块注册器（B3/#76：单程序集内先行；B6/#79 已把 M5 注册器样板迁入
+    /// StarPie.Shell 的 ShellModuleRegistrar；本临时注册器与 M1 页留 exe，B9 随 M1 抽取为
+    /// StarPie.Gestures）——
     /// 模块侧导航自报：<see cref="RegisterNavigation"/> 把本模块页面（触发与场景/手势与动作）
     /// 写入 <see cref="NavigationCatalog"/>（槽位/标题键/图标/目标类型），页面 DataTemplate 收进
     /// M1PageTemplates.xaml。新增页面 = 本注册器一行 + 模板字典一行，不再触碰 Host 的
-    /// MainView/MainViewModel/导航清单。页面 VM 的 DI 注册暂仍集中 Composition（M5 注册器样板与
-    /// AppHostDelegates 上提排 B6，见 assemblies.md §8），届时随模块程序集整段下放。
+    /// MainView/MainViewModel/导航清单。页面 VM 的 DI 注册暂仍集中 Composition（B6/#79 起
+    /// AppHostDelegates 已上提 Core、M5 两页已随 ShellModuleRegistrar 下放；M1 页面 VM 的
+    /// 注册下放随 B9，见 assemblies.md §8）。
     /// </summary>
     public static class M1ModuleRegistrar
     {

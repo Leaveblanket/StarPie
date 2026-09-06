@@ -32,27 +32,29 @@
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` =
      `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
-   - B3/#76（导航自治）：`NavigationCatalog` 由 exe 内 M1/M5/Host 临时注册器（`WinPieGestures/Modules/`）
-     装配并 `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型（页面 VM 的 DI 注册仍集中
-     ConfigureServices，B6/B9 下放）；注册 `INavigationExecutor` → `NavigationExecutor`（目录执行缝，
-     主导航入口，见 [navigation.md](navigation.md)）。
+   - B3/#76（导航自治）+ B6/#79（M5 拆集）：`NavigationCatalog` 由 exe 内 M1/Host 临时注册器
+     （`WinPieGestures/Modules/`）与 `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation`
+     按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
+     `INavigationExecutor` → `NavigationExecutor`（目录执行缝，主导航入口，见 [navigation.md](navigation.md)）。
    - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
      `DialogService`（T3c/#67：构造注入 M3 程序扫描委托；B4/#77 起登记为
      `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)`——M3 零 Core 依赖，S1 图标
      补全由组合根以委托注入；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、
      `SettingsSaveOrchestrator`。
-   - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、
+   - 页面 VM 工厂注册（单例）：M5 两页（`GeneralSettingsViewModel`/`AboutViewModel`）由
+     `ShellModuleRegistrar.RegisterServices` 下放模块程序集（首个带 DI 的模块注册器样板，
+     ADR-0016 决策 8，见 [assemblies.md](assemblies.md) §6）；组合根仍注册
+     `BehaviorSettingsViewModel`、`ProfileListViewModel`、
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
      `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、
-     `GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`（B3/#76：已迁 Core 且目录驱动；
-     仍在组合根注册——页面 VM 的 DI 注册在 B6/B9 前维持集中；#69 起 `ProfileListViewModel`
+     `MainViewModel`（B3/#76：已迁 Core 且目录驱动；
+     仍由组合根注册——M1/Host 页面 VM 的 DI 注册在 B9 前维持集中；#69 起 `ProfileListViewModel`
      另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）、
      `ShellViewModel`（B1/D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，
      见 [shell.md](shell.md)）。
-   - B3/#76 注：模块临时注册器（`M1/M5/HostModuleRegistrar`）本批只做 `RegisterNavigation`；
-     页面 VM 服务注册含宿主回调（`AppHostDelegates`），下放随模块拆集排 B6/B9（见
-     [assemblies.md](assemblies.md) §8）。
-   - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 `AppHostDelegates` 转发注册，不直接引用宿主类。
+   - B6/#79 注：`AppHostDelegates` 已上提 Core（`Services/AppHostDelegates.cs`）并以单例注册进容器，
+     `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 Core。
+   - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
@@ -60,8 +62,8 @@
    - **页面 VM eager 解析清单目录化（B3/#76）**：遍历 `NavigationCatalog.Entries` 逐个解析注册的
      页面 VM（VM 构造即订阅导入广播/落盘消息与 I18n 事件，时机在 `Config.Load` 之后；eager 语义
      保留——新增页面注册进目录即自动纳入启动构造）；另解析 `MainViewModel`/`ShellViewModel` 与宿主
-     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（初始主题与托盘/驻留气泡
-     直调，接线随 B6 收编）；
+     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（B6/#79 起后者已由
+     `ShellModuleRegistrar` 注册，组合根仅解析取回单例；初始主题与托盘/驻留气泡直调语义不变）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
 4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - `_mouseHook.Start()` → 订阅 `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
@@ -80,13 +82,16 @@
 
 ## 宿主委托包
 
-`AppHostDelegates`（定义于 `Composition.cs`）承载页面 VM 注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`。`GeneralSettingsViewModel` 注册时持稳定转发委托，`AppHost` 构造后回填实现；VM 不反向依赖宿主类。
+`AppHostDelegates`（B6/#79 起为 Core 公开契约，`StarPie.Core/Services/AppHostDelegates.cs`；原定义于
+`Composition.cs` 的 internal 类）承载页面 VM 注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`。
+组合根把单例实例注册进容器，`ShellModuleRegistrar` 装配 `GeneralSettingsViewModel` 时持稳定转发委托，
+`AppHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication = …`）；VM 不反向依赖宿主类。
 
 ## 扩展点
 
-- 新服务/新页面 VM：在 `Composition.ConfigureServices` 注册（B3/#76 起导航项与页面模板改经所属模块
-  注册器 + 模块模板字典，见 [navigation.md](navigation.md)/[naming.md](naming.md)；服务注册下放随
-  B6/B9 模块拆集）。
+- 新服务/新页面 VM：B6/#79 起 M5 新服务/页面在 `ShellModuleRegistrar`（模块内注册器）登记；
+  M1/Host 在 B9 前仍在 `Composition.ConfigureServices` 注册（导航项与页面模板一律经所属模块
+  注册器 + 模块模板字典，见 [navigation.md](navigation.md)/[naming.md](naming.md)）。
 - 新托盘入口：在 `AppHost.BuildTrayMenuEntries` 登记（托盘职责见 [shell.md](shell.md)）。
 - 新增“启动/退出/隐藏”副作用：优先以委托注入页面 VM，不新增服务定位器；宿主编排改 `AppHost`，不改 `Composition`。
 
