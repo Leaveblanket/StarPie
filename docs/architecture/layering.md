@@ -18,15 +18,19 @@ Services ---> Models
 
 ```text
 WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
-WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core（显式引用，不依赖传递）
+                                          ──→ StarPie.Programs（M3 模块程序集，B4/#77；零 Core 依赖）
+WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs（显式引用，不依赖传递）
 ```
 
 - Core 承载 S1–S6 共享件与 Models（`StarPie.Core/` 目录树见 [layout.md](layout.md)）；**Core 不引用
   Host/业务模块**，跨模块依赖一律经 Core 契约（方向见 [assemblies.md](assemblies.md) §3）。
+- M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
+  ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
+  组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。
 - 两个跨程序集回填缝（B2/#75，属 H1 装配职责，不是 Core 反向依赖）：
   - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支）；
   - `IconAssets.ResolveShortcutTarget`：组合根装配前以 M3 `ShortcutResolver.ResolveShortcutTarget`
-    回填（S1 .lnk 图标提取）。
+    回填（S1 .lnk 图标提取；M3 自 B4/#77 起驻 `StarPie.Programs`，Host 显式引用）。
 
 ## 依赖矩阵
 

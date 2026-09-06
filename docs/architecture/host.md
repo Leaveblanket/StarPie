@@ -27,7 +27,8 @@
 2. `Composition.ConfigureServices`（全部单例）：
    - B2/#75 装配前回填跨程序集缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`（S2 dev 目录
      分支）与 `IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget`（S1 .lnk
-     提取）——Core 不反向引用宿主/业务模块（见 [layering.md](layering.md) 程序集层）。
+     提取；B4/#77 起 M3 `ShortcutResolver` 驻 `StarPie.Programs`，Host 显式引用）——Core 不反向
+     引用宿主/业务模块（见 [layering.md](layering.md) 程序集层）。
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` =
      `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
@@ -36,8 +37,10 @@
      ConfigureServices，B6/B9 下放）；注册 `INavigationExecutor` → `NavigationExecutor`（目录执行缝，
      主导航入口，见 [navigation.md](navigation.md)）。
    - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
-     `DialogService`（T3c/#67：构造注入 M3 程序扫描委托，以 `ProgramScanner.ScanInstalledPrograms`
-     登记；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。
+     `DialogService`（T3c/#67：构造注入 M3 程序扫描委托；B4/#77 起登记为
+     `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)`——M3 零 Core 依赖，S1 图标
+     补全由组合根以委托注入；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、
+     `SettingsSaveOrchestrator`。
    - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
      `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、

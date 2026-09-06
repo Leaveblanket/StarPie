@@ -34,8 +34,9 @@ namespace WinPieGestures
         public Composition()
         {
             // B2/#75（Core 抽取）跨程序集回填缝：Core 的 S2 AppDataPaths dev 目录分支依赖 H1
-            // DevInstance，S1 IconAssets 的 .lnk 提取依赖 M3 ShortcutResolver——共享内核不能
-            // 反向引用宿主/业务程序集，故装配前由组合根回填（方向见 assemblies.md §3）。
+            // DevInstance，S1 IconAssets 的 .lnk 提取依赖 M3 ShortcutResolver（B4/#77 起驻
+            // StarPie.Programs）——共享内核不能反向引用宿主/业务程序集，故装配前由组合根回填
+            // （方向见 assemblies.md §3）。
             AppDataPaths.IsDevInstance = DevInstance.IsActive;
             IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget;
 
@@ -127,10 +128,12 @@ namespace WinPieGestures
             services.AddSingleton<GestureEngine>();
             // T3c/#67（R6/R7）：M3 程序扫描能力经委托注入对话框服务——S6 不再直连
             // ProgramScanner 静态内部，DialogService 只持委托并转发给程序选择器 VM。
+            // B4/#77：M3 迁入 StarPie.Programs 且零 Core 依赖——S1 图标补全（IconAssets.GetIcon）
+            // 由组合根在此以委托注入扫描编排，行为与迁移前一致。
             services.AddSingleton(sp => new DialogService(
                 sp.GetRequiredService<IThemeService>(),
                 sp.GetRequiredService<ILocalizationService>(),
-                ProgramScanner.ScanInstalledPrograms));
+                () => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)));
             services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
             services.AddSingleton<GestureController>();
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();

@@ -13,7 +13,7 @@ VM 层零对话框类型引用的统一模态对话框入口。
   `FilePickResult`/`ProgramPickResult`/`IconPickResult`）。
 - **实现与界面（宿主 `WinPieGestures/`）**：`Services/Dialogs/DialogService.cs`、
   `ViewModels/Dialogs/`、`Views/Dialogs/`（契约与实现跨程序集，接口稳定；窗口主题应用依赖
-  M4 `IThemeService`，宿主侧消费）。
+  M4 `IThemeService`，宿主侧消费；M3 `ProgramEntry` 经 Host→`StarPie.Programs` 显式引用消费）。
 
 ## 唯一形态（正典）
 
@@ -22,7 +22,8 @@ VM 层零对话框类型引用的统一模态对话框入口。
 ## 关键流程
 
 1. `DialogService` 构造注入 `IThemeService`、`ILocalizationService` 与 M3 程序扫描委托（组合根以
-   `ProgramScanner.ScanInstalledPrograms` 登记，T3c/#67）；`_owner` 由组合根在设置窗口创建后
+   `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)` 登记，T3c/#67 + B4/#77：S1
+   图标补全由组合根注入委托）；`_owner` 由组合根在设置窗口创建后
    `SetOwner(MainView)` 惰性回填（[ADR-0004](../adr/0004-dialog-service-design.md)，化解服务↔窗口循环）。
 2. `ShowXxx`：`new XxxViewModel(...)`（对话框 VM 每次新建、不注册容器）→ `new XxxWindow(theme, vm)` → `ShowDialog()` → `vm.BuildResult()`；结果 record 定义在 `IDialogService` 文件（如 `InputDialogResult`、`ColorPickResult`、`EyedropResult`、`FilePickResult`、`ProgramPickResult`、`IconPickResult`）。程序/图标选择器的领域数据经注入提供者获得：扫描候选由构造注入委托转发给 `ProgramPickerViewModel`，图标资产默认实现引用 S1 `IconAssets` 出口——对话框模块不直连业务模块静态内部（R6/R7，T3c/#67）。
 3. 窗口 code-behind 只做：`DialogResult=true`（由 VM `IsCompleted` 驱动）与取消 `DialogResult=false`、主题应用、XAML 表达不了的标题拼接（[ADR-0010](../adr/0010-localization-copy-principles.md) 例外）；取色器的 Win32 取像素与放大镜摆放属 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单。

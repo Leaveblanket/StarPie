@@ -28,6 +28,9 @@
   <ItemGroup>
     <!-- B2/#75：共享内核程序集引用（Models/S2/S3/S4/S1/S6 契约/S5 导航内核随迁） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- B4/#77：M3 模块程序集显式引用（ProgramScanner/ProgramCatalog/ShortcutResolver 随迁；
+         组合根回填 IconAssets.ResolveShortcutTarget 与注入扫描图标委托用） -->
+    <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
   </ItemGroup>
 
 </Project>

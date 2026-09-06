@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="WinPieGestures.csproj" />
   <Project Path="..\StarPie.Core\StarPie.Core.csproj" />
+  <Project Path="..\StarPie.Programs\StarPie.Programs.csproj" />
   <Project Path="..\WinPieGestures.Tests\WinPieGestures.Tests.csproj" />
 </Solution>
