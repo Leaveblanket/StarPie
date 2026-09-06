@@ -11,9 +11,10 @@ namespace WinPieGestures.Services.Shell
     /// App theme service (T09/ADR-0012/ADR-0013 #47): owns the current effective theme and
     /// the Win32 title-bar surface behind the IThemeService seam. <see cref="SetTheme"/> is
     /// the single state entry point — it resolves, records <see cref="CurrentEffectiveTheme"/>,
-    /// raises <see cref="ThemeChanged"/> and triggers the host palette replacement via the
-    /// attached applier. Theme palettes live as XAML under Views/Styles/Themes and are swapped
-    /// wholesale by ThemePaletteManager (host layer), so this service never depends on Views.
+    /// raises <see cref="ThemeChanged"/> and triggers the palette replacement via the
+    /// attached applier. Theme palettes live as XAML under Views/Styles/Themes (B7/#80 起随 M4
+    /// 居 StarPie.Theme) and are swapped wholesale by ThemePaletteManager (same module), so this
+    /// service never depends on Views.
     /// The Windows dark-mode probe is injectable so "follow system" resolution is
     /// unit-testable; production reads the personalize registry key live.
     /// </summary>
@@ -40,9 +41,11 @@ namespace WinPieGestures.Services.Shell
             _windowsInDarkModeProbe = windowsInDarkModeProbe ?? ProbeWindowsDarkMode;
         }
 
-        /// <summary>绑定宿主层调色板应用回调（ADR-0012/0013）：AppHost 构造后调用；SetTheme 时
-        /// 宿主经 ThemePaletteManager 整项替换 MergedDictionaries 活动主题槽。</summary>
-        internal void AttachPaletteApplier(Action<string> paletteApplier)
+        /// <summary>绑定调色板应用回调（ADR-0012/0013；B7/#80 跨程序集裁决为 public）：
+        /// Host AppHost 构造后调用（ThemePaletteManager 随 M4 迁 StarPie.Theme 并公开，
+        /// Host 装配面先例同 B6/#79 TrayIconManager）；SetTheme 时经 ThemePaletteManager
+        /// 整项替换 MergedDictionaries 活动主题槽。</summary>
+        public void AttachPaletteApplier(Action<string> paletteApplier)
         {
             _paletteApplier = paletteApplier;
         }

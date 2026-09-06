@@ -8,8 +8,9 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!--  Light 主题默认/设计时画刷  -->
-                <ResourceDictionary Source="Views/Styles/Themes/Light.xaml" />
+                <!--  Light 主题默认/设计时画刷（B7/#80：主题字典随 M4 迁 StarPie.Theme，
+                      跨程序集 pack URI 合并；运行时由 ThemePaletteManager 整项替换同源主题槽）  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Theme;component/Views/Styles/Themes/Light.xaml" />
                 <!--  B5/#78：全局控件样式字典迁入共享内核 Core，跨程序集 pack URI 合并 (ADR-0012/0016)  -->
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml" />
                 <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并）。

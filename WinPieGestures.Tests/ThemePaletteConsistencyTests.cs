@@ -20,7 +20,8 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            return Path.Combine(dir.FullName, "WinPieGestures", "Views", "Styles", "Themes");
+            // B7/#80：主题字典随 M4 迁入 StarPie.Theme/Views/Styles/Themes（原 WinPieGestures/Views/Styles/Themes）。
+            return Path.Combine(dir.FullName, "StarPie.Theme", "Views", "Styles", "Themes");
         }
     }
 
