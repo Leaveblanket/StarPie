@@ -19,22 +19,34 @@ Services ---> Models
 ```text
 WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
                                           ──→ StarPie.Programs（M3 模块程序集，B4/#77；零 Core 依赖）
-WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs（显式引用，不依赖传递）
+                                          ──→ StarPie.Shell（M5 模块程序集，B6/#79；单向 Core）
+WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs + StarPie.Shell
+                       （显式引用，不依赖传递）
 ```
 
 - Core 承载 S1–S6 共享件、Models 与共享 UI 基建（B5/#78：Views/Converters 通用转换器、
-  Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml；`StarPie.Core/` 目录树见
-  [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约（方向见
-  [assemblies.md](assemblies.md) §3）。依赖宿主/M2/S6 对话框的 UI 专用件（CoreIconGeometry/Name
-  核图标预览转换器、SpectrumCanvasBehavior 取色行为）因此暂留 Host，随 B8/B6 对应批次裁决（见
-  [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）。
+  Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml；B6/#79 起含共享页面基类
+  `Views/Pages/SettingsPageBase` 与宿主回调契约 `Services/AppHostDelegates`；`StarPie.Core/`
+  目录树见 [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约
+  （方向见 [assemblies.md](assemblies.md) §3）。依赖宿主/M2/S6 对话框的 UI 专用件
+  （CoreIconGeometry/Name 核图标预览转换器、SpectrumCanvasBehavior 取色行为）因此暂留 Host，
+  随 B8 对应批次裁决（见 [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）。
 - M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
   ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
   组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。
-- 两个跨程序集回填缝（B2/#75，属 H1 装配职责，不是 Core 反向依赖）：
+- M5（`StarPie.Shell/`，B6/#79）承载壳层服务与系统设置面（TrayIconManager/AutostartRegistry/
+  MemoryOptimizer、GeneralSettingsViewModel+AdvancedSettingsPage、AboutViewModel+AboutSettingsPage、
+  ShellModuleRegistrar）；**单向依赖 Core**：页面 VM 的 DI 注册与导航自报下放模块注册器
+  （RegisterServices/RegisterNavigation），组合根仍唯一 BuildServiceProvider；M5 需要 Host/M4
+  宿主能力处一律经 Core 契约或委托注入（托盘深色配色经组合根注入的 `Func<bool>` 探针、
+  AutostartRegistry dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝），不反向引用 Host/M4
+  （见 [shell.md](shell.md)/[host.md](host.md)）。
+- 跨程序集回填缝（B2/#75 起，属 H1 装配职责，不是 Core 反向依赖）：
   - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支）；
   - `IconAssets.ResolveShortcutTarget`：组合根装配前以 M3 `ShortcutResolver.ResolveShortcutTarget`
     回填（S1 .lnk 图标提取；M3 自 B4/#77 起驻 `StarPie.Programs`，Host 显式引用）。
+  - `AppHostDelegates`（B6/#79 上提 Core）：组合根注册单例、AppHost 构造后回填托盘气泡/退出，
+    M5 注册器工厂经容器解析（模块只依赖 Core）。
 
 ## 依赖矩阵
 
@@ -67,6 +79,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs�
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（B2 先例：`AppDataPaths`——
     原 internal，随 S2 迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
+  - 需要被 Host 装配的模块公开件显式 `public`（B6/#79 先例：`StarPie.Shell` 的
+    `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
+    `AutostartRegistry` 只被同集注册器接线，保持 internal）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
@@ -102,7 +117,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs�
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或**组合根注入的委托**编排（托盘气泡、退出、自启、导入导出、打开文件：`GeneralSettingsViewModel`/`AboutViewModel` 模式）；VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
+- 副作用经注入服务或**组合根/模块注册器注入的委托**编排（托盘气泡、退出、自启、导入导出、打开文件：
+  `GeneralSettingsViewModel`/`AboutViewModel` 模式，B6/#79 起 M5 页面 VM 由 ShellModuleRegistrar 注册）；
+  VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM（壳层与驻留文案持有者）必须成对退订（`MainViewModel.Dispose`/
   `ShellViewModel.Dispose` 模式）。
@@ -121,9 +138,11 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs�
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
-- 页面经 App 级模块页面模板字典（B3/#76 起，`WinPieGestures/Modules/*PageTemplates.xaml`）中的
-  DataTemplate 映射 VM（无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面卸载时成对取消
-  静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
+- 页面经 App 级模块页面模板字典（B3/#76 起 exe 内 `WinPieGestures/Modules/*PageTemplates.xaml`；
+  B6/#79 起 M5 模板字典在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`，经跨程序集 pack URI 合并）
+  中的 DataTemplate 映射 VM（无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面根元素
+  基类 `SettingsPageBase` 在共享内核 `StarPie.Core/Views/Pages/`（跨集页面共用，B6/#79 迁入）；
+  页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
 - 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 ADR-0009 输入适配）。
 
