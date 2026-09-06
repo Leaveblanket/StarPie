@@ -1,4 +1,4 @@
-# WinPieGestures 架构文档（入口）
+# StarPie 架构文档（入口）
 
 > **阅读方式**：先读本文，按任务跳转到 `docs/architecture/` 下的叶子文件；不要把整卷叶子一次性注入上下文。
 >
@@ -13,7 +13,7 @@
 | `docs/architecture.md`（本文） | 架构文档入口与任务路由 | 任何架构问题先读这里 |
 | `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
 | `docs/architecture/modules.md` | 模块划分地图（目标态 + 方向性，ADR-0015；程序集化路线见 assemblies.md/ADR-0016） | 归属争议、扩展点验收时 |
-| `docs/architecture/assemblies.md` | 程序集地图与程序集化路线（目标态 + 方向性，见 ADR-0016） | 程序集归属、依赖方向、导航槽位、B0–B10 批次时 |
+| `docs/architecture/assemblies.md` | 程序集地图与程序集化收尾（目标态 = as-built，路线已清零，见 ADR-0016） | 程序集归属、依赖方向、导航槽位、批次历史与现状时 |
 | `docs/i18n-copy-inventory.md` | 界面文案键位盘点 | 新增/修改用户可见文案时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
@@ -48,31 +48,31 @@
   共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 内核与槽位表）与共享
   UI 基建（B5/#78：Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/
   ModernControls.xaml 全局控件样式字典）；
-  命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
+  命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
-  程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver），零共享内核依赖；命名空间维持
-  `WinPieGestures.*`（B10 统一收尾）。
+  程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver），零共享内核依赖；命名空间
+  统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B6/#79 起，首个带 DI 的模块程序集）：`StarPie.Shell/`（WPF 类库，程序集
   `StarPie.Shell`）承载 M5 壳层服务与系统设置面（TrayIconManager/AutostartRegistry/MemoryOptimizer/
   GeneralSettingsViewModel+AdvancedSettingsPage/AboutViewModel+AboutSettingsPage 与正式模块注册器
-  ShellModuleRegistrar），单向依赖共享内核；命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
+  ShellModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`（B10/#83）。
 - 模块程序集（B7/#80 起）：`StarPie.Theme/`（WPF 类库，程序集 `StarPie.Theme`）承载 M4
   界面主题体系（ThemeService/IThemeService、ThemePaletteManager（public，Host AppHost 装配面）、
   五套主题字典 Views/Styles/Themes、InterfaceThemeSettingsViewModel 与模块注册器
-  ThemeModuleRegistrar），单向依赖共享内核；命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
+  ThemeModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`（B10/#83）。
 - 模块程序集（B8/#81 起）：`StarPie.Wheel/`（WPF 类库，程序集 `StarPie.Wheel`）承载 M2
   轮盘与渲染（轮盘 VM ViewModels/Wheel、RadialWindow、Views/Renderers 样式渲染器与预览、
   Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
   WheelGeometry 视觉几何与 WheelFactory/工厂接口（D5，ADR-0016 决策 11）与模块注册器
-  WheelModuleRegistrar），单向依赖共享内核并允许 M2→M4（IThemeService）边；命名空间维持
-  `WinPieGestures.*`（B10 统一收尾）。
+  WheelModuleRegistrar），单向依赖共享内核并允许 M2→M4（IThemeService）边；命名空间统一为
+  `StarPie.*`（B10/#83）。
 - 模块程序集（B9/#82 起，最后一个业务模块程序集）：`StarPie.Gestures/`（WPF 类库，程序集
   `StarPie.Gestures`）承载 M1 手势与动作（手势管线 Services/Gestures（MouseHook/
   GestureController/GestureEngine/IWindowContext/WindowContext）、动作执行 Services/Actions
   （IActionExecutorService/ActionExecutorService/ActionRouting）、触发+手势设置页
   （BehaviorSettingsViewModel+TriggerSettingsPage、ProfileListViewModel+SlotViewModel+
   GesturesSettingsPage）与模块注册器 GesturesModuleRegistrar），单向依赖共享内核并允许
-  M1→M2（IWheelFactory/IWheelViewModel）边；命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
+  M1→M2（IWheelFactory/IWheelViewModel）边；命名空间统一为 `StarPie.*`（B10/#83）。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。

@@ -8,12 +8,12 @@
 
 ## 组成文件
 
-M2 物理落位（B8/#81 起迁入独立模块程序集 `StarPie.Wheel/`，命名空间维持 `WinPieGestures.*`，
-B10 统一收尾）：
+M2 物理落位（B8/#81 起迁入独立模块程序集 `StarPie.Wheel/`，命名空间统一为 `StarPie.*`
+（B10/#83））：
 
 - `StarPie.Wheel/Services/Wheel/`：`WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标
   几何，R6 三分）、`IWheelFactory.cs`/`WheelFactory.cs`（轮盘工厂接口与实现，B8/#81 D5 随
-  M2 收编、命名空间 `WinPieGestures.Services.Wheel` 与物理目录一致，见
+  M2 收编、命名空间 `StarPie.Services.Wheel` 与物理目录一致，见
   [gestures.md](gestures.md)/[modules.md](modules.md) §5 D5）。
 - `StarPie.Wheel/ViewModels/Wheel/`（`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState`）、
   `StarPie.Wheel/ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，

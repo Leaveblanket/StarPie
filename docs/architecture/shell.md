@@ -10,7 +10,8 @@
 
 ## 组成文件
 
-M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命名空间维持 `WinPieGestures.*`）：
+M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命名空间统一为 `StarPie.*`
+（B10/#83））：
 
 - `StarPie.Shell/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为驻模块，
   由 Host `AppHost.Run` 装配实例——见下方关键流程 1）、`AutostartRegistry.cs`（R1）、
@@ -24,8 +25,8 @@ M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命�
   B6/#79 上提，见 [host.md](host.md)）。
 
 M4 的主题件 `IThemeService`/`ThemeService` 原与 M5 同目录登记于 Host `Services/Shell/`，B7/#80
-已随 M4 迁入独立模块程序集 `StarPie.Theme/Services/Shell/`（命名空间 `WinPieGestures.Services.Shell`
-不变，见 [interface-theme.md](interface-theme.md)）；Host 侧该目录已清空移除，水平目录不再跨模块登记。
+已随 M4 迁入独立模块程序集 `StarPie.Theme/Services/Shell/`（命名空间 `StarPie.Services.Shell`，
+B10/#83 统一，见 [interface-theme.md](interface-theme.md)）；Host 侧该目录已清空移除，水平目录不再跨模块登记。
 
 - `ViewModels/Navigation/ShellViewModel.cs`（B1/D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
