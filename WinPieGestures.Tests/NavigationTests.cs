@@ -196,8 +196,6 @@ public sealed class MainViewModelTests
             new FakeNavigationService<ProfileListViewModel>(store, fixture.Profiles),
             new FakeNavigationService<GeneralSettingsViewModel>(store, fixture.General),
             new FakeNavigationService<AboutViewModel>(store, fixture.About),
-            fixture.Messenger,
-            fixture.Dialogs,
             Localization);
         return (vm, store, fixture);
     }
@@ -237,19 +235,6 @@ public sealed class MainViewModelTests
         Assert.Null(store.CurrentViewModel);
         Assert.Null(vm.CurrentViewModel);
         Assert.All(vm.NavigationItems, i => Assert.False(i.IsSelected));
-    }
-
-    [Fact]
-    public void IsExiting_DefaultsFalse_AndIsSettable()
-    {
-        // T22：App 退出状态归壳层 VM（组合根置位、主框架 Closing 读取），View 不反向依赖 Composition。
-        var (vm, _, _) = Create();
-
-        Assert.False(vm.IsExiting);
-
-        vm.IsExiting = true;
-
-        Assert.True(vm.IsExiting);
     }
 
     [Fact]
@@ -294,40 +279,4 @@ public sealed class MainViewModelTests
         }
     }
 
-    [Fact]
-    public void WindowTitle_ReflectsI18nAndDevSuffix()
-    {
-        var (vm, _, _) = Create();
-
-        Assert.Equal(Localization.GetString("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
-    }
-
-    [Fact]
-    public void LanguageChanged_RaisesWindowTitlePropertyChanged_UntilDisposed()
-    {
-        // T25（ADR-0010 第 3 条）：WindowTitle 并入 RefreshTitles 刷新，Dispose 后不再订阅静态事件。
-        var (vm, _, _) = Create();
-        var original = Localization.CurrentLanguage;
-        var changes = new List<string?>();
-        vm.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(MainViewModel.WindowTitle)) changes.Add(e.PropertyName);
-        };
-        try
-        {
-            Localization.SetLanguage("en");
-
-            Assert.Contains(nameof(MainViewModel.WindowTitle), changes);
-            Assert.Equal(Localization.GetString("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
-
-            changes.Clear();
-            vm.Dispose();
-            Localization.SetLanguage("ja");
-            Assert.DoesNotContain(nameof(MainViewModel.WindowTitle), changes);
-        }
-        finally
-        {
-            Localization.SetLanguage(original);
-        }
-    }
 }

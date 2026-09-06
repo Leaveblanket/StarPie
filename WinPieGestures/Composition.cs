@@ -70,6 +70,9 @@ namespace WinPieGestures
             var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
             _ = _provider.GetRequiredService<AboutViewModel>();
             var mainViewModel = _provider.GetRequiredService<MainViewModel>();
+            // B1/D3（ADR-0016 决策 7）：壳层 VM 独立注册/解析——AppHost 退出链与主框架
+            // 分区 DataContext 指向壳层 VM；导航 VM 只持导航状态。
+            var shellViewModel = _provider.GetRequiredService<ShellViewModel>();
 
             return new AppHost(
                 messenger,
@@ -86,6 +89,7 @@ namespace WinPieGestures
                 interfaceTheme,
                 general,
                 mainViewModel,
+                shellViewModel,
                 _hostDelegates);
         }
 
@@ -187,6 +191,7 @@ namespace WinPieGestures
                 sp.GetRequiredService<ILocalizationService>()));
 
             services.AddSingleton<MainViewModel>();
+            services.AddSingleton<ShellViewModel>();
         }
 
         private static bool IsRunningAsAdministrator()

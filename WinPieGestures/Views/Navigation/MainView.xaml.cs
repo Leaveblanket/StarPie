@@ -13,25 +13,31 @@ namespace WinPieGestures.Views.Navigation
     /// 页面区是 ContentControl（DataContext.CurrentViewModel），页面经 DataTemplate 由页面 VM 映射呈现。
     /// 壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播由组合根承接
     /// （RootSettingsViewModel 已删除）。壳层静态文案为声明式 {DynamicResource}（ADR-0010），
-    /// Window.Title 收进 <see cref="MainViewModel.WindowTitle"/>（壳层 VM 生命周期，ADR-0010 第 3 条）。
+    /// Window.Title 收进 <see cref="ShellViewModel.WindowTitle"/>（B1/D3：壳层 VM 生命周期，
+    /// ADR-0010 第 3 条）；DataContext 分区——壳区（本窗口）绑壳层 VM，导航区（侧栏 +
+    /// 页面 ContentControl）绑 <see cref="MainViewModel"/>。
     /// #54（ADR-0014 决策 7）：界面主题应用改消息驱动——订阅 <see cref="AppThemeChangedMessage"/>
     /// 执行 <see cref="ApplyAppTheme"/>（页面主题 SelectionChanged 处理器已删除；配置导入后重挂
     /// 路径同样经此消息由壳层执行），初始主题仍由 AppHost.Run 直调本方法。
     public partial class MainView : Window
     {
-        private readonly MainViewModel _main;
+        private readonly ShellViewModel _shell;
         private readonly IThemeService _themeService;
 
-        public MainView(MainViewModel main, IThemeService themeService)
+        public MainView(MainViewModel main, ShellViewModel shell, IThemeService themeService)
         {
             InitializeComponent();
-            _main = main ?? throw new ArgumentNullException(nameof(main));
-            _themeService = themeService;
+            _shell = shell ?? throw new ArgumentNullException(nameof(shell));
+            _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
 
-            DataContext = _main;
+            // B1/D3（ADR-0016 决策 7）：主框架分区 DataContext——壳区（窗口标题/底部操作区）
+            // 绑壳层 VM，导航区（侧栏导航项 + 当前页 ContentControl）绑导航 VM。
+            DataContext = _shell;
+            NavSidebar.DataContext = main ?? throw new ArgumentNullException(nameof(main));
+            PageContent.DataContext = main;
 
             // ADR-0010：壳层静态文案声明式化（{DynamicResource}）；Window.Title 绑定壳层 VM，
-            // 语言切换由 MainViewModel（I18n 订阅）刷新，View 不再回填本地化。
+            // 语言切换由 ShellViewModel（I18n 订阅）刷新，View 不再回填本地化。
 
             // #54：主题变更消息订阅（壳层 code-behind 白名单，ADR-0009）——界面主题子 VM 写穿
             // 配置后发布，此处执行窗口主题应用；消息接收方为弱引用，壳层随窗口生命周期常驻。
@@ -69,8 +75,8 @@ namespace WinPieGestures.Views.Navigation
         {
             // App-level exit (ADR-0003, #27): pending edits were already flushed by the
             // composition root — allow the close. Exit state lives on the shell VM
-            // (MainViewModel.IsExiting), so the View has no reverse dependency on Composition.
-            if (_main.IsExiting) return;
+            // (ShellViewModel.IsExiting), so the View has no reverse dependency on Composition.
+            if (_shell.IsExiting) return;
 
             e.Cancel = true;
 

@@ -13,8 +13,10 @@
 - `Services/Shell/TrayIconManager.cs`、`Services/Shell/MemoryOptimizer.cs`（R3：`MemoryOptimizer` 归 M5；
   同目录另含 M4 的类型（见 [interface-theme.md](interface-theme.md)），水平目录不按模块分属，按类型登记）。
 - `Services/Shell/AutostartRegistry.cs`（R1：`AutostartRegistry` 归 M5，物理已随 #70 收编本目录）。
-- `Views/Navigation/MainView.xaml.cs`（R4：壳层 code-behind 归 M5；`MainView.xaml` 的 DataTemplate 映射见
-  [navigation.md](navigation.md)）。
+- `ViewModels/Navigation/ShellViewModel.cs`（B1/D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
+  归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
+- `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml` 页面 DataTemplate
+  映射见 [navigation.md](navigation.md)，分区 DataContext 接线见下关键流程 4）。
 - 设置面：`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`
   （D6：M5 设置面；VM 注册与宿主回调见 [host.md](host.md)，页面绑定规范见 [layering.md](layering.md)）。
 
@@ -29,8 +31,10 @@
 3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具，经组合根委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`setAutoStart`），不进 VM/View。
 4. **关窗驻留**：`MainView` 壳层 code-behind（`Window_Closing` 隐藏到托盘 + 淡出，退出态读
-   `MainViewModel.IsExiting`）属 ADR-0009 白名单；`MainViewModel` 主归 S5、壳层成员按 D3 借调 M5
-   （见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
+   `ShellViewModel.IsExiting`）属 ADR-0009 白名单；壳层成员（`WindowTitle`/`IsExiting`/`Save()`）已收进
+   `ShellViewModel`（B1/D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
+   操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
+   `CloseButton_Click` 纯 UI 取消语义。
 5. **高级与关于设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
    `AppHostDelegates` 注入（见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。

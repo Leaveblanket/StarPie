@@ -40,20 +40,20 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Left Sidebar Navigation -->
-        <navigation:SidebarView Grid.Column="0"/>
+        <!-- 导航区（DataContext 指向导航 VM，由 MainView 代码后置分区接线）：侧栏导航项 -->
+        <navigation:SidebarView x:Name="NavSidebar" Grid.Column="0"/>
 
-        <!-- Right Main Panel -->
+        <!-- 右主面板：页面区（导航 VM）+ 壳层操作区（壳层 VM，随窗口 DataContext 继承） -->
         <Grid Grid.Column="1" Margin="25,25,25,20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Current Page (DataTemplate-mapped) -->
-            <ContentControl Grid.Row="0" Content="{Binding CurrentViewModel}"/>
+            <!-- 导航区：当前页面 (DataTemplate-mapped，DataContext 指向导航 VM) -->
+            <ContentControl x:Name="PageContent" Grid.Row="0" Content="{Binding CurrentViewModel}"/>
 
-            <!-- Global Bottom Action Footer -->
+            <!-- 壳区：全局底部操作 Footer（DataContext 继承窗口壳层 VM） -->
             <Border Grid.Row="1" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,1,0,0" Padding="0,15,0,0" Margin="0,15,0,0">
                 <Grid>
                     <Grid.ColumnDefinitions>

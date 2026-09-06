@@ -1,24 +1,21 @@
 using System;
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
 
 namespace WinPieGestures.ViewModels.Navigation
 {
     /// <summary>
-    /// 主框架 ViewModel (T19)：设置控制台窗口 DataContext 的单一根源——
-    /// <see cref="CurrentViewModel"/> 供 ContentControl 呈现当前页面（DataTemplate 按 VM 类型
+    /// 主框架导航区 ViewModel (T19)：设置控制台窗口分区 DataContext 的导航区（B1/D3）——
+    /// <see cref="CurrentViewModel"/> 供页面 ContentControl 呈现当前页面（DataTemplate 按 VM 类型
     /// 映射页面 View），<see cref="NavigationItems"/> 供侧边栏数据驱动呈现。
-    /// 导航项选中态随 NavigationStore 当前页同步；导航标题与 WindowTitle 随 I18n 语言广播刷新。
+    /// 导航项选中态随 NavigationStore 当前页同步；导航标题随 I18n 语言广播刷新。
+    /// 壳层职责（WindowTitle/IsExiting/Save）已拆至 <see cref="ShellViewModel"/>
+    /// （B1/D3，ADR-0016 决策 7）；主框架分区 DataContext：导航区绑本 VM、壳区绑壳层 VM。
     /// 生命周期（ADR-0010 第 3 条）：本 VM 为容器单例，同样实现 IDisposable 配对退订静态事件，
     /// 由组合根随 Composition.Dispose 调用（兼作测试拆卸）。
     public partial class MainViewModel : ObservableObject, IDisposable
     {
         private readonly NavigationStore _store;
-        private readonly IMessenger _messenger;
-        private readonly IDialogService _dialogs;
         private readonly ILocalizationService _localization;
 
         /// <summary>五个导航项（触发与场景/外观与形态/手势与动作/高级与系统/关于与更新），顺序即侧边栏顺序。</summary>
@@ -27,13 +24,6 @@ namespace WinPieGestures.ViewModels.Navigation
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>
         public ObservableObject? CurrentViewModel => _store.CurrentViewModel;
 
-        /// <summary>App 级退出进行中（组合根在托盘退出/提权重启时置位）：主框架 Closing
-        /// 据此放行真关窗而非隐藏到托盘（ADR-0003；#27 起退出状态归壳层 VM，View 不再反向依赖 Composition）。</summary>
-        public bool IsExiting { get; set; }
-
-        /// <summary>壳层窗口标题（ADR-0010）：WindowTitle 键 + DevInstance 标记；语言切换随本 VM 刷新。</summary>
-        public string WindowTitle => _localization.GetString("WindowTitle") + DevInstance.Suffix;
-
         public MainViewModel(
             NavigationStore store,
             INavigationService<BehaviorSettingsViewModel> navTrigger,
@@ -41,8 +31,6 @@ namespace WinPieGestures.ViewModels.Navigation
             INavigationService<ProfileListViewModel> navGestures,
             INavigationService<GeneralSettingsViewModel> navAdvanced,
             INavigationService<AboutViewModel> navAbout,
-            IMessenger messenger,
-            IDialogService dialogs,
             ILocalizationService localization)
         {
             if (store == null) throw new ArgumentNullException(nameof(store));
@@ -51,8 +39,6 @@ namespace WinPieGestures.ViewModels.Navigation
             if (navGestures == null) throw new ArgumentNullException(nameof(navGestures));
             if (navAdvanced == null) throw new ArgumentNullException(nameof(navAdvanced));
             if (navAbout == null) throw new ArgumentNullException(nameof(navAbout));
-            _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
-            _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _store = store;
 
@@ -74,18 +60,11 @@ namespace WinPieGestures.ViewModels.Navigation
                 }
             };
 
-            // 语言切换 → 导航项标题 + WindowTitle 即时刷新（I18n 静态广播，ADR-0002 判据不变；
+            // 语言切换 → 导航项标题即时刷新（I18n 静态广播，ADR-0002 判据不变；
             // ADR-0010 第 3 条：进程级 VM 配 IDisposable 成对退订）。
             _localization.LanguageChanged += RefreshTitles;
 
             SyncSelection();
-        }
-
-        [RelayCommand]
-        private void Save()
-        {
-            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-            _dialogs.ShowInfo(_localization.GetString("Notice"), _localization.GetString("MsgSaveSuccess"));
         }
 
         /// <summary>随导航当前页同步各导航项选中态（目标类型比对，数据驱动不再依赖 Tag 数字索引）。</summary>
@@ -98,14 +77,13 @@ namespace WinPieGestures.ViewModels.Navigation
             }
         }
 
-        /// <summary>语言切换后按导航项的标题键重取本地化文本，并刷新壳层窗口标题。</summary>
+        /// <summary>语言切换后按导航项的标题键重取本地化文本。</summary>
         private void RefreshTitles()
         {
             foreach (NavigationItemViewModel item in NavigationItems)
             {
                 item.Title = _localization.GetString(item.TitleKey);
             }
-            OnPropertyChanged(nameof(WindowTitle));
         }
 
         /// <summary>退订 I18n 静态事件（ADR-0010 第 3 条：进程级 VM 也成对退订；组合根随 Composition.Dispose 调用）。</summary>

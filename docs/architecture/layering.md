@@ -69,13 +69,16 @@ Services ---> Models
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 容器单例（状态跨导航常驻）；轮盘 VM 按手势创建、不注册；对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
+- 主框架 VM 拆分（B1/D3，ADR-0016 决策 7）：`MainViewModel`（导航状态）与 `ShellViewModel`（窗口标题/退出态/
+  保存）分别供 `MainView` 分区 DataContext 的导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
 - 副作用经注入服务或**组合根注入的委托**编排（托盘气泡、退出、自启、导入导出、打开文件：`GeneralSettingsViewModel`/`AboutViewModel` 模式）；VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
-- 订阅 `I18n.LanguageChanged`/messenger 的 VM（壳层与驻留文案持有者）必须成对退订（`MainViewModel.Dispose` 模式）。
+- 订阅 `I18n.LanguageChanged`/messenger 的 VM（壳层与驻留文案持有者）必须成对退订（`MainViewModel.Dispose`/
+  `ShellViewModel.Dispose` 模式）。
 
 官方 API：
 

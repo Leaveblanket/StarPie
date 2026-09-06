@@ -33,12 +33,15 @@
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
      `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、
      `GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`（#69：`ProfileListViewModel`
-     另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）。
+     另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）、
+     `ShellViewModel`（B1/D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，
+     见 [shell.md](shell.md)）。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、`GestureController`、五个类型化导航服务；
-   - 解析全部页面 VM 与 `MainViewModel`（VM 构造即订阅导入广播/落盘消息，时机在 `Config.Load` 之后）；
+   - 解析全部页面 VM 与 `MainViewModel`/`ShellViewModel`（VM 构造即订阅导入广播/落盘消息与 I18n 事件，
+     时机在 `Config.Load` 之后）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
 4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - `_mouseHook.Start()` → 订阅 `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
@@ -46,7 +49,10 @@
      `BehaviorSettingsViewModel`（触发与场景）→ `new MainView(...)` + 应用初始界面主题
      （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→ `_dialogService.SetOwner(_mainView)`
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
-5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `MainViewModel.IsExiting = true` → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘 dispose、`_mouseHook.Stop()`、`MainViewModel.Dispose()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体。
+5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
+   → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
+   dispose、`_mouseHook.Stop()`、`MainViewModel.Dispose()`、`ShellViewModel.Dispose()`）→ `Composition.Dispose()`
+   （容器 dispose）→ 释放互斥体。
 6. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 冲刷保存 → 内存整理
    `MemoryOptimizer.TrimMemory()`（见 [shell.md](shell.md)）→ 发 `MinimizedToTrayMessage` → `AppHost` 直调
    `GeneralSettingsViewModel.NotifyMinimizedToTray()`。

@@ -34,8 +34,10 @@ namespace WinPieGestures
         private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
         // 通用分区 VM：托盘提权重启与托盘驻留气泡由宿主直调/订阅。
         private readonly GeneralSettingsViewModel _general;
-        // #27：壳层 VM（MainViewModel）承担 App 退出状态，主框架 Closing 据此放行真关窗而非隐藏到托盘。
+        // B1/D3：#27 起退出状态归壳层 VM（ShellViewModel），主框架 Closing 据此放行真关窗而非
+        // 隐藏到托盘；MainViewModel 只持导航状态（分区 DataContext 的导航区）。
         private readonly MainViewModel _mainViewModel;
+        private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
         // ADR-0013/#46：主题调色板换入下沉到 ThemePaletteManager（整项替换活动主题槽），
         // AppHost 只编排（Attach 回调），不再实现直接键覆盖。
@@ -58,6 +60,7 @@ namespace WinPieGestures
             InterfaceThemeSettingsViewModel interfaceTheme,
             GeneralSettingsViewModel general,
             MainViewModel mainViewModel,
+            ShellViewModel shellViewModel,
             AppHostDelegates hostDelegates)
         {
             _messenger = messenger;
@@ -74,6 +77,7 @@ namespace WinPieGestures
             _interfaceTheme = interfaceTheme;
             _general = general;
             _mainViewModel = mainViewModel;
+            _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
 
             // ADR-0013/#46：主题画刷换入归宿主层 ThemePaletteManager（整项替换 MergedDictionaries 主题槽；
@@ -105,10 +109,10 @@ namespace WinPieGestures
             // 初始页：触发与场景（迁移前 NavTab0 默认选中）。
             _navTrigger.Navigate();
 
-            _mainView = new MainView(_mainViewModel, _themeService);
+            _mainView = new MainView(_mainViewModel, _shellViewModel, _themeService);
             _mainView.IsVisibleChanged += (_, _) =>
             {
-                if (_mainView is { IsVisible: false } && !_mainViewModel.IsExiting)
+                if (_mainView is { IsVisible: false } && !_shellViewModel.IsExiting)
                 {
                     _saveOrchestrator.FlushPendingSave();
                     MemoryOptimizer.TrimMemory();
@@ -141,6 +145,7 @@ namespace WinPieGestures
 
             // T25（ADR-0010 第 3 条）：进程级 VM 成对退订 I18n 静态事件（容器 dispose 亦覆盖，此处显式保证顺序）。
             _mainViewModel.Dispose();
+            _shellViewModel.Dispose();
         }
 
         // T24/ADR-0013：运行时语言字典——resx 数据源（ILocalizationService）的 XAML 投影，只持当前语言一份；
@@ -240,7 +245,7 @@ namespace WinPieGestures
             }
 
             // #27：退出状态落壳层 VM；主框架 Closing 放行真关窗（语义与旧 Composition.IsExiting 一致）。
-            _mainViewModel.IsExiting = true;
+            _shellViewModel.IsExiting = true;
             Application.Current.Shutdown();
         }
     }

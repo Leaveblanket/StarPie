@@ -27,7 +27,8 @@
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，
    不 code-behind 回填**（[ADR-0010](../adr/0010-localization-copy-principles.md)）。
 3. **文案分类**（术语见 `CONTEXT.md`）：声明式（`{DynamicResource}`）/ 驻留（长期 VM 持有、
-   语言切换时刷新：`MainViewModel.WindowTitle`/导航标题（S5，见 [navigation.md](navigation.md)）、
+   语言切换时刷新：壳层 `ShellViewModel.WindowTitle`（H1 壳窗口，见 [shell.md](shell.md)）/
+   导航标题（S5 `MainViewModel`，见 [navigation.md](navigation.md)）、
    `WheelAppearanceSettingsViewModel.ThemeOptions`（轮盘配色，M2，见 [wheel.md](wheel.md)）、
    `InterfaceThemeSettingsViewModel.AppThemeOptions`（界面主题，M4，见 [interface-theme.md](interface-theme.md)）等）/
    即时取词（每次展示读当前语言：通知、对话框标题与系统文件对话框文案、托盘菜单）/
