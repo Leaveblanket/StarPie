@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Windows.Media;
-using WinPieGestures.Models;
+using StarPie.Models;
 using Color = System.Windows.Media.Color;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 渲染器画刷消费覆盖 (#52)：渲染器不再内联方案 hex 表/预设匹配，只把解析结果

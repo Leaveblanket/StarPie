@@ -7,6 +7,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- B10/#83：命名空间统一为 StarPie.* 前缀替换（Host 源码根命名空间 StarPie，与 AssemblyName 对齐） -->
+    <RootNamespace>StarPie</RootNamespace>
     <ApplicationIcon>assets\app_icon.ico</ApplicationIcon>
     <AssemblyName>StarPie</AssemblyName>
     <Title>StarPie</Title>

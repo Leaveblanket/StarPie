@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
 using Application = System.Windows.Application;
-using WinPieGestures.ViewModels;
+using StarPie.ViewModels;
 
-namespace WinPieGestures.Views.Navigation
+namespace StarPie.Views.Navigation
 {
     /// <summary>
     /// 设置控制台主框架 (T19)：独立承担窗口职责——关窗隐藏到托盘（含兜底冲刷）、淡入淡出动画；

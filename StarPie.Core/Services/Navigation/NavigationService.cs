@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WinPieGestures.Services.Navigation
+namespace StarPie.Services.Navigation
 {
     /// <summary>
     /// <see cref="INavigationService{TViewModel}"/> 默认实现 (T19)：目标页面 VM 从容器解析

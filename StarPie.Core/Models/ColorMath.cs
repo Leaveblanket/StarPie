@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     /// <summary>
     /// WPF-free color value. ViewModels and pure logic use this type instead of

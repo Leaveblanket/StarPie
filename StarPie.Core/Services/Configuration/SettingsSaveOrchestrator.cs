@@ -1,7 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace WinPieGestures.Services.Configuration
+namespace StarPie.Services.Configuration
 {
     /// <summary>
     /// 落盘编排订阅者 (T19)：住组合根，经 <see cref="IMessenger"/> 汇聚各页面 VM 的落盘请求——

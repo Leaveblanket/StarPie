@@ -1,7 +1,7 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 外观页实时预览渲染器的输入契约覆盖（#55/ADR-0014 决策 8）：渲染器只依赖轮盘模块只读状态接口

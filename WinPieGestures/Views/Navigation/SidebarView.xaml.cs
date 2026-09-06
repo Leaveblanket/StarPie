@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace WinPieGestures.Views.Navigation
+namespace StarPie.Views.Navigation
 {
     /// <summary>
     /// 侧边栏视图 (T19)：独立承担导航壳层——品牌区、数据驱动导航项与版本页脚。

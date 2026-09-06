@@ -1,9 +1,9 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 外观设置页聚合 ViewModel（#56，ADR-0014 决策 6）：页面整体 DataContext 的薄页壳——不再持有

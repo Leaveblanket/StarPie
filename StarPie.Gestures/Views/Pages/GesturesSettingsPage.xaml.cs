@@ -1,4 +1,4 @@
-namespace WinPieGestures.Views.Pages
+namespace StarPie.Views.Pages
 {
     /// <summary>
     /// 手势与动作页面 (T19/T21/T24)：方案增删改与扇区数切换编排在 <see cref="ProfileListViewModel"/>，

@@ -1,13 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Dialogs;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Shell;
-using WinPieGestures.Services.Wheel;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Services.Configuration;
+using StarPie.Services.Dialogs;
+using StarPie.Services.Localization;
+using StarPie.Services.Shell;
+using StarPie.Services.Wheel;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Modules
+namespace StarPie.Modules
 {
     /// <summary>
     /// M2 轮盘与渲染模块注册器（B8/#81：随 M2 抽取为独立模块程序集 StarPie.Wheel 后新立，

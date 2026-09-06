@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace WinPieGestures.Services.Shell
+namespace StarPie.Services.Shell
 {
     /// <summary>
     /// Theme seam (ADR-0002/0013/#47): owns the app's current effective theme, applies

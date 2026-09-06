@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 配置方案分区列表侧 ViewModel 的行为覆盖 (T11, ADR-0001)：方案列表与选中态、

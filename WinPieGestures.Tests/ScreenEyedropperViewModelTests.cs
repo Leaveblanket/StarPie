@@ -1,7 +1,7 @@
 using System;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 屏上取色器 ViewModel 的行为覆盖 (T08)：拾取颜色换算、放大镜文案/色块、

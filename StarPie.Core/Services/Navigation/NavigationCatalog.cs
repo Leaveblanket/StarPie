@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace WinPieGestures.Services.Navigation
+namespace StarPie.Services.Navigation
 {
     /// <summary>
     /// 导航槽位（S5，ADR-0016 决策 5，B2/#75）：全局槽位表 0–4，顺序即侧边栏顺序正典

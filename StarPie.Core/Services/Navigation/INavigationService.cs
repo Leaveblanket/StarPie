@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures.Services.Navigation
+namespace StarPie.Services.Navigation
 {
     /// <summary>导航服务接口（容器开放泛型注册的解析面；组合根按目标类型取用）。</summary>
     public interface INavigationService

@@ -1,4 +1,4 @@
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     /// <summary>
     /// 轮盘配色解析结果（WPF-free 色值组）：扇区底色/边框、高亮/高亮边框、文字，

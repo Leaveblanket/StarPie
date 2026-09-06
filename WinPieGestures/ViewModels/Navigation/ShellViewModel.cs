@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace WinPieGestures.ViewModels.Navigation
+namespace StarPie.ViewModels.Navigation
 {
     /// <summary>
     /// 主框架壳层 ViewModel (B1/D3，ADR-0016 决策 7)：承接主窗口壳层职责——窗口标题

@@ -1,4 +1,4 @@
-namespace WinPieGestures.ViewModels.Wheel
+namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘外观只读状态接口（ADR-0014 决策 8，#55）：外观页实时预览渲染器

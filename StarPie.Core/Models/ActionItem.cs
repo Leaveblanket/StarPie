@@ -1,4 +1,4 @@
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     public class ActionItem
     {

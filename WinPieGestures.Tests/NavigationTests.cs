@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures;
-using WinPieGestures.Modules;
-using WinPieGestures.Services;
-using WinPieGestures.ViewModels;
+using StarPie;
+using StarPie.Modules;
+using StarPie.Services;
+using StarPie.ViewModels;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 导航件的行为覆盖 (T19, Spec 测试决策 17；B3/#76 目录驱动)：NavigationStore 当前页状态序列、

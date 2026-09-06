@@ -1,4 +1,4 @@
-namespace WinPieGestures.Views.Pages
+namespace StarPie.Views.Pages
 {
     /// <summary>
     /// 关于与更新页面 (T19/T24)：迁移前 SettingsWindow PAGE 4 原样搬迁；已本地化文本经

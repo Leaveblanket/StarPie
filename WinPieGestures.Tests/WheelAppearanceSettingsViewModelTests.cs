@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures;
-using WinPieGestures.Views.Converters;
+using StarPie;
+using StarPie.Views.Converters;
 using Brush = System.Windows.Media.Brush;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 轮盘模块外观设置子 ViewModel 的行为覆盖（#56/ADR-0014 决策 6/8，自外观聚合 VM 测试迁移）：

@@ -1,8 +1,8 @@
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services.Messages;
+using StarPie.Services.Messages;
 
-namespace WinPieGestures.Views.Pages
+namespace StarPie.Views.Pages
 {
     /// <summary>
     /// 高级与系统页面 (T19)：迁移前 SettingsWindow PAGE 3 原样搬迁。语言切换/自启/提权/导入导出编排

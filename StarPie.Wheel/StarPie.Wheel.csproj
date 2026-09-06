@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- B8/#81：M2 轮盘与渲染模块程序集（ADR-0016 决策 1/8/11/12）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Wheel → StarPie.Core 单向 + StarPie.Wheel → StarPie.Theme
          允许边（M2→M4，IThemeService 消费，assemblies.md §3）；
          不引用 Host/其它业务模块（M1 手势侧自 B9/#82 起驻 StarPie.Gestures，只经
@@ -13,7 +13,7 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Wheel</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

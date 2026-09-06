@@ -8,8 +8,8 @@
 
 ## 组成文件
 
-M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，命名空间维持
-`WinPieGestures.*`，B10 统一收尾；模块注册器 `GesturesModuleRegistrar` 与页面模板字典
+M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，命名空间统一为
+`StarPie.*`（B10/#83）；模块注册器 `GesturesModuleRegistrar` 与页面模板字典
 `GesturesPageTemplates.xaml` 随模块迁出 exe，见 [assemblies.md](assemblies.md) §9）：
 
 - `StarPie.Gestures/Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`。
@@ -26,7 +26,7 @@ M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，�
 ## 配置方案设置面的对外只读契约（#69）
 
 `StarPie.Core/ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 起上提共享内核 Core，D5/
-ADR-0016 决策 11；命名空间 `WinPieGestures.ViewModels.Pages` 不变）：M1 对外只读「预览
+ADR-0016 决策 11；命名空间 `StarPie.ViewModels.Pages`，B10/#83 统一）：M1 对外只读「预览
 Profile 来源」契约——实现方为 M1 侧同目录配置方案设置面 VM `ProfileListViewModel`
 （B9/#82 起随 `StarPie.Gestures` 迁入 ViewModels/Pages；选中/首项回落语义，
 见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费

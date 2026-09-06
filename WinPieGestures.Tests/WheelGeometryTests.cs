@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Media;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 轮盘视觉几何出口（M2）纯几何推导覆盖（T3a/#65，R6/ADR-0015；T3b/#66 起轮盘侧直连本出口）：

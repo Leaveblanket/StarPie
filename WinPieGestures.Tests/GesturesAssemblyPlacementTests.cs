@@ -6,19 +6,19 @@ using System.Reflection;
 using System.Resources;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Modules;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Actions;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Dialogs;
-using WinPieGestures.Services.Gestures;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Navigation;
-using WinPieGestures.ViewModels.Gestures;
-using WinPieGestures.ViewModels.Pages;
-using WinPieGestures.Views.Pages;
+using StarPie.Modules;
+using StarPie.Services;
+using StarPie.Services.Actions;
+using StarPie.Services.Configuration;
+using StarPie.Services.Dialogs;
+using StarPie.Services.Gestures;
+using StarPie.Services.Localization;
+using StarPie.Services.Navigation;
+using StarPie.ViewModels.Gestures;
+using StarPie.ViewModels.Pages;
+using StarPie.Views.Pages;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// B9/#82（模块化：M1 Gestures 抽取·收口）跨集归属、依赖与注册收口：
@@ -31,14 +31,15 @@ namespace WinPieGestures.Tests;
 /// （RegisterNavigation + RegisterServices）随模块迁出 exe（原 M1ModuleRegistrar/M1PageTemplates.xaml
 /// 替换为 GesturesModuleRegistrar/GesturesPageTemplates.xaml），页面 VM 的 DI 注册与
 /// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集。
-/// 命名空间维持 WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。
+/// B10/#83：命名空间统一为 StarPie.*（全仓前缀替换，保持跨程序集共享命名空间树，
+/// ADR-0016 决策 12）。
 /// Gestures → Core 单向 + Gestures → Wheel 允许边（M1→M2，IWheelFactory/IWheelViewModel），
 /// 不引用 Host/其它业务模块；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
 /// </summary>
 public sealed class GesturesAssemblyPlacementTests
 {
     [Fact]
-    public void M1出口_归属独立模块程序集_且命名空间维持WinPieGestures()
+    public void M1出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Gestures", typeof(MouseHook).Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", typeof(GestureController).Assembly.GetName().Name);
@@ -55,12 +56,12 @@ public sealed class GesturesAssemblyPlacementTests
         Assert.Equal("StarPie.Gestures", typeof(GesturesSettingsPage).Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", typeof(GesturesModuleRegistrar).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.Services.Gestures", typeof(GestureEngine).Namespace);
-        Assert.Equal("WinPieGestures.Services.Actions", typeof(ActionExecutorService).Namespace);
-        Assert.Equal("WinPieGestures.ViewModels.Pages", typeof(ProfileListViewModel).Namespace);
-        Assert.Equal("WinPieGestures.ViewModels.Gestures", typeof(SlotViewModel).Namespace);
-        Assert.Equal("WinPieGestures.Views.Pages", typeof(TriggerSettingsPage).Namespace);
-        Assert.Equal("WinPieGestures.Modules", typeof(GesturesModuleRegistrar).Namespace);
+        Assert.Equal("StarPie.Services.Gestures", typeof(GestureEngine).Namespace);
+        Assert.Equal("StarPie.Services.Actions", typeof(ActionExecutorService).Namespace);
+        Assert.Equal("StarPie.ViewModels.Pages", typeof(ProfileListViewModel).Namespace);
+        Assert.Equal("StarPie.ViewModels.Gestures", typeof(SlotViewModel).Namespace);
+        Assert.Equal("StarPie.Views.Pages", typeof(TriggerSettingsPage).Namespace);
+        Assert.Equal("StarPie.Modules", typeof(GesturesModuleRegistrar).Namespace);
     }
 
     [Fact]

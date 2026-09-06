@@ -4,15 +4,15 @@ using System.Linq;
 using System.Resources;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Modules;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Messages;
-using WinPieGestures.Services.Shell;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Modules;
+using StarPie.Services;
+using StarPie.Services.Configuration;
+using StarPie.Services.Localization;
+using StarPie.Services.Messages;
+using StarPie.Services.Shell;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// B7/#80（模块化：M4 Theme 抽取）跨集归属、依赖与可见性收口：
@@ -22,13 +22,13 @@ namespace WinPieGestures.Tests;
 /// <c>StarPie.Theme</c>；模块注册器 <see cref="ThemeModuleRegistrar"/> 下放服务与主题 VM 的
 /// DI 注册；ThemePaletteManager/ThemeService.AttachPaletteApplier 裁决 public（Host AppHost
 /// 装配面，B6/#79 TrayIconManager 先例）；主题应用消息 AppThemeChangedMessage 仍归 Core S4 hub
-/// （放行共享面）。命名空间维持 WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。
+/// （放行共享面）。B10/#83 命名空间统一为 StarPie.*（全仓前缀替换，ADR-0016 决策 12）。
 /// Theme → Core 单向，不引用 Host/其它业务模块；M2 轮盘件（RadialWindow 等）B8 前仍驻 Host。
 /// </summary>
 public sealed class ThemeAssemblyPlacementTests
 {
     [Fact]
-    public void M4出口_归属独立模块程序集_且命名空间维持WinPieGestures()
+    public void M4出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Theme", typeof(IThemeService).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(ThemeService).Assembly.GetName().Name);
@@ -37,11 +37,11 @@ public sealed class ThemeAssemblyPlacementTests
         Assert.Equal("StarPie.Theme", typeof(AppThemeOptionItem).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(ThemeModuleRegistrar).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.Services.Shell", typeof(ThemeService).Namespace);
-        Assert.Equal("WinPieGestures.Services.Shell", typeof(IThemeService).Namespace);
-        Assert.Equal("WinPieGestures", typeof(ThemePaletteManager).Namespace);
-        Assert.Equal("WinPieGestures.ViewModels.Pages", typeof(InterfaceThemeSettingsViewModel).Namespace);
-        Assert.Equal("WinPieGestures.Modules", typeof(ThemeModuleRegistrar).Namespace);
+        Assert.Equal("StarPie.Services.Shell", typeof(ThemeService).Namespace);
+        Assert.Equal("StarPie.Services.Shell", typeof(IThemeService).Namespace);
+        Assert.Equal("StarPie", typeof(ThemePaletteManager).Namespace);
+        Assert.Equal("StarPie.ViewModels.Pages", typeof(InterfaceThemeSettingsViewModel).Namespace);
+        Assert.Equal("StarPie.Modules", typeof(ThemeModuleRegistrar).Namespace);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public sealed class ThemeAssemblyPlacementTests
         // AppThemeChangedMessage 语义归 M4，但类型定义集中于 S4 hub（messages.md 放行共享面），
         // B7 不随模块迁出——避免 M4/Core 消息 hub 重复载体。
         Assert.Equal("StarPie.Core", typeof(AppThemeChangedMessage).Assembly.GetName().Name);
-        Assert.Equal("WinPieGestures.Services.Messages", typeof(AppThemeChangedMessage).Namespace);
+        Assert.Equal("StarPie.Services.Messages", typeof(AppThemeChangedMessage).Namespace);
     }
 
     [Fact]

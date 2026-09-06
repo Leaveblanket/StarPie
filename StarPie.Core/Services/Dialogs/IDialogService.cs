@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Services.Dialogs
+namespace StarPie.Services.Dialogs
 {
     /// <summary>程序选择器的确认结果；取消与无效统一由服务返回 null，不再向调用方暴露。</summary>
     public sealed record ProgramPickResult(string Name, string Path);

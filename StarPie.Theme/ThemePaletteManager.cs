@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 
-namespace WinPieGestures
+namespace StarPie
 {
     /// <summary>
 /// 主题调色板管理器（ADR-0013/#46，B7/#80 随 M4 迁入 StarPie.Theme）：自包含“加载

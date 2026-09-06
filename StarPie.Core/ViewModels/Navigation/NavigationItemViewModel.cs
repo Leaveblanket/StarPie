@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures.ViewModels.Navigation
+namespace StarPie.ViewModels.Navigation
 {
     /// <summary>
     /// 侧边栏导航项 ViewModel (T19，B3/#76 目录驱动)：数据驱动——图标/标题/目标页面类型/选中态；

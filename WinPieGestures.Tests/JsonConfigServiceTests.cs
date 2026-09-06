@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 public sealed class JsonConfigServiceTests : IDisposable
 {

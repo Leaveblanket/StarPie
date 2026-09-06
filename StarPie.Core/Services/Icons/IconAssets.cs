@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 
-namespace WinPieGestures.Services.Icons
+namespace StarPie.Services.Icons
 {
     /// <summary>
     /// 共享「图标资产」（S1）出口（R6/ADR-0015 三分，T3a 扩展）：矢量图标清单、SVG 键目录/取值、

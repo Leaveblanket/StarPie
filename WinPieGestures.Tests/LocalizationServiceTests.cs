@@ -1,6 +1,6 @@
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// LocalizationService 单测（ADR-0013/#44）：resx 数据源取词、语言解析、事件与投影枚举。

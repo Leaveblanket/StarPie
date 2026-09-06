@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace WinPieGestures.Views.Converters
+namespace StarPie.Views.Converters
 {
     /// <summary>Converts SVG path data from a ViewModel into a WPF Geometry.</summary>
     public sealed class StringToGeometryConverter : IValueConverter

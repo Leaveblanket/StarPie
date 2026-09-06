@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Threading;
 
-namespace WinPieGestures.Services.Configuration
+namespace StarPie.Services.Configuration
 {
     /// <summary>
     /// <see cref="ISaveDebouncer"/> 的 WPF 实现 (T17)：DispatcherTimer 承载计时，

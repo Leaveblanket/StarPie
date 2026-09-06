@@ -4,9 +4,9 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 设置窗口·通用分区 ViewModel (T13, ADR-0001)：界面语言切换、开机自启、退出/提权重启、

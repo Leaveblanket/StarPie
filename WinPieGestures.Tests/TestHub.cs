@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 落盘/导入消息记录器 (T19 测试基建)：注册在测试专用 WeakReferenceMessenger 上，

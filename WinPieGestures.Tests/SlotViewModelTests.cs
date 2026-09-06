@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 槽位动作编辑闭环的行为覆盖 (T12, ADR-0001/0004)：图标设置、程序选择、文件夹选择的

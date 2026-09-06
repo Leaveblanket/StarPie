@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures.Services.Dialogs
+namespace StarPie.Services.Dialogs
 {
     /// <summary>
     /// 对话框服务实现 (T06/T07, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，

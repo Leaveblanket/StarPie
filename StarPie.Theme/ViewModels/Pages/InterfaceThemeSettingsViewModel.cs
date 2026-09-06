@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 界面主题模块设置子 ViewModel（#54，ADR-0014 决策 1/6/7）：独占软件界面主题（AppTheme）的

@@ -3,21 +3,21 @@ using System.Collections;
 using System.Resources;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Modules;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Dialogs;
-using WinPieGestures.Services.Gestures;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Shell;
-using WinPieGestures.Services.Wheel;
-using WinPieGestures.ViewModels.Pages;
-using WinPieGestures.ViewModels.Wheel;
-using WinPieGestures.Views.Converters;
-using WinPieGestures.Views.Renderers;
-using WinPieGestures.Views.Wheel;
+using StarPie.Modules;
+using StarPie.Services;
+using StarPie.Services.Configuration;
+using StarPie.Services.Dialogs;
+using StarPie.Services.Gestures;
+using StarPie.Services.Localization;
+using StarPie.Services.Shell;
+using StarPie.Services.Wheel;
+using StarPie.ViewModels.Pages;
+using StarPie.ViewModels.Wheel;
+using StarPie.Views.Converters;
+using StarPie.Views.Renderers;
+using StarPie.Views.Wheel;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// B8/#81（模块化：M2 Wheel 抽取，含 D5 解结）跨集归属、依赖与可见性收口：
@@ -34,13 +34,14 @@ namespace WinPieGestures.Tests;
 /// M1 手势侧（<see cref="GestureEngine"/>，B9/#82 起随 StarPie.Gestures 成集）只经接口消费；
 /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 上提共享内核 Core（实现方 M1
 /// ProfileListViewModel、消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
-/// 命名空间维持 WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。
+/// B10/#83：命名空间统一为 StarPie.*（全仓前缀替换，保持跨程序集共享命名空间树，
+/// ADR-0016 决策 12）。
 /// Wheel → Core 单向 + Wheel → Theme 允许边（IThemeService），不引用 Host/其它业务模块。
 /// </summary>
 public sealed class WheelAssemblyPlacementTests
 {
     [Fact]
-    public void M2出口_归属独立模块程序集_且命名空间维持WinPieGestures()
+    public void M2出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Wheel", typeof(WheelViewModel).Assembly.GetName().Name);
         Assert.Equal("StarPie.Wheel", typeof(IWheelViewModel).Assembly.GetName().Name);
@@ -59,16 +60,16 @@ public sealed class WheelAssemblyPlacementTests
         Assert.Equal("StarPie.Wheel", typeof(CoreIconNameConverter).Assembly.GetName().Name);
         Assert.Equal("StarPie.Wheel", typeof(WheelModuleRegistrar).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.ViewModels.Wheel", typeof(WheelViewModel).Namespace);
-        Assert.Equal("WinPieGestures.ViewModels.Pages", typeof(WheelAppearanceSettingsViewModel).Namespace);
-        Assert.Equal("WinPieGestures.Views.Wheel", typeof(RadialWindow).Namespace);
-        Assert.Equal("WinPieGestures.Views.Renderers", typeof(WheelPreviewRenderer).Namespace);
-        Assert.Equal("WinPieGestures.Models", typeof(WheelPalette).Namespace);
-        Assert.Equal("WinPieGestures.Services.Wheel", typeof(WheelGeometry).Namespace);
-        Assert.Equal("WinPieGestures.Services.Wheel", typeof(WheelFactory).Namespace);
-        Assert.Equal("WinPieGestures.Services.Wheel", typeof(IWheelFactory).Namespace);
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(CoreIconGeometryConverter).Namespace);
-        Assert.Equal("WinPieGestures.Modules", typeof(WheelModuleRegistrar).Namespace);
+        Assert.Equal("StarPie.ViewModels.Wheel", typeof(WheelViewModel).Namespace);
+        Assert.Equal("StarPie.ViewModels.Pages", typeof(WheelAppearanceSettingsViewModel).Namespace);
+        Assert.Equal("StarPie.Views.Wheel", typeof(RadialWindow).Namespace);
+        Assert.Equal("StarPie.Views.Renderers", typeof(WheelPreviewRenderer).Namespace);
+        Assert.Equal("StarPie.Models", typeof(WheelPalette).Namespace);
+        Assert.Equal("StarPie.Services.Wheel", typeof(WheelGeometry).Namespace);
+        Assert.Equal("StarPie.Services.Wheel", typeof(WheelFactory).Namespace);
+        Assert.Equal("StarPie.Services.Wheel", typeof(IWheelFactory).Namespace);
+        Assert.Equal("StarPie.Views.Converters", typeof(CoreIconGeometryConverter).Namespace);
+        Assert.Equal("StarPie.Modules", typeof(WheelModuleRegistrar).Namespace);
     }
 
     [Fact]
@@ -125,7 +126,7 @@ public sealed class WheelAssemblyPlacementTests
     public void D5解结_预览Profile只读契约_上提共享内核Core()
     {
         Assert.Equal("StarPie.Core", typeof(IProfilePreviewSource).Assembly.GetName().Name);
-        Assert.Equal("WinPieGestures.ViewModels.Pages", typeof(IProfilePreviewSource).Namespace);
+        Assert.Equal("StarPie.ViewModels.Pages", typeof(IProfilePreviewSource).Namespace);
     }
 
     [Fact]

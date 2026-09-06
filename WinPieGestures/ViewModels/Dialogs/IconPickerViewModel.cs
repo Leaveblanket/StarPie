@@ -5,7 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures.ViewModels.Dialogs
+namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>图标卡片条目：自定义图标与内置矢量图标统一成视图可渲染的数据。</summary>
     public sealed record IconEntry(

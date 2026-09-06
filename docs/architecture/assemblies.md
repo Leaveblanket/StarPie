@@ -1,8 +1,10 @@
-# 程序集地图与程序集化路线（目标态 + 方向性）
+# 程序集地图与程序集化收尾（目标态 = as-built）
 
-> 本文记录程序集化目标态（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)）的地图视图：目标程序集划分、程序集级依赖规则、导航槽位表、注册/可见性契约与 B0–B10 批次路线。
+> 本文记录程序集化目标态（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)）的地图视图：目标程序集划分、程序集级依赖规则、导航槽位表、注册/可见性契约与 B0–B10 批次（已全部落地）。
 >
-> 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异按 §8 批次随代码回填叶子。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
+> 7 程序集目标态与程序集化批次（B0–B10）均已落地：**程序集化路线全部清零，无进行中批次**；
+> 代码现状以 §9 与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。概念模块地图与归属裁定见
+> [modules.md](modules.md)（ADR-0015）。
 
 ## 1. 何时读本文
 
@@ -12,7 +14,7 @@
 | 程序集间依赖是否允许 | 本文 §3 |
 | 导航槽位 / 侧边栏顺序正典 | 本文 §5 |
 | 新增页面/服务在目标态下要动哪些 | 本文 §5–§6（+ [extending.md](extending.md) 原型 A–F） |
-| 当前排期中的程序集化批次 | 本文 §8 |
+| 程序集化批次历史与现状 | 本文 §8–§9 |
 | 为什么这样定 | [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) |
 
 ## 2. 目标程序集地图（7 程序集）
@@ -125,14 +127,15 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   由 WheelFactory 在同集内创建，不经 Host 直接 new；`WheelPreviewRenderer` 深浅色探测改由
   调用方（Host 外观页）以 `bool` 传入（M2 不反向引用 Host `MainView`）。
 
-## 8. 批次路线 B0–B10（排期）
+## 8. 批次路线 B0–B10（全部清零）
 
 > 每个批次：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除。
+> B1–B9（#75–#82）已在前批逐批移除（见 §9 逐批登记）；**B10（命名空间统一，#83）已落地并从本表移除**，
+> 程序集化路线全部清零。下表仅余 B0 纯文档批的历史登记。
 
 | 批 | 内容 | 主要回填 |
 |---|---|---|
-| B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B10 | 命名空间统一收尾（原 B8 内容，编号顺延；ADR-0016 决策 12） | 全部叶子 + 测试 + XAML xmlns + resx 生成类 |
+| B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引 | modules.md、architecture.md |
 
 ### 8.1 批次阻塞边（2026-09-06 代码审计）
 
@@ -148,7 +151,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   `StarPie.Theme` 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
 - B9（M1 抽取）已落地（#82；前置 B5/#78、B8/#81 已落地——共享页面基类 `SettingsPageBase` 已在
   Core（B6/#79 迁入）；`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
-- B10（命名空间统一）← B9（已落地，#82）。
+- B10（命名空间统一）已落地（#83；前置 B9/#82 已落地）。**至此全部批次阻塞边清零，无进行中批次。**
 
 ### 8.2 执行期集成面串行约束
 
@@ -158,12 +161,13 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`；B7/#80 起含
   `StarPie.Theme.csproj`；B8/#81 起含 `StarPie.Wheel.csproj`；B9/#82 起含
   `StarPie.Gestures.csproj`）同一时间只允许一张票落地。
-  B1/B2/B4/B5/B6/B7/B8/B9（#75–#82）已落地；其余触及这些文件面的批次（B10 起）必须串行合并。
+  B1–B9（#75–#82）与 B10/#83（命名空间统一，触及全部 csproj RootNamespace/GlobalUsings 文件面）
+  均已按此规则串行落地。
 - `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78（ModernControls
   迁 Core）、B7/#80（M4 Themes XAML 拆集 + App.xaml Light 改跨集 pack URI）与 B8/#81
   （M2 核图标预览转换器改经 `assembly=StarPie.Wheel` App 级实例）与 B9/#82（M1 模板字典迁
-  `StarPie.Gestures`，Host App.xaml 改跨程序集 pack URI 合并）均已落地；B10 起触及同一
-  资源面的批次须排队集成（架构上无需新增阻塞边）。
+  `StarPie.Gestures`，Host App.xaml 改跨程序集 pack URI 合并）均已落地；B10/#83（XAML xmlns/
+  x:Class 改名，触及同一资源面）为最后一个此类批次，已排队集成落地。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠，已按串行约束
   先后落地：B6/#79 把 M5 三件（TrayIconManager/AutostartRegistry/MemoryOptimizer）迁入
   `StarPie.Shell/Services/Shell`；B7/#80 把 M4 件（IThemeService/ThemeService/ThemePaletteManager/
@@ -171,11 +175,12 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   B8/#81 把 M2 件迁入 `StarPie.Wheel` 并清空 Host 侧 Services/Wheel、ViewModels/Wheel、
   Views/{Wheel,Renderers,Converters} 目录；B9/#82 把 M1 件迁入 `StarPie.Gestures` 并清空
   Host 侧 Services/Actions、Services/Gestures、ViewModels/Gestures 目录（M1 文件面已全部
-  迁出，Host 侧仅余 Host 页/对话框/壳窗口与 S6 对话框实现）；此后 B10（命名空间统一）只做
-  机械改名，不再迁移文件面，仍须一票一验。
+  迁出，Host 侧仅余 Host 页/对话框/壳窗口与 S6 对话框实现）；B10/#83（命名空间统一）随后
+  按本约束只做机械改名、不再迁移文件面，已一票一验落地。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
 
-这是一条**执行协调规则**，不是新增业务依赖；它不改变 B0–B10 的拓扑，只约束共享集成面的写入顺序。
+这是一条**执行协调规则**，不是新增业务依赖；它不改变 B0–B10 的拓扑，只约束共享集成面的写入顺序
+（路线执行期规则；B10/#83 落地后无进行中批次）。
 
 ## 9. 现状对照与差异登记
 
@@ -197,7 +202,8 @@ CreateAppHost 页面 eager 解析清单目录化（语义保留）；MainView.xa
 `StarPie.Programs` 的 `ShortcutResolver`。**B5/#78 已落地**：共享 UI 基建迁 Core——四个通用转换器
 （`HexToBrushConverter`/`StringToGeometryConverter`/`IntEqualsConverter`/`FilePathToImageConverter`）
 、共享自定义控件 `HotkeyRecorderBox` 与全局控件样式字典 `ModernControls.xaml` 物理迁入
-`StarPie.Core/Views/{Converters,Controls,Styles}`（命名空间维持 `WinPieGestures.*`，B10 统一）；
+`StarPie.Core/Views/{Converters,Controls,Styles}`（命名空间当时维持 `WinPieGestures.*`，
+B10/#83 统一为 `StarPie.*`）；
 Host `App.xaml` 经跨程序集 pack URI（`/StarPie.Core;component/Views/Styles/ModernControls.xaml`）
 单点合并该字典，转换器实例仍为 App 级资源；页面/窗口无自合并样式字典。暂留 Host 的 UI 专用件：
 M2 核图标预览转换器（`CoreIconGeometryConverter`/`CoreIconNameConverter`，Appearance 聚合页用；
@@ -206,8 +212,8 @@ M2（见下 B8 段）；S6 取色对话框行为 `SpectrumCanvasBehavior`（依�
 `ColorPickerViewModel.SpectrumPoint`；S6 对话框实现留 Host）仍留 Host。
 **B6/#79 已落地**：M5 壳层服务与系统设置面成独立模块程序集——TrayIconManager/AutostartRegistry/
 MemoryOptimizer 迁入 `StarPie.Shell/Services/Shell`，GeneralSettingsViewModel+AdvancedSettingsPage 与
-AboutViewModel+AboutSettingsPage 迁入 `StarPie.Shell/ViewModels|Views/Pages`（命名空间维持
-`WinPieGestures.*`，B10 统一）；共享页面基类 `SettingsPageBase` 迁入 `StarPie.Core/Views/Pages`
+AboutViewModel+AboutSettingsPage 迁入 `StarPie.Shell/ViewModels|Views/Pages`（命名空间当时维持
+`WinPieGestures.*`，B10/#83 统一为 `StarPie.*`）；共享页面基类 `SettingsPageBase` 迁入 `StarPie.Core/Views/Pages`
 （跨集页面共用，Host/M5/M1 页 XAML 根经 assembly=StarPie.Core 引用）；exe 内临时注册器
 `M5ModuleRegistrar`/`M5PageTemplates.xaml` 替换为模块内正式 `ShellModuleRegistrar`
 （RegisterServices + RegisterNavigation）与 `ShellPageTemplates.xaml`（Host App.xaml 经跨程序集
@@ -221,7 +227,7 @@ pack URI `/StarPie.Shell;component/Modules/ShellPageTemplates.xaml` 单点合并
 （Host AppHost 装配面：`new` + `AttachPaletteApplier` + `Apply`，ThemeService.AttachPaletteApplier
 同步公开；同 B6/#79 TrayIconManager 先例），五套主题字典迁入 `StarPie.Theme/Views/Styles/Themes`，
 InterfaceThemeSettingsViewModel+AppThemeOptionItem 迁入 `StarPie.Theme/ViewModels/Pages`
-（命名空间维持 `WinPieGestures.*`，B10 统一）；Host App.xaml 对 Light 默认字典改经跨程序集
+（命名空间当时维持 `WinPieGestures.*`，B10/#83 统一为 `StarPie.*`）；Host App.xaml 对 Light 默认字典改经跨程序集
 pack URI `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并，ThemePaletteManager
 加载源同步指向 StarPie.Theme（主题令牌 key 集与行为不变）；新增模块注册器 `ThemeModuleRegistrar`
 （RegisterServices 下放 M4 的 DI 注册；M4 无导航页，无 RegisterNavigation/模板字典）；slnx 登记
@@ -236,7 +242,7 @@ WheelGeometry（Services/Wheel）、轮盘工厂 IWheelFactory/WheelFactory（Se
 收编，命名空间 `WinPieGestures.Services.Gestures` → `WinPieGestures.Services.Wheel` 与物理目录
 一致）与核图标预览转换器（CoreIconGeometryConverter/CoreIconNameConverter，Views/Converters，
 B5/#78 暂留 Host 的归属裁决：随 M2——Host App.xaml 改经 `assembly=StarPie.Wheel` 实例化）
-迁入 `StarPie.Wheel`（命名空间维持 `WinPieGestures.*`，B10 统一）；外观设置子 VM
+迁入 `StarPie.Wheel`（命名空间当时维持 `WinPieGestures.*`，B10/#83 统一为 `StarPie.*`）；外观设置子 VM
 WheelAppearanceSettingsViewModel 迁入 `StarPie.Wheel/ViewModels/Pages`，其 DI 注册与轮盘工厂
 注册下放新增模块注册器 `WheelModuleRegistrar`（RegisterServices；M2 无导航页，无
 RegisterNavigation/模板字典）；预览 Profile 只读契约 IProfilePreviewSource 上提
@@ -254,7 +260,7 @@ GesturesSettingsPage、SlotViewModel，ViewModels|Views 对应目录）与模块
 `GesturesModuleRegistrar`（RegisterServices + RegisterNavigation，原 exe 内 M1ModuleRegistrar
 替换）+ `GesturesPageTemplates.xaml`（原 M1PageTemplates.xaml 替换，Host App.xaml 改经跨程序集
 pack URI `/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml` 单点合并）迁入
-`StarPie.Gestures`（命名空间维持 `WinPieGestures.*`，B10 统一）；手势管线、触发+手势两页 VM
+`StarPie.Gestures`（命名空间当时维持 `WinPieGestures.*`，B10/#83 统一为 `StarPie.*`）；手势管线、触发+手势两页 VM
 与 `IProfilePreviewSource` 别名（实现方 ProfileListViewModel）的 DI 注册下放
 GesturesModuleRegistrar（页面 VM 组合根集中注册清零）；MouseHook dev 分支改读 Core
 `AppDataPaths.IsDevInstance` 回填缝（同 B6 AutostartRegistry 先例，M1 不反向引用 Host）；
@@ -268,8 +274,10 @@ D5 断言同步改为 GestureEngine 驻 StarPie.Gestures。
 M5 两页已下放 ShellModuleRegistrar（B6/#79）、M2 轮盘工厂与轮盘外观设置子 VM 已下放
 WheelModuleRegistrar（B8/#81）、M1 手势管线与触发+手势两页已下放 GesturesModuleRegistrar
 （B9/#82）；仅 Host 外观聚合页 VM 仍由组合根注册（目标态 Host 页）。
-**7 程序集目标态除命名空间外已全部达成**：Host/Core/M1（StarPie.Gestures）/M2/M3/M4/M5
-各自成集且依赖方向落地，余 B10（命名空间统一）纯机械改名批次。
+**7 程序集目标态（含命名空间）已全部达成**：Host/Core/M1（StarPie.Gestures）/M2/M3/M4/M5
+各自成集且依赖方向落地；B10/#83 命名空间统一收尾后，全仓命名空间统一为 `StarPie.*`
+（全仓前缀替换，保持跨程序集共享命名空间树，与迁移前 `WinPieGestures.*` 同构），
+程序集化路线全部清零。
 
 ## 参见 ADR
 

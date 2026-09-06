@@ -1,8 +1,8 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using WinPieGestures.Models;
+using StarPie.Models;
 
-namespace WinPieGestures.ViewModels.Dialogs
+namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>
     /// 屏上取色器 ViewModel (T08, ADR-0004)：拾取颜色 → 十六进制换算、放大镜文案/色块与

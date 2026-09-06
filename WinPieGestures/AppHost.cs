@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Localization;
+using StarPie.Services;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures
+namespace StarPie
 {
     /// <summary>
     /// Application host (ADR-0011)：承接原 Composition.Run 的宿主启动/退出编排——

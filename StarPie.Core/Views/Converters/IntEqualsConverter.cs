@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace WinPieGestures.Views.Converters
+namespace StarPie.Views.Converters
 {
     public sealed class IntEqualsConverter : IValueConverter
     {

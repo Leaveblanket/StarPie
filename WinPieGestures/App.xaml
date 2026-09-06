@@ -1,9 +1,9 @@
 <Application
-    x:Class="WinPieGestures.App"
+    x:Class="StarPie.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:WinPieGestures.Views.Converters;assembly=StarPie.Core"
-    xmlns:wheelConverters="clr-namespace:WinPieGestures.Views.Converters;assembly=StarPie.Wheel">
+    xmlns:converters="clr-namespace:StarPie.Views.Converters;assembly=StarPie.Core"
+    xmlns:wheelConverters="clr-namespace:StarPie.Views.Converters;assembly=StarPie.Wheel">
 
     <Application.Resources>
         <ResourceDictionary>

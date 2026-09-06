@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// Routing coverage for the action executor (T15): action-type routing, system

@@ -5,9 +5,9 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 设置窗口·触发与场景页面 ViewModel (T13, T19 页面化, ADR-0001)：承接迁移前 SettingsWindow

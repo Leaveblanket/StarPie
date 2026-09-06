@@ -110,9 +110,13 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 
 ## 命名空间与可见性
 
-- **命名空间 = 物理目录**：`WinPieGestures.Services.Actions`、`WinPieGestures.ViewModels.Dialogs`、`WinPieGestures.Views.Navigation`；根级类型（`App`、`AppHost`、`Composition`）在 `WinPieGestures`。
-- **命名空间不随程序集改名**（ADR-0016 决策 12）：`StarPie.Core/` 内文件仍声明 `WinPieGestures.*`
-  命名空间，B10 统一收尾前保持不变。
+- **命名空间 = 物理目录（全仓统一前缀 `StarPie`）**：`StarPie.Services.Actions`、
+  `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`AppHost`、
+  `Composition`）在 `StarPie`。
+- **命名空间统一为 `StarPie.*`**（B10/#83 落地，ADR-0016 决策 12）：与迁移前共享
+  `WinPieGestures.*` 树同构，仅做全仓前缀替换——命名空间根是产品名 `StarPie` 而非程序集名，
+  故 `StarPie.Core/` 内文件仍声明 `StarPie.Services.*`（不是 `StarPie.Core.Services.*`）；
+  跨程序集共享同一棵命名空间树。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（B2 先例：`AppDataPaths`——

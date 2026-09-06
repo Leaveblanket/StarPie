@@ -5,7 +5,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
-namespace WinPieGestures
+namespace StarPie
 {
     public partial class App : System.Windows.Application
     {

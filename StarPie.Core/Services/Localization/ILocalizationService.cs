@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WinPieGestures.Services.Localization
+namespace StarPie.Services.Localization
 {
     /// <summary>界面语言码（四语言；"Auto" 由 <see cref="ILocalizationService.SetLanguage(string)"/> 解析）。</summary>
     public enum LanguageCode

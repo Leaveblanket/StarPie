@@ -1,4 +1,4 @@
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     /// <summary>UI-framework-free screen point flowing through the gesture pipeline.</summary>
     public readonly struct GesturePoint

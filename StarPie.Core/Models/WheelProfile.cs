@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     public class WheelProfile
     {

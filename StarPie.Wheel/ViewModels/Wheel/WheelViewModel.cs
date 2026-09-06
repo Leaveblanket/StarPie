@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures.ViewModels.Wheel
+namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘 ViewModel (T05, ADR-0001): owns the wheel's view state — selected sector,

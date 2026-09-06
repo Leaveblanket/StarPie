@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     /// <summary>
     /// 轮盘配色解析器（ADR-0014 决策 3/10）：输入配色方案名（System/Dark/Light/

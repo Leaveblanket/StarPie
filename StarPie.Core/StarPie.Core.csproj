@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <!-- B2/#75：共享内核程序集（S1–S6 合并 + Models，ADR-0016 决策 1/12）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名，
-         并让 resx 强类型生成类（VocaDb.ResXFileCodeGenerator）继续落在
-         WinPieGestures.Services.Localization。 -->
+         B10/#83：命名空间统一为 StarPie.* 前缀替换（与迁移前共享 WinPieGestures.* 树同构），
+         RootNamespace=StarPie 使 resx 强类型生成类（VocaDb.ResXFileCodeGenerator）
+         落在 StarPie.Services.Localization。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Core</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

@@ -1,7 +1,7 @@
 using System;
-using WinPieGestures.Services.Dialogs;
+using StarPie.Services.Dialogs;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 输入对话框 ViewModel 的行为覆盖 (T07, ADR-0004)：确认逻辑与迁移前 InputDialog code-behind 一致——

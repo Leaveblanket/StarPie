@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace WinPieGestures.Views.Converters
+namespace StarPie.Views.Converters
 {
     /// <summary>按 CoreIconType/自定义图标键/SVG 路径解析核圆预览 Geometry（T21 文本绑定化配套）。
     /// 纯视觉几何解析（ADR-0009 #3）：经 M2 轮盘视觉几何出口

@@ -1,4 +1,4 @@
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 只读「预览 Profile 来源」契约（#69，模块地图 B2；B8/#81 上提共享内核 Core，D5/

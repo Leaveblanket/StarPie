@@ -1,4 +1,4 @@
-namespace WinPieGestures.Views.Renderers
+namespace StarPie.Views.Renderers
 {
     public static class StyleRendererFactory
     {

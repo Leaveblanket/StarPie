@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// ISaveDebouncer 的测试替身（工程约定：mock 直接 new，不使用 mocking 框架）：

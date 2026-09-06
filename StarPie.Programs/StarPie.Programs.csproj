@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <!-- B4/#77：M3 程序扫描与目录模块程序集（首个独立模块程序集，ADR-0016 决策 1/12）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          零共享内核(Core)依赖：扫描结果的 S1 图标补全由 Host 组合根以委托注入，
          本程序集不引用 Core/Host（依赖方向见 assemblies.md §3）。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Programs</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

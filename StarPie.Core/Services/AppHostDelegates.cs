@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Services
+namespace StarPie.Services
 {
     /// <summary>
     /// 宿主回调委托包（ADR-0011/0016 决策 8，B6/#79 上提共享内核）：承载页面 VM 注册所需的

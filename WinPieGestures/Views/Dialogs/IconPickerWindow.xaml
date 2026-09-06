@@ -1,5 +1,5 @@
 <Window
-    x:Class="WinPieGestures.Views.Dialogs.IconPickerWindow"
+    x:Class="StarPie.Views.Dialogs.IconPickerWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="选择动作矢量图标 (Vector Icon Picker)"

@@ -1,7 +1,7 @@
-using WinPieGestures.Services.Navigation;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Services.Navigation;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Modules
+namespace StarPie.Modules
 {
     /// <summary>
     /// Host 侧页面注册器（B3/#76 临时形态，B6/#79 仍居 exe）：外观与形态聚合页壳（#54/#56，D6）

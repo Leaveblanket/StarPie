@@ -11,12 +11,12 @@
 
 ## 组成文件
 
-M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命名空间维持 `WinPieGestures.*`，
-B10 统一收尾）：
+M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命名空间统一为 `StarPie.*`
+（B10/#83））：
 
 - `StarPie.Theme/Services/Shell/`：`IThemeService`/`ThemeService`（命名空间
-  `WinPieGestures.Services.Shell` 与物理目录一致，B10 前不随程序集改名；Host 侧原
-  `WinPieGestures/Services/Shell/` 目录已随 B7 清空移除）。
+  `StarPie.Services.Shell` 与物理目录一致，B10/#83 统一；Host 侧原
+  `WinPieGestures/Services/Shell/` 物理目录已随 B7 清空移除）。
 - `StarPie.Theme/ThemePaletteManager.cs`（模块根，主题调色板整项替换；B7/#80 可见性裁决为
   public——Host `AppHost` 装配面，同 B6/#79 `TrayIconManager` 先例，见
   [assemblies.md](assemblies.md) §7）。
