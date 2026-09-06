@@ -30,7 +30,8 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            return Path.Combine(dir.FullName, "WinPieGestures", "Services", "Localization", "Strings.resx");
+            // B2/#75：四语言 resx 随 S3 迁入共享内核程序集（StarPie.Core）。
+            return Path.Combine(dir.FullName, "StarPie.Core", "Services", "Localization", "Strings.resx");
         }
     }
 

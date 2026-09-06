@@ -44,6 +44,9 @@
 ## 3. 技术栈
 
 - .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
+- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models 与 S1–S6
+  共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 内核与槽位表）；
+  命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
@@ -64,11 +67,12 @@ StarPie/
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
+├── StarPie.Core/                # 共享内核程序集（B2 起，见 layout.md）
 ├── WinPieGestures.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host 与 Core（不依赖传递引用，ADR-0016/B2）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 

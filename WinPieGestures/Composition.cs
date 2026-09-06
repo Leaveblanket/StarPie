@@ -32,6 +32,12 @@ namespace WinPieGestures
 
         public Composition()
         {
+            // B2/#75（Core 抽取）跨程序集回填缝：Core 的 S2 AppDataPaths dev 目录分支依赖 H1
+            // DevInstance，S1 IconAssets 的 .lnk 提取依赖 M3 ShortcutResolver——共享内核不能
+            // 反向引用宿主/业务程序集，故装配前由组合根回填（方向见 assemblies.md §3）。
+            AppDataPaths.IsDevInstance = DevInstance.IsActive;
+            IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget;
+
             // T18/T19（ADR-0005）：组合根容器装配——注册集中在 ConfigureServices，解析点只在本类。
             var services = new ServiceCollection();
             ConfigureServices(services);

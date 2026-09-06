@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WinPieGestures\WinPieGestures.csproj" />
+    <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,10 +8,11 @@
 
 ## 组成文件
 
-`Services/Configuration/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、
-`SettingsSaveOrchestrator`、`AppDataPaths`（自启注册表 `AutostartRegistry` 归 M5，已随 #70 收编
-`Services/Shell/`，见 [shell.md](shell.md)）；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
-`ImmediateSaveRequestedMessage` 定义于 S4 hub `Services/Messages/Messages.cs`（放行共享面，见
+**共享内核（`StarPie.Core/Services/Configuration/`，B2/#75 起）**：`IConfigService`/`JsonConfigService`、
+`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`（dev 目录分支
+依赖的 H1 标记经组合根回填 `AppDataPaths.IsDevInstance`，见 [layering.md](layering.md) 程序集层；
+自启注册表 `AutostartRegistry` 归 M5，已随 #70 收编 `Services/Shell/`，见 [shell.md](shell.md)）；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
+`ImmediateSaveRequestedMessage` 定义于 S4 hub（Core）`Services/Messages/Messages.cs`（放行共享面，见
 [messages.md](messages.md)）。
 
 ## 生命周期与关键流程

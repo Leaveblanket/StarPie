@@ -11,7 +11,7 @@
 
 ## 组成文件
 
-`Services/Messages/Messages.cs`（IMessenger 消息，不可变空载体/record）、`Services/Messages/Notices.cs`
+**共享内核（`StarPie.Core/Services/Messages/`，B2/#75 起）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
 （非 messenger 的跨层载体：`NoticeKind`/`NoticeRequest`）。
 
 ## 关键流程

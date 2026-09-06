@@ -74,7 +74,8 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 3 | `NavTab3` | `TabAdvanced` | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | M5 Shell |
 | 4 | `NavTab4` | `TabAbout` | `AboutViewModel` | `AboutSettingsPage` | M5 Shell |
 
-缺失/重复/未知槽位由 Core 收口测试拦截；槽位表是侧边栏顺序唯一正典（B3 起落地）。
+缺失/重复/未知槽位由 Core 收口测试拦截；槽位表是侧边栏顺序唯一正典（B2/#75 契约与收口测试已落地；
+导航 VM 目录驱动接线随 B3）。
 
 ## 6. DI 与注册契约（目标态）
 
@@ -99,8 +100,7 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B2 | Core 抽取：Q11 范围（Models/S2/S3/S4/S5 导航内核/S6 契约/S1 Icons）+ NavigationCatalog/槽位表/收口测试（**不含 MainViewModel**；AppHostDelegates 上提延至 B6） | layout.md、layering.md、localization.md、messages.md、dialogs.md、navigation.md |
-| B3 | 导航自治改造（仍单程序集）：MainViewModel 目录驱动后**迁入 Core**；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
+| B3 | 导航自治改造（Host+Core 内）：MainViewModel 目录驱动后**迁入 Core**；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
 | B4 | M3 Programs 抽取（首个模块程序集；M3 零共享内核依赖、无 DI 注册需求，注册器样板随 B6） | programs.md、layering.md、host.md |
 | B5 | 共享 UI 基建迁 Core（Converters/Controls/ModernControls + App.xaml pack URI） | layout.md、interface-theme.md |
 | B6 | M5 Shell 抽取（Advanced/About 页随集；宿主回调走 Core 契约；ShellViewModel 留 Host 核对） | shell.md、navigation.md、host.md、layout.md |
@@ -113,7 +113,7 @@ StarPie (Host/exe) ──→ StarPie.Core
 
 > 阻塞边 = 该票必须在前置票合入 main 后才能开工的硬门；无阻塞票可按路线顺序或 frontier 先做（多人并行时需先做文件面互斥划分）。
 
-- B2（Core 抽取）← None；B4（M3 抽取）← None。
+- B2（Core 抽取）← None（已落地，#75）；B4（M3 抽取）← None。
 - B3（导航自治 + MainViewModel 迁 Core）← B2（B1 已落地，#74）。
 - B5（共享 UI 基建迁 Core）← B2。
 - B6（M5 抽取）← B3、B5。
@@ -126,7 +126,9 @@ StarPie (Host/exe) ──→ StarPie.Core
 
 上述阻塞边描述的是**架构上的硬前置**；它们不等于可以无冲突地并行修改。为避免多个 agent 同时改动组合根和工程入口，执行时还需遵守以下集成面互斥规则：
 
-- `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx` 同一时间只允许一张票落地。B1/B2/B4 均会触及其中至少一项，必须串行合并（B4 逻辑上仍可提前开发）。
+- `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx`（B2 起含
+  `StarPie.Core.csproj`）同一时间只允许一张票落地。B1/B2 已落地；其余触及这些文件面的批次
+  （如 B3/B4）必须串行合并（B4 逻辑上仍可提前开发）。
 - `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5 与 B7 不得并行合并；二者架构上无需新增阻塞边，但必须排队集成。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠。B6 与 B7 不得同时进行文件搬迁；先完成一票并通过构建，再开始另一票的搬迁。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
@@ -135,7 +137,12 @@ StarPie (Host/exe) ──→ StarPie.Core
 
 ## 9. 现状对照与差异登记
 
-代码现状 = 单程序集（`WinPieGestures` exe）+ `WinPieGestures.Tests`；程序集地图、导航槽位表、注册器契约均为目标态，尚未在代码落地。差异随 §8 批次逐批回填叶子并清零；B0 仅登记路线，不改代码。
+代码现状 = Host exe（`WinPieGestures/`，程序集 `StarPie`）+ 共享内核（`StarPie.Core/`，程序集
+`StarPie.Core`，WPF 类库）+ `WinPieGestures.Tests`（显式引用两工程）。B2/#75 已落地：Models、
+S2/S3/S4/S1、S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
+NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core；`MainViewModel` 本批未迁（B3 目录驱动后
+迁入），`AppHostDelegates` 上提延至 B6。导航目录驱动接线、模块注册器与页面模板字典、五个业务模块
+程序集（M1–M5）尚未落地，差异随 B3–B10 逐批回填叶子并清零。
 
 ## 参见 ADR
 
