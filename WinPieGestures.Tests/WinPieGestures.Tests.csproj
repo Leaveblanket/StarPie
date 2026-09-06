@@ -23,6 +23,8 @@
     <ProjectReference Include="..\WinPieGestures\WinPieGestures.csproj" />
     <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->
+    <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
   </ItemGroup>
 
 </Project>

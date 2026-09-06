@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Windows.Media;
 using Microsoft.Win32;
 
 namespace WinPieGestures.Services.Programs
@@ -12,12 +13,17 @@ namespace WinPieGestures.Services.Programs
     /// 系统自带工具、开始菜单 / 桌面快捷方式、用户 AppData、WindowsApps、注册表 App Paths
     /// 与 Uninstall、Program Files 顶层。存在性 / 扩展名 / 大小检查留在这里（IO 性质），
     /// 垃圾过滤、跨源去重与显示名升级委托 <see cref="ProgramCatalog"/> 纯函数。
+    /// B4/#77 起随 M3 迁入独立模块程序集 <c>StarPie.Programs</c>，零共享内核(Core)依赖——
+    /// 图标补全不再直引 S1 <c>IconAssets</c>，改由组合根注入图标委托（生产以
+    /// <c>IconAssets.GetIcon</c> 传入，见 host.md）。
     /// 按 ADR-0004 保持集成性质，不测。
     /// </summary>
     public static class ProgramScanner
     {
-        /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序（图标在此阶段补齐）。</summary>
-        public static IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
+        /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
+        /// （图标经 <paramref name="iconProvider"/> 在此阶段补齐）。</summary>
+        public static IReadOnlyList<ProgramEntry> ScanInstalledPrograms(
+            Func<string, ImageSource?> iconProvider)
         {
             var candidates = new List<ProgramEntry>();
 
@@ -48,7 +54,7 @@ namespace WinPieGestures.Services.Programs
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
             var merged = ProgramCatalog.MergeSources(candidates);
             var list = merged
-                .Select(e => e with { IconSource = IconAssets.GetIcon(e.Path) })
+                .Select(e => e with { IconSource = iconProvider(e.Path) })
                 .ToList();
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
             return list;
