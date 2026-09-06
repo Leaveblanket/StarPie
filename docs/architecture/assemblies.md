@@ -100,15 +100,28 @@ StarPie (Host/exe) ──→ StarPie.Core
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
 | B1 | 壳内重构：D3 拆分（MainViewModel 纯导航 / ShellViewModel）+ R4 落地（MainView 分区 DataContext、退出链、Composition 接线） | navigation.md、shell.md、host.md、layering.md |
-| B2 | Core 抽取：Q11 范围（Models/S2/S3/S4/S5 导航内核/S6 契约/S1 Icons）+ MainViewModel(导航) 进 Core + NavigationCatalog/槽位表/收口测试 + AppHostDelegates 上提 Core | layout.md、layering.md、host.md、localization.md、messages.md、dialogs.md、navigation.md |
-| B3 | 导航自治改造（仍单程序集）：MainViewModel 目录驱动；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
-| B4 | M3 Programs 抽取（注册器形态样板） | programs.md、layering.md、host.md |
+| B2 | Core 抽取：Q11 范围（Models/S2/S3/S4/S5 导航内核/S6 契约/S1 Icons）+ NavigationCatalog/槽位表/收口测试（**不含 MainViewModel**；AppHostDelegates 上提延至 B6） | layout.md、layering.md、localization.md、messages.md、dialogs.md、navigation.md |
+| B3 | 导航自治改造（仍单程序集）：MainViewModel 目录驱动后**迁入 Core**；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
+| B4 | M3 Programs 抽取（首个模块程序集；M3 零共享内核依赖、无 DI 注册需求，注册器样板随 B6） | programs.md、layering.md、host.md |
 | B5 | 共享 UI 基建迁 Core（Converters/Controls/ModernControls + App.xaml pack URI） | layout.md、interface-theme.md |
 | B6 | M5 Shell 抽取（Advanced/About 页随集；宿主回调走 Core 契约；ShellViewModel 留 Host 核对） | shell.md、navigation.md、host.md、layout.md |
 | B7 | M4 Theme 抽取（含 ThemePaletteManager 可见性裁决） | interface-theme.md、host.md、layout.md |
 | B8 | M2 Wheel 抽取（D5：WheelFactory 随 M2、IProfilePreviewSource 上提 Core） | wheel.md、gestures.md、layering.md、modules.md（D5 清零） |
 | B9 | M1 Gestures 抽取（Trigger/Gestures 页收口） | gestures.md、navigation.md、layout.md |
 | B10 | 命名空间统一收尾（原 B8 内容，编号顺延；ADR-0016 决策 12） | 全部叶子 + 测试 + XAML xmlns + resx 生成类 |
+
+### 8.1 批次阻塞边（2026-09-06 代码审计）
+
+> 阻塞边 = 该票必须在前置票合入 main 后才能开工的硬门；无阻塞票可按路线顺序或 frontier 先做（多人并行时需先做文件面互斥划分）。
+
+- B1（D3/R4 壳内重构）← None；B2（Core 抽取）← None；B4（M3 抽取）← None。
+- B3（导航自治 + MainViewModel 迁 Core）← B1、B2。
+- B5（共享 UI 基建迁 Core）← B2。
+- B6（M5 抽取）← B3、B5。
+- B7（M4 抽取）← B2（主题 XAML 自包含，不依赖 B5）。
+- B8（M2 抽取，含 D5）← B7（`RadialWindow` 注入 M4 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
+- B9（M1 抽取）← B3、B5、B8（页面共享 `SettingsPageBase`、`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
+- B10（命名空间统一）← B9。
 
 ## 9. 现状对照与差异登记
 
