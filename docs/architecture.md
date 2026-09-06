@@ -44,8 +44,10 @@
 ## 3. 技术栈
 
 - .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
-- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models 与 S1–S6
-  共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 内核与槽位表）；
+- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S1–S6
+  共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 内核与槽位表）与共享
+  UI 基建（B5/#78：Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/
+  ModernControls.xaml 全局控件样式字典）；
   命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
   程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver），零共享内核依赖；命名空间维持
@@ -70,7 +72,7 @@ StarPie/
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
-├── StarPie.Core/                # 共享内核程序集（B2 起，见 layout.md）
+├── StarPie.Core/                # 共享内核程序集（B2/#75 起；B5/#78 含共享 UI 基建，见 layout.md）
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（B4/#77 起，见 layout.md）
 ├── WinPieGestures.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）

@@ -2,15 +2,16 @@
     x:Class="WinPieGestures.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:WinPieGestures.Views.Converters">
+    xmlns:converters="clr-namespace:WinPieGestures.Views.Converters;assembly=StarPie.Core"
+    xmlns:hostConverters="clr-namespace:WinPieGestures.Views.Converters">
 
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <!--  Light 主题默认/设计时画刷  -->
                 <ResourceDictionary Source="Views/Styles/Themes/Light.xaml" />
-                <!--  全局控件样式 (ADR-0012)  -->
-                <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
+                <!--  B5/#78：全局控件样式字典迁入共享内核 Core，跨程序集 pack URI 合并 (ADR-0012/0016)  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml" />
                 <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并；
                       M1/M5/Host 临时注册器 + 模板字典，单程序集内先行，随 B6/B9 拆集迁出）  -->
                 <ResourceDictionary Source="Modules/M1PageTemplates.xaml" />
@@ -18,12 +19,14 @@
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
+            <!--  B5/#78：通用共享转换器随类迁入 Core，实例仍由 App 级单点持有（ADR-0012 决策 5）  -->
             <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
             <converters:StringToGeometryConverter x:Key="StringToGeometryConverter" />
             <converters:IntEqualsConverter x:Key="IntEqualsConverter" />
-            <converters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />
-            <converters:CoreIconNameConverter x:Key="CoreIconNameConverter" />
             <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
+            <!--  M2 轮盘核图标预览配套（Appearance 聚合页，Host 驻留，B5 未迁——B8 随 M2 收编前 Core 不得反向依赖宿主）  -->
+            <hostConverters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />
+            <hostConverters:CoreIconNameConverter x:Key="CoreIconNameConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

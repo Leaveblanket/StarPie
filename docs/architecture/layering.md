@@ -22,8 +22,12 @@ WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内�
 WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs（显式引用，不依赖传递）
 ```
 
-- Core 承载 S1–S6 共享件与 Models（`StarPie.Core/` 目录树见 [layout.md](layout.md)）；**Core 不引用
-  Host/业务模块**，跨模块依赖一律经 Core 契约（方向见 [assemblies.md](assemblies.md) §3）。
+- Core 承载 S1–S6 共享件、Models 与共享 UI 基建（B5/#78：Views/Converters 通用转换器、
+  Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml；`StarPie.Core/` 目录树见
+  [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约（方向见
+  [assemblies.md](assemblies.md) §3）。依赖宿主/M2/S6 对话框的 UI 专用件（CoreIconGeometry/Name
+  核图标预览转换器、SpectrumCanvasBehavior 取色行为）因此暂留 Host，随 B8/B6 对应批次裁决（见
+  [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）。
 - M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
   ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
   组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。

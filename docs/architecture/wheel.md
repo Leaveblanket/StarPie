@@ -15,6 +15,9 @@
 > WheelPreviewRenderer/CoreIconGeometryConverter 直连本模块几何出口 `WheelGeometry`
 > （`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）；动作图标渲染（含核图标 Custom 分支
 > 按 SVG 键回退取值）消费 S1 共享「图标资产」出口 `IconAssets`（见 [layout.md](layout.md)）。
+> B5/#78 起核图标预览转换器（CoreIconGeometryConverter/CoreIconNameConverter，Appearance 聚合页
+> 用）仍居 Host `Views/Converters/`（Geometry 转换器直连本模块几何出口，Core 不得反向依赖宿主）；
+> B8 收编 M2 时一并裁决其归属。
 > modules.md §7“几何收编（B3）”差异已清零。
 
 > R8 语义归属（[modules.md](modules.md) §4）：`WheelPalette*`/`CustomColorPreset`（自定义配色预设）语义归 M2；
