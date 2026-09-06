@@ -64,7 +64,8 @@ B10 统一收尾）：
   依赖走接口；#69 起不再引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/`IMessenger`/
   `ILocalizationService`；B8/#81 起该子 VM 随 M2 迁入 `StarPie.Wheel/ViewModels/Pages/`，其 DI
   注册由 `WheelModuleRegistrar.RegisterServices` 下放模块（`IProfilePreviewSource` 已上提
-  Core，D5——实现方 M1 `ProfileListViewModel` 仍驻 Host、消费方本子 VM 均只依赖 Core 契约）；
+   Core，D5——实现方 M1 `ProfileListViewModel`（B9/#82 起随 `StarPie.Gestures` 迁入
+   ViewModels/Pages，别名由 GesturesModuleRegistrar 下放）、消费方本子 VM 均只依赖 Core 契约）；
   全部状态写穿运行态配置（立即生效），落盘经防抖/立即消息上报；配色下拉
   选项（`ThemeOptions`）随语言切换重建并补发选中通知，`Dispose` 成对退订（ADR-0010 第 3 条）。
 - **页面接线**：外观聚合 VM `AppearanceSettingsViewModel` 收薄为页壳，只暴露

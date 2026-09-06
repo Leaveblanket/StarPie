@@ -8,10 +8,14 @@
 
 ## 组成文件
 
-- `Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`。
+M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，命名空间维持
+`WinPieGestures.*`，B10 统一收尾；模块注册器 `GesturesModuleRegistrar` 与页面模板字典
+`GesturesPageTemplates.xaml` 随模块迁出 exe，见 [assemblies.md](assemblies.md) §9）：
+
+- `StarPie.Gestures/Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`。
   （B8/#81 起轮盘工厂 `IWheelFactory`/`WheelFactory` 已随 M2 收编 `StarPie.Wheel/Services/Wheel/`，
   D5/ADR-0016 决策 11——M1 手势侧只经 M2 侧接口引用，见 [wheel.md](wheel.md)/[modules.md](modules.md) §5 D5。）
-- `Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
+- `StarPie.Gestures/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
 - `Models/GesturePoint.cs`（R5：手势坐标点归共享内核（Models 语义）；物理已随 #70 收编 `Models/`，
@@ -23,8 +27,9 @@
 
 `StarPie.Core/ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 起上提共享内核 Core，D5/
 ADR-0016 决策 11；命名空间 `WinPieGestures.ViewModels.Pages` 不变）：M1 对外只读「预览
-Profile 来源」契约——实现方为 Host 侧同目录配置方案设置面 VM `ProfileListViewModel`（选中/首项
-回落语义，见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费
+Profile 来源」契约——实现方为 M1 侧同目录配置方案设置面 VM `ProfileListViewModel`
+（B9/#82 起随 `StarPie.Gestures` 迁入 ViewModels/Pages；选中/首项回落语义，
+见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费
 （`WheelAppearanceSettingsViewModel` 构造注入本接口并转发给 `IWheelAppearanceState.PreviewProfile`，
 见 [wheel.md](wheel.md)）；实现方与消费方分属 M1/M2、均只依赖 Core 契约；接口只读，轮盘侧不
 引用具体方案列表 VM 类型。
@@ -37,7 +42,7 @@ Profile 来源」契约——实现方为 Host 侧同目录配置方案设置面
 
 ### 页面与 VM 组成
 
-- `ViewModels/Pages/ProfileListViewModel.cs`（「手势与动作」导航页 `GesturesSettingsPage` 的
+- `StarPie.Gestures/ViewModels/Pages/ProfileListViewModel.cs`（「手势与动作」导航页 `GesturesSettingsPage` 的
   DataContext；同文件嵌套 `ProfileItemViewModel` 作单条方案展示包装）。方案列表侧职责全部收编于此
   （T19/T21/T24 起页面 code-behind 无业务）：`Profiles`/`SelectedProfile` 选中态与首项回落
   （`PreviewProfile` = 选中 ?? 首项，实现 `IProfilePreviewSource`）、方案增删改/重命名/导入的
@@ -45,13 +50,17 @@ Profile 来源」契约——实现方为 Host 侧同目录配置方案设置面
   （`ApplySectorCount`，按 4/8/12 规范化）与方向槽位集合重建（`Slots`/`RebuildSlots`）。直持运行态
   配置 `Profiles` 引用 live-apply（与 `WheelViewModel` 持有运行态配置同先例）；落盘请求经
   `IMessenger` 发送保存消息（见 [config.md](config.md)）。
-- `ViewModels/Gestures/SlotViewModel.cs`：方向槽位 VM（+ 同文件 `SystemPresetItem`/
+- `StarPie.Gestures/ViewModels/Gestures/SlotViewModel.cs`：方向槽位 VM（+ 同文件 `SystemPresetItem`/
   `ActionTypeOption`），包装扇区绑定的 `ActionItem` 提供编辑绑定——名称直写模型（无额外验证）、
   类型切换、热键录制（`Parameter` 绑定）与参数/图标文本派生；动作编辑闭环（程序/文件夹选择、
   图标设置）经 `IDialogService` 完成，图标取值消费 S1 共享图标资产出口 `IconAssets`
   （R6 三分，T3c/#67 起接线，见 [modules.md](modules.md) §4 R6）；编辑提交的落盘请求经 `IMessenger`
   发送保存消息上报（如 `ImmediateSaveRequestedMessage`，见 [config.md](config.md)）。
-- `Views/Pages/GesturesSettingsPage.xaml(.cs)`：聚合壳页面（D6），卡片式承载 Profile 选择/增删改、
+- `StarPie.Gestures/ViewModels/Pages/BehaviorSettingsViewModel.cs` 与
+  `StarPie.Gestures/Views/Pages/TriggerSettingsPage.xaml(.cs)`：触发与场景设置面（D1 子面——
+  触发阈值/场景隔离/外甩逃逸/进程黑名单；BehaviorSettingsViewModel 直持运行态配置 live-apply，
+  落盘经 `IMessenger` 上报）。
+- `StarPie.Gestures/Views/Pages/GesturesSettingsPage.xaml(.cs)`：聚合壳页面（D6），卡片式承载 Profile 选择/增删改、
   扇区数切换与方向槽位编辑；code-behind 无业务。
 
 ### 扩展点
