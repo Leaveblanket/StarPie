@@ -5,7 +5,8 @@
          RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
          依赖方向：StarPie.Wheel → StarPie.Core 单向 + StarPie.Wheel → StarPie.Theme
          允许边（M2→M4，IThemeService 消费，assemblies.md §3）；
-         不引用 Host/其它业务模块（M1 手势侧仍驻 Host，只经 IWheelFactory 接口消费）。
+         不引用 Host/其它业务模块（M1 手势侧自 B9/#82 起驻 StarPie.Gestures，只经
+         IWheelFactory 接口消费）。
          WheelFactory/工厂接口随 M2 收编（D5，ADR-0016 决策 11）；轮盘外观设置子 VM
          与轮盘 VM/窗口/渲染器/配色/工厂的 DI 注册经 WheelModuleRegistrar.RegisterServices
          下放本程序集，组合根仍唯一 BuildServiceProvider。 -->

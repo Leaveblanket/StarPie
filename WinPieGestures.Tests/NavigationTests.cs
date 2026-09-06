@@ -257,11 +257,12 @@ public sealed class MainViewModelTests
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
 
-        // B3/#76 + B6/#79：目录由生产模块注册器装配（exe 内 M1/Host 临时注册器 + StarPie.Shell
-        // 的 ShellModuleRegistrar 跨程序集注册器）——测试同时锁定真实槽位表（顺序/标识/标题键/
-        // 图标/目标类型）；替身只代目录执行缝。
+        // B3/#76 + B6/#79 + B9/#82：目录由生产模块注册器装配（StarPie.Gestures 的
+        // GesturesModuleRegistrar + StarPie.Shell 的 ShellModuleRegistrar + exe 内
+        // HostModuleRegistrar）——测试同时锁定真实槽位表（顺序/标识/标题键/图标/目标类型）；
+        // 替身只代目录执行缝。
         var catalog = new NavigationCatalog();
-        M1ModuleRegistrar.RegisterNavigation(catalog);
+        GesturesModuleRegistrar.RegisterNavigation(catalog);
         ShellModuleRegistrar.RegisterNavigation(catalog);
         HostModuleRegistrar.RegisterNavigation(catalog);
         catalog.Validate();

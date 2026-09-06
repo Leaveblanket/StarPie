@@ -5,5 +5,6 @@
   <Project Path="..\StarPie.Shell\StarPie.Shell.csproj" />
   <Project Path="..\StarPie.Theme\StarPie.Theme.csproj" />
   <Project Path="..\StarPie.Wheel\StarPie.Wheel.csproj" />
+  <Project Path="..\StarPie.Gestures\StarPie.Gestures.csproj" />
   <Project Path="..\WinPieGestures.Tests\WinPieGestures.Tests.csproj" />
 </Solution>

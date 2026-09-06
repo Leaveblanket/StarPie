@@ -44,12 +44,14 @@ namespace WinPieGestures
             // T18/T19（ADR-0005）：组合根容器装配——注册集中在 ConfigureServices，解析点只在本类。
             var services = new ServiceCollection();
 
-            // B3/#76（导航自治）+ B6/#79（M5 拆集）：导航目录由 exe 内 M1/Host 临时注册器与
-            // StarPie.Shell 的 ShellModuleRegistrar（跨程序集正式模块注册器）按固定顺序装配——
-            // 页面类型不再出现在导航装配/解析清单；Validate 在 BuildServiceProvider 前收口五槽完整，
-            // 供 CreateAppHost 目录驱动 eager 解析与 MainViewModel/INavigationExecutor 消费。
+            // B3/#76（导航自治）+ B6/#79（M5 拆集）+ B9/#82（M1 拆集）：导航目录由
+            // StarPie.Gestures 的 GesturesModuleRegistrar、StarPie.Shell 的
+            // ShellModuleRegistrar 与 exe 内 HostModuleRegistrar（外观聚合页留 Host）按固定
+            // 顺序装配——页面类型不再出现在导航装配/解析清单；Validate 在 BuildServiceProvider
+            // 前收口五槽完整，供 CreateAppHost 目录驱动 eager 解析与
+            // MainViewModel/INavigationExecutor 消费。
             var navigationCatalog = new NavigationCatalog();
-            M1ModuleRegistrar.RegisterNavigation(navigationCatalog);
+            GesturesModuleRegistrar.RegisterNavigation(navigationCatalog);
             ShellModuleRegistrar.RegisterNavigation(navigationCatalog);
             HostModuleRegistrar.RegisterNavigation(navigationCatalog);
             navigationCatalog.Validate();
@@ -59,7 +61,8 @@ namespace WinPieGestures
             // 子 VM WheelAppearanceSettingsViewModel）由 WheelModuleRegistrar.RegisterServices
             // 下放 StarPie.Wheel（D5/ADR-0016 决策 11：工厂随 M2 收编、接口留 M2 侧；M1 手势侧
             // GestureEngine 只经 IWheelFactory 接口消费；预览 Profile 契约 IProfilePreviewSource
-            // 已上提 Core，别名注册仍留在组合根——实现方 M1 ProfileListViewModel 尚驻 Host）。
+            // 已上提 Core——实现方 M1 ProfileListViewModel 随 B9/#82 迁入 StarPie.Gestures，
+            // 别名注册由 GesturesModuleRegistrar 下放模块，组合根不再登记）。
             WheelModuleRegistrar.RegisterServices(services);
 
             ConfigureServices(services);
@@ -119,9 +122,10 @@ namespace WinPieGestures
 
         /// <summary>容器注册表 (T19, ADR-0005/0011)：全部单例。运行态配置服务以具体类注册
         /// （Import/Export 留在具体实现）；需要宿主能力的委托（托盘气泡、退出）经 Core 的
-        /// <see cref="AppHostDelegates"/>（B6/#79 上提）延迟指向 AppHost；M5 页面 VM 的注册由
-        /// <c>ShellModuleRegistrar.RegisterServices</c> 下放模块程序集，其余 M1/Host 页面 VM
-        /// 与自启注册表、导入前冲刷等无宿主状态副作用仍由组合根接线。</summary>
+        /// <see cref="AppHostDelegates"/>（B6/#79 上提）延迟指向 AppHost；M5/M1 页面 VM 与
+        /// 手势管线的注册已分别由 <c>ShellModuleRegistrar.RegisterServices</c>（B6/#79）与
+        /// <c>GesturesModuleRegistrar.RegisterServices</c>（B9/#82）下放模块程序集，Host
+        /// 页面 VM（外观聚合页壳）等无宿主状态副作用项仍由组合根接线。</summary>
         private void ConfigureServices(IServiceCollection services)
         {
             // B6/#79：宿主回调委托包以单例注册进容器（原 Composition internal 字段；上提 Core 后
@@ -137,11 +141,7 @@ namespace WinPieGestures
                 Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json"),
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
-            services.AddSingleton<MouseHook>();
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            services.AddSingleton<IActionExecutorService, ActionExecutorService>();
-            services.AddSingleton<IWindowContext, WindowContext>();
-            services.AddSingleton<GestureEngine>();
             // T3c/#67（R6/R7）：M3 程序扫描能力经委托注入对话框服务——S6 不再直连
             // ProgramScanner 静态内部，DialogService 只持委托并转发给程序选择器 VM。
             // B4/#77：M3 迁入 StarPie.Programs 且零 Core 依赖——S1 图标补全（IconAssets.GetIcon）
@@ -151,7 +151,6 @@ namespace WinPieGestures
                 sp.GetRequiredService<ILocalizationService>(),
                 () => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)));
             services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
-            services.AddSingleton<GestureController>();
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 
             // T19：消息总线（WeakReferenceMessenger，实例注入便于测试替换）与落盘编排订阅者。
@@ -168,23 +167,15 @@ namespace WinPieGestures
 
             // 页面 VM（T19）：容器单例，状态跨导航常驻。注意解析时机在 Config.Load 之后（CreateAppHost）。
             // B6/#79：M5（高级/关于）两页的 VM 注册已由 ShellModuleRegistrar.RegisterServices 下放
-            // StarPie.Shell（首个带 DI 的模块程序集，样板见 assemblies.md §6/ADR-0016 决策 8）；
-            // 其余 M1/Host 页面 VM 在 B9 前仍集中组合根注册。
+            // StarPie.Shell（首个带 DI 的模块程序集，样板见 assemblies.md §6/ADR-0016 决策 8）。
             ShellModuleRegistrar.RegisterServices(services);
 
-            services.AddSingleton(sp => new BehaviorSettingsViewModel(
-                sp.GetRequiredService<IConfigService>().Current,
-                sp.GetRequiredService<IDialogService>(),
-                sp.GetRequiredService<IMessenger>()));
-            services.AddSingleton(sp => new ProfileListViewModel(
-                sp.GetRequiredService<IConfigService>().Current.Profiles,
-                sp.GetRequiredService<IDialogService>(),
-                sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<IActionExecutorService>(),
-                sp.GetRequiredService<ILocalizationService>()));
-            // #69（B2）：配置方案列表 VM 以 M1 只读契约 IProfilePreviewSource 暴露给轮盘侧——
-            // 轮盘外观设置子 VM 经接口解析，不引用具体 VM 类型。
-            services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
+            // B9/#82：M1 手势与动作的 DI 注册（MouseHook/IActionExecutorService/IWindowContext/
+            // GestureEngine/GestureController 与触发+手势两页 VM、IProfilePreviewSource 别名）由
+            // GesturesModuleRegistrar.RegisterServices 下放 StarPie.Gestures（最后一个业务模块
+            // 程序集；B9 后除 Host 外观聚合页 VM 外不再有组合根集中注册的页面 VM）。
+            GesturesModuleRegistrar.RegisterServices(services);
+
             // #54/#56（ADR-0014 决策 6/7）：两个设置子 VM——界面主题模块设置子 VM（B7/#80 起由
             // ThemeModuleRegistrar 注册，随 StarPie.Theme 下放）与轮盘模块外观设置子 VM
             // （B8/#81 起由 WheelModuleRegistrar 注册，随 StarPie.Wheel 下放）——均由外观聚合

@@ -43,6 +43,10 @@
          引用 WheelAppearanceSettingsViewModel/IWheelAppearanceState/预览渲染器，
          M1 手势侧（GestureEngine）只经 IWheelFactory 接口消费） -->
     <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />
+    <!-- B9/#82：M1 手势与动作模块程序集显式引用（手势管线/动作执行/触发+手势设置页随迁；
+         组合根调 GesturesModuleRegistrar 装配导航与 M1 DI、AppHost 持有 MouseHook，
+         手势侧只经 M2 IWheelFactory/IWheelViewModel 接口消费轮盘） -->
+    <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
   </ItemGroup>
 
 </Project>

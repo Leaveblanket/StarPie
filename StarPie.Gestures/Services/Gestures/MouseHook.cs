@@ -76,8 +76,11 @@ namespace WinPieGestures.Services.Gestures
 
         // Dev instances trigger on the middle button so they can coexist with the
         // installed release, which keeps the default right-button gesture.
-        private readonly int _triggerDownMessage = DevInstance.IsActive ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
-        private readonly int _triggerUpMessage = DevInstance.IsActive ? WM_MBUTTONUP : WM_RBUTTONUP;
+        // B9/#82：随 M1 迁入 StarPie.Gestures 后本集不反向引用 Host 的 DevInstance——
+        // dev 分支改读 Core 的 AppDataPaths.IsDevInstance 回填缝（组合根装配前以
+        // DevInstance.IsActive 回填，语义与迁移前一致；AutostartRegistry 同款，见 layering.md）。
+        private readonly int _triggerDownMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
+        private readonly int _triggerUpMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONUP : WM_RBUTTONUP;
 
         public bool IsPaused { get; set; } = false;
 
@@ -248,7 +251,7 @@ namespace WinPieGestures.Services.Gestures
         {
             _ignoreNextRButtonDown = true;
             _ignoreNextRButtonUp = true;
-            if (DevInstance.IsActive)
+            if (AppDataPaths.IsDevInstance)
             {
                 mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
                 mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
