@@ -20,9 +20,9 @@
 | 程序集 | 形态 | 承载（目标态） |
 |---|---|---|
 | `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；S6 对话框 Window 与 DialogService 实现；Appearance 聚合页；B3 前仍含全部页面与全部业务代码（逐批迁出） |
-| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航内核（NavigationStore/INavigationService/NavigationService/NavigationItemViewModel/NavigationCatalog/槽位表/MainViewModel 纯导航）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；共享页面基类 `Views/Pages/SettingsPageBase`，B6/#79 迁入；宿主回调契约 `Services/AppHostDelegates`，B6/#79 上提；M2 核图标预览转换器与 S6 取色对话框行为暂留 Host，见 §9） |
+| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航内核（NavigationStore/INavigationService/NavigationService/NavigationItemViewModel/NavigationCatalog/槽位表/MainViewModel 纯导航）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；共享页面基类 `Views/Pages/SettingsPageBase`，B6/#79 迁入；宿主回调契约 `Services/AppHostDelegates`，B6/#79 上提；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`，B8/#81 上提；S6 取色对话框行为留 Host，见 §9） |
 | `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页（B9 迁入） |
-| `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（B8 迁入，D5） |
+| `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（**B8/#81 已落地**；含 D5 工厂收编；Wheel → Core 单向 + M4 允许边） |
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录：ProgramScanner/ProgramCatalog/ShortcutResolver（B4/#77 已落地；零 Core 依赖） |
 | `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager（裁决 public——Host AppHost 装配面）（**B7/#80 已落地**；Theme → Core 单向） |
 | `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General+About 设置页（**B6/#79 已落地**；`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
@@ -91,7 +91,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 
 ## 6. DI 与注册契约（目标态）
 
-- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项；**B7/#80 起 M4 以 ThemeModuleRegistrar 落地**：RegisterServices 下放主题服务与主题设置子 VM 注册，M4 无导航页故无 RegisterNavigation）。
+- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项；**B7/#80 起 M4 以 ThemeModuleRegistrar 落地**：RegisterServices 下放主题服务与主题设置子 VM 注册，M4 无导航页故无 RegisterNavigation；**B8/#81 起 M2 以 WheelModuleRegistrar 落地**：RegisterServices 下放轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 注册，M2 无导航页故无 RegisterNavigation——D5 工厂随 M2，M1 手势侧只经 M2 侧接口消费）。
 - **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateAppHost`；模块不解析、不持容器。
 - **已批准解析缝**：`NavigationService<T>`、导航目录执行缝（`INavigationExecutor`，B3/#76 已落地）、
   `WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
@@ -115,6 +115,11 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   构造时 `new` 并 `AttachPaletteApplier`，`ThemeService.AttachPaletteApplier` 同步公开）；
   模块内主题文件映射/缓存/冻结等实现细节保持私有。
 
+  B8/#81 先例（同判据）：M2 的 `WheelFactory`/`IWheelFactory` 与外观设置子 VM 只经同集注册器
+  接线/容器解析，维持 public（被测类型），**无新增 Host 装配面 public 裁决**——RadialWindow
+  由 WheelFactory 在同集内创建，不经 Host 直接 new；`WheelPreviewRenderer` 深浅色探测改由
+  调用方（Host 外观页）以 `bool` 传入（M2 不反向引用 Host `MainView`）。
+
 ## 8. 批次路线 B0–B10（排期）
 
 > 每个批次：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除。
@@ -122,7 +127,6 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B8 | M2 Wheel 抽取（D5：WheelFactory 随 M2、IProfilePreviewSource 上提 Core） | wheel.md、gestures.md、layering.md、modules.md（D5 清零） |
 | B9 | M1 Gestures 抽取（Trigger/Gestures 页收口） | gestures.md、navigation.md、layout.md |
 | B10 | 命名空间统一收尾（原 B8 内容，编号顺延；ADR-0016 决策 12） | 全部叶子 + 测试 + XAML xmlns + resx 生成类 |
 
@@ -136,10 +140,10 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 - B5（共享 UI 基建迁 Core）已落地（#78；前置 B2/#75 已落地）。
 - B6（M5 Shell 抽取）已落地（#79；前置 B3/#76、B5/#78 已落地）。
 - B7（M4 抽取）已落地（#80；前置 B2/#75 已落地——主题 XAML 自包含，不依赖 B5）。
-- B8（M2 抽取，含 D5）← B7（已落地，#80：`RadialWindow` 注入 M4 `StarPie.Theme` 的
-  `IThemeService`；其 XAML 自包含，不依赖 B5）。
+- B8（M2 抽取，含 D5）已落地（#81；前置 B7/#80 已落地——`RadialWindow` 注入 M4
+  `StarPie.Theme` 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
 - B9（M1 抽取）← B5、B8（B3 已落地，#76；共享页面基类 `SettingsPageBase` 已在 Core——B6/#79
-  迁入；`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
+  迁入；`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集——B8/#81 已落地）。
 - B10（命名空间统一）← B9。
 
 ### 8.2 执行期集成面串行约束
@@ -148,16 +152,19 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 
 - `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx`（B2 起含
   `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`；B7/#80 起含
-  `StarPie.Theme.csproj`）同一时间只允许一张票落地。
-  B1/B2/B4/B5/B6/B7（#75–#80）已落地；其余触及这些文件面的批次（B8 起）必须串行合并。
+  `StarPie.Theme.csproj`；B8/#81 起含 `StarPie.Wheel.csproj`）同一时间只允许一张票落地。
+  B1/B2/B4/B5/B6/B7/B8（#75–#81）已落地；其余触及这些文件面的批次（B9 起）必须串行合并。
 - `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78（ModernControls
-  迁 Core）与 B7/#80（M4 Themes XAML 拆集 + App.xaml Light 改跨集 pack URI）均已落地；B8 起
-  触及同一资源面的批次须排队集成（架构上无需新增阻塞边）。
+  迁 Core）、B7/#80（M4 Themes XAML 拆集 + App.xaml Light 改跨集 pack URI）与 B8/#81
+  （M2 核图标预览转换器改经 `assembly=StarPie.Wheel` App 级实例）均已落地；B9 起触及同一
+  资源面的批次须排队集成（架构上无需新增阻塞边）。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠，已按串行约束
   先后落地：B6/#79 把 M5 三件（TrayIconManager/AutostartRegistry/MemoryOptimizer）迁入
   `StarPie.Shell/Services/Shell`；B7/#80 把 M4 件（IThemeService/ThemeService/ThemePaletteManager/
   主题字典/主题设置子 VM）迁入 `StarPie.Theme` 并清空 Host 侧目录。此后 M4/M5 文件面不再交叉；
-  B8（M2）与 B9（M1）只迁移各自文件面，仍须一票一验再开始下一票的搬迁。
+  B8/#81 把 M2 件迁入 `StarPie.Wheel` 并清空 Host 侧 Services/Wheel、ViewModels/Wheel、
+  Views/{Wheel,Renderers,Converters} 目录；余下 B9（M1）只迁移 M1 文件面，仍须一票一验
+  再开始下一票的搬迁。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
 
 这是一条**执行协调规则**，不是新增业务依赖；它不改变 B0–B10 的拓扑，只约束共享集成面的写入顺序。
@@ -168,7 +175,8 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 `StarPie.Core`，WPF 类库）+ M3 模块程序集（`StarPie.Programs/`，程序集 `StarPie.Programs`，WPF
 类库）+ M5 模块程序集（`StarPie.Shell/`，程序集 `StarPie.Shell`，WPF 类库，B6/#79 起）+
 M4 模块程序集（`StarPie.Theme/`，程序集 `StarPie.Theme`，WPF 类库，B7/#80 起）+
-`WinPieGestures.Tests`（显式引用五工程，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
+M2 模块程序集（`StarPie.Wheel/`，程序集 `StarPie.Wheel`，WPF 类库，B8/#81 起）+
+`WinPieGestures.Tests`（显式引用六工程，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
 S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
 NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core。**B3/#76 已落地**：`MainViewModel`
 目录驱动后迁入 Core（无页面类型硬编码）；导航执行走 `INavigationExecutor` 目录执行缝；exe 内按
@@ -184,8 +192,9 @@ CreateAppHost 页面 eager 解析清单目录化（语义保留）；MainView.xa
 Host `App.xaml` 经跨程序集 pack URI（`/StarPie.Core;component/Views/Styles/ModernControls.xaml`）
 单点合并该字典，转换器实例仍为 App 级资源；页面/窗口无自合并样式字典。暂留 Host 的 UI 专用件：
 M2 核图标预览转换器（`CoreIconGeometryConverter`/`CoreIconNameConverter`，Appearance 聚合页用；
-Geometry 转换器直连 M2 `WheelGeometry`，B8 收编前 Core 不得反向依赖宿主）与 S6 取色对话框行为
-`SpectrumCanvasBehavior`（依赖 Host `ColorPickerViewModel.SpectrumPoint`；S6 对话框实现留 Host）。
+Geometry 转换器直连 M2 `WheelGeometry`，B8 收编前 Core 不得反向依赖宿主）已随 B8/#81 收编
+M2（见下 B8 段）；S6 取色对话框行为 `SpectrumCanvasBehavior`（依赖 Host
+`ColorPickerViewModel.SpectrumPoint`；S6 对话框实现留 Host）仍留 Host。
 **B6/#79 已落地**：M5 壳层服务与系统设置面成独立模块程序集——TrayIconManager/AutostartRegistry/
 MemoryOptimizer 迁入 `StarPie.Shell/Services/Shell`，GeneralSettingsViewModel+AdvancedSettingsPage 与
 AboutViewModel+AboutSettingsPage 迁入 `StarPie.Shell/ViewModels|Views/Pages`（命名空间维持
@@ -209,9 +218,29 @@ pack URI `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并�
 （RegisterServices 下放 M4 的 DI 注册；M4 无导航页，无 RegisterNavigation/模板字典）；slnx 登记
 StarPie.Theme，Host/Tests 显式 ProjectReference；Host 侧 Services/Shell 与 Views/Styles/Themes
 目录随迁清空。新增 ThemeAssemblyPlacementTests 6 例收口归属/依赖/可见性/BAML/注册器。
+**B8/#81 已落地**：M2 轮盘与渲染成独立模块程序集——轮盘 VM（IWheelViewModel/WheelViewModel/
+IWheelAppearanceState，ViewModels/Wheel）、RadialWindow（Views/Wheel，BAML 随集）、样式渲染器与
+实时预览（Views/Renderers，IRadialStyleRenderer/StyleRendererFactory/BaseStyleRenderer/四风格/
+WheelPreviewRenderer）、轮盘配色（WheelPalette/WheelPaletteCatalog/WheelPaletteParser 自 Core
+Models 物理收编 StarPie.Wheel/Models；CustomColorPreset 仍 Core——AppConfig 配置 POCO 引用）、
+WheelGeometry（Services/Wheel）、轮盘工厂 IWheelFactory/WheelFactory（Services/Wheel，D5 随 M2
+收编，命名空间 `WinPieGestures.Services.Gestures` → `WinPieGestures.Services.Wheel` 与物理目录
+一致）与核图标预览转换器（CoreIconGeometryConverter/CoreIconNameConverter，Views/Converters，
+B5/#78 暂留 Host 的归属裁决：随 M2——Host App.xaml 改经 `assembly=StarPie.Wheel` 实例化）
+迁入 `StarPie.Wheel`（命名空间维持 `WinPieGestures.*`，B10 统一）；外观设置子 VM
+WheelAppearanceSettingsViewModel 迁入 `StarPie.Wheel/ViewModels/Pages`，其 DI 注册与轮盘工厂
+注册下放新增模块注册器 `WheelModuleRegistrar`（RegisterServices；M2 无导航页，无
+RegisterNavigation/模板字典）；预览 Profile 只读契约 IProfilePreviewSource 上提
+`StarPie.Core/ViewModels/Pages`（D5，实现方 M1 ProfileListViewModel 与消费方 M2 外观子 VM
+均只依赖 Core）；WheelPreviewRenderer 深浅色探测改由外观页以 bool 传入（不再引用 Host
+MainView，M2 不反向依赖宿主）；slnx 登记 StarPie.Wheel，Host/Tests 显式 ProjectReference
+（Wheel → Core 单向 + Wheel → Theme 允许边）；Host 侧 Services/Wheel、ViewModels/Wheel、
+Views/{Wheel,Renderers,Converters} 目录随迁清空。新增 WheelAssemblyPlacementTests 6 例
+收口归属/依赖/BAML/D5 接口面/注册器。
 页面 VM/服务的 DI 注册：M4 主题服务与主题设置子 VM 已下放 ThemeModuleRegistrar（B7/#80）、
-M5 两页已下放 ShellModuleRegistrar（B6/#79），其余 M1/Host 页面仍集中组合根（B9 下放）。
-其余两个业务模块程序集（M1/M2）尚未拆分，差异随 B8–B10 逐批回填叶子并清零。
+M5 两页已下放 ShellModuleRegistrar（B6/#79）、M2 轮盘工厂与轮盘外观设置子 VM 已下放
+WheelModuleRegistrar（B8/#81），其余 M1/Host 页面仍集中组合根（B9 下放）。
+其余一个业务模块程序集（M1）尚未拆分，差异随 B9–B10 逐批回填叶子并清零。
 
 ## 参见 ADR
 

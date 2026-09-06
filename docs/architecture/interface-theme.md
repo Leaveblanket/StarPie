@@ -30,8 +30,8 @@ B10 统一收尾）：
   `Services/Messages/Messages.cs`（Core），放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
-DialogService/对话框）与 M2 轮盘侧（B8 前仍驻 Host）经模块程序集引用消费
-`IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的 `Func<bool>` 委托
+DialogService/对话框）与 M2 轮盘侧（B8/#81 起 StarPie.Wheel，经允许边 Wheel → Theme）经模块
+程序集引用消费 `IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的 `Func<bool>` 委托
 （B6/#79 起，Shell 不反向引用 M4）；Theme → Core 单向，不反向引用 Host/其它业务模块。
 
 ## 关键流程

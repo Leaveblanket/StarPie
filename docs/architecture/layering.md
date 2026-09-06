@@ -21,17 +21,20 @@ WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内�
                                           ──→ StarPie.Programs（M3 模块程序集，B4/#77；零 Core 依赖）
                                           ──→ StarPie.Shell（M5 模块程序集，B6/#79；单向 Core）
                                           ──→ StarPie.Theme（M4 界面主题模块程序集，B7/#80；单向 Core）
-WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs + StarPie.Shell + StarPie.Theme
+                                          ──→ StarPie.Wheel（M2 轮盘与渲染模块程序集，B8/#81；单向 Core + M4 允许边）
+WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs + StarPie.Shell + StarPie.Theme + StarPie.Wheel
                        （显式引用，不依赖传递）
 ```
 
 - Core 承载 S1–S6 共享件、Models 与共享 UI 基建（B5/#78：Views/Converters 通用转换器、
   Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml；B6/#79 起含共享页面基类
-  `Views/Pages/SettingsPageBase` 与宿主回调契约 `Services/AppHostDelegates`；`StarPie.Core/`
+  `Views/Pages/SettingsPageBase` 与宿主回调契约 `Services/AppHostDelegates`；B8/#81 起含
+  `ViewModels/Pages/IProfilePreviewSource`（D5 上提，见 [gestures.md](gestures.md)）；`StarPie.Core/`
   目录树见 [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约
-  （方向见 [assemblies.md](assemblies.md) §3）。依赖宿主/M2/S6 对话框的 UI 专用件
-  （CoreIconGeometry/Name 核图标预览转换器、SpectrumCanvasBehavior 取色行为）因此暂留 Host，
-  随 B8 对应批次裁决（见 [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）。
+  （方向见 [assemblies.md](assemblies.md) §3）。依赖宿主/M2 的 UI 专用件（CoreIconGeometry/Name
+  核图标预览转换器）已随 B8/#81 收编 M2（`StarPie.Wheel/Views/Converters/`，裁决随 M2，见
+  [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）；S6 取色对话框行为
+  （SpectrumCanvasBehavior，依赖 Host VM 的 SpectrumPoint）仍留 Host（S6 对话框实现留 Host）。
 - M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
   ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
   组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。
@@ -49,6 +52,16 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   宿主能力处一律经 Core 契约或委托注入（托盘深色配色经组合根注入的 `Func<bool>` 探针、
   AutostartRegistry dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝），不反向引用 Host/M4
   （见 [shell.md](shell.md)/[host.md](host.md)）。
+- M2（`StarPie.Wheel/`，B8/#81）承载轮盘与渲染（轮盘 VM/RadialWindow/渲染器与预览/配色
+  WheelPalette*（物理收编本集 Models）/WheelGeometry 视觉几何/轮盘工厂 IWheelFactory+WheelFactory/
+  CoreIcon* 核图标预览转换器/WheelAppearanceSettingsViewModel/WheelModuleRegistrar）；
+  **单向依赖 Core + 允许 M2→M4（IThemeService）边**：RadialWindow/WheelFactory 消费 M4 的
+  `IThemeService`，轮盘 VM/渲染器/外观子 VM 只消费 Core 契约（S1/S2/S3/S4/S6 与共享 Models；
+  预览 Profile 契约 IProfilePreviewSource 已上提 Core，D5）；轮盘工厂与外观设置子 VM 的 DI 注册经
+  `WheelModuleRegistrar.RegisterServices` 下放模块（M2 无导航页，无 RegisterNavigation），
+  组合根仍唯一 BuildServiceProvider；M2 不反向引用 Host/其它业务模块——预览渲染器深浅色探测
+  改由调用方（Host 外观页）以 `bool` 传入，不再引用 Host `MainView`
+  （见 [wheel.md](wheel.md)/[host.md](host.md)）。
 - 跨程序集回填缝（B2/#75 起，属 H1 装配职责，不是 Core 反向依赖）：
   - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支）；
   - `IconAssets.ResolveShortcutTarget`：组合根装配前以 M3 `ShortcutResolver.ResolveShortcutTarget`
@@ -70,11 +83,14 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 
 1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
-   子 VM `WheelAppearanceSettingsViewModel → IProfilePreviewSource` 经 M1 只读契约读方案列表，
-   #69 起不引用具体 VM 类型）；动态/广播协调一律走 IMessenger；同页状态不得用 messenger 替代绑定。
+   子 VM `WheelAppearanceSettingsViewModel → IProfilePreviewSource` 经共享内核 Core 只读契约
+   读方案列表——B8/#81 起接口上提 Core（D5），#69 起不引用具体 VM 类型）；动态/广播协调一律走
+   IMessenger；同页状态不得用 messenger 替代绑定。
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationService<T>` 持有 `IServiceProvider`（开放泛型注册，[ADR-0005](../adr/0005-di-container-for-navigation.md)）；
-   - `WheelFactory`（Services/Gestures）在服务内组合 `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与 [wheel.md](wheel.md)），仅经 Composition 注册的 `IWheelFactory` 暴露。
+   - `WheelFactory`（B8/#81 起驻 `StarPie.Wheel/Services/Wheel/`，随 M2 收编，D5）在服务内组合
+     `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
+     [wheel.md](wheel.md)），仅经 WheelModuleRegistrar/组合根注册的 M2 侧 `IWheelFactory` 接口暴露。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
 5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0008/0009）。
 
@@ -91,7 +107,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
     `AutostartRegistry` 只被同集注册器接线，保持 internal；B7/#80 同判据：`StarPie.Theme`
     的 `ThemePaletteManager` 与 `ThemeService.AttachPaletteApplier`——`AppHost` 构造时
-    `new` 调色板管理器并 Attach 换入回调）。
+    `new` 调色板管理器并 Attach 换入回调；B8/#81 同判据：`StarPie.Wheel` 的轮盘工厂与外观
+    设置子 VM 只经同集注册器接线/容器解析，维持 public（被测类型），无新增 Host 装配面
+    public 裁决——RadialWindow 由 WheelFactory 在同集内创建，不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。

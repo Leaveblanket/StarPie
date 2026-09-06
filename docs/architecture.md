@@ -60,6 +60,12 @@
   界面主题体系（ThemeService/IThemeService、ThemePaletteManager（public，Host AppHost 装配面）、
   五套主题字典 Views/Styles/Themes、InterfaceThemeSettingsViewModel 与模块注册器
   ThemeModuleRegistrar），单向依赖共享内核；命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
+- 模块程序集（B8/#81 起）：`StarPie.Wheel/`（WPF 类库，程序集 `StarPie.Wheel`）承载 M2
+  轮盘与渲染（轮盘 VM ViewModels/Wheel、RadialWindow、Views/Renderers 样式渲染器与预览、
+  Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
+  WheelGeometry 视觉几何与 WheelFactory/工厂接口（D5，ADR-0016 决策 11）与模块注册器
+  WheelModuleRegistrar），单向依赖共享内核并允许 M2→M4（IThemeService）边；命名空间维持
+  `WinPieGestures.*`（B10 统一收尾）。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
@@ -84,11 +90,12 @@ StarPie/
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（B4/#77 起，见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（B6/#79 起，见 layout.md）
 ├── StarPie.Theme/               # M4 界面主题模块程序集（B7/#80 起，见 layout.md）
+├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（B8/#81 起，见 layout.md）
 ├── WinPieGestures.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Programs、Shell 与 Theme；不依赖传递引用，ADR-0016/B2/B4/B6/B7）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Programs、Shell、Theme 与 Wheel；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 
