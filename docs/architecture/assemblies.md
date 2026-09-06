@@ -122,6 +122,17 @@ StarPie (Host/exe) ──→ StarPie.Core
 - B9（M1 抽取）← B3、B5、B8（页面共享 `SettingsPageBase`、`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
 - B10（命名空间统一）← B9。
 
+### 8.2 执行期集成面串行约束
+
+上述阻塞边描述的是**架构上的硬前置**；它们不等于可以无冲突地并行修改。为避免多个 agent 同时改动组合根和工程入口，执行时还需遵守以下集成面互斥规则：
+
+- `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx` 同一时间只允许一张票落地。B1/B2/B4 均会触及其中至少一项，必须串行合并（B4 逻辑上仍可提前开发）。
+- `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5 与 B7 不得并行合并；二者架构上无需新增阻塞边，但必须排队集成。
+- `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠。B6 与 B7 不得同时进行文件搬迁；先完成一票并通过构建，再开始另一票的搬迁。
+- agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
+
+这是一条**执行协调规则**，不是新增业务依赖；它不改变 B0–B10 的拓扑，只约束共享集成面的写入顺序。
+
 ## 9. 现状对照与差异登记
 
 代码现状 = 单程序集（`WinPieGestures` exe）+ `WinPieGestures.Tests`；程序集地图、导航槽位表、注册器契约均为目标态，尚未在代码落地。差异随 §8 批次逐批回填叶子并清零；B0 仅登记路线，不改代码。
