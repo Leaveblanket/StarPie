@@ -40,10 +40,10 @@ StarPie/
 │       ├── Dialogs/               # 对话框 Window
 │       ├── Navigation/            # MainView、SidebarView
 │       ├── Wheel/                 # RadialWindow
-│       ├── Controls/              # 自定义控件与附加行为（纯 UI 适配）
-│       ├── Converters/            # 值转换器
+│       ├── Controls/              # 附加行为（SpectrumCanvasBehavior，S6 取色对话框专用；HotkeyRecorderBox 已迁 Core，B5/#78）
+│       ├── Converters/            # M2 核图标预览转换器（CoreIconGeometry/Name，B5/#78 暂留 Host，B8 裁决）
 │       ├── Renderers/             # 轮盘样式渲染器（纯视觉）
-│       └── Styles/                # 共享样式资源
+│       └── Styles/                # Themes/*.xaml 主题画刷令牌（五套同 key 集，M4/B7 拆集迁出）
 ├── StarPie.Core/                  # 共享内核（WPF 类库，程序集 StarPie.Core；命名空间 WinPieGestures.*，B10 收口）
 │   ├── StarPie.Core.csproj        # SDK 工程文件（RootNamespace=WinPieGestures；resx 生成器随 S3 迁入）
 │   ├── GlobalUsings.cs            # 工程级全局 using（仅 Core 命名空间）
@@ -64,8 +64,12 @@ StarPie/
 │   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
 │   │   └── Navigation/            # S5：导航内核 + NavigationCatalog/NavigationSlots（槽位表 0–4）
-│   └── ViewModels/
+│   ├── ViewModels/
 │       └── Navigation/            # S5：NavigationItemViewModel、MainViewModel（B3/#76 迁入，目录驱动）
+│   └── Views/                     # 共享 UI 基建（B5/#78 迁入）
+│       ├── Converters/            # 通用共享转换器：HexToBrush/StringToGeometry/IntEquals/FilePathToImage
+│       ├── Controls/              # 共享自定义控件：HotkeyRecorderBox（模板样式在 Styles/ModernControls.xaml）
+│       └── Styles/                # ModernControls.xaml 全局控件样式字典（仅由 Host App.xaml 合并）
 ├── StarPie.Programs/              # M3 模块程序集（WPF 类库，程序集 StarPie.Programs；命名空间 WinPieGestures.*，B10 收口；B4/#77 起）
 │   ├── StarPie.Programs.csproj    # SDK 工程文件（RootNamespace=WinPieGestures；零 Core/Host 依赖）
 │   └── Services/Programs/         # M3：ProgramScanner、ProgramCatalog(+ProgramEntry)、ShortcutResolver
@@ -74,17 +78,20 @@ StarPie/
 
 > 程序集归属：目录名在 `StarPie.Core/` 与 `WinPieGestures/` 中各自保持“命名空间 = 物理目录”；
 > 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Icons|Localization|Messages|Navigation、
-> ViewModels/Navigation/NavigationItemViewModel.cs）只存在于 `StarPie.Core/`，业务目录只存在于
+> ViewModels/Navigation/NavigationItemViewModel.cs）与共享 UI 基建（Views/Converters|Controls、
+> Views/Styles/ModernControls.xaml，B5/#78 迁入）只存在于 `StarPie.Core/`，业务目录只存在于
 > `WinPieGestures/`；M3 业务目录（`Services/Programs/`）只存在于 `StarPie.Programs/`（B4/#77 起），
-> 其余业务目录在 B5–B10 前仍留 `WinPieGestures/`。依赖方向见 [assemblies.md](assemblies.md) §3。
+> 其余业务目录在 B6–B10 前仍留 `WinPieGestures/`。依赖方向见 [assemblies.md](assemblies.md) §3。
 
 ## 各目录职责细则
 
-> 目录相对所属工程：共享内核件（`Models/`、`Services/Configuration/`、`Services/Dialogs/` 契约、
-> `Services/Icons/`、`Services/Localization/`、`Services/Messages/`、`Services/Navigation/`、
-> `ViewModels/Navigation/NavigationItemViewModel.cs` 与 `MainViewModel.cs`（B3/#76 迁入））位于
-> `StarPie.Core/`；M3 三件（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`，B4/#77 迁入）位于
-> `StarPie.Programs/Services/Programs/`；其余位于 `WinPieGestures/`（Host）。
+> 目录相对所属工程：共享内核件位于 `StarPie.Core/`——`Models/`、`Services/Configuration`|
+> `Dialogs`(契约)|`Icons`|`Localization`|`Messages`|`Navigation`、`ViewModels/Navigation/`
+> （`NavigationItemViewModel.cs`，B2/#75）与 `MainViewModel.cs`（B3/#76 迁入），以及共享 UI 基建
+> `Views/Converters/`（通用转换器）、`Views/Controls/`（`HotkeyRecorderBox`）、`Views/Styles/`
+> （`ModernControls.xaml`，B5/#78 迁入）；M3 三件（`ProgramScanner`/`ProgramCatalog`/
+> `ShortcutResolver`，B4/#77 迁入）位于 `StarPie.Programs/Services/Programs/`；其余位于
+> `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
@@ -109,11 +116,19 @@ StarPie/
 | `Views/Dialogs/` | `{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |
 | `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 为纯壳（B3/#76 起页面 DataTemplate 已迁出至 `Modules/` 模块模板字典） | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
 | `Views/Wheel/` | `RadialWindow.xaml(.cs)` | 轮盘状态决策在 `WheelViewModel`，窗口只做视觉呈现与生命周期；见 [wheel.md](wheel.md) |
-| `Views/Controls/` | 自定义控件与附加行为（`HotkeyRecorderBox.cs`、`SpectrumCanvasBehavior.cs`），仅纯 UI 适配 | 有 `Command`/绑定等价物时不得新增行为 |
-| `Views/Converters/` | `XxxToYyyConverter` | 转换器保持无状态、可静态复用 |
+| `Views/Controls/` | Host 只留附加行为 `SpectrumCanvasBehavior.cs`（S6 取色对话框专用，依赖 Host VM `SpectrumPoint`）；共享自定义控件 `HotkeyRecorderBox.cs` 已迁 Core（B5/#78） | 有 `Command`/绑定等价物时不得新增行为 |
+| `Views/Converters/` | Host 只留 M2 核图标预览转换器（`CoreIconGeometryConverter`/`CoreIconNameConverter`，B5/#78 暂留，B8 随 M2 收编时裁决归属）；通用转换器已迁 Core | 转换器保持无状态、可静态复用 |
 | `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷，不内联方案 hex 表 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
-| `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集）、`ModernControls.xaml`（隐式默认/键控变体/共享模板，仅由 `App.xaml` 合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
+| `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集，M4/B7 拆集迁出）；全局控件样式字典 `ModernControls.xaml` 已迁 Core（B5/#78，Host `App.xaml` 经跨程序集 pack URI 单点合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
 | `Modules/`（B3/#76 临时） | M1/M5/Host 模块注册器（`RegisterNavigation`）+ 页面模板字典（`M1/M5/HostPageTemplates.xaml`，App 级每模块一次静态合并） | 不承载业务；导航自治样板，随 B6/B9 模块拆集迁出 |
+
+### 共享内核 UI 目录（B5/#78 起）
+
+| 目录 | 存放什么 | 不放什么 / 常见违规 |
+|---|---|---|
+| `StarPie.Core/Views/Converters/` | 通用共享转换器：`HexToBrushConverter`（hex→Brush，配 Core `Models/RgbColor`）、`StringToGeometryConverter`（SVG 路径→Geometry）、`IntEqualsConverter`、`FilePathToImageConverter`（本地图片→缩略图）；实例由 Host `App.xaml` App 级单点持有（ADR-0012 决策 5） | 不得引用 Host/业务模块类型（Core 反向依赖禁区）；M2 核图标预览转换器不在此目录（留 Host，B8 裁决） |
+| `StarPie.Core/Views/Controls/` | 共享自定义控件 `HotkeyRecorderBox`（隐式默认样式模板在 `Views/Styles/ModernControls.xaml`） | 不放对话框专用行为（`SpectrumCanvasBehavior` 留 Host，依赖 Host VM） |
+| `StarPie.Core/Views/Styles/` | `ModernControls.xaml` 全局控件样式字典（隐式默认/键控变体/共享模板；仅由 Host `App.xaml` 经 `pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml` 合并） | 不放主题画刷令牌（`Themes/*.xaml` 属 M4，B7 前居 Host） |
 
 ### 模块程序集目录（B4/#77 起）
 
@@ -130,7 +145,7 @@ StarPie/
 - `ThemePaletteManager.cs`：宿主层主题调色板整项替换（internal，自包含加载/缓存/冻结；仅 `AppHost` 编排调用，见 [shell.md](shell.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - `StarPie.Core.csproj` / `GlobalUsings.cs`：共享内核工程入口；`StarPie.Core/` 源码根目录**只允许**
-  上表列出的共享内核目录与文件（B2/#75 起）。
+  上表列出的共享内核目录与文件（B2/#75 起；B5/#78 起含 `Views/Converters|Controls|Styles` 共享 UI 基建）。
 - `StarPie.Programs.csproj`：M3 模块程序集工程入口（B4/#77 起）；`StarPie.Programs/` 源码根目录
   **只允许** `Services/Programs/`（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`）。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
@@ -148,6 +163,13 @@ StarPie/
 
 已消除的历史偏差（2026-09-04）：
 
+- **B5/#78（2026-09-06）**：共享 UI 基建迁共享内核——通用转换器（`HexToBrushConverter`/
+  `StringToGeometryConverter`/`IntEqualsConverter`/`FilePathToImageConverter`）、共享自定义控件
+  `HotkeyRecorderBox` 与全局控件样式字典 `ModernControls.xaml` 迁入 `StarPie.Core/Views/`
+  （Converters/Controls/Styles，命名空间不变）；Host `App.xaml` 对该字典改经跨程序集 pack URI
+  单点合并；M2 核图标预览转换器（CoreIconGeometry/Name）与 S6 取色对话框行为
+  （SpectrumCanvasBehavior）因宿主/M2 依赖暂留 Host（B8 前 Core 不得反向依赖宿主，见
+  [assemblies.md](assemblies.md) §9）。
 - **B4/#77（2026-09-06）**：M3 三件（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`）与
   `ProgramEntry` 迁入首个独立模块程序集 `StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）；
   Host/Tests 显式引用、slnx 登记；M3 零 Core 依赖——扫描结果的图标补全改经组合根注入的 S1

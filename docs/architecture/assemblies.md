@@ -20,7 +20,7 @@
 | 程序集 | 形态 | 承载（目标态） |
 |---|---|---|
 | `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；S6 对话框 Window 与 DialogService 实现；Appearance 聚合页；B3 前仍含全部页面与全部业务代码（逐批迁出） |
-| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航内核（NavigationStore/INavigationService/NavigationService/NavigationItemViewModel/NavigationCatalog/槽位表/MainViewModel 纯导航）；共享 UI 基建（Converters/Controls/ModernControls，B5 迁入） |
+| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航内核（NavigationStore/INavigationService/NavigationService/NavigationItemViewModel/NavigationCatalog/槽位表/MainViewModel 纯导航）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；M2 核图标预览转换器与 S6 取色对话框行为暂留 Host，见 §9） |
 | `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页（B9 迁入） |
 | `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（B8 迁入，D5） |
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录：ProgramScanner/ProgramCatalog/ShortcutResolver（B4/#77 已落地；零 Core 依赖） |
@@ -104,7 +104,6 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B5 | 共享 UI 基建迁 Core（Converters/Controls/ModernControls + App.xaml pack URI） | layout.md、interface-theme.md |
 | B6 | M5 Shell 抽取（Advanced/About 页随集；宿主回调走 Core 契约；ShellViewModel 留 Host 核对） | shell.md、navigation.md、host.md、layout.md |
 | B7 | M4 Theme 抽取（含 ThemePaletteManager 可见性裁决） | interface-theme.md、host.md、layout.md |
 | B8 | M2 Wheel 抽取（D5：WheelFactory 随 M2、IProfilePreviewSource 上提 Core） | wheel.md、gestures.md、layering.md、modules.md（D5 清零） |
@@ -118,7 +117,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 - B2（Core 抽取）← None（已落地，#75）。
 - B3（导航自治 + MainViewModel 迁 Core）已落地（#76；前置 B2/#75 已落地）。
 - B4（M3 Programs 抽取）← None（已落地，#77：零 Core 依赖、无 DI 注册，注册器样板随 B6）。
-- B5（共享 UI 基建迁 Core）← B2。
+- B5（共享 UI 基建迁 Core）已落地（#78；前置 B2/#75 已落地）。
 - B6（M5 抽取）← B5（B3 已落地，#76）。
 - B7（M4 抽取）← B2（主题 XAML 自包含，不依赖 B5）。
 - B8（M2 抽取，含 D5）← B7（`RadialWindow` 注入 M4 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
@@ -131,8 +130,9 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 
 - `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx`（B2 起含
   `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`）同一时间只允许一张票落地。
-  B1/B2/B4 已落地；其余触及这些文件面的批次（B5 起）必须串行合并。
-- `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5 与 B7 不得并行合并；二者架构上无需新增阻塞边，但必须排队集成。
+  B1/B2/B4/B5 已落地；其余触及这些文件面的批次（B6 起）必须串行合并。
+- `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78 已落地；后续
+  B7（M4 Themes XAML 拆集）触及同一资源面，必须与其它批次排队集成（架构上无需新增阻塞边）。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠。B6 与 B7 不得同时进行文件搬迁；先完成一票并通过构建，再开始另一票的搬迁。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
 
@@ -151,9 +151,17 @@ CreateAppHost 页面 eager 解析清单目录化（语义保留）；MainView.xa
 **B4/#77 已落地**：M3 三件（ProgramScanner/ProgramCatalog(+ProgramEntry)/ShortcutResolver）迁入
 `StarPie.Programs`（slnx 登记；Host/Tests 显式 ProjectReference）；M3 零 Core 依赖——扫描图标
 补全经组合根注入的 S1 `IconAssets.GetIcon` 委托，`IconAssets.ResolveShortcutTarget` 回填缝指向
-`StarPie.Programs` 的 `ShortcutResolver`。`AppHostDelegates` 上提延至 B6；页面 VM 的 DI 注册仍
-集中组合根（模块服务注册器样板随 B6 起落地）。其余四个业务模块程序集（M1/M2/M4/M5）尚未拆分，
-差异随 B5–B10 逐批回填叶子并清零。
+`StarPie.Programs` 的 `ShortcutResolver`。**B5/#78 已落地**：共享 UI 基建迁 Core——四个通用转换器
+（`HexToBrushConverter`/`StringToGeometryConverter`/`IntEqualsConverter`/`FilePathToImageConverter`）
+、共享自定义控件 `HotkeyRecorderBox` 与全局控件样式字典 `ModernControls.xaml` 物理迁入
+`StarPie.Core/Views/{Converters,Controls,Styles}`（命名空间维持 `WinPieGestures.*`，B10 统一）；
+Host `App.xaml` 经跨程序集 pack URI（`/StarPie.Core;component/Views/Styles/ModernControls.xaml`）
+单点合并该字典，转换器实例仍为 App 级资源；页面/窗口无自合并样式字典。暂留 Host 的 UI 专用件：
+M2 核图标预览转换器（`CoreIconGeometryConverter`/`CoreIconNameConverter`，Appearance 聚合页用；
+Geometry 转换器直连 M2 `WheelGeometry`，B8 收编前 Core 不得反向依赖宿主）与 S6 取色对话框行为
+`SpectrumCanvasBehavior`（依赖 Host `ColorPickerViewModel.SpectrumPoint`；S6 对话框实现留 Host）。
+`AppHostDelegates` 上提延至 B6；页面 VM 的 DI 注册仍集中组合根（模块服务注册器样板随 B6 起落地）。
+其余四个业务模块程序集（M1/M2/M4/M5）尚未拆分，差异随 B6–B10 逐批回填叶子并清零。
 
 ## 参见 ADR
 
