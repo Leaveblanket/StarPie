@@ -31,9 +31,9 @@ namespace WinPieGestures.Tests;
 /// B5/#78 暂留 Host 的归属裁决：随 M2）迁入 <c>StarPie.Wheel</c>；模块注册器
 /// <see cref="WheelModuleRegistrar"/> 下放轮盘工厂与外观设置子 VM 的 DI 注册。
 /// D5 解结（ADR-0016 决策 11）：轮盘工厂实现随 M2、<see cref="IWheelFactory"/> 留 M2 侧接口，
-/// M1 手势侧（Host <see cref="GestureEngine"/>）只经接口消费；预览 Profile 只读契约
-/// <see cref="IProfilePreviewSource"/> 上提共享内核 Core（实现方 M1 ProfileListViewModel、
-/// 消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
+/// M1 手势侧（<see cref="GestureEngine"/>，B9/#82 起随 StarPie.Gestures 成集）只经接口消费；
+/// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 上提共享内核 Core（实现方 M1
+/// ProfileListViewModel、消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
 /// 命名空间维持 WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。
 /// Wheel → Core 单向 + Wheel → Theme 允许边（IThemeService），不引用 Host/其它业务模块。
 /// </summary>
@@ -105,9 +105,9 @@ public sealed class WheelAssemblyPlacementTests
         Assert.Equal("StarPie.Wheel", typeof(IWheelFactory).Assembly.GetName().Name);
         Assert.True(typeof(IWheelFactory).IsAssignableFrom(typeof(WheelFactory)));
 
-        // M1 手势侧（GestureEngine 仍驻 Host，B9 收编 M1 前）构造注入的是 M2 接口——
-        // Host → StarPie.Wheel 仅接口面，不反向组装 M2 瞬态轮盘。
-        Assert.Equal("StarPie", typeof(GestureEngine).Assembly.GetName().Name);
+        // M1 手势侧（GestureEngine，B9/#82 起驻 StarPie.Gestures）构造注入的是 M2 接口——
+        // StarPie.Gestures → StarPie.Wheel 仅接口面，不反向组装 M2 瞬态轮盘。
+        Assert.Equal("StarPie.Gestures", typeof(GestureEngine).Assembly.GetName().Name);
         var wheelFactoryParam = typeof(GestureEngine)
             .GetConstructors()
             .Single()
@@ -115,6 +115,10 @@ public sealed class WheelAssemblyPlacementTests
             .Single(p => p.Name == "wheelFactory");
         Assert.Equal(typeof(IWheelFactory), wheelFactoryParam.ParameterType);
         Assert.Equal("StarPie.Wheel", wheelFactoryParam.ParameterType.Assembly.GetName().Name);
+
+        // M1→M2 单向成立：GestureEngine 所在程序集不反向引用 Host（其余跨 M 契约经 Core）。
+        string?[] m1References = typeof(GestureEngine).Assembly.GetReferencedAssemblies().Select(a => a.Name).ToArray();
+        Assert.DoesNotContain("StarPie", m1References);
     }
 
     [Fact]
@@ -134,7 +138,8 @@ public sealed class WheelAssemblyPlacementTests
         services.AddSingleton<ILocalizationService>(localization);
         services.AddSingleton<IMessenger>(TestHub.NewMessenger());
         services.AddSingleton<IDialogService>(new TestDialogService());
-        // M1 实现方（ProfileListViewModel）仍驻 Host：以只读契约别名注册替身，镜像 Composition 装配。
+        // M1 实现方（ProfileListViewModel，B9/#82 起驻 StarPie.Gestures）：本用例只验证 M2 注册器
+        // 对只读契约的消费，以替身注册别名即可（真实别名装配由 GesturesModuleRegistrar 覆盖）。
         services.AddSingleton<IProfilePreviewSource>(new FakeProfilePreviewSource());
         // IThemeService 由 M4 注册器提供（Wheel 消费允许边）。
         ThemeModuleRegistrar.RegisterServices(services);

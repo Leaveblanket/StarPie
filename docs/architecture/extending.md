@@ -7,11 +7,12 @@
 1. 先确认功能域、模型与 `config.json` 兼容性（新字段带默认值，不改旧字段语义）。
 2. 纯逻辑放 Services 纯函数/引擎；副作用放可注入服务或组合根注入的委托。
 3. VM 只含状态、命令、消息；View 只含布局与纯 UI 效果；引用遵守 [layering.md](layering.md)（依赖矩阵）。
-4. 服务/页面 VM 注册：B6/#79 起 M5 在 `StarPie.Shell` 的 `ShellModuleRegistrar` 内注册
-   （RegisterServices），其余在 B9 前仍于 `Composition.cs` 注册（见 [host.md](host.md)）；导航项经
-   所属模块注册器 `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（M5 在
-   `StarPie.Shell/Modules/ShellPageTemplates.xaml`，见 [navigation.md](navigation.md)），映射表
-   （[naming.md](naming.md)）同步登记。
+4. 服务/页面 VM 注册：B6/#79 起 M5 在 `StarPie.Shell` 的 `ShellModuleRegistrar`、B9/#82 起 M1
+   在 `StarPie.Gestures` 的 `GesturesModuleRegistrar` 内注册（RegisterServices），Host 外观聚合页
+   仍在 `Composition.cs` 注册（见 [host.md](host.md)）；导航项经所属模块注册器
+   `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（M5 在
+   `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在 `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`，
+   见 [navigation.md](navigation.md)），映射表（[naming.md](naming.md)）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本用 `I18n` 键 + 四语言值，并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](localization.md)）。
 7. 新增单测：`WinPieGestures.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
@@ -30,16 +31,17 @@
 
 ## 原型 B：新增设置页面
 
-1. **VM**：M5 页面在 `StarPie.Shell/ViewModels/Pages/{Domain}SettingsViewModel.cs`、其余在 exe
-   `ViewModels/Pages/`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger`
+1. **VM**：M5 页面在 `StarPie.Shell/ViewModels/Pages/`、M1 页面在 `StarPie.Gestures/ViewModels/Pages/`、
+   Host 页面在 exe `ViewModels/Pages/`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger`
    或组合根/模块注册器委托；单例注册）。
-2. **View**：M5 页面在 `StarPie.Shell/Views/Pages/{Page}Page.xaml(.cs)`、其余在 exe `Views/Pages/`，
-   无参构造；仅布局与 ADR-0009 白名单 code-behind（共享基类 `SettingsPageBase` 在 Core）。
-3. **注册与接线（B3/#76 目录驱动；B6/#79 跨程序集）**：页面 VM 注册——M5 由
-   `ShellModuleRegistrar.RegisterServices` 下放模块程序集，其余在 B9 前仍于
-   `Composition.ConfigureServices` → 所属模块注册器 `RegisterNavigation(NavigationCatalog)` 加一行
-   （槽位/AutomationId/TitleKey/IconData；M5 为 `StarPie.Shell` 的 ShellModuleRegistrar，M1/Host 仍
-   exe 临时注册器）→ 所属模块页面模板字典加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
+2. **View**：M5 页面在 `StarPie.Shell/Views/Pages/`、M1 页面在 `StarPie.Gestures/Views/Pages/`、
+   Host 页面在 exe `Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（共享基类 `SettingsPageBase` 在 Core）。
+3. **注册与接线（B3/#76 目录驱动；B6/#79 起跨程序集，B9/#82 起 M1 同款）**：页面 VM 注册——M5 由
+   `ShellModuleRegistrar.RegisterServices`、M1 由 `GesturesModuleRegistrar.RegisterServices` 下放
+   模块程序集，Host 页仍在 `Composition.ConfigureServices` → 所属模块注册器
+   `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/TitleKey/IconData；M5 为
+   `StarPie.Shell` 的 ShellModuleRegistrar、M1 为 `StarPie.Gestures` 的 GesturesModuleRegistrar、
+   Host 为 exe 内 HostModuleRegistrar）→ 所属模块页面模板字典加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
    eager 启动解析与侧栏导航项由目录自动纳入，无需再改组合根清单。
 4. **i18n**：导航标题/壳层文案键 + 四语言 + 盘点。
 5. **测试**：页面 VM 单测；`NavigationTests` 如涉及导航项列表需同步。
@@ -75,7 +77,11 @@
 ## 原型 F：新增后台服务/监听器
 
 1. **接口与实现**：`Services/{Feature}/IXxxService.cs` + `XxxService.cs`（同目录）；副作用经构造注入接缝。
-2. **注册**：`Composition.ConfigureServices` 注册（默认单例）；若需组合根保活（订阅事件/消息），仿 `GestureController`/`SettingsSaveOrchestrator` 在组合根持有字段并在 `Run()` 解析。
+2. **注册**：所属模块注册器 `RegisterServices` 注册（默认单例；B9/#82 起 M1 为
+   `GesturesModuleRegistrar`，Host 侧件仍 `Composition.ConfigureServices`）；若需启动保活
+   （订阅事件/消息），仿 `GestureController`（M1 注册器登记、`CreateAppHost` 经容器 eager 解析）/
+   `SettingsSaveOrchestrator` 模式在组合根或注册器接线。
 3. **线程边界**：钩子/后台线程事件不得直接改 VM/UI；经 Dispatcher 封送（`WheelFactory.DispatchedWheelViewModel` 模式——B8/#81 起工厂驻 `StarPie.Wheel/Services/Wheel/`，M1 只经 `IWheelFactory` 接口）或由 UI 线程组件消费。
-4. **生命周期**：实现 `IDisposable` 并在 `Composition.Dispose` 停止/退订（`MouseHook.Stop`、I18n 退订模式）。
+4. **生命周期**：实现 `IDisposable` 并在 `Composition.Dispose`/`AppHost.Dispose` 停止/退订
+   （`MouseHook.Stop`、I18n 退订模式）。
 5. **测试**：决策逻辑纯函数/引擎单测；系统调用经注入假体验证；集成性质不测（如 `ProgramScanner`、注册表）。

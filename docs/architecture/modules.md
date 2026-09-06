@@ -29,13 +29,15 @@
 
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
-- `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 M1/Host 临时注册器 + M5 正式注册器
+- `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 Host 临时注册器（M1/M5 已随 B9/#82/
+  B6/#79 迁出）+ M1/M5 正式注册器 `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）/
   `ShellModuleRegistrar`（B6/#79 迁入 `StarPie.Shell`）`RegisterNavigation` + 模块页面模板字典 +
   [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar、M4 主题服务与
   主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
   M2 轮盘工厂与轮盘外观设置子 VM DI 注册已下放 `WheelModuleRegistrar`（B8/#81 迁入
-  `StarPie.Wheel`，M2 无导航页），M1/Host 在 B9 前仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，
-  见 [assemblies.md](assemblies.md) §5）；
+  `StarPie.Wheel`，M2 无导航页），M1 手势管线/页面 VM/`IProfilePreviewSource` 别名 DI 注册已下放
+  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；仅 Host 外观聚合页 VM 仍由组合根
+  注册；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
   （`SettingsPageBase`，B6/#79 迁入），无业务归属，非模块）；
@@ -119,7 +121,8 @@
   [assemblies.md](assemblies.md) §4）。
 - **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
   （B3/#76 起 exe 内先行；B6/#79 起 M5 已跨程序集自治——新增 M5 页面只动模块内部，页面 VM DI 注册
-  随 ShellModuleRegistrar 下放；M1 页面 VM DI 注册随 B9 下放）；目标态为 S5/H1 之外的模块自治
+  随 ShellModuleRegistrar 下放；B9/#82 起 M1 同款自治——新增 M1 页面只动
+  `StarPie.Gestures` 模块内部，页面 VM DI 注册随 GesturesModuleRegistrar 下放）；目标态为 S5/H1 之外的模块自治
   （见 [assemblies.md](assemblies.md) §5）。
 
 #### S6 对话框
@@ -144,7 +147,7 @@
 | R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
 | R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
-| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9 M1 再迁；目标态见 [assemblies.md](assemblies.md) §4 |
+| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9/#82 M1 模板字典随 `StarPie.Gestures` 迁出（GesturesModuleRegistrar/GesturesPageTemplates.xaml），exe 仅余 Host 外观页模板；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
@@ -176,10 +179,12 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 `StarPie.Wheel/Services/Wheel/`，`IWheelFactory` 留 M2 侧接口（M1→M2 单向成立），
 `IProfilePreviewSource` 已上提 Core（`StarPie.Core/ViewModels/Pages/`，实现方 M1
 ProfileListViewModel 与消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
-M2 构造契约变更不再波及 Host/M1 装配点；仍驻 Host 的 M1 手势侧只经接口引用 M2。
+M2 构造契约变更不再波及 Host/M1 装配点；M1 手势侧自 B9/#82 起随 `StarPie.Gestures` 成集，
+仍只经接口引用 M2（M1→M2 单向）。
 
 ### D6 页面壳
-- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1）；
+- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1；B9/#82 已随 `StarPie.Gestures` 成集：
+  VM+View+注册器+模板字典均在模块程序集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳（#56 已实现）；
 - Advanced/About 设置页 = M5 的设置面（B6/#79 已随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
   均在模块程序集内，新增页面不碰 Host）；
@@ -190,7 +195,7 @@ M2 构造契约变更不再波及 Host/M1 装配点；仍驻 Host 的 M1 手势�
 | 原型/场景 | 示例 | 只动 | 放行共享面 |
 |---|---|---|---|
 | A 新增设置项 | 现有页加开关 | 所属模块 VM | S2 模型字段、S3 文案键 |
-| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B6/#79 起 M5：只动 `StarPie.Shell` 模块内部（ShellModuleRegistrar 的 RegisterNavigation/RegisterServices + ShellPageTemplates.xaml + 页面 VM/View），不碰 Host；M1/Host：B9 前仍 exe 内临时注册器 + 模板字典、页面 VM DI 注册在组合根；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B6/#79 起 M5：只动 `StarPie.Shell` 模块内部；B9/#82 起 M1：只动 `StarPie.Gestures` 模块内部（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页仍 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根（目标态 Host 页）；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框 | 新模态 | S6 内部 | 调用方模块一行（经 `IDialogService`） |
 | D 新增动作类型 | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射） | 新图标资产 → S1；S3 文案；config 兼容 |
 | E 新增轮盘样式 | 新 Renderer | M2 内部（渲染器/工厂/配色目录/外观选项） | S3 文案 |
@@ -218,12 +223,15 @@ M2 构造契约变更不再波及 Host/M1 装配点；仍驻 Host 的 M1 手势�
 > Wheel 抽取，含 D5 解结）已落地**：M2 轮盘件（VM/窗口/渲染器/配色/工厂 + 核图标预览转换器）迁入
 > 独立模块程序集 `StarPie.Wheel`；D5 清零——`WheelFactory` 随 M2 收编、`IWheelFactory` 留 M2 侧
 > 接口、`IProfilePreviewSource` 上提 Core；R8 物理落位同步（WheelPalette* 随 M2 收编、
-> CustomColorPreset 仍 Core）。下表逐叶对照已无差异。
+> CustomColorPreset 仍 Core）。**B9/#82（模块化 M1 Gestures 抽取·收口）已落地**：M1 手势件
+> （手势管线/动作执行/触发+手势设置页）迁入独立模块程序集 `StarPie.Gestures`，模块注册器
+> GesturesModuleRegistrar 下放 DI 与 `IProfilePreviewSource` 别名，7 程序集目标态除命名空间外
+> 达成。下表逐叶对照已无差异。
 
 | 现状叶子 | 目标归属 | 差异（批次登记） |
 |---|---|---|
 | [dialogs.md](dialogs.md) | S6 | —（B4/T3c–#67 接线落地 + #71 登记清零） |
-| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全；B8/#81 D5 已清零：工厂随 M2、M1 只经 IWheelFactory 接口引用） |
+| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全；B8/#81 D5 已清零：工厂随 M2、M1 只经 IWheelFactory 接口引用；B9/#82 已清零：M1 成集 StarPie.Gestures + GesturesModuleRegistrar） |
 | [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
 | [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
 | [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
@@ -240,8 +248,10 @@ M2 构造契约变更不再波及 Host/M1 装配点；仍驻 Host 的 M1 手势�
 >
 > **B0（本批，纯文档）**：ADR-0016 + assemblies.md + 本节修订 + architecture.md 路由/索引。B1 起为代码批次。
 >
-> **B8/#81（M2 Wheel 抽取，含 D5）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记；
-> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（B9 起余 M1）。
+> **B8/#81（M2 Wheel 抽取，含 D5）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记。
+>
+> **B9/#82（M1 Gestures 抽取，收口）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记；
+> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（7 程序集目标态除命名空间外达成，余 B10）。
 >
 > §7 差异表为 ADR-0015 基线的清零状态。**ADR-0016 程序集化批次差异（B1 起）另见 [assemblies.md](assemblies.md) §8/§9**，§7 不再逐行登记。
 

@@ -3,8 +3,10 @@
                     xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Pages"
                     xmlns:pages="clr-namespace:WinPieGestures.Views.Pages">
 
-    <!-- M1 页面模板字典（B3/#76，ADR-0016 决策 4：模块自带 DataTemplate，Host 每模块一次静态合并；
-         B9 随 M1 抽取为 StarPie.Gestures 时整体迁出）。页面 View 无参构造、按导航重建、不经容器。 -->
+    <!-- M1 页面模板字典（B3/#76 样板起，B9/#82 随 M1 迁入 StarPie.Gestures 成为正式模块模板字典；
+         ADR-0016 决策 4：模块自带 DataTemplate，Host 每模块一次跨程序集 pack URI 静态合并）。
+         页面 View 无参构造、按导航重建、不经容器；页面基类 SettingsPageBase 在共享内核
+         StarPie.Core（Views/Pages），本字典只映射 M1 两页。 -->
     <DataTemplate DataType="{x:Type vm:BehaviorSettingsViewModel}">
         <pages:TriggerSettingsPage/>
     </DataTemplate>

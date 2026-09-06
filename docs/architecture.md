@@ -66,6 +66,13 @@
   WheelGeometry 视觉几何与 WheelFactory/工厂接口（D5，ADR-0016 决策 11）与模块注册器
   WheelModuleRegistrar），单向依赖共享内核并允许 M2→M4（IThemeService）边；命名空间维持
   `WinPieGestures.*`（B10 统一收尾）。
+- 模块程序集（B9/#82 起，最后一个业务模块程序集）：`StarPie.Gestures/`（WPF 类库，程序集
+  `StarPie.Gestures`）承载 M1 手势与动作（手势管线 Services/Gestures（MouseHook/
+  GestureController/GestureEngine/IWindowContext/WindowContext）、动作执行 Services/Actions
+  （IActionExecutorService/ActionExecutorService/ActionRouting）、触发+手势设置页
+  （BehaviorSettingsViewModel+TriggerSettingsPage、ProfileListViewModel+SlotViewModel+
+  GesturesSettingsPage）与模块注册器 GesturesModuleRegistrar），单向依赖共享内核并允许
+  M1→M2（IWheelFactory/IWheelViewModel）边；命名空间维持 `WinPieGestures.*`（B10 统一收尾）。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
@@ -91,11 +98,12 @@ StarPie/
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（B6/#79 起，见 layout.md）
 ├── StarPie.Theme/               # M4 界面主题模块程序集（B7/#80 起，见 layout.md）
 ├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（B8/#81 起，见 layout.md）
+├── StarPie.Gestures/            # M1 手势与动作模块程序集（B9/#82 起，见 layout.md）
 ├── WinPieGestures.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Programs、Shell、Theme 与 Wheel；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Programs、Shell、Theme、Wheel 与 Gestures；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 

@@ -15,8 +15,9 @@
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml" />
                 <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并）。
                       B6/#79：M5 模板字典随模块迁 StarPie.Shell，经跨程序集 pack URI 合并；
-                      M1/Host 临时模板字典仍居 exe（B9 收编 M1 时再迁）  -->
-                <ResourceDictionary Source="Modules/M1PageTemplates.xaml" />
+                      B9/#82：M1 模板字典随模块迁 StarPie.Gestures，经跨程序集 pack URI 合并；
+                      Host 临时模板字典（外观聚合页）仍居 exe（目标态留 Host）  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
