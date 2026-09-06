@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows.Media;
 using Microsoft.Win32;
 
-namespace WinPieGestures.Services.Programs
+namespace StarPie.Services.Programs
 {
     /// <summary>
     /// 已安装程序的扫描编排 (T06)：从旧 <c>ProgramPickerWindow</c> 原样迁出的八个来源——

@@ -1,9 +1,9 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using WinPieGestures.Models;
+using StarPie.Models;
 
-namespace WinPieGestures.ViewModels.Dialogs
+namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>色盘取点归一化坐标（Saturation/Value ∈ [0,1]；View 附加行为翻译像素坐标后传入 VM 命令）。</summary>
     public readonly record struct SpectrumPoint(double Saturation, double Value);

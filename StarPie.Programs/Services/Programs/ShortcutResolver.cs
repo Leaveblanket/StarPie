@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace WinPieGestures.Services.Programs
+namespace StarPie.Services.Programs
 {
     [ComImport]
     [Guid("00021401-0000-0000-C000-000000000046")]

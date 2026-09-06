@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 导航目录与全局槽位表收口（B2/#75，ADR-0016 决策 3/5）：0–4 槽位、NavTab0..4 正典、

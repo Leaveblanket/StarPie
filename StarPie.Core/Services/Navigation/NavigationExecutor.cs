@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace WinPieGestures.Services.Navigation
+namespace StarPie.Services.Navigation
 {
     /// <summary>
     /// 导航目录执行缝（S5，ADR-0016 决策 3/8，B3/#76）：目录驱动的导航执行入口——按

@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using WinPieGestures.ViewModels.Dialogs;
+using StarPie.ViewModels.Dialogs;
 
-namespace WinPieGestures.Views.Dialogs
+namespace StarPie.Views.Dialogs
 {
     /// <summary>
     /// 屏上取色覆盖层窗口 (T08, ADR-0004/0009)：全屏置顶、无 Owner。

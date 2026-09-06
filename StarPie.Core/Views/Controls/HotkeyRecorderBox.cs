@@ -9,7 +9,7 @@ using Button = System.Windows.Controls.Button;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using Cursors = System.Windows.Input.Cursors;
 
-namespace WinPieGestures.Views.Controls
+namespace StarPie.Views.Controls
 {
     /// <summary>
     /// 热键录制输入框（ADR-0012/#49 C2）：文案与状态配色一律声明式——占位文案由消费方

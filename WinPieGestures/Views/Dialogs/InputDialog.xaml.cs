@@ -2,7 +2,7 @@ using System.Windows;
 using System.ComponentModel;
 using System.Windows.Input;
 
-namespace WinPieGestures.Views.Dialogs
+namespace StarPie.Views.Dialogs
 {
     /// <summary>
     /// 输入对话框窗口 (T07)：确认与验证逻辑全部在 <see cref="InputViewModel"/>（DataContext 绑定）——

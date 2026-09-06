@@ -1,6 +1,6 @@
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 程序目录纯规则函数的覆盖 (T06, ADR-0004)：垃圾可执行过滤（卸载器/安装器/更新器/诊断/

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures.Services.Configuration
+namespace StarPie.Services.Configuration
 {
     /// <summary>
     /// JSON-file implementation of IConfigService: owns reading and writing

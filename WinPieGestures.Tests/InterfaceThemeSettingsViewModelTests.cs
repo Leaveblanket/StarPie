@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 界面主题设置子 ViewModel 的行为覆盖 (#54, ADR-0014 决策 6/7)：AppTheme 透传（读穿配置 /

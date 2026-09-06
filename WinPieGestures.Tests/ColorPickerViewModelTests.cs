@@ -1,7 +1,7 @@
 using System;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 颜色选择器 ViewModel 的行为覆盖 (T08)：HSV/RGB 纯函数换算、十六进制输入解析与规范化、

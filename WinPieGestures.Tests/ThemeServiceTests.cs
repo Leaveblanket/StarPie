@@ -1,7 +1,7 @@
 using System;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// Theme-service state coverage (T09/ADR-0013 #47): "follow system" resolution through the

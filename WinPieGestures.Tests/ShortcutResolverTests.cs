@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 程序快捷方式解析出口（M3）纯路径覆盖（T3a/#65，R6/ADR-0015）：空/空白与不存在的 .lnk

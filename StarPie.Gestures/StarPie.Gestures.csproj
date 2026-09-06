@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <!-- B9/#82：M1 手势与动作模块程序集（ADR-0016 决策 1/8/11/12，最后一个业务模块程序集——
-         本批落地后除命名空间外 7 程序集目标态达成，余 B10 命名空间统一）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         本批落地后除命名空间外 7 程序集目标态达成；B10/#83 命名空间统一收尾）。
+         B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Gestures → StarPie.Core 单向 + StarPie.Gestures → StarPie.Wheel
          允许边（M1→M2，IWheelFactory/IWheelViewModel 消费，assemblies.md §3）；
          不引用 Host/其它业务模块（M2 侧也不反向引用 M1，跨 M 只经 Core 契约）。
@@ -13,7 +13,7 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Gestures</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

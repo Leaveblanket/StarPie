@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>
     /// 轮盘模块外观设置子 ViewModel（#56，ADR-0014 决策 5/6/8）：承接原外观聚合 VM 的轮盘外观

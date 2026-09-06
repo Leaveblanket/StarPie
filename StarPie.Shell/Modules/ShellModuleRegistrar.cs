@@ -3,11 +3,11 @@ using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Navigation;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Services;
+using StarPie.Services.Navigation;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Modules
+namespace StarPie.Modules
 {
     /// <summary>
     /// M5 壳层与系统集成模块注册器（B6/#79：正式模块注册器样板，ADR-0016 决策 8/9；

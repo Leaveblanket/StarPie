@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <!-- B6/#79：M5 壳层与系统集成模块程序集（ADR-0016 决策 1/8/12；首个带 DI 的模块程序集）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Shell → StarPie.Core 单向（assemblies.md §3）；不引用 Host/其它业务模块。
          页面/VM 的 DI 注册与导航自报经 ShellModuleRegistrar（RegisterServices + RegisterNavigation）
          下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Shell</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

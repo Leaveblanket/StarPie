@@ -1,11 +1,11 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Shell;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Services.Configuration;
+using StarPie.Services.Localization;
+using StarPie.Services.Shell;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Modules
+namespace StarPie.Modules
 {
     /// <summary>
     /// M4 界面主题模块注册器（B7/#80：随 M4 抽取为独立模块程序集 StarPie.Theme 后新立，

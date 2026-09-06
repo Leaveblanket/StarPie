@@ -1,9 +1,9 @@
 using System;
 using System.Windows;
 using System.Windows.Threading;
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures.Services.Wheel
+namespace StarPie.Services.Wheel
 {
     /// <summary>
     /// Wheel factory (T05): builds the per-gesture view-model and its window on the
@@ -11,7 +11,7 @@ namespace WinPieGestures.Services.Wheel
     /// onto the dispatcher and lands as a view-model state mutation the window
     /// observes (ADR-0002: implementations own the UI-thread marshaling; callers may
     /// be on the hook thread). M2 侧工厂实现（B8/#81，D5/ADR-0016 决策 11）随 M2 收编进
-    /// StarPie.Wheel/Services/Wheel（命名空间 WinPieGestures.Services.Wheel 与物理目录一致）；
+    /// StarPie.Wheel/Services/Wheel（命名空间 StarPie.Services.Wheel 与物理目录一致）；
     /// 消费方（M1 GestureEngine）只依赖 <see cref="IWheelFactory"/> 接口。
     /// </summary>
     public sealed class WheelFactory : IWheelFactory

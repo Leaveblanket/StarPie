@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures;
-using WinPieGestures.Services;
+using StarPie;
+using StarPie.Services;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 落盘编排订阅者的行为覆盖 (T19, Spec 预定缝②)：页面 VM → IMessenger →

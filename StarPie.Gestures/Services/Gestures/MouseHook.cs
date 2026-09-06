@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace WinPieGestures.Services.Gestures
+namespace StarPie.Services.Gestures
 {
     /// <summary>
     /// Hook event argument: raw screen coordinates plus whether the event was

@@ -4,7 +4,7 @@ using System.Windows.Media;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 
-namespace WinPieGestures.Services.Wheel
+namespace StarPie.Services.Wheel
 {
     /// <summary>
     /// 轮盘视觉几何出口（模块 M2「轮盘与渲染」，R6/ADR-0015 三分）：扇区切削几何

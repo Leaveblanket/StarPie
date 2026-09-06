@@ -4,10 +4,10 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WinPieGestures.Services.Shell
+namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// High-efficiency memory optimizer for WinPieGestures.
+    /// High-efficiency memory optimizer for StarPie.
     /// Compacts heap and trims process working set pages down to minimal footprint (~15-25MB).
     /// </summary>
     public static class MemoryOptimizer

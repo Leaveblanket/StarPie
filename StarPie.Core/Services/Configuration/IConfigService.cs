@@ -1,4 +1,4 @@
-namespace WinPieGestures.Services.Configuration
+namespace StarPie.Services.Configuration
 {
     /// <summary>
     /// Config seam (ADR-0002): loading and saving config.json plus profile lookup

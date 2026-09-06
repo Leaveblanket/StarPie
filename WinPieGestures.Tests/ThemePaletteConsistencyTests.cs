@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 主题令牌键集一致性测试（ADR-0012/ADR-0013，#46/#53）：Views/Styles/Themes 五套 XAML 必须

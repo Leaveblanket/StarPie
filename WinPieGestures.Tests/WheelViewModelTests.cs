@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// State coverage for the wheel view-model (T05): sector slots built from the

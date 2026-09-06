@@ -1,4 +1,4 @@
-namespace WinPieGestures.Services.Wheel
+namespace StarPie.Services.Wheel
 {
     /// <summary>
     /// Creates a transient wheel (view-model plus its window) per gesture — every

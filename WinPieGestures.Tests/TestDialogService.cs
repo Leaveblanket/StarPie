@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// IDialogService 的测试替身（工程约定：mock 直接 new，不使用 mocking 框架）：

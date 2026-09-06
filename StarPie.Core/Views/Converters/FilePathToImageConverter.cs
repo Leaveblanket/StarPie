@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace WinPieGestures.Views.Converters
+namespace StarPie.Views.Converters
 {
     /// <summary>本地图片路径 → 缩略图（T21：核圆图片缩略图随绑定刷新，替换 code-behind 回填；缺文件返回空）。</summary>
     public sealed class FilePathToImageConverter : IValueConverter

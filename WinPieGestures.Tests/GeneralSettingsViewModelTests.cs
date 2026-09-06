@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 通用分区 ViewModel 的行为覆盖 (T13, ADR-0001)：界面语言切换（写配置 + I18n 切换 +

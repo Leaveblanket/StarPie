@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- B7/#80：M4 界面主题模块程序集（ADR-0016 决策 1/8/12）。
-         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Theme → StarPie.Core 单向（assemblies.md §3）；
          不引用 Host/其它业务模块。
          主题服务与主题设置子 VM 的 DI 注册经 ThemeModuleRegistrar.RegisterServices
@@ -11,7 +11,7 @@
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Theme</AssemblyName>
-    <RootNamespace>WinPieGestures</RootNamespace>
+    <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>

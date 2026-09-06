@@ -2,7 +2,7 @@
 using System.Windows;
 using System.ComponentModel;
 
-namespace WinPieGestures.Views.Dialogs
+namespace StarPie.Views.Dialogs
 {
     /// <summary>
     /// 程序选择器窗口 (T06)：逻辑全部在 <see cref="ProgramPickerViewModel"/>——扫描编排、

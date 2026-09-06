@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Services.Configuration
+namespace StarPie.Services.Configuration
 {
     /// <summary>
     /// 落盘防抖器 (T17)：把连续的自动保存请求折叠为一次延迟执行——每次 <see cref="Schedule"/>

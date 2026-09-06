@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace WinPieGestures.ViewModels.Dialogs
+namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>
     /// 程序选择器 ViewModel (T06, ADR-0001/0004)：完整接管扫描编排（注入扫描委托，测试可换假实现）、

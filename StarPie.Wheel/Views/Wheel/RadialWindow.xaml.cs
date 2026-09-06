@@ -9,14 +9,14 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WinPieGestures.Services.Localization;
+using StarPie.Services.Localization;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using Brushes = System.Windows.Media.Brushes;
 using Path = System.Windows.Shapes.Path;
 
-namespace WinPieGestures.Views.Wheel
+namespace StarPie.Views.Wheel
 {
     /// <summary>
     /// 轮盘窗口 (T05): all view state lives in the per-gesture <see cref="WheelViewModel"/>

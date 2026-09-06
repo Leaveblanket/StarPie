@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures.ViewModels.Navigation
+namespace StarPie.ViewModels.Navigation
 {
     /// <summary>
     /// 主框架导航区 ViewModel（S5，B3/#76 目录驱动后迁入 Core）：设置控制台窗口分区 DataContext

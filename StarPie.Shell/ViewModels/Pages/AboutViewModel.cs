@@ -1,9 +1,9 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.ViewModels.Pages
+namespace StarPie.ViewModels.Pages
 {
     /// <summary>关于与更新页面 ViewModel。外部文件打开经组合根注入委托，避免 View 处理文件和进程副作用。</summary>
     public partial class AboutViewModel : ObservableObject

@@ -1,4 +1,4 @@
-namespace WinPieGestures.Services.Icons
+namespace StarPie.Services.Icons
 {
     /// <summary>
     /// 矢量图标条目（模块 S1「图标资产」的数据描述）：键/分类/显示名/SVG 路径数据。

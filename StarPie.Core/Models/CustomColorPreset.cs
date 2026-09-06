@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     public class CustomColorPreset
     {

@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
-using WinPieGestures.Models;
+using StarPie.Models;
 
-namespace WinPieGestures.Views.Converters
+namespace StarPie.Views.Converters
 {
     /// <summary>Converts a hex color string from a ViewModel into a WPF brush.</summary>
     public sealed class HexToBrushConverter : IValueConverter

@@ -1,4 +1,4 @@
-namespace WinPieGestures.ViewModels.Wheel
+namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
     /// The wheel ViewModel surface the gesture engine drives (T05, ADR-0001): show,

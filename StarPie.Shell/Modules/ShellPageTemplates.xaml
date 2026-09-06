@@ -1,7 +1,7 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Pages"
-                    xmlns:pages="clr-namespace:WinPieGestures.Views.Pages">
+                    xmlns:vm="clr-namespace:StarPie.ViewModels.Pages"
+                    xmlns:pages="clr-namespace:StarPie.Views.Pages">
 
     <!-- M5 页面模板字典（B3/#76 样板起，B6/#79 随 M5 迁入 StarPie.Shell 成为正式模块模板字典；
          ADR-0016 决策 4：模块自带 DataTemplate，Host 每模块一次跨程序集 pack URI 静态合并）。

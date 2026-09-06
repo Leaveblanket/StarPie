@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 图标选择器 ViewModel 的行为覆盖 (T08)：过滤规则（自定义按显示名/键、内置按显示名/分类/键）、

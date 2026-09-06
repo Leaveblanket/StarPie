@@ -1,14 +1,14 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Services.Actions;
-using WinPieGestures.Services.Configuration;
-using WinPieGestures.Services.Dialogs;
-using WinPieGestures.Services.Gestures;
-using WinPieGestures.Services.Localization;
-using WinPieGestures.Services.Navigation;
-using WinPieGestures.ViewModels.Pages;
+using StarPie.Services.Actions;
+using StarPie.Services.Configuration;
+using StarPie.Services.Dialogs;
+using StarPie.Services.Gestures;
+using StarPie.Services.Localization;
+using StarPie.Services.Navigation;
+using StarPie.ViewModels.Pages;
 
-namespace WinPieGestures.Modules
+namespace StarPie.Modules
 {
     /// <summary>
     /// M1 手势与动作模块注册器（B9/#82：随 M1 抽取为独立模块程序集 StarPie.Gestures 后新立，

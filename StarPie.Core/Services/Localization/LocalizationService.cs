@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace WinPieGestures.Services.Localization
+namespace StarPie.Services.Localization
 {
     /// <summary>
     /// resx 数据源实现（ADR-0013/#44）：四语言资产（Strings.resx 中性 = zh-CN + 卫星

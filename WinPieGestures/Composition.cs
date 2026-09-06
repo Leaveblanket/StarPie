@@ -2,11 +2,11 @@ using System;
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using WinPieGestures.Modules;
-using WinPieGestures.Services;
-using WinPieGestures.Services.Localization;
+using StarPie.Modules;
+using StarPie.Services;
+using StarPie.Services.Localization;
 
-namespace WinPieGestures
+namespace StarPie
 {
     /// <summary>
     /// Composition root (ADR-0005/0011)：容器装配与解析集中在本类——构造函数里

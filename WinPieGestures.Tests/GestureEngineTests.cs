@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using WinPieGestures;
+using StarPie;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// State-transition coverage for the gesture engine (T04): threshold trigger,

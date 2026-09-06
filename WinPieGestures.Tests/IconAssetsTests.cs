@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 共享「图标资产」出口（S1）纯函数覆盖（T3a/#65，R6/ADR-0015）：矢量图标目录完整性、

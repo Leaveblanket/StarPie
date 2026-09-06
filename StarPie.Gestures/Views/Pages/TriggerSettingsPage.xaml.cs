@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace WinPieGestures.Views.Pages
+namespace StarPie.Views.Pages
 {
     /// <summary>
     /// 触发与场景页面 (T19/T21)：全部状态经 Binding 直连 <see cref="BehaviorSettingsViewModel"/>

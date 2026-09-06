@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace WinPieGestures.Views.Pages
+namespace StarPie.Views.Pages
 {
     /// <summary>
     /// 外观与形态页面 (T19/T21)：页面整体 DataContext 是薄聚合

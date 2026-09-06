@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Linq;
 using System.Resources;
-using WinPieGestures.Views.Converters;
+using StarPie.Views.Converters;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// B5/#78（模块化：共享 UI 基建迁共享内核 Core）跨集归属与依赖收口：
 /// 通用共享转换器（HexToBrush/StringToGeometry/IntEquals/FilePathToImage）、共享自定义控件
 /// <see cref="HotkeyRecorderBox"/> 与全局控件样式字典 <c>ModernControls.xaml</c> 迁入
-/// <c>StarPie.Core</c>；App.xaml 经跨程序集 pack URI 合并该字典。命名空间维持
-/// WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。宿主驻留的 M2 轮盘核图标预览转换器
+/// <c>StarPie.Core</c>；App.xaml 经跨程序集 pack URI 合并该字典。B10/#83 命名空间统一为
+/// StarPie.*（全仓前缀替换，ADR-0016 决策 12）。宿主驻留的 M2 轮盘核图标预览转换器
 /// （CoreIconGeometry/Name）B8/#81 已随 M2 迁入 StarPie.Wheel（见
 /// <see cref="WheelAssemblyPlacementTests"/>）；S6 取色对话框行为（SpectrumCanvasBehavior，
 /// 依赖 Host VM 的 SpectrumPoint，S6 对话框实现留 Host）仍驻 Host，Core 不反向依赖宿主。
@@ -18,7 +18,7 @@ namespace WinPieGestures.Tests;
 public sealed class SharedUiAssemblyPlacementTests
 {
     [Fact]
-    public void 共享UI基建件_归属共享内核Core_且命名空间维持WinPieGestures()
+    public void 共享UI基建件_归属共享内核Core_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Core", typeof(HexToBrushConverter).Assembly.GetName().Name);
         Assert.Equal("StarPie.Core", typeof(StringToGeometryConverter).Assembly.GetName().Name);
@@ -26,11 +26,11 @@ public sealed class SharedUiAssemblyPlacementTests
         Assert.Equal("StarPie.Core", typeof(FilePathToImageConverter).Assembly.GetName().Name);
         Assert.Equal("StarPie.Core", typeof(HotkeyRecorderBox).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(HexToBrushConverter).Namespace);
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(IntEqualsConverter).Namespace);
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(StringToGeometryConverter).Namespace);
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(FilePathToImageConverter).Namespace);
-        Assert.Equal("WinPieGestures.Views.Controls", typeof(HotkeyRecorderBox).Namespace);
+        Assert.Equal("StarPie.Views.Converters", typeof(HexToBrushConverter).Namespace);
+        Assert.Equal("StarPie.Views.Converters", typeof(IntEqualsConverter).Namespace);
+        Assert.Equal("StarPie.Views.Converters", typeof(StringToGeometryConverter).Namespace);
+        Assert.Equal("StarPie.Views.Converters", typeof(FilePathToImageConverter).Namespace);
+        Assert.Equal("StarPie.Views.Controls", typeof(HotkeyRecorderBox).Namespace);
     }
 
     [Fact]
@@ -65,6 +65,6 @@ public sealed class SharedUiAssemblyPlacementTests
         // （S6 对话框实现留 Host），B5 不迁，避免 Core 反向依赖宿主。
         Assert.Equal("StarPie", typeof(SpectrumCanvasBehavior).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.Views.Controls", typeof(SpectrumCanvasBehavior).Namespace);
+        Assert.Equal("StarPie.Views.Controls", typeof(SpectrumCanvasBehavior).Namespace);
     }
 }

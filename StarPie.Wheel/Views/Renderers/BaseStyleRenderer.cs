@@ -3,12 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using WinPieGestures.Models;
+using StarPie.Models;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 
-namespace WinPieGestures.Views.Renderers
+namespace StarPie.Views.Renderers
 {
     public abstract class BaseStyleRenderer : IRadialStyleRenderer
     {

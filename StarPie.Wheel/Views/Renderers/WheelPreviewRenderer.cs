@@ -9,13 +9,13 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using WinPieGestures.ViewModels.Wheel;
+using StarPie.ViewModels.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
-namespace WinPieGestures.Views.Renderers
+namespace StarPie.Views.Renderers
 {
     /// <summary>
     /// Draws the 60FPS live wheel preview. The page owns only the Canvas and forwards

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.Services;
+using StarPie.Services;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 主框架壳层 VM 的行为覆盖 (B1/D3，ADR-0016 决策 7)：<see cref="ShellViewModel"/>

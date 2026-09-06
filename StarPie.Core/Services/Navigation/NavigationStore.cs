@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace WinPieGestures.Services.Navigation
+namespace StarPie.Services.Navigation
 {
     /// <summary>
     /// 导航状态单一根源 (T19)：持当前页面 ViewModel（容器单例引用，切换只换引用不重建状态）。

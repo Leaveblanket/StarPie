@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using WinPieGestures.ViewModels.Wheel;
+using StarPie.ViewModels.Wheel;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 外观聚合页 VM 的薄页壳行为覆盖（#56/ADR-0014 决策 6）：只暴露两个设置子 VM（界面主题

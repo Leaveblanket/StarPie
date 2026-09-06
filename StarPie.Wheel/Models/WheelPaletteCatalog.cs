@@ -1,6 +1,6 @@
 using System;
 
-namespace WinPieGestures.Models
+namespace StarPie.Models
 {
     /// <summary>
     /// 轮盘配色静态色值目录（ADR-0014 决策 3/10）：系统预设与各风格默认深浅观感、

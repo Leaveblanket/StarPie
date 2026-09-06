@@ -5,7 +5,7 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using Windows.UI.ViewManagement;
 
-namespace WinPieGestures.Services.Shell
+namespace StarPie.Services.Shell
 {
     /// <summary>
     /// App theme service (T09/ADR-0012/ADR-0013 #47): owns the current effective theme and

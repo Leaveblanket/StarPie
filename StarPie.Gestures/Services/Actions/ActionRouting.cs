@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace WinPieGestures.Services.Actions
+namespace StarPie.Services.Actions
 {
     /// <summary>动作执行的路由种类 (T15)。与迁移前 switch 一致：类型按原值大小写敏感匹配。</summary>
     public enum ActionRoute

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace WinPieGestures.Tests;
+namespace StarPie.Tests;
 
 /// <summary>
 /// 轮盘配色解析层覆盖 (#52, ADR-0014 决策 3/10)：System 随 OS 深浅、固定方案表、

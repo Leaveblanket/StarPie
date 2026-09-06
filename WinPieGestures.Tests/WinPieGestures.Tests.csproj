@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- B10/#83：测试命名空间统一为 StarPie.Tests（平铺于工程根，RootNamespace 与声明对齐） -->
+    <RootNamespace>StarPie.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
