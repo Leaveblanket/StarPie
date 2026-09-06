@@ -27,7 +27,6 @@ StarPie/
 │   │   ├── Actions/               # 动作执行（M1）
 │   │   ├── Dialogs/               # DialogService.cs 实现（S6 契约在 Core，见 dialogs.md）
 │   │   ├── Gestures/              # 手势管线、窗口上下文、轮盘工厂（M1）
-│   │   ├── Programs/              # 程序扫描与目录（M3）
 │   │   ├── Shell/                 # 主题（M4）、托盘/自启/内存（M5）
 │   │   └── Wheel/                 # 轮盘视觉几何（M2 出口）
 │   ├── ViewModels/
@@ -67,21 +66,25 @@ StarPie/
 │   │   └── Navigation/            # S5：导航内核 + NavigationCatalog/NavigationSlots（槽位表 0–4）
 │   └── ViewModels/
 │       └── Navigation/            # S5：NavigationItemViewModel、MainViewModel（B3/#76 迁入，目录驱动）
-└── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host 与 Core）
+├── StarPie.Programs/              # M3 模块程序集（WPF 类库，程序集 StarPie.Programs；命名空间 WinPieGestures.*，B10 收口；B4/#77 起）
+│   ├── StarPie.Programs.csproj    # SDK 工程文件（RootNamespace=WinPieGestures；零 Core/Host 依赖）
+│   └── Services/Programs/         # M3：ProgramScanner、ProgramCatalog(+ProgramEntry)、ShortcutResolver
+└── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host、Core 与 Programs）
 ```
 
 > 程序集归属：目录名在 `StarPie.Core/` 与 `WinPieGestures/` 中各自保持“命名空间 = 物理目录”；
 > 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Icons|Localization|Messages|Navigation、
 > ViewModels/Navigation/NavigationItemViewModel.cs）只存在于 `StarPie.Core/`，业务目录只存在于
-> `WinPieGestures/`。依赖方向见 [assemblies.md](assemblies.md) §3。
+> `WinPieGestures/`；M3 业务目录（`Services/Programs/`）只存在于 `StarPie.Programs/`（B4/#77 起），
+> 其余业务目录在 B5–B10 前仍留 `WinPieGestures/`。依赖方向见 [assemblies.md](assemblies.md) §3。
 
 ## 各目录职责细则
 
 > 目录相对所属工程：共享内核件（`Models/`、`Services/Configuration/`、`Services/Dialogs/` 契约、
 > `Services/Icons/`、`Services/Localization/`、`Services/Messages/`、`Services/Navigation/`、
 > `ViewModels/Navigation/NavigationItemViewModel.cs` 与 `MainViewModel.cs`（B3/#76 迁入））位于
-> `StarPie.Core/`；其余位于
-> `WinPieGestures/`（Host）。
+> `StarPie.Core/`；M3 三件（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`，B4/#77 迁入）位于
+> `StarPie.Programs/Services/Programs/`；其余位于 `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
@@ -95,7 +98,6 @@ StarPie/
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（`LanguageCode` 枚举随接口）；**B2/#75 起在 `StarPie.Core/`** | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体）；**B2/#75 起在 `StarPie.Core/`** | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>`、`NavigationCatalog`/`NavigationSlots`（槽位表 0–4）；**B2/#75 起在 `StarPie.Core/`** | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
-| `Services/Programs/` | `ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）、`ShortcutResolver`（M3 快捷方式解析出口） | 集成性质扫描逻辑不进 VM 单测；图标资产在 Core `Services/Icons/`；实现见 [programs.md](programs.md) |
 | `Services/Shell/` | `IThemeService`/`ThemeService`、`TrayIconManager`、`AutostartRegistry`（R1，M5）、`MemoryOptimizer` | 托盘/自启/主题决策不进 VM/View；实现见 [shell.md](shell.md) |
 | `Services/Wheel/` | `WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何） | 实现见 [wheel.md](wheel.md) |
 | `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
@@ -113,6 +115,12 @@ StarPie/
 | `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集）、`ModernControls.xaml`（隐式默认/键控变体/共享模板，仅由 `App.xaml` 合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
 | `Modules/`（B3/#76 临时） | M1/M5/Host 模块注册器（`RegisterNavigation`）+ 页面模板字典（`M1/M5/HostPageTemplates.xaml`，App 级每模块一次静态合并） | 不承载业务；导航自治样板，随 B6/B9 模块拆集迁出 |
 
+### 模块程序集目录（B4/#77 起）
+
+| 目录 | 存放什么 | 不放什么 / 常见违规 |
+|---|---|---|
+| `StarPie.Programs/Services/Programs/` | M3 程序扫描与目录：`ProgramScanner`（IO 扫描）、`ProgramCatalog`（纯合并/去重）+ `ProgramEntry`、`ShortcutResolver`（快捷方式解析出口） | 集成性质扫描逻辑不进 VM 单测；图标资产在 Core `Services/Icons/`（组合根注入的 S1 委托补全，本程序集零 Core 依赖）；实现见 [programs.md](programs.md) |
+
 ## 根级文件规则
 
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
@@ -123,8 +131,10 @@ StarPie/
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - `StarPie.Core.csproj` / `GlobalUsings.cs`：共享内核工程入口；`StarPie.Core/` 源码根目录**只允许**
   上表列出的共享内核目录与文件（B2/#75 起）。
-- 两工程源码根目录**只允许**上表列出的项；原型、HTML、临时脚本不得留在 `WinPieGestures/` 或
-  `StarPie.Core/` 下。
+- `StarPie.Programs.csproj`：M3 模块程序集工程入口（B4/#77 起）；`StarPie.Programs/` 源码根目录
+  **只允许** `Services/Programs/`（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`）。
+- 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
+  `WinPieGestures/`、`StarPie.Core/` 或 `StarPie.Programs/` 下。
 
 ## 现状偏差与待清理项
 
@@ -138,6 +148,10 @@ StarPie/
 
 已消除的历史偏差（2026-09-04）：
 
+- **B4/#77（2026-09-06）**：M3 三件（`ProgramScanner`/`ProgramCatalog`/`ShortcutResolver`）与
+  `ProgramEntry` 迁入首个独立模块程序集 `StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）；
+  Host/Tests 显式引用、slnx 登记；M3 零 Core 依赖——扫描结果的图标补全改经组合根注入的 S1
+  `IconAssets.GetIcon` 委托（见 [programs.md](programs.md)）。
 - **B2/#75（2026-09-06）**：共享内核件（Models/S2/S3/S4/S1/S6 契约/S5 导航内核 + NavigationCatalog/
   槽位表）迁入 `StarPie.Core/`，Host exe 显式引用 Core；跨程序集回填缝（`AppDataPaths.IsDevInstance`、
   `IconAssets.ResolveShortcutTarget`）由组合根装配前回填。
