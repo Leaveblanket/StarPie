@@ -1,8 +1,6 @@
 <Window x:Class="WinPieGestures.Views.Navigation.MainView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Pages"
-        xmlns:pages="clr-namespace:WinPieGestures.Views.Pages"
         xmlns:navigation="clr-namespace:WinPieGestures.Views.Navigation"
         Title="{Binding WindowTitle}" Height="720" Width="1060"
         WindowStartupLocation="CenterScreen"
@@ -12,27 +10,6 @@
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         RenderOptions.BitmapScalingMode="HighQuality">
-
-    <Window.Resources>
-        <ResourceDictionary>
-            <!-- 页面映射 (T19)：页面 VM → 页面 View；View 无参构造、按导航重建，不经容器 -->
-            <DataTemplate DataType="{x:Type vm:BehaviorSettingsViewModel}">
-                <pages:TriggerSettingsPage/>
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
-                <pages:AppearanceSettingsPage/>
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:ProfileListViewModel}">
-                <pages:GesturesSettingsPage/>
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
-                <pages:AdvancedSettingsPage/>
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-                <pages:AboutSettingsPage/>
-            </DataTemplate>
-        </ResourceDictionary>
-    </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -50,7 +27,8 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- 导航区：当前页面 (DataTemplate-mapped，DataContext 指向导航 VM) -->
+            <!-- 导航区：当前页面（页面 VM → 页面 View 的 DataTemplate 经 App 级模块模板字典映射
+                 （B3/#76，见 App.xaml MergedDictionaries），本窗口已无页面映射——纯壳） -->
             <ContentControl x:Name="PageContent" Grid.Row="0" Content="{Binding CurrentViewModel}"/>
 
             <!-- 壳区：全局底部操作 Footer（DataContext 继承窗口壳层 VM） -->

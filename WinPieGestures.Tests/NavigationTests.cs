@@ -4,16 +4,17 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using WinPieGestures;
+using WinPieGestures.Modules;
 using WinPieGestures.Services;
 using WinPieGestures.ViewModels;
 
 namespace WinPieGestures.Tests;
 
 /// <summary>
-/// 导航件的行为覆盖 (T19, Spec 测试决策 17)：NavigationStore 当前页状态序列、
-/// 泛型导航服务按容器解析切换、主框架 VM 的导航项数据驱动与选中态同步、
-/// AboutViewModel 空壳可导航。只测外部行为——CurrentViewModel 的类型序列与选中态，
-/// 不测实现细节。直接 new + 替身，不经容器。
+/// 导航件的行为覆盖 (T19, Spec 测试决策 17；B3/#76 目录驱动)：NavigationStore 当前页状态序列、
+/// 泛型导航服务按容器解析切换、目录执行缝按槽位解析、主框架 VM 目录驱动的导航项与选中态同步。
+/// 只测外部行为——CurrentViewModel 的类型序列与选中态，不测实现细节。直接 new + 替身，不经容器
+/// （导航服务与目录执行缝的容器解析语义用例例外——已批准解析缝，用微型容器验证）。
 /// </summary>
 public sealed class NavigationStoreTests
 {
@@ -112,13 +113,78 @@ public sealed class NavigationServiceTests
     }
 }
 
+/// <summary>
+/// 导航目录执行缝的行为覆盖（B3/#76，ADR-0016 决策 3/8）：按槽位从目录取注册项并惰性解析页面 VM
+/// （容器单例）。微型容器用例与 <see cref="NavigationServiceTests"/> 同属已批准解析缝验证。
+/// </summary>
+public sealed class NavigationExecutorTests
+{
+    private sealed class TriggerViewModel : ObservableObject { }
+    private sealed class AppearanceViewModel : ObservableObject { }
+
+    private static (NavigationExecutor Executor, NavigationStore Store, IServiceProvider Provider) Create()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<NavigationStore>();
+        services.AddSingleton<TriggerViewModel>();
+        services.AddSingleton<AppearanceViewModel>();
+        var provider = services.BuildServiceProvider();
+        var store = provider.GetRequiredService<NavigationStore>();
+        var catalog = new NavigationCatalog();
+        catalog.RegisterPage<TriggerViewModel>(
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+        catalog.RegisterPage<AppearanceViewModel>(
+            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "TabAppearance", "");
+        return (new NavigationExecutor(store, catalog, provider), store, provider);
+    }
+
+    [Fact]
+    public void Navigate_BySlot_SetsStoreCurrentViewModelToCatalogEntryInstance()
+    {
+        var (executor, store, provider) = Create();
+
+        executor.Navigate(NavigationSlot.Trigger);
+
+        Assert.Same(provider.GetRequiredService<TriggerViewModel>(), store.CurrentViewModel);
+    }
+
+    [Fact]
+    public void Navigate_BySlot_ResolvesSingleton_SameInstanceAcrossNavigations()
+    {
+        var (executor, store, _) = Create();
+
+        executor.Navigate(NavigationSlot.Appearance);
+        var first = store.CurrentViewModel;
+        store.CurrentViewModel = null;
+        executor.Navigate(NavigationSlot.Appearance);
+
+        Assert.Same(first, store.CurrentViewModel);
+    }
+
+    [Fact]
+    public void Navigate_UnregisteredSlot_Throws()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton<NavigationStore>();
+        services.AddSingleton<TriggerViewModel>();
+        var provider = services.BuildServiceProvider();
+        var store = provider.GetRequiredService<NavigationStore>();
+        var catalog = new NavigationCatalog();
+        catalog.RegisterPage<TriggerViewModel>(
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+        var executor = new NavigationExecutor(store, catalog, provider);
+
+        Assert.Throws<InvalidOperationException>(() => executor.Navigate(NavigationSlot.Advanced));
+    }
+}
+
 public sealed class MainViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
     /// <summary>
-    /// 五页面 VM 的真实实例夹具：MainViewModel 按具体页面 VM 类型导航，
-    /// 用最简依赖构造真实对象（替代 mock 派生，锁定类型精确性）。
+    /// 五页面 VM 的真实实例夹具：导航项按目录注册的目标 VM 类型切换，用最简依赖构造真实对象
+    /// （替代 mock 派生，锁定类型精确性）。
     /// </summary>
     private sealed class PageVmFixture
     {
@@ -142,7 +208,7 @@ public sealed class MainViewModelTests
         {
             Behavior = new BehaviorSettingsViewModel(Config, Dialogs, Messenger);
             Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization);
-        var configService = new TestConfigService { Current = Config };
+            var configService = new TestConfigService { Current = Config };
             InterfaceTheme = new InterfaceThemeSettingsViewModel(configService, Messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 configService, Dialogs, Messenger, Profiles, Localization);
@@ -163,25 +229,26 @@ public sealed class MainViewModelTests
         }
     }
 
-    /// <summary>类型化导航服务替身：记录导航调用并把 store 切到夹具实例。</summary>
-    private sealed class FakeNavigationService<TViewModel> : INavigationService<TViewModel>
-        where TViewModel : ObservableObject
+    /// <summary>目录执行缝替身：记录槽位导航调用并把 store 切到夹具对应页面实例。</summary>
+    private sealed class FakeNavigationExecutor : INavigationExecutor
     {
         private readonly NavigationStore _store;
-        private readonly TViewModel _target;
+        private readonly IReadOnlyDictionary<NavigationSlot, ObservableObject> _targets;
 
-        public FakeNavigationService(NavigationStore store, TViewModel target)
+        public FakeNavigationExecutor(
+            NavigationStore store,
+            IReadOnlyDictionary<NavigationSlot, ObservableObject> targets)
         {
             _store = store;
-            _target = target;
+            _targets = targets;
         }
 
         public int NavigateCalls { get; private set; }
 
-        public void Navigate()
+        public void Navigate(NavigationSlot slot)
         {
             NavigateCalls++;
-            _store.CurrentViewModel = _target;
+            _store.CurrentViewModel = _targets[slot];
         }
     }
 
@@ -189,14 +256,24 @@ public sealed class MainViewModelTests
     {
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
-        var vm = new MainViewModel(
-            store,
-            new FakeNavigationService<BehaviorSettingsViewModel>(store, fixture.Behavior),
-            new FakeNavigationService<AppearanceSettingsViewModel>(store, fixture.Appearance),
-            new FakeNavigationService<ProfileListViewModel>(store, fixture.Profiles),
-            new FakeNavigationService<GeneralSettingsViewModel>(store, fixture.General),
-            new FakeNavigationService<AboutViewModel>(store, fixture.About),
-            Localization);
+
+        // B3/#76：目录由生产模块注册器装配（exe 内 M1/M5/Host 临时注册器）——测试同时锁定真实槽位表
+        // （顺序/标识/标题键/图标/目标类型）；替身只代目录执行缝。
+        var catalog = new NavigationCatalog();
+        M1ModuleRegistrar.RegisterNavigation(catalog);
+        M5ModuleRegistrar.RegisterNavigation(catalog);
+        HostModuleRegistrar.RegisterNavigation(catalog);
+        catalog.Validate();
+
+        var navigation = new FakeNavigationExecutor(store, new Dictionary<NavigationSlot, ObservableObject>
+        {
+            [NavigationSlot.Trigger] = fixture.Behavior,
+            [NavigationSlot.Appearance] = fixture.Appearance,
+            [NavigationSlot.Gestures] = fixture.Profiles,
+            [NavigationSlot.Advanced] = fixture.General,
+            [NavigationSlot.About] = fixture.About
+        });
+        var vm = new MainViewModel(store, catalog, navigation, Localization);
         return (vm, store, fixture);
     }
 
@@ -230,7 +307,7 @@ public sealed class MainViewModelTests
     [Fact]
     public void InitialStoreEmpty_NoItemSelectedAndCurrentNull()
     {
-        var (vm, store, fixture) = Create();
+        var (vm, store, _) = Create();
 
         Assert.Null(store.CurrentViewModel);
         Assert.Null(vm.CurrentViewModel);
@@ -279,4 +356,15 @@ public sealed class MainViewModelTests
         }
     }
 
+    [Fact]
+    public void NavigationCommand_InvokesExecutorByCatalogSlot()
+    {
+        var (vm, store, fixture) = Create();
+
+        // 目录注册槽位与点击项的 AutomationId 一一对应：NavTab4（槽位 About）→ About VM。
+        vm.NavigationItems[4].NavigateCommand.Execute(null);
+
+        Assert.Same(fixture.About, store.CurrentViewModel);
+        Assert.True(vm.NavigationItems[4].IsSelected);
+    }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using WinPieGestures.Modules;
 using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures
@@ -40,6 +41,17 @@ namespace WinPieGestures
 
             // T18/T19（ADR-0005）：组合根容器装配——注册集中在 ConfigureServices，解析点只在本类。
             var services = new ServiceCollection();
+
+            // B3/#76（导航自治）：导航目录由 exe 内 M1/M5/Host 临时注册器装配（单程序集内先行）——
+            // 页面类型不再出现在导航装配/解析清单；Validate 在 BuildServiceProvider 前收口五槽完整，
+            // 供 CreateAppHost 目录驱动 eager 解析与 MainViewModel/INavigationExecutor 消费。
+            var navigationCatalog = new NavigationCatalog();
+            M1ModuleRegistrar.RegisterNavigation(navigationCatalog);
+            M5ModuleRegistrar.RegisterNavigation(navigationCatalog);
+            HostModuleRegistrar.RegisterNavigation(navigationCatalog);
+            navigationCatalog.Validate();
+            services.AddSingleton(navigationCatalog);
+
             ConfigureServices(services);
             _provider = services.BuildServiceProvider();
 
@@ -55,26 +67,26 @@ namespace WinPieGestures
             var themeService = _provider.GetRequiredService<ThemeService>();
             var localization = _provider.GetRequiredService<ILocalizationService>();
             var saveOrchestrator = _provider.GetRequiredService<SettingsSaveOrchestrator>();
-
-            var navTrigger = _provider.GetRequiredService<INavigationService<BehaviorSettingsViewModel>>();
-            var navAppearance = _provider.GetRequiredService<INavigationService<AppearanceSettingsViewModel>>();
-            var navGestures = _provider.GetRequiredService<INavigationService<ProfileListViewModel>>();
-            var navAdvanced = _provider.GetRequiredService<INavigationService<GeneralSettingsViewModel>>();
-            var navAbout = _provider.GetRequiredService<INavigationService<AboutViewModel>>();
+            var navigation = _provider.GetRequiredService<INavigationExecutor>();
+            var navigationCatalog = _provider.GetRequiredService<NavigationCatalog>();
 
             // 手势控制器需在钩子启动前实例化并保持订阅（构造即接线鼠标事件）。
             _ = _provider.GetRequiredService<GestureController>();
 
-            // 页面 VM 解析点（组合根）：VM 构造即订阅导入广播与落盘消息；时机在
-            // Config.Load 之后、AppHost.Run 之前，与迁移前根 VM 构造语义等价。
-            _ = _provider.GetRequiredService<BehaviorSettingsViewModel>();
-            _ = _provider.GetRequiredService<ProfileListViewModel>();
-            // #54/#56：外观聚合 VM（含注入的界面主题/轮盘外观两个设置子 VM）仍须在宿主启动前构造订阅。
-            _ = _provider.GetRequiredService<AppearanceSettingsViewModel>();
+            // B3/#76：页面 VM eager 解析清单目录化——遍历 NavigationCatalog 槽位注册解析全部页面
+            // VM（VM 构造即订阅导入广播/落盘消息；时机在 Config.Load 之后、AppHost.Run 之前，
+            // 与迁移前根 VM 构造语义等价）。外观聚合解析时经工厂构造两个设置子 VM；新增页面
+            // 注册进目录后自动纳入 eager 解析，组合根不再逐个硬编码页面类型。
+            foreach (NavigationPageRegistration entry in navigationCatalog.Entries)
+            {
+                _ = _provider.GetRequiredService(entry.ViewModelType);
+            }
+
+            // 宿主直持的页面 VM（非目录解析清单的一部分）：初始主题取界面主题子 VM（外观聚合已构造，
+            // 此处取回单例）与托盘/驻留气泡直调的通用 VM——M5 注册器样板与 AppHostDelegates 上提
+            // 排 B6（见 assemblies.md §8），届时一并收编。
             var interfaceTheme = _provider.GetRequiredService<InterfaceThemeSettingsViewModel>();
-            _ = _provider.GetRequiredService<WheelAppearanceSettingsViewModel>();
             var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
-            _ = _provider.GetRequiredService<AboutViewModel>();
             var mainViewModel = _provider.GetRequiredService<MainViewModel>();
             // B1/D3（ADR-0016 决策 7）：壳层 VM 独立注册/解析——AppHost 退出链与主框架
             // 分区 DataContext 指向壳层 VM；导航 VM 只持导航状态。
@@ -87,11 +99,7 @@ namespace WinPieGestures
                 themeService,
                 localization,
                 saveOrchestrator,
-                navTrigger,
-                navAppearance,
-                navGestures,
-                navAdvanced,
-                navAbout,
+                navigation,
                 interfaceTheme,
                 general,
                 mainViewModel,
@@ -134,6 +142,10 @@ namespace WinPieGestures
             // T19：导航件——NavigationStore 单例 + 泛型导航服务开放泛型注册。
             services.AddSingleton<NavigationStore>();
             services.AddSingleton(typeof(INavigationService<>), typeof(NavigationService<>));
+            // B3/#76：导航目录执行缝（目录驱动主入口，AppHost/MainViewModel 经槽位导航）；
+            // 开放泛型 INavigationService<> 保留为类型化解析缝（NavigationServiceTests 覆盖，
+            // 与目录执行缝同为已批准解析点，ADR-0016 决策 8）。
+            services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM（T19）：容器单例，状态跨导航常驻。注意解析时机在 Config.Load 之后（CreateAppHost）。
             services.AddSingleton(sp => new BehaviorSettingsViewModel(

@@ -32,7 +32,7 @@ namespace WinPieGestures.Services.Navigation
 
     /// <summary>
     /// 导航目录注册项（S5，B2/#75）：槽位、AutomationId、标题键、图标数据与目标页面 VM 类型。
-    /// 导航执行（navigate 委托）与本地化接线由消费方完成（B3 起 MainViewModel/模块注册器）。
+    /// 导航执行经 <see cref="INavigationExecutor"/>（目录执行缝，B3/#76）按槽位惰性解析。
     /// </summary>
     public sealed record NavigationPageRegistration(
         NavigationSlot Slot,
@@ -99,6 +99,19 @@ namespace WinPieGestures.Services.Navigation
         /// <summary>已注册页面（按槽位升序，即侧边栏顺序）。</summary>
         public IReadOnlyList<NavigationPageRegistration> Entries
             => _entries.OrderBy(e => (int)e.Slot).ToList();
+
+        /// <summary>
+        /// 按槽位取已注册页面（B3/#76：目录执行缝经此按槽位解析目标；未注册槽位抛
+        /// <see cref="InvalidOperationException"/>——完整目录由 <see cref="Validate"/> 在装配时收口）。
+        /// </summary>
+        public NavigationPageRegistration GetEntry(NavigationSlot slot)
+        {
+            if (_bySlot.TryGetValue(slot, out var entry))
+            {
+                return entry;
+            }
+            throw new InvalidOperationException($"导航目录未注册槽位: {slot}");
+        }
 
         /// <summary>完整性收口：0–4 五个槽位必须全部注册，缺失即抛 <see cref="InvalidOperationException"/>。</summary>
         public void Validate()
