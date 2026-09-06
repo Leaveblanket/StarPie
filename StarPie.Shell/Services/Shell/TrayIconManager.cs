@@ -16,7 +16,7 @@ namespace WinPieGestures.Services.Shell
     /// One row of the tray context menu. Entries are supplied by the owner on every
     /// menu open, so labels (language, pause state) are always fresh without refresh calls.
     /// </summary>
-    internal sealed class TrayMenuEntry
+    public sealed class TrayMenuEntry
     {
         public string? Label;
         public bool IsHeader;
@@ -31,8 +31,13 @@ namespace WinPieGestures.Services.Shell
     /// Pure WPF replacement for the WinForms NotifyIcon tray integration (WPF has no
     /// built-in tray support): Shell_NotifyIcon interop with a hidden message window
     /// for callbacks, and a themed borderless WPF window as the context menu.
+    /// B6/#79：随 M5 迁入 StarPie.Shell。类与 <see cref="TrayMenuEntry"/> 为模块公开面——
+    /// Host AppHost 负责装配（new + 菜单 provider），不能反向引用 Host/其它模块内部。
+    /// 托盘菜单深色配色原直读 M4 的 IThemeService（B7 前仍驻 Host），跨程序集
+    /// 形态下 Shell 不得引用 Host/M4，故改经组合根注入的 <c>Func&lt;bool&gt;</c> 深色探针
+    /// （与 M3 图标委托同模式，见 host.md/layering.md）。
     /// </summary>
-    internal sealed class TrayIconManager : IDisposable
+    public sealed class TrayIconManager : IDisposable
     {
         private const uint IconId = 1;
         private const int CallbackMessage = 0x8001; // WM_APP + 1
@@ -103,7 +108,7 @@ namespace WinPieGestures.Services.Shell
         private const int SM_CXSMICON = 49;
         private const int IDI_APPLICATION = 32512;
 
-        private readonly IThemeService _themeService;
+        private readonly Func<bool> _windowsInDarkModeProbe;
         private readonly Action _onDoubleClick;
         private readonly Func<IReadOnlyList<TrayMenuEntry>> _menuProvider;
         private readonly HwndSource _source;
@@ -112,9 +117,12 @@ namespace WinPieGestures.Services.Shell
         private string _currentTip = string.Empty;
         private Window? _menuWindow;
 
-        public TrayIconManager(IThemeService themeService, Action onDoubleClick, Func<IReadOnlyList<TrayMenuEntry>> menuProvider)
+        public TrayIconManager(
+            Func<bool> windowsInDarkModeProbe,
+            Action onDoubleClick,
+            Func<IReadOnlyList<TrayMenuEntry>> menuProvider)
         {
-            _themeService = themeService;
+            _windowsInDarkModeProbe = windowsInDarkModeProbe ?? throw new ArgumentNullException(nameof(windowsInDarkModeProbe));
             _onDoubleClick = onDoubleClick;
             _menuProvider = menuProvider;
 
@@ -243,7 +251,7 @@ namespace WinPieGestures.Services.Shell
             if (_menuWindow != null) { _menuWindow.Close(); _menuWindow = null; }
 
             var entries = _menuProvider();
-            bool dark = _themeService.IsWindowsInDarkTheme();
+            bool dark = _windowsInDarkModeProbe();
 
             var panel = new StackPanel { MinWidth = 214 };
             foreach (var entry in entries)

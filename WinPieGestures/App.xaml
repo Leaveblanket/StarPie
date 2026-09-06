@@ -12,10 +12,11 @@
                 <ResourceDictionary Source="Views/Styles/Themes/Light.xaml" />
                 <!--  B5/#78：全局控件样式字典迁入共享内核 Core，跨程序集 pack URI 合并 (ADR-0012/0016)  -->
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml" />
-                <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并；
-                      M1/M5/Host 临时注册器 + 模板字典，单程序集内先行，随 B6/B9 拆集迁出）  -->
+                <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并）。
+                      B6/#79：M5 模板字典随模块迁 StarPie.Shell，经跨程序集 pack URI 合并；
+                      M1/Host 临时模板字典仍居 exe（B9 收编 M1 时再迁）  -->
                 <ResourceDictionary Source="Modules/M1PageTemplates.xaml" />
-                <ResourceDictionary Source="Modules/M5PageTemplates.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />

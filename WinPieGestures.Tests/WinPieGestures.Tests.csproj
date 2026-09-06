@@ -25,6 +25,8 @@
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
+    <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/AboutViewModel/ShellModuleRegistrar 等测试直用） -->
+    <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
   </ItemGroup>
 
 </Project>

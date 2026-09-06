@@ -1,9 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using WinPieGestures.Modules;
+using WinPieGestures.Services;
 using WinPieGestures.Services.Localization;
 
 namespace WinPieGestures
@@ -23,8 +23,9 @@ namespace WinPieGestures
     {
         private readonly ServiceProvider _provider;
         private readonly JsonConfigService _config;
-        // ADR-0011：宿主回调委托包——页面 VM 注册不直接引用 AppHost 状态，
-        // 而是经转发委托在调用时读取 AppHost 构造后回填的托盘气泡/退出回调。
+        // ADR-0011/0016（B6/#79）：宿主回调委托包（Core 公开契约，Services/AppHostDelegates.cs）——
+        // 页面 VM 注册不直接引用 AppHost 状态，而是经转发委托在调用时读取 AppHost 构造后
+        // 回填的托盘气泡/退出回调；实例以单例注册进容器供模块注册器工厂解析。
         private readonly AppHostDelegates _hostDelegates = new();
 
         /// <summary>The config service handed to gesture-side consumers; the app
@@ -43,12 +44,13 @@ namespace WinPieGestures
             // T18/T19（ADR-0005）：组合根容器装配——注册集中在 ConfigureServices，解析点只在本类。
             var services = new ServiceCollection();
 
-            // B3/#76（导航自治）：导航目录由 exe 内 M1/M5/Host 临时注册器装配（单程序集内先行）——
+            // B3/#76（导航自治）+ B6/#79（M5 拆集）：导航目录由 exe 内 M1/Host 临时注册器与
+            // StarPie.Shell 的 ShellModuleRegistrar（跨程序集正式模块注册器）按固定顺序装配——
             // 页面类型不再出现在导航装配/解析清单；Validate 在 BuildServiceProvider 前收口五槽完整，
             // 供 CreateAppHost 目录驱动 eager 解析与 MainViewModel/INavigationExecutor 消费。
             var navigationCatalog = new NavigationCatalog();
             M1ModuleRegistrar.RegisterNavigation(navigationCatalog);
-            M5ModuleRegistrar.RegisterNavigation(navigationCatalog);
+            ShellModuleRegistrar.RegisterNavigation(navigationCatalog);
             HostModuleRegistrar.RegisterNavigation(navigationCatalog);
             navigationCatalog.Validate();
             services.AddSingleton(navigationCatalog);
@@ -84,8 +86,8 @@ namespace WinPieGestures
             }
 
             // 宿主直持的页面 VM（非目录解析清单的一部分）：初始主题取界面主题子 VM（外观聚合已构造，
-            // 此处取回单例）与托盘/驻留气泡直调的通用 VM——M5 注册器样板与 AppHostDelegates 上提
-            // 排 B6（见 assemblies.md §8），届时一并收编。
+            // 此处取回单例）与托盘/驻留气泡直调的通用 VM（B6/#79 起由 ShellModuleRegistrar 注册，
+            // 此处仅解析取回单例，AppHost 直调语义不变）。
             var interfaceTheme = _provider.GetRequiredService<InterfaceThemeSettingsViewModel>();
             var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
             var mainViewModel = _provider.GetRequiredService<MainViewModel>();
@@ -109,11 +111,16 @@ namespace WinPieGestures
         }
 
         /// <summary>容器注册表 (T19, ADR-0005/0011)：全部单例。运行态配置服务以具体类注册
-        /// （Import/Export 留在具体实现）；页面 VM 经工厂注册——需要宿主能力的委托（托盘气泡、
-        /// 退出）经 <see cref="AppHostDelegates"/> 延迟指向 AppHost；自启注册表、导入前冲刷等
-        /// 无宿主状态副作用仍由组合根接线。</summary>
+        /// （Import/Export 留在具体实现）；需要宿主能力的委托（托盘气泡、退出）经 Core 的
+        /// <see cref="AppHostDelegates"/>（B6/#79 上提）延迟指向 AppHost；M5 页面 VM 的注册由
+        /// <c>ShellModuleRegistrar.RegisterServices</c> 下放模块程序集，其余 M1/Host 页面 VM
+        /// 与自启注册表、导入前冲刷等无宿主状态副作用仍由组合根接线。</summary>
         private void ConfigureServices(IServiceCollection services)
         {
+            // B6/#79：宿主回调委托包以单例注册进容器（原 Composition internal 字段；上提 Core 后
+            // 供 ShellModuleRegistrar 的 VM 工厂经 ServiceProvider 惰性解析），AppHost 构造后回填。
+            services.AddSingleton(_hostDelegates);
+
             services.AddSingleton(sp => new JsonConfigService(
                 Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json"),
                 sp.GetRequiredService<ILocalizationService>()));
@@ -151,6 +158,11 @@ namespace WinPieGestures
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM（T19）：容器单例，状态跨导航常驻。注意解析时机在 Config.Load 之后（CreateAppHost）。
+            // B6/#79：M5（高级/关于）两页的 VM 注册已由 ShellModuleRegistrar.RegisterServices 下放
+            // StarPie.Shell（首个带 DI 的模块程序集，样板见 assemblies.md §6/ADR-0016 决策 8）；
+            // 其余 M1/Host 页面 VM 在 B9 前仍集中组合根注册。
+            ShellModuleRegistrar.RegisterServices(services);
+
             services.AddSingleton(sp => new BehaviorSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,
                 sp.GetRequiredService<IDialogService>(),
@@ -181,52 +193,9 @@ namespace WinPieGestures
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<InterfaceThemeSettingsViewModel>(),
                 sp.GetRequiredService<WheelAppearanceSettingsViewModel>()));
-            services.AddSingleton(sp => new GeneralSettingsViewModel(
-                sp.GetRequiredService<IConfigService>().Current,
-                sp.GetRequiredService<IDialogService>(),
-                // 宿主回调经委托包转发（ADR-0011）：AppHost 构造后回填，VM 不反向依赖宿主类。
-                (title, text) => _hostDelegates.ShowTrayBalloonTip?.Invoke(title, text),
-                () => _hostDelegates.ExitApplication?.Invoke(),
-                isAutoStartEnabled: AutostartRegistry.IsAutoStartEnabled,
-                setAutoStart: AutostartRegistry.SetAutoStart,
-                exportConfig: path => sp.GetRequiredService<JsonConfigService>().Export(path),
-                importConfig: path =>
-                {
-                    // Spec 冲刷时机"导入前"：先冲刷挂起的防抖，再替换运行态配置。
-                    sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave();
-                    return sp.GetRequiredService<JsonConfigService>().Import(path);
-                },
-                currentConfig: () => sp.GetRequiredService<IConfigService>().Current,
-                messenger: sp.GetRequiredService<IMessenger>(),
-                localization: sp.GetRequiredService<ILocalizationService>(),
-                isAdministrator: IsRunningAsAdministrator));
-            services.AddSingleton<AboutViewModel>(sp => new AboutViewModel(
-                sp.GetRequiredService<IDialogService>(),
-                () =>
-                {
-                    string changelogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CHANGELOG.md");
-                    if (!File.Exists(changelogPath)) return false;
-                    Process.Start(new ProcessStartInfo(changelogPath) { UseShellExecute = true });
-                    return true;
-                },
-                sp.GetRequiredService<ILocalizationService>()));
 
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<ShellViewModel>();
-        }
-
-        private static bool IsRunningAsAdministrator()
-        {
-            try
-            {
-                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                return new System.Security.Principal.WindowsPrincipal(identity)
-                    .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         public void Dispose()
@@ -234,13 +203,5 @@ namespace WinPieGestures
             // T18/ADR-0011：容器随组合根释放；托盘/钩子/壳层 VM 由 AppHost.Dispose 先行释放。
             _provider.Dispose();
         }
-    }
-
-    /// <summary>宿主回调委托包（ADR-0011）：GeneralSettingsViewModel 注册所需的托盘气泡/退出
-    /// 回调由 AppHost 构造后回填；VM 持稳定转发委托，调用时读取当前回调。</summary>
-    internal sealed class AppHostDelegates
-    {
-        public Action<string, string>? ShowTrayBalloonTip { get; set; }
-        public Action? ExitApplication { get; set; }
     }
 }

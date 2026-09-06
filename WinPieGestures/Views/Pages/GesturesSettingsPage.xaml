@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:controls="clr-namespace:WinPieGestures.Views.Controls;assembly=StarPie.Core"
-        xmlns:pages="clr-namespace:WinPieGestures.Views.Pages"
+                        xmlns:pages="clr-namespace:WinPieGestures.Views.Pages;assembly=StarPie.Core"
         xmlns:vm="clr-namespace:WinPieGestures.ViewModels.Gestures"
         mc:Ignorable="d"
         d:DesignHeight="600" d:DesignWidth="760"

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- B6/#79：M5 壳层与系统集成模块程序集（ADR-0016 决策 1/8/12；首个带 DI 的模块程序集）。
+         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         依赖方向：StarPie.Shell → StarPie.Core 单向（assemblies.md §3）；不引用 Host/其它业务模块。
+         页面/VM 的 DI 注册与导航自报经 ShellModuleRegistrar（RegisterServices + RegisterNavigation）
+         下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Shell</AssemblyName>
+    <RootNamespace>WinPieGestures</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- B6/#79：M5 → Core 单向依赖（页面 VM 消费 S2/S3/S4/S6 契约、AppHostDelegates 宿主回调契约） -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+  </ItemGroup>
+
+</Project>
