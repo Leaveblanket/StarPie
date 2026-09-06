@@ -75,15 +75,18 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 4 | `NavTab4` | `TabAbout` | `AboutViewModel` | `AboutSettingsPage` | M5 Shell |
 
 缺失/重复/未知槽位由 Core 收口测试拦截；槽位表是侧边栏顺序唯一正典（B2/#75 契约与收口测试已落地；
-导航 VM 目录驱动接线随 B3）。
+B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册构造导航项，导航执行走
+`INavigationExecutor` 目录执行缝）。
 
 ## 6. DI 与注册契约（目标态）
 
 - **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用。
 - **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateAppHost`；模块不解析、不持容器。
-- **已批准解析缝**：`NavigationService<T>`、导航目录执行缝、`WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
+- **已批准解析缝**：`NavigationService<T>`、导航目录执行缝（`INavigationExecutor`，B3/#76 已落地）、
+  `WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
 - `AppHostDelegates` 上提为 Core 公开契约（Host 回填实现），M5/M1 注册器只依赖 Core。
-- CreateAppHost 的硬编码解析清单 → 目录/启动激活钩子驱动；eager 页面实例化语义在批次中验证保留。
+- CreateAppHost 的硬编码解析清单 → 目录/启动激活钩子驱动；eager 页面实例化语义已在 B3/#76 验证保留
+  （CreateAppHost 遍历 `NavigationCatalog.Entries` 逐个 eager 解析页面 VM）。
 - 不引入子容器、Generic Host、Autofac、Prism（ADR-0016 决策 13）。
 
 ## 7. 可见性（目标态）
@@ -100,7 +103,6 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B3 | 导航自治改造（Host+Core 内）：MainViewModel 目录驱动后**迁入 Core**；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
 | B4 | M3 Programs 抽取（首个模块程序集；M3 零共享内核依赖、无 DI 注册需求，注册器样板随 B6） | programs.md、layering.md、host.md |
 | B5 | 共享 UI 基建迁 Core（Converters/Controls/ModernControls + App.xaml pack URI） | layout.md、interface-theme.md |
 | B6 | M5 Shell 抽取（Advanced/About 页随集；宿主回调走 Core 契约；ShellViewModel 留 Host 核对） | shell.md、navigation.md、host.md、layout.md |
@@ -114,12 +116,12 @@ StarPie (Host/exe) ──→ StarPie.Core
 > 阻塞边 = 该票必须在前置票合入 main 后才能开工的硬门；无阻塞票可按路线顺序或 frontier 先做（多人并行时需先做文件面互斥划分）。
 
 - B2（Core 抽取）← None（已落地，#75）；B4（M3 抽取）← None。
-- B3（导航自治 + MainViewModel 迁 Core）← B2（B1 已落地，#74）。
+- B3（导航自治 + MainViewModel 迁 Core）已落地（#76；前置 B2/#75 已落地）。
 - B5（共享 UI 基建迁 Core）← B2。
-- B6（M5 抽取）← B3、B5。
+- B6（M5 抽取）← B5（B3 已落地，#76）。
 - B7（M4 抽取）← B2（主题 XAML 自包含，不依赖 B5）。
 - B8（M2 抽取，含 D5）← B7（`RadialWindow` 注入 M4 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
-- B9（M1 抽取）← B3、B5、B8（页面共享 `SettingsPageBase`、`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
+- B9（M1 抽取）← B5、B8（B3 已落地，#76；页面共享 `SettingsPageBase`、`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
 - B10（命名空间统一）← B9。
 
 ### 8.2 执行期集成面串行约束
@@ -128,7 +130,7 @@ StarPie (Host/exe) ──→ StarPie.Core
 
 - `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx`（B2 起含
   `StarPie.Core.csproj`）同一时间只允许一张票落地。B1/B2 已落地；其余触及这些文件面的批次
-  （如 B3/B4）必须串行合并（B4 逻辑上仍可提前开发）。
+  （如 B4）必须串行合并（B4 逻辑上仍可提前开发）。
 - `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5 与 B7 不得并行合并；二者架构上无需新增阻塞边，但必须排队集成。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠。B6 与 B7 不得同时进行文件搬迁；先完成一票并通过构建，再开始另一票的搬迁。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
@@ -140,9 +142,12 @@ StarPie (Host/exe) ──→ StarPie.Core
 代码现状 = Host exe（`WinPieGestures/`，程序集 `StarPie`）+ 共享内核（`StarPie.Core/`，程序集
 `StarPie.Core`，WPF 类库）+ `WinPieGestures.Tests`（显式引用两工程）。B2/#75 已落地：Models、
 S2/S3/S4/S1、S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
-NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core；`MainViewModel` 本批未迁（B3 目录驱动后
-迁入），`AppHostDelegates` 上提延至 B6。导航目录驱动接线、模块注册器与页面模板字典、五个业务模块
-程序集（M1–M5）尚未落地，差异随 B3–B10 逐批回填叶子并清零。
+NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core。**B3/#76 已落地**：`MainViewModel`
+目录驱动后迁入 Core（无页面类型硬编码）；导航执行走 `INavigationExecutor` 目录执行缝；exe 内按
+M1/M5/Host 临时注册器（`RegisterNavigation`）与模块页面模板字典（App 级每模块一次静态合并）；
+CreateAppHost 页面 eager 解析清单目录化（语义保留）；MainView.xaml 纯壳（不再含页面 DataTemplate）。
+`AppHostDelegates` 上提延至 B6；页面 VM 的 DI 注册仍集中组合根（模块服务注册器样板随 B6 起落地）。
+五个业务模块程序集（M1–M5）尚未拆分，差异随 B4–B10 逐批回填叶子并清零。
 
 ## 参见 ADR
 

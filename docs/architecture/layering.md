@@ -87,8 +87,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core（显式引用，�
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 容器单例（状态跨导航常驻）；轮盘 VM 按手势创建、不注册；对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
-- 主框架 VM 拆分（B1/D3，ADR-0016 决策 7）：`MainViewModel`（导航状态）与 `ShellViewModel`（窗口标题/退出态/
-  保存）分别供 `MainView` 分区 DataContext 的导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
+- 主框架 VM 拆分（B1/D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；B3/#76 目录驱动后随 S5 导航
+  内核迁入 Core）与 `ShellViewModel`（窗口标题/退出态/保存，留 Host 壳窗口）分别供 `MainView` 分区
+  DataContext 的导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
@@ -112,7 +113,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core（显式引用，�
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
-- 页面经 `MainView.xaml` 中 DataTemplate 映射 VM（无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
+- 页面经 App 级模块页面模板字典（B3/#76 起，`WinPieGestures/Modules/*PageTemplates.xaml`）中的
+  DataTemplate 映射 VM（无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面卸载时成对取消
+  静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
 - 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 ADR-0009 输入适配）。
 

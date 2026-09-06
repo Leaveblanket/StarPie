@@ -15,8 +15,9 @@
 - `Services/Shell/AutostartRegistry.cs`（R1：`AutostartRegistry` 归 M5，物理已随 #70 收编本目录）。
 - `ViewModels/Navigation/ShellViewModel.cs`（B1/D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
-- `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml` 页面 DataTemplate
-  映射见 [navigation.md](navigation.md)，分区 DataContext 接线见下关键流程 4）。
+- `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；B3/#76 起 `MainView.xaml`
+  为纯壳——页面 DataTemplate 已迁至 App 级模块页面模板字典（`WinPieGestures/Modules/`，见
+  [navigation.md](navigation.md)），分区 DataContext 接线见下关键流程 4）。
 - 设置面：`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`
   （D6：M5 设置面；VM 注册与宿主回调见 [host.md](host.md)，页面绑定规范见 [layering.md](layering.md)）。
 

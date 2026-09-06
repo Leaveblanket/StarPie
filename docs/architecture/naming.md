@@ -27,7 +27,9 @@
 | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | 高级与系统 |
 | `AboutViewModel` | `AboutSettingsPage` | 关于与更新 |
 
-规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在 `MainViewModel` 导航项 + `MainView.xaml` DataTemplate + 本表各登记一行**；映射表是唯一事实来源（接线流程见 [navigation.md](navigation.md)）。
+规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属模块注册器
+`RegisterNavigation`（exe 内 M1/M5/Host 临时注册器，B3/#76）+ 所属模块页面模板字典 DataTemplate
++ 本表各登记一行**；映射表是唯一事实来源（接线流程见 [navigation.md](navigation.md)）。
 
 ## 对话框配对与例外
 

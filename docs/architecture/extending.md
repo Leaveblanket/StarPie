@@ -7,7 +7,9 @@
 1. 先确认功能域、模型与 `config.json` 兼容性（新字段带默认值，不改旧字段语义）。
 2. 纯逻辑放 Services 纯函数/引擎；副作用放可注入服务或组合根注入的委托。
 3. VM 只含状态、命令、消息；View 只含布局与纯 UI 效果；引用遵守 [layering.md](layering.md)（依赖矩阵）。
-4. 服务/页面 VM 在 `Composition.cs` 注册（见 [host.md](host.md)）；页面 DataTemplate、导航项、映射表（[naming.md](naming.md)）同步登记。
+4. 服务/页面 VM 在 `Composition.cs` 注册（见 [host.md](host.md)）；B3/#76 起导航项经所属模块注册器
+   `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（见 [navigation.md](navigation.md)），
+   映射表（[naming.md](naming.md)）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本用 `I18n` 键 + 四语言值，并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](localization.md)）。
 7. 新增单测：`WinPieGestures.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
@@ -28,7 +30,10 @@
 
 1. **VM**：`ViewModels/Pages/{Domain}SettingsViewModel.cs`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger` 或组合根委托；单例注册）。
 2. **View**：`Views/Pages/{Page}Page.xaml(.cs)`，无参构造；仅布局与 ADR-0009 白名单 code-behind。
-3. **注册与接线**：`Composition.ConfigureServices` 注册 VM → 组合根加 `INavigationService<{Domain}ViewModel>` 字段并解析 → `MainViewModel` 加导航项（AutomationId/TitleKey/IconData/TargetViewModelType）→ `MainView.xaml` 加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
+3. **注册与接线（B3/#76 目录驱动）**：页面 VM 在 `Composition.ConfigureServices` 注册（DI 注册下放随
+   B6/B9 模块拆集）→ 所属模块注册器 `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/
+   TitleKey/IconData，exe 内 M1/M5/Host 临时注册器）→ 所属模块页面模板字典加 DataTemplate →
+   [naming.md](naming.md) 页面映射表登记。eager 启动解析与侧栏导航项由目录自动纳入，无需再改组合根清单。
 4. **i18n**：导航标题/壳层文案键 + 四语言 + 盘点。
 5. **测试**：页面 VM 单测；`NavigationTests` 如涉及导航项列表需同步。
 
