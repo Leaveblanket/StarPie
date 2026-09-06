@@ -24,11 +24,8 @@ namespace WinPieGestures
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
-        private readonly INavigationService<BehaviorSettingsViewModel> _navTrigger;
-        private readonly INavigationService<AppearanceSettingsViewModel> _navAppearance;
-        private readonly INavigationService<ProfileListViewModel> _navGestures;
-        private readonly INavigationService<GeneralSettingsViewModel> _navAdvanced;
-        private readonly INavigationService<AboutViewModel> _navAbout;
+        // B3/#76（导航自治）：目录执行缝按槽位导航——宿主不再持有任何页面类型。
+        private readonly INavigationExecutor _navigation;
         // #54（ADR-0014 决策 6/7）：界面主题设置子 VM——壳层启动时读取 AppTheme 做初始主题应用；
         // 运行时变更经 AppThemeChangedMessage 由 MainView 订阅执行（本宿主不再直读外观聚合 VM）。
         private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
@@ -52,11 +49,7 @@ namespace WinPieGestures
             ThemeService themeService,
             ILocalizationService localization,
             SettingsSaveOrchestrator saveOrchestrator,
-            INavigationService<BehaviorSettingsViewModel> navTrigger,
-            INavigationService<AppearanceSettingsViewModel> navAppearance,
-            INavigationService<ProfileListViewModel> navGestures,
-            INavigationService<GeneralSettingsViewModel> navAdvanced,
-            INavigationService<AboutViewModel> navAbout,
+            INavigationExecutor navigation,
             InterfaceThemeSettingsViewModel interfaceTheme,
             GeneralSettingsViewModel general,
             MainViewModel mainViewModel,
@@ -69,11 +62,7 @@ namespace WinPieGestures
             _themeService = themeService;
             _localization = localization;
             _saveOrchestrator = saveOrchestrator;
-            _navTrigger = navTrigger;
-            _navAppearance = navAppearance;
-            _navGestures = navGestures;
-            _navAdvanced = navAdvanced;
-            _navAbout = navAbout;
+            _navigation = navigation;
             _interfaceTheme = interfaceTheme;
             _general = general;
             _mainViewModel = mainViewModel;
@@ -106,8 +95,8 @@ namespace WinPieGestures
             // 托盘驻留气泡：宿主订阅消息后直调通用 VM（文案与编排仍在 VM）。
             _messenger.Register<MinimizedToTrayMessage>(this, (_, _) => _general?.NotifyMinimizedToTray());
 
-            // 初始页：触发与场景（迁移前 NavTab0 默认选中）。
-            _navTrigger.Navigate();
+            // 初始页：触发与场景槽位（迁移前 NavTab0 默认选中；目录执行缝按槽位解析）。
+            _navigation.Navigate(NavigationSlot.Trigger);
 
             _mainView = new MainView(_mainViewModel, _shellViewModel, _themeService);
             _mainView.IsVisibleChanged += (_, _) =>
@@ -127,7 +116,7 @@ namespace WinPieGestures
 
             _trayIcon = new TrayIconManager(
                 _themeService,
-                onDoubleClick: () => NavigateAndShow(_navTrigger),
+                onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
                 menuProvider: BuildTrayMenuEntries);
             _trayIcon.SetTooltip(CurrentTooltip());
 
@@ -172,10 +161,10 @@ namespace WinPieGestures
             }
         }
 
-        /// <summary>类型化导航 + 窗口激活（托盘直达；淡入淡出在 <see cref="MainView.ShowAndActivate"/>）。</summary>
-        private void NavigateAndShow(INavigationService navigation)
+        /// <summary>按目录槽位导航 + 窗口激活（托盘直达；淡入淡出在 <see cref="MainView.ShowAndActivate"/>）。</summary>
+        private void NavigateAndShow(NavigationSlot slot)
         {
-            navigation.Navigate();
+            _navigation.Navigate(slot);
             _mainView?.ShowAndActivate();
         }
 
@@ -190,11 +179,11 @@ namespace WinPieGestures
 
             string pauseText = _mouseHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
             entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
-            // T19：托盘四项直达改类型化导航（原 ShowSettings(0/1/2/4) 的页面映射保持不变）。
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(_navTrigger)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(_navAppearance)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(_navGestures)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAbout"), () => NavigateAndShow(_navAbout)));
+            // B3/#76：托盘四项直达改目录槽位导航（原 ShowSettings(0/1/2/4) 的页面映射保持不变）。
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAbout"), () => NavigateAndShow(NavigationSlot.About)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), () => _general?.ElevateAndRestart()));
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));

@@ -5,9 +5,9 @@ using CommunityToolkit.Mvvm.Input;
 namespace WinPieGestures.ViewModels.Navigation
 {
     /// <summary>
-    /// 侧边栏导航项 ViewModel (T19)：数据驱动——图标/标题/目标页面类型/选中态；
-    /// 点击经 <see cref="NavigateCommand"/> 走类型化导航服务（构造注入的 navigate 委托，
-    /// 由主框架 VM 用泛型导航服务接线）。AutomationId 沿用迁移前 NavTab{0..4}，
+    /// 侧边栏导航项 ViewModel (T19，B3/#76 目录驱动)：数据驱动——图标/标题/目标页面类型/选中态；
+    /// 点击经 <see cref="NavigateCommand"/> 走目录执行缝（构造注入的 navigate 委托，由主框架 VM
+    /// 用 <see cref="INavigationExecutor"/> 按槽位接线）。AutomationId 沿用 NavTab{0..4}，
     /// e2e（pywinauto）依赖该标识。标题随语言广播由主框架 VM 刷新。
     /// </summary>
     public partial class NavigationItemViewModel : ObservableObject

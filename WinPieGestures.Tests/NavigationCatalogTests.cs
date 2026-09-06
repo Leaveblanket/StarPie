@@ -119,4 +119,26 @@ public sealed class NavigationCatalogTests
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             catalog.RegisterPage<TriggerViewModel>((NavigationSlot)7, "NavTab7", "TabTrigger", ""));
     }
+
+    [Fact]
+    public void GetEntry_RegisteredSlot_ReturnsCatalogEntry()
+    {
+        var catalog = CreateFullCatalog();
+
+        var entry = catalog.GetEntry(NavigationSlot.Gestures);
+
+        Assert.Equal(NavigationSlot.Gestures, entry.Slot);
+        Assert.Equal("NavTab2", entry.AutomationId);
+        Assert.Equal(typeof(GesturesViewModel), entry.ViewModelType);
+    }
+
+    [Fact]
+    public void GetEntry_UnregisteredSlot_Throws()
+    {
+        var catalog = new NavigationCatalog();
+        catalog.RegisterPage<TriggerViewModel>(
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+
+        Assert.Throws<InvalidOperationException>(() => catalog.GetEntry(NavigationSlot.About));
+    }
 }

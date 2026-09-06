@@ -31,27 +31,40 @@
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` =
      `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
+   - B3/#76（导航自治）：`NavigationCatalog` 由 exe 内 M1/M5/Host 临时注册器（`WinPieGestures/Modules/`）
+     装配并 `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型（页面 VM 的 DI 注册仍集中
+     ConfigureServices，B6/B9 下放）；注册 `INavigationExecutor` → `NavigationExecutor`（目录执行缝，
+     主导航入口，见 [navigation.md](navigation.md)）。
    - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
      `DialogService`（T3c/#67：构造注入 M3 程序扫描委托，以 `ProgramScanner.ScanInstalledPrograms`
      登记；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、`SettingsSaveOrchestrator`。
    - 页面 VM 工厂注册（单例）：`BehaviorSettingsViewModel`、`ProfileListViewModel`、
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
      `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、
-     `GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`（#69：`ProfileListViewModel`
+     `GeneralSettingsViewModel`、`AboutViewModel`、`MainViewModel`（B3/#76：已迁 Core 且目录驱动；
+     仍在组合根注册——页面 VM 的 DI 注册在 B6/B9 前维持集中；#69 起 `ProfileListViewModel`
      另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）、
      `ShellViewModel`（B1/D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，
      见 [shell.md](shell.md)）。
+   - B3/#76 注：模块临时注册器（`M1/M5/HostModuleRegistrar`）本批只做 `RegisterNavigation`；
+     页面 VM 服务注册含宿主回调（`AppHostDelegates`），下放随模块拆集排 B6/B9（见
+     [assemblies.md](assemblies.md) §8）。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
-   - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、`GestureController`、五个类型化导航服务；
-   - 解析全部页面 VM 与 `MainViewModel`/`ShellViewModel`（VM 构造即订阅导入广播/落盘消息与 I18n 事件，
-     时机在 `Config.Load` 之后）；
+   - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
+     `INavigationExecutor`、`NavigationCatalog`、`GestureController`；
+   - **页面 VM eager 解析清单目录化（B3/#76）**：遍历 `NavigationCatalog.Entries` 逐个解析注册的
+     页面 VM（VM 构造即订阅导入广播/落盘消息与 I18n 事件，时机在 `Config.Load` 之后；eager 语义
+     保留——新增页面注册进目录即自动纳入启动构造）；另解析 `MainViewModel`/`ShellViewModel` 与宿主
+     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（初始主题与托盘/驻留气泡
+     直调，接线随 B6 收编）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
 4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - `_mouseHook.Start()` → 订阅 `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
      首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
-     `BehaviorSettingsViewModel`（触发与场景）→ `new MainView(...)` + 应用初始界面主题
+     `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，B3/#76 目录槽位）→
+     `new MainView(...)` + 应用初始界面主题
      （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→ `_dialogService.SetOwner(_mainView)`
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
 5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
@@ -68,7 +81,9 @@
 
 ## 扩展点
 
-- 新服务/新页面 VM：在 `Composition.ConfigureServices` 注册（服务清单见 [extending.md](extending.md)）。
+- 新服务/新页面 VM：在 `Composition.ConfigureServices` 注册（B3/#76 起导航项与页面模板改经所属模块
+  注册器 + 模块模板字典，见 [navigation.md](navigation.md)/[naming.md](naming.md)；服务注册下放随
+  B6/B9 模块拆集）。
 - 新托盘入口：在 `AppHost.BuildTrayMenuEntries` 登记（托盘职责见 [shell.md](shell.md)）。
 - 新增“启动/退出/隐藏”副作用：优先以委托注入页面 VM，不新增服务定位器；宿主编排改 `AppHost`，不改 `Composition`。
 

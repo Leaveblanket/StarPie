@@ -4,7 +4,7 @@
 
 ## Canonical 目录树
 
-以下为**应然结构**（正典）。当前代码与正典一致，无未决偏差（见文末）。
+以下为**应然结构**（正典）。当前代码与正典一致（B3/#76 临时面见文末“当前登记偏差”）。
 
 ```text
 StarPie/
@@ -13,6 +13,7 @@ StarPie/
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
 │   ├── Composition.cs             # DI 组合根（唯一）：注册与解析（含 B2 跨程序集回填缝，见 layering.md）
 │   ├── DevInstance.cs             # 开发实例标记（H1）：--dev 互斥/触发键/自启保护
+│   ├── Modules/                   # B3/#76 临时：M1/M5/Host 注册器 + 页面模板字典（随模块拆集迁出，见 navigation.md）
 │   ├── ThemePaletteManager.cs     # 主题调色板整项替换（宿主层 internal，#46/ADR-0013）
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
@@ -33,7 +34,7 @@ StarPie/
 │   │   ├── Pages/                 # 设置页 VM（单例）
 │   │   ├── Dialogs/               # 对话框 VM
 │   │   ├── Gestures/              # 扇区等轮盘子 VM
-│   │   ├── Navigation/            # MainViewModel、ShellViewModel（NavigationItemViewModel 在 Core）
+│   │   ├── Navigation/            # ShellViewModel（MainViewModel 已迁 Core，B3/#76）
 │   │   └── Wheel/                 # 轮盘 VM（按手势瞬态创建）
 │   └── Views/
 │       ├── Pages/                 # 页面 View（XAML + code-behind）
@@ -65,7 +66,7 @@ StarPie/
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
 │   │   └── Navigation/            # S5：导航内核 + NavigationCatalog/NavigationSlots（槽位表 0–4）
 │   └── ViewModels/
-│       └── Navigation/            # S5：NavigationItemViewModel
+│       └── Navigation/            # S5：NavigationItemViewModel、MainViewModel（B3/#76 迁入，目录驱动）
 └── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host 与 Core）
 ```
 
@@ -78,7 +79,8 @@ StarPie/
 
 > 目录相对所属工程：共享内核件（`Models/`、`Services/Configuration/`、`Services/Dialogs/` 契约、
 > `Services/Icons/`、`Services/Localization/`、`Services/Messages/`、`Services/Navigation/`、
-> `ViewModels/Navigation/NavigationItemViewModel.cs`）位于 `StarPie.Core/`；其余位于
+> `ViewModels/Navigation/NavigationItemViewModel.cs` 与 `MainViewModel.cs`（B3/#76 迁入））位于
+> `StarPie.Core/`；其余位于
 > `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
@@ -99,16 +101,17 @@ StarPie/
 | `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | 轮盘扇区等子 VM（如 `SlotViewModel`） | 不放服务 |
-| `ViewModels/Navigation/` | Host：`MainViewModel`（B1/D3 纯导航）、`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM）；Core：`NavigationItemViewModel`（B2/#75 随 S5 导航内核迁入共享内核） | 导航项文案/图标规则见 [navigation.md](navigation.md) |
+| `ViewModels/Navigation/` | Core：`NavigationItemViewModel`（B2/#75）、`MainViewModel`（B3/#76 迁入且目录驱动）；Host：`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM） | 导航项文案/图标规则见 [navigation.md](navigation.md) |
 | `ViewModels/Wheel/` | `IWheelViewModel`、`WheelViewModel` | 不注册容器；按手势由 `WheelFactory` 瞬态创建；见 [wheel.md](wheel.md) |
 | `Views/Pages/` | `{Page}Page.xaml(.cs)`、`SettingsPageBase.cs`；页面无参构造 | 不注册容器；不编排业务/写配置/调服务 |
 | `Views/Dialogs/` | `{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |
-| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 内集中页面 DataTemplate 映射 | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
+| `Views/Navigation/` | `MainView.xaml(.cs)`、`SidebarView.xaml(.cs)`；`MainView` 为纯壳（B3/#76 起页面 DataTemplate 已迁出至 `Modules/` 模块模板字典） | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
 | `Views/Wheel/` | `RadialWindow.xaml(.cs)` | 轮盘状态决策在 `WheelViewModel`，窗口只做视觉呈现与生命周期；见 [wheel.md](wheel.md) |
 | `Views/Controls/` | 自定义控件与附加行为（`HotkeyRecorderBox.cs`、`SpectrumCanvasBehavior.cs`），仅纯 UI 适配 | 有 `Command`/绑定等价物时不得新增行为 |
 | `Views/Converters/` | `XxxToYyyConverter` | 转换器保持无状态、可静态复用 |
 | `Views/Renderers/` | `IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、各风格渲染器、`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷，不内联方案 hex 表 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；见 [wheel.md](wheel.md) |
 | `Views/Styles/` | `Themes/*.xaml`（主题画刷令牌，五套同 key 集）、`ModernControls.xaml`（隐式默认/键控变体/共享模板，仅由 `App.xaml` 合并） | 对话框/轮盘窗口不隐式继承页面级样式；窗口/页面不再各自合并样式字典 |
+| `Modules/`（B3/#76 临时） | M1/M5/Host 模块注册器（`RegisterNavigation`）+ 页面模板字典（`M1/M5/HostPageTemplates.xaml`，App 级每模块一次静态合并） | 不承载业务；导航自治样板，随 B6/B9 模块拆集迁出 |
 
 ## 根级文件规则
 
@@ -125,7 +128,13 @@ StarPie/
 
 ## 现状偏差与待清理项
 
-当前代码与正典目录结构一致，无未决偏差。
+当前代码与正典目录结构一致（B3/#76 临时面见下）。
+
+### 当前登记偏差（临时，B3/#76）
+
+- `WinPieGestures/Modules/`：M1/M5/Host 模块注册器与页面模板字典（`M1/M5/HostPageTemplates.xaml`，
+  App 级每模块一次静态合并）。ADR-0016 目标态中注册器/模板字典属模块程序集，B3 在单程序集内以临时面
+  先行验证“新增页面不碰 Host”路径；本目录随 B6/B9 模块拆集迁出，届时自本表移除。
 
 已消除的历史偏差（2026-09-04）：
 
