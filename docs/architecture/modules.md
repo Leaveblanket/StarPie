@@ -115,7 +115,7 @@
 | R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
 | R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
-| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 随 B3/B6/B9 迁出 | `Views/Navigation/` | as-built 叶子维持文件级双登记至 B1/B3（navigation.md/shell.md）；目标态见 [assemblies.md](assemblies.md) §4 |
+| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 随 B3/B6/B9 迁出 | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel，叶子已按 Host 壳窗口登记）；页面 DataTemplate 仍驻 MainView，随 B3/B6/B9 迁出；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
@@ -129,10 +129,12 @@
 ### D2 M5 子职责目录与护栏
 子职责：托盘 / 自启 / 内存 / 高级与关于设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不再属 M5。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
 
-### D3 MainViewModel 类型级双职责（ADR-0016：拆分）
-原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）借调 M5，类型级双职责例外；#70 曾确认“非目标”。
+### D3 MainViewModel / ShellViewModel 拆分（ADR-0016，B1/#74 已落地）
+原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）借调 M5，类型级双职责例外。
 
-ADR-0016 决策 7（Q18）改为**拆分**：`MainViewModel` 收敛为纯导航（随 S5 导航内核进 Core）；壳成员迁出为 `ShellViewModel`（留 Host 壳窗口，与 R4 同判据）。**B1 落地前**代码与叶子（navigation.md/shell.md）维持 as-built 双职责登记；拆分后本登记清零。
+ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯导航（随 S5 导航内核进 Core）；
+壳成员迁出为 `ShellViewModel`（`WindowTitle`/`IsExiting`/`Save()`，留 Host 壳窗口，与 R4 同判据）；
+`MainView` 分区 DataContext（导航区绑导航 VM、壳区绑壳 VM）。本登记清零。
 
 ### D4 AppHost 语言字典投影
 `AppHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属（防旧 localization.md 把 AppHost 列入“组成文件”造成的误解；随 B1 修订叶子表述）。

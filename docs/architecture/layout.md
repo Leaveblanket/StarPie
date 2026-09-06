@@ -48,7 +48,7 @@ WinPieGestures/
 │   ├── Pages/                  # 设置页 VM（单例）
 │   ├── Dialogs/                # 对话框 VM
 │   ├── Gestures/               # 扇区等轮盘子 VM
-│   ├── Navigation/             # MainViewModel、NavigationItemViewModel
+│   ├── Navigation/             # MainViewModel（导航 VM）、ShellViewModel（壳层 VM）、NavigationItemViewModel
 │   └── Wheel/                  # 轮盘 VM（按手势瞬态创建）
 └── Views/
     ├── Pages/                  # 页面 View（XAML + code-behind）
@@ -81,7 +81,7 @@ WinPieGestures/
 | `ViewModels/Pages/` | `{Domain}SettingsViewModel`、`AboutViewModel`（单例） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | 轮盘扇区等子 VM（如 `SlotViewModel`） | 不放服务 |
-| `ViewModels/Navigation/` | `MainViewModel`、`NavigationItemViewModel` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
+| `ViewModels/Navigation/` | `MainViewModel`（B1/D3 纯导航）、`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM）、`NavigationItemViewModel` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
 | `ViewModels/Wheel/` | `IWheelViewModel`、`WheelViewModel` | 不注册容器；按手势由 `WheelFactory` 瞬态创建；见 [wheel.md](wheel.md) |
 | `Views/Pages/` | `{Page}Page.xaml(.cs)`、`SettingsPageBase.cs`；页面无参构造 | 不注册容器；不编排业务/写配置/调服务 |
 | `Views/Dialogs/` | `{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |

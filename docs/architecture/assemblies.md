@@ -99,7 +99,6 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B1 | 壳内重构：D3 拆分（MainViewModel 纯导航 / ShellViewModel）+ R4 落地（MainView 分区 DataContext、退出链、Composition 接线） | navigation.md、shell.md、host.md、layering.md |
 | B2 | Core 抽取：Q11 范围（Models/S2/S3/S4/S5 导航内核/S6 契约/S1 Icons）+ NavigationCatalog/槽位表/收口测试（**不含 MainViewModel**；AppHostDelegates 上提延至 B6） | layout.md、layering.md、localization.md、messages.md、dialogs.md、navigation.md |
 | B3 | 导航自治改造（仍单程序集）：MainViewModel 目录驱动后**迁入 Core**；exe 内按 M1/M5/Host 临时注册器与页面模板字典；CreateAppHost 解析清单目录化 | navigation.md、naming.md、host.md |
 | B4 | M3 Programs 抽取（首个模块程序集；M3 零共享内核依赖、无 DI 注册需求，注册器样板随 B6） | programs.md、layering.md、host.md |
@@ -114,8 +113,8 @@ StarPie (Host/exe) ──→ StarPie.Core
 
 > 阻塞边 = 该票必须在前置票合入 main 后才能开工的硬门；无阻塞票可按路线顺序或 frontier 先做（多人并行时需先做文件面互斥划分）。
 
-- B1（D3/R4 壳内重构）← None；B2（Core 抽取）← None；B4（M3 抽取）← None。
-- B3（导航自治 + MainViewModel 迁 Core）← B1、B2。
+- B2（Core 抽取）← None；B4（M3 抽取）← None。
+- B3（导航自治 + MainViewModel 迁 Core）← B2（B1 已落地，#74）。
 - B5（共享 UI 基建迁 Core）← B2。
 - B6（M5 抽取）← B3、B5。
 - B7（M4 抽取）← B2（主题 XAML 自包含，不依赖 B5）。
