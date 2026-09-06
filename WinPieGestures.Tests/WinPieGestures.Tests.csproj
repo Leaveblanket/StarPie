@@ -27,6 +27,8 @@
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/AboutViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
+    <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->
+    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
   </ItemGroup>
 
 </Project>

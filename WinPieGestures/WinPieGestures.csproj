@@ -34,6 +34,10 @@
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General+About 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
+    <!-- B7/#80：M4 界面主题模块程序集显式引用（ThemeService/ThemePaletteManager/主题字典/
+         主题设置子 VM 随迁；组合根调 ThemeModuleRegistrar 注册服务与主题 VM DI、
+         AppHost 装配 ThemePaletteManager 调色板换入面用） -->
+    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
   </ItemGroup>
 
 </Project>

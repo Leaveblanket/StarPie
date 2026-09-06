@@ -7,9 +7,9 @@ namespace WinPieGestures.Services.Shell
     /// Theme seam (ADR-0002/0013/#47): owns the app's current effective theme, applies
     /// theme changes through the single <see cref="SetTheme"/> entry point and drives the
     /// DWM title bar via <see cref="ApplyWindowTheme"/>. Palette swapping lives behind
-    /// the host-level ThemePaletteManager callback; this service never touches Views.
-    /// Injected into the settings window, the dialogs, the wheel factory and the tray;
-    /// pages never hold IThemeService (ADR-0009 whitelist).
+    /// the module-level ThemePaletteManager callback (B7/#80 起同驻 StarPie.Theme);
+    /// this service never touches Views. Consumed by Host windows/dialog factory and
+    /// (B8 收编 M2 后) the wheel side; pages never hold IThemeService (ADR-0009 whitelist).
     /// </summary>
     public interface IThemeService
     {

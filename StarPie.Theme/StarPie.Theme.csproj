@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- B7/#80：M4 界面主题模块程序集（ADR-0016 决策 1/8/12）。
+         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         依赖方向：StarPie.Theme → StarPie.Core 单向（assemblies.md §3）；
+         不引用 Host/其它业务模块。
+         主题服务与主题设置子 VM 的 DI 注册经 ThemeModuleRegistrar.RegisterServices
+         下放本程序集，组合根仍唯一 BuildServiceProvider；
+         ThemePaletteManager 裁决为 public（Host AppHost 装配面，B6/#79 TrayIconManager 先例）。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Theme</AssemblyName>
+    <RootNamespace>WinPieGestures</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- B7/#80：M4 → Core 单向依赖（主题设置子 VM 消费 S2/S3/S4 契约与共享 Models） -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+  </ItemGroup>
+
+</Project>

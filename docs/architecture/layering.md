@@ -20,7 +20,8 @@ Services ---> Models
 WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
                                           ──→ StarPie.Programs（M3 模块程序集，B4/#77；零 Core 依赖）
                                           ──→ StarPie.Shell（M5 模块程序集，B6/#79；单向 Core）
-WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs + StarPie.Shell
+                                          ──→ StarPie.Theme（M4 界面主题模块程序集，B7/#80；单向 Core）
+WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs + StarPie.Shell + StarPie.Theme
                        （显式引用，不依赖传递）
 ```
 
@@ -34,6 +35,13 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 - M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
   ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
   组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。
+- M4（`StarPie.Theme/`，B7/#80）承载界面主题体系（IThemeService/ThemeService、
+  ThemePaletteManager、五套主题字典 Views/Styles/Themes/*.xaml、InterfaceThemeSettingsViewModel、
+  ThemeModuleRegistrar）；**单向依赖 Core**：主题服务与主题设置子 VM 的 DI 注册经
+  `ThemeModuleRegistrar.RegisterServices` 下放模块（M4 无导航页，无 RegisterNavigation）；
+  `ThemePaletteManager` 与 `ThemeService.AttachPaletteApplier` 裁决 public——Host `AppHost`
+  装配面（`new ThemePaletteManager` + Attach + Apply），不引入 InternalsVisibleTo；
+  M4 不反向引用 Host/其它业务模块（见 [interface-theme.md](interface-theme.md)/[host.md](host.md)）。
 - M5（`StarPie.Shell/`，B6/#79）承载壳层服务与系统设置面（TrayIconManager/AutostartRegistry/
   MemoryOptimizer、GeneralSettingsViewModel+AdvancedSettingsPage、AboutViewModel+AboutSettingsPage、
   ShellModuleRegistrar）；**单向依赖 Core**：页面 VM 的 DI 注册与导航自报下放模块注册器
@@ -81,7 +89,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
     原 internal，随 S2 迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
   - 需要被 Host 装配的模块公开件显式 `public`（B6/#79 先例：`StarPie.Shell` 的
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
-    `AutostartRegistry` 只被同集注册器接线，保持 internal）。
+    `AutostartRegistry` 只被同集注册器接线，保持 internal；B7/#80 同判据：`StarPie.Theme`
+    的 `ThemePaletteManager` 与 `ThemeService.AttachPaletteApplier`——`AppHost` 构造时
+    `new` 调色板管理器并 Attach 换入回调）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
@@ -99,7 +109,8 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 ## Services
 
 - **接口与实现同目录**：`IXxxService` / `XxxService`。
-- **只由 Composition 注册**；View/ViewModel 不自行 `new` 服务、不使用服务定位器（`NavigationService<T>` 例外见上）。
+- **只由组合根注册（可经模块注册器 RegisterServices 下放）**；View/ViewModel 不自行 `new` 服务、
+  不使用服务定位器（`NavigationService<T>` 例外见上）。
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeService` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。

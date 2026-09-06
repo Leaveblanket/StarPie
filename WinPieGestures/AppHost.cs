@@ -37,8 +37,9 @@ namespace WinPieGestures
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
-        // ADR-0013/#46：主题调色板换入下沉到 ThemePaletteManager（整项替换活动主题槽），
-        // AppHost 只编排（Attach 回调），不再实现直接键覆盖。
+        // ADR-0013/#46 + B7/#80：主题调色板换入下沉到 ThemePaletteManager（随 M4 迁
+        // StarPie.Theme 并裁决 public——Host 装配面，B6/#79 TrayIconManager 先例；
+        // 整项替换活动主题槽）。AppHost 只编排（Attach 回调），不再实现直接键覆盖。
         private readonly ThemePaletteManager _paletteManager = new();
         private TrayIconManager? _trayIcon;
         private MainView? _mainView;
@@ -70,8 +71,9 @@ namespace WinPieGestures
             _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
 
-            // ADR-0013/#46：主题画刷换入归宿主层 ThemePaletteManager（整项替换 MergedDictionaries 主题槽；
-            // ThemeService 仍不接触 Views 资源，只经回调触发换入）。
+            // ADR-0013/#46 + B7/#80：主题画刷换入归 StarPie.Theme 的 ThemePaletteManager
+            // （跨程序集 public 装配面；整项替换 MergedDictionaries 主题槽；ThemeService 仍
+            // 不接触 Views 资源，只经回调触发换入）。
             themeService.AttachPaletteApplier(effectiveTheme => _paletteManager.Apply(effectiveTheme, Application.Current!));
 
             // 回填宿主回调（B6/#79：AppHostDelegates 上提 Core 后经容器单例解析）：M5 注册器
@@ -117,8 +119,8 @@ namespace WinPieGestures
             _dialogService.SetOwner(_mainView);
 
             // B6/#79：TrayIconManager 随 M5 迁入 StarPie.Shell（M5 → Core 单向）；托盘菜单
-            // 深色配色原直读 M4 IThemeService（B7 前仍驻 Host），此处由宿主以委托注入
-            // 深色探针，Shell 不反向引用 Host/M4（与 M3 图标委托同模式）。
+            // 深色配色原直读 M4 IThemeService（B7/#80 起随 M4 驻 StarPie.Theme），此处由宿主
+            // 以委托注入深色探针，Shell 不反向引用 Host/M4（与 M3 图标委托同模式）。
             _trayIcon = new TrayIconManager(
                 windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
                 onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),

@@ -11,33 +11,53 @@
 
 ## 组成文件
 
-- `Services/Shell/`：`IThemeService`/`ThemeService`（物理暂居水平目录，按类型归 M4；同目录还按类型登记着
-  其它模块的类型，见 [shell.md](shell.md) 与 [host.md](host.md)）。
-- `ThemePaletteManager.cs`（项目根，宿主层主题调色板整项替换）。
-- `Views/Styles/Themes/*.xaml`（五套同 key 集；M4 拆集（B7）前物理居 Host 项目，随迁 StarPie.Theme）。
-- `ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，#54/ADR-0014 决策 6/7）。
-- `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub `Services/Messages/Messages.cs`，
-  放行共享面，见 [messages.md](messages.md)）。
+M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命名空间维持 `WinPieGestures.*`，
+B10 统一收尾）：
+
+- `StarPie.Theme/Services/Shell/`：`IThemeService`/`ThemeService`（命名空间
+  `WinPieGestures.Services.Shell` 与物理目录一致，B10 前不随程序集改名；Host 侧原
+  `WinPieGestures/Services/Shell/` 目录已随 B7 清空移除）。
+- `StarPie.Theme/ThemePaletteManager.cs`（模块根，主题调色板整项替换；B7/#80 可见性裁决为
+  public——Host `AppHost` 装配面，同 B6/#79 `TrayIconManager` 先例，见
+  [assemblies.md](assemblies.md) §7）。
+- `StarPie.Theme/Views/Styles/Themes/*.xaml`（五套同 key 集）。
+- `StarPie.Theme/ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，
+  #54/ADR-0014 决策 6/7）。
+- `StarPie.Theme/Modules/ThemeModuleRegistrar.cs`（M4 模块注册器：`RegisterServices` 下放
+  `ThemeService`/`IThemeService`/`InterfaceThemeSettingsViewModel` 的 DI 注册；M4 无导航页，
+  不提供 `RegisterNavigation`）。
+- `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
+  `Services/Messages/Messages.cs`（Core），放行共享面，见 [messages.md](messages.md)）。
+
+消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
+DialogService/对话框）与 M2 轮盘侧（B8 前仍驻 Host）经模块程序集引用消费
+`IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的 `Func<bool>` 委托
+（B6/#79 起，Shell 不反向引用 M4）；Theme → Core 单向，不反向引用 Host/其它业务模块。
 
 ## 关键流程
 
 1. **XAML 令牌**（[ADR-0012](../adr/0012-resource-dictionary-architecture.md) + [ADR-0013](../adr/0013-localization-theme-overhaul.md)）：
-   画刷令牌存于 `Views/Styles/Themes/*.xaml`（五套同 key 集；`App.xaml` 静态合并 `Light.xaml` 仅作
-   设计时/首帧默认，并单点合并共享内核的 `ModernControls.xaml`（B5/#78 起经跨程序集 pack URI
-   `/StarPie.Core;component/Views/Styles/ModernControls.xaml`；主题字典本身仍留 Host，B7 随 M4 拆集）。
-2. **整项替换**：`ThemePaletteManager`（宿主层，自包含）加载/缓存/冻结主题 XAML，把目标调色板**整项替换**
-   Application `MergedDictionaries` 中含 `/Themes/` 的活动槽（切 Light 亦整项替换，无直接键残留）。
+   画刷令牌存于 `StarPie.Theme/Views/Styles/Themes/*.xaml`（五套同 key 集，B7/#80 起随 M4
+   成集）；Host `App.xaml` 经跨程序集 pack URI
+   `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并 Light 仅作设计时/首帧默认，
+   并单点合并共享内核 `ModernControls.xaml`（B5/#78 起经
+   `/StarPie.Core;component/Views/Styles/ModernControls.xaml`）。
+2. **整项替换**：`ThemePaletteManager`（B7/#80 起驻 `StarPie.Theme` 且 public，自包含）加载/缓存/
+   冻结主题 XAML，把目标调色板**整项替换** Application `MergedDictionaries` 中含 `/Themes/` 的
+   活动槽（切 Light 亦整项替换，无直接键残留）。
 3. **宿主编排（H1 放行面）**：`AppHost` 只编排（宿主流程见 [host.md](host.md)）：构造时
-   `AttachPaletteApplier(effectiveTheme => paletteManager.Apply(...))`，初始主题经
+   `new ThemePaletteManager()`（StarPie.Theme public 装配面）并
+   `themeService.AttachPaletteApplier(effectiveTheme => paletteManager.Apply(...))`，初始主题经
    `MainView.ApplyAppTheme(_interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），`Run()` 末尾
    `EnableSystemThemeTracking()` 启动系统跟随。
 4. **界面主题设置面（#54，ADR-0014 决策 6/7）**：`InterfaceThemeSettingsViewModel`
-   （`ViewModels/Pages`，DI 单例，注入外观聚合 VM 暴露为 `InterfaceTheme`）；写穿配置后发布
+   （`StarPie.Theme/ViewModels/Pages`，DI 单例，B7/#80 起由 `ThemeModuleRegistrar.RegisterServices`
+   注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；写穿配置后发布
    `AppThemeChangedMessage`，由 `MainView` 壳层 code-behind（文件归属见 [shell.md](shell.md)）订阅执行
    `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径
    同样经该消息由壳层执行。#56 起外观聚合 VM 注入两个设置子 VM（另一为轮盘外观设置子 VM
    `WheelAppearanceSettingsViewModel`，见 [wheel.md](wheel.md)）。
-5. **ThemeService**（`Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/`CurrentEffectiveTheme`
+5. **ThemeService**（`StarPie.Theme/Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/`CurrentEffectiveTheme`
    状态、`ResolveEffectiveTheme`（`System`/空经注册表探测实时判定）、`SetTheme`（唯一状态/资源入口，
    解析→记录→触发调色板替换→广播 `ThemeChanged`；同有效主题 no-op）、`EnableSystemThemeTracking`
    （`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher 封送 → 仅 System/空模式重解析）、

@@ -121,13 +121,16 @@ namespace WinPieGestures
             // 供 ShellModuleRegistrar 的 VM 工厂经 ServiceProvider 惰性解析），AppHost 构造后回填。
             services.AddSingleton(_hostDelegates);
 
+            // B7/#80：M4 主题服务（ThemeService/IThemeService）与界面主题设置子 VM 的 DI 注册
+            // 由 ThemeModuleRegistrar.RegisterServices 下放 StarPie.Theme（组合根仍唯一
+            // BuildServiceProvider；ThemePaletteManager 换入面由 AppHost 装配，见 AppHost.cs）。
+            ThemeModuleRegistrar.RegisterServices(services);
+
             services.AddSingleton(sp => new JsonConfigService(
                 Path.Combine(AppDataPaths.GetAppDataFolder(), "config.json"),
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<MouseHook>();
-            services.AddSingleton(new ThemeService());
-            services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<ThemeService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
@@ -176,13 +179,10 @@ namespace WinPieGestures
             // #69（B2）：配置方案列表 VM 以 M1 只读契约 IProfilePreviewSource 暴露给轮盘侧——
             // 轮盘外观设置子 VM 经接口解析，不引用具体 VM 类型。
             services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
-            // #54/#56（ADR-0014 决策 6/7）：两个设置子 VM——界面主题模块设置子 VM 与轮盘模块
-            // 外观设置子 VM——均由外观聚合 VM 构造注入，解析随 AppearanceSettingsViewModel
+            // #54/#56（ADR-0014 决策 6/7）：两个设置子 VM——界面主题模块设置子 VM（B7/#80 起由
+            // ThemeModuleRegistrar 注册，随 StarPie.Theme 下放）与轮盘模块外观设置子 VM（B8 前
+            // 仍由组合根注册）——均由外观聚合 VM 构造注入，解析随 AppearanceSettingsViewModel
             // （CreateAppHost）同步触发。
-            services.AddSingleton(sp => new InterfaceThemeSettingsViewModel(
-                sp.GetRequiredService<IConfigService>(),
-                sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton(sp => new WheelAppearanceSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IDialogService>(),

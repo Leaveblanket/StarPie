@@ -33,9 +33,9 @@ namespace WinPieGestures.Services.Shell
     /// for callbacks, and a themed borderless WPF window as the context menu.
     /// B6/#79：随 M5 迁入 StarPie.Shell。类与 <see cref="TrayMenuEntry"/> 为模块公开面——
     /// Host AppHost 负责装配（new + 菜单 provider），不能反向引用 Host/其它模块内部。
-    /// 托盘菜单深色配色原直读 M4 的 IThemeService（B7 前仍驻 Host），跨程序集
-    /// 形态下 Shell 不得引用 Host/M4，故改经组合根注入的 <c>Func&lt;bool&gt;</c> 深色探针
-    /// （与 M3 图标委托同模式，见 host.md/layering.md）。
+    /// 托盘菜单深色配色原直读 M4 的 IThemeService（B7/#80 起随 M4 驻 StarPie.Theme），
+    /// 跨程序集形态下 Shell 不得引用 Host/M4，故改经组合根注入的 <c>Func&lt;bool&gt;</c>
+    /// 深色探针（与 M3 图标委托同模式，见 host.md/layering.md）。
     /// </summary>
     public sealed class TrayIconManager : IDisposable
     {
