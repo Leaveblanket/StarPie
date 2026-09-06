@@ -73,7 +73,10 @@ namespace WinPieGestures.Views.Pages
         private void RenderLiveWheelPreview()
         {
             if (LiveWheelPreviewCanvas == null || _previewState == null) return;
-            _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, Window.GetWindow(this) as MainView);
+            // B8/#81：深浅色探测仍走壳层 MainView（Host）——渲染器不反向引用宿主，
+            // 调用方把探测结果以 bool 传入（无壳窗口时回落 false，与迁移前语义一致）。
+            bool windowsInDarkMode = Window.GetWindow(this) is MainView mainView && mainView.IsWindowsInDarkTheme();
+            _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, windowsInDarkMode);
         }
 
         private void LiveWheelPreviewCanvas_MouseMove(object sender, MouseEventArgs e)

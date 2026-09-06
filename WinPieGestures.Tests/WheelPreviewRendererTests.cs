@@ -16,7 +16,9 @@ public sealed class WheelPreviewRendererTests
     {
         var renderer = new WheelPreviewRenderer();
 
-        Action<Canvas, IWheelAppearanceState, WinPieGestures.Views.Navigation.MainView?> render = renderer.Render;
+        // B8/#81：渲染器不反向引用 Host——深浅色探测改由调用方以 bool 传入（原 MainView? 参数
+        // 的宿主依赖已移除）；方法组转换继续在编译期钉住公开签名。
+        Action<Canvas, IWheelAppearanceState, bool> render = renderer.Render;
         Action<Canvas, MouseEventArgs, IWheelAppearanceState> hover = renderer.HandleMouseMove;
 
         Assert.NotNull(render);

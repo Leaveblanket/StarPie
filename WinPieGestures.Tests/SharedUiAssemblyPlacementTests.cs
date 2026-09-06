@@ -11,8 +11,9 @@ namespace WinPieGestures.Tests;
 /// <see cref="HotkeyRecorderBox"/> 与全局控件样式字典 <c>ModernControls.xaml</c> 迁入
 /// <c>StarPie.Core</c>；App.xaml 经跨程序集 pack URI 合并该字典。命名空间维持
 /// WinPieGestures.*（B10 才统一，ADR-0016 决策 12）。宿主驻留的 M2 轮盘核图标预览转换器
-/// （CoreIconGeometry/Name，直连 WheelGeometry）与 S6 取色对话框行为（SpectrumCanvasBehavior，
-/// 依赖 Host VM 的 SpectrumPoint）维持 Host 到对应批次，Core 不反向依赖宿主。
+/// （CoreIconGeometry/Name）B8/#81 已随 M2 迁入 StarPie.Wheel（见
+/// <see cref="WheelAssemblyPlacementTests"/>）；S6 取色对话框行为（SpectrumCanvasBehavior，
+/// 依赖 Host VM 的 SpectrumPoint，S6 对话框实现留 Host）仍驻 Host，Core 不反向依赖宿主。
 /// </summary>
 public sealed class SharedUiAssemblyPlacementTests
 {
@@ -56,17 +57,14 @@ public sealed class SharedUiAssemblyPlacementTests
     }
 
     [Fact]
-    public void M2轮盘预览与S6取色对话框专用UI件_维持Host待对应批次()
+    public void S6取色对话框专用UI件_维持Host待后续批次()
     {
-        // CoreIconGeometryConverter 直连 M2 WheelGeometry（Host 驻留至 B8 收编）；CoreIconNameConverter
-        // 与其同 MultiBinding 配对；SpectrumCanvasBehavior 依赖 Host ColorPickerViewModel.SpectrumPoint
-        // （S6 对话框实现留 Host）。三者 B5 不迁，避免 Core 反向依赖宿主。
-        Assert.Equal("StarPie", typeof(CoreIconGeometryConverter).Assembly.GetName().Name);
-        Assert.Equal("StarPie", typeof(CoreIconNameConverter).Assembly.GetName().Name);
+        // CoreIconGeometryConverter/CoreIconNameConverter（M2 轮盘核图标预览配套）B8/#81 已随
+        // M2 迁 StarPie.Wheel（归属裁决见 WheelAssemblyPlacementTests），本测试只收口仍驻 Host 的
+        // S6 取色对话框行为：SpectrumCanvasBehavior 依赖 Host ColorPickerViewModel.SpectrumPoint
+        // （S6 对话框实现留 Host），B5 不迁，避免 Core 反向依赖宿主。
         Assert.Equal("StarPie", typeof(SpectrumCanvasBehavior).Assembly.GetName().Name);
 
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(CoreIconGeometryConverter).Namespace);
-        Assert.Equal("WinPieGestures.Views.Converters", typeof(CoreIconNameConverter).Namespace);
         Assert.Equal("WinPieGestures.Views.Controls", typeof(SpectrumCanvasBehavior).Namespace);
     }
 }
