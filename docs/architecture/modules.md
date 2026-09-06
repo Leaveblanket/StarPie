@@ -3,6 +3,8 @@
 > 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：目标模块清单、职责、归属裁定、扩展点验收与模块化候选。
 >
 > 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异清单见 §7，随实施批次（§8）逐批回填叶子。
+>
+> 程序集化目标态（7 程序集）与 B0–B10 批次路线见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)）。
 
 ## 1. 何时读本文
 
@@ -11,8 +13,8 @@
 | 归属争议：某个文件/职责属于哪个模块 | 本文 §4 + ADR-0015 |
 | 模块内代码怎么组织、关键流程 | 对应叶子（路由见 [architecture.md](../architecture.md)） |
 | 加/改功能应动哪些内部 | 本文 §6 验收表 |
-| 下一个可模块化的模块 | 本文 §8 候选路线 |
-| 为什么这样划分 | ADR-0015 |
+| 程序集化目标态 / 依赖方向 / 导航槽位 / 批次 | [assemblies.md](assemblies.md) + ADR-0016 |
+| 为什么这样划分 | ADR-0015 + ADR-0016 |
 
 ## 2. 划分判据
 
@@ -27,7 +29,7 @@
 
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
-- `Composition.cs` / 导航（`MainViewModel` 导航项、`MainView.xaml` DataTemplate、[naming.md](naming.md) 映射表）登记一次；
+- `Composition.cs` / 导航登记一次（B3 前：`MainViewModel` 导航项 + `MainView.xaml` DataTemplate + [naming.md](naming.md) 映射表；程序集化目标态：所属模块注册器 + 槽位表，见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`，无业务归属，非模块）；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
@@ -60,8 +62,8 @@
 - **扩展局部性**：新增主题方案/令牌/跟随策略 → M4 内部 + S3 文案。
 
 #### M5 壳层与系统集成
-- **职责**：托盘与气泡、开机自启、内存整理、主窗口壳层行为、高级与关于设置面。
-- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、`MainView.xaml.cs`（壳层行为，R4）、`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`。
+- **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级与关于设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
+- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`。（`MainView.xaml.cs` 不再归 M5——R4/ADR-0016 重新归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
 
@@ -89,9 +91,9 @@
 - **扩展局部性**：新消息/通知类型 → S4 内部（放行共享面，Q16-A）。
 
 #### S5 导航
-- **职责**：设置控制台页面切换、导航项状态、DataTemplate 页面映射、侧栏。
-- **关键内部**：`NavigationStore`、`INavigationService<>`、`MainViewModel`（主归属；双职责登记见 §5 D3）、`NavigationItemViewModel`、`MainView.xaml`（R4）、`SidebarView`。
-- **扩展局部性**：新增页面（原型 B）→ S5 登记导航项/模板一次 + 所属模块 + H1 注册一行（放行）。
+- **职责**：设置控制台页面切换、导航项状态、导航目录与槽位、侧栏状态；页面模板由所属模块提供（ADR-0016）。
+- **关键内部**：`NavigationStore`、`INavigationService<>`/`NavigationService<>`、`NavigationCatalog`/槽位表、`NavigationItemViewModel`、`MainViewModel`（纯导航，ADR-0016 拆分 D3；目标态随导航内核进 Core）、`SidebarView`（导航壳 UI 属 Host，见 [assemblies.md](assemblies.md) §4）。
+- **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 + 页面模板字典（目标态）；B3 前为 S5/H1 登记一次（放行）。
 
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
@@ -113,7 +115,7 @@
 | R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
 | R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
-| R4 | `MainView.xaml` / `MainView.xaml.cs` | xaml → S5；xaml.cs → M5 | `Views/Navigation/` | 已清零（B1/#64：navigation.md/shell.md 文件级登记） |
+| R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 随 B3/B6/B9 迁出 | `Views/Navigation/` | as-built 叶子维持文件级双登记至 B1/B3（navigation.md/shell.md）；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
@@ -125,12 +127,12 @@
 触发（MouseHook/Controller/Engine/Behavior 页）、动作执行（Actions）、配置方案编辑（ProfileList/Slot/Gestures 页）三个子面；共享上下文 = Gesture 语义含“松开执行动作”、Profile=扇区动作集合。**观察信号**：触发与动作各自膨胀成独立服务族、或 M1 出现第二个外部“动作执行”消费方时，再评估拆为两个模块。
 
 ### D2 M5 子职责目录与护栏
-子职责：托盘 / 自启 / 内存 / 主窗口壳层行为 / 高级与关于设置面。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
+子职责：托盘 / 自启 / 内存 / 高级与关于设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不再属 M5。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
 
-### D3 MainViewModel 类型级双职责
-主归属 **S5 导航**（导航项/当前页/选中同步）；壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）登记为“借调 M5”，属类型级双职责例外（一个类内成员混装，无法按文件切分）。若壳层职责继续膨胀，再另行评估拆出独立壳层 VM。
+### D3 MainViewModel 类型级双职责（ADR-0016：拆分）
+原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）借调 M5，类型级双职责例外；#70 曾确认“非目标”。
 
-（navigation.md 已按 B1/#64 登记；B5/#70 确认为非目标——壳层职责膨胀条件未触发，维持“主归属导航 + 双职责登记”。）
+ADR-0016 决策 7（Q18）改为**拆分**：`MainViewModel` 收敛为纯导航（随 S5 导航内核进 Core）；壳成员迁出为 `ShellViewModel`（留 Host 壳窗口，与 R4 同判据）。**B1 落地前**代码与叶子（navigation.md/shell.md）维持 as-built 双职责登记；拆分后本登记清零。
 
 ### D4 AppHost 语言字典投影
 `AppHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属（防旧 localization.md 把 AppHost 列入“组成文件”造成的误解；随 B1 修订叶子表述）。
@@ -138,7 +140,7 @@
 （B1/#64 已修订：localization.md 不再把 AppHost 列入组成文件，host.md 登记投影为 H1 对 S3 的消费。）
 
 ### D5 WheelFactory 装配点例外
-`WheelFactory`（M1 文件）承担 M2 瞬态轮盘（VM+Window）装配，`layering.md` 已登记；M2 构造契约变更会波及该装配点，视为放行装配面。若装配职责迁入 M2 且 M1 只依赖工厂接口，需另行 ADR（当前不推动）。
+`WheelFactory`（M1 文件）承担 M2 瞬态轮盘（VM+Window）装配，`layering.md` 已登记；M2 构造契约变更会波及该装配点，视为放行装配面。已由 ADR-0016 决策 11 排期推进（B8）：`WheelFactory` 随 M2 收编、`IWheelFactory` 留 M2 侧接口、`IProfilePreviewSource` 上提 Core；本登记从“当前不推动”改为“排期中”。
 
 ### D6 页面壳
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1）；
@@ -151,11 +153,11 @@
 | 原型/场景 | 示例 | 只动 | 放行共享面 |
 |---|---|---|---|
 | A 新增设置项 | 现有页加开关 | 所属模块 VM | S2 模型字段、S3 文案键 |
-| B 新增设置页面 | 新导航页 | 新域/所属模块 | S5 导航登记、H1 Composition 注册、S3 文案 |
+| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B3 前：S5 导航登记 + H1 注册；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框 | 新模态 | S6 内部 | 调用方模块一行（经 `IDialogService`） |
 | D 新增动作类型 | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射） | 新图标资产 → S1；S3 文案；config 兼容 |
 | E 新增轮盘样式 | 新 Renderer | M2 内部（渲染器/工厂/配色目录/外观选项） | S3 文案 |
-| F 新增后台服务/监听器 | 新 Hook/Service | 所属模块内部 | H1 注册一行 |
+| F 新增后台服务/监听器 | 新 Hook/Service | 所属模块内部 | B3 前：H1 注册一行；目标态（B4 起）：所属模块注册器一行、新增模块才 H1 |
 | 附加：新语言 | — | S3 | — |
 | 附加：新消息/通知类型 | — | S4 | 放行共享面（Q16-A） |
 | 附加：新图标资产 | — | S1 | 放行共享面 |
@@ -186,22 +188,16 @@
 | [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零） |
 | [wheel.md](wheel.md) | M2 | —（B3/T3a–T3d/#65–#68 已清零：几何收编与叶子回填） |
 
-## 8. 候选路线（非规范，方向性）
+## 8. 模块化路线（ADR-0016：B0–B10 排期）
 
-> 每个批次：构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除/降级。
+> ADR-0015 时代的候选路线 B1–B6（#64–#71）已全部完成并归档（见 §7 注记）。自 [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) 起，模块化升级为**程序集化排期批次 B0–B10**；路线、每批内容与验收见 [assemblies.md](assemblies.md) §8。
 >
-> B1（#64，纯文档基线）已完成并回填（见 §7 注记）；B2 的 `IProfilePreviewSource` 只读接口化
-> 已按 #69 落地（代码 + wheel.md/gestures.md/layering.md/host.md 回填）；B3（图标/几何/程序解析
-> 三分收口）已按 #65–#68 落地（S1/M2/M3 出口、接线与物理收编，见 §7 注记）；B5（物理小件迁移）
-> 已按 #70 落地（R1/R2/R5 收编与叶子回填，见 §7 注记）。
+> 每批：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从路线移除。
 >
-> **收口批次（#71，纯文档）**：B2 配置方案设置面叶子补全落地（[gestures.md](gestures.md)，含 D1 子面细节）；B4（R7 接缝整理）代码已在 T3c/#67 落地
-> （组合根注入程序扫描委托 + S1/M3 出口，不直穿内部），本批登记移除；B6 降级为方向性注记——现有聚合页已按
-> D6/#56 先例立规（Appearance 页 = 聚合壳先例），出现新页面级聚合需求时直接走 [extending.md](extending.md)
-> 原型 B + #56 先例即可，无需独立批次。
+> **B0（本批，纯文档）**：ADR-0016 + assemblies.md + 本节修订 + architecture.md 路由/索引。B1 起为代码批次。
 >
-> **当前已无排期中的模块化批次。**
+> §7 差异表为 ADR-0015 基线的清零状态。**ADR-0016 程序集化批次差异（B1 起）另见 [assemblies.md](assemblies.md) §8/§9**，§7 不再逐行登记。
 
 ## 参见 ADR
 
-[0015](../adr/0015-module-map-and-ownership.md)（模块划分共识：12 模块地图、归属裁定与修整单元判据）。
+[0015](../adr/0015-module-map-and-ownership.md)（模块划分共识：12 模块地图、归属裁定与修整单元判据）、[0016](../adr/0016-assembly-split-target-and-roadmap.md)（程序集化目标态与分批执行）。
