@@ -33,7 +33,8 @@
   `ShellModuleRegistrar`（B6/#79 迁入 `StarPie.Shell`）`RegisterNavigation` + 模块页面模板字典 +
   [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar、M4 主题服务与
   主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
-  M1/Host 在 B9 前仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，
+  M2 轮盘工厂与轮盘外观设置子 VM DI 注册已下放 `WheelModuleRegistrar`（B8/#81 迁入
+  `StarPie.Wheel`，M2 无导航页），M1/Host 在 B9 前仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，
   见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
@@ -46,14 +47,24 @@
 
 #### M1 手势与动作
 - **职责**：手势触发判定与执行全链、动作系统端到端、配置方案（Profile）编辑面。
-- **关键内部**：`Services/Gestures/*`（MouseHook、GestureController、GestureEngine、WindowContext、WheelFactory）、`Services/Actions/*`（路由/执行/系统命令映射）、动作系统预设目录、`Models/ActionItem` 语义、触发与场景设置面（`BehaviorSettingsViewModel`/`TriggerSettingsPage`）、配置方案设置面（`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）。
-- **对外契约**：经 `IWheelFactory` 装配 M2 瞬态轮盘（例外见 §5 D5）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读 `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，#69 已落地）。
+- **关键内部**：`Services/Gestures/*`（MouseHook、GestureController、GestureEngine、WindowContext；
+  轮盘工厂 `WheelFactory` 已随 D5/B8 收编 M2，见 [wheel.md](wheel.md)）、`Services/Actions/*`（路由/执行/系统命令映射）、动作系统预设目录、`Models/ActionItem` 语义、触发与场景设置面（`BehaviorSettingsViewModel`/`TriggerSettingsPage`）、配置方案设置面（`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）。
+- **对外契约**：经 M2 侧 `IWheelFactory` 接口装配 M2 瞬态轮盘（B8/#81 D5 起工厂随 M2 收编、
+  接口留 M2 侧，M1→M2 单向；原 §5 D5 例外已清零）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读
+  `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，#69
+  已落地；B8/#81 起接口上提 Core）。
 - **扩展局部性**：新增动作类型（原型 D）、新增触发条件/场景规则 → M1 内部；新图标资产 → S1；新文案 → S3。
 
 #### M2 轮盘与渲染
 - **职责**：手势轮盘瞬态 VM、窗口呈现、样式渲染体系、外观配置面、轮盘配色解析、实时预览。
-- **关键内部**：`ViewModels/Wheel/*`、`WheelAppearanceSettingsViewModel`、`Views/Wheel/RadialWindow`、`Views/Renderers/*`、`Models/WheelPalette/Catalog/Parser`、轮盘视觉几何（`Services/Wheel/WheelGeometry.cs`，R6 三分物理收编）。
-- **对外契约**：由 M1 经 `IWheelFactory` 装配；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`；预览 Profile 上下文经 M1 只读 `IProfilePreviewSource` 转发（#69 已落地）。
+- **关键内部**（B8/#81 起物理居 `StarPie.Wheel/`）：`ViewModels/Wheel/*`、
+  `WheelAppearanceSettingsViewModel`（`ViewModels/Pages`）、`Views/Wheel/RadialWindow`、
+  `Views/Renderers/*`、`Views/Converters/CoreIcon*`（B8/#81 归属裁决随 M2）、
+  `Models/WheelPalette/Catalog/Parser`（物理随 M2 收编）、轮盘视觉几何与轮盘工厂
+  （`Services/Wheel/WheelGeometry.cs` + `IWheelFactory`/`WheelFactory`，R6 三分 + D5 收编）。
+- **对外契约**：由 M1 经 M2 侧 `IWheelFactory` 接口装配；动作图标渲染消费 S1；窗口主题应用消费
+  M4 的 `IThemeService`（允许边）；预览 Profile 上下文经 M1 只读 `IProfilePreviewSource`
+  （B8/#81 起驻 Core）转发（#69 已落地）。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
 #### M3 程序扫描与目录
@@ -135,9 +146,9 @@
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9 M1 再迁；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
-| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68：接线迁移 + 物理收编 + 叶子回填） |
+| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
-| R8 | `Models` 语义归属 | `WheelProfile`/`ActionItem` → M1；`WheelPalette*`/`CustomColorPreset` → M2；物理均在 `Models/` 共享内核 | `Models/` | 已清零（B1/#64：gestures.md/wheel.md 语义登记） |
+| R8 | `Models` 语义归属与物理落位 | `WheelProfile`/`ActionItem` → M1（物理 Core `Models/`，配置 POCO）；`WheelPalette*` → M2（B8/#81 起物理随 M2 收编 `StarPie.Wheel/Models/`，语义+物理均归 M2）；`CustomColorPreset` → M2（语义；物理仍 Core `Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `Models/`（Core）+ `StarPie.Wheel/Models/`（B8/#81） | B1/#64 已登记语义；B8/#81 起 WheelPalette* 物理随 M2 收编，wheel.md/layout.md 同步回填 |
 
 ## 5. 登记表（子职责 / 双职责 / 装配点）
 
@@ -161,7 +172,11 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 （B1/#64 已修订：localization.md 不再把 AppHost 列入组成文件，host.md 登记投影为 H1 对 S3 的消费。）
 
 ### D5 WheelFactory 装配点例外
-`WheelFactory`（M1 文件）承担 M2 瞬态轮盘（VM+Window）装配，`layering.md` 已登记；M2 构造契约变更会波及该装配点，视为放行装配面。已由 ADR-0016 决策 11 排期推进（B8）：`WheelFactory` 随 M2 收编、`IWheelFactory` 留 M2 侧接口、`IProfilePreviewSource` 上提 Core；本登记从“当前不推动”改为“排期中”。
+本登记已清零（B8/#81 落地，ADR-0016 决策 11）：`WheelFactory` 已随 M2 收编
+`StarPie.Wheel/Services/Wheel/`，`IWheelFactory` 留 M2 侧接口（M1→M2 单向成立），
+`IProfilePreviewSource` 已上提 Core（`StarPie.Core/ViewModels/Pages/`，实现方 M1
+ProfileListViewModel 与消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
+M2 构造契约变更不再波及 Host/M1 装配点；仍驻 Host 的 M1 手势侧只经接口引用 M2。
 
 ### D6 页面壳
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1）；
@@ -199,19 +214,23 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 > B6 降级为方向性注记（见 §8）。**B7/#80（模块化 M4 Theme 抽取）已落地**：界面主题体系
 > （ThemeService/IThemeService、ThemePaletteManager、五套主题字典、InterfaceThemeSettingsViewModel、
 > ThemeModuleRegistrar）迁入独立模块程序集 `StarPie.Theme`（依赖方向/现状见
-> [assemblies.md](assemblies.md) §3/§9；本节 M4 归属与差异行维持清零）。下表逐叶对照已无差异。
+> [assemblies.md](assemblies.md) §3/§9；本节 M4 归属与差异行维持清零）。**B8/#81（模块化 M2
+> Wheel 抽取，含 D5 解结）已落地**：M2 轮盘件（VM/窗口/渲染器/配色/工厂 + 核图标预览转换器）迁入
+> 独立模块程序集 `StarPie.Wheel`；D5 清零——`WheelFactory` 随 M2 收编、`IWheelFactory` 留 M2 侧
+> 接口、`IProfilePreviewSource` 上提 Core；R8 物理落位同步（WheelPalette* 随 M2 收编、
+> CustomColorPreset 仍 Core）。下表逐叶对照已无差异。
 
 | 现状叶子 | 目标归属 | 差异（批次登记） |
 |---|---|---|
 | [dialogs.md](dialogs.md) | S6 | —（B4/T3c–#67 接线落地 + #71 登记清零） |
-| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全） |
+| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全；B8/#81 D5 已清零：工厂随 M2、M1 只经 IWheelFactory 接口引用） |
 | [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
 | [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
 | [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
 | [programs.md](programs.md) | M3 | —（B3/T3a–T3d/#65–#68 已清零：三分收口与叶子回填） |
 | [shell.md](shell.md) | M5 | —（B1/#64 已清零） |
 | [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零） |
-| [wheel.md](wheel.md) | M2 | —（B3/T3a–T3d/#65–#68 已清零：几何收编与叶子回填） |
+| [wheel.md](wheel.md) | M2 | —（B3/T3a–T3d/#65–#68 已清零：几何收编与叶子回填；B8/#81 已清零：M2 成集 StarPie.Wheel + 配色物理收编 + D5 工厂收编） |
 
 ## 8. 模块化路线（ADR-0016：B0–B10 排期）
 
@@ -220,6 +239,9 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 > 每批：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从路线移除。
 >
 > **B0（本批，纯文档）**：ADR-0016 + assemblies.md + 本节修订 + architecture.md 路由/索引。B1 起为代码批次。
+>
+> **B8/#81（M2 Wheel 抽取，含 D5）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记；
+> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（B9 起余 M1）。
 >
 > §7 差异表为 ADR-0015 基线的清零状态。**ADR-0016 程序集化批次差异（B1 起）另见 [assemblies.md](assemblies.md) §8/§9**，§7 不再逐行登记。
 

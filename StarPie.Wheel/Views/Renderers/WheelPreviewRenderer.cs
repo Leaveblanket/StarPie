@@ -10,7 +10,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using WinPieGestures.ViewModels.Wheel;
-using WinPieGestures.Views.Navigation;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
@@ -22,7 +21,8 @@ namespace WinPieGestures.Views.Renderers
     /// Draws the 60FPS live wheel preview. The page owns only the Canvas and forwards
     /// mouse events; all visual state and geometry construction stays in this View-layer renderer.
     /// (ADR-0009 白名单 3/4/5: 只读 VM 状态绘制, hover 坐标仅译成高亮; 不订阅事件、不写 VM,
-    /// 深浅色探测经壳层 MainView.IsWindowsInDarkTheme 方法取得。)
+    /// 深浅色探测由调用方（外观页）以 bool 传入——B8/#81 起不引用 Host MainView，
+    /// M2 模块不反向依赖宿主。)
     /// #55 (ADR-0014 决策 8): 输入契约收窄为轮盘模块只读接口 <see cref="IWheelAppearanceState"/>,
     /// 不再依赖具体外观聚合 VM 类型。
     /// </summary>
@@ -44,7 +44,7 @@ namespace WinPieGestures.Views.Renderers
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
 
-        public void Render(Canvas canvas, IWheelAppearanceState state, MainView? shell)
+        public void Render(Canvas canvas, IWheelAppearanceState state, bool windowsInDarkMode)
         {
             if (canvas == null) return;
 
@@ -79,7 +79,7 @@ namespace WinPieGestures.Views.Renderers
                 bool showText = state.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
-                _previewStyleRenderer.Initialize(theme, state.CurrentConfig, shell?.IsWindowsInDarkTheme() ?? false);
+                _previewStyleRenderer.Initialize(theme, state.CurrentConfig, windowsInDarkMode);
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;

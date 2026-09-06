@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- B8/#81：M2 轮盘与渲染模块程序集（ADR-0016 决策 1/8/11/12）。
+         RootNamespace 保持 WinPieGestures：B10 前命名空间不随程序集改名。
+         依赖方向：StarPie.Wheel → StarPie.Core 单向 + StarPie.Wheel → StarPie.Theme
+         允许边（M2→M4，IThemeService 消费，assemblies.md §3）；
+         不引用 Host/其它业务模块（M1 手势侧仍驻 Host，只经 IWheelFactory 接口消费）。
+         WheelFactory/工厂接口随 M2 收编（D5，ADR-0016 决策 11）；轮盘外观设置子 VM
+         与轮盘 VM/窗口/渲染器/配色/工厂的 DI 注册经 WheelModuleRegistrar.RegisterServices
+         下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Wheel</AssemblyName>
+    <RootNamespace>WinPieGestures</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- B8/#81：M2 → Core 单向依赖（轮盘 VM/渲染器消费 S1/S2/S3/S4/S6 契约与共享 Models；
+         配色 WPF-free 值类型随 M2 物理收编于本集 Models，CustomColorPreset 仍居 Core Models） -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- B8/#81：M2 → M4 允许边（RadialWindow/WheelFactory 消费 IThemeService，assemblies.md §3） -->
+    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+  </ItemGroup>
+
+</Project>

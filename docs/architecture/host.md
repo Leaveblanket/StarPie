@@ -33,16 +33,19 @@
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、
      开放泛型 `INavigationService<>` → `NavigationService<>`。B7/#80 起 M4 的
      `ThemeService`（具体类）+ `IThemeService` 别名注册下放 `ThemeModuleRegistrar.RegisterServices`
-     （StarPie.Theme），组合根不再直接登记主题服务。
+     （StarPie.Theme），组合根不再直接登记主题服务；B8/#81 起 M2 的轮盘工厂
+     （`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册下放
+     `WheelModuleRegistrar.RegisterServices`（StarPie.Wheel，D5——工厂随 M2 收编、接口留 M2 侧，
+     M1 手势侧只经接口消费），组合根不再直接登记轮盘工厂。
    - B3/#76（导航自治）+ B6/#79（M5 拆集）：`NavigationCatalog` 由 exe 内 M1/Host 临时注册器
      （`WinPieGestures/Modules/`）与 `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
      `INavigationExecutor` → `NavigationExecutor`（目录执行缝，主导航入口，见 [navigation.md](navigation.md)）。
-   - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`IWheelFactory`、`GestureEngine`、
+   - 服务：`MouseHook`、`IActionExecutorService`、`IWindowContext`、`GestureEngine`、
      `DialogService`（T3c/#67：构造注入 M3 程序扫描委托；B4/#77 起登记为
      `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)`——M3 零 Core 依赖，S1 图标
      补全由组合根以委托注入；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、
-     `SettingsSaveOrchestrator`。
+     `SettingsSaveOrchestrator`。（`IWheelFactory` 的注册见 WheelModuleRegistrar 注。）
    - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
      `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Theme`（B7/#80；模块无导航页，
      只下放 DI 注册）；M5 两页（`GeneralSettingsViewModel`/`AboutViewModel`）由
@@ -51,10 +54,12 @@
      `BehaviorSettingsViewModel`、`ProfileListViewModel`、
      `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM——
      `InterfaceThemeSettingsViewModel`（B7/#80 起由 ThemeModuleRegistrar 注册）与
-     `WheelAppearanceSettingsViewModel`（B8 前仍由组合根注册），均另行注册单例）、
+     `WheelAppearanceSettingsViewModel`（B8/#81 起由 WheelModuleRegistrar 注册，随
+     StarPie.Wheel 下放），均另行注册单例）、
      `MainViewModel`（B3/#76：已迁 Core 且目录驱动；
      仍由组合根注册——M1/Host 页面 VM 的 DI 注册在 B9 前维持集中；#69 起 `ProfileListViewModel`
-     另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）、
+     另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费（B8/#81 起
+     该接口上提 Core，别名注册仍留组合根——实现方 M1 ProfileListViewModel 尚驻 Host，B9 随 M1 下放））、
      `ShellViewModel`（B1/D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，
      见 [shell.md](shell.md)）。
    - B6/#79 注：`AppHostDelegates` 已上提 Core（`Services/AppHostDelegates.cs`）并以单例注册进容器，
@@ -62,6 +67,10 @@
    - B7/#80 注：`ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core 单向），
      主题服务/主题设置子 VM 的工厂只解析 Core 契约；`ThemePaletteManager` 不经容器，
      由 `AppHost` 构造时直接 `new`（StarPie.Theme public，Host 装配面）。
+   - B8/#81 注：`WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Core + Theme），
+     轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析 Core 契约与
+     M4 `IThemeService`（允许边）；RadialWindow 不经 Host 直接 new——由 WheelFactory 在
+     StarPie.Wheel 内创建。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：

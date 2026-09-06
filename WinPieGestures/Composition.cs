@@ -55,6 +55,13 @@ namespace WinPieGestures
             navigationCatalog.Validate();
             services.AddSingleton(navigationCatalog);
 
+            // B8/#81：M2 轮盘与渲染的 DI 注册（轮盘工厂 IWheelFactory→WheelFactory、轮盘外观设置
+            // 子 VM WheelAppearanceSettingsViewModel）由 WheelModuleRegistrar.RegisterServices
+            // 下放 StarPie.Wheel（D5/ADR-0016 决策 11：工厂随 M2 收编、接口留 M2 侧；M1 手势侧
+            // GestureEngine 只经 IWheelFactory 接口消费；预览 Profile 契约 IProfilePreviewSource
+            // 已上提 Core，别名注册仍留在组合根——实现方 M1 ProfileListViewModel 尚驻 Host）。
+            WheelModuleRegistrar.RegisterServices(services);
+
             ConfigureServices(services);
             _provider = services.BuildServiceProvider();
 
@@ -134,7 +141,6 @@ namespace WinPieGestures
             services.AddSingleton<ILocalizationService, LocalizationService>();
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
-            services.AddSingleton<IWheelFactory, WheelFactory>();
             services.AddSingleton<GestureEngine>();
             // T3c/#67（R6/R7）：M3 程序扫描能力经委托注入对话框服务——S6 不再直连
             // ProgramScanner 静态内部，DialogService 只持委托并转发给程序选择器 VM。
@@ -180,15 +186,9 @@ namespace WinPieGestures
             // 轮盘外观设置子 VM 经接口解析，不引用具体 VM 类型。
             services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
             // #54/#56（ADR-0014 决策 6/7）：两个设置子 VM——界面主题模块设置子 VM（B7/#80 起由
-            // ThemeModuleRegistrar 注册，随 StarPie.Theme 下放）与轮盘模块外观设置子 VM（B8 前
-            // 仍由组合根注册）——均由外观聚合 VM 构造注入，解析随 AppearanceSettingsViewModel
-            // （CreateAppHost）同步触发。
-            services.AddSingleton(sp => new WheelAppearanceSettingsViewModel(
-                sp.GetRequiredService<IConfigService>(),
-                sp.GetRequiredService<IDialogService>(),
-                sp.GetRequiredService<IMessenger>(),
-                sp.GetRequiredService<IProfilePreviewSource>(),
-                sp.GetRequiredService<ILocalizationService>()));
+            // ThemeModuleRegistrar 注册，随 StarPie.Theme 下放）与轮盘模块外观设置子 VM
+            // （B8/#81 起由 WheelModuleRegistrar 注册，随 StarPie.Wheel 下放）——均由外观聚合
+            // VM 构造注入，解析随 AppearanceSettingsViewModel（CreateAppHost）同步触发。
             services.AddSingleton(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<InterfaceThemeSettingsViewModel>(),
