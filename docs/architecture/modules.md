@@ -31,8 +31,10 @@
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
 - `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 M1/Host 临时注册器 + M5 正式注册器
   `ShellModuleRegistrar`（B6/#79 迁入 `StarPie.Shell`）`RegisterNavigation` + 模块页面模板字典 +
-  [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar，M1/Host 在 B9 前
-  仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
+  [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar、M4 主题服务与
+  主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
+  M1/Host 在 B9 前仍集中组合根；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，
+  见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
   （`SettingsPageBase`，B6/#79 迁入），无业务归属，非模块）；
@@ -62,7 +64,11 @@
 
 #### M4 界面主题
 - **职责**：窗口 UI 主题体系（AppTheme）——配置与解析、状态/切换/系统跟随、XAML 令牌集与整项替换、界面主题设置面、主题应用消息。
-- **关键内部**：`Services/Shell/ThemeService`+`IThemeService`、根 `ThemePaletteManager.cs`、`Views/Styles/Themes/*.xaml`、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；各窗口（MainView/对话框/RadialWindow）仅按 ADR-0009 白名单注入应用。
+- **关键内部**：`ThemeService`+`IThemeService`、根 `ThemePaletteManager.cs`、
+  `Views/Styles/Themes/*.xaml`、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；
+  **B7/#80 起物理居独立模块程序集 `StarPie.Theme/`（Services/Shell、模块根 ThemePaletteManager、
+  Views/Styles/Themes、ViewModels/Pages、Modules 注册器 ThemeModuleRegistrar）**；各窗口
+  （MainView/对话框/RadialWindow）仅按 ADR-0009 白名单注入应用。
 - **扩展局部性**：新增主题方案/令牌/跟随策略 → M4 内部 + S3 文案。
 
 #### M5 壳层与系统集成
@@ -190,7 +196,10 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 > 清零。**B5（#70，物理小件迁移）已完成**：`GesturePoint`→`Models/`（R5）、`AutostartRegistry`→
 > `Services/Shell/`（R1）、`DevInstance`→工程根（R2），config.md/host.md/gestures.md/shell.md/layout.md
 > 差异行随本批清零；MainViewModel 未拆分（D3 非目标登记）。**B2/B4/B6 已按 #71 收口**：gestures.md 按 as-built 补全 M1 配置方案设置面（B2，见 [gestures.md](gestures.md)）；dialogs.md 的 R7 接缝整理代码已在 T3c/#67 落地，本批登记清零（B4）；
-> B6 降级为方向性注记（见 §8）。下表逐叶对照已无差异。
+> B6 降级为方向性注记（见 §8）。**B7/#80（模块化 M4 Theme 抽取）已落地**：界面主题体系
+> （ThemeService/IThemeService、ThemePaletteManager、五套主题字典、InterfaceThemeSettingsViewModel、
+> ThemeModuleRegistrar）迁入独立模块程序集 `StarPie.Theme`（依赖方向/现状见
+> [assemblies.md](assemblies.md) §3/§9；本节 M4 归属与差异行维持清零）。下表逐叶对照已无差异。
 
 | 现状叶子 | 目标归属 | 差异（批次登记） |
 |---|---|---|

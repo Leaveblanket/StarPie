@@ -23,8 +23,9 @@ M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命�
 - 共享内核同时登记宿主回调契约 `StarPie.Core/Services/AppHostDelegates.cs`（托盘气泡/退出，
   B6/#79 上提，见 [host.md](host.md)）。
 
-Host 侧同目录（`WinPieGestures/Services/Shell/`）仍留 M4 的类型 `IThemeService`/`ThemeService`
-（B7 前；见 [interface-theme.md](interface-theme.md)），水平目录不按模块分属，按类型登记。
+M4 的主题件 `IThemeService`/`ThemeService` 原与 M5 同目录登记于 Host `Services/Shell/`，B7/#80
+已随 M4 迁入独立模块程序集 `StarPie.Theme/Services/Shell/`（命名空间 `WinPieGestures.Services.Shell`
+不变，见 [interface-theme.md](interface-theme.md)）；Host 侧该目录已清空移除，水平目录不再跨模块登记。
 
 - `ViewModels/Navigation/ShellViewModel.cs`（B1/D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
@@ -40,7 +41,8 @@ Host 侧同目录（`WinPieGestures/Services/Shell/`）仍留 M4 的类型 `IThe
    右键菜单（`AppHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
    气泡通知、`Dispose`；tooltip 在语言切换时由宿主 `AppHost.RefreshTrayTooltip` 按暂停态刷新
    （宿主编排见 [host.md](host.md)）。托盘菜单深色配色原直读 M4 `IThemeService`；B6/#79 起 Shell
-   不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针（`ThemeService.IsWindowsInDarkTheme`）。
+   不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针
+   （`ThemeService.IsWindowsInDarkTheme`；B7/#80 起该服务驻 `StarPie.Theme`，Host 显式引用）。
 2. **内存**：`MemoryOptimizer.TrimMemory()` 在 `App` 启动兜底与 `AppHost` 主框架隐藏时直调
    （不进业务层，调用点见 [host.md](host.md)）；“立即清理”由 `GeneralSettingsViewModel` 直调
    （VM 与工具同驻 `StarPie.Shell`，行为不变）。

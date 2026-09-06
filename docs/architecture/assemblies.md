@@ -24,7 +24,7 @@
 | `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页（B9 迁入） |
 | `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（B8 迁入，D5） |
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录：ProgramScanner/ProgramCatalog/ShortcutResolver（B4/#77 已落地；零 Core 依赖） |
-| `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager 裁决（B7 迁入） |
+| `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager（裁决 public——Host AppHost 装配面）（**B7/#80 已落地**；Theme → Core 单向） |
 | `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General+About 设置页（**B6/#79 已落地**；`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
 
 ## 3. 程序集级依赖规则
@@ -34,14 +34,17 @@ StarPie (Host/exe) ──→ StarPie.Core
      │──→ StarPie.Gestures ──→ StarPie.Wheel ──→ StarPie.Theme
      │──→ StarPie.Programs        （B4/#77 起零 Core 依赖，Host 显式引用）
      │──→ StarPie.Shell ──→ StarPie.Core
+     │──→ StarPie.Theme ──→ StarPie.Core   （B7/#80 已落地）
      └────────────────────────────────────────→ StarPie.Core
 ```
 
 - `M* → Core` 单向（**Programs 例外**：M3 零共享内核依赖，B4/#77——扫描图标补全经组合根注入的
-  S1 `IconAssets.GetIcon` 委托）；**Shell 已落地（B6/#79）**：M5 托盘深色配色经组合根注入的
-  `Func<bool>` 探针（M4 未成集前不引用 IThemeService/ThemeService）、自启 dev 分支改读 Core
-  `AppDataPaths.IsDevInstance` 回填缝——Shell 只依赖 Core 契约）；`Host → 全部`（仅调用各模块
-  注册器与装配宿主对象，不引用模块内部）。
+  S1 `IconAssets.GetIcon` 委托）；**Theme 已落地（B7/#80）**：M4 主题服务与主题设置子 VM 只依赖
+  Core 契约（S2/S3/S4），调色板换入经本集 public `ThemePaletteManager` 由 Host AppHost 装配面编排；
+  **Shell 已落地（B6/#79）**：M5 托盘深色配色经组合根注入的 `Func<bool>` 探针
+  （不引用 IThemeService/ThemeService）、自启 dev 分支改读 Core `AppDataPaths.IsDevInstance`
+  回填缝——Shell 只依赖 Core 契约）；`Host → 全部`（仅调用各模块注册器与装配宿主对象，
+  不引用模块内部）。
 - 允许的 M 间单向边仅：**M1→M2**（`IWheelFactory`，接口在 M2 侧）、**M2→M4**（`IThemeService` 消费）。其余跨 M 依赖一律经 Core 契约。
 - S6 对话框 Window/DialogService 实现留 Host，契约在 Core；M 页面经 Core 的 `IDialogService` 调用，实现由 Host 组合根接线。
 - 共享放行清单（config 模型字段、i18n 键、消息/通知类型、共享 UI 基建、图标资产）维持 modules.md §2.3，不视为跨模块违规。
@@ -88,7 +91,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 
 ## 6. DI 与注册契约（目标态）
 
-- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项）。
+- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项；**B7/#80 起 M4 以 ThemeModuleRegistrar 落地**：RegisterServices 下放主题服务与主题设置子 VM 注册，M4 无导航页故无 RegisterNavigation）。
 - **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateAppHost`；模块不解析、不持容器。
 - **已批准解析缝**：`NavigationService<T>`、导航目录执行缝（`INavigationExecutor`，B3/#76 已落地）、
   `WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
@@ -108,6 +111,10 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   B6/#79 先例：Host AppHost 负责装配托盘对象，`TrayIconManager`/`TrayMenuEntry` 随迁后裁决为
   public（Host 装配面）；`AutostartRegistry` 仅由模块注册器接线，维持 internal。
 
+  B7/#80 先例（同判据）：M4 的 `ThemePaletteManager` 随迁后裁决为 **public**（Host `AppHost`
+  构造时 `new` 并 `AttachPaletteApplier`，`ThemeService.AttachPaletteApplier` 同步公开）；
+  模块内主题文件映射/缓存/冻结等实现细节保持私有。
+
 ## 8. 批次路线 B0–B10（排期）
 
 > 每个批次：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从本表移除。
@@ -115,7 +122,6 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 | 批 | 内容 | 主要回填 |
 |---|---|---|
 | B0 | 纯文档：ADR-0016 + 本文 + modules.md R4/D3/D5/扩展点/§8 修订 + architecture.md 路由/索引（本批） | modules.md、architecture.md |
-| B7 | M4 Theme 抽取（含 ThemePaletteManager 可见性裁决） | interface-theme.md、host.md、layout.md |
 | B8 | M2 Wheel 抽取（D5：WheelFactory 随 M2、IProfilePreviewSource 上提 Core） | wheel.md、gestures.md、layering.md、modules.md（D5 清零） |
 | B9 | M1 Gestures 抽取（Trigger/Gestures 页收口） | gestures.md、navigation.md、layout.md |
 | B10 | 命名空间统一收尾（原 B8 内容，编号顺延；ADR-0016 决策 12） | 全部叶子 + 测试 + XAML xmlns + resx 生成类 |
@@ -129,8 +135,9 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 - B4（M3 Programs 抽取）← None（已落地，#77：零 Core 依赖、无 DI 注册，注册器样板已随 B6/#79 落地）。
 - B5（共享 UI 基建迁 Core）已落地（#78；前置 B2/#75 已落地）。
 - B6（M5 Shell 抽取）已落地（#79；前置 B3/#76、B5/#78 已落地）。
-- B7（M4 抽取）← B2（主题 XAML 自包含，不依赖 B5；B6/#79 落地后无其它架构阻塞，执行文件面串行约束见 §8.2）。
-- B8（M2 抽取，含 D5）← B7（`RadialWindow` 注入 M4 的 `IThemeService`；其 XAML 自包含，不依赖 B5）。
+- B7（M4 抽取）已落地（#80；前置 B2/#75 已落地——主题 XAML 自包含，不依赖 B5）。
+- B8（M2 抽取，含 D5）← B7（已落地，#80：`RadialWindow` 注入 M4 `StarPie.Theme` 的
+  `IThemeService`；其 XAML 自包含，不依赖 B5）。
 - B9（M1 抽取）← B5、B8（B3 已落地，#76；共享页面基类 `SettingsPageBase` 已在 Core——B6/#79
   迁入；`GesturesSettingsPage` 引用共享控件，且 M1→M2 需 M2 已成集）。
 - B10（命名空间统一）← B9。
@@ -140,14 +147,17 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 上述阻塞边描述的是**架构上的硬前置**；它们不等于可以无冲突地并行修改。为避免多个 agent 同时改动组合根和工程入口，执行时还需遵守以下集成面互斥规则：
 
 - `Composition.cs`、`AppHost.cs`、`WinPieGestures.csproj`、`WinPieGestures.slnx`（B2 起含
-  `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`）同一时间只允许一张票落地。
-  B1/B2/B4/B5/B6（#75–#79）已落地；其余触及这些文件面的批次（B7 起）必须串行合并。
-- `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78 已落地；后续
-  B7（M4 Themes XAML 拆集）触及同一资源面，必须与其它批次排队集成（架构上无需新增阻塞边）。
-- `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠。B6/#79 已把
-  M5 三件（TrayIconManager/AutostartRegistry/MemoryOptimizer）迁入 `StarPie.Shell/Services/Shell`
-  （`IThemeService`/`ThemeService` 留 Host 至 B7）；B7（M4 Themes/主题服务拆集）与其它触及同一
-  文件面的批次不得同时进行文件搬迁——先完成一票并通过构建，再开始另一票的搬迁。
+  `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`；B7/#80 起含
+  `StarPie.Theme.csproj`）同一时间只允许一张票落地。
+  B1/B2/B4/B5/B6/B7（#75–#80）已落地；其余触及这些文件面的批次（B8 起）必须串行合并。
+- `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78（ModernControls
+  迁 Core）与 B7/#80（M4 Themes XAML 拆集 + App.xaml Light 改跨集 pack URI）均已落地；B8 起
+  触及同一资源面的批次须排队集成（架构上无需新增阻塞边）。
+- `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠，已按串行约束
+  先后落地：B6/#79 把 M5 三件（TrayIconManager/AutostartRegistry/MemoryOptimizer）迁入
+  `StarPie.Shell/Services/Shell`；B7/#80 把 M4 件（IThemeService/ThemeService/ThemePaletteManager/
+  主题字典/主题设置子 VM）迁入 `StarPie.Theme` 并清空 Host 侧目录。此后 M4/M5 文件面不再交叉；
+  B8（M2）与 B9（M1）只迁移各自文件面，仍须一票一验再开始下一票的搬迁。
 - agent 分支可以并行进行只读分析或不触及上述文件面的代码准备；进入合并队列前必须先完成一次主干同步、构建与 xUnit。
 
 这是一条**执行协调规则**，不是新增业务依赖；它不改变 B0–B10 的拓扑，只约束共享集成面的写入顺序。
@@ -157,7 +167,8 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
 代码现状 = Host exe（`WinPieGestures/`，程序集 `StarPie`）+ 共享内核（`StarPie.Core/`，程序集
 `StarPie.Core`，WPF 类库）+ M3 模块程序集（`StarPie.Programs/`，程序集 `StarPie.Programs`，WPF
 类库）+ M5 模块程序集（`StarPie.Shell/`，程序集 `StarPie.Shell`，WPF 类库，B6/#79 起）+
-`WinPieGestures.Tests`（显式引用四工程，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
+M4 模块程序集（`StarPie.Theme/`，程序集 `StarPie.Theme`，WPF 类库，B7/#80 起）+
+`WinPieGestures.Tests`（显式引用五工程，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
 S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
 NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core。**B3/#76 已落地**：`MainViewModel`
 目录驱动后迁入 Core（无页面类型硬编码）；导航执行走 `INavigationExecutor` 目录执行缝；exe 内按
@@ -187,8 +198,20 @@ pack URI `/StarPie.Shell;component/Modules/ShellPageTemplates.xaml` 单点合并
 为公开契约（组合根注册单例、AppHost 构造后回填；ShellModuleRegistrar 只依赖 Core）；M5 托盘
 深色配色改经组合根注入 `Func<bool>` 探针、AutostartRegistry dev 分支改读 Core `AppDataPaths.IsDevInstance`
 （Shell 不反向引用 Host/M4）；slnx 登记 StarPie.Shell，Host/Tests 显式 ProjectReference。
-页面 VM 的 DI 注册：M5 两页已下放 ShellModuleRegistrar，其余 M1/Host 页面仍集中组合根（B9 下放）。
-其余三个业务模块程序集（M1/M2/M4）尚未拆分，差异随 B7–B10 逐批回填叶子并清零。
+**B7/#80 已落地**：M4 界面主题体系成独立模块程序集——IThemeService/ThemeService 迁入
+`StarPie.Theme/Services/Shell`，ThemePaletteManager 迁入 `StarPie.Theme` 模块根并裁决 public
+（Host AppHost 装配面：`new` + `AttachPaletteApplier` + `Apply`，ThemeService.AttachPaletteApplier
+同步公开；同 B6/#79 TrayIconManager 先例），五套主题字典迁入 `StarPie.Theme/Views/Styles/Themes`，
+InterfaceThemeSettingsViewModel+AppThemeOptionItem 迁入 `StarPie.Theme/ViewModels/Pages`
+（命名空间维持 `WinPieGestures.*`，B10 统一）；Host App.xaml 对 Light 默认字典改经跨程序集
+pack URI `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并，ThemePaletteManager
+加载源同步指向 StarPie.Theme（主题令牌 key 集与行为不变）；新增模块注册器 `ThemeModuleRegistrar`
+（RegisterServices 下放 M4 的 DI 注册；M4 无导航页，无 RegisterNavigation/模板字典）；slnx 登记
+StarPie.Theme，Host/Tests 显式 ProjectReference；Host 侧 Services/Shell 与 Views/Styles/Themes
+目录随迁清空。新增 ThemeAssemblyPlacementTests 6 例收口归属/依赖/可见性/BAML/注册器。
+页面 VM/服务的 DI 注册：M4 主题服务与主题设置子 VM 已下放 ThemeModuleRegistrar（B7/#80）、
+M5 两页已下放 ShellModuleRegistrar（B6/#79），其余 M1/Host 页面仍集中组合根（B9 下放）。
+其余两个业务模块程序集（M1/M2）尚未拆分，差异随 B8–B10 逐批回填叶子并清零。
 
 ## 参见 ADR
 

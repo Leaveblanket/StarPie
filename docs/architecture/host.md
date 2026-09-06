@@ -30,8 +30,10 @@
      提取；B4/#77 起 M3 `ShortcutResolver` 驻 `StarPie.Programs`，Host 显式引用）——Core 不反向
      引用宿主/业务模块（见 [layering.md](layering.md) 程序集层）。
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
-     `IConfigService` 别名、`ThemeService`（具体类）+ `IThemeService` 别名、`IMessenger` =
-     `WeakReferenceMessenger.Default`、`NavigationStore`、开放泛型 `INavigationService<>` → `NavigationService<>`。
+     `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、
+     开放泛型 `INavigationService<>` → `NavigationService<>`。B7/#80 起 M4 的
+     `ThemeService`（具体类）+ `IThemeService` 别名注册下放 `ThemeModuleRegistrar.RegisterServices`
+     （StarPie.Theme），组合根不再直接登记主题服务。
    - B3/#76（导航自治）+ B6/#79（M5 拆集）：`NavigationCatalog` 由 exe 内 M1/Host 临时注册器
      （`WinPieGestures/Modules/`）与 `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
@@ -41,12 +43,15 @@
      `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)`——M3 零 Core 依赖，S1 图标
      补全由组合根以委托注入；+`IDialogService`）、`GestureController`、`ISaveDebouncer`、
      `SettingsSaveOrchestrator`。
-   - 页面 VM 工厂注册（单例）：M5 两页（`GeneralSettingsViewModel`/`AboutViewModel`）由
+   - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
+     `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Theme`（B7/#80；模块无导航页，
+     只下放 DI 注册）；M5 两页（`GeneralSettingsViewModel`/`AboutViewModel`）由
      `ShellModuleRegistrar.RegisterServices` 下放模块程序集（首个带 DI 的模块注册器样板，
      ADR-0016 决策 8，见 [assemblies.md](assemblies.md) §6）；组合根仍注册
      `BehaviorSettingsViewModel`、`ProfileListViewModel`、
-     `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM
-     `InterfaceThemeSettingsViewModel` 与 `WheelAppearanceSettingsViewModel`，均另行注册单例）、
+     `AppearanceSettingsViewModel`（#54/#56 起为薄聚合页壳，构造注入两个设置子 VM——
+     `InterfaceThemeSettingsViewModel`（B7/#80 起由 ThemeModuleRegistrar 注册）与
+     `WheelAppearanceSettingsViewModel`（B8 前仍由组合根注册），均另行注册单例）、
      `MainViewModel`（B3/#76：已迁 Core 且目录驱动；
      仍由组合根注册——M1/Host 页面 VM 的 DI 注册在 B9 前维持集中；#69 起 `ProfileListViewModel`
      另以 M1 只读 `IProfilePreviewSource` 注册别名，供轮盘外观设置子 VM 经接口消费）、
@@ -54,6 +59,9 @@
      见 [shell.md](shell.md)）。
    - B6/#79 注：`AppHostDelegates` 已上提 Core（`Services/AppHostDelegates.cs`）并以单例注册进容器，
      `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 Core。
+   - B7/#80 注：`ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core 单向），
+     主题服务/主题设置子 VM 的工厂只解析 Core 契约；`ThemePaletteManager` 不经容器，
+     由 `AppHost` 构造时直接 `new`（StarPie.Theme public，Host 装配面）。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
@@ -62,8 +70,9 @@
    - **页面 VM eager 解析清单目录化（B3/#76）**：遍历 `NavigationCatalog.Entries` 逐个解析注册的
      页面 VM（VM 构造即订阅导入广播/落盘消息与 I18n 事件，时机在 `Config.Load` 之后；eager 语义
      保留——新增页面注册进目录即自动纳入启动构造）；另解析 `MainViewModel`/`ShellViewModel` 与宿主
-     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（B6/#79 起后者已由
-     `ShellModuleRegistrar` 注册，组合根仅解析取回单例；初始主题与托盘/驻留气泡直调语义不变）；
+     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（B7/#80 起前者已由
+     `ThemeModuleRegistrar` 注册、B6/#79 起后者已由 `ShellModuleRegistrar` 注册，组合根仅解析
+     取回单例；初始主题与托盘/驻留气泡直调语义不变）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
 4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - `_mouseHook.Start()` → 订阅 `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
