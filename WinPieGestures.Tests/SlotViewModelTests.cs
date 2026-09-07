@@ -246,11 +246,11 @@ public sealed class SlotViewModelTests
         var original = Localization.CurrentLanguage;
         var slot = MakeSlot(new ActionItem { Type = "System", IconKey = "TaskManager" });
         var notified = new List<string?>();
-        slot.PropertyChanged += (s, e) => notified.Add(e.PropertyName);
-        try
-        {
-            var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
-            Localization.SetLanguage(target);
+            slot.PropertyChanged += (s, e) => notified.Add(e.PropertyName);
+            try
+            {
+                var target = original == "en" ? "ja" : "en";
+                Localization.SetLanguage(target);
 
             Assert.Contains(nameof(slot.ActionTypes), notified);
             Assert.Contains(nameof(slot.TestButtonText), notified);
@@ -275,11 +275,11 @@ public sealed class SlotViewModelTests
 
         // 退订后切语不再唤醒已释放槽
         var refreshed = 0;
-        slot.PropertyChanged += (s, e) => refreshed++;
-        try
-        {
-            var target = original == LanguageCode.En ? LanguageCode.Ja : LanguageCode.En;
-            Localization.SetLanguage(target);
+            slot.PropertyChanged += (s, e) => refreshed++;
+            try
+            {
+                var target = original == "en" ? "ja" : "en";
+                Localization.SetLanguage(target);
         }
         finally
         {

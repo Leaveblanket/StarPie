@@ -23,8 +23,10 @@
 
 1. **resx 数据源 + 实例服务**（ADR-0013/#44-#45）：`LocalizationService` 经 `Strings.ResourceManager`
    取词；回退链为“目标语言 → zh-CN 中性 → 键名”。`SetLanguage(code)` 支持 `Auto`
-   （按 `CurrentUICulture` 解析 zh-TW/zh/ja/en）与已知码/别名；语言实际变化才触发
-   `LanguageChanged`。静态 `I18n` 已删除（S4/#45），消费点一律注入 `ILocalizationService`。
+   （按 `CurrentUICulture` 前缀规则解析 zh-TW/zh/ja/en）与已知码/别名；任意别名/区域码经
+   `AliasToCanonical` 表折叠为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），未知码兜底 zh-CN，
+   语言状态不再保留自定义枚举中间表示；语言实际变化才触发 `LanguageChanged`。
+   静态 `I18n` 已删除（S4/#45），消费点一律注入 `ILocalizationService`。
 2. **XAML 声明式文案**：宿主 `AppHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护
    Application 级静态 `LanguageDictionary`（MergedDictionaries 中仅一份，切语原地 `Clear` 重建，数据源为
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，
@@ -40,8 +42,8 @@
 
 ## 扩展点
 
-- 新语言：新增卫星 resx（`Strings.xx.resx`）+ `LanguageCode` 枚举与解析分支
-  （涉及 CONTEXT/ADR，谨慎）。
+- 新语言：新增卫星 resx（`Strings.xx.resx`）+ `AliasToCanonical` 别名表条目（规范码随
+  `AutoCultureRules` 前缀规则按需同步；涉及 CONTEXT/ADR，谨慎）。
 - 新文案键：`Strings*.resx` 四语言同步 + 盘点清单登记（声明式键无需其它接线；
   即时取词/驻留按 ADR-0010 分类落位）。
 - 新消息/通知类型：见 [messages.md](messages.md)（S4 hub，放行共享面）。

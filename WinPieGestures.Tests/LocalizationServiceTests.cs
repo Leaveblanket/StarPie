@@ -3,28 +3,44 @@ using StarPie.Services.Localization;
 namespace StarPie.Tests;
 
 /// <summary>
-/// LocalizationService 单测：resx 数据源取词、语言解析、事件与投影枚举。
+/// LocalizationService 单测：resx 数据源取词、别名表归一化、事件与当前语言投影。
 /// 全部经服务实例验证，不依赖静态门面。
 /// </summary>
 public class LocalizationServiceTests
 {
-    [Fact]
-    public void SetLanguage_ParsesKnownCodes()
+    [Theory]
+    [InlineData("zh-CN", "zh-CN")]
+    [InlineData("zh-Hans", "zh-CN")]
+    [InlineData("zh-TW", "zh-TW")]
+    [InlineData("zh-HK", "zh-TW")]
+    [InlineData("zh-MO", "zh-TW")]
+    [InlineData("zh-Hant", "zh-TW")]
+    [InlineData("en", "en")]
+    [InlineData("en-US", "en")]
+    [InlineData("en-GB", "en")]
+    [InlineData("ja", "ja")]
+    [InlineData("ja-JP", "ja")]
+    public void SetLanguage_AliasTable_NormalizesToCanonicalCode(string input, string expected)
     {
         var service = new LocalizationService();
 
-        service.SetLanguage("zh-TW");
-        Assert.Equal(LanguageCode.ZhTw, service.CurrentLanguage);
-        Assert.Equal("zh-TW", service.CurrentLanguageCode);
+        service.SetLanguage(input);
 
-        service.SetLanguage("en-US");
-        Assert.Equal(LanguageCode.En, service.CurrentLanguage);
+        Assert.Equal(expected, service.CurrentLanguage);
+    }
 
-        service.SetLanguage("ja-JP");
-        Assert.Equal(LanguageCode.Ja, service.CurrentLanguage);
+    [Theory]
+    [InlineData("unknown-code")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void SetLanguage_UnknownOrEmpty_FallsBackToZhCn(string? code)
+    {
+        var service = new LocalizationService();
+        service.SetLanguage("en"); // 先离开默认值，验证兜底确实回到 zh-CN
 
-        service.SetLanguage("unknown-code");
-        Assert.Equal(LanguageCode.ZhCn, service.CurrentLanguage);
+        service.SetLanguage(code!);
+
+        Assert.Equal("zh-CN", service.CurrentLanguage);
     }
 
     [Fact]

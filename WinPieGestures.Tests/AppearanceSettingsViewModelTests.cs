@@ -155,7 +155,7 @@ public sealed class AppearanceSettingsViewModelTests
         try
         {
             // 前置验证：子 VM 已订阅语言事件（切语重建驻留目录并补发选中通知）。
-            h.Localization.SetLanguage(LanguageCode.En);
+            h.Localization.SetLanguage("en");
             Assert.True(themeNotifications > 0);
             Assert.True(wheelNotifications > 0);
             string enThemeLabel = h.InterfaceTheme.AppThemeOptions[2].Label;
@@ -166,7 +166,7 @@ public sealed class AppearanceSettingsViewModelTests
             h.Vm.Dispose();
             h.Vm.Dispose(); // 幂等
 
-            h.Localization.SetLanguage(LanguageCode.Ja);
+            h.Localization.SetLanguage("ja");
 
             // 退订后切语不再重建驻留目录/补发选中通知。
             Assert.Equal(enThemeLabel, h.InterfaceTheme.AppThemeOptions[2].Label);
