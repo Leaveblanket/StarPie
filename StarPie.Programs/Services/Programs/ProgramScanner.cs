@@ -9,15 +9,15 @@ using Microsoft.Win32;
 namespace StarPie.Services.Programs
 {
     /// <summary>
-    /// 已安装程序的扫描编排 (T06)：从旧 <c>ProgramPickerWindow</c> 原样迁出的八个来源——
-    /// 系统自带工具、开始菜单 / 桌面快捷方式、用户 AppData、WindowsApps、注册表 App Paths
-    /// 与 Uninstall、Program Files 顶层。存在性 / 扩展名 / 大小检查留在这里（IO 性质），
-    /// 垃圾过滤、跨源去重与显示名升级委托 <see cref="ProgramCatalog"/> 纯函数。
-    /// B4/#77 起随 M3 迁入独立模块程序集 <c>StarPie.Programs</c>，零共享内核(Core)依赖——
-    /// 图标补全不再直引 S1 <c>IconAssets</c>，改由组合根注入图标委托（生产以
-    /// <c>IconAssets.GetIcon</c> 传入，见 host.md）。
-    /// 按 ADR-0004 保持集成性质，不测。
+    /// 已安装程序的扫描编排：聚合八个来源——系统自带工具、开始菜单 / 桌面快捷方式、用户
+    /// AppData、WindowsApps、注册表 App Paths 与 Uninstall、Program Files 顶层。文件存在性 /
+    /// 扩展名 / 大小检查在此进行（IO 性质），垃圾过滤、跨源去重与显示名升级委托
+    /// <see cref="ProgramCatalog"/> 纯函数。
     /// </summary>
+    /// <remarks>
+    /// 本模块零共享内核依赖：图标补全不直接引用 <c>IconAssets</c>，改由组合根注入图标委托
+    /// （生产以 <c>IconAssets.GetIcon</c> 传入）。本类保持集成性质，不做单元测试。
+    /// </remarks>
     public static class ProgramScanner
     {
         /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
