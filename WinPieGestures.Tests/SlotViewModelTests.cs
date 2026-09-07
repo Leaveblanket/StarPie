@@ -190,7 +190,7 @@ public sealed class SlotViewModelTests
         Assert.Equal(@"C:\Users\me\Documents", slot.Action.Parameter);
         Assert.Equal("Documents", slot.Action.Name);
         Assert.Equal("Folder", slot.Action.IconKey);
-        Assert.Equal(1, save.Immediate); // 文件夹提交后请求落盘（取代 EditApplied）
+        Assert.Equal(1, save.Immediate); // 文件夹提交后请求一次立即落盘
     }
 
     [Fact]

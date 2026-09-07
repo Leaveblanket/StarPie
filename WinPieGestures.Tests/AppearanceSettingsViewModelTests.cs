@@ -6,11 +6,11 @@ using StarPie.ViewModels.Wheel;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 外观聚合页 VM 的薄页壳行为覆盖（#56/ADR-0014 决策 6）：只暴露两个设置子 VM（界面主题
-/// InterfaceTheme + 轮盘外观 WheelAppearance）、配置导入后的页面级重挂编排（子 VM 各自自订阅
-/// ConfigImportedMessage 重挂；聚合壳广播 PageConfigReloadedMessage 通知页面 View）、Dispose 链
-/// （释放两子 VM，成对退订语言事件）。轮盘外观状态/命令的逐项行为测试已迁移到
-/// <see cref="WheelAppearanceSettingsViewModelTests"/>。
+/// 外观聚合页 VM 的薄页壳行为覆盖：只暴露两个设置子 VM（界面主题 InterfaceTheme +
+/// 轮盘外观 WheelAppearance）、配置导入后的页面级重挂编排（子 VM 各自自订阅
+/// ConfigImportedMessage 重挂；聚合壳广播 PageConfigReloadedMessage 通知页面 View）、
+/// Dispose 链（释放两子 VM，成对退订语言事件）。轮盘外观状态/命令的逐项行为测试
+/// 见 <see cref="WheelAppearanceSettingsViewModelTests"/>。
 /// </summary>
 public sealed class AppearanceSettingsViewModelTests
 {
@@ -67,8 +67,8 @@ public sealed class AppearanceSettingsViewModelTests
     [Fact]
     public void Constructor_InjectsAndExposesBothChildViewModels()
     {
-        // #54/#56（ADR-0014 决策 6）：外观聚合 VM 只暴露界面主题子 VM 与轮盘外观子 VM 单例——
-        // 页面各设置卡 DataContext 经本壳取对应子 VM。
+        // 外观聚合 VM 只暴露界面主题子 VM 与轮盘外观子 VM 单例——页面各设置卡
+        // DataContext 经本壳取对应子 VM。
         var h = new Harness();
 
         Assert.Same(h.InterfaceTheme, h.Vm.InterfaceTheme);
@@ -78,8 +78,8 @@ public sealed class AppearanceSettingsViewModelTests
     [Fact]
     public void AggregateShell_NoLongerImplementsPreviewStateInterface_WheelChildDoes()
     {
-        // #56（ADR-0014 决策 8）：预览只读状态接口实现随轮盘外观状态迁移到子 VM——聚合壳不再
-        // 实现 IWheelAppearanceState，页面预览 code-behind 经 WheelAppearance 子 VM 取只读状态。
+        // 预览只读状态接口实现随轮盘外观状态放在子 VM——聚合壳不再实现
+        // IWheelAppearanceState，页面预览 code-behind 经 WheelAppearance 子 VM 取只读状态。
         var h = new Harness();
 
         Assert.Null(h.Vm as IWheelAppearanceState);
@@ -91,7 +91,7 @@ public sealed class AppearanceSettingsViewModelTests
     [Fact]
     public void ConfigImport_OrchestratesChildrenReload_BroadcastsPageReload_AndSingleThemeApply()
     {
-        // #54/#56：导入成功 → 界面主题子 VM 重挂并只发一条 AppThemeChangedMessage（壳层执行窗口
+        // 导入成功 → 界面主题子 VM 重挂并只发一条 AppThemeChangedMessage（壳层执行窗口
         // 主题应用）；轮盘外观子 VM 自订阅重挂（重建配色下拉/恢复选中）；聚合壳广播
         // PageConfigReloadedMessage(typeof 外观聚合 VM) 通知页面 View 重绘实时预览。
         var h = new Harness(new AppConfig { AppTheme = "Dark", Theme = "CustomPreset_p1" });
@@ -125,7 +125,7 @@ public sealed class AppearanceSettingsViewModelTests
     [Fact]
     public void ConfigImport_BroadcastsPageReload_WithoutRequiringAggregateState()
     {
-        // #56 薄壳语义：聚合壳自身不持有轮盘外观状态——导入广播的处理只做页面级收尾，状态重挂
+        // 薄壳语义：聚合壳自身不持有轮盘外观状态——导入广播的处理只做页面级收尾，状态重挂
         // 全部由子 VM 自订阅完成。
         var h = new Harness();
         var imported = new AppConfig { AppTheme = "MidnightNavy", Theme = "Dark" };
@@ -134,7 +134,7 @@ public sealed class AppearanceSettingsViewModelTests
         h.Messenger.Send(new ConfigImportedMessage(imported));
 
         Assert.Contains(typeof(AppearanceSettingsViewModel), h.Reload.ReloadedPages);
-        // 界面主题子 VM 自订阅重挂：导入后补发主题应用消息由壳层执行窗口主题应用（#54 语义）。
+        // 界面主题子 VM 自订阅重挂：导入后补发主题应用消息，由壳层执行窗口主题应用。
         Assert.Equal("MidnightNavy", Assert.Single(h.Reload.AppliedThemes));
         Assert.Equal("Dark", h.WheelAppearance.SelectedTheme);
     }
@@ -144,8 +144,8 @@ public sealed class AppearanceSettingsViewModelTests
     [Fact]
     public void Dispose_ReleasesBothChildViewModels_LanguageUnsubscribed()
     {
-        // #56/ADR-0014 决策 6（Dispose 链）：聚合壳 Dispose 释放两个设置子 VM——各自成对退订
-        // ADR-0010 语言事件；幂等（重复 Dispose/容器再释放安全）。
+        // Dispose 链：聚合壳 Dispose 释放两个设置子 VM——各自成对退订语言事件；
+        // 幂等（重复 Dispose/容器再释放安全）。
         var h = new Harness(new AppConfig { AppTheme = "Dark" });
         int themeNotifications = 0;
         int wheelNotifications = 0;

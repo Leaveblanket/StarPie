@@ -88,7 +88,7 @@ public sealed class ThemeAssemblyPlacementTests
     public void 主题应用消息_仍归共享内核Core消息Hub()
     {
         // AppThemeChangedMessage 语义属主题模块，但类型定义集中在共享内核消息 Hub
-        // （避免消息载体重复），不随模块迁移。
+        // （避免消息载体重复）。
         Assert.Equal("StarPie.Core", typeof(AppThemeChangedMessage).Assembly.GetName().Name);
         Assert.Equal("StarPie.Services.Messages", typeof(AppThemeChangedMessage).Namespace);
     }

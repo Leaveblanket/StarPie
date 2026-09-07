@@ -7,8 +7,8 @@
         MouseMove="ScreenEyedropperWindow_MouseMove"
         ShowInTaskbar="False" Topmost="True" WindowStyle="None">
     <!--
-        全屏置顶取色覆盖层（ADR-0004：不用 Owner）。拾取状态与结果在 ScreenEyedropperViewModel；
-        code-behind 只保留 Win32 取像素与放大镜摆放（ADR-0009 纯视觉白名单）。
+        全屏置顶取色覆盖层（不用 Owner）。拾取状态与结果在 ScreenEyedropperViewModel；
+        code-behind 只保留 Win32 取像素与放大镜摆放（纯视觉白名单）。
     -->
     <Canvas IsHitTestVisible="False">
         <Border x:Name="LoupeBorder" Width="110" Height="60"

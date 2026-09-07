@@ -570,7 +570,7 @@ public sealed class ProfileListViewModelTests
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, dialogs, messenger, new TestActionExecutor(), Localization);
         vm.SelectProfile(vm.Profiles[0]);
 
-        vm.ApplySectorCount(4); // 重建槽位集合（T19 起扇区数应用自身发一次立即落盘请求）
+        vm.ApplySectorCount(4); // 重建槽位集合；扇区数应用自身发一次立即落盘请求
         var before = save.Immediate;
         vm.Slots[0].BrowseFolderCommand.Execute(null);
 
