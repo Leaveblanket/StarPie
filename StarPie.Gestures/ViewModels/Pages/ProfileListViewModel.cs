@@ -12,21 +12,19 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 设置窗口·配置方案分区列表侧 ViewModel (T11/T12, ADR-0001)：承接迁移前 SettingsWindow
-    /// code-behind 的方案列表与选中态（<c>_selectedProfile</c> 字段）、扇区数切换与
-    /// 方向槽位集合（<c>_slotViewModels</c> + <c>RefreshSlots</c>）。
-    /// T12 起槽位持有对话框服务（<see cref="IDialogService"/>，动作编辑闭环的对话框编排全部
-    /// 进槽位 ViewModel）。T19 页面化：方案增删改（含选择器/输入/确认对话框）编排自窗口
-    /// code-behind 收编进本 VM（对话框服务已在此）；槽位编辑提交与各编排的落盘请求经
-    /// <see cref="IMessenger"/> 上报组合根编排订阅者（取代迁移前 SlotEditCommitted 事件 +
-    /// 视图 FlushPendingSave 链）。导入成功经 <see cref="ConfigImportedMessage"/> 广播后自行重挂，
-    /// 并默认选中新列表首项（T21：默认选中与导入回落自页面 View 收编进 VM，View 不再写选中态）。
-    /// 与 <see cref="WheelViewModel.Config"/> 先例同理，直接持有运行态配置的
-    /// Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
+    /// 配置方案分区列表侧 ViewModel：方案列表与选中态、扇区数切换与方向槽位集合的
+    /// 状态与编排；槽位持有对话框服务（<see cref="IDialogService"/>，动作编辑闭环的
+    /// 对话框编排在槽位内）。
     /// </summary>
+    /// <remarks>
+    /// 方案增删改（含选择器/输入/确认对话框）编排在本 VM；槽位编辑提交与各编排的落盘
+    /// 请求经 <see cref="IMessenger"/> 上报组合根编排的订阅者。导入成功经
+    /// <see cref="ConfigImportedMessage"/> 广播后自行重挂并默认选中新列表首项；
+    /// 直接持有运行态配置的 Profiles 列表引用（live-apply：改动即时写入运行态模型并生效）。
+    /// </remarks>
     public partial class ProfileListViewModel : ObservableObject, IProfilePreviewSource, IDisposable
     {
-        // 方位角标签与缺省动作（自 SettingsWindow 迁入，文案与补齐规则一字未动）
+        // 方位角标签与新建方案的缺省动作补齐规则
         private static readonly string[] Directions4 = { "右 (E / 0°)", "下 (S / 90°)", "左 (W / 180°)", "上 (N / 270°)" };
         private static readonly string[] Directions8 = { "右 (E / 0°)", "右下 (SE / 45°)", "下 (S / 90°)", "左下 (SW / 135°)", "左 (W / 180°)", "左上 (NW / 225°)", "上 (N / 270°)", "右上 (NE / 315°)" };
         private static readonly string[] Directions12 = {
@@ -73,18 +71,18 @@ namespace StarPie.ViewModels.Pages
         public ObservableCollection<SlotViewModel> Slots { get; } = new();
 
         /// <summary>
-        /// 预览 Profile 上下文（<see cref="IProfilePreviewSource"/>，#69 由本 VM 实现）：优先选中
-        /// 方案，无选中时回落列表首项——与轮盘外观预览既有取值链一致；空列表为 null，兜底留在
-        /// 消费方（预览渲染器）。只读语义由本 VM 的选中/首项回落维护，轮盘侧经接口取值。
+        /// 预览 Profile 上下文（实现 <see cref="IProfilePreviewSource"/>）：优先选中方案，
+        /// 无选中时回落列表首项；空列表为 null，兜底留在消费方（预览渲染器）。
+        /// 只读语义由本 VM 的选中/首项回落维护，轮盘侧经接口取值。
         /// </summary>
         public WheelProfile? PreviewProfile
             => SelectedProfile?.Model ?? Profiles.FirstOrDefault()?.Model;
 
-        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步列表选中。</summary>
+        /// <summary>当前选中的方案条目；页面 View 据此同步列表选中。</summary>
         [ObservableProperty]
         private ProfileItemViewModel? _selectedProfile;
 
-        /// <summary>选中方案的扇区数（原始值不做规范化——与迁移前单选钮同步逻辑一致）。</summary>
+        /// <summary>选中方案的扇区数（原始值不做规范化，仅 4/8/12 生效）。</summary>
         public int? SelectedSectorCount
         {
             get => SelectedProfile?.Model.SectorCount;
@@ -134,8 +132,8 @@ namespace StarPie.ViewModels.Pages
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
-            // T19/T21：导入成功广播 → 以新配置的方案列表自行重挂；默认选中首项由
-            // Reload 内部维护（T21 自页面 View 收编），View 不再需要 PageConfigReloaded 同步。
+            // 导入成功广播 → 以新配置的方案列表自行重挂；默认选中首项由 Reload
+            // 内部维护，View 无需同步消息。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig.Profiles);
@@ -144,25 +142,24 @@ namespace StarPie.ViewModels.Pages
             Reload(sourceProfiles);
         }
 
-        /// <summary>以新的运行态方案列表重建展示集合（构造与导入配置后调用）；
-        /// 有方案时默认选中首项并重建槽位（T21：页面 View 的默认选中/导入回落收编于此），
-        /// 无方案时清空选中态与槽位。</summary>
+        /// <summary>以新的运行态方案列表重建展示集合（构造与导入配置后调用）：
+        /// 有方案时默认选中首项并重建槽位，无方案时清空选中态与槽位。</summary>
         public void Reload(List<WheelProfile> sourceProfiles)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
             // 先清空展示集合再清选中：OnSelectedProfileChanged 触发的 RebuildSlots 在
-            // Profiles 为空时直接返回，不会把旧列表第一项回选（T20 修正）。
+            // Profiles 为空时直接返回，不会回选旧列表第一项。
             Profiles.Clear();
             SelectedProfile = null;
             foreach (var profile in sourceProfiles)
             {
                 Profiles.Add(new ProfileItemViewModel(profile));
             }
-            DisposeSlots(); // T27：清空槽位前先成对退订（构造/Reload 空列表均可能带旧槽）
+            DisposeSlots(); // 清空槽位前先成对退订（构造/Reload 空列表均可能带旧槽）
             Slots.Clear();
 
-            // T21：默认选中/导入回落到首项（与页面 View 迁移前 OnPageLoaded/OnConfigReloaded 语义一致）；
-            // 赋值触发 OnSelectedProfileChanged → RebuildSlots，使扇区数、槽位与选中方案一致。
+            // 默认选中/导入回落到首项；赋值触发 OnSelectedProfileChanged → RebuildSlots，
+            // 使扇区数、槽位与选中方案一致。
             if (Profiles.Count > 0)
             {
                 SelectedProfile = Profiles[0];
@@ -170,8 +167,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 选中指定方案并重建槽位（对应迁移前 ProfilesListBox_SelectionChanged 的列表侧效果）。
-        /// item 为 null（如清空选择）时返回 false 不作处理——与迁移前"选中空即返回"一致。
+        /// 选中指定方案并重建槽位。item 为 null（如清空选择）时返回 false 不作处理。
         /// </summary>
         public bool SelectProfile(ProfileItemViewModel? item)
         {
@@ -182,9 +178,8 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 将扇区数应用到选中方案并重建槽位（对应迁移前 SectorCountRadio_Checked 的列表侧效果），
-        /// 应用成功后经消息请求立即落盘（迁移前视图收尾的 FlushPendingSave 收编）。
-        /// 未选中时兜底取第一个方案但不改列表可视选中——与迁移前的字段兜底一致。无任何方案时返回 false。
+        /// 将扇区数应用到选中方案并重建槽位，应用成功后经消息请求立即落盘。
+        /// 未选中时兜底取第一个方案但不改列表可视选中。无任何方案时返回 false。
         /// </summary>
         public bool ApplySectorCount(int sectorCount)
         {
@@ -198,10 +193,10 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 重建方向槽位集合（迁移前 RefreshSlots）：扇区数规范化为 4/8/12（非法值按 8 展示，
-        /// 不回写模型）、按缺省预设补齐缺失动作、按方位角生成槽位 ViewModel。
-        /// 重建前先逐个 Dispose 旧槽（T27/ADR-0010：槽位自订阅 I18n.LanguageChanged，
-        /// 必须成对退订再释放引用，防静态事件累积）。
+        /// 重建方向槽位集合：扇区数规范化为 4/8/12（非法值按 8 展示，不回写模型）、
+        /// 按缺省预设补齐缺失动作、按方位角生成槽位 ViewModel。
+        /// 重建前先逐个 Dispose 旧槽（槽位自订阅本地化事件，须成对退订再释放引用，
+        /// 防静态事件累积）。
         /// </summary>
         public void RebuildSlots()
         {
@@ -261,7 +256,7 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        /// <summary>新方案写入运行态配置并进入展示列表（迁移前 AddProfileButton_Click 的列表侧效果）；返回其包装项。</summary>
+        /// <summary>新方案写入运行态配置并进入展示列表；返回其包装项。</summary>
         public ProfileItemViewModel AddProfile(WheelProfile profile)
         {
             var item = new ProfileItemViewModel(profile);
@@ -270,26 +265,25 @@ namespace StarPie.ViewModels.Pages
             return item;
         }
 
-        /// <summary>从运行态配置与展示列表中移除方案（迁移前 DeleteProfileButton_Click 的列表侧效果）。
-        /// 不主动清选中态——与迁移前一致，由列表选择事件回落。</summary>
+        /// <summary>从运行态配置与展示列表中移除方案。
+        /// 不主动清选中态，由列表选择回落。</summary>
         public void RemoveProfile(ProfileItemViewModel item)
         {
             _sourceProfiles.Remove(item.Model);
             Profiles.Remove(item);
         }
 
-        /// <summary>方案名（进程名）占用查重，大小写不敏感（迁移前新增/重命名对话框校验语义；
-        /// T16 自窗口 code-behind 对运行态配置的直接查询收编）。</summary>
+        /// <summary>方案名（进程名）占用查重，大小写不敏感。</summary>
         public bool IsProcessNameTaken(string processName)
             => Profiles.Any(p => p.Model.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase));
 
-        /// <summary>新自定义方案的缺省名（迁移前 AddCustomProfileButton_Click 的默认文案）。</summary>
+        /// <summary>新自定义方案的缺省名。</summary>
         public string CreateDefaultCustomProfileName() => $"自定义配置_{Profiles.Count}";
 
-        // --- 方案增删改编排（T19 自窗口 code-behind 收编；对话框经注入服务，落盘经消息） ---
+        // --- 方案增删改编排（对话框经注入服务，落盘经消息） ---
 
         /// <summary>
-        /// 程序选择器新建专属配置（迁移前 AddProfileButton_Click）：取消返回 null；
+        /// 经程序选择器新建专属配置：取消返回 null；
         /// 进程名占用经提示框拦截并返回 null；成功则写入列表并请求立即落盘，返回新条目
         /// （页面 View 据此设置列表选中）。
         /// </summary>
@@ -309,7 +303,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 输入框新建自定义配置（迁移前 AddCustomProfileButton_Click）：取消返回 null；
+        /// 经输入框新建自定义配置：取消返回 null；
         /// 名称占用经校验器拦截（留在框内）；成功则写入列表并请求立即落盘，返回新条目。
         /// </summary>
         public ProfileItemViewModel? AddCustomProfileViaDialog()
@@ -331,7 +325,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 重命名选中方案（迁移前 RenameProfileButton_Click 的编排）：未选中/Global 分别提示；
+        /// 重命名选中方案：未选中/Global 分别提示；
         /// 输入框带占用校验；成功改模型并刷新展示、请求立即落盘，返回是否完成重命名。
         /// </summary>
         public bool RenameSelectedProfileViaDialog()
@@ -376,9 +370,9 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 删除选中方案（迁移前 DeleteProfileButton_Click 的编排）：未选中静默返回；
+        /// 删除选中方案：未选中静默返回；
         /// Global 经提示框拦截；确认框通过后移除并请求立即落盘，返回是否完成删除
-        /// （列表选中回落由 SelectedProfile 双向绑定与 RebuildSlots 首项兑底维护）。
+        /// （列表选中回落由 SelectedProfile 双向绑定与 RebuildSlots 首项兜底维护）。
         /// </summary>
         public bool DeleteSelectedProfileViaDialog()
         {
@@ -401,7 +395,7 @@ namespace StarPie.ViewModels.Pages
             return true;
         }
 
-        /// <summary>T27/ADR-0010：逐个 Dispose 当前槽位（幂等），随后由调用方 Clear 集合。
+        /// <summary>逐个 Dispose 当前槽位（幂等），随后由调用方 Clear 集合。
         /// DisposeSlots 不负责清集合——任一路径保留 Clear 语义（含失败兜底 catch 内的空返回）。
         /// 容器释放/测试拆卸兜底：<see cref="Dispose"/> 复用本方法清尾。</summary>
         private void DisposeSlots()
@@ -413,7 +407,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 释放剩余槽位（ADR-0010 VM 生命周期契约：页面 VM 为容器单例，由组合根随
+        /// 释放剩余槽位（页面 VM 为容器单例，由组合根随
         /// <see cref="Composition.Dispose"/> 自动调用，兼作测试拆卸兜底）。
         /// 幂等：重复 Dispose 不重复清理；Dispose 后不再重建槽位。
         /// </summary>
@@ -425,7 +419,7 @@ namespace StarPie.ViewModels.Pages
             Slots.Clear();
         }
 
-        /// <summary>按迁移前规则构造新方案：绑定进程名 + 当前选中方案的扇区数 + 占位动作补齐。</summary>
+        /// <summary>构造新方案：绑定进程名 + 当前选中方案的扇区数 + 占位动作补齐。</summary>
         private WheelProfile CreateProfileWithDefaultActions(string processName)
         {
             int currentSectorCount = SelectedProfile?.Model.SectorCount ?? 8;
@@ -448,7 +442,7 @@ namespace StarPie.ViewModels.Pages
     /// <summary>
     /// 配置方案列表条目 ViewModel：包装 <see cref="WheelProfile"/> 模型提供列表展示。
     /// 模型是纯 POCO 无变更通知，模型属性被直接修改后调用 <see cref="RefreshDisplay"/>
-    /// 触发展示刷新（对应迁移前 ProfilesListBox.Items.Refresh()）。
+    /// 触发展示刷新。
     /// </summary>
     public sealed class ProfileItemViewModel : ObservableObject
     {
@@ -464,7 +458,7 @@ namespace StarPie.ViewModels.Pages
 
         public void RefreshDisplay() => OnPropertyChanged(nameof(ProcessName));
 
-        // 列表项可见文案沿用迁移前 WheelProfile.ToString() 的进程名；e2e 依赖该文案。
+        // 列表项可见文案为模型进程名；e2e 依赖该文案。
         public override string ToString() => Model.ProcessName;
     }
 }

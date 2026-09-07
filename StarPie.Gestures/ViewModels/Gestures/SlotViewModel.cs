@@ -9,9 +9,7 @@ using CommunityToolkit.Mvvm.Messaging;
 
 namespace StarPie.ViewModels.Gestures
 {
-    /// <summary>
-    /// 系统预设动作条目（T11 随槽位 ViewModel 一并自 SettingsWindow 迁入，数据一字未动）。
-    /// </summary>
+    /// <summary>系统预设动作条目：Key、分类与展示名，以及新建系统动作时的默认名称/图标。</summary>
     public class SystemPresetItem
     {
         public string Key { get; set; } = "";
@@ -23,14 +21,10 @@ namespace StarPie.ViewModels.Gestures
     }
 
     /// <summary>
-    /// 方向槽位 ViewModel (T11/T12, ADR-0001)：自 SettingsWindow 的窗口内私有槽位 ViewModel 迁入
-    /// 正式 ViewModel，包装扇区绑定的 <see cref="ActionItem"/> 提供槽位编辑绑定。
-    /// T11 迁入列表侧职责（方向槽位集合与槽位名称编辑），名称编辑与迁移前一致——直写模型、
-    /// 无额外验证。T12 迁入动作编辑闭环：对话框编排（程序选择/文件夹选择/图标设置）经
-    /// <see cref="IDialogService"/> 完成，写回结果直改模型即 live-apply；类型切换（绑定 Type）
-    /// 与热键录制（HotkeyRecorderBox 依赖属性绑定 Parameter）在 T11 迁移时已直连本 VM。
-    /// 与迁移前的落盘差异保持一致：程序/图标选择不主动落盘，文件夹选择提交后触发
-    /// <see cref="EditApplied"/> 请求落盘（迁移前为 SyncUiToConfigAndSave(true)）。
+    /// 方向槽位 ViewModel：包装扇区绑定的 <see cref="ActionItem"/> 提供槽位编辑绑定。
+    /// 名称编辑直写模型、无额外验证；动作编辑闭环（程序/文件夹/图标/系统预设/热键）
+    /// 经 <see cref="IDialogService"/> 与命令完成，写回结果直改模型即 live-apply。
+    /// 落盘策略：程序/图标选择不主动落盘，文件夹选择提交后发送即时落盘消息。
     /// </summary>
     public partial class SlotViewModel : ObservableObject, IDisposable
     {
@@ -301,10 +295,10 @@ namespace StarPie.ViewModels.Gestures
         }
 
         /// <summary>
-        /// 成对退订本地化服务 <see cref="ILocalizationService.LanguageChanged"/>（ADR-0010 VM 生命周期契约：
-        /// 瞬态 VM 自订阅须 IDisposable 成对退订，由持有者 ProfileListViewModel Dispose）。
+        /// 成对退订本地化服务 <see cref="ILocalizationService.LanguageChanged"/>：
+        /// 瞬态 VM 自订阅须成对退订，由持有者 ProfileListViewModel Dispose。
         /// 幂等：重复 Dispose 不重复退订；Dispose 后不再对静态事件做任何操作。
-        /// 切语刷新仍走实时计算属性（getter 内 I18n.T()）+ OnPropertyChanged（ADR-0010 机制 ③）。
+        /// 切语刷新走实时计算属性 + OnPropertyChanged。
         /// </summary>
         public void Dispose()
         {
@@ -317,9 +311,9 @@ namespace StarPie.ViewModels.Gestures
         }
 
         /// <summary>
-        /// 图标选取编排（迁移前 PickIcon_Click 的对话框部分）：弹出图标选择器并将结果写回
+        /// 图标选取编排：弹出图标选择器并将结果写回
         /// <see cref="IconKey"/>。返回本次是否完成选择（含清除图标），供窗口决定是否刷新
-        /// 外观轮盘预览——该预览是 View 层渲染效果，留在 code-behind（ADR-0001）。
+        /// 外观轮盘预览——该预览是 View 层渲染效果，留在 code-behind。
         /// </summary>
         private bool PickIconCore()
         {
@@ -333,14 +327,14 @@ namespace StarPie.ViewModels.Gestures
         private void PickIcon() => PickIconCore();
 
         /// <summary>
-        /// 执行本槽位动作（T19 自窗口 Test_Click 收编：动作执行器经构造注入，页面 View 只剩命令绑定）。
+        /// 试执行本槽位动作：动作执行器经构造注入，页面 View 仅剩命令绑定。
         /// </summary>
         [RelayCommand]
         private void ExecuteTest() => _actionExecutor.Execute(Action);
 
         /// <summary>
-        /// 程序选择编排（迁移前 Browse_Click）：弹出程序选择器，写回参数并按迁移前规则
-        /// 回填缺省名称（已有自定义名称不覆盖）。与迁移前一致不主动落盘。
+        /// 程序选择编排：弹出程序选择器，写回参数并回填缺省名称（已有自定义名称不覆盖）；
+        /// 不主动落盘。
         /// </summary>
         [RelayCommand]
         private void BrowseProgram()
@@ -357,9 +351,8 @@ namespace StarPie.ViewModels.Gestures
         }
 
         /// <summary>
-        /// 文件夹选择编排（迁移前 BrowseFolder_Click）：弹出文件夹选择对话框（初始目录为当前
-        /// 参数，有效性由服务判定），写回参数并按迁移前规则回填名称与 Folder 图标；提交后触发
-        /// <see cref="EditApplied"/> 请求落盘。异常兜底与迁移前一致（仅记录不上抛）。
+        /// 文件夹选择编排：弹出文件夹选择对话框（初始目录为当前参数，有效性由服务判定），
+        /// 写回参数并回填名称与 Folder 图标；提交后经消息请求落盘。异常仅记录不上抛。
         /// </summary>
         [RelayCommand]
         private void BrowseFolder()

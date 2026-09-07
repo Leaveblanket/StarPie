@@ -10,9 +10,8 @@ namespace StarPie.Services.Gestures
     }
 
     /// <summary>
-    /// Foreground-window context seam (ADR-0002): merges ActiveWindowHelper and
-    /// FullScreenHelper behind one injectable surface so the gesture engine can
-    /// make its isolation and profile decisions without any Win32 or WPF calls.
+    /// 前台窗口上下文接缝：把活动窗口与全屏探测收在一个可注入表面后，
+    /// 手势引擎做隔离与方案决策时不直接触碰 Win32/WPF。
     /// </summary>
     public interface IWindowContext
     {
