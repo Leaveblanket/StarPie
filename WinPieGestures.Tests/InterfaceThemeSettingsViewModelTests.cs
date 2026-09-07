@@ -133,7 +133,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
         var h = new Harness(new AppConfig { AppTheme = "Dark" });
         string zhLabel = h.Vm.AppThemeOptions[2].Label;
 
-        h.Localization.SetLanguage(LanguageCode.En);
+        h.Localization.SetLanguage("en");
 
         // 目录保持六项、Tag 不变；标签随语言刷新
         Assert.Equal(6, h.Vm.AppThemeOptions.Count);
@@ -157,7 +157,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
 
         h.Vm.Dispose();
         h.Vm.Dispose(); // 幂等
-        h.Localization.SetLanguage(LanguageCode.En);
+        h.Localization.SetLanguage("en");
 
         // 退订后切语不再重建目录、不再补发选中通知
         Assert.Equal(zhLabel, h.Vm.AppThemeOptions[2].Label);

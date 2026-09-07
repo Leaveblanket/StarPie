@@ -65,7 +65,7 @@ public sealed class WheelViewModelTests
         var original = Localization.CurrentLanguage;
         try
         {
-            Localization.SetLanguage(LanguageCode.ZhCn);
+            Localization.SetLanguage("zh-CN");
 
             var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
 
@@ -84,7 +84,7 @@ public sealed class WheelViewModelTests
         var original = Localization.CurrentLanguage;
         try
         {
-            Localization.SetLanguage(LanguageCode.ZhCn);
+            Localization.SetLanguage("zh-CN");
 
             var vm = Create(Profile(4));
 
@@ -98,12 +98,12 @@ public sealed class WheelViewModelTests
     }
 
     [Theory]
-    [InlineData(LanguageCode.ZhCn, "全局动作", "8 键动作")]
-    [InlineData(LanguageCode.ZhTw, "全域動作", "8 鍵動作")]
-    [InlineData(LanguageCode.En, "Global Actions", "8 Actions")]
-    [InlineData(LanguageCode.Ja, "グローバル操作", "8 アクション")]
+    [InlineData("zh-CN", "全局动作", "8 键动作")]
+    [InlineData("zh-TW", "全域動作", "8 鍵動作")]
+    [InlineData("en", "Global Actions", "8 Actions")]
+    [InlineData("ja", "グローバル操作", "8 アクション")]
     public void Ctor_GlobalProfile_CoreCopyFollowsCurrentLanguageAtCreation(
-        LanguageCode language, string expectedTitle, string expectedSubtitle)
+        string language, string expectedTitle, string expectedSubtitle)
     {
         var original = Localization.CurrentLanguage;
         try

@@ -78,11 +78,11 @@ public sealed class GeneralSettingsViewModelTests
     // --- 语言切换 -------------------------------------------------------------------
 
     [Theory]
-    [InlineData("en", LanguageCode.En)]
-    [InlineData("zh-TW", LanguageCode.ZhTw)]
-    [InlineData("ja", LanguageCode.Ja)]
-    [InlineData("zh-CN", LanguageCode.ZhCn)]
-    public void ApplyLanguage_WritesConfigSwitchesI18nAndRequestsSave(string code, LanguageCode expected)
+    [InlineData("en", "en")]
+    [InlineData("zh-TW", "zh-TW")]
+    [InlineData("ja", "ja")]
+    [InlineData("zh-CN", "zh-CN")]
+    public void ApplyLanguage_WritesConfigSwitchesI18nAndRequestsSave(string code, string expected)
     {
         var config = MakeConfig();
         var original = Localization.CurrentLanguage;
