@@ -3,10 +3,9 @@
                     xmlns:vm="clr-namespace:StarPie.ViewModels.Pages"
                     xmlns:pages="clr-namespace:StarPie.Views.Pages">
 
-    <!-- M5 页面模板字典（B3/#76 样板起，B6/#79 随 M5 迁入 StarPie.Shell 成为正式模块模板字典；
-         ADR-0016 决策 4：模块自带 DataTemplate，Host 每模块一次跨程序集 pack URI 静态合并）。
+    <!-- 模块页面模板字典：模块自带 DataTemplate，宿主每模块一次跨程序集 pack URI 静态合并。
          页面 View 无参构造、按导航重建、不经容器；页面基类 SettingsPageBase 在共享内核
-         StarPie.Core（Views/Pages），本字典只映射 M5 两页。 -->
+         （StarPie.Core Views/Pages），本字典只映射本模块两页。 -->
     <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
         <pages:AdvancedSettingsPage/>
     </DataTemplate>

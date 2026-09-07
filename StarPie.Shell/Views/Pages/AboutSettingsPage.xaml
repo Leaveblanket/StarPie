@@ -214,7 +214,7 @@
                                 </Grid>
                             </Border>
 
-                            <!--  Milestone 2: v1.3.9 (Recent)  -->
+                            <!--  里程碑 2：v1.3.9（最近）  -->
                             <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                     BorderBrush="{DynamicResource CardBorderBrush}"
                                     BorderThickness="0,0,0,1">
@@ -247,7 +247,7 @@
                                 </Grid>
                             </Border>
 
-                            <!--  Milestone 3: v1.3.8 (Recent)  -->
+                            <!--  里程碑 3：v1.3.8（最近）  -->
                             <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                     BorderBrush="{DynamicResource CardBorderBrush}"
                                     BorderThickness="0,0,0,1">
@@ -280,13 +280,13 @@
                                 </Grid>
                             </Border>
 
-                            <!--  Collapsible Older Milestones  -->
+                            <!--  可折叠的早期里程碑  -->
                             <Expander AutomationProperties.AutomationId="OlderMilestonesExpander" Margin="0,4,0,0"
                                       Background="Transparent" BorderThickness="0"
                                       Header="{DynamicResource MilestonesOlderExpander}"
                                       IsExpanded="False">
                                 <StackPanel Margin="0,8,0,0">
-                                    <!--  v1.3.4  -->
+                                    <!--  里程碑 v1.3.4  -->
                                     <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="0,0,0,1">
@@ -319,7 +319,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!--  v1.3.3  -->
+                                    <!--  里程碑 v1.3.3  -->
                                     <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="0,0,0,1">
@@ -352,7 +352,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!--  v1.3.2  -->
+                                    <!--  里程碑 v1.3.2  -->
                                     <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="0,0,0,1">
@@ -385,7 +385,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!--  v1.3.1  -->
+                                    <!--  里程碑 v1.3.1  -->
                                     <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="0,0,0,1">
@@ -418,7 +418,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <!--  v1.3.0  -->
+                                    <!--  里程碑 v1.3.0  -->
                                     <Border Margin="0,0,0,10" Padding="0,0,0,10"
                                             BorderBrush="{DynamicResource CardBorderBrush}"
                                             BorderThickness="0,0,0,1">

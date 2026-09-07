@@ -9,16 +9,17 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 设置窗口·通用分区 ViewModel (T13, ADR-0001)：界面语言切换、开机自启、退出/提权重启、
-    /// 托盘驻留气泡提示与配置导入/导出的状态与编排。
-    /// 语言切换写入运行态配置并调用 <see cref="I18n.SetLanguage"/>；界面文本刷新由窗口订阅
-    /// I18n.LanguageChanged 广播完成（ADR-0002：I18n 刻意保持静态 + 切换广播）。
-    /// 注册表读写（开机自启，组合根接线 AutostartRegistry）与配置导入/导出（组合根接线
-    /// 配置服务）经注入委托编排进本 VM，保证可测。
-    /// T19 页面化：落盘请求改经 <see cref="IMessenger"/> 上报组合根编排订阅者；导入成功发
-    /// <see cref="ConfigImportedMessage"/> 广播，各页面 VM 订阅后自行重挂（本 VM 亦订阅重挂语言码，
-    /// 并经 <see cref="PageConfigReloadedMessage"/> 通知页面 View 同步控件）。
+    /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启、退出/提权重启、托盘驻留气泡提示与
+    /// 配置导入/导出的状态与编排。
     /// </summary>
+    /// <remarks>
+    /// 语言切换写入运行态配置并调用 <see cref="ILocalizationService.SetLanguage"/>；界面文本
+    /// 刷新由窗口订阅本地化服务的语言切换广播完成。注册表读写（开机自启）与配置导入/导出
+    /// 均经组合根接线的注入委托编排进本 VM，保证可测。落盘请求经 <see cref="IMessenger"/>
+    /// 上报组合根编排的订阅者；配置导入成功发布 <see cref="ConfigImportedMessage"/>，各页面 VM
+    /// 订阅后自行重挂（本 VM 亦订阅重挂语言码，并经 <see cref="PageConfigReloadedMessage"/>
+    /// 通知页面 View 同步控件）。
+    /// </remarks>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
         private AppConfig _config;
@@ -39,6 +40,7 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private bool _autoStartEnabled;
 
+        /// <summary>当前界面语言码（"Auto"/"zh-CN"/"zh-TW"/"en"/"ja"），窗口据此初始化语言下拉。</summary>
         [ObservableProperty]
         private string _languageCode = "Auto";
 
@@ -49,7 +51,7 @@ namespace StarPie.ViewModels.Pages
 
         partial void OnIsAdministratorChanged(bool value) => OnPropertyChanged(nameof(ShowUacWarning));
 
-        /// <summary>配置已随导入重挂（T19：本 VM 订阅导入广播后触发），页面 View 据此同步控件显示。</summary>
+        /// <summary>构造通用分区 VM：注入运行态配置、对话框与系统能力委托，订阅配置导入广播。</summary>
         public GeneralSettingsViewModel(
             AppConfig config,
             IDialogService dialogs,
@@ -79,7 +81,7 @@ namespace StarPie.ViewModels.Pages
             _startElevated = startElevated ?? StartElevatedProcess;
             _isAdministratorProbe = isAdministrator ?? (() => false);
 
-            // T19：导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
+            // 导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig);
@@ -92,7 +94,6 @@ namespace StarPie.ViewModels.Pages
             IsAdministrator = _isAdministratorProbe();
         }
 
-        /// <summary>当前界面语言码（"Auto"/"zh-CN"/"zh-TW"/"en"/"ja"），窗口据此初始化语言下拉。</summary>
         partial void OnAutoStartEnabledChanged(bool value)
         {
             if (_config == null) return;
@@ -106,8 +107,8 @@ namespace StarPie.ViewModels.Pages
             ApplyLanguage(value);
         }
 
-        /// <summary>以运行态配置重挂状态（导入配置后窗口调用——配置实例已被替换）。
-        /// 与迁移前一致，自启勾选不随导入刷新（迁移前导入重置亦不触碰注册表开关）。</summary>
+        /// <summary>以运行态配置重挂状态（导入配置后调用——配置实例已被替换）。
+        /// 自启勾选不随导入刷新：导入重置亦不触碰注册表开关。</summary>
         public void Reload(AppConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -116,8 +117,8 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 语言切换编排（迁移前 LanguageComboBox_SelectionChanged）：写入运行态配置 →
-        /// I18n.SetLanguage（语言实际变化时触发广播，窗口经订阅刷新全部文本）→ 请求落盘。
+        /// 语言切换编排：写入运行态配置 → 切换本地化语言（实际变化时触发广播，窗口经订阅
+        /// 刷新全部文本）→ 请求落盘。
         /// </summary>
         public void ApplyLanguage(string langCode)
         {
@@ -137,15 +138,14 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "物理工作集内存已深度压缩！", NoticeKind.Info)));
         }
 
-        /// <summary>开机自启切换（迁移前 AutoStartCheckBox_Changed）：注册表读写经注入委托，并请求落盘。</summary>
+        /// <summary>开机自启切换：注册表读写经注入委托，并请求落盘。</summary>
         public void SetAutoStart(bool enable)
         {
             _setAutoStart(enable);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        /// <summary>窗口最小化到托盘时的气泡提示（迁移前 Window_Closing 的提示调用）；
-        /// 经组合根已有的委托传递，不新建服务。</summary>
+        /// <summary>窗口最小化到托盘时的气泡提示；经组合根注入的委托传递，不新建服务。</summary>
         public void NotifyMinimizedToTray()
         {
             _showTrayBalloonTip(
@@ -154,8 +154,8 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 以管理员身份重启并退出应用（迁移前 SettingsWindow.ElevateAndRestart，托盘菜单同样
-        /// 经窗口转发调用）。启动编排经注入委托（默认 Process.Start runas）；失败或已取消
+        /// 以管理员身份重启并退出应用（托盘菜单同样经窗口转发调用）。启动编排经注入委托
+        /// （默认 Process.Start runas）；失败或已取消
         /// 经 <see cref="GeneralNoticeRequestedMessage"/> 交窗口弹窗，不退出。
         /// </summary>
         public void ElevateAndRestart()
@@ -172,7 +172,7 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        /// <summary>默认提权启动实现（迁移前内联的 ProcessStartInfo 编排；失败/取消以异常表达）。</summary>
+        /// <summary>默认提权启动实现：Process.Start runas 启动；失败/取消以异常表达。</summary>
         private static void StartElevatedProcess(string exePath)
         {
             var startInfo = new ProcessStartInfo
@@ -185,7 +185,7 @@ namespace StarPie.ViewModels.Pages
             Process.Start(startInfo);
         }
 
-        /// <summary>导出配置编排（迁移前 ExportConfigButton_Click）：保存对话框 → 导出 → 结果弹窗请求。</summary>
+        /// <summary>导出配置编排：保存对话框 → 导出 → 结果弹窗请求。</summary>
         [RelayCommand]
         private void ExportConfig()
         {
@@ -206,8 +206,8 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        /// <summary>导入配置编排（迁移前 ImportConfigButton_Click）：打开对话框 → 导入 →
-        /// 成功时弹窗请求并通知窗口重载 UI，失败弹窗请求。</summary>
+        /// <summary>导入配置编排：打开对话框 → 导入 → 成功时弹窗请求并广播重挂消息，
+        /// 失败弹窗请求。</summary>
         [RelayCommand]
         private void ImportConfig()
         {
@@ -216,7 +216,7 @@ namespace StarPie.ViewModels.Pages
 
             if (_importConfig(picked.Path))
             {
-                // 弹窗（模态）先于 UI 重载——与迁移前"先提示、点确定后重载控件"顺序一致
+                // 模态弹窗先于 UI 重载——先提示、点确定后各页重挂，顺序不可交换
                 _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "配置导入成功！正在应用新设置...", NoticeKind.Info)));
                 _messenger.Send(new ConfigImportedMessage(_currentConfig()));
             }

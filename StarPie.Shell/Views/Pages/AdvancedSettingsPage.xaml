@@ -28,7 +28,7 @@
 
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                 <StackPanel Margin="0,0,10,0">
-                    <!--  Card 0: Display Language Selection  -->
+                    <!--  卡片 0：界面语言选择  -->
                     <Border Margin="0,0,0,14" Padding="20"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
@@ -69,7 +69,7 @@
                         </Grid>
                     </Border>
 
-                    <!--  Card 1: Windows Auto-Start  -->
+                    <!--  卡片 1：Windows 开机自启  -->
                     <Border Margin="0,0,0,14" Padding="20"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
@@ -100,7 +100,7 @@
                         </Grid>
                     </Border>
 
-                    <!--  Card 2: UAC Privilege Elevation  -->
+                    <!--  卡片 2：UAC 权限提升  -->
             <Border x:Name="UacWarningCard" Margin="0,0,0,14" Padding="20" Visibility="{Binding ShowUacWarning, Converter={StaticResource BoolToVis}}"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
@@ -135,7 +135,7 @@
                         </Grid>
                     </Border>
 
-                    <!--  Card 3: Memory Optimization  -->
+                    <!--  卡片 3：内存优化  -->
                     <Border Margin="0,0,0,14" Padding="20"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"
@@ -170,7 +170,7 @@
                         </Grid>
                     </Border>
 
-                    <!--  Card 4: Config Backup & Migration  -->
+                    <!--  卡片 4：配置备份与迁移  -->
                     <Border Padding="20"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"

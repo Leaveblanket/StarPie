@@ -4,13 +4,11 @@ using StarPie.Services.Configuration;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// 开机自启注册表读写 (T16 自静态配置门面收编，ADR-0002)：HKCU Run 键的
-    /// StarPie 值维护（含 legacy WinPieGestures 键清理）。dev 实例绝不改写正式版自启项。
-    /// 与 MemoryOptimizer 同类的无状态系统调用静态工具，经委托由组合根接线进
+    /// 开机自启注册表读写：维护 HKCU Run 键的 StarPie 值（含旧 WinPieGestures 键清理）。
+    /// dev 实例绝不改写正式版自启项——dev 判定读 <see cref="AppDataPaths.IsDevInstance"/>，
+    /// 该标记由组合根在装配前以 DevInstance.IsActive 回填。
+    /// 与 <c>MemoryOptimizer</c> 同属无状态系统调用静态工具，经委托由组合根接线进
     /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表本身）。
-    /// B6/#79：随 M5 迁入 StarPie.Shell。dev 分支原直读 Host 的 DevInstance；跨程序集形态下
-    /// Shell 不得反向引用 Host，改读 Core 的 <see cref="AppDataPaths.IsDevInstance"/> 回填缝
-    /// （组合根装配前以 DevInstance.IsActive 回填，语义与迁移前一致，见 layering.md）。
     /// </summary>
     internal static class AutostartRegistry
     {
@@ -28,10 +26,10 @@ namespace StarPie.Services.Shell
             }
         }
 
-        /// <summary>注册/注销开机自启；失败静默（Debug 输出），与迁移前语义一致。</summary>
+        /// <summary>注册/注销开机自启；失败静默（Debug 输出），不抛出。</summary>
         internal static void SetAutoStart(bool enable)
         {
-            // Dev instances must not repoint the real autostart entry at the dev executable
+            // dev 实例不得把正式自启项指向 dev 可执行文件
             if (AppDataPaths.IsDevInstance) return;
 
             try
@@ -43,7 +41,7 @@ namespace StarPie.Services.Shell
                 {
                     string exePath = Environment.ProcessPath ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
                     key.SetValue("StarPie", $"\"{exePath}\"");
-                    // Clean up legacy key if present
+                    // 若存在旧键则清理
                     try { key.DeleteValue("WinPieGestures", false); } catch { }
                 }
                 else

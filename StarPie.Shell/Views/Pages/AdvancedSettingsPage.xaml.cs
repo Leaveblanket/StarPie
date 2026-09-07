@@ -5,10 +5,9 @@ using StarPie.Services.Messages;
 namespace StarPie.Views.Pages
 {
     /// <summary>
-    /// 高级与系统页面 (T19)：迁移前 SettingsWindow PAGE 3 原样搬迁。语言切换/自启/提权/导入导出编排
-    /// 已住 VM（容器单例），本视图只做弹窗映射（<see cref="GeneralNoticeRequestedMessage"/>）与
-    /// 语言下拉等 View 效果；语言状态经 XAML 双向绑定直达 VM，code-behind 不引用 VM 类型
-    /// （ADR-0008 严格边界）。
+    /// 高级与系统页面：语言切换/自启/提权/导入导出编排已住 VM（容器单例），本视图只做
+    /// 弹窗映射（<see cref="GeneralNoticeRequestedMessage"/>）与语言下拉等 View 效果；
+    /// 语言状态经 XAML 双向绑定直达 VM，code-behind 不引用 VM 类型。
     /// </summary>
     public partial class AdvancedSettingsPage : SettingsPageBase
     {
