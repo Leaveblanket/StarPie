@@ -3,7 +3,7 @@
 现行架构规范按主题/模块拆分，避免整卷加载：
 
 - 入口：`docs/architecture.md`（文档体系 + 按任务路由表 + ADR 索引）。
-- 叶子：`docs/architecture/*.md`（layout / layering / naming / host / config / navigation / dialogs / gestures / wheel / programs / shell / localization / extending / prohibitions）。
+- 叶子：`docs/architecture/*.md`（layout / layering / naming / comments / host / config / navigation / dialogs / gestures / wheel / programs / shell / localization / extending / prohibitions）。
 
 ## 何时读
 

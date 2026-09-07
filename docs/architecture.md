@@ -25,6 +25,7 @@
 | 某个路径放什么 / 新增文件落位 | [layout.md](architecture/layout.md) |
 | 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
 | 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
+| 注释规范（XML 文档注释 / 行注释） | [comments.md](architecture/comments.md) |
 | 启动退出 / 单实例与开发实例 / AppHost 编排 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
 | 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
 | 设置页导航 / 页面 DataTemplate 映射 | [navigation.md](architecture/navigation.md) |
@@ -146,3 +147,4 @@ Services ---> Models
 | 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分（界面主题模块边界 + 预设名语义） |
 | 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） |
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行（7 程序集、导航自治、演进式组合根、B0–B10） |
+| 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） |
