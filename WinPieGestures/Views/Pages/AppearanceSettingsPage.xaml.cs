@@ -5,21 +5,22 @@ using CommunityToolkit.Mvvm.Messaging;
 namespace StarPie.Views.Pages
 {
     /// <summary>
-    /// 外观与形态页面 (T19/T21)：页面整体 DataContext 是薄聚合
-    /// <see cref="AppearanceSettingsViewModel"/>；各设置卡 DataContext 指向对应子 VM——界面主题卡 =
-    /// InterfaceTheme（#54）、其余轮盘外观卡 = WheelAppearance（#56，配色下拉 ItemsSource 化、核圆
-    /// 面板可见性 DataTrigger 化、核圆图标预览/名称与图片缩略图 Converter 绑定化）。code-behind 只
-    /// 保留实时预览画布渲染等 ADR-0009 白名单项（页面文本经 T24 语言字典声明式化）。页面 VM 是单例：
-    /// PreviewInvalidated/PageConfigReloaded 视图消息在 Loaded/Unloaded 成对订阅退订，防过期页面引用泄漏。
-    /// #54（ADR-0014 决策 6/7）：界面主题卡 DataContext 指向 <see cref="InterfaceThemeSettingsViewModel"/>
-    /// （经 <see cref="AppearanceSettingsViewModel.InterfaceTheme"/> 绑定），主题应用改消息驱动——
-    /// 由壳层主窗口订阅 <see cref="AppThemeChangedMessage"/> 执行，本页面不再有主题
-    /// SelectionChanged 处理器；导入后的窗口主题应用路径同步移出页面。
-    /// #55（ADR-0014 决策 8）：实时预览渲染/交互路径只依赖轮盘模块只读状态接口
-    /// <see cref="IWheelAppearanceState"/>，不再以具体聚合 VM 类型为参数；具体聚合 VM 引用仅保留
-    /// 给 DataContext 桥接（取 WheelAppearance 子 VM）——#56 起轮盘外观状态/命令已迁入
-    /// <see cref="WheelAppearanceSettingsViewModel"/>（实现该接口），页面不再有任何状态读穿聚合 VM。
+    /// 外观与形态页面：页面整体 DataContext 是薄聚合
+    /// <see cref="AppearanceSettingsViewModel"/>；各设置卡 DataContext 指向对应子 VM——
+    /// 界面主题卡 = InterfaceTheme，其余轮盘外观卡 = WheelAppearance（配色下拉 ItemsSource 化、
+    /// 核圆面板可见性 DataTrigger 化、核圆图标预览/名称与图片缩略图 Converter 绑定化）。
+    /// code-behind 只保留实时预览画布渲染等 View 白名单项（页面文本经运行时语言字典声明式化）。
     /// </summary>
+    /// <remarks>
+    /// 页面 VM 是单例：PreviewInvalidated/PageConfigReloaded 视图消息在 Loaded/Unloaded
+    /// 成对订阅退订，防过期页面引用泄漏。
+    /// 界面主题卡 DataContext 指向 <see cref="InterfaceThemeSettingsViewModel"/>（经
+    /// <see cref="AppearanceSettingsViewModel.InterfaceTheme"/> 绑定）；主题应用改消息驱动，
+    /// 由壳层主窗口订阅 <see cref="AppThemeChangedMessage"/> 执行，本页面不挂主题选择处理器，
+    /// 导入后的窗口主题应用路径同样在壳层。
+    /// 实时预览渲染/交互路径只依赖轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>；
+    /// 具体聚合 VM 引用仅用于 DataContext 桥接（取 WheelAppearance 子 VM）。
+    /// </remarks>
     public partial class AppearanceSettingsPage : SettingsPageBase
     {
         private readonly WheelPreviewRenderer _previewRenderer = new();
@@ -37,7 +38,7 @@ namespace StarPie.Views.Pages
 
         protected override void OnPageLoaded()
         {
-            // 页面整体 DataContext 仍是薄聚合 VM；预览状态经其 WheelAppearance 子 VM 取得（#56）。
+            // 页面整体 DataContext 是薄聚合 VM；预览状态经其 WheelAppearance 子 VM 取得。
             _previewState = ((AppearanceSettingsViewModel)DataContext).WheelAppearance;
             WeakReferenceMessenger.Default.Register<AppearancePreviewInvalidatedMessage>(this, (_, _) => OnAppearancePreviewInvalidated());
             WeakReferenceMessenger.Default.Register<PageConfigReloadedMessage>(this, (_, m) =>
@@ -57,13 +58,12 @@ namespace StarPie.Views.Pages
 
         private void OnConfigReloaded()
         {
-            // ADR-0009 白名单：#54 起导入后只剩预览重绘这一 View 效果（主题应用由界面主题子 VM
-            // 发 AppThemeChangedMessage、壳层主窗口订阅执行）；状态、配色下拉项与核圆面板/文本
-            // 均声明式绑定，随 VM 通知自动刷新。
+            // 导入后只剩预览重绘这一 View 效果（主题应用由界面主题子 VM 发消息、壳层主窗口
+            // 订阅执行）；状态、配色下拉项与核圆面板/文本均声明式绑定，随 VM 通知自动刷新。
             RenderLiveWheelPreview();
         }
 
-        #region 60FPS Live Preview Canvas Rendering
+        #region 60FPS 实时预览画布渲染
 
         private void OnAppearancePreviewInvalidated()
         {
@@ -73,8 +73,8 @@ namespace StarPie.Views.Pages
         private void RenderLiveWheelPreview()
         {
             if (LiveWheelPreviewCanvas == null || _previewState == null) return;
-            // B8/#81：深浅色探测仍走壳层 MainView（Host）——渲染器不反向引用宿主，
-            // 调用方把探测结果以 bool 传入（无壳窗口时回落 false，与迁移前语义一致）。
+            // 深浅色探测由壳层主窗口执行——渲染器不反向引用宿主，
+            // 调用方把探测结果以 bool 传入（无壳窗口时回落 false）。
             bool windowsInDarkMode = Window.GetWindow(this) is MainView mainView && mainView.IsWindowsInDarkTheme();
             _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, windowsInDarkMode);
         }

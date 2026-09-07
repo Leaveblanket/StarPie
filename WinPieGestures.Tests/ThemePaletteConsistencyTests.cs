@@ -6,9 +6,9 @@ using System.Text.RegularExpressions;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 主题令牌键集一致性测试（ADR-0012/ADR-0013，#46/#53）：Views/Styles/Themes 五套 XAML 必须
-/// 持有同一 key 集——缺键即失败，防止换入后 DynamicResource 悬空；四语言 resx 键集必须一致
-/// （#53 文案键化后补齐键一致性覆盖），并与主题令牌键零交集。纯文件级断言，不经容器。
+/// 主题令牌键集一致性测试：Views/Styles/Themes 五套 XAML 必须持有同一 key 集——
+/// 缺键即失败，防止换入后 DynamicResource 悬空；四语言 resx 键集必须一致，
+/// 并与主题令牌键零交集。纯文件级断言，不经容器。
 /// </summary>
 public sealed class ThemePaletteConsistencyTests
 {
@@ -20,7 +20,7 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            // B7/#80：主题字典随 M4 迁入 StarPie.Theme/Views/Styles/Themes（原 WinPieGestures/Views/Styles/Themes）。
+            // 主题字典位于 StarPie.Theme/Views/Styles/Themes。
             return Path.Combine(dir.FullName, "StarPie.Theme", "Views", "Styles", "Themes");
         }
     }
@@ -31,7 +31,7 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            // B2/#75：四语言 resx 随 S3 迁入共享内核程序集（StarPie.Core）。
+            // 四语言 resx 位于共享内核程序集（StarPie.Core）。
             return Path.Combine(dir.FullName, "StarPie.Core", "Services", "Localization", "Strings.resx");
         }
     }
@@ -80,7 +80,7 @@ public sealed class ThemePaletteConsistencyTests
     [Fact]
     public void LanguageKeys_DoNotOverlapThemeTokenKeys()
     {
-        // ADR-0013 #49：语言键与主题令牌键共享 Application 资源命名空间，零交集由测试保护。
+        // 语言键与主题令牌键共享 Application 资源命名空间，零交集由测试保护。
         var themeKeys = ReadKeys("Light");
         var languageKeys = ReadLanguageKeys(LanguageResourcesFile);
         Assert.True(languageKeys.Count >= 200, $"expected full language table, got {languageKeys.Count}");
@@ -92,8 +92,8 @@ public sealed class ThemePaletteConsistencyTests
     [Fact]
     public void AllLanguageResxFiles_ExposeTheSameKeySet()
     {
-        // #53：新增文案键后补齐键一致性覆盖——zh-CN 中性与 zh-TW/en/ja 卫星必须持有同一 key 集，
-        // 缺/多键即失败，防止某语言漏配键值而回退到键名。
+        // zh-CN 中性与 zh-TW/en/ja 卫星必须持有同一 key 集，缺/多键即失败，
+        // 防止某语言漏配键值而回退到键名。
         var baseline = ReadLanguageKeys(LanguageResourcesFile);
         Assert.True(baseline.Count >= 200, $"expected full language table, got {baseline.Count}");
 

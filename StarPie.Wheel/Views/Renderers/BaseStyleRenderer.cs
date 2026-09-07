@@ -40,7 +40,7 @@ namespace StarPie.Views.Renderers
             string effectiveTheme = WheelPaletteParser.ResolveEffectiveTheme(theme, windowsInDarkMode);
             IsLightTheme = string.Equals(effectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
 
-            // ADR-0014 决策 10：方案名→色值组只在解析层发生；渲染器只消费解析结果构造画刷。
+            // 方案名→色值组只在解析层发生；渲染器只消费解析结果构造画刷。
             WheelPalette palette = WheelPaletteParser.Resolve(theme, config, windowsInDarkMode, WheelStyleName);
 
             DefaultSectorBrush = CreateBrush(palette.SectorBg);
@@ -72,7 +72,7 @@ namespace StarPie.Views.Renderers
                 catch { }
             }
 
-            // Fallback to HighlightBorderBrush or HighlightSectorBrush color
+            // 回退到高亮边框/高亮扇区画刷颜色
             if (HighlightBorderBrush is SolidColorBrush hbb && hbb.Color.A > 0)
             {
                 return hbb.Color;

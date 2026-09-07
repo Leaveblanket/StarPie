@@ -13,8 +13,8 @@ using System.Windows.Threading;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// One row of the tray context menu. Entries are supplied by the owner on every
-    /// menu open, so labels (language, pause state) are always fresh without refresh calls.
+    /// 托盘上下文菜单的一行。条目在每次菜单打开时由属主重新提供，因此标签
+    /// （语言、暂停状态等）总是最新，无需刷新调用。
     /// </summary>
     public sealed class TrayMenuEntry
     {
@@ -28,15 +28,14 @@ namespace StarPie.Services.Shell
     }
 
     /// <summary>
-    /// Pure WPF replacement for the WinForms NotifyIcon tray integration (WPF has no
-    /// built-in tray support): Shell_NotifyIcon interop with a hidden message window
-    /// for callbacks, and a themed borderless WPF window as the context menu.
-    /// B6/#79：随 M5 迁入 StarPie.Shell。类与 <see cref="TrayMenuEntry"/> 为模块公开面——
-    /// Host AppHost 负责装配（new + 菜单 provider），不能反向引用 Host/其它模块内部。
-    /// 托盘菜单深色配色原直读 M4 的 IThemeService（B7/#80 起随 M4 驻 StarPie.Theme），
-    /// 跨程序集形态下 Shell 不得引用 Host/M4，故改经组合根注入的 <c>Func&lt;bool&gt;</c>
-    /// 深色探针（与 M3 图标委托同模式，见 host.md/layering.md）。
+    /// 纯 WPF 实现的系统托盘集成（WPF 无内置托盘支持）：经 Shell_NotifyIcon P/Invoke 与
+    /// 隐藏消息窗口接收回调，用带主题的无边框 WPF 窗口作为上下文菜单。
     /// </summary>
+    /// <remarks>
+    /// 本类与 <see cref="TrayMenuEntry"/> 是模块公开面，由宿主 AppHost 装配
+    /// （new + 菜单 provider），不反向引用宿主或其它模块内部。托盘菜单深色配色不直读
+    /// 主题服务，改经组合根注入的 <c>Func&lt;bool&gt;</c> 深色探针（模块间同模式）。
+    /// </remarks>
     public sealed class TrayIconManager : IDisposable
     {
         private const uint IconId = 1;
@@ -126,10 +125,10 @@ namespace StarPie.Services.Shell
             _onDoubleClick = onDoubleClick;
             _menuProvider = menuProvider;
 
-            // Re-register after an Explorer crash/restart
+            // Explorer 崩溃/重启后重新注册图标
             _taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
 
-            // Hidden popup window that receives the tray icon callbacks
+            // 隐藏弹出窗口，用于接收托盘图标回调
             var parameters = new HwndSourceParameters("StarPieTrayWindow", 0, 0)
             {
                 WindowStyle = unchecked((int)0x80000000),      // WS_POPUP
@@ -379,12 +378,12 @@ namespace StarPie.Services.Shell
             if (scale <= 0) scale = 1.0;
 
             double x = pt.x / scale + 2;
-            double y = pt.y / scale - height + 2; // opens upward (tray usually at the bottom)
+            double y = pt.y / scale - height + 2; // 向上弹出（托盘通常在底部）
 
             var area = SystemParameters.WorkArea;
             if (x + width > area.Right + 4) x = area.Right - width + 2;
             if (x < area.Left) x = area.Left + 2;
-            if (y < area.Top) y = area.Top + 2;                    // taskbar at top: open downward
+            if (y < area.Top) y = area.Top + 2;                    // 任务栏在顶部时向下弹出
             if (y + height > area.Bottom + 4) y = area.Bottom - height + 2;
 
             window.Left = x;

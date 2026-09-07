@@ -9,7 +9,7 @@ using StarPie.ViewModels.Dialogs;
 namespace StarPie.Views.Dialogs
 {
     /// <summary>
-    /// 屏上取色覆盖层窗口 (T08, ADR-0004/0009)：全屏置顶、无 Owner。
+    /// 屏上取色覆盖层窗口：全屏置顶、无 Owner。
     /// 拾取状态与结果在 <see cref="ScreenEyedropperViewModel"/>；code-behind 只剩
     /// Win32 取像素与放大镜摆放（纯视觉白名单）。
     /// </summary>

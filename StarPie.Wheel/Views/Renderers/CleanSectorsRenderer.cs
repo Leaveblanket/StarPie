@@ -7,8 +7,7 @@ using Color = System.Windows.Media.Color;
 namespace StarPie.Views.Renderers
 {
     /// <summary>
-    /// Clean Sectors Style: Swiss Modern Minimalist.
-    /// Features pure geometric negative space, matte cards, and razor-sharp emerald highlight.
+    /// 清爽扇区风格：瑞士现代极简——纯几何负空间、哑光卡片与锐利的祖母绿高亮。
     /// </summary>
     public class CleanSectorsRenderer : BaseStyleRenderer
     {
@@ -22,7 +21,7 @@ namespace StarPie.Views.Renderers
 
         public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
-            // Pure minimalist style: clean space, no noisy clutter
+            // 极简风格：留白干净、无多余装饰
         }
 
         public override void ApplySectorHighlight(Path path, bool isHighlighted)

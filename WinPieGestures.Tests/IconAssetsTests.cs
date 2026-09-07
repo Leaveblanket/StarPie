@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 共享「图标资产」出口（S1）纯函数覆盖（T3a/#65，R6/ADR-0015）：矢量图标目录完整性、
-/// SVG 键目录/取值（大小写不敏感）与 SVG 路径数据解析。
+/// 共享「图标资产」出口的纯函数覆盖：矢量图标目录完整性、SVG 键目录/取值
+/// （大小写不敏感）与 SVG 路径数据解析。
 /// 自定义图标存储与文件图标提取属 IO/Win32 集成面，按仓库惯例不在此单测。
 /// </summary>
 public sealed class IconAssetsTests

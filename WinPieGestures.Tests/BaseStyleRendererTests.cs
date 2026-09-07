@@ -6,8 +6,8 @@ using Color = System.Windows.Media.Color;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 渲染器画刷消费覆盖 (#52)：渲染器不再内联方案 hex 表/预设匹配，只把解析结果
-/// （<see cref="WheelPalette"/>）构造成画刷；迁移前后观感等价由这些画刷色值钉住。
+/// 渲染器画刷消费覆盖：渲染器不再内联方案 hex 表/预设匹配，只把解析结果
+/// （<see cref="WheelPalette"/>）构造成画刷；观感等价由这些画刷色值钉住。
 /// </summary>
 public sealed class BaseStyleRendererTests
 {

@@ -5,7 +5,7 @@ using System.IO;
 
 namespace StarPie.Services.Actions
 {
-    /// <summary>动作执行的路由种类 (T15)。与迁移前 switch 一致：类型按原值大小写敏感匹配。</summary>
+    /// <summary>动作执行的路由种类：类型按原值大小写敏感匹配。</summary>
     public enum ActionRoute
     {
         Launch,
@@ -16,8 +16,8 @@ namespace StarPie.Services.Actions
     }
 
     /// <summary>
-    /// 一次按键注入的纯数据描述 (T15)：虚拟键、按下/抬起，以及按迁移前 CreateKeyInput
-    /// 规则推导的扩展键标志（方向/导航、Win、媒体、浏览器键段）。
+    /// 一次按键注入的纯数据描述：虚拟键、按下/抬起，以及推导出的扩展键标志
+    /// （方向/导航、Win、媒体、浏览器键段）。
     /// </summary>
     public readonly record struct KeyStroke
     {
@@ -34,20 +34,20 @@ namespace StarPie.Services.Actions
             Extended = IsExtendedKey(virtualKey);
         }
 
-        /// <summary>迁移前 CreateKeyInput 的扩展键键段，逐段保留。</summary>
+        /// <summary>是否为需扩展键标志的虚拟键（方向/导航、Win、媒体、浏览器键段）。</summary>
         public static bool IsExtendedKey(ushort vk)
             => vk is >= 0x21 and <= 0x2F or >= 0x5B and <= 0x5C or >= 0xAD and <= 0xB3 or >= 0xA6 and <= 0xAC;
     }
 
     /// <summary>
-    /// 动作路由纯函数 (T15, ADR-0002)：迁移前静态 ActionExecutor 的全部决策逻辑——
-    /// 动作类型路由、系统命令映射、启动/文件夹 StartInfo 构造、热键弦解析与键序生成——
-    /// 提炼为无副作用的纯函数；进程启动/键注入等系统调用由 ActionExecutorService 注入。
-    /// 大小写与文本语义逐字保留：类型路由大小写敏感，系统预设与键名大小写不敏感。
+    /// 动作路由纯函数：动作类型路由、系统命令映射、启动/文件夹 StartInfo 构造、
+    /// 热键弦解析与键序生成均为无副作用逻辑；进程启动/键注入等系统调用由
+    /// <see cref="ActionExecutorService"/> 执行。大小写规则：类型路由大小写敏感，
+    /// 系统预设与键名大小写不敏感。
     /// </summary>
     public static class ActionRouting
     {
-        /// <summary>动作类型路由（大小写敏感、去首尾空白——与迁移前 switch 一致；null 与迁移前一样抛出并由调用方兜底）。</summary>
+        /// <summary>动作类型路由：大小写敏感、去首尾空白；null 输入会抛出，由调用方兜底。</summary>
         public static ActionRoute ResolveRoute(string type)
         {
             switch (type.Trim())
@@ -67,7 +67,7 @@ namespace StarPie.Services.Actions
         {
             private protected SystemCommand() { }
 
-            /// <summary>空/未知预设：不产生任何动作；未知时携带原名（迁移前仅 Debug 输出）。</summary>
+            /// <summary>空/未知预设：不产生任何动作；未知时携带原名。</summary>
             public sealed record Noop(string? UnknownPreset) : SystemCommand
             {
                 public static Noop Instance { get; } = new Noop(UnknownPreset: null);
@@ -93,11 +93,11 @@ namespace StarPie.Services.Actions
             }
 
             /// <summary>启动进程；<paramref name="FallbackHotkey"/> 非空时启动失败降级发键，
-            /// <paramref name="silent"/> 为 true 时启动失败静默（电源类命令，迁移前语义）。</summary>
+            /// <paramref name="silent"/> 为 true 时启动失败静默（电源类命令）。</summary>
             public sealed record StartProcess(string FileName, string Arguments, string? FallbackHotkey, bool Silent) : SystemCommand;
         }
 
-        /// <summary>系统预设映射（大小写不敏感、去空白——迁移前 ToLower 语义）。空/未知 → Noop。</summary>
+        /// <summary>系统预设映射：大小写不敏感、去空白。空/未知 → Noop。</summary>
         public static SystemCommand ResolveSystemCommand(string? presetName)
         {
             if (string.IsNullOrEmpty(presetName)) return SystemCommand.Noop.Instance;
@@ -157,7 +157,7 @@ namespace StarPie.Services.Actions
             }
         }
 
-        /// <summary>启动程序 StartInfo：Arguments 空时归一为空串，WorkingDirectory 保持未设（迁移前语义：子进程继承调用方目录）。</summary>
+        /// <summary>启动程序 StartInfo：Arguments 空时归一为空串，WorkingDirectory 保持未设（子进程继承调用方目录）。</summary>
         public static ProcessStartInfo BuildLaunchStartInfo(string path, string? arguments)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("Launch path is empty", nameof(path));
@@ -171,7 +171,7 @@ namespace StarPie.Services.Actions
         }
 
         /// <summary>打开文件夹/文件的 StartInfo（三条分支：开目录、选中文件、直接 Shell 执行）。
-        /// 迁移前的环境变量展开与引号修剪在存在性检查之前进行。</summary>
+        /// 环境变量展开与引号修剪在存在性检查之前进行。</summary>
         public static ProcessStartInfo BuildFolderStartInfo(string folderPath, bool isDirectory, bool isFile)
         {
             string expandedPath = Environment.ExpandEnvironmentVariables(folderPath.Trim().Trim('"'));
@@ -202,7 +202,7 @@ namespace StarPie.Services.Actions
             };
         }
 
-        /// <summary>展开引号内的环境变量（错误提示文案使用迁移前的原始输入）。</summary>
+        /// <summary>展开引号内的环境变量（错误提示文案使用原始输入）。</summary>
         public static string ExpandFolderPath(string folderPath)
             => Environment.ExpandEnvironmentVariables(folderPath.Trim().Trim('"'));
 

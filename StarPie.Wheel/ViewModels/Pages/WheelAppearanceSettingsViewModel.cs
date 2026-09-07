@@ -8,30 +8,27 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 轮盘模块外观设置子 ViewModel（#56，ADR-0014 决策 5/6/8）：承接原外观聚合 VM 的轮盘外观
-    /// 配置面——外观页除界面主题外的全部轮盘外观设置：皮肤选择（UiStyle）、轮盘配色方案与自定义
-    /// 配色预设、高亮边缘光晕、几何尺寸、排版与文字显示、中心核图标。全部设置改动即时写穿
-    /// <see cref="IConfigService.Current"/>（立即生效语义）；落盘请求经 <see cref="IMessenger"/>
-    /// 上报组合根编排订阅者（防抖/立即两类消息，T19 起取代迁移前的事件上报）。
-    /// 实时预览的绘制留在视图层：预览属性变更（含 <see cref="ShowCoreIcon"/>，#56 起一并）经
-    /// <see cref="AppearancePreviewInvalidatedMessage"/> 通知页面 View 重绘画布；配色预设增删改的
-    /// 编排（命名输入与删除确认/结果提示对话框）在此（T19 对话框编排内聚进 VM；#53 名称语义原样保留）。
-    /// T19 页面化起：预览画哪个方案是编译期可见的静态已知依赖，走构造注入不走消息（ADR-0005）；
-    /// #69（B2）该依赖收窄为 M1 只读契约 <see cref="IProfilePreviewSource"/>——实现方为 M1 配置
-    /// 方案设置面 VM，本 VM 不引用其具体类型；导入成功经
-    /// <see cref="ConfigImportedMessage"/> 广播后自行从配置重挂状态（播种快照属性导入后会过期），
-    /// 并重建配色下拉选项（T21 ItemsSource 化）。
-    /// T16 收编窗口 code-behind 残留的中心核图标状态（透传属性，读直取、写直穿运行态配置）与
-    /// 中心核图标选取编排（<see cref="PickCoreIcon"/>）；界面主题（AppTheme）由 #54 拆入
-    /// <see cref="InterfaceThemeSettingsViewModel"/>（本 VM 不持有）。
-    /// #55/#56（ADR-0014 决策 8）：本子 VM 实现轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>
-    /// ——预览渲染器与页面预览 code-behind 只依赖该接口，不再以具体聚合 VM 类型为参数。
-    /// #69：其中预览 Profile 上下文成员（<see cref="IWheelAppearanceState.PreviewProfile"/>）转发自
-    /// 构造注入的 <see cref="IProfilePreviewSource"/>，M2 侧不引用具体配置方案列表 VM。
-    /// 生命周期（ADR-0010 第 3 条）：DI 单例注入外观聚合 VM <see cref="AppearanceSettingsViewModel"/>
-    /// （暴露为 <see cref="AppearanceSettingsViewModel.WheelAppearance"/>）；语言订阅成对退订并随
-    /// 容器释放（组合根随 Composition.Dispose 调用）。
+    /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——皮肤选择
+    /// （UiStyle）、轮盘配色方案与自定义配色预设、高亮边缘光晕、几何尺寸、排版与文字显示、
+    /// 中心核图标。全部设置改动即时写穿 <see cref="IConfigService.Current"/>（立即生效）；
+    /// 落盘请求经 <see cref="IMessenger"/> 上报组合根编排的订阅者（防抖/立即两类消息）。
     /// </summary>
+    /// <remarks>
+    /// 实时预览的绘制留在视图层：预览属性变更（含 <see cref="ShowCoreIcon"/>）经
+    /// <see cref="AppearancePreviewInvalidatedMessage"/> 通知页面重绘画布；配色预设增删改的
+    /// 编排（命名输入与删除确认/结果提示对话框）在此。预览所用的方案属编译期可见依赖，
+    /// 走构造注入：方案来源收窄为只读契约 <see cref="IProfilePreviewSource"/>，本 VM 不引用
+    /// 其实现类型。导入成功经 <see cref="ConfigImportedMessage"/> 广播后自行从配置重挂状态
+    /// （播种快照属性会过期）并重建配色下拉选项。本 VM 持有中心核图标透传属性（读直取、
+    /// 写直穿运行态配置）与选取编排（<see cref="PickCoreIcon"/>）；界面主题（AppTheme）在
+    /// <see cref="InterfaceThemeSettingsViewModel"/>，本 VM 不持有。
+    /// 本 VM 实现只读状态接口 <see cref="IWheelAppearanceState"/>——预览渲染器与页面预览
+    /// code-behind 只依赖该接口，不以具体聚合 VM 类型为参数；其中预览 Profile 上下文成员
+    /// （<see cref="IWheelAppearanceState.PreviewProfile"/>）转发自构造注入的
+    /// <see cref="IProfilePreviewSource"/>。生命周期：DI 单例注入外观聚合 VM
+    /// <see cref="AppearanceSettingsViewModel"/>（暴露为 WheelAppearance），语言订阅成对退订，
+    /// 随容器释放。
+    /// </remarks>
     public partial class WheelAppearanceSettingsViewModel : ObservableObject, IWheelAppearanceState, IDisposable
     {
         private readonly IConfigService _config;
@@ -41,7 +38,7 @@ namespace StarPie.ViewModels.Pages
         private readonly IProfilePreviewSource _profileSource;
         private bool _disposed;
 
-        // Re-entrancy guards（与迁移前窗口 _isUpdatingUi 语义一致）：
+        // 重入抑制标志：
         // _loading     构造播种期：只落状态字段，不回写配置、不发事件（绑定随后一次性读取）
         // _bulkUpdating 批量赋值（一键重置）：配置照常写穿，事件由发起方收尾统一发
         // _layoutSyncing ShowText ↔ 排版模式联动时的抑制标志
@@ -49,13 +46,12 @@ namespace StarPie.ViewModels.Pages
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>运行态配置访问（T19：预览渲染初始化等 View 层读取；导入后自动取到新实例，
-        /// 与迁移前根 VM / #56 前聚合 VM 的 CurrentConfig 语义一致）。</summary>
+        /// <summary>运行态配置访问：预览渲染初始化等视图层读取；导入后自动取到新实例。</summary>
         public AppConfig CurrentConfig => _config.Current;
 
-        /// <summary>预览渲染所用 Profile 上下文（#55 接口成员，#56 起由本子 VM 实现，#69 起转发自
-        /// M1 只读 <see cref="IProfilePreviewSource"/>）：选中/首项回落语义由来源实现方维护；
-        /// 空列表兜底仍留在渲染器。</summary>
+        /// <summary>预览渲染所用 Profile 上下文（实现自 <see cref="IWheelAppearanceState"/>，
+        /// 转发自 <see cref="IProfilePreviewSource"/>）：选中/首项回落语义由来源实现方维护，
+        /// 空列表兜底留在渲染器。</summary>
         public WheelProfile? PreviewProfile => _profileSource.PreviewProfile;
 
         public WheelAppearanceSettingsViewModel(
@@ -71,15 +67,14 @@ namespace StarPie.ViewModels.Pages
             _profileSource = profileSource ?? throw new ArgumentNullException(nameof(profileSource));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
-            // #56（ADR-0014 决策 6）：轮盘外观设置子 VM 承接聚合 VM 的轮盘外观配置面——导入成功
-            // 广播后自行从新配置重挂播种快照（透传属性读穿配置本就即时）并重建配色下拉；页面级
-            // View 效果（预览重绘等）由外观聚合 VM 收尾广播 PageConfigReloadedMessage。
+            // 导入成功广播后自行从新配置重挂播种快照（透传属性读穿配置本就即时）并重建配色下拉；
+            // 页面级视图效果（预览重绘等）由外观聚合 VM 收尾广播 PageConfigReloadedMessage。
             messenger.Register<ConfigImportedMessage>(this, (_, _) => ReloadFromConfig());
 
             LoadFromConfig();
             _loading = false;
 
-            // ADR-0010 驻留文案机制：轮盘配色选项标签随语言切换重建（单例 VM 成对退订）。
+            // 轮盘配色选项标签属驻留文案：随语言切换重建（单例 VM 成对退订）。
             _localization.LanguageChanged += OnLanguageChanged;
         }
 
@@ -89,7 +84,7 @@ namespace StarPie.ViewModels.Pages
         public IReadOnlyList<CustomColorPreset> CustomPresets
             => (IReadOnlyList<CustomColorPreset>?)Config.CustomColorPresets ?? Array.Empty<CustomColorPreset>();
 
-        /// <summary>轮盘配色下拉的固定配色项（Tag 与迁移前 XAML 静态 ComboBoxItem 一致；标签即时取词）。</summary>
+        /// <summary>轮盘配色下拉的固定配色项（Tag 供匹配，标签即时取词）。</summary>
         private ThemeOptionItem[] BuildStaticThemeOptions()
         {
             return new ThemeOptionItem[]
@@ -105,7 +100,7 @@ namespace StarPie.ViewModels.Pages
 
         private IReadOnlyList<ThemeOptionItem> _themeOptions = Array.Empty<ThemeOptionItem>();
 
-        /// <summary>轮盘配色下拉选项（固定配色 + 自定义预设；导入/增删改名后重建，T21 ItemsSource 化）。</summary>
+        /// <summary>轮盘配色下拉选项（固定配色 + 自定义预设；导入/增删改名后重建）。</summary>
         public IReadOnlyList<ThemeOptionItem> ThemeOptions
         {
             get => _themeOptions;
@@ -139,7 +134,7 @@ namespace StarPie.ViewModels.Pages
             OnPropertyChanged(nameof(SelectedTheme));
         }
 
-        /// <summary>退订本地化事件（ADR-0010 第 3 条：单例 VM 配 IDisposable，组合根随 Composition.Dispose 调用）。</summary>
+        /// <summary>退订本地化事件（单例 VM 配 IDisposable，随组合根释放调用）。</summary>
         public void Dispose()
         {
             if (_disposed) return;
@@ -161,7 +156,7 @@ namespace StarPie.ViewModels.Pages
 
         // ---- 皮肤选择 & 配色方案 -------------------------------------------------
 
-        /// <summary>轮盘皮肤（ClassicRing / CleanSectors / Glassmorphism）。与迁移前一致：切换只重绘预览，不主动请求落盘。</summary>
+        /// <summary>轮盘皮肤（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
         [ObservableProperty]
         private string _uiStyle = "ClassicRing";
 
@@ -173,7 +168,7 @@ namespace StarPie.ViewModels.Pages
             get => _selectedTheme;
             set
             {
-                // 迁移前对 null 选择项同样短路；动态项重建期间绑定回推 null，不得清掉当前主题
+                // 动态项重建期间绑定回推 null：不得清掉当前主题
                 if (string.IsNullOrEmpty(value)) return;
                 if (_loading) { _selectedTheme = value; return; }
 
@@ -188,7 +183,7 @@ namespace StarPie.ViewModels.Pages
                     var preset = SelectedCustomPreset;
                     if (preset != null)
                     {
-                        // 预设色值回落到微调输入框（属性管线写穿 config，与迁移前文本框回填一致）
+                        // 预设色值回落到微调输入框（属性管线写穿配置）
                         CustomSectorBgText = preset.SectorBg;
                         CustomSectorBorderText = preset.SectorBorder;
                         CustomHighlightBgText = preset.HighlightBg;
@@ -207,7 +202,7 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private bool _isCustomPresetSelected;
 
-        /// <summary>自定义高级配色折叠面板展开态（迁移前：主题为 Custom 或自定义预设时展开，选中预设时强制展开，从不自动收起）。</summary>
+        /// <summary>自定义高级配色折叠面板展开态：主题为 Custom 或自定义预设时展开；选中预设时强制展开，从不自动收起。</summary>
         [ObservableProperty]
         private bool _isCustomColorExpanderExpanded;
 
@@ -236,7 +231,7 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private string _highlightGlowColorText = "";
 
-        /// <summary>光晕弥散半径滑杆值（px，8~48；配置存 0 时按迁移前回落 24）。</summary>
+        /// <summary>光晕弥散半径滑杆值（px，8~48；配置存 0 时回落 24）。</summary>
         [ObservableProperty]
         private double _highlightGlowRadius = 24.0;
 
@@ -244,7 +239,7 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private double _highlightGlowOpacityPercent = 85.0;
 
-        /// <summary>自定义光晕颜色行可见性（迁移前仅在预设切换与初始加载时按公式刷新）。</summary>
+        /// <summary>自定义光晕颜色行可见性：在预设切换与初始加载时按公式刷新。</summary>
         [ObservableProperty]
         private bool _isCustomGlowVisible;
 
@@ -296,16 +291,13 @@ namespace StarPie.ViewModels.Pages
         public string SectorIconSizeLabel => $"{SectorIconSize:0} px";
         public string SectorFontSizeLabel => $"{SectorFontSize:0.0} px";
 
-        // ---- 中心核图标（T16 自窗口 code-behind 收编） ------------------------------
+        // ---- 中心核图标 ---------------------------------------------------------
         //
         // 透传属性：状态直接住运行态配置（读直取、写直穿），不持副本——配置导入替换实例后
-        // 无需重挂即取到新值，与迁移前窗口处理器在保存点对配置对象的直读直写逐字等价。
-        // 界面主题（AppTheme）已随 #54 拆入 InterfaceThemeSettingsViewModel（见类头）。
-        // T17/#56：变更归队 Live-apply 管线——ShowCoreIcon 上报防抖落盘并（#56 起）同报预览重绘
-        // （ADR-0014 决策 7：预览重绘全部经 AppearancePreviewInvalidatedMessage 消息管线，页面
-        // ShowCoreIconCheckBox 的 Checked/Unchecked 事件处理器已删除）；CoreIconType/
-        // CoreCustomImagePath 同时上报预览重绘（对应迁移前各自 SelectionChanged/TextChanged
-        // 处理器里的重绘与落盘调用；绑定初始化回推同值时被 setter 的等值守卫短路，不触发事件）。
+        // 无需重挂即取到新值。界面主题（AppTheme）在 InterfaceThemeSettingsViewModel。
+        // 变更归队 Live-apply 管线：ShowCoreIcon 上报防抖落盘并上报预览重绘（重绘全部经
+        // AppearancePreviewInvalidatedMessage 消息管线）；CoreIconType/CoreCustomImagePath
+        // 同时上报预览重绘；绑定初始化回推同值时被 setter 的等值守卫短路，不触发事件。
 
         /// <summary>是否显示核圆中心图标/图案。</summary>
         public bool ShowCoreIcon
@@ -352,7 +344,7 @@ namespace StarPie.ViewModels.Pages
         /// <summary>中心核自定义 SVG 路径数据（只读透传：窗口层无写入点，预览绘制消费）。</summary>
         public string CoreCustomIconSvg => Config.CoreCustomIconSvg ?? "";
 
-        /// <summary>中心核自定义图片本地路径（写穿透传；文本框逐键写入的迁移前语义）。</summary>
+        /// <summary>中心核自定义图片本地路径（写穿透传；文本框逐键写入）。</summary>
         public string CoreCustomImagePath
         {
             get => Config.CoreCustomImagePath ?? "";
@@ -367,9 +359,8 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        /// <summary>中心核自定义图标选取编排（迁移前 PickCoreIconButton_Click 的对话框部分）：
-        /// 取消返回 false 不动状态；确认后写回图标键（null = 清除，写空串）并经
-        /// 消息请求立即落盘，预览刷新由视图层驱动。</summary>
+        /// <summary>中心核自定义图标选取编排：取消返回 false 不动状态；确认后写回图标键
+        /// （null = 清除，写空串）并经消息请求立即落盘，预览刷新由视图层驱动。</summary>
         [RelayCommand]
         private void PickCoreIcon()
         {
@@ -379,9 +370,9 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        /// <summary>中心核自定义图片选取编排（T19 自页面 View 收编，页面保持无参构造不经容器）：
-        /// 取消返回 false 不动状态；选中写回 <see cref="CoreCustomImagePath"/>（绑定回填文本框、
-        /// 缩略图随 PropertyChanged 刷新，落盘/预览由该属性管线发出）。</summary>
+        /// <summary>中心核自定义图片选取编排（页面保持无参构造不经容器）：取消返回 false
+        /// 不动状态；选中写回 <see cref="CoreCustomImagePath"/>（绑定回填文本框、缩略图随
+        /// PropertyChanged 刷新，落盘/预览由该属性管线发出）。</summary>
         [RelayCommand]
         private void BrowseCoreImage()
         {
@@ -402,7 +393,7 @@ namespace StarPie.ViewModels.Pages
         {
             if (_loading) return;
             Config.UiStyle = value;
-            // 与迁移前一致：皮肤切换只重绘预览，不请求落盘
+            // 皮肤切换只重绘预览，不请求落盘
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
@@ -415,7 +406,7 @@ namespace StarPie.ViewModels.Pages
         private void OnCustomColorTextChanged(string value, Action<string> writeConfig)
         {
             if (_loading) return;
-            // 与迁移前一致：自定义配色键入写穿配置并重绘，但落盘留给关窗等既有时机
+            // 自定义配色键入写穿配置并重绘，但落盘留给关窗等既有时机
             writeConfig((value ?? "").Trim());
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
@@ -437,7 +428,7 @@ namespace StarPie.ViewModels.Pages
                 case "Auto": HighlightGlowColorText = ""; break;
             }
 
-            // 与迁移前一致：先回落色值，再按"Custom 或已有色值"计算可见性
+            // 先回落色值，再按"Custom 或已有色值"计算可见性
             IsCustomGlowVisible = value == "Custom" || !string.IsNullOrEmpty(HighlightGlowColorText);
 
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
@@ -524,7 +515,7 @@ namespace StarPie.ViewModels.Pages
             if (_loading) return;
             if (_layoutSyncing)
             {
-                // ShowText 联动发起：只写穿配置，事件由发起方统一发（与迁移前 _isUpdatingUi 抑制一致）
+                // ShowText 联动发起：只写穿配置，事件由发起方统一发（联动抑制标志生效）
                 Config.IconLayoutMode = value;
                 return;
             }
@@ -568,7 +559,7 @@ namespace StarPie.ViewModels.Pages
 
             Config.ShowText = value;
 
-            // 与迁移前联动规则一致：勾选文字时排版模式 IconOnly→IconAndText；取消勾选时改为 IconOnly。
+            // 勾选文字时排版模式 IconOnly→IconAndText；取消勾选时改为 IconOnly。
             // 联动发起时置抑制标志：排版模式管线只写穿配置，事件由本处统一发一轮。
             _layoutSyncing = true;
             try
@@ -600,7 +591,7 @@ namespace StarPie.ViewModels.Pages
 
         // ---- 命令 -----------------------------------------------------------------
 
-        /// <summary>一键重置为推荐几何尺寸（与迁移前相同的七项默认值，事件收尾统一发一次）。</summary>
+        /// <summary>一键重置为推荐几何尺寸（七项默认值，事件收尾统一发一次）。</summary>
         [RelayCommand]
         private void ResetDimensions()
         {
@@ -741,7 +732,7 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
-        /// <summary>删除当前选中的自定义配色预设（T19：删除确认与结果提示对话框编排内聚进本 VM）：
+        /// <summary>删除当前选中的自定义配色预设（删除确认与结果提示对话框编排内聚进本 VM）：
         /// 确认框（标题/含预设名的确认文案键化）→ 移除预设、回落 System 配色并落盘
         /// （事件由主题管线统一发出）→ 成功提示（键化）。</summary>
         [RelayCommand]
@@ -785,9 +776,9 @@ namespace StarPie.ViewModels.Pages
         // ---- 播种与纯函数 ----------------------------------------------------------
 
         /// <summary>
-        /// 导入配置后从当前配置重挂播种快照状态 (T19)：<see cref="_loading"/> 抑制与构造播种一致
-        /// （只落状态不回写配置、不发落盘/预览事件），随后补发绑定通知让透传属性绑定同步拉取新值，
-        /// 并重建 <see cref="ThemeOptions"/> 供配色下拉（T21 ItemsSource 化）。
+        /// 导入配置后从当前配置重挂播种快照状态：<see cref="_loading"/> 抑制与构造播种一致
+        /// （只落状态不回写配置、不发落盘/预览事件），随后补发绑定通知让透传属性绑定同步
+        /// 拉取新值，并重建 <see cref="ThemeOptions"/> 供配色下拉。
         /// </summary>
         public void ReloadFromConfig()
         {
@@ -806,7 +797,7 @@ namespace StarPie.ViewModels.Pages
             OnPropertyChanged(nameof(CoreCustomIconKey));
             OnPropertyChanged(nameof(CoreCustomIconSvg));
             OnPropertyChanged(nameof(CoreCustomImagePath));
-            // T21：重建下拉项后补发选中通知，让 ComboBox 从新 ThemeOptions 中恢复选中（
+            // 重建下拉项后补发选中通知，让 ComboBox 从新 ThemeOptions 恢复选中（
             // LoadFromConfig 播种期 SelectedTheme 走 _loading 短路不通知）。
             OnPropertyChanged(nameof(SelectedTheme));
         }
@@ -851,7 +842,7 @@ namespace StarPie.ViewModels.Pages
             RebuildThemeOptions();
         }
 
-        /// <summary>旧版 Shape 标签 → 当前 Combo Tag（迁移前 SetComboBoxSelectedValue 的映射表原样保留）。</summary>
+        /// <summary>旧版 Shape 标签 → 当前 Combo Tag 的兼容映射。</summary>
         public static string MapLegacyShapeTag(string? shape)
         {
             string value = shape ?? "";
@@ -862,7 +853,7 @@ namespace StarPie.ViewModels.Pages
 
     }
 
-    /// <summary>轮盘配色下拉选项条目（T21 ItemsSource 化）：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
+    /// <summary>轮盘配色下拉选项条目：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
     public sealed class ThemeOptionItem
     {
         public string Tag { get; }

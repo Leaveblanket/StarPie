@@ -8,10 +8,9 @@ using System.Windows;
 namespace StarPie.Services.Actions
 {
     /// <summary>
-    /// 动作执行服务实现 (T15, ADR-0002)：迁移前静态 ActionExecutor 的系统调用层——
-    /// 进程启动、文件夹存在性探测、SendInput 键注入、LockWorkStation、错误弹窗——
-    /// 全部收编为构造注入的接缝（生产用默认实现，测试注入假体后路由决策即可全量验证）。
-    /// 分支行为与错误文案逐字保留迁移前语义。
+    /// 动作执行服务实现：进程启动、文件夹存在性探测、SendInput 键注入、
+    /// LockWorkStation、错误弹窗等系统调用层，全部经构造注入的接缝执行
+    /// （生产用默认实现；测试注入假体后路由决策即可全量验证）。
     /// </summary>
     public sealed class ActionExecutorService : IActionExecutorService
     {
@@ -41,7 +40,7 @@ namespace StarPie.Services.Actions
             _showFolderError = showFolderError ?? (message => MessageBox.Show(message, "StarPie", MessageBoxButton.OK, MessageBoxImage.Warning));
         }
 
-        /// <summary>执行一个动作。类型路由大小写敏感（迁移前 switch 语义）；未知类型静默忽略。</summary>
+        /// <summary>执行一个动作。类型路由大小写敏感；未知类型静默忽略。</summary>
         public void Execute(ActionItem action)
         {
             if (action == null) return;
@@ -51,7 +50,7 @@ namespace StarPie.Services.Actions
                 switch (ActionRouting.ResolveRoute(action.Type))
                 {
                     case ActionRoute.Launch:
-                        // 空路径按迁移前语义静默返回。
+                        // 空路径静默返回。
                         if (string.IsNullOrEmpty(action.Parameter)) return;
                         _startProcess(ActionRouting.BuildLaunchStartInfo(action.Parameter, action.Arguments));
                         break;
@@ -127,7 +126,7 @@ namespace StarPie.Services.Actions
                     }
                     catch
                     {
-                        // 迁移前语义：工具类启动失败降级发热键（如 taskmanager → Ctrl+Shift+Esc）；
+                        // 工具类启动失败降级发热键（如 taskmanager → Ctrl+Shift+Esc）；
                         // 电源类静默失败，无降级、无提示。
                         if (startProcess.FallbackHotkey != null)
                         {
@@ -169,7 +168,7 @@ namespace StarPie.Services.Actions
             return input;
         }
 
-        // --- Win32 键注入与锁屏（迁移前 ActionExecutor 的互操作面） ---
+        // --- Win32 键注入与锁屏互操作 ---
 
         [DllImport("user32.dll")]
         private static extern bool LockWorkStation();

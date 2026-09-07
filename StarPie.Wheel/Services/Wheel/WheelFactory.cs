@@ -6,14 +6,13 @@ using StarPie.Services.Localization;
 namespace StarPie.Services.Wheel
 {
     /// <summary>
-    /// Wheel factory (T05): builds the per-gesture view-model and its window on the
-    /// UI thread, then returns a thread-safe handle — every engine call is marshaled
-    /// onto the dispatcher and lands as a view-model state mutation the window
-    /// observes (ADR-0002: implementations own the UI-thread marshaling; callers may
-    /// be on the hook thread). M2 侧工厂实现（B8/#81，D5/ADR-0016 决策 11）随 M2 收编进
-    /// StarPie.Wheel/Services/Wheel（命名空间 StarPie.Services.Wheel 与物理目录一致）；
-    /// 消费方（M1 GestureEngine）只依赖 <see cref="IWheelFactory"/> 接口。
+    /// 轮盘工厂：在 UI 线程构建每次手势的视图模型与窗口，再返回线程安全句柄——
+    /// 引擎的每次调用都经调度器转发，落地为窗口观察的视图模型状态变更。
     /// </summary>
+    /// <remarks>
+    /// 实现方负责 UI 线程调度，调用方可能位于钩子线程；消费方（手势引擎）只依赖
+    /// <see cref="IWheelFactory"/> 接口。
+    /// </remarks>
     public sealed class WheelFactory : IWheelFactory
     {
         private readonly IConfigService _config;
@@ -40,13 +39,13 @@ namespace StarPie.Services.Wheel
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
         }
 
-        /// <summary>Marshals every wheel interaction onto the UI thread as a
-        /// view-model mutation; the window reacts to the state change itself.</summary>
+        /// <summary>把每次轮盘交互经调度器转发到 UI 线程，落地为视图模型状态变更；
+        /// 窗口自行响应状态变化。</summary>
         private sealed class DispatchedWheelViewModel : IWheelViewModel
         {
             private readonly WheelViewModel _viewModel;
-            // GC root: keeps the not-yet-shown window reachable between Create and
-            // the first Show dispatch (the view-model does not reference the window).
+            // GC 根：在 Create 与首次 Show 派发之间保持尚未显示的窗口可达
+            // （视图模型不引用窗口）。
             private readonly RadialWindow _window;
             private readonly Dispatcher _dispatcher;
 

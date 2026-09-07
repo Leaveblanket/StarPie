@@ -7,16 +7,17 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 界面主题模块设置子 ViewModel（#54，ADR-0014 决策 1/6/7）：独占软件界面主题（AppTheme）的
-    /// 透传——读直取运行态配置、写直穿（落盘语义不变：防抖消息上报）——与驻留主题选项目录
-    /// （ItemsSource 化：静态六项标签即时取词，随语言切换重建并补发选中通知恢复选中）。
-    /// 主题应用到窗口属壳层 View 效果：写穿后发布 <see cref="AppThemeChangedMessage"/>，由
-    /// MainView（壳层 code-behind 白名单）订阅执行 ApplyAppTheme；配置导入后的重挂路径同样
-    /// 经本消息由壳层执行窗口主题应用（页面不再持有主题 SelectionChanged 处理器）。
-    /// DI 单例注入 <see cref="AppearanceSettingsViewModel"/>（外观页界面主题卡 DataContext
-    /// 指向本 VM）；ADR-0010 驻留文案机制：切语重建选项目录，Dispose 成对退订
-    /// （组合根随 Composition.Dispose 释放）。
+    /// 界面主题（AppTheme）设置子 ViewModel：独占软件界面主题的透传——读直取运行态配置、
+    /// 写直穿（经防抖消息请求落盘）——并提供驻留的主题选项目录（固定六项、标签即时取词，
+    /// 随语言切换重建并补发选中通知恢复选中）。
     /// </summary>
+    /// <remarks>
+    /// 主题应用到窗口属壳层 View 效果：写穿后发布 <see cref="AppThemeChangedMessage"/>，由
+    /// 壳层主窗口（MainView）订阅执行窗口主题应用；配置导入后的重挂路径同样经本消息由壳层
+    /// 执行。本 VM 以 DI 单例注入 <see cref="AppearanceSettingsViewModel"/>（外观页界面主题卡
+    /// DataContext 指向本 VM）；切语重建选项目录，Dispose 成对退订
+    /// （组合根随 Composition.Dispose 释放）。
+    /// </remarks>
     public partial class InterfaceThemeSettingsViewModel : ObservableObject, IDisposable
     {
         private readonly IConfigService _config;
@@ -39,7 +40,7 @@ namespace StarPie.ViewModels.Pages
 
             RebuildThemeOptions();
 
-            // ADR-0010 驻留文案机制：界面主题选项目录标签随语言切换重建（单例 VM 成对退订）。
+            // 主题选项目录标签属驻留文案：语言切换时重建（单例 VM 成对退订）。
             _localization.LanguageChanged += OnLanguageChanged;
         }
 
@@ -49,16 +50,14 @@ namespace StarPie.ViewModels.Pages
         /// 软件界面主题（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。
         /// 透传属性：读直取运行态配置（空值回落 System）；写直穿配置后经防抖消息请求落盘，
         /// 并发布 <see cref="AppThemeChangedMessage"/> 交壳层主窗口应用窗口主题。
-        /// 下拉项重建期间绑定回推的瞬态 null/空值被忽略（同轮盘 SelectedTheme 先例），
-        /// 避免切语重建目录时误把选中清成 System。
+        /// 下拉项重建期间绑定回推的瞬态 null/空值被忽略，避免切语重建目录时误把选中清成 System。
         /// </summary>
         public string AppTheme
         {
             get => Config.AppTheme ?? "System";
             set
             {
-                // ItemsSource 化后重建期间绑定回推 null/空值：忽略以免误清当前主题
-                //（同轮盘配色下拉 SelectedTheme 的先例）。
+                // 重建选项目录期间绑定回推 null/空值：忽略以免误清当前主题。
                 if (string.IsNullOrEmpty(value)) return;
                 if (string.Equals(Config.AppTheme, value, StringComparison.Ordinal)) return;
 
@@ -71,7 +70,7 @@ namespace StarPie.ViewModels.Pages
 
         private IReadOnlyList<AppThemeOptionItem> _appThemeOptions = Array.Empty<AppThemeOptionItem>();
 
-        /// <summary>界面主题下拉的固定选项（Tag 与迁移前 XAML 静态 ComboBoxItem 一致；标签即时取词）。</summary>
+        /// <summary>界面主题下拉的固定选项：Tag 供 SelectedValue 匹配，标签即时取词。</summary>
         public IReadOnlyList<AppThemeOptionItem> AppThemeOptions
         {
             get => _appThemeOptions;
@@ -100,7 +99,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 导入配置后从当前配置重挂（#54）：透传属性读穿新配置实例，无需状态迁移——补发选中通知
+        /// 导入配置后从当前配置重挂：透传属性读穿新配置实例，无需状态迁移——补发选中通知
         /// 让绑定拉取新值恢复 ComboBox 选中，并发布 <see cref="AppThemeChangedMessage"/> 由壳层
         /// 主窗口执行窗口主题应用。
         /// </summary>
@@ -110,7 +109,7 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(new AppThemeChangedMessage(AppTheme));
         }
 
-        /// <summary>退订本地化事件（ADR-0010 第 3 条：单例 VM 配 IDisposable，组合根随 Composition.Dispose 调用）。</summary>
+        /// <summary>退订本地化事件（单例 VM 成对退订；组合根随 Composition.Dispose 调用）。</summary>
         public void Dispose()
         {
             if (_disposed) return;
@@ -119,7 +118,7 @@ namespace StarPie.ViewModels.Pages
         }
     }
 
-    /// <summary>界面主题下拉选项条目（#54 ItemsSource 化）：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
+    /// <summary>界面主题下拉选项条目：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
     public sealed class AppThemeOptionItem
     {
         public string Tag { get; }

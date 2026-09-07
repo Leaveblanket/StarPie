@@ -1,11 +1,10 @@
 namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
-    /// The wheel ViewModel surface the gesture engine drives (T05, ADR-0001): show,
-    /// sector highlight and outer escape arrive as state mutations and the wheel
-    /// window reflects them — the engine never calls window methods. Index -1 for
-    /// <see cref="HighlightSector"/> clears the selection.
+    /// 轮盘 ViewModel 对外表面（由手势引擎驱动）：显示、扇区高亮与外围逃逸都作为状态
+    /// 变更传入，由轮盘窗口反映——引擎从不直接调用窗口方法。
     /// </summary>
+    /// <remarks><see cref="HighlightSector"/> 传入 -1 表示清除选中。</remarks>
     public interface IWheelViewModel
     {
         void Show();

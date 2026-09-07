@@ -19,9 +19,8 @@ using Path = System.Windows.Shapes.Path;
 namespace StarPie.Views.Wheel
 {
     /// <summary>
-    /// 轮盘窗口 (T05): all view state lives in the per-gesture <see cref="WheelViewModel"/>
-    /// — this class observes its change notifications and performs the drawing and
-    /// animations; the gesture engine never calls into it.
+    /// 轮盘窗口：全部视图状态位于每次手势的 <see cref="WheelViewModel"/>——本类观察其
+    /// 变更通知并完成绘制与动画；手势引擎从不直接调用窗口。
     /// </summary>
     public partial class RadialWindow : Window
     {
@@ -35,7 +34,7 @@ namespace StarPie.Views.Wheel
         private readonly List<double> _sectorAngles = new List<double>();
         private IRadialStyleRenderer _styleRenderer = null!;
 
-        // Styling brushes and dimensions (instantiated dynamically)
+        // 样式画刷与尺寸（动态实例化）
         private Brush _defaultSectorBrush = Brushes.Transparent;
         private Brush _highlightSectorBrush = Brushes.Transparent;
         private Brush _sectorBorderBrush = Brushes.Transparent;
@@ -58,30 +57,30 @@ namespace StarPie.Views.Wheel
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             DataContext = viewModel;
 
-            // ADR-0009 白名单(INPC 订阅边界/生命周期接线): 订阅 VM PropertyChanged 只驱动
-            // 纯视觉重绘与窗口生命周期动作(IsShown→Show/IsClosed→Close); 在 Closed 成对退订,
-            // 避免每手势窗口实例经事件被 VM 侧引用滞留(同 MainView 的 I18n 退订模式)。
+            // 白名单订阅边界：订阅 VM PropertyChanged 只驱动纯视觉重绘与窗口生命周期动作
+            // （IsShown→Show/IsClosed→Close）；在 Closed 成对退订，避免每手势窗口实例
+            // 经事件被 VM 侧引用滞留。
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             Closed += (_, _) => _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
             InitializeThemeAndStyle();
             CoreTextPanel.Visibility = Visibility.Collapsed;
 
-            // ADR-0009 白名单(生命周期接线/纯视觉渲染): Loaded 按 VM 只读状态一次性定位窗口并绘制扇区;
-            // 订阅源为窗口自身, Close 后随窗口一起回收, 不构成外部泄漏。
+            // 白名单（生命周期接线/纯视觉渲染）：Loaded 按 VM 只读状态一次性定位窗口并绘制扇区；
+            // 订阅源为窗口自身，Close 后随窗口一起回收，不构成外部泄漏。
             Loaded += RadialWindow_Loaded;
         }
 
         private void InitializeThemeAndStyle()
         {
-            // Instantiate corresponding style renderer using the factory
+            // 经工厂实例化对应样式渲染器
             _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.UiStyle);
             _styleRenderer.Initialize(_viewModel.Theme, _viewModel.Config, _themeService.IsWindowsInDarkTheme());
 
             _innerRadius = _viewModel.InnerRadius;
             _outerRadius = _viewModel.OuterRadius;
 
-            // Fetch brushes and dimensions from style renderer
+            // 从样式渲染器取画刷与尺寸
             _defaultSectorBrush = _styleRenderer.DefaultSectorBrush;
             _highlightSectorBrush = _styleRenderer.HighlightSectorBrush;
             _sectorBorderBrush = _styleRenderer.SectorBorderBrush;
@@ -98,7 +97,7 @@ namespace StarPie.Views.Wheel
             double wheelRadius = _viewModel.OuterRadius;
             double coreRadius = _viewModel.CoreRadius;
 
-            // Adjust window size dynamically based on outer radius
+            // 按外半径动态调整窗口尺寸
             double winSize = wheelRadius * 2.0 + 40.0; // Margin for shadow
             this.Width = winSize;
             this.Height = winSize;
@@ -106,7 +105,7 @@ namespace StarPie.Views.Wheel
             WheelCanvas.Width = winSize;
             WheelCanvas.Height = winSize;
 
-            // Center core position dynamically
+            // 动态居中核位置
             double coreLeft = (winSize / 2.0) - coreRadius;
             double coreTop = (winSize / 2.0) - coreRadius;
             Canvas.SetLeft(CoreGrid, coreLeft);
@@ -118,7 +117,7 @@ namespace StarPie.Views.Wheel
             OuterEllipse.Width = wheelRadius * 2.0 + 8.0;
             OuterEllipse.Height = wheelRadius * 2.0 + 8.0;
 
-            // Position the window centered on the mouse click coordinates, accounting for DPI scaling
+            // 以鼠标点击坐标为中心定位窗口（考虑 DPI 缩放）
             double scaleX = 1.0;
             double scaleY = 1.0;
 
@@ -135,7 +134,7 @@ namespace StarPie.Views.Wheel
             CoreEllipse.Fill = _coreBgBrush;
             CoreEllipse.Stroke = _coreBorderBrush;
 
-            // Render Core Background Image / Avatar (if configured)
+            // 渲染核背景图/头像（如配置）
             string coreBgPath = _viewModel.Config.CoreBgImagePath ?? "";
             if (!string.IsNullOrEmpty(coreBgPath) && System.IO.File.Exists(coreBgPath))
             {
@@ -212,12 +211,12 @@ namespace StarPie.Views.Wheel
                 CoreExitIcon.Visibility = Visibility.Collapsed;
             }
 
-            // Render style decorations first
+            // 先绘制样式装饰
             RenderStyleDecorations();
 
             RenderSectors();
 
-            // Run open spring scale-in and fade-in animation
+            // 播放打开弹性缩入与淡入动画
             var sb = new Storyboard();
             var backEase = new BackEase { EasingMode = EasingMode.EaseOut, Amplitude = 0.35 };
 
@@ -253,7 +252,7 @@ namespace StarPie.Views.Wheel
             double wheelRadius = _viewModel.OuterRadius;
             double coreRadius = _viewModel.CoreRadius;
 
-            // Clear previous style decoration paths
+            // 清除上一组样式装饰路径
             var toRemove = new List<UIElement>();
             foreach (UIElement child in WheelCanvas.Children)
             {
@@ -267,11 +266,11 @@ namespace StarPie.Views.Wheel
                 WheelCanvas.Children.Remove(elem);
             }
 
-            // Reset core visuals
+            // 重置核视觉
             CoreEllipse.Visibility = Visibility.Visible;
             OuterEllipse.Visibility = Visibility.Collapsed;
 
-            // Remove any dynamically added grids or paths inside CoreGrid
+            // 移除 CoreGrid 内动态添加的网格/路径
             var gear = CoreGrid.Children.OfType<Path>().FirstOrDefault(p => p.Name == "DynamicGearPath");
             if (gear != null) CoreGrid.Children.Remove(gear);
 
@@ -281,7 +280,7 @@ namespace StarPie.Views.Wheel
             var tech = CoreGrid.Children.OfType<Grid>().FirstOrDefault(g => g.Name == "DynamicTechGrid");
             if (tech != null) CoreGrid.Children.Remove(tech);
 
-            // Determine insert position behind text panel
+            // 决定插入位置（位于文本面板之后）
             int insertIndex = CoreGrid.Children.IndexOf(CoreTextPanel);
             if (insertIndex < 0) insertIndex = 0;
 
@@ -311,7 +310,7 @@ namespace StarPie.Views.Wheel
             _containerTransforms.Clear();
             _sectorAngles.Clear();
 
-            // Clear previous sector drawings from Canvas
+            // 清除 Canvas 上之前的扇区绘制
             var toRemove = new List<UIElement>();
             foreach (UIElement child in WheelCanvas.Children)
             {
@@ -357,7 +356,7 @@ namespace StarPie.Views.Wheel
                 _sectorTransforms.Add(pathTransform);
                 _sectorAngles.Add(midAngleRad);
 
-                // Grid Container to ensure absolute centering of StackPanel
+                // 用网格容器保证 StackPanel 绝对居中
                 double containerW = n == 12 ? 58.0 : (n == 4 ? 96.0 : 84.0);
                 double containerH = n == 12 ? 48.0 : (n == 4 ? 72.0 : 64.0);
 
@@ -532,7 +531,7 @@ namespace StarPie.Views.Wheel
                     stackPanel.Children.Add(textBlock);
                 }
 
-                // Center Grid Container on (lx, ly)
+                // 网格容器居中于 (lx, ly)
                 Canvas.SetLeft(container, lx - container.Width / 2.0);
                 Canvas.SetTop(container, ly - container.Height / 2.0);
 
@@ -552,7 +551,7 @@ namespace StarPie.Views.Wheel
 
             if (type == "Hotkey")
             {
-                // Keyboard icon
+                // 键盘图标
                 return "M19,15H5V5H19M19,3H5C3.89,3 3,3.89 3,5V15C3,16.1 3.89,17 5,17H19C20.1,17 21,16.1 21,15V5C21,3.89 20.1,3 19,3M2,18H22V20H2V18Z";
             }
 
@@ -578,10 +577,9 @@ namespace StarPie.Views.Wheel
             return null;
         }
 
-        /// <summary>Reflects engine-driven state mutations onto the view (T05; ADR-0009
-        /// INPC 订阅边界): the window is only ever driven through the
-        /// <see cref="WheelViewModel"/> — every case redraws pure visuals or applies a
-        /// lifecycle state (IsShown/IsClosed) to the window; it never writes VM state.</summary>
+        /// <summary>把引擎驱动的状态变更反映到视图（INPC 订阅边界）：窗口只经
+        /// <see cref="WheelViewModel"/> 驱动——每个分支要么重绘纯视觉，要么对窗口应用
+        /// 生命周期状态（IsShown/IsClosed）；从不写 VM 状态。</summary>
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             switch (e.PropertyName)
@@ -606,8 +604,7 @@ namespace StarPie.Views.Wheel
 
         private void ApplyOuterEscapeState(bool isEscaped)
         {
-            // The view-model only raises a change on real transitions, so every call
-            // here is a state flip and the dim/restored animation always applies.
+            // 视图模型只在真实状态切换时通知，因此每次调用都是状态翻转，变暗/恢复动画总会执行。
             var anim = new DoubleAnimation
             {
                 To = isEscaped ? 0.38 : 1.0,
@@ -619,7 +616,7 @@ namespace StarPie.Views.Wheel
 
         private void ApplySectorHighlight(int index)
         {
-            // Center Exit Hover Feedback
+            // 中心退出悬停反馈
             if (index == -1)
             {
                 CoreExitIcon.Fill = new SolidColorBrush(Color.FromRgb(244, 63, 94)); // Warm rose cancel
@@ -672,7 +669,7 @@ namespace StarPie.Views.Wheel
                     path.StrokeThickness = _highlightBorderThickness;
                     System.Windows.Controls.Panel.SetZIndex(path, 5);
 
-                    // Magnetic pop-out: Translate outward by 5.5px along the radial vector
+                    // 磁性弹出：沿径向向量向外平移 5.5px
                     double targetX = Math.Cos(angleRad) * 5.5;
                     double targetY = Math.Sin(angleRad) * 5.5;
 
@@ -709,7 +706,7 @@ namespace StarPie.Views.Wheel
                     path.StrokeThickness = _borderThickness;
                     System.Windows.Controls.Panel.SetZIndex(path, 1);
 
-                    // Spring back to 0,0
+                    // 弹性回到 (0,0)
                     if (pTransform != null)
                     {
                         pTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });

@@ -7,11 +7,9 @@ using StarPie.Services.Localization;
 namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
-    /// 轮盘 ViewModel (T05, ADR-0001): owns the wheel's view state — selected sector,
-    /// outer-escape state, the sector collection and the center point — plus the
-    /// state the style renderers consume. The gesture engine drives it through
-    /// <see cref="IWheelViewModel"/>; the window observes the change notifications
-    /// and performs all drawing. One instance lives per gesture.
+    /// 轮盘 ViewModel：持有轮盘视图状态——选中扇区、外围逃逸状态、扇区集合与中心点——
+    /// 以及样式渲染器消费的状态。手势引擎经 <see cref="IWheelViewModel"/> 驱动，
+    /// 窗口观察变更通知并完成全部绘制；每次手势一个实例。
     /// </summary>
     public partial class WheelViewModel : ObservableObject, IWheelViewModel
     {
@@ -31,12 +29,11 @@ namespace StarPie.ViewModels.Wheel
 
         public GesturePoint Center { get; }
 
-        /// <summary>Live config reference: the radial window reads pure-styling
-        /// fields (shape, fonts, core imagery) off it; renderer-facing state is
-        /// exposed as properties.</summary>
+        /// <summary>运行态配置引用：轮盘窗口读取纯样式字段（形状/字体/核图），
+        /// 面向渲染器的状态以属性暴露。</summary>
         public AppConfig Config { get; }
 
-        /// <summary>One slot per 轮盘 sector, indexed by azimuth; slots without a bound action report <c>HasAction == false</c>.</summary>
+        /// <summary>每个轮盘扇区一个槽位（按方位角索引）；未绑定动作的槽位 HasAction 为 false。</summary>
         public IReadOnlyList<WheelSectorViewModel> Sectors { get; }
 
         public int SectorCount => _profile.SectorCount;
@@ -74,8 +71,7 @@ namespace StarPie.ViewModels.Wheel
             UiStyle = config.UiStyle ?? "ClassicRing";
             OuterRadius = config.WheelRadius;
             CoreRadius = config.CoreRadius;
-            // Safety boundary carried over from the pre-migration window: the ring
-            // must not degenerate, so inner radius stays below outer.
+            // 安全边界：环不得退化，内半径保持小于外半径。
             InnerRadius = config.InnerRadius >= OuterRadius
                 ? Math.Max(0, OuterRadius - 20)
                 : config.InnerRadius;
@@ -88,9 +84,8 @@ namespace StarPie.ViewModels.Wheel
         {
             if (SelectedSectorIndex == sectorIndex)
             {
-                // Re-assert like the pre-migration window did: the engine calls this
-                // on every drag move, and the view re-applies the selection (center
-                // cancel feedback included) instead of silently skipping no-op moves.
+                // 引擎在每次拖拽移动时都调用本方法；即使索引重复也重新应用选中
+                // （含中心取消反馈），而不是静默跳过 no-op 移动。
                 OnPropertyChanged(nameof(SelectedSectorIndex));
                 return;
             }
@@ -103,12 +98,12 @@ namespace StarPie.ViewModels.Wheel
         public void Close() => IsClosed = true;
     }
 
-    /// <summary>Read-only state of a single 扇区 slot, built from its bound action (or the lack of one).</summary>
+    /// <summary>单个扇区槽位的只读状态，由绑定的动作（或缺失动作）构建。</summary>
     public sealed class WheelSectorViewModel
     {
         public int Index { get; }
 
-        /// <summary>False when the slot has no bound action; the view shows the 未设置 placeholder.</summary>
+        /// <summary>槽位无绑定动作为 false；视图据此显示"未设置"占位。</summary>
         public bool HasAction { get; }
 
         public string Name { get; }

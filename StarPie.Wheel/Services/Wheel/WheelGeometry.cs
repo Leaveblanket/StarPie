@@ -7,12 +7,13 @@ using Size = System.Windows.Size;
 namespace StarPie.Services.Wheel
 {
     /// <summary>
-    /// 轮盘视觉几何出口（模块 M2「轮盘与渲染」，R6/ADR-0015 三分）：扇区切削几何
-    /// （<c>CreateAdvancedSectorGeometry</c>）与中心核图标几何（<c>GetCoreIconGeometry</c>）。
-    /// 几何成员唯一消费方是轮盘 RadialWindow / WheelPreviewRenderer / CoreIconGeometryConverter，
-    /// 自 T3b/#66 起直连本出口，T3d/#68 起旧入口删除。
-    /// 核图标 Custom 分支按 SVG 键回退取值时消费共享「图标资产」（S1）目录。
+    /// 轮盘视觉几何出口：扇区切削几何（<c>CreateAdvancedSectorGeometry</c>）与
+    /// 中心核图标几何（<c>GetCoreIconGeometry</c>）。
     /// </summary>
+    /// <remarks>
+    /// 几何成员的消费方为轮盘 RadialWindow / WheelPreviewRenderer / CoreIconGeometryConverter。
+    /// 核图标 Custom 分支按 SVG/图标键回退取值时消费共享图标资产目录。
+    /// </remarks>
     public static class WheelGeometry
     {
         #region Geometry Creation Helpers for Advanced Shapes
@@ -31,7 +32,7 @@ namespace StarPie.Services.Wheel
             double sectorAngleSpan = Math.Abs(endAngle - startAngle);
             double sectorHalfSpanRad = (sectorAngleSpan / 2.0) * (Math.PI / 180.0);
 
-            // Distance between adjacent sector centers along the chord
+            // 沿弦上相邻扇区中心的间距
             double chord = 2.0 * layoutR * Math.Sin(sectorHalfSpanRad);
             double radialSpan = Math.Max(12.0, (outerR - innerR) - gap);
             double tangentialSpan = Math.Max(12.0, chord - gap);
@@ -59,7 +60,7 @@ namespace StarPie.Services.Wheel
             }
             else
             {
-                // Standard or Optical Gap/Fillet Sector
+                // 标准扇形或光学间隙/圆角扇形
                 double effStartAngle = startAngle;
                 double effEndAngle = endAngle;
 
@@ -159,7 +160,7 @@ namespace StarPie.Services.Wheel
                             try { return Geometry.Parse(data); } catch { }
                         }
                     }
-                    return Geometry.Parse("M12,2L15.09,8.26L22,9.27L17,14.14L18.18,21.02L12,17.77L5.82,21.02L7,14.14L2,9.27L8.91,8.26L12,2Z"); // Star
+                    return Geometry.Parse("M12,2L15.09,8.26L22,9.27L17,14.14L18.18,21.02L12,17.77L5.82,21.02L7,14.14L2,9.27L8.91,8.26L12,2Z"); // 默认五角星
 
                 case "Exit":
                 default:

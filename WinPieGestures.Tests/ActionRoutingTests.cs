@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using StarPie;
@@ -6,14 +6,13 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// Routing coverage for the action executor (T15): action-type routing, system
-/// preset mapping, launch/folder start-info construction, and hotkey chord
-/// parsing. All decisions are pure functions on <see cref="ActionRouting"/> —
-/// no process/key-injection side effects are touched.
+/// 动作执行路由的覆盖：动作类型路由、系统预设映射、启动/文件夹 StartInfo 构造与
+/// 热键弦解析。全部决策是 <see cref="ActionRouting"/> 上的纯函数——不触碰任何
+/// 进程/键注入副作用。
 /// </summary>
 public sealed class ActionRoutingTests
 {
-    // --- Action type routing ----------------------------------------------
+    // --- 动作类型路由 ----------------------------------------------
 
     [Theory]
     [InlineData("Launch", ActionRoute.Launch)]
@@ -43,7 +42,7 @@ public sealed class ActionRoutingTests
         Assert.Equal(ActionRoute.Unknown, ActionRouting.ResolveRoute(type));
     }
 
-    // --- System preset mapping ---------------------------------------------
+    // --- 系统预设映射 ---------------------------------------------
 
     [Fact]
     public void ResolveSystemCommand_PresetsCaseInsensitiveAndTrimmed()
@@ -148,7 +147,7 @@ public sealed class ActionRoutingTests
         => Assert.Equal(new ActionRouting.SystemCommand.SendKey(expectedVk),
             ActionRouting.ResolveSystemCommand(preset));
 
-    // --- Launch / Folder start-info construction ---------------------------
+    // --- 启动 / 文件夹 StartInfo 构造 ---------------------------
 
     [Fact]
     public void BuildLaunchStartInfo_PassesPathAndArgumentsThrough()
@@ -171,8 +170,7 @@ public sealed class ActionRoutingTests
     [Fact]
     public void BuildLaunchStartInfo_DoesNotSetWorkingDirectory()
     {
-        // Working-directory semantics of the original executor: WorkingDirectory
-        // stays unset, so the launched process inherits the caller's.
+        // 工作目录语义：WorkingDirectory 保持未设，启动的进程继承调用方目录。
         var startInfo = ActionRouting.BuildLaunchStartInfo("app.exe", "");
 
         Assert.True(string.IsNullOrEmpty(startInfo.WorkingDirectory));
@@ -208,7 +206,7 @@ public sealed class ActionRoutingTests
         Assert.True(startInfo.UseShellExecute);
     }
 
-    // --- Hotkey chord parsing and key-stroke sequences ---------------------
+    // --- 热键弦解析与键序生成 ---------------------
 
     [Fact]
     public void BuildKeySequence_SimpleChord_ModifierDownKeyDownKeyUpModifierUp()
@@ -248,15 +246,15 @@ public sealed class ActionRoutingTests
     [Fact]
     public void BuildKeySequence_NamedAliases_AcceptCaseInsensitiveSpellings()
     {
-        // "control" → Ctrl, uppercase letters map like their lowercase forms.
+        // "control" → Ctrl；大写字母与其小写形式映射相同。
         Assert.Equal(ActionRouting.BuildKeySequence("Ctrl+C"), ActionRouting.BuildKeySequence("Control+C"));
     }
 
     [Fact]
     public void BuildKeySequence_ArrowAndMediaKeys_CarryTheExtendedKeyFlag()
     {
-        // Win (0x5B) 落在 0x5B-0x5C 段、Left (0x25) 落在 0x21-0x2F 段——迁移前
-        // CreateKeyInput 的扩展键规则下两者都带 EXTENDEDKEY 标志。
+        // Win (0x5B) 落在 0x5B-0x5C 段、Left (0x25) 落在 0x21-0x2F 段——
+        // 扩展键规则下两者都带 EXTENDEDKEY 标志。
         var strokes = ActionRouting.BuildKeySequence("Win+Left");
         Assert.All(strokes, s => Assert.True(s.Extended));
 
@@ -268,7 +266,7 @@ public sealed class ActionRoutingTests
     [Fact]
     public void BuildKeySequence_ModifierAliases_MapToTheSameLeftHandKeys()
     {
-        // 迁移前 ParseHotkey 接受这些别名（用户配置可能存在此类写法），映射到同一左手指。
+        // ParseHotkey 接受这些别名（用户配置可能存在此类写法），映射到同一左手指。
         Assert.Equal(
             ActionRouting.BuildKeySequence("Ctrl+Shift+Alt+Win+A"),
             ActionRouting.BuildKeySequence("control+lshift+ralt+windows+a"));
@@ -302,7 +300,7 @@ public sealed class ActionRoutingTests
         Assert.False(strokes[1].KeyDown);
     }
 
-    // --- Single media key ---------------------------------------------------
+    // --- 单媒体键 ---------------------------------------------------
 
     [Fact]
     public void BuildSingleKeyStrokes_PressAndReleaseWithExtendedFlag()
@@ -315,12 +313,12 @@ public sealed class ActionRoutingTests
         Assert.All(strokes, s => Assert.True(s.Extended));
     }
 
-    // --- Debug guard ---------------------------------------------------------
+    // --- 调试护栏 ---------------------------------------------------------
 
     [Fact]
     public void ActionRoute_HasNoValueBeyondTheKnownRoutes()
     {
-        // Guards against accidentally widening the enum without covering the new route.
+        // 防止枚举被意外扩展而新路由缺少覆盖。
         Assert.Equal(5, Enum.GetValues<ActionRoute>().Length);
     }
 }

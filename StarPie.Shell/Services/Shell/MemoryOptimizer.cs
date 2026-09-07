@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// High-efficiency memory optimizer for StarPie.
-    /// Compacts heap and trims process working set pages down to minimal footprint (~15-25MB).
+    /// 内存优化器：压缩托管堆并裁剪进程工作集页，使占用回落到最小足迹（约 15–25MB）。
     /// </summary>
     public static class MemoryOptimizer
     {
@@ -21,9 +20,8 @@ namespace StarPie.Services.Shell
         private static int _isTrimming = 0;
         private static DateTime _lastTrimTime = DateTime.MinValue;
 
-        /// <summary>
-        /// Aggressively compacts LOH/GC heap and trims working set memory pages down to minimal footprint.
-        /// </summary>
+        /// <summary>深度压缩 GC 堆（含大对象堆 LOH）并把工作集内存页裁剪到最小足迹；
+        /// force 为 false 时距上次修剪不足 2 秒则跳过。</summary>
         public static void TrimMemory(bool force = false)
         {
             if (!force && (DateTime.UtcNow - _lastTrimTime).TotalSeconds < 2.0)
@@ -39,7 +37,7 @@ namespace StarPie.Services.Shell
                 {
                     _lastTrimTime = DateTime.UtcNow;
 
-                    // Collect Gen 0, 1, 2 and compact Large Object Heap (LOH)
+                    // 回收 Gen 0/1/2 并压缩大对象堆（LOH）
                     GC.Collect(2, GCCollectionMode.Forced, true, true);
                     GC.WaitForPendingFinalizers();
                     GC.Collect(2, GCCollectionMode.Forced, true, true);

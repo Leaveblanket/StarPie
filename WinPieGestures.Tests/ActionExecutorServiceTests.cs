@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,7 +7,7 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 动作执行服务的外部行为 (T15)：路由决策驱动的系统调用经注入假体捕获——启动的
+/// 动作执行服务的外部行为：路由决策驱动的系统调用经注入假体捕获——启动的
 /// ProcessStartInfo、发送的键序、锁屏与错误通知。真 Win32 调用（SendInput/
 /// LockWorkStation/MessageBox）不在测试范围，由 Python e2e 与手动冒烟兜底。
 /// </summary>
@@ -44,7 +44,7 @@ public sealed class ActionExecutorServiceTests
     private static ActionItem Action(string type, string parameter, string? arguments = null)
         => new() { Type = type, Parameter = parameter, Name = "测试动作", Arguments = arguments ?? "" };
 
-    // --- Launch ---------------------------------------------------------------
+    // --- 启动 ---------------------------------------------------------------
 
     [Fact]
     public void Execute_Launch_StartsShellExecuteWithArguments()
@@ -72,7 +72,7 @@ public sealed class ActionExecutorServiceTests
         Assert.Empty(seams.ActionErrors);
     }
 
-    // --- Hotkey ---------------------------------------------------------------
+    // --- 热键 ---------------------------------------------------------------
 
     [Fact]
     public void Execute_Hotkey_SendsCompiledStrokeSequence()
@@ -88,7 +88,7 @@ public sealed class ActionExecutorServiceTests
             strokes.Select(s => ((int)s.VirtualKey, s.KeyDown)).ToArray());
     }
 
-    // --- System presets ---------------------------------------------------------
+    // --- 系统预设 ---------------------------------------------------------
 
     [Fact]
     public void Execute_SystemShowDesktop_SendsWinD()
@@ -169,7 +169,7 @@ public sealed class ActionExecutorServiceTests
         Assert.Equal(0, seams.LockCalls);
     }
 
-    // --- Folder -----------------------------------------------------------------
+    // --- 文件夹 -----------------------------------------------------------------
 
     [Fact]
     public void Execute_Folder_ExistingDirectory_OpensInExplorer()

@@ -6,9 +6,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 图标选择器 ViewModel 的行为覆盖 (T08)：过滤规则（自定义按显示名/键、内置按显示名/分类/键）、
+/// 图标选择器 ViewModel 的行为覆盖：过滤规则（自定义按显示名/键、内置按显示名/分类/键）、
 /// 初始选中恢复、选择/清空、确认结果、导入编排（mock 对话框服务）与删除编排（注入委托）。
-/// T20 起完成经 <see cref="IconPickerViewModel.IsCompleted"/> 可观察状态驱动，导入失败提示经 IDialogService。
+/// 完成经 <see cref="IconPickerViewModel.IsCompleted"/> 可观察状态驱动，导入失败提示经 IDialogService。
 /// </summary>
 public sealed class IconPickerViewModelTests
 {
@@ -176,7 +176,7 @@ public sealed class IconPickerViewModelTests
     [Fact]
     public void Confirm_WithoutSelection_ResultIconKeyIsNull()
     {
-        // 迁移前行为：未做任何选择时确认，结果携带 null 键（调用方以 ?? "" 收敛）。
+        // 未做任何选择时确认，结果携带 null 键（调用方以 ?? "" 收敛）。
         var vm = Create();
 
         vm.ConfirmCommand.Execute(null);

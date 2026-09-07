@@ -10,22 +10,22 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 设置窗口·触发与场景页面 ViewModel (T13, T19 页面化, ADR-0001)：承接迁移前 SettingsWindow
-    /// code-behind 的触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸取消与进程排除黑名单的
-    /// 状态与编排。直接持有运行态 <see cref="AppConfig"/> 引用（live-apply：属性变更即时写回运行态
-    /// 配置并生效，与 <see cref="WheelViewModel.Config"/> / <see cref="ProfileListViewModel"/> 先例同理）；
-    /// 落盘经 <see cref="IMessenger"/> 上报组合根编排订阅者（立即请求/防抖请求两类消息，
-    /// T19 起取代迁移前的事件上报）。
-    /// 导入配置会替换运行态配置实例（JsonConfigService.Import），届时经 <see cref="Reload"/> 重挂；
-    /// 绑定控件随属性通知自动刷新（T21：页面 View 不再订阅同步消息）。
+    /// 触发与场景页面 ViewModel：触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸
+    /// 取消与进程排除黑名单的状态与编排。
     /// </summary>
+    /// <remarks>
+    /// 直接持有运行态 <see cref="AppConfig"/> 引用，属性变更即时写回运行态配置并生效
+    /// （live-apply）；落盘经 <see cref="IMessenger"/> 上报组合根编排的订阅者
+    /// （立即请求/防抖请求两类消息）。导入配置会替换运行态配置实例，届时经
+    /// <see cref="Reload"/> 重挂，绑定控件随属性通知自动刷新。
+    /// </remarks>
     public partial class BehaviorSettingsViewModel : ObservableObject
     {
         private AppConfig _config;
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
 
-        /// <summary>手势触发阈值（像素）。变更即时写回运行态配置（对应迁移前 ThresholdSlider_ValueChanged）。</summary>
+        /// <summary>手势触发阈值（像素）。变更即时写回运行态配置。</summary>
         [ObservableProperty]
         private double _dragThreshold;
 
@@ -49,7 +49,7 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private bool _enableOuterEscapeCancel;
 
-        /// <summary>外甩取消距离灵敏度（滑条原始值；写回配置时取整，对应迁移前 Math.Round）。</summary>
+        /// <summary>外甩取消距离灵敏度（滑条原始值；写回配置时取整）。</summary>
         [ObservableProperty]
         private double _outerEscapeDistance;
 
@@ -74,8 +74,8 @@ namespace StarPie.ViewModels.Pages
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
 
-            // T19/T21：导入成功广播 → 以消息携带的新配置自行重挂；绑定控件随属性通知自动刷新，
-            // View 不再需要 PageConfigReloaded 同步。
+            // 导入成功广播 → 以消息携带的新配置自行重挂；绑定控件随属性通知自动刷新，
+            // View 无需同步消息。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
             {
                 Reload(msg.ImportedConfig);
@@ -120,7 +120,7 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        // --- live-apply 写回（对应迁移前各事件处理器对运行态配置的直接写入） ---
+        // --- live-apply 写回：属性变更直接写入运行态配置 ---
 
         partial void OnDragThresholdChanged(double value)
         {
@@ -167,15 +167,14 @@ namespace StarPie.ViewModels.Pages
         partial void OnOuterEscapeDistanceChanged(double value)
         {
             if (_isReloading || _config == null) return;
-            // 与迁移前一致：写回配置前取整（滑条仍显示原始值）
+            // 写回配置前取整（滑条仍显示原始值）
             _config.OuterEscapeDistance = Math.Round(value);
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        // --- 进程排除黑名单编排（迁移前 Browse/Add/Delete 三个处理器与 AddBlacklistProcess） ---
+        // --- 进程排除黑名单编排 ---
 
-        /// <summary>把输入框中的进程加入黑名单（迁移前 AddBlacklistButton_Click）；
-        /// 输入为空时转入程序选择——与迁移前"空输入直接打开选择器"一致。</summary>
+        /// <summary>把输入框中的进程加入黑名单；输入为空时转入程序选择。</summary>
         [RelayCommand]
         private void AddBlacklistFromInput()
         {
@@ -189,7 +188,7 @@ namespace StarPie.ViewModels.Pages
             AddBlacklistProcess(proc);
         }
 
-        /// <summary>弹出程序选择器并把所选程序加入黑名单（迁移前 BrowseBlacklistButton_Click）。</summary>
+        /// <summary>弹出程序选择器并把所选程序加入黑名单。</summary>
         [RelayCommand]
         private void BrowseBlacklist()
         {
@@ -208,7 +207,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>
-        /// 按迁移前规则归一化并加入黑名单：首尾去空白、小写、缺省补 .exe、去重。
+        /// 归一化并加入黑名单：首尾去空白、小写、缺省补 .exe、去重。
         /// 重复项仅选中并滚动到该项（不清输入框、不落盘）；新项写入展示列表与运行态配置，
         /// 清空输入框并请求落盘。
         /// </summary>
@@ -223,7 +222,7 @@ namespace StarPie.ViewModels.Pages
 
             if (BlacklistProcesses.Contains(proc))
             {
-                // 与迁移前一致：重复项仅选中并滚动，无其他副作用
+                // 重复项仅选中并滚动，无其他副作用
                 SelectedBlacklistProcess = proc;
                 _messenger.Send(new BlacklistEntryAddedMessage(proc));
                 return;
@@ -245,7 +244,7 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        /// <summary>移除选中的黑名单进程；未选中时兜底移除最后一项（与迁移前一致）。</summary>
+        /// <summary>移除选中的黑名单进程；未选中时兜底移除最后一项。</summary>
         [RelayCommand]
         private void DeleteBlacklistProcess()
         {

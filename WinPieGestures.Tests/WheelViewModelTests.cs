@@ -5,10 +5,8 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// State coverage for the wheel view-model (T05): sector slots built from the
-/// profile, core title/subtitle derivation, the inner-radius safety clamp, and the
-/// engine-driven state mutations (show/close, selected sector, outer escape) with
-/// the change notifications the window relies on.
+/// 轮盘 ViewModel 状态覆盖：由 Profile 构建扇区槽位、核标题/副标题推导、内半径安全夹紧，
+/// 以及引擎驱动的状态变更（显示/关闭、选中扇区、外围逃逸）与窗口依赖的属性变更通知。
 /// </summary>
 public sealed class WheelViewModelTests
 {
@@ -24,7 +22,7 @@ public sealed class WheelViewModelTests
     private static WheelViewModel Create(WheelProfile profile, AppConfig? config = null)
         => new(new GesturePoint(120, 96), profile, config ?? new AppConfig(), Localization);
 
-    // --- Construction ---------------------------------------------------------
+    // --- 构造 ---------------------------------------------------------
 
     [Fact]
     public void Ctor_MapsActionDataIntoSectorSlots()
@@ -56,7 +54,7 @@ public sealed class WheelViewModelTests
 
         Assert.False(vm.Sectors[1].HasAction);
         Assert.Equal("", vm.Sectors[1].Name);
-        Assert.Equal("Hotkey", vm.Sectors[1].Type); // view defaults when no action bound
+        Assert.Equal("Hotkey", vm.Sectors[1].Type); // 无动作绑定时使用视图默认值
         Assert.Equal("", vm.Sectors[1].Parameter);
         Assert.Equal("", vm.Sectors[3].IconKey);
     }
@@ -134,7 +132,7 @@ public sealed class WheelViewModelTests
         Assert.Equal(96, vm.Center.Y);
         Assert.Equal(130.0, vm.OuterRadius);
         Assert.Equal(46.0, vm.CoreRadius);
-        Assert.Equal(52.0, vm.InnerRadius); // AppConfig default, below outer: kept
+        Assert.Equal(52.0, vm.InnerRadius); // AppConfig 默认内半径低于外半径：保持
     }
 
     [Fact]
@@ -144,7 +142,7 @@ public sealed class WheelViewModelTests
 
         var vm = Create(Profile(8), config);
 
-        Assert.Equal(80.0, vm.InnerRadius); // outer - 20
+        Assert.Equal(80.0, vm.InnerRadius); // 外半径 - 20
     }
 
     [Fact]
@@ -158,7 +156,7 @@ public sealed class WheelViewModelTests
         Assert.Equal("ClassicRing", vm.UiStyle);
     }
 
-    // --- Engine-driven state mutations ----------------------------------------
+    // --- 引擎驱动状态变更 ----------------------------------------
 
     [Fact]
     public void InitialState_Unselected_NoEscape_NotShownNotClosed()
@@ -198,9 +196,8 @@ public sealed class WheelViewModelTests
     [Fact]
     public void HighlightSector_SameIndex_ReassertsNotification()
     {
-        // The engine calls HighlightSector on every drag move; the view must re-apply
-        // the selection (center-cancel feedback included) even when the index repeats,
-        // matching the pre-migration window's unconditional re-run.
+        // 引擎在每次拖拽移动时都会调用 HighlightSector；即使索引重复，视图也必须重新应用
+        // 选中（含中心取消反馈），与窗口的无条件重跑语义一致。
         var vm = Create(Profile(8));
         vm.HighlightSector(2);
         var changes = new List<string>();

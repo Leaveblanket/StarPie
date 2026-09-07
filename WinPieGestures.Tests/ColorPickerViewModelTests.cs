@@ -4,9 +4,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 颜色选择器 ViewModel 的行为覆盖 (T08)：HSV/RGB 纯函数换算、十六进制输入解析与规范化、
+/// 颜色选择器 ViewModel 的行为覆盖：HSV/RGB 纯函数换算、十六进制输入解析与规范化、
 /// 色盘取点夹紧、确认结果与屏上取色编排（mock 对话框服务）。
-/// T20 起颜色值以 <see cref="RgbColor"/> 纯模型表示（View 层经 HexToBrushConverter 转 WPF 画刷）。
+/// 颜色值以 <see cref="RgbColor"/> 纯模型表示（视图层经 HexToBrushConverter 转 WPF 画刷）。
 /// </summary>
 public sealed class ColorPickerViewModelTests
 {
@@ -67,7 +67,7 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void ColorHsvRoundTrip_NonByteExactColors_DriftStaysWithinQuantization()
     {
-        // RGB 字节量化带来的固有舍入（迁移前同一算法，行为不变）：往返后色相偏差应远小于 1 度量级。
+        // RGB 字节量化带来的固有舍入：往返后色相偏差应远小于 1 度量级。
         var rgb = ColorPickerViewModel.HsvToRgb(221, 0.8, 0.9);
         var back = ColorPickerViewModel.ColorToHsv(rgb);
 
@@ -124,7 +124,7 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void SetColorFromHex_RefreshesSpectrumHex()
     {
-        // 色盘底色（当前色相纯色）经可观察 SpectrumHex 驱动绑定，取代旧 SpectrumChanged 事件。
+        // 色盘底色（当前色相纯色）经可观察 SpectrumHex 驱动绑定。
         var vm = Create(initialHex: "#FF000000");
 
         vm.SetColorFromHex("#FF00FF00");
@@ -140,7 +140,7 @@ public sealed class ColorPickerViewModelTests
     {
         var vm = Create();
 
-        vm.HexText = "#00ff00"; // 7 位输入（旧输入框同样按长度 7/9 解析）
+        vm.HexText = "#00ff00"; // 7 位输入（按长度 7/9 解析）
 
         Assert.Equal("#FF00FF00", vm.SelectedHexColor);
         Assert.Equal("#FF00FF00", vm.HexText);
@@ -187,7 +187,7 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void SetSpectrumPointActionCommand_MidValues_ComputesResult()
     {
-        // T22：附加行为翻译像素坐标后经 SetSpectrumPointActionCommand 进入（ADR-0009）。
+        // 附加行为把像素坐标翻译为归一化点后经命令进入。
         var vm = Create(); // 初始为纯红（h=0）
 
         vm.SetSpectrumPointActionCommand.Execute(new SpectrumPoint(0.5, 0.5));
@@ -234,7 +234,7 @@ public sealed class ColorPickerViewModelTests
     [Fact]
     public void Confirm_SetsIsCompleted_WithCurrentColor()
     {
-        // T22：确认经 ConfirmCommand/IsCompleted 驱动（ADR-0009），视图据此落 DialogResult=true。
+        // 确认经 ConfirmCommand/IsCompleted 驱动，视图据此落 DialogResult=true。
         var vm = Create();
 
         vm.ConfirmCommand.Execute(null);

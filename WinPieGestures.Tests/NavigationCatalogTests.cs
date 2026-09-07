@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 导航目录与全局槽位表收口（B2/#75，ADR-0016 决策 3/5）：0–4 槽位、NavTab0..4 正典、
+/// 导航目录与全局槽位表收口：0–4 槽位、NavTab0..4 正典、
 /// 注册条目按槽位排序与缺失/重复/未知槽位拦截。只测外部行为——注册结果与校验异常，
 /// 不测实现细节（直接 new，不经容器）。
 /// </summary>

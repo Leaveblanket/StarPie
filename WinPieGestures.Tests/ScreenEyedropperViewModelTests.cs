@@ -4,9 +4,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 屏上取色器 ViewModel 的行为覆盖 (T08)：拾取颜色换算、放大镜文案/色块、
+/// 屏上取色器 ViewModel 的行为覆盖：拾取颜色换算、放大镜文案/色块、
 /// 确认/取消返回语义与放大镜定位纯函数。Win32 取像素留在视图，不进 VM；
-/// T20 起色块以 SwatchHex 字符串表示（View 经 HexToBrushConverter 转画刷）。
+/// 色块以 SwatchHex 字符串表示（视图经 HexToBrushConverter 转画刷）。
 /// </summary>
 public sealed class ScreenEyedropperViewModelTests
 {

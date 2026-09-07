@@ -5,10 +5,8 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// State-transition coverage for the gesture engine (T04): threshold trigger,
-/// direction select, outer escape, center-deadzone cancel, foreground-profile
-/// match, full-screen isolation, modifier-key isolation, blacklist isolation,
-/// and release outcomes (execute / replay click / pass through).
+/// 手势引擎的状态迁移覆盖：阈值触发、方向选择、外围逃逸、中心死区取消、前台 Profile
+/// 匹配、全屏隔离、修饰键隔离、黑名单隔离，以及释放结果（执行 / 重放点击 / 穿透）。
 /// </summary>
 public sealed class GestureEngineTests
 {
@@ -27,7 +25,7 @@ public sealed class GestureEngineTests
     private WheelProfile AddProfile(string processName, int sectorCount, int actionCount)
         => _config.AddProfile(processName, sectorCount, actionCount);
 
-    // --- Threshold trigger -------------------------------------------------
+    // --- 阈值触发 -------------------------------------------------
 
     [Fact]
     public void Move_BelowThreshold_DoesNotActivateWheel()
@@ -70,16 +68,16 @@ public sealed class GestureEngineTests
         Assert.Single(_wheelFactory.Created);
     }
 
-    // --- Direction selection ----------------------------------------------
+    // --- 方向选择 ----------------------------------------------
 
     [Fact]
     public void Move_Active_SelectsSectorByAngle()
     {
         AddProfile("Global", sectorCount: 8, actionCount: 8);
         _engine.OnTriggerDown(P(100, 100));
-        _engine.OnTriggerMove(P(125, 100)); // activate, sector 0
+        _engine.OnTriggerMove(P(125, 100)); // 激活，0 号扇区
 
-        // 60px moves at screen-clockwise angles (Y grows downward).
+        // 每次以屏幕顺时针角度移动 60px（Y 向下增长）。
         _engine.OnTriggerMove(P(160.0, 100.0)); // 0°   -> 0 (already selected)
         _engine.OnTriggerMove(P(100.0, 160.0)); // 90°  -> 2
         _engine.OnTriggerMove(P(40.0, 100.0));  // 180° -> 4
@@ -88,7 +86,7 @@ public sealed class GestureEngineTests
         _engine.OnTriggerMove(P(159.1, 89.6));    // 350° -> round(7.78) % 8 = 0
 
         var wheel = Assert.Single(_wheelFactory.Wheels);
-        // Every in-range move re-asserts the escape state before highlighting.
+        // 每次范围内移动都在高亮前重新断言逃逸状态。
         Assert.Equal(
             new[]
             {
@@ -98,12 +96,12 @@ public sealed class GestureEngineTests
                 "Escape:False", "Highlight:4",
                 "Escape:False", "Highlight:6",
                 "Escape:False", "Highlight:1",
-                "Escape:False", "Highlight:0", // 350° wraps to sector 0
+                "Escape:False", "Highlight:0", // 350° 回绕到 0 号扇区
             },
             wheel.Calls);
     }
 
-    // --- Center deadzone cancel --------------------------------------------
+    // --- 中心死区取消 --------------------------------------------
 
     [Fact]
     public void Move_BackIntoCenterDeadzone_ClearsSelection_AndReleaseCancels()
@@ -127,7 +125,7 @@ public sealed class GestureEngineTests
         Assert.Equal(GestureState.Idle, _engine.State);
     }
 
-    // --- Outer escape -------------------------------------------------------
+    // --- 外围逃逸 -------------------------------------------------------
 
     [Fact]
     public void Move_BeyondEscapeDistance_ShowsEscapeState_AndReleaseCancels()
@@ -184,7 +182,7 @@ public sealed class GestureEngineTests
         Assert.Contains("Escape:True", wheel.Calls);
     }
 
-    // --- Foreground process profile match -----------------------------------
+    // --- 前台进程 Profile 匹配 -----------------------------------
 
     [Fact]
     public void Activate_UsesProfileOfForegroundProcess()
@@ -216,7 +214,7 @@ public sealed class GestureEngineTests
         Assert.Same(global, createdProfile);
     }
 
-    // --- Isolation: blacklist ------------------------------------------------
+    // --- 隔离：黑名单 ------------------------------------------------
 
     [Fact]
     public void TriggerDown_BlacklistedProcess_PassesThrough()
@@ -233,7 +231,7 @@ public sealed class GestureEngineTests
     [Fact]
     public void TriggerDown_BlacklistNull_DoesNotIsolate()
     {
-        // Legacy config.json can deserialize this list as null; the engine guards for it.
+        // 旧版 config.json 可能把该列表反序列化为 null；引擎对此有防护。
         _config.Current.BlacklistedProcesses = null!;
         _windowContext.ProcessName = "anything.exe";
 
@@ -241,7 +239,7 @@ public sealed class GestureEngineTests
         Assert.Equal(GestureState.WaitingThreshold, _engine.State);
     }
 
-    // --- Isolation: full screen ----------------------------------------------
+    // --- 隔离：全屏 ----------------------------------------------
 
     [Fact]
     public void TriggerDown_FullScreenEnabledAndFullscreen_PassesThrough()
@@ -263,7 +261,7 @@ public sealed class GestureEngineTests
         Assert.Equal(GestureState.WaitingThreshold, _engine.State);
     }
 
-    // --- Isolation: modifier keys ---------------------------------------------
+    // --- 隔离：修饰键 ---------------------------------------------
 
     [Fact]
     public void TriggerDown_DisableOnCtrl_AndCtrlHeld_PassesThrough()
@@ -301,7 +299,7 @@ public sealed class GestureEngineTests
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
     }
 
-    // --- Release outcomes ------------------------------------------------------
+    // --- 释放结果 ------------------------------------------------------
 
     [Fact]
     public void Release_BeforeThreshold_ReplaysClick()
@@ -376,7 +374,7 @@ public sealed class GestureEngineTests
         Assert.Null(result.ActionToExecute);
     }
 
-    // --- Wheel lifecycle ---------------------------------------------------------
+    // --- 轮盘生命周期 ---------------------------------------------------------
 
     [Fact]
     public void SecondGesture_CreatesFreshWheel_AndClosesPrevious()
@@ -414,7 +412,7 @@ internal sealed class FakeConfigService : IConfigService
 
     public AppConfig Current { get; set; } = new();
 
-    /// <summary>Registers the canned profile the lookup returns for a process name.</summary>
+    /// <summary>注册查找接口对进程名返回的固定 Profile。</summary>
     public WheelProfile AddProfile(string processName, int sectorCount, int actionCount)
     {
         var profile = new WheelProfile
@@ -480,7 +478,7 @@ internal sealed class FakeWheelFactory : IWheelFactory
 
 internal sealed class FakeWheel : IWheelViewModel
 {
-    /// <summary>Ordered interaction log: "Show", "Highlight:{i}", "Escape:{bool}", "Close".</summary>
+    /// <summary>有序交互日志："Show" / "Highlight:{i}" / "Escape:{bool}" / "Close"。</summary>
     public List<string> Calls { get; } = new();
 
     public void Show() => Calls.Add("Show");

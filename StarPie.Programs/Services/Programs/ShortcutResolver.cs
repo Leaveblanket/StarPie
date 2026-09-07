@@ -52,15 +52,13 @@ namespace StarPie.Services.Programs
     }
 
     /// <summary>
-    /// 程序快捷方式解析出口（模块 M3「程序扫描与目录」，R6/ADR-0015 三分）：把 Windows 快捷方式
-    /// （.lnk）解析为真实目标路径与图标位置。消费方 ProgramScanner/ProgramPickerViewModel 自
-    /// T3c/#67 起直连本出口；T3d/#68 起旧入口删除。
+    /// 把 Windows 快捷方式（.lnk）解析为真实目标路径与图标位置，
+    /// 供 <c>ProgramScanner</c> 与程序选择器直接调用。
     /// </summary>
     public static class ShortcutResolver
     {
-        /// <summary>
-        /// Resolves a Windows shortcut (.lnk) to its real target path and icon location.
-        /// </summary>
+        /// <summary>解析 Windows 快捷方式（.lnk）的真实目标路径与图标位置；
+        /// 快捷方式不存在或解析失败时返回 false（目标与图标均可能为空）。</summary>
         public static bool ResolveShortcutTarget(string lnkPath, out string targetPath, out string iconPath, out int iconIndex)
         {
             targetPath = "";
@@ -78,7 +76,7 @@ namespace StarPie.Services.Programs
 
                 var link = (IShellLinkW)shellLink;
 
-                // 1. Check custom icon location from the shortcut
+                // 1. 读取快捷方式自定义图标位置
                 var iconBuf = new StringBuilder(260);
                 link.GetIconLocation(iconBuf, iconBuf.Capacity, out iconIndex);
                 string rawIcon = Environment.ExpandEnvironmentVariables(iconBuf.ToString().Trim());
@@ -87,7 +85,7 @@ namespace StarPie.Services.Programs
                     iconPath = rawIcon;
                 }
 
-                // 2. Get target executable/file path
+                // 2. 读取真实目标（exe/文件）路径
                 var pathBuf = new StringBuilder(260);
                 link.GetPath(pathBuf, pathBuf.Capacity, IntPtr.Zero, 0);
                 string rawTarget = Environment.ExpandEnvironmentVariables(pathBuf.ToString().Trim());

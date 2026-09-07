@@ -17,12 +17,11 @@ namespace StarPie.ViewModels.Dialogs
         string FilePath);
 
     /// <summary>
-    /// 图标选择器 ViewModel (T08, ADR-0001/0004)：选中状态、搜索过滤、导入/删除编排与确认结果
+    /// 图标选择器 ViewModel：选中状态、搜索过滤、导入/删除编排与确认结果
     /// 全部在此；窗口 code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
-    /// 自定义图标条目与默认实现引用 S1 共享图标资产出口 <see cref="IconAssets"/>
-    /// （T3c/#67，R6/ADR-0015）。
     /// </summary>
+    /// <remarks>自定义图标条目与默认实现引用共享图标资产出口 <see cref="IconAssets"/>。</remarks>
     public partial class IconPickerViewModel : ObservableObject
     {
         /// <summary>导入自定义图标的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
@@ -41,13 +40,13 @@ namespace StarPie.ViewModels.Dialogs
         private readonly Func<string, IconAssets.CustomIconItem?> _importCustomIcon;
         private readonly IDialogService _dialogs;
 
-        /// <summary>当前过滤条件下的展示列表（自定义图标在前、内置矢量在后，与迁移前一致）。</summary>
+        /// <summary>当前过滤条件下的展示列表：自定义图标在前、内置矢量在后。</summary>
         public ObservableCollection<IconEntry> DisplayedIcons { get; } = new();
 
         [ObservableProperty]
         private string _searchText = "";
 
-        /// <summary>当前选中的图标键；null 表示沿用"未选择"初始态（迁移前行为）。</summary>
+        /// <summary>当前选中的图标键；null 表示沿用“未选择”初始态。</summary>
         public string? SelectedIconKey { get; private set; }
 
         /// <summary>"已选图标"文案；选中自定义图标带 "(自定义)" 后缀，清空为 "(无图标)"。</summary>
@@ -76,8 +75,8 @@ namespace StarPie.ViewModels.Dialogs
             _importCustomIcon = importCustomIcon ?? (path => IconAssets.ImportCustomIcon(path));
 
             SelectedIconKey = initialKey;
-            // 迁移前：初始键非空但未匹配到卡片时停留在 XAML 默认“(未选择)”文案（未本地化）。
-            // 此处统一走 IconPickerNone 键；若键匹配卡片，ApplyFilter 的选择恢复会覆写为卡片名。
+            // 初始键非空但未匹配到卡片时显示“(未选择)”文案（键化）；
+            // 若键匹配卡片，ApplyFilter 的选择恢复会覆写为卡片名。
             _selectedIconDisplayName = localization.GetString("IconPickerNone");
             ApplyFilter("");
         }
@@ -87,7 +86,7 @@ namespace StarPie.ViewModels.Dialogs
         /// <summary>
         /// 重建展示列表：自定义图标在前、内置矢量在后；自定义按显示名/键过滤，
         /// 内置按显示名/分类/键过滤（均忽略大小写）。重建时若卡片键与选中键一致则恢复选中
-        /// 文案——与迁移前 PopulateIcons 的选择恢复行为一致。
+        /// 文案。
         /// </summary>
         public void ApplyFilter(string? filter)
         {
@@ -142,7 +141,7 @@ namespace StarPie.ViewModels.Dialogs
         [RelayCommand]
         private void SelectIcon(IconEntry entry) => Select(entry);
 
-        /// <summary>清空选择：键置空串、文案落"(无图标)"（与迁移前清空按钮一致）。</summary>
+        /// <summary>清空选择：键置空串、文案落“(无图标)”。</summary>
         [RelayCommand]
         private void ClearIcon()
         {

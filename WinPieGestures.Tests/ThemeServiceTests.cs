@@ -4,10 +4,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// Theme-service state coverage (T09/ADR-0013 #47): "follow system" resolution through the
-/// injected dark-mode probe, named-theme passthrough, the CurrentEffectiveTheme lifecycle,
-/// the SetTheme single-entry/ThemeChanged contract and null-window safety. Brush application
-/// itself is view-layer and covered by the Python end-to-end suite, not here.
+/// 主题服务状态覆盖：经注入深色探针的"跟随系统"解析、命名主题透传、CurrentEffectiveTheme
+/// 生命周期、SetTheme 单一入口/ThemeChanged 契约与 null 窗口安全。画刷应用属视图层，
+/// 由 Python 端到端套件覆盖，不在此处。
 /// </summary>
 public sealed class ThemeServiceTests
 {
@@ -27,7 +26,7 @@ public sealed class ThemeServiceTests
 
         Assert.Equal("Dark", darkService.ResolveEffectiveTheme("System"));
         Assert.Equal("Light", lightService.ResolveEffectiveTheme("System"));
-        Assert.Equal("Dark", darkService.ResolveEffectiveTheme("system")); // legacy lowercase config value
+        Assert.Equal("Dark", darkService.ResolveEffectiveTheme("system")); // 兼容旧配置小写值
     }
 
     [Fact]

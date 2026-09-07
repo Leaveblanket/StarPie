@@ -5,9 +5,9 @@ using System.Windows.Media;
 
 namespace StarPie.Views.Converters
 {
-    /// <summary>按 CoreIconType/自定义图标键/SVG 路径解析核圆预览 Geometry（T21 文本绑定化配套）。
-    /// 纯视觉几何解析（ADR-0009 #3）：经 M2 轮盘视觉几何出口
-    /// <see cref="WheelGeometry"/> 取值，非组合根/服务/配置（T3b/#66 起直连新出口）。</summary>
+    /// <summary>按核图标类型/自定义图标键/SVG 路径解析核圆预览 Geometry。</summary>
+    /// <remarks>纯视觉几何解析：经轮盘视觉几何出口 <see cref="WheelGeometry"/> 取值，
+    /// 不经组合根/服务/配置。</remarks>
     public sealed class CoreIconGeometryConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

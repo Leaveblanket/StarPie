@@ -26,7 +26,7 @@
                 Color="#000000" />
         </Border.Effect>
         <StackPanel>
-            <!--  Title & Subtitle  -->
+			<!--  标题与副标题  -->
             <TextBlock
                 Margin="0,0,0,4"
                 FontSize="16"
@@ -40,7 +40,7 @@
                 Text="{Binding Prompt}"
                 TextWrapping="Wrap" />
 
-            <!--  Input Box  -->
+			<!--  输入框  -->
             <TextBox
                 x:Name="InputTextBox"
                 Height="36"
@@ -58,7 +58,7 @@
                 </TextBox.InputBindings>
             </TextBox>
 
-            <!--  Action Buttons  -->
+			<!--  操作按钮  -->
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button
                     Width="80"

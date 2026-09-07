@@ -6,14 +6,14 @@ using System.Windows.Media;
 
 namespace StarPie.Services.Programs
 {
-    /// <summary>程序选择器的一条候选程序。T06 起 <c>ProgramItem</c> 提为不可变记录，
-    /// 扫描候选阶段 <c>IconSource</c> 为 null，去重定名后再补图标。</summary>
+    /// <summary>程序选择器的一条候选程序（不可变记录）：扫描候选阶段 <c>IconSource</c>
+    /// 为 null，去重定名后再补图标。</summary>
     public sealed record ProgramEntry(string Name, string Path, string FriendlyPath, ImageSource? IconSource);
 
     /// <summary>
-    /// 程序目录的纯规则函数 (T06, ADR-0004)：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。
-    /// 刻意不带 IO（文件存在性、注册表）——扫描 IO 由 <see cref="ProgramScanner"/> 编排并保持
-    /// 集成性质不测；这里的规则全部是无副作用的字符串/路径判定，直接单测。
+    /// 程序目录的纯规则函数：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。
+    /// 刻意不带 IO（文件存在性、注册表检查）——此类扫描 IO 由 <see cref="ProgramScanner"/>
+    /// 编排并保持集成性质不单测；这里的规则全部是无副作用的字符串/路径判定，可直接单测。
     /// </summary>
     public static class ProgramCatalog
     {

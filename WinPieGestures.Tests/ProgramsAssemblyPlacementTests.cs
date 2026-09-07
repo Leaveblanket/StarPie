@@ -4,11 +4,9 @@ using System.Threading.Tasks;
 namespace StarPie.Tests;
 
 /// <summary>
-/// B4/#77（模块化：M3 Programs 首个独立模块程序集）跨集归属与依赖收口：
-/// M3 三件（扫描/目录/快捷方式解析）与 <see cref="ProgramEntry"/> 迁入
-/// <c>StarPie.Programs</c>；程序集零共享内核(Core)/Host 依赖（图标补全改经组合根注入的
-/// S1 委托）；Host 对话框链与测试工程显式引用 M3 出口。B10/#83 命名空间统一为
-/// StarPie.*（全仓前缀替换，ADR-0016 决策 12）。
+/// 程序模块（Programs）跨程序集归属与依赖收口：程序扫描/目录/快捷方式解析与
+/// <see cref="ProgramEntry"/> 位于 <c>StarPie.Programs</c>；程序集零共享内核与宿主依赖
+/// （图标补全经组合根注入的委托）；宿主对话框链与测试工程显式引用本模块出口。
 /// </summary>
 public sealed class ProgramsAssemblyPlacementTests
 {
@@ -38,7 +36,7 @@ public sealed class ProgramsAssemblyPlacementTests
     [Fact]
     public async Task Host程序选择器链_跨集消费M3出口()
     {
-        // ProgramPickerViewModel 的扫描委托/展示元素类型即 M3 ProgramEntry——
+        // ProgramPickerViewModel 的扫描委托/展示元素类型即 Programs 的 ProgramEntry——
         // 编译期已证明 Host→Programs 显式引用；运行期再收口元素真实程序集归属。
         var vm = new ProgramPickerViewModel(
             () => new[] { new ProgramEntry("记事本", @"C:\Windows\notepad.exe", @"C:\Windows\notepad.exe", null) },

@@ -7,7 +7,7 @@ using StarPie.ViewModels.Dialogs;
 namespace StarPie.Views.Controls
 {
     /// <summary>
-    /// 色盘取点附加行为 (ADR-0009)：Canvas 没有 Command 属性，鼠标按下/拖动属原始输入——
+    /// 色盘取点附加行为：Canvas 没有 Command 属性，鼠标按下/拖动属原始输入——
     /// 本行为负责纯 UI 的坐标翻译（像素 → 归一化饱和度/明度点，含捕获与夹紧），再执行
     /// 绑定的 VM 命令（<see cref="ColorPickerViewModel.SetSpectrumPointActionCommand"/>）。
     /// 颜色状态与夹紧兜底仍归 VM，行为不触碰业务。

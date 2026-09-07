@@ -7,11 +7,10 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 槽位动作编辑闭环的行为覆盖 (T12, ADR-0001/0004)：图标设置、程序选择、文件夹选择的
-/// 对话框编排与写回规则，以及类型切换副作用——全部锁定迁移前 SettingsWindow code-behind
-/// 的外部行为（live-apply：写回直改模型）。对话框经 <see cref="TestDialogService"/> 替身，
-/// 只测外部行为，mock 直接 new。T20 起动作入口走 RelayCommand，文件夹提交落盘经
-/// ImmediateSaveRequestedMessage 消息（取代 EditApplied 事件）。
+/// 槽位动作编辑闭环的行为覆盖：图标设置、程序选择、文件夹选择的对话框编排与写回规则，
+/// 以及类型切换副作用（live-apply：写回直改模型）。对话框经
+/// <see cref="TestDialogService"/> 替身，mock 直接 new；动作入口走 RelayCommand，
+/// 文件夹提交落盘经 ImmediateSaveRequestedMessage 消息。
 /// </summary>
 public sealed class SlotViewModelTests
 {
@@ -36,7 +35,7 @@ public sealed class SlotViewModelTests
             messenger ?? TestHub.NewMessenger(),
             Localization);
 
-    // --- 图标设置（迁移前 PickIcon_Click） ---------------------------------------------
+    // --- 图标设置 ---------------------------------------------
 
     [Fact]
     public void PickIcon_WhenPicked_WritesIconKey()
@@ -86,7 +85,7 @@ public sealed class SlotViewModelTests
     [Fact]
     public void VectorIconPathData_WithVectorKey_ReturnsSvgFromS1Export()
     {
-        // T3c/#67：图标取值经 S1 共享图标资产出口 IconAssets。
+        // 图标取值经共享图标资产出口 IconAssets。
         var slot = MakeSlot(new ActionItem { IconKey = "Copy" });
 
         Assert.Equal(IconAssets.GetSvgPathByKey("Copy"), slot.VectorIconPathData);
@@ -110,7 +109,7 @@ public sealed class SlotViewModelTests
         Assert.True(slot.HasVectorIcon);
     }
 
-    // --- 程序选择（迁移前 Browse_Click） -------------------------------------------------
+    // --- 程序选择 -------------------------------------------------
 
     [Fact]
     public void BrowseProgram_WhenPicked_WritesParameterToFillsDefaultName()
@@ -171,7 +170,7 @@ public sealed class SlotViewModelTests
         Assert.Equal(1, dialogs.ProgramPickerCallCount);
     }
 
-    // --- 文件夹选择（迁移前 BrowseFolder_Click） -----------------------------------------
+    // --- 文件夹选择 -----------------------------------------
 
     [Fact]
     public void BrowseFolder_WhenPicked_WritesParameterFillsNameIconAndRequestsSave()
@@ -191,7 +190,7 @@ public sealed class SlotViewModelTests
         Assert.Equal(@"C:\Users\me\Documents", slot.Action.Parameter);
         Assert.Equal("Documents", slot.Action.Name);
         Assert.Equal("Folder", slot.Action.IconKey);
-        Assert.Equal(1, save.Immediate); // 文件夹提交后请求落盘（取代 EditApplied）
+        Assert.Equal(1, save.Immediate); // 文件夹提交后请求一次立即落盘
     }
 
     [Fact]
@@ -239,7 +238,7 @@ public sealed class SlotViewModelTests
         Assert.Equal(@"C:\Users", initial);
     }
 
-    // --- 瞬态生命周期（T27/ADR-0010：自订阅 Localization.LanguageChanged 须成对退订） ------------
+    // --- 瞬态生命周期（自订阅语言事件须成对退订） ------------
 
     [Fact]
     public void LanguageChanged_RefreshesResidentComputedProperties()
@@ -316,7 +315,7 @@ public sealed class SlotViewModelTests
         Assert.Equal(before, I18nEventSubscriberCount());
     }
 
-    // --- 类型切换（迁移前绑定直写 + 副作用） ---------------------------------------------
+    // --- 类型切换 ---------------------------------------------
 
     [Fact]
     public void Type_SetToFolder_AppliesFolderIconAndDefaultNameWhenMissing()

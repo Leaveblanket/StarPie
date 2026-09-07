@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘配色解析层覆盖 (#52, ADR-0014 决策 3/10)：System 随 OS 深浅、固定方案表、
+/// 轮盘配色解析层覆盖：System 随 OS 深浅、固定方案表、
 /// 各风格默认深浅观感、自定义预设（id/name/CustomPreset_ 前缀）匹配、Custom 微调
-/// 与坏值/空值回落，逐项等价于渲染器迁移前的内联行为。
+/// 与坏值/空值回落。
 /// </summary>
 public sealed class WheelPaletteParserTests
 {
@@ -33,7 +33,7 @@ public sealed class WheelPaletteParserTests
         Assert.Equal("#FF3B82F6", palette.HighlightBg.ToHex());
         Assert.Equal("#A0FFFFFF", palette.HighlightBorder.ToHex());
         Assert.Equal("#FFF8FAFC", palette.TextColor.ToHex());
-        // 紧急表核色与扇区不同源（沿用迁移前 catch 分支）。
+        // 紧急表核色与扇区不同源。
         Assert.Equal("#F018181B", palette.CoreBg.ToHex());
         Assert.Equal("#30FFFFFF", palette.CoreBorder.ToHex());
     }
@@ -215,7 +215,7 @@ public sealed class WheelPaletteParserTests
     [Fact]
     public void Resolve_Custom_NullFields_CatPawFallsBackToNeutralDark()
     {
-        // CatPaw 的 Custom 基底与粉彩观感不同：原实现经 base.GetDefaultColors 回落中性深色。
+        // CatPaw 的 Custom 基底与粉彩观感不同：回落中性深色。
         var config = new AppConfig
         {
             CustomSectorBg = null!, CustomSectorBorder = null!,
@@ -254,7 +254,7 @@ public sealed class WheelPaletteParserTests
     [Fact]
     public void Resolve_PresetFoundWithNullField_FallsBackToEmergencyPalette()
     {
-        // 预设命中后字段为 null 与非法等价：原实现整组走画刷 catch（不做逐字段回落）。
+        // 预设命中后字段为 null 与非法等价：整组走紧急回落（不做逐字段回落）。
         var preset = new CustomColorPreset { Id = "p1", SectorBg = null! };
         var config = new AppConfig { CustomColorPresets = new List<CustomColorPreset> { preset } };
 

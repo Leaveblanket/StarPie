@@ -3,7 +3,7 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 程序目录纯规则函数的覆盖 (T06, ADR-0004)：垃圾可执行过滤（卸载器/安装器/更新器/诊断/
+/// 程序目录纯规则函数的覆盖：垃圾可执行过滤（卸载器/安装器/更新器/诊断/
 /// 内嵌框架/Python 内部脚本/文档网页）、跨源去重、显示名升级与搜索过滤。全部无 IO。
 /// </summary>
 public sealed class ProgramCatalogTests

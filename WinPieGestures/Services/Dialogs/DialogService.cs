@@ -6,15 +6,16 @@ using StarPie.Services.Localization;
 namespace StarPie.Services.Dialogs
 {
     /// <summary>
-    /// 对话框服务实现 (T06/T07, ADR-0004)。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
-    /// 窗口创建完成后调 <see cref="SetOwner"/> 回填引用，化解"服务需要 Owner ↔ 窗口依赖服务"
-    /// 的循环。Owner 的用法是实现内部自由，不泄露进接口。
-    /// 迁移期混装：程序选择器（T06）、输入框（T07）与图标/颜色选择器、屏上取色（T08）
-    /// 已走 VM 化链路；接口保持不变。
-    /// 领域数据接线（T3c/#67，R6/R7/ADR-0015）：程序扫描候选来源经构造注入的 M3 扫描委托
-    /// （组合根以 <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产默认实现
-    /// 引用 S1 共享图标资产出口 <see cref="IconAssets"/>——对话框模块不再直连业务模块静态内部。
+    /// 对话框服务实现。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
+    /// 窗口创建完成后调 <see cref="SetOwner"/> 回填引用，化解“服务需要 Owner ↔ 窗口依赖
+    /// 服务”的循环；Owner 的用法是实现内部自由，不泄露进接口。
     /// </summary>
+    /// <remarks>
+    /// 程序选择器、输入框、图标/颜色选择器与屏上取色均已走 VM 化链路。
+    /// 程序扫描候选来源经构造注入的扫描委托提供（组合根以
+    /// <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产默认实现引用
+    /// 共享图标资产出口 <see cref="IconAssets"/>——对话框服务不直连业务模块静态内部。
+    /// </remarks>
     public sealed class DialogService : IDialogService
     {
         private readonly IThemeService _themeService;
@@ -49,7 +50,7 @@ namespace StarPie.Services.Dialogs
             string defaultText = "",
             Func<string, (bool IsValid, string ErrorMessage)>? validator = null)
         {
-            // T07：确认与验证逻辑已迁 InputViewModel，窗口只剩布局接线（ADR-0004）。
+            // 确认与验证逻辑在 InputViewModel，窗口只剩布局接线。
             var viewModel = new InputViewModel(title, prompt, this, _localization, defaultText, validator);
             var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
             return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
@@ -76,7 +77,7 @@ namespace StarPie.Services.Dialogs
 
         public EyedropResult? ShowEyedropper()
         {
-            // 全屏置顶工具，刻意不用 Owner（ADR-0004）。
+            // 全屏置顶工具，刻意不设 Owner。
             var eyedropper = new ScreenEyedropperWindow(new ScreenEyedropperViewModel());
             return eyedropper.ShowDialog() == true && !string.IsNullOrEmpty(eyedropper.CapturedHexColor)
                 ? new EyedropResult(eyedropper.CapturedHexColor!)

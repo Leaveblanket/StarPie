@@ -19,7 +19,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!--  Header  -->
+		<!--  头部  -->
         <StackPanel Grid.Row="0" Margin="0,0,0,12">
             <TextBlock
                 AutomationProperties.AutomationId="HeaderTitleText"
@@ -35,7 +35,7 @@
                 Text="{DynamicResource IconPickerSubtitle}" />
         </StackPanel>
 
-        <!--  Category Filter & Search & Import  -->
+		<!--  分类过滤、搜索与导入  -->
         <Grid Grid.Row="1" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -71,7 +71,7 @@
                 Style="{StaticResource ModernButtonStyle}" />
         </Grid>
 
-        <!--  Icons Grid  -->
+		<!--  图标网格  -->
         <Border
             Grid.Row="2"
             Padding="10"
@@ -88,7 +88,7 @@
             </ScrollViewer>
         </Border>
 
-        <!--  Bottom Action Bar  -->
+		<!--  底部操作栏  -->
         <Grid Grid.Row="3" Margin="0,15,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

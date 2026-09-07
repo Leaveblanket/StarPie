@@ -9,20 +9,20 @@ using Brush = System.Windows.Media.Brush;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘模块外观设置子 ViewModel 的行为覆盖（#56/ADR-0014 决策 6/8，自外观聚合 VM 测试迁移）：
-/// 构造播种（含默认值回落与旧版 Shape 标签映射）、立即生效写穿 IConfigService、防抖/立即落盘
-/// 事件语义、ShowText 与排版模式联动、配色预设增删改编排（mock 对话框服务；#53 名称语义）、
-/// 实时预览失效事件（含 #56 起 ShowCoreIcon 预览消息）、切语重建与导入重挂、Dispose 退订、
-/// 以及只读状态接口 <see cref="IWheelAppearanceState"/> 的预览取值面。
+/// 轮盘模块外观设置子 ViewModel 的行为覆盖：构造播种（含默认值回落与旧版 Shape 标签映射）、
+/// 立即生效写穿 IConfigService、防抖/立即落盘事件语义、ShowText 与排版模式联动、
+/// 配色预设增删改编排（mock 对话框服务；预设名语义）、实时预览失效事件（含 ShowCoreIcon
+/// 预览消息）、切语重建与导入重挂、Dispose 退订，以及只读状态接口
+/// <see cref="IWheelAppearanceState"/> 的预览取值面。
 /// </summary>
 public sealed class WheelAppearanceSettingsViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
     /// <summary>
-    /// 事件/消息计数器 (T19)：视图事件（预览/预设列表）照旧订阅；落盘请求转发到
+    /// 事件/消息计数器：视图事件（预览/预设列表）订阅；落盘请求转发到
     /// <see cref="SaveSpy"/> 消息计数（可赋值以支持用例中途清零）；删除确认与保存提示
-    /// 经对话框替身的记录断言（T19 对话框编排内聚进 VM）。
+    /// 经对话框替身的记录断言。
     /// </summary>
     private sealed class EventLog
     {
@@ -41,7 +41,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         }
     }
 
-    /// <summary>只实现 M1 只读预览 Profile 来源接口的测试替身（#69）：用于编译期钉住外观设置子
+    /// <summary>只实现只读预览 Profile 来源接口的测试替身：用于编译期钉住外观设置子
     /// VM 的构造签名依赖接口而非具体 <c>ProfileListViewModel</c>（若签名回退为具体类型，本类将
     /// 无法传入），兼作转发行为取值源。</summary>
     private sealed class FakeProfilePreviewSource : IProfilePreviewSource
@@ -131,7 +131,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     [Fact]
     public void Constructor_ZeroOpacityStaysZero_LikeLegacyFormula()
     {
-        // 迁移前公式：config >= 0 时原值采用（0 即 0%），仅负哨兵值回落 0.85
+        // config >= 0 时原值采用（0 即 0%），仅负哨兵值回落 0.85
         var (vm, _, _, _) = Create(new AppConfig { HighlightGlowOpacity = 0 });
 
         Assert.Equal(0, vm.HighlightGlowOpacityPercent);
@@ -349,7 +349,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     [Fact]
     public void HexToBrushConverter_EmptyOrInvalid_IsTransparent()
     {
-        // ParseColorBrush 随 WIP 移入 View 层转换器（ADR-0008）：空串/非法值一律透明
+        // 颜色解析在 View 层转换器：空串/非法值一律透明
         var converter = new HexToBrushConverter();
         Assert.Equal(System.Windows.Media.Brushes.Transparent, converter.Convert("", typeof(Brush), null!, null!));
         Assert.Equal(System.Windows.Media.Brushes.Transparent, converter.Convert("not-a-color", typeof(Brush), null!, null!));
@@ -432,11 +432,11 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("CustomPreset_" + preset.Id, vm.SelectedTheme);
         Assert.True(vm.IsCustomPresetSelected);
         Assert.True(vm.IsCustomColorExpanderExpanded);
-        // T21：预设下拉项 ItemsSource 化——保存后 VM 重建 ThemeOptions（6 固定 + 1 自定义）。
+        // 预设下拉由 VM 的 ThemeOptions 驱动——保存后重建（6 固定 + 1 自定义）。
         Assert.Equal(7, vm.ThemeOptions.Count);
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
         Assert.Equal(1, log.SaveNow);
-        // T19/#53：保存成功提示经对话框服务(编排内聚进 VM)，文案即时取词键化
+        // 保存成功提示经对话框服务（编排内聚进 VM），文案即时取词键化
         var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(Localization.GetString("SaveCustomPresetSuccess"), "我的预设"), info.Message);
@@ -529,7 +529,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("旧名", dialogs.LastInputDefaultText);
         Assert.Equal("新名", preset.Name);
         Assert.Equal("CustomPreset_p1", vm.SelectedTheme); // 选中保持不变
-        // T21：预设下拉项 ItemsSource 化——改名后 VM 重建 ThemeOptions 刷新标签。
+        // 改名后 VM 重建 ThemeOptions 刷新下拉标签。
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
         Assert.Equal(1, log.SaveNow);
     }
@@ -616,7 +616,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal("旧名", preset.Name);
-        // T21：取消改名不动下拉项。
+        // 取消改名不动下拉项。
         Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
     }
 
@@ -633,7 +633,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         vm.DeletePresetCommand.Execute(null);
 
-        // T19/#53：删除确认对话框编排内聚进 VM——确认即删除并提示成功，文案键化
+        // 删除确认对话框编排内聚进 VM——确认即删除并提示成功，文案键化
         var confirm = Assert.Single(dialogs.ConfirmCalls);
         Assert.Equal(Localization.GetString("DeleteCustomPresetTitle"), confirm.Title);
         Assert.Equal(string.Format(Localization.GetString("MsgConfirmDeletePreset"), "待删"), confirm.Message);
@@ -687,7 +687,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.False(vm.IsCustomPresetSelected);
         Assert.DoesNotContain(preset, config.Current.CustomColorPresets!);
         Assert.Contains(other, config.Current.CustomColorPresets!);
-        // T19/#53：删除成功提示经对话框服务，文案键化
+        // 删除成功提示经对话框服务，文案键化
         var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(string.Format(Localization.GetString("DeleteCustomPresetSuccess"), "待删"), info.Message);
@@ -712,7 +712,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Empty(dialogs.InfoCalls);
     }
 
-    // --- 预设对话框文案语言切换（#53） ----------------------------------------------
+    // --- 预设对话框文案语言切换 ----------------------------------------------
     // 对话框/成功提示属即时取词：每次命令执行读当前语言；预设名落库后是用户数据，
     // 切语只重建下拉后缀（WheelThemeCustomPreset），名称永不翻译。
 
@@ -813,7 +813,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
 
-        // T21：配色下拉 ItemsSource 化——固定 6 项在前、自定义预设按配置顺序追加。
+        // 配色下拉固定 6 项在前、自定义预设按配置顺序追加。
         Assert.Equal(7, vm.ThemeOptions.Count);
         Assert.Equal("System", vm.ThemeOptions[0].Tag);
         Assert.Equal("MorandiMuted", vm.ThemeOptions[5].Tag);
@@ -843,7 +843,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.ReloadFromConfig();
 
         Assert.Equal("System", vm.SelectedTheme);
-        // T21：重建下拉后补发选中通知，保证 ComboBox 能从新 ThemeOptions 恢复选中。
+        // 重建下拉后补发选中通知，保证 ComboBox 能从新 ThemeOptions 恢复选中。
         Assert.Equal(nameof(vm.SelectedTheme), selectedNotified);
         Assert.Equal(7, vm.ThemeOptions.Count);
         Assert.DoesNotContain(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1");
@@ -874,7 +874,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         Assert.Equal("MatchaForest", config.Current.Theme);
         Assert.False(vm.IsCustomPresetSelected);
-        Assert.True(vm.IsCustomColorExpanderExpanded); // 迁移前不收起
+        Assert.True(vm.IsCustomColorExpanderExpanded); // 展开面板不自动收起
         Assert.Equal(1, log.SaveNow);
     }
 
@@ -924,8 +924,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal(0, log.AutoSave);
     }
 
-    // --- 中心核图标透传属性（T16 自窗口收编；界面主题 AppTheme 已随 #54 迁入
-    //     InterfaceThemeSettingsViewModelTests） -------------------------------------
+    // --- 中心核图标透传属性（界面主题 AppTheme 的覆盖见 InterfaceThemeSettingsViewModelTests） ---
 
     [Fact]
     public void PassThroughProperties_ReadThroughLiveConfig_WithLegacyFallbacks()
@@ -942,7 +941,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("Copy", vm.CoreCustomIconKey);
         Assert.Equal("C:\\i.png", vm.CoreCustomImagePath);
 
-        // 空值回落与迁移前窗口读取点一致：核图标 Exit、键与路径空串
+        // 空值回落：核图标 Exit、键与路径空串
         config.CoreIconType = null!;
         config.CoreCustomIconKey = null!;
         config.CoreCustomImagePath = null!;
@@ -969,10 +968,9 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
         Assert.Equal("C:\\imgs\\core.png", config.Current.CoreCustomImagePath);
 
-        // T17/#56：透传属性归队 Live-apply 管线——ShowCoreIcon 上报防抖落盘并（#56 起）上报预览
-        // 重绘（页面 checkbox 事件已删除，重绘全部经消息管线）；CoreIconType/CoreCustomImagePath
-        // 同时上报预览重绘；CoreCustomIconKey 保持纯通知（其落盘由 PickCoreIcon 经
-        // SaveNowRequested 驱动）。
+        // 透传属性走 Live-apply 管线——ShowCoreIcon 上报防抖落盘并上报预览重绘（重绘全部经消息
+        // 管线）；CoreIconType/CoreCustomImagePath 同时上报预览重绘；CoreCustomIconKey 保持纯通知
+        // （其落盘由 PickCoreIcon 驱动）。
         Assert.Equal(4, propertyNotifications);
         Assert.Equal(3, log.Preview);
         Assert.Equal(3, log.AutoSave);
@@ -984,7 +982,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal(3, log.AutoSave);
     }
 
-    // --- 透传属性管线逐项语义 (T17) -------------------------------------------------
+    // --- 透传属性管线逐项语义 -------------------------------------------------
 
     [Fact]
     public void ShowCoreIcon_Setter_RaisesPreviewAndAutoSave()
@@ -993,8 +991,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         vm.ShowCoreIcon = false;
 
-        // #56：ShowCoreIcon 变更经 AppearancePreviewInvalidatedMessage 触发页面预览重绘（页面
-        // Checked/Unchecked 事件处理器删除），落盘仍走防抖请求。
+        // ShowCoreIcon 变更经 AppearancePreviewInvalidatedMessage 触发页面预览重绘，
+        // 落盘仍走防抖请求。
         Assert.Equal(1, log.Preview);
         Assert.Equal(1, log.AutoSave);
         Assert.Equal(0, log.SaveNow);
@@ -1075,8 +1073,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("", config.Current.CoreCustomIconKey);
     }
 
-    // --- 预览输入接口（#55/#56 IWheelAppearanceState：轮盘外观设置子 VM 实现方；#69 起预览
-    // Profile 上下文经 M1 只读 IProfilePreviewSource 注入转发） ------------------------------
+    // --- 预览输入接口（IWheelAppearanceState：外观设置子 VM 实现方；预览 Profile 上下文
+    // 经只读 IProfilePreviewSource 注入转发） ------------------------------
 
     [Fact]
     public void WheelAppearanceSettingsViewModel_ImplementsIWheelAppearanceState_ReadsThroughSamePreviewSurface()
@@ -1113,14 +1111,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("M0,0L1,1", state.CoreCustomIconSvg);
         Assert.Equal("C:\\core.png", state.CoreCustomImagePath);
         Assert.Same(configService.Current, state.CurrentConfig);
-        // 预览 Profile 上下文：构造后默认选中首项；无选中回落与迁移前渲染器取值链一致。
+        // 预览 Profile 上下文：构造后默认选中首项；无选中时沿用渲染器取值链的回落。
         Assert.Same(profile, state.PreviewProfile);
     }
 
     [Fact]
     public void Constructor_AcceptsIProfilePreviewSource_NotConcreteProfileListVm_AndForwardsToPreviewState()
     {
-        // #69（B2）：外观设置子 VM 的预览 Profile 上下文来源改经 M1 只读接口构造注入——若签名回退
+        // 外观设置子 VM 的预览 Profile 上下文来源经只读接口构造注入——若签名回退
         // 为具体 ProfileListViewModel（或同族具体类型），仅实现接口的替身将无法编译（同
         // WheelPreviewRendererTests 方法组钉签名的编译期验证思路）。
         var profile = new WheelProfile { ProcessName = "chrome.exe", SectorCount = 8 };
@@ -1134,7 +1132,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         Assert.Same(profile, state.PreviewProfile);
 
-        // 来源（M1 实现方选中态）变化即时反映到预览状态面
+        // 来源（实现方选中态）变化即时反映到预览状态面
         var other = new WheelProfile { ProcessName = "b.exe", SectorCount = 4 };
         source.PreviewProfile = other;
         Assert.Same(other, state.PreviewProfile);
@@ -1151,7 +1149,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         };
         var dialogs = new TestDialogService();
         var (messenger, _) = SaveSpy.Create();
-        // 以真实方案列表 VM（M1 实现方）作接口来源注入——镜像 Composition 装配（IProfilePreviewSource 别名）。
+        // 以真实方案列表 VM（实现方）作接口来源注入——镜像组合根装配（IProfilePreviewSource 别名）。
         var profileList = new ProfileListViewModel(
             configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
         var vm = new WheelAppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);

@@ -21,20 +21,18 @@ using StarPie.Views.Pages;
 namespace StarPie.Tests;
 
 /// <summary>
-/// B9/#82（模块化：M1 Gestures 抽取·收口）跨集归属、依赖与注册收口：
-/// 手势管线（<see cref="MouseHook"/>/<see cref="GestureController"/>/<see cref="GestureEngine"/>/
+/// 手势模块（Gestures）跨程序集归属、依赖与注册收口：手势管线
+/// （<see cref="MouseHook"/>/<see cref="GestureController"/>/<see cref="GestureEngine"/>/
 /// <see cref="IWindowContext"/>/<see cref="WindowContext"/>）、动作执行
 /// （<see cref="IActionExecutorService"/>/<see cref="ActionExecutorService"/>/<see cref="ActionRouting"/>）、
 /// 触发+手势设置页（VM <see cref="BehaviorSettingsViewModel"/>/<see cref="ProfileListViewModel"/>/
 /// <see cref="SlotViewModel"/> + View <see cref="TriggerSettingsPage"/>/<see cref="GesturesSettingsPage"/>）
-/// 迁入 <c>StarPie.Gestures</c>；模块注册器 <see cref="GesturesModuleRegistrar"/>
-/// （RegisterNavigation + RegisterServices）随模块迁出 exe（原 M1ModuleRegistrar/M1PageTemplates.xaml
-/// 替换为 GesturesModuleRegistrar/GesturesPageTemplates.xaml），页面 VM 的 DI 注册与
-/// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集。
-/// B10/#83：命名空间统一为 StarPie.*（全仓前缀替换，保持跨程序集共享命名空间树，
-/// ADR-0016 决策 12）。
-/// Gestures → Core 单向 + Gestures → Wheel 允许边（M1→M2，IWheelFactory/IWheelViewModel），
-/// 不引用 Host/其它业务模块；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
+/// 位于 <c>StarPie.Gestures</c>；模块注册器 <see cref="GesturesModuleRegistrar"/>
+/// （RegisterNavigation + RegisterServices）驻本程序集，页面 VM 的 DI 注册与
+/// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集；
+/// 命名空间统一为 StarPie.*（跨程序集共享命名空间树）。
+/// Gestures → Core 单向 + Gestures → Wheel 允许边（IWheelFactory/IWheelViewModel），
+/// 不引用宿主/其它业务模块；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
 /// </summary>
 public sealed class GesturesAssemblyPlacementTests
 {
@@ -73,8 +71,8 @@ public sealed class GesturesAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Core", referenced);
-        // M1→M2 允许边（assemblies.md §3）：GestureEngine/GestureController 经 IWheelFactory/
-        // IWheelViewModel 消费瞬态轮盘（D5，ADR-0016 决策 11）。
+        // 手势 → 轮盘允许边：GestureEngine/GestureController 经 IWheelFactory/
+        // IWheelViewModel 消费瞬态轮盘。
         Assert.Contains("StarPie.Wheel", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
@@ -85,9 +83,9 @@ public sealed class GesturesAssemblyPlacementTests
     [Fact]
     public void MouseHook_dev触发键_经Core回填缝_不反向引用Host()
     {
-        // B9/#82：MouseHook 随 M1 迁出 exe 后 dev 分支读 Core AppDataPaths.IsDevInstance 回填缝
-        // （组合根装配前以 DevInstance.IsActive 回填）——构造时据此选中间键/右键触发，
-        // 行为与迁移前一致（WM_MBUTTONDOWN=0x207 / WM_RBUTTONDOWN=0x204）。
+        // MouseHook dev 分支读 Core AppDataPaths.IsDevInstance 回填缝
+        // （组合根装配前以 DevInstance.IsActive 回填）——构造时据此选中间键/右键触发
+        // （WM_MBUTTONDOWN=0x207 / WM_RBUTTONDOWN=0x204）。
         const int wmMButtonDown = 0x0207;
         const int wmRButtonDown = 0x0204;
         const string downField = "_triggerDownMessage";
@@ -156,8 +154,8 @@ public sealed class GesturesAssemblyPlacementTests
         services.AddSingleton<IMessenger>(TestHub.NewMessenger());
         services.AddSingleton<IDialogService>(new TestDialogService());
 
-        // 镜像 Composition 装配顺序：M4（IThemeService）→ M2（IWheelFactory，M1→M2 允许边）
-        // → M1（手势管线/页面 VM）。
+        // 镜像组合根装配顺序：主题（IThemeService）→ 轮盘（IWheelFactory，手势→轮盘允许边）
+        // → 手势（手势管线/页面 VM）。
         ThemeModuleRegistrar.RegisterServices(services);
         WheelModuleRegistrar.RegisterServices(services);
         GesturesModuleRegistrar.RegisterServices(services);
@@ -177,7 +175,7 @@ public sealed class GesturesAssemblyPlacementTests
         Assert.Equal("StarPie.Gestures", executor.GetType().Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", behavior.GetType().Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", profiles.GetType().Assembly.GetName().Name);
-        // 别名即 M1 实现方单例（镜像 Composition 装配：#69/B8 契约在 Core、B9 别名下放模块）。
+        // 别名即手势实现方单例（镜像组合根装配：契约在 Core、别名在模块注册器注册）。
         Assert.IsType<ProfileListViewModel>(source);
         Assert.Same(profiles, source);
         Assert.Same(behavior, provider.GetRequiredService<BehaviorSettingsViewModel>());

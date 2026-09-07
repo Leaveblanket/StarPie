@@ -2,9 +2,7 @@ namespace StarPie.Views.Renderers
 {
     public static class StyleRendererFactory
     {
-        /// <summary>
-        /// Instantiates the appropriate style renderer for the given style name.
-        /// </summary>
+        /// <summary>按风格名实例化对应的样式渲染器。</summary>
         public static IRadialStyleRenderer CreateRenderer(string style)
         {
             if (string.IsNullOrEmpty(style))

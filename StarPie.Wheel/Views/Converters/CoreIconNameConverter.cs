@@ -4,7 +4,7 @@ using System.Windows.Data;
 
 namespace StarPie.Views.Converters
 {
-    /// <summary>核圆自定义图标展示名（T21 文本绑定化）：优先图标键，其次 SVG，缺省提示默认五角星。</summary>
+    /// <summary>核圆自定义图标展示名：优先图标键，其次 SVG，缺省提示默认五角星。</summary>
     public sealed class CoreIconNameConverter : IMultiValueConverter
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)

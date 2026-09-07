@@ -56,7 +56,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!--  Top Header & Current Color Preview  -->
+		<!--  顶部标题与当前颜色预览  -->
         <Grid Grid.Row="0" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -76,7 +76,7 @@
                     Text="{DynamicResource ColorPickerSubtitle}" />
             </StackPanel>
 
-            <!--  Color Preview Card  -->
+			<!--  颜色预览卡  -->
             <StackPanel
                 Grid.Column="1"
                 VerticalAlignment="Center"
@@ -89,7 +89,7 @@
                     BorderThickness="1"
                     CornerRadius="6">
                     <Grid>
-                        <!--  Checkerboard for alpha  -->
+						<!--  透明度棋盘格底  -->
                         <Border Background="{DynamicResource SubtleCardBrush}" CornerRadius="5" />
                         <Border
                             x:Name="ColorPreviewBorder"
@@ -113,7 +113,7 @@
             </StackPanel>
         </Grid>
 
-        <!--  Middle Body: Spectrum Canvas & Sliders & Eyedropper & Palette  -->
+		<!--  中间主体：色盘画布、滑杆、屏上取色与色卡  -->
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="170" />
@@ -122,7 +122,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!--  1. Color Spectrum (Saturation & Value)  -->
+			<!--  1. 色盘（饱和度与明度）  -->
             <Border
                 Grid.Row="0"
                 BorderBrush="{DynamicResource CardBorderBrush}"
@@ -134,7 +134,7 @@
                     behaviors:SpectrumCanvasBehavior.Command="{Binding SetSpectrumPointActionCommand}"
                     Background="{Binding SpectrumHex, Converter={StaticResource HexToBrushConverter}}"
                     Cursor="Cross">
-                    <!--  White to Transparent Horizontal Gradient  -->
+					<!--  白色到透明的水平渐变  -->
                     <Rectangle Width="{Binding ActualWidth, ElementName=SpectrumCanvas}"
                         Height="{Binding ActualHeight, ElementName=SpectrumCanvas}">
                         <Rectangle.Fill>
@@ -144,7 +144,7 @@
                             </LinearGradientBrush>
                         </Rectangle.Fill>
                     </Rectangle>
-                    <!--  Transparent to Black Vertical Gradient  -->
+					<!--  透明到黑色的垂直渐变  -->
                     <Rectangle Width="{Binding ActualWidth, ElementName=SpectrumCanvas}"
                         Height="{Binding ActualHeight, ElementName=SpectrumCanvas}">
                         <Rectangle.Fill>
@@ -154,7 +154,7 @@
                             </LinearGradientBrush>
                         </Rectangle.Fill>
                     </Rectangle>
-                    <!--  Draggable Spectrum Thumb  -->
+					<!--  可拖动的色盘游标  -->
                     <Ellipse
                         x:Name="SpectrumThumb"
                         Width="14"
@@ -175,9 +175,9 @@
                 </Canvas>
             </Border>
 
-            <!--  2. Hue & Alpha Sliders  -->
+			<!--  2. 色相与透明度滑杆  -->
             <StackPanel Grid.Row="1" Margin="0,8,0,6">
-                <!--  Hue Rainbow Slider  -->
+				<!--  色相彩虹滑杆  -->
                 <Grid Margin="0,0,0,4">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="46" />
@@ -210,7 +210,7 @@
                     </Slider>
                 </Grid>
 
-                <!--  Alpha Opacity Slider  -->
+				<!--  透明度滑杆  -->
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="46" />
@@ -232,7 +232,7 @@
                 </Grid>
             </StackPanel>
 
-            <!--  3. Screen Eyedropper Tool Button  -->
+			<!--  3. 屏上取色按钮  -->
             <Border
                 Grid.Row="2"
                 Margin="0,0,0,6"
@@ -271,7 +271,7 @@
                 </Grid>
             </Border>
 
-            <!--  4. Preset Color Swatches in Scrollable Container  -->
+			<!--  4. 可滚动容器内的预设色卡  -->
             <Grid Grid.Row="3" Margin="0,2,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -303,7 +303,7 @@
             </Grid>
         </Grid>
 
-        <!--  Bottom Actions (Confirm / Cancel)  -->
+		<!--  底部操作区（确认/取消）  -->
         <Grid Grid.Row="2" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

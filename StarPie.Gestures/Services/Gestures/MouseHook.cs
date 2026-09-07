@@ -5,9 +5,8 @@ using System.Runtime.InteropServices;
 namespace StarPie.Services.Gestures
 {
     /// <summary>
-    /// Hook event argument: raw screen coordinates plus whether the event was
-    /// consumed by gesture handling. Intentionally free of UI-framework types
-    /// so the hook stays a pure adapter (ADR-0002).
+    /// 钩子事件参数：原始屏幕坐标，以及事件是否已被手势处理消费。
+    /// 刻意不携带 UI 框架类型，使钩子保持纯适配器。
     /// </summary>
     public class MouseHookEventArgs : EventArgs
     {
@@ -74,11 +73,9 @@ namespace StarPie.Services.Gestures
         private const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
         private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
 
-        // Dev instances trigger on the middle button so they can coexist with the
-        // installed release, which keeps the default right-button gesture.
-        // B9/#82：随 M1 迁入 StarPie.Gestures 后本集不反向引用 Host 的 DevInstance——
-        // dev 分支改读 Core 的 AppDataPaths.IsDevInstance 回填缝（组合根装配前以
-        // DevInstance.IsActive 回填，语义与迁移前一致；AutostartRegistry 同款，见 layering.md）。
+        // dev 实例以中键触发，与保留默认右键手势的正式版共存。dev 分支读共享内核的
+        // AppDataPaths.IsDevInstance 回填缝（组合根装配前以 DevInstance.IsActive 回填），
+        // 本模块不反向引用宿主。
         private readonly int _triggerDownMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
         private readonly int _triggerUpMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONUP : WM_RBUTTONUP;
 

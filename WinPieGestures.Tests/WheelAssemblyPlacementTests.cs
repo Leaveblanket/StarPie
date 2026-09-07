@@ -20,23 +20,20 @@ using StarPie.Views.Wheel;
 namespace StarPie.Tests;
 
 /// <summary>
-/// B8/#81（模块化：M2 Wheel 抽取，含 D5 解结）跨集归属、依赖与可见性收口：
-/// 轮盘 VM（<see cref="WheelViewModel"/>/<see cref="IWheelViewModel"/>）、窗口
+/// 轮盘模块（Wheel）跨程序集归属、依赖与可见性收口：轮盘 VM
+/// （<see cref="WheelViewModel"/>/<see cref="IWheelViewModel"/>）、窗口
 /// （<see cref="RadialWindow"/>）、样式渲染器（<see cref="IRadialStyleRenderer"/> 系 +
 /// <see cref="WheelPreviewRenderer"/>）、轮盘配色（<see cref="WheelPalette"/>/
-/// <see cref="WheelPaletteCatalog"/>/<see cref="WheelPaletteParser"/>，物理收编本集 Models；
-/// <see cref="CustomColorPreset"/> 仍居 Core——AppConfig 配置 POCO 依赖）、轮盘视觉几何
-/// （<see cref="WheelGeometry"/>）、轮盘工厂（<see cref="WheelFactory"/>/<see cref="IWheelFactory"/>，
-/// D5）与核图标预览转换器（<see cref="CoreIconGeometryConverter"/>/<see cref="CoreIconNameConverter"/>，
-/// B5/#78 暂留 Host 的归属裁决：随 M2）迁入 <c>StarPie.Wheel</c>；模块注册器
+/// <see cref="WheelPaletteCatalog"/>/<see cref="WheelPaletteParser"/>，位于本集 Models；
+/// <see cref="CustomColorPreset"/> 仍居共享内核——AppConfig 配置 POCO 依赖）、轮盘视觉几何
+/// （<see cref="WheelGeometry"/>）、轮盘工厂（<see cref="WheelFactory"/>/
+/// <see cref="IWheelFactory"/>）与核图标预览转换器（<see cref="CoreIconGeometryConverter"/>/
+/// <see cref="CoreIconNameConverter"/>）位于 <c>StarPie.Wheel</c>；模块注册器
 /// <see cref="WheelModuleRegistrar"/> 下放轮盘工厂与外观设置子 VM 的 DI 注册。
-/// D5 解结（ADR-0016 决策 11）：轮盘工厂实现随 M2、<see cref="IWheelFactory"/> 留 M2 侧接口，
-/// M1 手势侧（<see cref="GestureEngine"/>，B9/#82 起随 StarPie.Gestures 成集）只经接口消费；
-/// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 上提共享内核 Core（实现方 M1
-/// ProfileListViewModel、消费方 M2 WheelAppearanceSettingsViewModel 均只依赖 Core）。
-/// B10/#83：命名空间统一为 StarPie.*（全仓前缀替换，保持跨程序集共享命名空间树，
-/// ADR-0016 决策 12）。
-/// Wheel → Core 单向 + Wheel → Theme 允许边（IThemeService），不引用 Host/其它业务模块。
+/// 工厂接口与实现同驻本模块，手势侧（<see cref="GestureEngine"/>，位于 StarPie.Gestures）
+/// 只经接口消费；预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 位于共享内核
+/// Core（实现方 ProfileListViewModel、消费方 WheelAppearanceSettingsViewModel 均只依赖 Core）。
+/// Wheel → Core 单向 + Wheel → Theme 允许边（IThemeService），不引用宿主/其它业务模块。
 /// </summary>
 public sealed class WheelAssemblyPlacementTests
 {
@@ -81,7 +78,7 @@ public sealed class WheelAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Core", referenced);
-        // M2→M4 允许边（assemblies.md §3）：RadialWindow/WheelFactory 消费 IThemeService。
+        // 轮盘 → 主题允许边：RadialWindow/WheelFactory 消费 IThemeService。
         Assert.Contains("StarPie.Theme", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
@@ -102,12 +99,12 @@ public sealed class WheelAssemblyPlacementTests
     [Fact]
     public void D5解结_工厂随M2且接口留M2侧_M1手势侧只经接口引用()
     {
-        // IWheelFactory 与实现同在 StarPie.Wheel（D5/ADR-0016 决策 11）。
+        // IWheelFactory 与实现同在 StarPie.Wheel。
         Assert.Equal("StarPie.Wheel", typeof(IWheelFactory).Assembly.GetName().Name);
         Assert.True(typeof(IWheelFactory).IsAssignableFrom(typeof(WheelFactory)));
 
-        // M1 手势侧（GestureEngine，B9/#82 起驻 StarPie.Gestures）构造注入的是 M2 接口——
-        // StarPie.Gestures → StarPie.Wheel 仅接口面，不反向组装 M2 瞬态轮盘。
+        // 手势侧（GestureEngine，位于 StarPie.Gestures）构造注入的是轮盘接口——
+        // StarPie.Gestures → StarPie.Wheel 仅接口面，不反向组装瞬态轮盘。
         Assert.Equal("StarPie.Gestures", typeof(GestureEngine).Assembly.GetName().Name);
         var wheelFactoryParam = typeof(GestureEngine)
             .GetConstructors()
@@ -117,7 +114,7 @@ public sealed class WheelAssemblyPlacementTests
         Assert.Equal(typeof(IWheelFactory), wheelFactoryParam.ParameterType);
         Assert.Equal("StarPie.Wheel", wheelFactoryParam.ParameterType.Assembly.GetName().Name);
 
-        // M1→M2 单向成立：GestureEngine 所在程序集不反向引用 Host（其余跨 M 契约经 Core）。
+        // 手势 → 轮盘单向成立：GestureEngine 所在程序集不反向引用宿主（其余跨模块契约经 Core）。
         string?[] m1References = typeof(GestureEngine).Assembly.GetReferencedAssemblies().Select(a => a.Name).ToArray();
         Assert.DoesNotContain("StarPie", m1References);
     }
@@ -139,10 +136,10 @@ public sealed class WheelAssemblyPlacementTests
         services.AddSingleton<ILocalizationService>(localization);
         services.AddSingleton<IMessenger>(TestHub.NewMessenger());
         services.AddSingleton<IDialogService>(new TestDialogService());
-        // M1 实现方（ProfileListViewModel，B9/#82 起驻 StarPie.Gestures）：本用例只验证 M2 注册器
+        // 实现方（ProfileListViewModel，位于 StarPie.Gestures）：本用例只验证轮盘注册器
         // 对只读契约的消费，以替身注册别名即可（真实别名装配由 GesturesModuleRegistrar 覆盖）。
         services.AddSingleton<IProfilePreviewSource>(new FakeProfilePreviewSource());
-        // IThemeService 由 M4 注册器提供（Wheel 消费允许边）。
+        // IThemeService 由主题模块注册器提供（轮盘消费允许边）。
         ThemeModuleRegistrar.RegisterServices(services);
 
         WheelModuleRegistrar.RegisterServices(services);

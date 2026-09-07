@@ -5,12 +5,12 @@ using CommunityToolkit.Mvvm.Input;
 namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>
-    /// 输入对话框 ViewModel (T07, ADR-0001/0004)：接管迁移前 InputDialog code-behind 的全部确认逻辑——
-    /// 去除首尾空白、空输入拦截（固定文案）、验证回调判定。有效性规则收在 VM：确认无效时经
-    /// 对话框服务弹提示（窗口保持打开）；确认有效时置 <see cref="IsCompleted"/> 请求关窗；
-    /// 取消不经过状态，由视图直接关窗。
-    /// 结果遵循可空结果对象约定（ADR-0004）：取消与无效输入不产生结果，<see cref="BuildResult"/> 为 null。
+    /// 输入对话框 ViewModel：确认逻辑全部在此——去除首尾空白、空输入拦截（固定文案）、
+    /// 验证回调判定。有效性规则收在 VM：确认无效时经对话框服务弹提示（窗口保持打开）；
+    /// 确认有效时置 <see cref="IsCompleted"/> 请求关窗；取消不经过状态，由视图直接关窗。
     /// </summary>
+    /// <remarks>结果遵循可空结果对象约定：取消与无效输入不产生结果，
+    /// <see cref="BuildResult"/> 为 null。</remarks>
     public partial class InputViewModel : ObservableObject
     {
         private readonly Func<string, (bool IsValid, string ErrorMessage)>? _validator;

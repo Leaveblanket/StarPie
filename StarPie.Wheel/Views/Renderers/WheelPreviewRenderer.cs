@@ -18,14 +18,15 @@ using Point = System.Windows.Point;
 namespace StarPie.Views.Renderers
 {
     /// <summary>
-    /// Draws the 60FPS live wheel preview. The page owns only the Canvas and forwards
-    /// mouse events; all visual state and geometry construction stays in this View-layer renderer.
-    /// (ADR-0009 白名单 3/4/5: 只读 VM 状态绘制, hover 坐标仅译成高亮; 不订阅事件、不写 VM,
-    /// 深浅色探测由调用方（外观页）以 bool 传入——B8/#81 起不引用 Host MainView，
-    /// M2 模块不反向依赖宿主。)
-    /// #55 (ADR-0014 决策 8): 输入契约收窄为轮盘模块只读接口 <see cref="IWheelAppearanceState"/>,
-    /// 不再依赖具体外观聚合 VM 类型。
+    /// 绘制 60FPS 实时轮盘预览。页面只持有 Canvas 并转发鼠标事件；全部视觉状态与
+    /// 几何构造都留在本视图层渲染器。
     /// </summary>
+    /// <remarks>
+    /// 纯视觉契约：只读 VM 状态绘制，hover 坐标仅译成高亮；不订阅事件、不写 VM，
+    /// 深浅色探测由调用方（外观页）以 bool 传入，模块不反向依赖宿主。
+    /// 输入契约收窄为轮盘模块只读接口 <see cref="IWheelAppearanceState"/>，
+    /// 不依赖具体外观聚合 VM 类型。
+    /// </remarks>
     public sealed class WheelPreviewRenderer
     {
         private readonly List<System.Windows.Shapes.Path> _previewSectorPaths = new();

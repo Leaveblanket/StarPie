@@ -4,10 +4,9 @@ using Application = System.Windows.Application;
 namespace StarPie.Services.Gestures
 {
     /// <summary>
-    /// App-side adapter around the pure <see cref="GestureEngine"/> (ADR-0002):
-    /// feeds hook events in, then carries out the engine's decisions — replaying a
-    /// suppressed click and executing the chosen action — on the UI thread.
-    /// All gesture decisions live in the engine; this class performs side effects.
+    /// 纯 <see cref="GestureEngine"/> 的应用侧适配器：把钩子事件喂入引擎，再在 UI 线程
+    /// 执行引擎的决策——补发被抑制的点击与执行所选动作。手势决策全部在引擎内，
+    /// 本类只做副作用。
     /// </summary>
     public class GestureController
     {

@@ -1,9 +1,8 @@
 namespace StarPie.Views.Pages
 {
     /// <summary>
-    /// 关于与更新页面 (T19/T24)：迁移前 SettingsWindow PAGE 4 原样搬迁；已本地化文本经
-    /// 语言字典声明式化（里程碑等未本地化硬编码文案不在本票）。
-    /// 页面 ViewModel 为 <see cref="ViewModels.AboutViewModel"/> 空壳（纯静态展示内容，无用户状态）。
+    /// 关于与更新页面：纯静态展示内容、无用户状态，ViewModel 为
+    /// <see cref="ViewModels.AboutViewModel"/> 空壳；里程碑等静态内容由 XAML 声明。
     /// </summary>
     public partial class AboutSettingsPage : SettingsPageBase
     {

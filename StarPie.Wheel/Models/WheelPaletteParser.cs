@@ -3,7 +3,7 @@ using System;
 namespace StarPie.Models
 {
     /// <summary>
-    /// 轮盘配色解析器（ADR-0014 决策 3/10）：输入配色方案名（System/Dark/Light/
+    /// 轮盘配色解析器：输入配色方案名（System/Dark/Light/
     /// MatchaForest/GlacialIce/MorandiMuted/Custom/CustomPreset_*）与运行配置/OS 深浅色，
     /// 输出最终色值组。只做纯数据换算，不依赖 WPF；System↔OS、系统预设、自定义预设
     /// （id/name/CustomPreset_ 前缀）匹配、Custom 微调与坏值/空值回落集中于此。
@@ -49,7 +49,7 @@ namespace StarPie.Models
                 CustomColorPreset? preset = FindPreset(theme, config);
                 if (preset != null)
                 {
-                    // 命中预设即整组采用其色值；任一字段 null/非法与现状一致整组回落紧急色。
+                    // 命中预设即整组采用其色值；任一字段 null/非法即整组回落紧急色。
                     if (TryParsePreset(preset, out var sectorBg, out var sectorBorder, out var highlightBg, out var highlightBorder, out var textColor))
                     {
                         return WheelPalette.Create(sectorBg, sectorBorder, highlightBg, highlightBorder, textColor);
@@ -57,7 +57,7 @@ namespace StarPie.Models
                     return WheelPaletteCatalog.Emergency;
                 }
 
-                // 带前缀但预设已不存在：保持风格默认观感（现状 Find 未命中行为）。
+                // 带前缀但预设已不存在：保持风格默认观感。
                 return palette;
             }
             if (theme == "Custom")

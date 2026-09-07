@@ -9,11 +9,12 @@ using CommunityToolkit.Mvvm.Input;
 namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>
-    /// 程序选择器 ViewModel (T06, ADR-0001/0004)：完整接管扫描编排（注入扫描委托，测试可换假实现）、
-    /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把 <see cref="IsCompleted"/>
-    /// 落成 DialogResult。确认结果遵循可空结果对象约定：未选中时 <see cref="BuildResult"/> 为 null，
-    /// VM 经对话框服务弹提示并保持窗口打开；取消与无效不产生结果。
+    /// 程序选择器 ViewModel：完整接管扫描编排（注入扫描委托，测试可换假实现）、
+    /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把
+    /// <see cref="IsCompleted"/> 落成 DialogResult。
     /// </summary>
+    /// <remarks>确认结果遵循可空结果对象约定：未选中时 <see cref="BuildResult"/> 为 null，
+    /// VM 经对话框服务弹提示并保持窗口打开；取消与无效不产生结果。</remarks>
     public partial class ProgramPickerViewModel : ObservableObject
     {
         /// <summary>手动浏览的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
@@ -120,7 +121,7 @@ namespace StarPie.ViewModels.Dialogs
             IsCompleted = true;
         }
 
-        /// <summary>手动浏览：经对话框服务开系统文件对话框；.lnk 解析为真实目标（沿用旧行为），
+        /// <summary>手动浏览：经对话框服务开系统文件对话框；.lnk 解析为真实目标，
         /// 取消则停留在本窗口。</summary>
         [RelayCommand]
         private void BrowseManually()

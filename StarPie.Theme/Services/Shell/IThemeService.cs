@@ -4,38 +4,35 @@ using System.Windows;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// Theme seam (ADR-0002/0013/#47): owns the app's current effective theme, applies
-    /// theme changes through the single <see cref="SetTheme"/> entry point and drives the
-    /// DWM title bar via <see cref="ApplyWindowTheme"/>. Palette swapping lives behind
-    /// the module-level ThemePaletteManager callback (B7/#80 起同驻 StarPie.Theme);
-    /// this service never touches Views. Consumed by Host windows/dialog factory and
-    /// (B8 收编 M2 后) the wheel side; pages never hold IThemeService (ADR-0009 whitelist).
+    /// 界面主题服务接缝：拥有当前有效主题；主题变更经单一入口 <see cref="SetTheme"/> 应用，
+    /// 并负责窗口 DWM 标题栏的深浅色切换（<see cref="ApplyWindowTheme"/>）。
     /// </summary>
+    /// <remarks>
+    /// 调色板整项替换由模块级 ThemePaletteManager 回调执行，本服务不触碰 Views。
+    /// 消费方为宿主的窗口/对话框工厂与轮盘侧；页面不持有本服务（壳层 View 效果白名单）。
+    /// </remarks>
     public interface IThemeService
     {
-        /// <summary>Theme applied by the last successful SetTheme call ("Light", "Dark",
-        /// "MidnightNavy", "RoyalViolet", "TitaniumGray"); "Light" until the first apply.</summary>
+        /// <summary>最近一次成功 SetTheme 应用的有效主题（"Light"/"Dark"/"MidnightNavy"/
+        /// "RoyalViolet"/"TitaniumGray"）；首次应用前为 "Light"。</summary>
         string CurrentEffectiveTheme { get; }
 
-        /// <summary>Raised after the effective theme actually changes (single entry point
-        /// contract: subscribers observe SetTheme only).</summary>
+        /// <summary>有效主题实际变化后触发（单一入口契约：订阅方只观察 SetTheme）。</summary>
         event Action? ThemeChanged;
 
-        /// <summary>Single state + resource entry point: resolves "System"/empty through
-        /// the live Windows probe, records <see cref="CurrentEffectiveTheme"/>, triggers the
-        /// host palette replacement and raises <see cref="ThemeChanged"/>. Re-applying the
-        /// same effective theme is a no-op.</summary>
+        /// <summary>唯一的状态/资源入口：经实时 Windows 探测解析 "System"/空值，记录
+        /// <see cref="CurrentEffectiveTheme"/>，触发宿主调色板整项替换并广播 <see cref="ThemeChanged"/>。
+        /// 重复应用同一有效主题为 no-op。</summary>
         void SetTheme(string themeName);
 
-        /// <summary>Applies the current effective theme to a window's DWM title bar only
-        /// (resources are already app-wide). Null root is safe and keeps state unchanged.</summary>
+        /// <summary>仅把当前有效主题应用到窗口的 DWM 标题栏（资源已是 App 级）。
+        /// null root 安全且不改状态。</summary>
         void ApplyWindowTheme(FrameworkElement? rootElement);
 
-        /// <summary>"System"/empty resolves to "Dark"/"Light" via the Windows setting;
-        /// any other name passes through unchanged.</summary>
+        /// <summary>"System"/空值按 Windows 设置解析为 "Dark"/"Light"；其余名称原样通过。</summary>
         string ResolveEffectiveTheme(string themeName);
 
-        /// <summary>True when Windows itself is in dark mode (live registry read).</summary>
+        /// <summary>Windows 自身处于深色模式时为 true（实时注册表读取）。</summary>
         bool IsWindowsInDarkTheme();
     }
 }

@@ -1,9 +1,8 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!--  StarPie Light 主题画刷令牌 (ADR-0012)：key 集与其它 Themes/*.xaml 完全一致；
-          默认由 App.xaml 静态合并（设计时/首帧），运行时由 AppHost 按主题覆盖到
-          Application 直接资源。  -->
+    <!--  StarPie Light 主题画刷令牌：key 集与其它 Themes/*.xaml 完全一致；
+          默认由 App.xaml 静态合并（设计时/首帧），运行时由宿主按主题整项替换主题槽。  -->
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#F8FAFC" />
     <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF" />

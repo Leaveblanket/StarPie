@@ -11,7 +11,7 @@
         WindowStartupLocation="Manual">
     
     <Window.Resources>
-        <!-- Premium Radial Shadow -->
+        <!-- 高品质径向阴影 -->
         <DropShadowEffect x:Key="RadialShadow" Color="#000000" BlurRadius="28" ShadowDepth="2" Opacity="0.45"/>
         <DropShadowEffect x:Key="TextShadow" Color="#000000" BlurRadius="4" ShadowDepth="1" Opacity="0.8"/>
     </Window.Resources>
@@ -26,7 +26,7 @@
             </TransformGroup>
         </Grid.RenderTransform>
         
-        <!-- Outer Glowing Ring Border -->
+        <!-- 外圈发光环边框 -->
         <Ellipse Name="OuterEllipse" HorizontalAlignment="Center" VerticalAlignment="Center" StrokeThickness="1.5">
             <Ellipse.Stroke>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
@@ -37,9 +37,9 @@
             </Ellipse.Stroke>
         </Ellipse>
 
-        <!-- Main Canvas where slices and labels are drawn -->
+        <!-- 主画布：绘制扇区与标签 -->
         <Canvas Name="WheelCanvas" Width="340" Height="340" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{StaticResource RadialShadow}">
-            <!-- Center Glassmorphism Core -->
+            <!-- 中心玻璃拟态核 -->
             <Grid Name="CoreGrid" RenderTransformOrigin="0.5,0.5">
                 <Grid.RenderTransform>
                     <ScaleTransform x:Name="CoreScale" ScaleX="1.0" ScaleY="1.0"/>
@@ -47,7 +47,7 @@
 
                 <Ellipse Name="CoreEllipse" Fill="#E0111115" Stroke="#30FFFFFF" StrokeThickness="1.2"/>
                 
-                <!-- Inner soft radial glow -->
+                <!-- 内核柔和径向光晕 -->
                 <Ellipse Margin="2">
                     <Ellipse.Fill>
                         <RadialGradientBrush Center="0.5,0.2" GradientOrigin="0.5,0.2" RadiusX="0.5" RadiusY="0.5">
@@ -58,8 +58,8 @@
                 </Ellipse>
                 
                 <StackPanel Name="CoreTextPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="5">
-                    <!-- ADR-0009 状态流走 Binding: 进程名/键数标签由 VM 只读属性声明式回填,
-                     移除 code-behind 手写 Text 赋值(该面板运行时始终 Collapsed, 行为不变)。 -->
+                    <!-- 状态流走 Binding：进程名/键数标签由 VM 只读属性声明式回填；
+                         该面板运行时始终 Collapsed。 -->
                     <TextBlock Name="CoreTitle" Text="{Binding CoreTitle}" 
                                Foreground="#D0FFFFFF" FontSize="11" FontWeight="Bold" 
                                HorizontalAlignment="Center" TextAlignment="Center"
@@ -69,12 +69,12 @@
                                HorizontalAlignment="Center" Margin="0,2,0,0"/>
                 </StackPanel>
                 
-                <!-- Modern Clean Exit Icon -->
+                <!-- 现代简洁退出图标 -->
                 <Path Name="CoreExitIcon" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"
                       Width="16" Height="16"
                       Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
                 
-                <!-- Center Core Custom Local Image (Rounded) -->
+                <!-- 中心核自定义本地图片（圆角） -->
                 <Image Name="CoreCustomImage" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False"/>
             </Grid>
         </Canvas>

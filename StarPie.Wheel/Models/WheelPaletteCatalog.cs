@@ -3,10 +3,11 @@ using System;
 namespace StarPie.Models
 {
     /// <summary>
-    /// 轮盘配色静态色值目录（ADR-0014 决策 3/10）：系统预设与各风格默认深浅观感、
-    /// 中性/紧急回落的唯一 hex 来源。方案名换算与自定义预设匹配在
-    /// <see cref="WheelPaletteParser"/>，渲染层不内联这些值。
+    /// 轮盘配色静态色值目录：系统预设与各风格默认深浅观感、中性/紧急回落的唯一 hex 来源。
     /// </summary>
+    /// <remarks>
+    /// 方案名换算与自定义预设匹配在 <see cref="WheelPaletteParser"/>，渲染层不内联这些值。
+    /// </remarks>
     public static class WheelPaletteCatalog
     {
         // ---- 系统预设（解析器按方案名整组替换，各风格一致） ----
@@ -25,11 +26,11 @@ namespace StarPie.Models
 
         // ---- 中性/紧急回落 ----
 
-        /// <summary>渲染器中性深色默认（BaseStyleRenderer 原 GetDefaultColors；CatPaw Custom 分支沿用）。</summary>
+        /// <summary>渲染器中性深色默认；CatPaw 的 Custom 分支与未知风格均回落此值。</summary>
         public static WheelPalette NeutralDark { get; } = Create(
             "#EB18181B", "#30FFFFFF", "#FF2563EB", "#FF60A5FA", "#FFF8FAFC");
 
-        /// <summary>坏值/空值全局回落：任一解析失败即整组替换（核色与扇区色不同源，沿用原 catch 表）。</summary>
+        /// <summary>坏值/空值全局回落：任一解析失败即整组替换（核色与扇区色不同源）。</summary>
         public static WheelPalette Emergency { get; } = new WheelPalette(
             Parse("#E618181B"), Parse("#35FFFFFF"), Parse("#FF3B82F6"), Parse("#A0FFFFFF"), Parse("#F8FAFC"),
             Parse("#F018181B"), Parse("#30FFFFFF"));
@@ -58,8 +59,8 @@ namespace StarPie.Models
             "#FFF7F9", "#F472B6", "#FB7185", "#FFE4E6", "#881337");
 
         /// <summary>
-        /// 按风格取默认观感（沿用各渲染器原 GetDefaultColors 语义）：非 Light 一律走深色变体；
-        /// CatPaw 除 Custom 外恒为粉彩观感，Custom 回落中性深色。未知风格回落中性深色。
+        /// 按风格取默认观感：非 Light 一律走深色变体；CatPaw 除 Custom 外恒为粉彩观感；
+        /// 未知风格与 CatPaw Custom 回落中性深色。
         /// </summary>
         public static WheelPalette GetStyleDefault(string style, string effectiveTheme)
         {
