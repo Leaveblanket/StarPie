@@ -1,7 +1,6 @@
 import os
 import subprocess
 import pytest
-import time
 from pywinauto import Application
 
 @pytest.fixture(scope="function")
@@ -47,12 +46,11 @@ def app(sandbox_env, request):
     # Start the process with sandboxed environment variables
     proc = subprocess.Popen([app_path, "--allow-multiple"], env=env)
     
-    # Connect pywinauto using PID
-    time.sleep(1.5)
+    # Connect pywinauto using PID; poll for readiness instead of a fixed sleep
     try:
-        pw_app = Application(backend="uia").connect(process=proc.pid, timeout=10)
+        pw_app = Application(backend="uia").connect(process=proc.pid, timeout=15)
         win = pw_app.window(title_re="(StarPie|WinPieGestures).*")
-        win.wait("visible", timeout=10)
+        win.wait("visible", timeout=15)
     except Exception as ex:
         proc.terminate()
         pytest.fail(f"Failed to launch or connect to application window: {ex}")
