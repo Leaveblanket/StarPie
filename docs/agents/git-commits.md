@@ -82,25 +82,38 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 
 ## Required verification before committing
 
-These are project rules, so agents must run them before committing:
+验证义务分两层门（ADR-0018）：**提交级**与**合入门**。xUnit 全量便宜（569 例，纯执行约 0.5s），任何代码提交都全量跑，不按模块拆分；e2e 用免跑判定，不拆用例子集、不移除每例冷启动。拿不准时跑全量。
 
-1. **Build must pass**:
+1. **Build must pass**（每个提交前）:
 
    ```bash
    dotnet build WinPieGestures/WinPieGestures.slnx
    ```
 
-2. **Feature / bug-fix commits** must also pass the relevant test suites:
+2. **xUnit 全量**（每个代码提交，含 refactor）:
 
    ```bash
-   # xUnit unit tests
    dotnet test WinPieGestures.Tests/WinPieGestures.Tests.csproj
+   ```
 
-   # pywinauto end-to-end tests (build first, then:)
+3. **pywinauto e2e（提交级免跑判定）**: feature / bug-fix 提交按下表判定，命中“必跑”时才先 build 再全量跑：
+
+   ```bash
    python -m pytest tests/test_settings.py -v
    ```
 
-   Refactor-only commits still require the xUnit suite to stay green.
+   | 改动面（命中任一即全量 e2e） |
+   |---|
+   | 用户可见文案：`Strings*.resx`、文案键、语言回退/切换 |
+   | 页面/窗口 XAML、DataTemplate / 页面模板字典、AutomationId、导航槽位 |
+   | 主题字典/令牌、界面主题与轮盘配色可见行为 |
+   | 设置交互语义、对话框可见行为、壳层可见行为（托盘/窗口） |
+   | `config.json` 模型/默认值/兼容面 |
+   | e2e 自身：`tests/*.py`、conftest、e2e 基建 |
+
+   未命中（纯模块内部逻辑 / 纯重构 / 文档）可免跑；边界情况按“必跑”处理。
+
+4. **合入门（merge 到 main 前）**: 主干同步后至少一次全量 xUnit + 一次全量 pywinauto e2e（agent 本地执行）；CI 只强制 xUnit。
 
 ## Do not rewrite published history
 

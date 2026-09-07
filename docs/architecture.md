@@ -78,7 +78,7 @@
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
 - 单元测试：`WinPieGestures.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
-- e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开。
+- e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务分层（提交级全量 xUnit + e2e 免跑判定、合入门全量）见 [ADR-0018](adr/0018-verification-gates-and-test-strategy.md) 与 [git-commits](agents/git-commits.md)。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
 
 ## 4. 仓库边界
@@ -126,6 +126,7 @@ Services ---> Models
 2. 新增决策若满足 ADR 三条件，先新增 ADR，再把结论回填对应叶子；反之只改叶子。
 3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja），并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](architecture/localization.md)）。
 4. 叶子增删、文件路径变化时同步更新本文（文档体系表 + 路由表 + 仓库边界树）。
+5. 验证义务与测试策略按 [ADR-0018](adr/0018-verification-gates-and-test-strategy.md) 分层：提交级 build + 全量 xUnit + e2e 免跑判定；合入 main 前全量 xUnit + 全量 e2e；不按模块拆测试、不移除 e2e 每用例冷启动。
 
 ## 附录：ADR 索引
 
@@ -148,3 +149,4 @@ Services ---> Models
 | 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） |
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行（7 程序集、导航自治、演进式组合根、B0–B10） |
 | 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） |
+| 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） |
