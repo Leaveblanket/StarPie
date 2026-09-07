@@ -4,22 +4,20 @@ using System.IO;
 namespace StarPie.Services.Configuration
 {
     /// <summary>
-    /// 应用数据目录解析 (T16 自静态配置门面收编，ADR-0002)：dev 实例沙箱隔离与
-    /// legacy 目录迁移，供组合根构造 <see cref="JsonConfigService"/> 与共享图标资产（S1）
-    /// <see cref="IconAssets"/> 自定义图标目录使用。B2/#75 Core 抽取后随 S2 迁入共享内核：
-    /// dev 分支依赖的 H1 <c>DevInstance</c> 不能反向引用，故改为宿主组合根在装配前回填
-    /// <see cref="IsDevInstance"/>（见 <c>Composition</c>）；本类除该进程级回填标记外无运行态状态，
-    /// 分支仅取决于环境变量与回填标记，无测试缝需要 mock。
+    /// 解析应用数据目录：正式实例使用 StarPie，dev 实例使用 StarPie-Dev。
     /// </summary>
+    /// <remarks>
+    /// dev/正式分支由 <see cref="IsDevInstance"/> 决定；该标记由宿主组合根在装配前回填，
+    /// 应用代码只读不写。目录供 <see cref="JsonConfigService"/>（config.json）与
+    /// <see cref="IconAssets"/>（自定义图标目录）使用。
+    /// </remarks>
     public static class AppDataPaths
     {
         private const string ReleaseFolderName = "StarPie";
         private const string DevFolderName = "StarPie-Dev";
 
-        /// <summary>
-        /// dev 实例标记（跨程序集回填缝，B2/#75）：宿主组合根以
-        /// <c>DevInstance.IsActive</c> 回填；此后目录分支与 <see cref="FolderName"/> 一致。
-        /// </summary>
+        /// <summary>dev 实例标记：为 true 时目录分支指向 StarPie-Dev 沙箱。</summary>
+        /// <remarks>由宿主组合根在装配前按 dev 启动参数回填；应用代码只读不写。</remarks>
         public static bool IsDevInstance { get; set; }
 
         /// <summary>应用数据目录名（dev 沙箱 StarPie-Dev / 正式 StarPie）——目录名的单一来源。</summary>
@@ -37,8 +35,8 @@ namespace StarPie.Services.Configuration
 
             if (IsDevInstance)
             {
-                // Dev instances sandbox into their own folder so the installed release's
-                // config is never touched; seed it once from the real config if present.
+                // Dev 实例沙箱隔离到独立目录，保证绝不触碰正式版配置；
+                // 首次运行时若正式版配置存在，则播种一份到沙箱目录。
                 string devFolder = Path.Combine(baseFolder, FolderName);
                 try
                 {
@@ -57,7 +55,7 @@ namespace StarPie.Services.Configuration
             string starPieFolder = Path.Combine(baseFolder, FolderName);
             string legacyFolder = Path.Combine(baseFolder, "WinPieGestures");
 
-            // Auto migrate from legacy folder if needed
+            // 需要时自动从旧版 WinPieGestures 目录迁移（仅当新目录不存在且旧目录存在）。
             if (!Directory.Exists(starPieFolder) && Directory.Exists(legacyFolder))
             {
                 try

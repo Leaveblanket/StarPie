@@ -14,16 +14,18 @@ using Size = System.Windows.Size;
 namespace StarPie.Services.Icons
 {
     /// <summary>
-    /// 共享「图标资产」（S1）出口（R6/ADR-0015 三分，T3a 扩展）：矢量图标清单、SVG 键目录/取值、
-    /// 自定义图标存储（列表/导入/删除/图像源）与文件/程序图标提取（<c>GetIcon</c>）。消费方：
-    /// M1 动作编辑、M2 轮盘渲染、S6 图标选择器；条目类型 <see cref="VectorIconItem"/> 与本类
-    /// 同处本命名空间（T3d/#68 收编）。
+    /// 共享「图标资产」出口：内置矢量图标清单与键目录、自定义图标存储（列表/导入/删除/图像源）
+    /// 与文件/程序图标提取（<c>GetIcon</c>），供动作编辑、轮盘渲染与图标选择器使用。
     /// </summary>
+    /// <remarks>
+    /// 自定义图标存于应用数据目录下的 CustomIcons 目录（由 <see cref="AppDataPaths"/> 解析）；
+    /// 条目类型 <see cref="VectorIconItem"/> 与本类同处本命名空间。
+    /// </remarks>
     public static class IconAssets
     {
-        /// <summary>快捷方式目标解析接缝（B2/#75 Core 抽取）：.lnk 解析属 M3
-        /// <c>ShortcutResolver</c> 出口（StarPie.Programs），共享内核不反向依赖业务模块；
-        /// 宿主组合根在启动装配时把该出口回填到 <see cref="ResolveShortcutTarget"/>。</summary>
+        /// <summary>快捷方式目标解析接缝：.lnk 解析由程序模块的 <c>ShortcutResolver</c>
+        /// （StarPie.Programs）实现，共享内核不反向依赖业务模块；宿主组合根在启动装配时
+        /// 把该出口回填到 <see cref="ResolveShortcutTarget"/>。</summary>
         public delegate bool ShortcutTargetResolver(
             string shortcutPath,
             out string targetPath,
@@ -33,10 +35,7 @@ namespace StarPie.Services.Icons
         /// <summary>当前快捷方式目标解析器（宿主装配回填；未回填时 .lnk 分支跳过提取）。</summary>
         public static ShortcutTargetResolver? ResolveShortcutTarget { get; set; }
 
-        /// <summary>
-        /// 自定义图标条目（模块 S1「图标资产」，R6/ADR-0015 三分）：自用户图标目录导入的 SVG 路径数据
-        /// 或位图文件描述；T3d/#68 起旧入口兼容子类随旧入口一并删除，仅余本类型。
-        /// </summary>
+        /// <summary>自定义图标条目：自用户图标目录导入的 SVG 路径数据或位图文件的描述。</summary>
         public class CustomIconItem
         {
             public string Key { get; set; } = "";
@@ -46,11 +45,12 @@ namespace StarPie.Services.Icons
             public bool IsSvg => !string.IsNullOrEmpty(SvgData);
         }
 
-        #region Vector Icon Catalogue
+        #region 内置矢量图标清单
 
+        /// <summary>内置矢量图标清单（键、分类、显示名与 SVG 路径数据），并据此构建按键取值的字典。</summary>
         public static readonly List<VectorIconItem> VectorIconList = new List<VectorIconItem>
         {
-            // Edit & Clipboard
+            // —— 编辑与剪贴板 ——
             new VectorIconItem { Key = "Copy", Category = "编辑与剪贴板", DisplayName = "复制 (Copy)", SvgData = "M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" },
             new VectorIconItem { Key = "Paste", Category = "编辑与剪贴板", DisplayName = "粘贴 (Paste)", SvgData = "M19,20H5V4H7V7H17V4H19M12,2A1,1 0 0,1 13,3A1,1 0 0,1 12,4A1,1 0 0,1 11,3A1,1 0 0,1 12,2M19,2H14.82C14.4,0.84 13.3,0 12,0C10.7,0 9.6,0.84 9.18,2H5A2,2 0 0,0 3,4V20A2,2 0 0,0 5,22H19A2,2 0 0,0 21,20V4A2,2 0 0,0 19,2Z" },
             new VectorIconItem { Key = "Cut", Category = "编辑与剪贴板", DisplayName = "剪切 (Cut)", SvgData = "M9.64,7.64C9.87,7.14 10,6.59 10,6A4,4 0 0,0 6,2A4,4 0 0,0 2,6A4,4 0 0,0 6,10C6.59,10 7.14,9.87 7.64,9.64L10,12L7.64,14.36C7.14,14.13 6.59,14 6,14A4,4 0 0,0 2,18A4,4 0 0,0 6,22A4,4 0 0,0 10,18C10,17.41 9.87,16.86 9.64,16.36L12,14L19,21H22L13.5,12.5L16.36,9.64C16.86,9.87 17.41,10 18,10A4,4 0 0,0 22,6A4,4 0 0,0 18,2A4,4 0 0,0 14,6C14,6.59 14.13,7.14 14.36,7.64L12,10L9.64,7.64M6,4A2,2 0 0,1 8,6A2,2 0 0,1 6,8A2,2 0 0,1 4,6A2,2 0 0,1 6,4M6,16A2,2 0 0,1 8,18A2,2 0 0,1 6,20A2,2 0 0,1 4,18A2,2 0 0,1 6,16M18,4A2,2 0 0,1 20,6A2,2 0 0,1 18,8A2,2 0 0,1 16,6A2,2 0 0,1 18,4Z" },
@@ -59,7 +59,7 @@ namespace StarPie.Services.Icons
             new VectorIconItem { Key = "Save", Category = "编辑与剪贴板", DisplayName = "保存 (Save)", SvgData = "M15,9H5V5H15M12,19A3,3 0 0,1 9,16A3,3 0 0,1 12,13A3,3 0 0,1 15,16A3,3 0 0,1 12,19M17,3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V7L17,3Z" },
             new VectorIconItem { Key = "Search", Category = "编辑与剪贴板", DisplayName = "搜索查找 (Search)", SvgData = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" },
 
-            // Window Management
+            // —— 窗口管理 ——
             new VectorIconItem { Key = "CloseWindow", Category = "窗口管理", DisplayName = "关闭当前窗口 (Close)", SvgData = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" },
             new VectorIconItem { Key = "Minimize", Category = "窗口管理", DisplayName = "最小化窗口 (Minimize)", SvgData = "M20,14H4V10H20" },
             new VectorIconItem { Key = "Maximize", Category = "窗口管理", DisplayName = "最大化/还原 (Maximize)", SvgData = "M4,4H20V20H4V4M6,6V18H18V6H6Z" },
@@ -72,7 +72,7 @@ namespace StarPie.Services.Icons
             new VectorIconItem { Key = "FullScreen", Category = "窗口管理", DisplayName = "全屏切换 (Full Screen)", SvgData = "M5,5H10V7H7V10H5V5M14,5H19V10H17V7H14V5M17,14H19V19H14V17H17V14M10,17V19H5V14H7V17H10Z" },
             new VectorIconItem { Key = "Screenshot", Category = "窗口管理", DisplayName = "屏幕截图 (Screenshot)", SvgData = "M4,4H7L9,2H15L17,4H20A2,2,0,0,1,22,6V18A2,2,0,0,1,20,20H4A2,2,0,0,1,2,18V6A2,2,0,0,1,4,4ZM12,7A5,5,0,1,0,17,12A5,5,0,0,0,12,7ZM12,9A3,3,0,1,1,9,12A3,3,0,0,1,12,9Z" },
 
-            // Browser & Navigation
+            // —— 网页浏览与导航 ——
             new VectorIconItem { Key = "Back", Category = "网页浏览", DisplayName = "后退 (Back)", SvgData = "M20,11H7.83L13.42,5.41L12,4L4,12L12,20L13.41,18.59L7.83,13H20V11Z" },
             new VectorIconItem { Key = "Forward", Category = "网页浏览", DisplayName = "前进 (Forward)", SvgData = "M12,4L10.59,5.41L16.17,11H4V13H16.17L10.59,18.59L12,20L20,12L12,4Z" },
             new VectorIconItem { Key = "Refresh", Category = "网页浏览", DisplayName = "刷新 (Refresh)", SvgData = "M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" },
@@ -82,7 +82,7 @@ namespace StarPie.Services.Icons
             new VectorIconItem { Key = "ZoomIn", Category = "网页浏览", DisplayName = "页面放大 (Zoom In)", SvgData = "M15.5,14H14.71L14.44,13.73C15.41,12.59 16,11.11 16,9.5A6.5,6.5 0 1,0 9.5,16C11.11,16 12.59,15.41 13.73,14.44L14.71,14H15.5L20.5,19L19,20.5L14,15.5M9.5,14C7,14 5,12 5,9.5C5,7 7,5 9.5,5C12,5 14,7 14,9.5C14,12 12,14 9.5,14M12,10H10V12H9V10H7V9H9V7H10V9H12V10Z" },
             new VectorIconItem { Key = "ZoomOut", Category = "网页浏览", DisplayName = "页面缩小 (Zoom Out)", SvgData = "M15.5,14H14.71L14.44,13.73C15.41,12.59 16,11.11 16,9.5A6.5,6.5 0 1,0 9.5,16C11.11,16 12.59,15.41 13.73,14.44L14.71,14H15.5L20.5,19L19,20.5L14,15.5M9.5,14C7,14 5,12 5,9.5C5,7 7,5 9.5,5C12,5 14,7 14,9.5C14,12 12,14 9.5,14M7,9H12V10H7V9Z" },
 
-            // Media & System
+            // —— 多媒体与系统 ——
             new VectorIconItem { Key = "VolumeUp", Category = "多媒体与系统", DisplayName = "音量增加 (Volume Up)", SvgData = "M3,9V15H7L12,20V4L7,9H3ZM14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.01,19.86 21,16.28 21,12C21,7.72 18.01,4.14 14,3.23ZM14,8.83V15.17C15.14,14.6 16,13.4 16,12C16,10.6 15.14,9.4 14,8.83Z" },
             new VectorIconItem { Key = "VolumeDown", Category = "多媒体与系统", DisplayName = "音量减小 (Volume Down)", SvgData = "M3,9V15H7L12,20V4L7,9H3ZM14,8.83V15.17C15.14,14.6 16,13.4 16,12C16,10.6 15.14,9.4 14,8.83ZM14,3.23V5.29C16.89,6.15 19,8.83 19,12C19,15.17 16.89,17.85 14,18.71V20.77C18.01,19.86 21,16.28 21,12Z" },
             new VectorIconItem { Key = "VolumeMute", Category = "多媒体与系统", DisplayName = "静音切换 (Mute)", SvgData = "M3,9V15H7L12,20V4L7,9H3ZM16.5,12L14,9.5L15.5,8L18,10.5L20.5,8L22,9.5L19.5,12L22,14.5L20.5,16L18,13.5L15.5,16L14,14.5L16.5,12Z" },
@@ -95,7 +95,7 @@ namespace StarPie.Services.Icons
             new VectorIconItem { Key = "Restart", Category = "多媒体与系统", DisplayName = "重启电脑 (Restart)", SvgData = "M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6.34,14H4.26A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z" },
             new VectorIconItem { Key = "Shutdown", Category = "多媒体与系统", DisplayName = "关闭电脑 (Shutdown)", SvgData = "M16.56,5.44L15.11,6.89C16.84,8.14 18,10.16 18,12.5A6,6 0 0,1 12,18.5A6,6 0 0,1 6,12.5C6,10.16 7.16,8.14 8.89,6.89L7.44,5.44C5.36,6.99 4,9.59 4,12.5A8,8 0 0,0 12,20.5A8,8 0 0,0 20,12.5C20,9.59 18.64,6.99 16.56,5.44M13,3H11V13H13V3Z" },
 
-            // Productivity & Tools
+            // —— 生产力工具 ——
             new VectorIconItem { Key = "TaskManager", Category = "生产力工具", DisplayName = "任务管理器 (Task Manager)", SvgData = "M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,19H5V5H19V19M7,10H9V17H7V10M11,7H13V17H11V7M15,13H17V17H15V13Z" },
             new VectorIconItem { Key = "Explorer", Category = "生产力工具", DisplayName = "文件资源管理器 (Explorer)", SvgData = "M19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4H10L12,6H19A2,2 0 0,1 21,8V18A2,2 0 0,1 19,20M5,8V18H19V8H5Z" },
             new VectorIconItem { Key = "Folder", Category = "生产力工具", DisplayName = "打开文件夹 (Folder)", SvgData = "M10,4H4C2.89,4 2,4.89 2,6V18A2,2 0 0,0 4,20H20A2,2 0 0,0 22,18V8C22,6.89 21.1,6 20,6H12L10,4Z" },
@@ -108,6 +108,7 @@ namespace StarPie.Services.Icons
 
         private static readonly Dictionary<string, string> SvgByKey = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>静态构造：把清单建成“键 → SVG 路径”的忽略大小写字典，供 <see cref="GetSvgPathByKey"/> 查询。</summary>
         static IconAssets()
         {
             foreach (var item in VectorIconList)
@@ -116,6 +117,7 @@ namespace StarPie.Services.Icons
             }
         }
 
+        /// <summary>按键（忽略大小写）取内置 SVG 路径；键为空或未命中返回 null。</summary>
         public static string? GetSvgPathByKey(string? key)
         {
             if (string.IsNullOrEmpty(key)) return null;
@@ -125,13 +127,13 @@ namespace StarPie.Services.Icons
 
         #endregion
 
-        #region Custom User Icons (SVG & Raster Image Import)
+        #region 自定义用户图标（SVG 与位图导入）
 
         private static List<CustomIconItem>? _cachedCustomIcons;
 
+        /// <summary>返回自定义图标目录（应用数据目录/CustomIcons），不存在时先创建。</summary>
         public static string GetCustomIconsDirectory()
         {
-            // T16：应用数据目录经 AppDataPaths 解析（dev 沙箱语义不变），不再依赖静态配置门面。
             string dir = Path.Combine(AppDataPaths.GetAppDataFolder(), "CustomIcons");
             if (!Directory.Exists(dir))
             {
@@ -140,6 +142,10 @@ namespace StarPie.Services.Icons
             return dir;
         }
 
+        /// <summary>
+        /// 扫描自定义图标目录并返回全部条目（首次调用后缓存）：.svg 解析路径数据，
+        /// 其余位图（png/jpg/jpeg/ico/bmp/webp）仅记录文件路径。
+        /// </summary>
         public static List<CustomIconItem> GetCustomIcons()
         {
             if (_cachedCustomIcons != null) return _cachedCustomIcons;
@@ -195,11 +201,15 @@ namespace StarPie.Services.Icons
             return list;
         }
 
+        /// <summary>
+        /// 从 SVG 文件内容中提取 path 元素的 d 属性（即矢量路径数据）：
+        /// 若内容本身已是纯路径字符串则原样返回；找不到 d 属性返回空字符串。
+        /// </summary>
         public static string ExtractSvgPathData(string? svgContent)
         {
             if (string.IsNullOrWhiteSpace(svgContent)) return "";
 
-            // Check if it's already a pure path string
+            // 已是纯路径字符串（以 M 开头且不含 <svg> 标签）时直接返回。
             if (svgContent.Trim().StartsWith("M", StringComparison.OrdinalIgnoreCase) && !svgContent.Contains("<svg", StringComparison.OrdinalIgnoreCase))
             {
                 return svgContent.Trim();
@@ -225,6 +235,10 @@ namespace StarPie.Services.Icons
             return "";
         }
 
+        /// <summary>
+        /// 导入自定义图标文件到自定义图标目录：文件名清洗非法字符后追加时间戳避免重名，
+        /// 复制成功后使缓存失效并返回新条目。源文件不存在或复制失败返回 null。
+        /// </summary>
         public static CustomIconItem? ImportCustomIcon(string sourceFilePath, string? customName = null)
         {
             if (string.IsNullOrWhiteSpace(sourceFilePath) || !File.Exists(sourceFilePath))
@@ -238,7 +252,7 @@ namespace StarPie.Services.Icons
                     ? Path.GetFileNameWithoutExtension(sourceFilePath)
                     : customName.Trim();
 
-                // Clean illegal chars
+                // 把文件名中的非法字符替换为下划线，保证可安全落盘。
                 foreach (char c in Path.GetInvalidFileNameChars())
                 {
                     safeName = safeName.Replace(c, '_');
@@ -249,7 +263,7 @@ namespace StarPie.Services.Icons
 
                 File.Copy(sourceFilePath, targetPath, true);
 
-                _cachedCustomIcons = null; // Invalidate cache
+                _cachedCustomIcons = null; // 使缓存失效，下次读取时重新扫描。
                 var all = GetCustomIcons();
                 return all.FirstOrDefault(i => i.FilePath == targetPath);
             }
@@ -260,6 +274,7 @@ namespace StarPie.Services.Icons
             }
         }
 
+        /// <summary>把一段 SVG 路径数据保存为自定义 .svg 图标文件（名称清洗并追加时间戳），成功后返回新条目。</summary>
         public static CustomIconItem? ImportCustomSvgData(string svgPathData, string iconName)
         {
             if (string.IsNullOrWhiteSpace(svgPathData)) return null;
@@ -278,7 +293,7 @@ namespace StarPie.Services.Icons
 
                 File.WriteAllText(targetPath, svgPathData.Trim());
 
-                _cachedCustomIcons = null;
+                _cachedCustomIcons = null; // 使缓存失效。
                 var all = GetCustomIcons();
                 return all.FirstOrDefault(i => i.FilePath == targetPath);
             }
@@ -289,6 +304,7 @@ namespace StarPie.Services.Icons
             }
         }
 
+        /// <summary>按键删除自定义图标（同时删除磁盘文件并使缓存失效）；未找到或删除失败返回 false。</summary>
         public static bool DeleteCustomIcon(string key)
         {
             try
@@ -305,6 +321,10 @@ namespace StarPie.Services.Icons
             return false;
         }
 
+        /// <summary>
+        /// 取自定义图标的位图源：入参可为 "custom:xxx" 键（解析为文件路径）或直接的文件路径；
+        /// 仅位图可返回 <see cref="BitmapImage"/>，SVG 交由 XAML 几何绑定，此处返回 null。
+        /// </summary>
         public static ImageSource? GetCustomImageSource(string iconKeyOrPath)
         {
             if (string.IsNullOrWhiteSpace(iconKeyOrPath)) return null;
@@ -340,8 +360,9 @@ namespace StarPie.Services.Icons
 
         #endregion
 
-        #region File & Program Icon Extraction
+        #region 文件与程序图标提取
 
+        /// <summary>SHGetFileInfo 输出结构（Win32 Shell API）：承载图标句柄、显示名与类型名。</summary>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct SHFILEINFO
         {
@@ -354,21 +375,27 @@ namespace StarPie.Services.Icons
             public string szTypeName;
         }
 
+        // Win32 SHGetFileInfo 标志：取图标、大图标、对不存在的文件按属性/类型返回图标。
         private const uint SHGFI_ICON = 0x100;
         private const uint SHGFI_LARGEICON = 0x0;
         private const uint SHGFI_USEFILEATTRIBUTES = 0x10;
 
+        /// <summary>Win32 shell32!SHGetFileInfo：按路径/属性取系统图标句柄。</summary>
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
 
+        /// <summary>Win32 shell32!ExtractIconEx：从可执行/图标文件提取大小图标句柄。</summary>
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         private static extern uint ExtractIconEx(string szFileName, int nIconIndex, out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIcons);
 
+        /// <summary>Win32 user32!DestroyIcon：释放由上述 API 取得的图标句柄，防止 GDI 泄漏。</summary>
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool DestroyIcon(IntPtr hIcon);
 
         /// <summary>
-        /// Retrieves a pure, clean, high-resolution application icon without Windows shortcut arrow badge overlays.
+        /// 提取干净的高分辨率程序/文件图标（不含 Windows 快捷方式的小箭头角标叠加）。
+        /// 解析顺序：快捷方式先解析目标（自定义图标文件优先，其次目标程序自身）→
+        /// 直接按文件/目录路径提取 → 文件不存在时退回按属性取系统关联图标。
         /// </summary>
         public static BitmapSource? GetIcon(string path)
         {
@@ -378,20 +405,20 @@ namespace StarPie.Services.Icons
             {
                 string resolvedPath = Environment.ExpandEnvironmentVariables(path.Trim().Trim('"'));
 
-                // 1. If it's a shortcut (.lnk), resolve to the actual target executable or icon file
+                // 1. 若是快捷方式（.lnk），先解析到实际目标程序或图标文件。
                 if (resolvedPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase))
                 {
                     if (ResolveShortcutTarget is { } resolveShortcut
                         && resolveShortcut(resolvedPath, out string targetPath, out string iconPath, out int iconIndex))
                     {
-                        // Priority A: Custom icon file specified in shortcut
+                        // 优先级 A：快捷方式里显式指定的自定义图标文件。
                         if (!string.IsNullOrEmpty(iconPath) && File.Exists(iconPath))
                         {
                             var icon = ExtractPureIconFromFile(iconPath, iconIndex);
                             if (icon != null) return icon;
                         }
 
-                        // Priority B: Target executable pure icon
+                        // 优先级 B：目标程序自身的图标。
                         if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath))
                         {
                             var icon = ExtractPureIconFromFile(targetPath, 0);
@@ -400,14 +427,14 @@ namespace StarPie.Services.Icons
                     }
                 }
 
-                // 2. Extract from standard file or directory path
+                // 2. 普通文件/目录路径直接提取。
                 if (File.Exists(resolvedPath) || Directory.Exists(resolvedPath))
                 {
                     var icon = ExtractPureIconFromFile(resolvedPath, 0);
                     if (icon != null) return icon;
                 }
 
-                // 3. Fallback: extract via file attributes if file doesn't physically exist
+                // 3. 兜底：文件物理上不存在时，按属性让系统返回关联类型图标。
                 SHFILEINFO shinfoAttr = new SHFILEINFO();
                 IntPtr hImgAttr = SHGetFileInfo(resolvedPath, 256, ref shinfoAttr, (uint)Marshal.SizeOf(shinfoAttr), SHGFI_ICON | SHGFI_LARGEICON | SHGFI_USEFILEATTRIBUTES);
                 if (shinfoAttr.hIcon != IntPtr.Zero)
@@ -436,11 +463,12 @@ namespace StarPie.Services.Icons
             return null;
         }
 
+        /// <summary>从单个文件按索引提取无角标大图标；ExtractIconEx 失败时回退 SHGetFileInfo。</summary>
         private static BitmapSource? ExtractPureIconFromFile(string filePath, int iconIndex)
         {
             try
             {
-                // First try ExtractIconEx to get large unbadged icon
+                // 优先用 ExtractIconEx 取大尺寸无角标图标。
                 uint count = ExtractIconEx(filePath, iconIndex, out IntPtr hIconLarge, out IntPtr hIconSmall, 1);
                 if (count > 0 && hIconLarge != IntPtr.Zero)
                 {
@@ -478,7 +506,7 @@ namespace StarPie.Services.Icons
                     }
                 }
 
-                // Fallback to SHGetFileInfo
+                // 兜底：改用 SHGetFileInfo 取系统图标。
                 SHFILEINFO shinfo = new SHFILEINFO();
                 IntPtr hImg = SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_LARGEICON);
                 if (shinfo.hIcon != IntPtr.Zero)

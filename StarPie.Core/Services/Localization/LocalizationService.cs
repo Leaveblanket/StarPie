@@ -6,11 +6,13 @@ using System.Globalization;
 namespace StarPie.Services.Localization
 {
     /// <summary>
-    /// resx 数据源实现（ADR-0013/#44）：四语言资产（Strings.resx 中性 = zh-CN + 卫星
-    /// zh-TW/en/ja）经 <see cref="Strings.ResourceManager"/> 取词。ResourceManager 回退链
-    /// 使“目标语言缺键 → zh-CN 中性”自动成立；GetString 返回 null 时回退键名。
-    /// 语义与旧 I18n C# 键表等价。
+    /// resx 数据源实现：四语言资产（Strings.resx 中性 = zh-CN + 卫星 zh-TW/en/ja）
+    /// 经 <see cref="Strings.ResourceManager"/> 取词。
     /// </summary>
+    /// <remarks>
+    /// ResourceManager 回退链使“目标语言缺键 → zh-CN 中性”自动成立；
+    /// GetString 返回 null 时回退键名。
+    /// </remarks>
     public sealed class LocalizationService : ILocalizationService
     {
         private LanguageCode _currentLanguage = LanguageCode.ZhCn;

@@ -10,10 +10,12 @@ namespace StarPie.Services.Navigation
     }
 
     /// <summary>
-    /// 类型化导航服务 (T19)：按目标页面 ViewModel 类型切换 <see cref="NavigationStore.CurrentViewModel"/>。
-    /// 页面 VM 容器单例常驻（状态跨导航不丢）；页面 View 由 DataTemplate 无参重建，不经导航。
-    /// 新增页面只需注册 VM 与 DataTemplate，不改导航 switch（ShowSettings(int) 已删）。
+    /// 类型化导航服务：按目标页面 ViewModel 类型切换 <see cref="NavigationStore.CurrentViewModel"/>。
     /// </summary>
+    /// <remarks>
+    /// 页面 VM 为容器单例，状态跨导航常驻；页面 View 由 DataTemplate 无参重建，不经导航。
+    /// 新增页面只需注册 VM 与 DataTemplate，不改导航逻辑。
+    /// </remarks>
     public interface INavigationService<TViewModel> : INavigationService
         where TViewModel : ObservableObject
     {

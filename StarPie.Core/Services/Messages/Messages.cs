@@ -1,11 +1,12 @@
 namespace StarPie.Services.Messages
 {
     /// <summary>
-    /// 设置域跨页协调消息 (T19, ADR-0005)：页面 ViewModel 发、组合根订阅者或页面自身收，
-    /// 取代 RootSettingsViewModel 的聚合根协调（该类已随 T19 拆散删除）。
+    /// 设置域跨页协调消息：页面 ViewModel 发，组合根订阅者或页面自身收。
+    /// </summary>
+    /// <remarks>
     /// 消息为不可变空载体/载荷类型（满足 IMessenger 的 class 约束）；
     /// 静态已知依赖不走消息（如外观页预览读方案列表 VM，构造注入）。
-    /// </summary>
+    /// </remarks>
 
     /// <summary>页面 VM → 组合根落盘编排：立即落盘（取消挂起防抖后即刻保存）。</summary>
     public sealed class ImmediateSaveRequestedMessage
@@ -45,9 +46,8 @@ namespace StarPie.Services.Messages
     }
 
     /// <summary>
-    /// 界面主题（AppTheme）变更消息（#54，ADR-0014 决策 7）：<see cref="StarPie.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
-    /// 写穿运行态配置后发布，由壳层主窗口（MainView，ADR-0009 白名单）订阅执行窗口主题应用
-    /// （<c>ApplyAppTheme</c>）——页面 SelectionChanged 处理器移除后主题应用改归消息驱动；
+    /// 界面主题（AppTheme）变更消息：<see cref="StarPie.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
+    /// 写穿运行态配置后发布，由壳层主窗口（MainView）订阅执行窗口主题应用（<c>ApplyAppTheme</c>）；
     /// 配置导入后的重挂路径同样经本消息触发壳层执行。
     /// </summary>
     public sealed class AppThemeChangedMessage
@@ -68,8 +68,7 @@ namespace StarPie.Services.Messages
         private AppearancePreviewInvalidatedMessage() { }
     }
 
-    /// <summary>导入配置后某页面 ViewModel 已重挂，外观页 View 订阅后只做主题应用/预览重绘等
-    /// View 效果（T21：状态与下拉项已声明式绑定，不再同步控件）。</summary>
+    /// <summary>导入配置后某页面 ViewModel 已重挂：外观页 View 订阅后只做主题应用/预览重绘等 View 效果。</summary>
     public sealed class PageConfigReloadedMessage
     {
         public Type ViewModelType { get; }

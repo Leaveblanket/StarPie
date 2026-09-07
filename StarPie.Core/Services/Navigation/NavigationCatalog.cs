@@ -6,10 +6,12 @@ using System.Linq;
 namespace StarPie.Services.Navigation
 {
     /// <summary>
-    /// 导航槽位（S5，ADR-0016 决策 5，B2/#75）：全局槽位表 0–4，顺序即侧边栏顺序正典
-    /// （触发/外观/手势/高级/关于）；AutomationId 键值 = <c>NavTab{槽位}</c>，e2e（pywinauto）
-    /// 依赖该标识，随槽位稳定。槽位表由 Core 收口测试拦截缺失/重复/未知槽位。
+    /// 导航槽位：全局槽位表 0–4，枚举顺序即侧边栏顺序正典（触发/外观/手势/高级/关于）。
     /// </summary>
+    /// <remarks>
+    /// AutomationId 由 <see cref="NavigationSlots.GetAutomationId"/> 固定为 NavTab{槽位}，
+    /// e2e（pywinauto）依赖该标识；缺失/重复/未知槽位由共享内核收口测试拦截。
+    /// </remarks>
     public enum NavigationSlot
     {
         Trigger = 0,
@@ -30,10 +32,8 @@ namespace StarPie.Services.Navigation
             => "NavTab" + ((int)slot).ToString(CultureInfo.InvariantCulture);
     }
 
-    /// <summary>
-    /// 导航目录注册项（S5，B2/#75）：槽位、AutomationId、标题键、图标数据与目标页面 VM 类型。
-    /// 导航执行经 <see cref="INavigationExecutor"/>（目录执行缝，B3/#76）按槽位惰性解析。
-    /// </summary>
+    /// <summary>导航目录注册项：槽位、AutomationId、标题键、图标数据与目标页面 VM 类型。</summary>
+    /// <remarks>导航执行经 <see cref="INavigationExecutor"/> 按槽位惰性解析目标页面 VM。</remarks>
     public sealed record NavigationPageRegistration(
         NavigationSlot Slot,
         string AutomationId,
@@ -42,10 +42,12 @@ namespace StarPie.Services.Navigation
         Type ViewModelType);
 
     /// <summary>
-    /// 导航目录（S5，ADR-0016 决策 3/5，B2/#75）：共享内核的页面注册契约与唯一性收口——
-    /// 未知/重复槽位与重复 AutomationId 在注册时拦截，缺失槽位由 <see cref="Validate"/> 收口。
-    /// 槽位表是侧边栏顺序唯一正典；本目录是 B3 起模块自治注册与导航 VM 目录驱动的基础。
+    /// 导航目录：共享内核的页面注册契约与唯一性收口。
     /// </summary>
+    /// <remarks>
+    /// 未知/重复槽位与重复 AutomationId 在注册时拦截，缺失槽位由 <see cref="Validate"/> 收口。
+    /// 槽位表是侧边栏顺序的唯一正典；各模块经注册器自治写入本目录，导航 VM 按目录驱动。
+    /// </remarks>
     public sealed class NavigationCatalog
     {
         private readonly Dictionary<NavigationSlot, NavigationPageRegistration> _bySlot = new();
@@ -100,10 +102,8 @@ namespace StarPie.Services.Navigation
         public IReadOnlyList<NavigationPageRegistration> Entries
             => _entries.OrderBy(e => (int)e.Slot).ToList();
 
-        /// <summary>
-        /// 按槽位取已注册页面（B3/#76：目录执行缝经此按槽位解析目标；未注册槽位抛
-        /// <see cref="InvalidOperationException"/>——完整目录由 <see cref="Validate"/> 在装配时收口）。
-        /// </summary>
+        /// <summary>按槽位取已注册页面；未注册槽位抛 <see cref="InvalidOperationException"/>。</summary>
+        /// <remarks>完整目录由 <see cref="Validate"/> 在装配时收口。</remarks>
         public NavigationPageRegistration GetEntry(NavigationSlot slot)
         {
             if (_bySlot.TryGetValue(slot, out var entry))

@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 
 namespace StarPie.Views.Converters
 {
-    /// <summary>本地图片路径 → 缩略图（T21：核圆图片缩略图随绑定刷新，替换 code-behind 回填；缺文件返回空）。</summary>
+    /// <summary>本地图片路径 → 缩略图；路径为空或文件缺失返回 null（不破坏绑定）。</summary>
     public sealed class FilePathToImageConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)

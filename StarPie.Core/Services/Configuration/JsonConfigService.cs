@@ -7,15 +7,13 @@ using StarPie.Services.Localization;
 namespace StarPie.Services.Configuration
 {
     /// <summary>
-    /// JSON-file implementation of IConfigService: owns reading and writing
-    /// config.json (same format and location as before), with the path injected
-    /// via the constructor (production path computed by AppDataPaths in the
-    /// composition root, tests
-    /// inject a temp path). Load semantics match the previous static code: a
-    /// missing file is seeded with the default config, corrupt JSON falls back
-    /// to defaults without touching the file, and hand-edited files are
-    /// tolerated (case-insensitive, comments and trailing commas allowed).
+    /// <see cref="IConfigService"/> 的 JSON 文件实现：独占 config.json 的读写。
     /// </summary>
+    /// <remarks>
+    /// 读写格式与位置向后兼容既有版本。配置文件路径经构造函数注入——生产路径由组合根经
+    /// <see cref="AppDataPaths"/> 计算，测试注入临时路径。加载语义：文件缺失时播种默认配置，
+    /// JSON 损坏时回退默认值（不触碰文件），并容忍手工编辑（大小写不敏感、允许注释与尾随逗号）。
+    /// </remarks>
     public sealed class JsonConfigService : IConfigService
     {
         private readonly string _configPath;
@@ -29,8 +27,14 @@ namespace StarPie.Services.Configuration
             _config = CreateDefaultConfig();
         }
 
+        /// <summary>当前运行态配置（构造函数先落默认值，Load 后替换为磁盘内容）。</summary>
         public AppConfig Current => _config;
 
+        /// <summary>
+        /// 从磁盘加载配置。文件存在时以宽松选项反序列化（大小写不敏感、允许注释与尾随逗号）；
+        /// 缺失时播种默认配置并立即落盘；随后按配置语言初始化本地化服务。
+        /// 任一步骤失败均回退默认配置，不向调用方抛异常。
+        /// </summary>
         public void Load()
         {
             try
@@ -54,7 +58,7 @@ namespace StarPie.Services.Configuration
                     Save();
                 }
 
-                // Initialize internationalization language
+                // 按配置的语言设置初始化本地化服务（语言状态单一来源）。
                 _localization.SetLanguage(_config.Language);
             }
             catch (Exception ex)
@@ -65,6 +69,7 @@ namespace StarPie.Services.Configuration
             }
         }
 
+        /// <summary>把当前配置以缩进 JSON 写回磁盘；目录不存在时先创建，失败仅输出 Debug 日志。</summary>
         public void Save()
         {
             try
@@ -81,6 +86,10 @@ namespace StarPie.Services.Configuration
             }
         }
 
+        /// <summary>
+        /// 按进程名查找专属方案（忽略大小写）；进程名为空或未找到时回退
+        /// <see cref="GetGlobalProfile"/>（保证永远返回可用方案）。
+        /// </summary>
         public WheelProfile GetProfileForProcess(string processName)
         {
             if (string.IsNullOrEmpty(processName))
@@ -93,6 +102,7 @@ namespace StarPie.Services.Configuration
             return profile ?? GetGlobalProfile();
         }
 
+        /// <summary>取 Global 方案；缺失时在列表头部插入一个空的 Global 方案并返回。</summary>
         public WheelProfile GetGlobalProfile()
         {
             var global = _config.Profiles.Find(p => p.ProcessName.Equals("Global", StringComparison.OrdinalIgnoreCase));
@@ -104,6 +114,7 @@ namespace StarPie.Services.Configuration
             return global;
         }
 
+        /// <summary>把当前配置导出到指定文件；成功返回 true，失败仅输出 Debug 日志并返回 false。</summary>
         public bool Export(string targetFilePath)
         {
             try
@@ -120,6 +131,10 @@ namespace StarPie.Services.Configuration
             }
         }
 
+        /// <summary>
+        /// 从指定文件导入配置：反序列化成功后替换当前配置并立即落盘。
+        /// 源文件缺失、JSON 非法或反序列化失败均返回 false（不影响现有配置）。
+        /// </summary>
         public bool Import(string sourceFilePath)
         {
             try
@@ -141,6 +156,7 @@ namespace StarPie.Services.Configuration
             return false;
         }
 
+        /// <summary>确保配置文件所在目录存在（不存在则创建）。</summary>
         private void EnsureConfigDirectory()
         {
             string? directory = Path.GetDirectoryName(_configPath);
@@ -150,29 +166,30 @@ namespace StarPie.Services.Configuration
             }
         }
 
+        /// <summary>构建默认配置：Global（8 键）+ Chrome（4 键）+ VS Code（8 键）三个示例方案。</summary>
         private static AppConfig CreateDefaultConfig()
         {
             var config = new AppConfig { DragThreshold = 25.0 };
 
-            // Create Global default profile with 8 keys
+            // 创建 Global 全局默认方案（8 个动作；注释中的方位为轮盘上动作的落位）。
             var globalProfile = new WheelProfile
             {
                 ProcessName = "Global",
                 SectorCount = 8,
                 Actions = new List<ActionItem>
                 {
-                    new ActionItem { Type = "Hotkey", Name = "复制 (Copy)", Parameter = "Ctrl+C", IconKey = "Copy" },           // Index 0: Right (E)
-                    new ActionItem { Type = "System", Name = "锁定电脑 (Lock)", Parameter = "Lock", IconKey = "Lock" },        // Index 1: Down-Right (SE)
-                    new ActionItem { Type = "System", Name = "显示桌面 (Desktop)", Parameter = "ShowDesktop", IconKey = "ShowDesktop" }, // Index 2: Down (S)
-                    new ActionItem { Type = "System", Name = "屏幕截图 (Capture)", Parameter = "Screenshot", IconKey = "Screenshot" }, // Index 3: Down-Left (SW)
-                    new ActionItem { Type = "Hotkey", Name = "粘贴 (Paste)", Parameter = "Ctrl+V", IconKey = "Paste" },          // Index 4: Left (W)
-                    new ActionItem { Type = "System", Name = "音量减 (Vol Down)", Parameter = "VolumeDown", IconKey = "VolumeDown" },  // Index 5: Up-Left (NW)
-                    new ActionItem { Type = "Launch", Name = "记事本 (Notepad)", Parameter = "notepad.exe", IconKey = "Code" },   // Index 6: Up (N)
-                    new ActionItem { Type = "System", Name = "音量增 (Vol Up)", Parameter = "VolumeUp", IconKey = "VolumeUp" }       // Index 7: Up-Right (NE)
+                    new ActionItem { Type = "Hotkey", Name = "复制 (Copy)", Parameter = "Ctrl+C", IconKey = "Copy" },           // 索引 0：右 (E)
+                    new ActionItem { Type = "System", Name = "锁定电脑 (Lock)", Parameter = "Lock", IconKey = "Lock" },        // 索引 1：右下 (SE)
+                    new ActionItem { Type = "System", Name = "显示桌面 (Desktop)", Parameter = "ShowDesktop", IconKey = "ShowDesktop" }, // 索引 2：下 (S)
+                    new ActionItem { Type = "System", Name = "屏幕截图 (Capture)", Parameter = "Screenshot", IconKey = "Screenshot" }, // 索引 3：左下 (SW)
+                    new ActionItem { Type = "Hotkey", Name = "粘贴 (Paste)", Parameter = "Ctrl+V", IconKey = "Paste" },          // 索引 4：左 (W)
+                    new ActionItem { Type = "System", Name = "音量减 (Vol Down)", Parameter = "VolumeDown", IconKey = "VolumeDown" },  // 索引 5：左上 (NW)
+                    new ActionItem { Type = "Launch", Name = "记事本 (Notepad)", Parameter = "notepad.exe", IconKey = "Code" },   // 索引 6：上 (N)
+                    new ActionItem { Type = "System", Name = "音量增 (Vol Up)", Parameter = "VolumeUp", IconKey = "VolumeUp" }       // 索引 7：右上 (NE)
                 }
             };
 
-            // Create Chrome specific profile with 4 keys for demo
+            // 创建 Chrome 专用示例方案（4 个动作）。
             var chromeProfile = new WheelProfile
             {
                 ProcessName = "chrome.exe",
@@ -186,7 +203,7 @@ namespace StarPie.Services.Configuration
                 }
             };
 
-            // Create Visual Studio / VS Code profile
+            // 创建 VS Code（code.exe）专属方案。
             var codeProfile = new WheelProfile
             {
                 ProcessName = "code.exe",

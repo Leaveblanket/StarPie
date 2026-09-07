@@ -5,9 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace StarPie.Services.Navigation
 {
     /// <summary>
-    /// <see cref="INavigationService{TViewModel}"/> 默认实现 (T19)：目标页面 VM 从容器解析
-    /// （单例——多次导航拿到同一实例，状态常驻）。解析点收在导航服务一处，组合根只注册开放泛型。
+    /// <see cref="INavigationService{TViewModel}"/> 默认实现：目标页面 VM 从容器解析
+    /// （单例——多次导航拿到同一实例，状态常驻）。
     /// </summary>
+    /// <remarks>解析点收在导航服务一处，组合根只注册开放泛型。</remarks>
     public sealed class NavigationService<TViewModel> : INavigationService<TViewModel>
         where TViewModel : ObservableObject
     {

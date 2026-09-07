@@ -13,10 +13,12 @@ namespace StarPie.Services.Localization
     }
 
     /// <summary>
-    /// 本地化服务门面（ADR-0013/#44）：语言状态的单一来源与取词 API，取代静态 I18n
-    /// 作为唯一变更源；声明式文案仍经 AppHost 投影为运行时语言字典（DynamicResource）。
-    /// 回退链：目标语言 → zh-CN → 键名。
+    /// 本地化服务门面：语言状态的单一来源与取词 API。
     /// </summary>
+    /// <remarks>
+    /// 语言切换是文案的唯一变更源；声明式文案经 AppHost 投影为运行时语言字典（DynamicResource）。
+    /// 回退链：目标语言 → zh-CN → 键名。
+    /// </remarks>
     public interface ILocalizationService
     {
         /// <summary>当前语言码。</summary>

@@ -21,11 +21,12 @@ namespace StarPie.Services.Dialogs
     public sealed record FilePickResult(string Path);
 
     /// <summary>
-    /// 对话框服务 (T06, ADR-0004)：每类对话框一个具名方法、同步签名、可空结果对象——
-    /// 取消与无效统一返回 <c>null</c>，调用方只判一次 null。验证回调作为参数由调用方传入。
-    /// Owner 单一归属设置窗口，由组合根惰性回填（ADR-0002），不泄露进接口签名；
-    /// 迁移期实现内部允许暂用旧 code-behind 窗口，接口稳定不变。
+    /// 对话框服务：每类对话框一个具名方法、同步签名、可空结果对象。
     /// </summary>
+    /// <remarks>
+    /// 取消与无效统一返回 <c>null</c>，调用方只判一次 null；验证回调作为参数由调用方传入。
+    /// Owner 单一归属设置窗口，由组合根惰性回填，不泄露进接口签名。
+    /// </remarks>
     public interface IDialogService
     {
         /// <summary>程序选择器。返回 null 表示取消或未选出有效程序。</summary>
@@ -53,13 +54,13 @@ namespace StarPie.Services.Dialogs
         /// <summary>系统保存文件对话框（BCL 抽象一并入服务，保持边界完整）。返回 null 表示取消。</summary>
         FilePickResult? ShowSaveFileDialog(string filter, string? fileName = null, string? title = null);
 
-        /// <summary>系统文件夹选择对话框（T12，OpenFolderDialog 同属 BCL 抽象）。返回 null 表示取消。</summary>
+        /// <summary>系统文件夹选择对话框（OpenFolderDialog 同属 BCL 抽象）。返回 null 表示取消。</summary>
         FilePickResult? ShowFolderDialog(string? initialDirectory = null, string? title = null);
 
-        /// <summary>是/否确认框 (T17)。返回 true 表示用户选择"是"。</summary>
+        /// <summary>是/否确认框。返回 true 表示用户选择"是"。</summary>
         bool Confirm(string title, string message);
 
-        /// <summary>信息提示框 (T17)：单按钮确认，无返回值。</summary>
+        /// <summary>信息提示框：单按钮确认，无返回值。</summary>
         void ShowInfo(string title, string message);
     }
 }
