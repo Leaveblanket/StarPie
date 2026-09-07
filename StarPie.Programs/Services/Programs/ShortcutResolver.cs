@@ -57,10 +57,8 @@ namespace StarPie.Services.Programs
     /// </summary>
     public static class ShortcutResolver
     {
-        /// <summary>
         /// <summary>解析 Windows 快捷方式（.lnk）的真实目标路径与图标位置；
         /// 快捷方式不存在或解析失败时返回 false（目标与图标均可能为空）。</summary>
-        /// </summary>
         public static bool ResolveShortcutTarget(string lnkPath, out string targetPath, out string iconPath, out int iconIndex)
         {
             targetPath = "";

@@ -20,10 +20,8 @@ namespace StarPie.Services.Shell
         private static int _isTrimming = 0;
         private static DateTime _lastTrimTime = DateTime.MinValue;
 
-        /// <summary>
         /// <summary>深度压缩 GC 堆（含大对象堆 LOH）并把工作集内存页裁剪到最小足迹；
         /// force 为 false 时距上次修剪不足 2 秒则跳过。</summary>
-        /// </summary>
         public static void TrimMemory(bool force = false)
         {
             if (!force && (DateTime.UtcNow - _lastTrimTime).TotalSeconds < 2.0)
