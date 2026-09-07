@@ -21,10 +21,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Restore Dependencies
-      run: dotnet restore WinPieGestures/WinPieGestures.csproj
+      run: dotnet restore WinPieGestures/WinPieGestures.slnx
 
     - name: Build Solution (Release)
       run: dotnet build WinPieGestures/WinPieGestures.csproj -c Release --no-restore
+
+    - name: Run Unit Tests (xUnit)
+      run: dotnet test WinPieGestures.Tests/WinPieGestures.Tests.csproj -c Release --no-restore
 
     - name: Publish Standalone Binary
       run: dotnet publish WinPieGestures/WinPieGestures.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o bin/Standalone
