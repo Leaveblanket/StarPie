@@ -11,9 +11,8 @@ using Point = System.Windows.Point;
 namespace StarPie.Views.Renderers
 {
     /// <summary>
-    /// Glassmorphism Style: Apple Liquid Glass & Windows Fluent Acrylic/Mica Floating Wheel.
-    /// Pure standalone frosted translucent glass sectors with delicate specular hairline borders,
-    /// soft ambient floating drop shadow, and glowing ethereal lilac outer glow on hover.
+    /// 玻璃拟态风格：Apple Liquid Glass 与 Windows Fluent Acrylic/Mica 悬浮轮盘——
+    /// 独立磨砂半透明玻璃扇区带细腻高光描边、柔和环境浮影，悬停时泛出朦胧紫罗兰外辉光。
     /// </summary>
     public class GlassmorphismRenderer : BaseStyleRenderer
     {
@@ -30,8 +29,7 @@ namespace StarPie.Views.Renderers
 
         public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
-            // Pure floating aesthetic: No bulky background disc!
-            // Sectors float directly over the desktop/app with individual glass refraction and shadows.
+            // 纯悬浮观感：无厚重背景盘——扇区带独立玻璃折射与阴影，直接浮于桌面/应用之上。
             
             Color ringColor = IsLightTheme ? Color.FromArgb(40, 100, 116, 139) : Color.FromArgb(35, 255, 255, 255);
             var innerGlassRing = new Ellipse
@@ -67,7 +65,7 @@ namespace StarPie.Views.Renderers
             }
             else
             {
-                // Soft Ambient Drop Shadow for unselected floating frosted glass sectors
+                // 未选中悬浮磨砂玻璃扇区的柔和环境投影
                 path.Effect = new DropShadowEffect
                 {
                     Color = Color.FromRgb(0, 0, 0),

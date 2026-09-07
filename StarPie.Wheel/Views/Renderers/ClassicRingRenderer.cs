@@ -11,8 +11,7 @@ using Point = System.Windows.Point;
 namespace StarPie.Views.Renderers
 {
     /// <summary>
-    /// Classic Ring Style: Vision Pro Spatial Ring HUD.
-    /// Features concentric spatial orbits, geometric compass ticks, and high-contrast sapphire pop-out.
+    /// 经典圆环风格：Vision Pro 空间圆环 HUD——同心空间轨道、几何罗盘刻度与高对比蓝宝石弹出。
     /// </summary>
     public class ClassicRingRenderer : BaseStyleRenderer
     {
@@ -29,7 +28,7 @@ namespace StarPie.Views.Renderers
             Color orbitColor = IsLightTheme ? Color.FromArgb(70, 100, 116, 139) : Color.FromArgb(45, 255, 255, 255);
             Color tickColor = IsLightTheme ? Color.FromArgb(100, 71, 85, 105) : Color.FromArgb(70, 255, 255, 255);
 
-            // 1. Concentric Spatial Outer Orbit (外层悬浮导引虚线轨道)
+            // 1. 同心空间外层轨道（悬浮导引虚线）
             double outerOrbitRadius = wheelRadius + 8.0;
             var outerOrbit = new Ellipse
             {
@@ -45,7 +44,7 @@ namespace StarPie.Views.Renderers
             Panel.SetZIndex(outerOrbit, 0);
             canvas.Children.Add(outerOrbit);
 
-            // 2. 4-Axis Compass / Spatial Radar Ticks (空间罗盘标尺)
+            // 2. 四轴罗盘/空间雷达刻度（空间罗盘标尺）
             double[] tickAngles = { 0, 90, 180, 270 };
             foreach (double deg in tickAngles)
             {
@@ -66,7 +65,7 @@ namespace StarPie.Views.Renderers
                 canvas.Children.Add(tickLine);
             }
 
-            // 3. Concentric Inner Energy Ring (内同心环)
+            // 3. 同心内能量环（内同心环）
             var innerRing = new Ellipse
             {
                 Width = coreRadius * 2.0 + 8.0,

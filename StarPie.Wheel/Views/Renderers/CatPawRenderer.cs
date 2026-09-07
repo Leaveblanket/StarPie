@@ -13,7 +13,7 @@ using Point = System.Windows.Point;
 namespace StarPie.Views.Renderers
 {
     /// <summary>
-    /// Cat Paw Style: Adorable pastel sakura aesthetics, perky organic cat ears, and 3D Q-pop center paw cushions.
+    /// 猫爪风格：可爱粉彩樱花观感、俏皮猫耳与 3D Q 弹中心肉垫。
     /// </summary>
     public class CatPawRenderer : BaseStyleRenderer
     {
@@ -29,10 +29,10 @@ namespace StarPie.Views.Renderers
 
         public override void RenderDecorations(Canvas canvas, Grid coreGrid, double cx, double cy, double wheelRadius, double coreRadius, int insertIndex, bool showCoreIcon)
         {
-            // 1. Prominent Natural Cat Ears (Widely spaced on top-left ~216° and top-right ~324°)
+            // 1. 醒目自然猫耳（宽距分布在左上约 216° 与右上约 324°）
             double earSize = Math.Max(30.0, wheelRadius * 0.36);
             
-            // Left Ear (centered at 216° - prominent top-left at 10:15 position)
+            // 左耳（中心 216°，位于左上 10:15 方位）
             double leftCenterRad = 216.0 * Math.PI / 180.0;
             double leftBase1Rad = 196.0 * Math.PI / 180.0;
             double leftBase2Rad = 244.0 * Math.PI / 180.0;
@@ -62,7 +62,7 @@ namespace StarPie.Views.Renderers
             Panel.SetZIndex(leftEar, 0);
             canvas.Children.Add(leftEar);
 
-            // Right Ear (centered at 324° - prominent top-right at 1:45 position)
+            // 右耳（中心 324°，位于右上 1:45 方位）
             double rightCenterRad = 324.0 * Math.PI / 180.0;
             double rightBase1Rad = 296.0 * Math.PI / 180.0;
             double rightBase2Rad = 344.0 * Math.PI / 180.0;
@@ -92,7 +92,7 @@ namespace StarPie.Views.Renderers
             Panel.SetZIndex(rightEar, 0);
             canvas.Children.Add(rightEar);
 
-            // Inner Ear Pink Cushions
+            // 耳内粉色垫
             var leftInner = new Path
             {
                 Data = Geometry.Parse($"M {(lx1 * 0.68 + lx2 * 0.32):F1},{(ly1 * 0.68 + ly2 * 0.32):F1} L {(lx2 * 0.86 + lx1 * 0.07 + lx3 * 0.07):F1},{(ly2 * 0.86 + ly1 * 0.07 + ly3 * 0.07):F1} L {(lx3 * 0.68 + lx2 * 0.32):F1},{(ly3 * 0.68 + ly2 * 0.32):F1} Z"),
@@ -111,10 +111,10 @@ namespace StarPie.Views.Renderers
             Panel.SetZIndex(rightInner, 0);
             canvas.Children.Add(rightInner);
 
-            // 2. 3D Q-Pop Cat Paw Centerpiece
+            // 2. 3D Q 弹猫爪中心件
             if (coreGrid != null)
             {
-                // Hide any conflicting text or default exit crosses
+                // 隐藏冲突文本或默认退出叉号
                 foreach (UIElement child in coreGrid.Children)
                 {
                     if (child is FrameworkElement fe && (fe.Name == "CoreExitIcon" || fe.Name == "CoreTextPanel" || fe.Tag?.ToString() == "PreviewExitIcon"))
@@ -141,7 +141,7 @@ namespace StarPie.Views.Renderers
                     IsHitTestVisible = false
                 };
 
-                // Pink pad brush with sweet sakura 3D gradient
+                // 带樱花粉 3D 渐变的粉色肉垫画刷
                 var padGradient = new LinearGradientBrush
                 {
                     StartPoint = new Point(0, 0),
@@ -150,7 +150,7 @@ namespace StarPie.Views.Renderers
                 padGradient.GradientStops.Add(new GradientStop(Color.FromRgb(244, 114, 182), 0.0));
                 padGradient.GradientStops.Add(new GradientStop(Color.FromRgb(251, 113, 133), 1.0));
 
-                // A. Main Palm Pad (圆润饱满立体大肉垫)
+                // A. 主掌垫（圆润饱满立体大肉垫）
                 double padW = coreRadius * 0.94;
                 double padH = coreRadius * 0.86;
                 var mainPad = new Path
@@ -174,7 +174,7 @@ namespace StarPie.Views.Renderers
                 };
                 pawGrid.Children.Add(mainPad);
 
-                // Main pad specular 3D gloss highlight
+                // 主垫高光：3D 镜面光泽高光
                 var mainGloss = new Ellipse
                 {
                     Width = padW * 0.36,
@@ -186,7 +186,7 @@ namespace StarPie.Views.Renderers
                 };
                 pawGrid.Children.Add(mainGloss);
 
-                // B. 4 Perky Rounded Toe Beans (4 个圆润饱满肉球)
+                // B. 4 颗圆润饱满的脚趾肉球
                 double toeW = coreRadius * 0.32;
                 double toeH = coreRadius * 0.38;
 
@@ -218,7 +218,7 @@ namespace StarPie.Views.Renderers
                     };
                     toeContainer.Children.Add(toeEllipse);
 
-                    // Toe gloss dot
+                    // 肉球光泽点
                     var toeGloss = new Ellipse
                     {
                         Width = toeW * 0.38,
@@ -272,7 +272,7 @@ namespace StarPie.Views.Renderers
 
         public override void ApplyExitHighlight(Path exitIcon, bool isHighlighted)
         {
-            // Highlight the entire cat paw on core exit hover
+            // 核图标退出悬停时高亮整只猫爪
             if (exitIcon.Parent is Grid grid)
             {
                 var pawGrid = grid.Children.OfType<Grid>().FirstOrDefault(g => g.Name == "DynamicPawGrid");
