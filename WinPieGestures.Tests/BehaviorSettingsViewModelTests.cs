@@ -7,9 +7,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 手势行为分区 ViewModel 的行为覆盖 (T13, ADR-0001)：触发阈值、场景隔离（全屏禁用、
-/// 修饰键旁路）、外圈逃逸取消与进程排除黑名单——全部锁定迁移前 SettingsWindow code-behind
-/// 的外部行为（live-apply 写回运行态配置、防抖/立即落盘事件、黑名单归一化规则）。
+/// 手势行为分区 ViewModel 的行为覆盖：触发阈值、场景隔离（全屏禁用、修饰键旁路）、
+/// 外圈逃逸取消与进程排除黑名单——live-apply 写回运行态配置、防抖/立即落盘事件、
+/// 黑名单归一化规则。
 /// 直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class BehaviorSettingsViewModelTests
@@ -86,7 +86,7 @@ public sealed class BehaviorSettingsViewModelTests
 
         Assert.Equal(42.0, config.DragThreshold);
         Assert.Equal(1, save.Debounced);
-        // 阈值走防抖通道，不触发立即落盘（对应迁移前 ScheduleAutoSave）
+        // 阈值走防抖通道，不触发立即落盘
         Assert.Equal(0, save.Immediate);
     }
 
@@ -135,7 +135,7 @@ public sealed class BehaviorSettingsViewModelTests
 
         vm.OuterEscapeDistance = 190.6;
 
-        // 属性保留滑条原始值，配置写入取整值（对应迁移前 Math.Round）
+        // 属性保留滑条原始值，配置写入取整值
         Assert.Equal(190.6, vm.OuterEscapeDistance);
         Assert.Equal(191.0, config.OuterEscapeDistance);
         Assert.Equal(1, save.Immediate);
@@ -190,10 +190,10 @@ public sealed class BehaviorSettingsViewModelTests
 
         vm.AddBlacklistFromInputCommand.Execute(null);
 
-        // 与迁移前一致：重复项仅选中并滚动，不清输入框、不落盘、不重复入列
+        // 重复项仅选中并滚动，不清输入框、不落盘、不重复入列
         Assert.Single(vm.BlacklistProcesses, p => p == "mstsc.exe");
         Assert.Equal("mstsc.exe", vm.SelectedBlacklistProcess);
-        // 输入框保留用户原始输入（迁移前重复分支不触碰 TextBox）
+        // 输入框保留用户原始输入
         Assert.Equal("MSTSC", vm.NewBlacklistProcess);
         Assert.Equal(0, save.Immediate);
         Assert.Equal(new[] { "mstsc.exe" }, added);
@@ -209,7 +209,7 @@ public sealed class BehaviorSettingsViewModelTests
 
         vm.AddBlacklistFromInputCommand.Execute(null);
 
-        // 与迁移前一致：空输入直接打开程序选择器，取文件名小写入列
+        // 空输入直接打开程序选择器，取文件名小写入列
         Assert.Equal(1, dialogs.ProgramPickerCallCount);
         Assert.Contains("mytool.exe", vm.BlacklistProcesses);
     }
@@ -276,7 +276,7 @@ public sealed class BehaviorSettingsViewModelTests
 
         vm.DeleteBlacklistProcessCommand.Execute(null);
 
-        // 与迁移前一致：未选中时兜底移除最后一项
+        // 未选中时兜底移除最后一项
         Assert.DoesNotContain("paint.exe", vm.BlacklistProcesses);
         Assert.DoesNotContain("paint.exe", config.BlacklistedProcesses!);
         Assert.Equal(1, save.Immediate);

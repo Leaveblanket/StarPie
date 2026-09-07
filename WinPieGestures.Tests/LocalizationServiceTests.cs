@@ -3,8 +3,8 @@ using StarPie.Services.Localization;
 namespace StarPie.Tests;
 
 /// <summary>
-/// LocalizationService 单测（ADR-0013/#44）：resx 数据源取词、语言解析、事件与投影枚举。
-/// 语义与旧 I18n C# 键表等价，全部经服务实例（不依赖静态门面）。
+/// LocalizationService 单测：resx 数据源取词、语言解析、事件与投影枚举。
+/// 全部经服务实例验证，不依赖静态门面。
 /// </summary>
 public class LocalizationServiceTests
 {

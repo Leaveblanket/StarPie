@@ -6,7 +6,7 @@ using CommunityToolkit.Mvvm.Messaging;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 界面主题设置子 ViewModel 的行为覆盖 (#54, ADR-0014 决策 6/7)：AppTheme 透传（读穿配置 /
+/// 界面主题设置子 ViewModel 的行为覆盖：AppTheme 透传（读穿配置 /
 /// 写穿 + 防抖落盘 + 主题应用消息）、驻留选项目录（切语重建 / 选中恢复 / Dispose 退订）、
 /// 配置导入后重挂路径（补发选中通知 + 主题应用消息由壳层订阅执行）。
 /// </summary>
@@ -62,7 +62,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
         Assert.Equal(
             new[] { "System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray" },
             h.Vm.AppThemeOptions.Select(o => o.Tag));
-        // 标签即时取词（迁移前 XAML 静态项 Content 的 DynamicResource 同键）
+        // 标签即时取词（与 XAML 静态项 Content 的 DynamicResource 键同源）
         Assert.Equal(h.Localization.GetString("ThemeSystem"), h.Vm.AppThemeOptions[0].Label);
         Assert.Equal(h.Localization.GetString("ThemeDark"), h.Vm.AppThemeOptions[2].Label);
         Assert.Equal(h.Localization.GetString("ThemeGray"), h.Vm.AppThemeOptions[5].Label);
@@ -98,7 +98,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
         Assert.Contains(nameof(InterfaceThemeSettingsViewModel.AppTheme), h.Notified);
         var apply = Assert.Single(h.Applied.Themes);
         Assert.Equal("MidnightNavy", apply);
-        // 落盘语义与迁移前一致：防抖请求，非立即
+        // 落盘语义：防抖请求，非立即
         Assert.Equal(1, h.Spy.Debounced);
         Assert.Equal(0, h.Spy.Immediate);
         Assert.Equal(0, h.ConfigService.SaveCalls);
@@ -113,7 +113,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
     [Fact]
     public void AppTheme_Set_NullOrEmpty_IsIgnored()
     {
-        // ItemsSource 化后下拉重建期间绑定回推 null：不得清掉当前主题（迁移前对 null 同样短路）
+        // 下拉重建期间绑定回推 null：不得清掉当前主题
         var h = new Harness(new AppConfig { AppTheme = "Dark" });
 
         h.Vm.AppTheme = null!;
@@ -159,7 +159,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
         h.Vm.Dispose(); // 幂等
         h.Localization.SetLanguage(LanguageCode.En);
 
-        // 退订后切语不再重建目录、不再补发选中通知（ADR-0010 单例 VM 成对退订）
+        // 退订后切语不再重建目录、不再补发选中通知
         Assert.Equal(zhLabel, h.Vm.AppThemeOptions[2].Label);
         Assert.DoesNotContain(nameof(InterfaceThemeSettingsViewModel.AppTheme), h.Notified);
     }

@@ -7,10 +7,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 配置方案分区列表侧 ViewModel 的行为覆盖 (T11, ADR-0001)：方案列表与选中态、
+/// 配置方案分区列表侧 ViewModel 的行为覆盖：方案列表与选中态、
 /// 扇区数切换、方向槽位集合（方位角标签、缺省动作补齐、扇区数规范化）以及
-/// 槽位名称编辑——全部锁定迁移前 SettingsWindow code-behind 的外部行为。
-/// 直接 new 被测对象，不触碰任何静态配置状态。
+/// 槽位名称编辑。直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class ProfileListViewModelTests
 {
@@ -29,7 +28,7 @@ public sealed class ProfileListViewModelTests
 
     private static TestDialogService Dialogs() => new();
 
-    /// <summary>T27 诊断：LocalizationService 实例 LanguageChanged 字段的委托列表。</summary>
+    /// <summary>诊断：LocalizationService 实例 LanguageChanged 字段的委托列表。</summary>
     private static string I18nHandlersDump()
         => ((MulticastDelegate?)typeof(LocalizationService)
             .GetField(nameof(LocalizationService.LanguageChanged), BindingFlags.Instance | BindingFlags.NonPublic)
@@ -55,7 +54,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(2, vm.Profiles.Count);
         Assert.Equal("Global", vm.Profiles[0].ProcessName);
         Assert.Equal("chrome.exe", vm.Profiles[1].ProcessName);
-        // T21：默认选中收编进 VM——有方案即选中首项并重建槽位（页面 View 不再写选中态）。
+// 默认选中在 VM 内维护：有方案即选中首项并重建槽位（页面 View 不写选中态）。
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
         Assert.Equal(8, vm.SelectedSectorCount);
         Assert.Equal(8, vm.Slots.Count);
@@ -72,7 +71,7 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Slots);
     }
 
-    // --- IProfilePreviewSource 只读预览 Profile 来源（#69：M1 对外契约，选中/首项回落语义） ----
+// --- IProfilePreviewSource 只读预览 Profile 来源（选中/首项回落语义） ----
 
     [Fact]
     public void ImplementsIProfilePreviewSource_DefaultSelection_ReturnsSelectedProfileModel()
@@ -134,7 +133,7 @@ public sealed class ProfileListViewModelTests
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
 
         Assert.False(vm.SelectProfile(null));
-        // T21：默认选中已在 VM 内，null 选择不清空当前选中与槽位。
+// 默认选中在 VM 内维护：null 选择不清空当前选中与槽位。
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
         Assert.Equal(8, vm.Slots.Count);
     }
@@ -168,7 +167,7 @@ public sealed class ProfileListViewModelTests
         Assert.NotNull(notified);
     }
 
-    // --- 方向槽位集合重建（迁移前 RefreshSlots 行为） ---------------------------------
+// --- 方向槽位集合重建 ---------------------------------
 
     [Fact]
     public void RebuildSlots_NormalizesInvalidSectorCountTo8SlotsWithoutWritingModelBack()
@@ -178,7 +177,7 @@ public sealed class ProfileListViewModelTests
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.Equal(8, vm.Slots.Count);
-        Assert.Equal(6, profile.SectorCount); // 迁移前即不回写模型：仅展示层规范化
+        Assert.Equal(6, profile.SectorCount); // 不回写模型：仅展示层规范化
     }
 
     [Fact]
@@ -220,7 +219,7 @@ public sealed class ProfileListViewModelTests
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.Equal(8, vm.Slots.Count);
-        // 与迁移前一致：缺省预设仅用于 4/12 键，8 键全部按序补占位
+// 缺省预设仅用于 4/12 键，8 键全部按序补占位
         Assert.Equal("快捷动作 1", profile.Actions[0].Name);
         Assert.Equal("快捷动作 5", profile.Actions[4].Name);
         Assert.Equal("快捷动作 8", profile.Actions[7].Name);
@@ -235,7 +234,7 @@ public sealed class ProfileListViewModelTests
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.Equal(4, vm.Slots.Count);
-        Assert.Equal(6, profile.Actions.Count); // 多余动作不裁剪，与迁移前一致
+        Assert.Equal(6, profile.Actions.Count); // 多余动作不裁剪
     }
 
     [Fact]
@@ -263,7 +262,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(12, profile.SectorCount);
         Assert.Equal(12, vm.Slots.Count);
         Assert.Equal(12, profile.Actions.Count);
-        Assert.Equal("音量减小 (Vol-)", profile.Actions[8].Name); // 迁移前一致：用 12 键预设补齐
+        Assert.Equal("音量减小 (Vol-)", profile.Actions[8].Name); // 用 12 键预设补齐
     }
 
     [Fact]
@@ -342,7 +341,7 @@ public sealed class ProfileListViewModelTests
         var newList = new List<WheelProfile> { MakeProfile("imported.exe", 4) };
         vm.Reload(newList);
 
-        // T21：导入回落收编进 VM——重挂后选中新列表首项并重建槽位。
+// 导入回落：重挂后选中新列表首项并重建槽位。
         Assert.Single(vm.Profiles);
         Assert.Equal("imported.exe", vm.Profiles[0].ProcessName);
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
@@ -363,7 +362,7 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Slots);
     }
 
-    // --- 瞬态 VM 生命周期（T27/ADR-0010：槽位经本 VM Dispose；Dispose 后订阅清零） -------
+// --- 瞬态 VM 生命周期（槽位经本 VM Dispose；Dispose 后订阅清零） -------
 
     [Fact]
     public void RebuildSlots_DisposesOldSlots_SoLanguageHandlersDoNotAccumulate()
@@ -483,7 +482,7 @@ public sealed class ProfileListViewModelTests
         }
     }
 
-    // --- 槽位名称编辑（迁移前行为锁定：直写模型、无验证） -------------------------------
+// --- 槽位名称编辑（直写模型、无验证） -------------------------------
 
     [Fact]
     public void SlotName_Set_WritesThroughToActionAndRaisesChange()
@@ -493,7 +492,7 @@ public sealed class ProfileListViewModelTests
         var names = new List<string?>();
         slot.PropertyChanged += (s, e) => names.Add(e.PropertyName);
 
-        slot.Name = "  新名  "; // 与迁移前一致：不去空白直写
+        slot.Name = "  新名  "; // 不去空白直写
 
         Assert.Equal("  新名  ", action.Name);
         Assert.Contains(nameof(slot.Name), names);
@@ -548,7 +547,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal("TaskManager", slot.IconDisplayText);
     }
 
-    // --- 槽位编辑提交转发 (T12) ---------------------------------------------------------
+// --- 槽位编辑提交转发 ---------------------------------------------------------
 
     [Fact]
     public void SlotEditApplied_BubblesUpAsSlotEditCommitted()
@@ -578,7 +577,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(before + 1, save.Immediate); // 重建后的新槽位仍上报落盘请求
     }
 
-    // --- 名称查重与缺省名（T16 自窗口 code-behind 收编） -----------------------------
+// --- 名称查重与缺省名 -----------------------------
 
     [Fact]
     public void IsProcessNameTaken_MatchesCaseInsensitiveAgainstRuntimeProfiles()

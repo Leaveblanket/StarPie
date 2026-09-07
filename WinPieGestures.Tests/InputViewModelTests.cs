@@ -4,10 +4,10 @@ using StarPie.Services.Dialogs;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 输入对话框 ViewModel 的行为覆盖 (T07, ADR-0004)：确认逻辑与迁移前 InputDialog code-behind 一致——
-/// 去除首尾空白、空输入拦截（固定文案）、验证回调只收到去空白文本且拒绝时保留错误信息；
-/// 取消与无效输入不产生结果（BuildResult 为 null）。无 WPF 依赖，validator 直接传委托。
-/// T20 起完成经 <see cref="InputViewModel.IsCompleted"/> 可观察状态驱动，无效提示经 IDialogService。
+/// 输入对话框 ViewModel 的行为覆盖：去除首尾空白、空输入拦截（固定文案）、
+/// 验证回调只收到去空白文本且拒绝时保留错误信息；取消与无效输入不产生结果
+/// （BuildResult 为 null）。无 WPF 依赖，validator 直接传委托；完成经
+/// <see cref="InputViewModel.IsCompleted"/> 可观察状态驱动，无效提示经 IDialogService。
 /// </summary>
 public sealed class InputViewModelTests
 {
@@ -43,7 +43,7 @@ public sealed class InputViewModelTests
         vm.ConfirmCommand.Execute(null);
 
         Assert.True(vm.IsCompleted);
-        Assert.Equal("游戏模式", vm.BuildResult()!.Text); // 确认文本去首尾空白，与迁移前一致
+        Assert.Equal("游戏模式", vm.BuildResult()!.Text); // 确认文本去首尾空白
     }
 
     [Fact]
@@ -76,7 +76,7 @@ public sealed class InputViewModelTests
 
         vm.ConfirmCommand.Execute(null);
 
-        Assert.Equal("spaced", seen); // validator 只见去空白文本，与迁移前一致
+        Assert.Equal("spaced", seen); // validator 只见去空白文本
     }
 
     // --- 空输入 -------------------------------------------------------------------

@@ -11,7 +11,7 @@ using StarPie.ViewModels;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 导航件的行为覆盖 (T19, Spec 测试决策 17；B3/#76 目录驱动)：NavigationStore 当前页状态序列、
+/// 导航件的行为覆盖：NavigationStore 当前页状态序列、
 /// 泛型导航服务按容器解析切换、目录执行缝按槽位解析、主框架 VM 目录驱动的导航项与选中态同步。
 /// 只测外部行为——CurrentViewModel 的类型序列与选中态，不测实现细节。直接 new + 替身，不经容器
 /// （导航服务与目录执行缝的容器解析语义用例例外——已批准解析缝，用微型容器验证）。
@@ -114,7 +114,7 @@ public sealed class NavigationServiceTests
 }
 
 /// <summary>
-/// 导航目录执行缝的行为覆盖（B3/#76，ADR-0016 决策 3/8）：按槽位从目录取注册项并惰性解析页面 VM
+/// 导航目录执行缝的行为覆盖：按槽位从目录取注册项并惰性解析页面 VM
 /// （容器单例）。微型容器用例与 <see cref="NavigationServiceTests"/> 同属已批准解析缝验证。
 /// </summary>
 public sealed class NavigationExecutorTests
@@ -257,10 +257,8 @@ public sealed class MainViewModelTests
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
 
-        // B3/#76 + B6/#79 + B9/#82：目录由生产模块注册器装配（StarPie.Gestures 的
-        // GesturesModuleRegistrar + StarPie.Shell 的 ShellModuleRegistrar + exe 内
-        // HostModuleRegistrar）——测试同时锁定真实槽位表（顺序/标识/标题键/图标/目标类型）；
-        // 替身只代目录执行缝。
+        // 目录由生产模块注册器装配（Gestures/Shell/Host 三注册器）——测试同时锁定真实
+        // 槽位表（顺序/标识/标题键/图标/目标类型）；替身只代目录执行缝。
         var catalog = new NavigationCatalog();
         GesturesModuleRegistrar.RegisterNavigation(catalog);
         ShellModuleRegistrar.RegisterNavigation(catalog);

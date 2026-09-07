@@ -6,9 +6,9 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 通用分区 ViewModel 的行为覆盖 (T13, ADR-0001)：界面语言切换（写配置 + I18n 切换 +
+/// 通用分区 ViewModel 的行为覆盖：界面语言切换（写配置 + I18n 切换 +
 /// 落盘请求）、开机自启（注册表读写经注入委托）、退出/提权重启编排、托盘驻留气泡提示
-/// 与配置导入/导出——全部锁定迁移前 SettingsWindow code-behind 的外部行为。
+/// 与配置导入/导出。
 /// 直接 new 被测对象并注入记录型委托，不触碰任何静态配置状态。
 /// </summary>
 public sealed class GeneralSettingsViewModelTests
@@ -317,12 +317,12 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal("JSON 配置文件 (*.json)|*.json", call.Filter);
         Assert.Equal("选择要导入的配置文件", call.Title);
         Assert.Equal(new[] { @"D:\backup\config.json" }, imported);
-        // 与迁移前一致：先提示导入成功，再由窗口重载各分区 UI
+        // 先提示导入成功，再由窗口重载各分区 UI
         var notice = Assert.Single(notices);
         Assert.Equal("提示", notice.Title);
         Assert.Equal("配置导入成功！正在应用新设置...", notice.Message);
         Assert.Equal(NoticeKind.Info, notice.Kind);
-        // T19：导入成功广播携带新运行态配置实例（取代 ConfigImported 事件）
+        // 导入成功广播携带新运行态配置实例
         var message = Assert.Single(save.Imported);
         Assert.Same(config, message.ImportedConfig);
     }

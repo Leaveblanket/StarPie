@@ -5,7 +5,7 @@ using System.Windows.Media;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘视觉几何出口（M2）纯几何推导覆盖（T3a/#65，R6/ADR-0015；T3b/#66 起轮盘侧直连本出口）：
+/// 轮盘视觉几何出口的纯几何推导覆盖：
 /// 扇区切削形态（Original 标准扇区 / Circle / HexagonHive / RoundedCapsule 系）与中心核图标几何
 /// （内置类型、Custom 的 SVG 键回退与星形回落）。
 /// </summary>

@@ -7,8 +7,8 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 程序选择器 ViewModel 的行为覆盖 (T06)：扫描编排（注入假扫描委托）、搜索过滤接线、
-/// 选择结果与手动浏览编排（mock 对话框服务）。T20 起完成经
+/// 程序选择器 ViewModel 的行为覆盖：扫描编排（注入假扫描委托）、搜索过滤接线、
+/// 选择结果与手动浏览编排（mock 对话框服务）。完成经
 /// <see cref="ProgramPickerViewModel.IsCompleted"/> 可观察状态驱动，无效选择提示经 IDialogService。
 /// </summary>
 public sealed class ProgramPickerViewModelTests
@@ -167,7 +167,7 @@ public sealed class ProgramPickerViewModelTests
     public void BrowseManually_UnresolvableLnk_FallsBackToLnkPathItself()
     {
         // 不存在的 .lnk 解析失败（ShortcutResolver 早退于 File.Exists，测试中不触 COM），
-        // 沿用旧行为：路径回落为所选 .lnk 本身，显示名取文件名。
+        // 路径回落为所选 .lnk 本身，显示名取文件名。
         var dialogs = new TestDialogService { OpenFileToPick = new FilePickResult(@"C:\fake\missing.lnk") };
         var vm = Create(dialogs: dialogs);
 

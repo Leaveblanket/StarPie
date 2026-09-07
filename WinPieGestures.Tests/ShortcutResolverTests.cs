@@ -3,7 +3,7 @@ using System;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 程序快捷方式解析出口（M3）纯路径覆盖（T3a/#65，R6/ADR-0015）：空/空白与不存在的 .lnk
+/// 程序快捷方式解析出口的纯路径覆盖：空/空白与不存在的 .lnk
 /// 在触达 COM 前按 <c>File.Exists</c> 早退并复位 out 参数（测试不触 COM）。
 /// 真实 .lnk COM 解析属集成面，按仓库惯例不在此单测。
 /// </summary>

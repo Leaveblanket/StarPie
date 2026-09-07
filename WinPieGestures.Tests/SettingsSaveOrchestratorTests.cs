@@ -7,7 +7,7 @@ using StarPie.Services;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 落盘编排订阅者的行为覆盖 (T19, Spec 预定缝②)：页面 VM → IMessenger →
+/// 落盘编排订阅者的行为覆盖：页面 VM → IMessenger →
 /// 订阅者 → 防抖器/配置服务。只测外部行为——防抖折叠语义、立即冲刷语义、
 /// 四个冲刷时机的调用序列（防抖到期/显式保存/导入前/退出由持有方驱动）。
 /// 直接 new + TestSaveDebouncer / 假配置服务，不经容器。

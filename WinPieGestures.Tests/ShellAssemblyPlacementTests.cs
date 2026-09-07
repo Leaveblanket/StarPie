@@ -14,12 +14,12 @@ using StarPie.Views.Pages;
 namespace StarPie.Tests;
 
 /// <summary>
-/// B6/#79（模块化：M5 Shell 抽取首个带 DI 的模块程序集）跨集归属与依赖收口：
-/// 壳层服务（托盘/自启/内存）与 Advanced/About 设置面（VM+View）迁入 <c>StarPie.Shell</c>；
-/// 模块注册器（<see cref="ShellModuleRegistrar"/>：RegisterNavigation + RegisterServices）随模块
-/// 迁出 exe；宿主回调契约 <see cref="AppHostDelegates"/> 上提 <c>StarPie.Core</c>；共享页面基类
-/// <see cref="SettingsPageBase"/> 迁入 Core（跨程序集页面共用）。B10/#83 命名空间统一为
-/// StarPie.*（全仓前缀替换，ADR-0016 决策 12）。Shell → Core 单向，不引用 Host/其它业务模块。
+/// 壳层模块（Shell）跨程序集归属与依赖收口：壳层服务（托盘/自启/内存）与高级/关于设置面
+/// （VM+View）位于 <c>StarPie.Shell</c>；模块注册器（<see cref="ShellModuleRegistrar"/>：
+/// RegisterNavigation + RegisterServices）随模块驻本程序集；宿主回调契约
+/// <see cref="AppHostDelegates"/> 与共享页面基类 <see cref="SettingsPageBase"/> 位于
+/// 共享内核 <c>StarPie.Core</c>（跨程序集页面共用）。
+/// Shell → Core 单向，不引用宿主/其它业务模块。
 /// </summary>
 public sealed class ShellAssemblyPlacementTests
 {

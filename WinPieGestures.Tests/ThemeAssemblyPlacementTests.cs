@@ -15,15 +15,14 @@ using StarPie.ViewModels.Pages;
 namespace StarPie.Tests;
 
 /// <summary>
-/// B7/#80（模块化：M4 Theme 抽取）跨集归属、依赖与可见性收口：
-/// 主题服务（<see cref="IThemeService"/>/<see cref="ThemeService"/>）、五套主题字典
+/// 主题模块（Theme）跨程序集归属、依赖与可见性收口：主题服务
+/// （<see cref="IThemeService"/>/<see cref="ThemeService"/>）、五套主题字典
 /// （Views/Styles/Themes/*.xaml）、主题设置子 VM（<see cref="InterfaceThemeSettingsViewModel"/>/
-/// <see cref="AppThemeOptionItem"/>）与调色板换入 <see cref="ThemePaletteManager"/> 迁入
+/// <see cref="AppThemeOptionItem"/>）与调色板换入 <see cref="ThemePaletteManager"/> 位于
 /// <c>StarPie.Theme</c>；模块注册器 <see cref="ThemeModuleRegistrar"/> 下放服务与主题 VM 的
-/// DI 注册；ThemePaletteManager/ThemeService.AttachPaletteApplier 裁决 public（Host AppHost
-/// 装配面，B6/#79 TrayIconManager 先例）；主题应用消息 AppThemeChangedMessage 仍归 Core S4 hub
-/// （放行共享面）。B10/#83 命名空间统一为 StarPie.*（全仓前缀替换，ADR-0016 决策 12）。
-/// Theme → Core 单向，不引用 Host/其它业务模块；M2 轮盘件（RadialWindow 等）B8 前仍驻 Host。
+/// DI 注册；ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为 public（供宿主
+/// AppHost 装配面跨程序集编排）；主题应用消息 AppThemeChangedMessage 位于共享内核消息 Hub。
+/// Theme → Core 单向，不引用宿主/其它业务模块。
 /// </summary>
 public sealed class ThemeAssemblyPlacementTests
 {
@@ -61,10 +60,9 @@ public sealed class ThemeAssemblyPlacementTests
     [Fact]
     public void 主题换入装配面_裁决public_供HostAppHost跨程序集编排()
     {
-        // B7/#80 可见性裁决：ThemePaletteManager（原 Host internal）与
-        // ThemeService.AttachPaletteApplier 公开——Host AppHost 装配面
-        // （new ThemePaletteManager + AttachPaletteApplier + Apply），
-        // 与 B6/#79 TrayIconManager 公开先例一致；不引入 InternalsVisibleTo。
+        // ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为 public：
+        // 宿主 AppHost 装配面（new ThemePaletteManager + AttachPaletteApplier + Apply）
+        // 跨程序集编排；不引入 InternalsVisibleTo。
         Assert.True(typeof(ThemePaletteManager).IsPublic);
         Assert.True(typeof(ThemeService).IsPublic);
         Assert.True(typeof(IThemeService).IsPublic);
@@ -89,8 +87,8 @@ public sealed class ThemeAssemblyPlacementTests
     [Fact]
     public void 主题应用消息_仍归共享内核Core消息Hub()
     {
-        // AppThemeChangedMessage 语义归 M4，但类型定义集中于 S4 hub（messages.md 放行共享面），
-        // B7 不随模块迁出——避免 M4/Core 消息 hub 重复载体。
+        // AppThemeChangedMessage 语义属主题模块，但类型定义集中在共享内核消息 Hub
+        // （避免消息载体重复），不随模块迁移。
         Assert.Equal("StarPie.Core", typeof(AppThemeChangedMessage).Assembly.GetName().Name);
         Assert.Equal("StarPie.Services.Messages", typeof(AppThemeChangedMessage).Namespace);
     }
