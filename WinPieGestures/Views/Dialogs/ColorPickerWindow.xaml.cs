@@ -11,11 +11,11 @@ namespace StarPie.Views.Dialogs
     using ColorConverter = System.Windows.Media.ColorConverter;
 
     /// <summary>
-    /// 颜色选择器窗口 (T08)：HSV 状态机、十六进制输入解析与确认结果全部在
+    /// 颜色选择器窗口：HSV 状态机、十六进制输入解析与确认结果全部在
     /// <see cref="ColorPickerViewModel"/>；code-behind 只剩取色圈定位与把
     /// VM 完成/取消落成 DialogResult——色盘取点像素坐标翻译在
-    /// <see cref="SpectrumCanvasBehavior"/>（ADR-0009）。由 <see cref="DialogService"/> 创建，
-    /// Owner 归设置窗口。屏上取色覆盖层已拆分到 <see cref="ScreenEyedropperWindow"/>。
+    /// <see cref="SpectrumCanvasBehavior"/>。由 <see cref="DialogService"/> 创建，
+    /// Owner 归设置窗口；屏上取色覆盖层在 <see cref="ScreenEyedropperWindow"/>。
     /// </summary>
     public partial class ColorPickerWindow : Window
     {
@@ -30,7 +30,7 @@ namespace StarPie.Views.Dialogs
             DataContext = _vm;
             PopulateSwatches();
             UpdateSpectrumThumbPosition();
-            Title = $"{localization.GetString("ColorPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
+            Title = $"{localization.GetString("ColorPickerTitle")} - StarPie"; // 窗口标题品牌后缀拼接：XAML 表达不了，对话框每次新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
@@ -92,7 +92,7 @@ namespace StarPie.Views.Dialogs
             }
         }
 
-        // ADR-0009：取消无业务语义，Click→DialogResult=false 属 code-behind 白名单。
+        // 取消无业务语义：Click → DialogResult=false，属 code-behind 白名单。
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

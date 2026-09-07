@@ -27,8 +27,8 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- 导航区：当前页面（页面 VM → 页面 View 的 DataTemplate 经 App 级模块模板字典映射
-                 （B3/#76，见 App.xaml MergedDictionaries），本窗口已无页面映射——纯壳） -->
+            <!-- 导航区：当前页面——页面 VM → 页面 View 的 DataTemplate 经 App 级模块模板
+                 字典映射（见 App.xaml MergedDictionaries），本窗口为纯壳、无页面映射 -->
             <ContentControl x:Name="PageContent" Grid.Row="0" Content="{Binding CurrentViewModel}"/>
 
             <!-- 壳区：全局底部操作 Footer（DataContext 继承窗口壳层 VM） -->

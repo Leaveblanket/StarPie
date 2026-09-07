@@ -15,7 +15,7 @@ namespace StarPie.Views.Dialogs
     using HorizontalAlignment = System.Windows.HorizontalAlignment;
 
     /// <summary>
-    /// 图标选择器窗口 (T08)：选中状态、搜索过滤、导入/删除编排与确认结果全部在
+    /// 图标选择器窗口：选中状态、搜索过滤、导入/删除编排与确认结果全部在
     /// <see cref="IconPickerViewModel"/>；code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）、
     /// 把 VM 的关闭请求落成 DialogResult。由 <see cref="DialogService"/> 创建，
     /// Owner 归设置窗口。
@@ -33,7 +33,7 @@ namespace StarPie.Views.Dialogs
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
-            Title = $"{localization.GetString("IconPickerTitle")} - StarPie"; // ADR-0010 例外:窗口标题品牌后缀拼接(XAML 表达不了),对话框每次 Show* 新建即时取词
+            Title = $"{localization.GetString("IconPickerTitle")} - StarPie"; // 窗口标题品牌后缀拼接：XAML 表达不了，对话框每次新建即时取词
         }
 
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
@@ -138,7 +138,7 @@ namespace StarPie.Views.Dialogs
             sp.Children.Add(tb);
             grid.Children.Add(sp);
 
-            // Delete small button for custom icons
+            // 自定义图标的删除小按钮
             if (entry.IsCustom)
             {
                 var delBtn = new System.Windows.Controls.Button
@@ -172,8 +172,8 @@ namespace StarPie.Views.Dialogs
                 ApplyCardSelection(card);
             }
 
-            // ADR-0009：事件只做纯 UI 视觉高亮；选择/双击确认均走 MouseBinding → VM 命令，
-            // 完成由 IsCompleted 观察器落 DialogResult=true（View 不在事件里当业务入口）。
+            // 事件只做纯 UI 视觉高亮；选择/双击确认均走 MouseBinding → VM 命令，
+            // 完成由 IsCompleted 观察器落 DialogResult=true。
             card.MouseLeftButtonDown += (s, e) => ApplyCardSelection(card);
             card.InputBindings.Add(new MouseBinding
             {
@@ -204,7 +204,7 @@ namespace StarPie.Views.Dialogs
             card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
         }
 
-        // ADR-0009：取消无业务语义，Click→DialogResult=false 属 code-behind 白名单。
+        // 取消无业务语义：Click → DialogResult=false，属 code-behind 白名单。
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;

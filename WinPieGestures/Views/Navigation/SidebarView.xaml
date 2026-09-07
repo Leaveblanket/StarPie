@@ -6,8 +6,8 @@
         mc:Ignorable="d"
         d:DesignHeight="640" d:DesignWidth="230">
 
-    <!-- 左侧导航栏 (T19)：导航项数据驱动（图标/标题/目标 VM 类型/选中态），
-         由主框架 VM 的 NavigationItems 提供；AutomationId 沿用 NavTab{0..4} 供 e2e 使用。 -->
+    <!--  左侧导航栏：导航项数据驱动（图标/标题/目标 VM 类型/选中态），
+          由导航 VM 的 NavigationItems 提供；AutomationId 沿用 NavTab{0..4} 供 e2e 使用。  -->
     <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0" Padding="16,20,16,15">
         <Grid>
             <Grid.RowDefinitions>
@@ -16,14 +16,14 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Sidebar Header (Logo & Brand) -->
+            <!--  侧边栏头部（Logo 与品牌区）  -->
             <StackPanel Grid.Row="0" Margin="0,5,0,24">
                 <Grid Margin="0,0,0,8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <!-- Modern StarPie Squircle Logo -->
+                    <!--  StarPie 圆角方形 Logo  -->
                     <Border Width="38" Height="38" CornerRadius="8" Background="Transparent" VerticalAlignment="Center">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="8" ShadowDepth="1" Color="#000000" Opacity="0.16"/>
@@ -37,7 +37,7 @@
                 </Grid>
             </StackPanel>
 
-            <!-- Five-Dimension Navigation (Data-Driven) -->
+            <!--  五项导航（数据驱动）  -->
             <ItemsControl Grid.Row="1" ItemsSource="{Binding NavigationItems}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -56,7 +56,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- Version Footer -->
+            <!--  版本页脚  -->
             <StackPanel Grid.Row="2" Margin="0,15,0,5">
                 <Border Background="{DynamicResource NavTabActiveBgBrush}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Margin="0,0,0,4">
                     <TextBlock Text="v1.4.1" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>

@@ -13,18 +13,18 @@
     <Grid Margin="18">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <!--  Title / Info  -->
+			<!--  标题与说明  -->
             <RowDefinition Height="Auto" />
-            <!--  Search Box  -->
+			<!--  搜索框  -->
             <RowDefinition Height="*" />
-            <!--  Programs List  -->
+			<!--  程序列表  -->
             <RowDefinition Height="Auto" />
-            <!--  Status / Loading indicator  -->
+			<!--  状态/加载指示  -->
             <RowDefinition Height="Auto" />
-            <!--  Actions  -->
+			<!--  操作  -->
         </Grid.RowDefinitions>
 
-        <!--  Header  -->
+		<!--  头部  -->
         <TextBlock
             Grid.Row="0"
             Margin="0,0,0,12"
@@ -34,7 +34,7 @@
             Foreground="{DynamicResource TextPrimaryBrush}"
             Text="{DynamicResource ProgramPickerHeader}" />
 
-        <!--  Search bar  -->
+		<!--  搜索栏  -->
         <Grid Grid.Row="1" Margin="0,0,0,10">
             <TextBox
                 Name="SearchTextBox"
@@ -78,7 +78,7 @@
             </TextBlock>
         </Grid>
 
-        <!--  List View  -->
+		<!--  列表视图  -->
         <Border
             Grid.Row="2"
             Background="{DynamicResource CardBackgroundBrush}"
@@ -128,7 +128,7 @@
             </ListView>
         </Border>
 
-        <!--  Loading / Status indicator  -->
+		<!--  加载/状态指示  -->
         <TextBlock
             Name="StatusTextBlock"
             Grid.Row="3"
@@ -150,7 +150,7 @@
             </TextBlock.Style>
         </TextBlock>
 
-        <!--  Bottom Actions  -->
+		<!--  底部操作区  -->
         <Grid Grid.Row="4" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />

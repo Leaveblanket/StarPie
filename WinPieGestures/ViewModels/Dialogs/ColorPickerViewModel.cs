@@ -9,7 +9,7 @@ namespace StarPie.ViewModels.Dialogs
     public readonly record struct SpectrumPoint(double Saturation, double Value);
 
     /// <summary>
-    /// 颜色选择器 ViewModel (T08, ADR-0001/0004)：HSV 状态机、十六进制输入解析、
+    /// 颜色选择器 ViewModel：HSV 状态机、十六进制输入解析、
     /// 预览/色盘画刷与确认结果全部在此；视图只做色盘取点、滑杆/输入框绑定与本地化文案。
     /// HSV/RGB 换算为静态纯函数，直接可测。
     /// </summary>
@@ -17,7 +17,7 @@ namespace StarPie.ViewModels.Dialogs
     {
         private const string DefaultHex = "#FF2563EB";
 
-        /// <summary>预设色卡（与迁移前一致）。</summary>
+        /// <summary>预设色卡。</summary>
         public static readonly string[] PresetColors =
         {
             "#EB18181B", "#F0F8FAFC", "#FF2563EB", "#FF3B82F6", "#FF60A5FA", "#FF06B6D4", "#FF0EA5E9",
@@ -98,7 +98,7 @@ namespace StarPie.ViewModels.Dialogs
             catch { }
         }
 
-        /// <summary>按十六进制串整体设置颜色（滑杆/输入框/预览同步，与迁移前一致）。</summary>
+        /// <summary>按十六进制串整体设置颜色（滑杆/输入框/预览同步）。</summary>
         public void SetColorFromHex(string hex)
         {
             if (string.IsNullOrWhiteSpace(hex)) return;
@@ -122,7 +122,7 @@ namespace StarPie.ViewModels.Dialogs
         [RelayCommand]
         private void SetColorFromHexAction(string hex) => SetColorFromHex(hex);
 
-        /// <summary>应用已解析的颜色：同步 HSV 状态与滑杆（抑制回环，与迁移前一致）。</summary>
+        /// <summary>应用已解析的颜色：同步 HSV 状态与滑杆（抑制回环）。</summary>
         private void ApplyParsedColor(RgbColor color)
         {
             var (h, s, v) = ColorMath.RgbToHsv(color);
@@ -143,7 +143,7 @@ namespace StarPie.ViewModels.Dialogs
             UpdatePreview();
         }
 
-        /// <summary>色盘取点命令：View 附加行为把 Canvas 像素坐标翻译成归一化点后经此进入（ADR-0009）。</summary>
+        /// <summary>色盘取点命令：View 附加行为把 Canvas 像素坐标翻译成归一化点后经此进入。</summary>
         [RelayCommand]
         private void SetSpectrumPointAction(SpectrumPoint point) => SetSpectrumPoint(point.Saturation, point.Value);
 
@@ -175,7 +175,7 @@ namespace StarPie.ViewModels.Dialogs
 
             PreviewHex = SelectedHexColor;
 
-            // 与迁移前一致：程序化写输入框时抑制回环解析。
+            // 程序化写输入框时抑制回环解析。
             if (!_isUpdating)
             {
                 _isUpdating = true;
@@ -184,7 +184,7 @@ namespace StarPie.ViewModels.Dialogs
             }
         }
 
-        #region HSV / RGB Conversion（迁移自 ColorPickerWindow，算法不变）
+        #region HSV / RGB 换算（静态纯函数）
 
         /// <summary>HSV → RGB：h ∈ [0, 360)，s/v ∈ [0, 1]。</summary>
         public static RgbColor HsvToRgb(double h, double s, double v) => ColorMath.HsvToRgb(h, s, v);

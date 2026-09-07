@@ -8,27 +8,25 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!--  Light 主题默认/设计时画刷（B7/#80：主题字典随 M4 迁 StarPie.Theme，
-                      跨程序集 pack URI 合并；运行时由 ThemePaletteManager 整项替换同源主题槽）  -->
+                <!--  Light 主题默认/设计时画刷：经跨程序集 pack URI 合并；运行时由
+                      ThemePaletteManager 整项替换同源主题槽  -->
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Theme;component/Views/Styles/Themes/Light.xaml" />
-                <!--  B5/#78：全局控件样式字典迁入共享内核 Core，跨程序集 pack URI 合并 (ADR-0012/0016)  -->
+                <!--  全局控件样式字典（共享内核 Core）：经跨程序集 pack URI 合并  -->
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Core;component/Views/Styles/ModernControls.xaml" />
-                <!--  B3/#76 模块页面模板字典（ADR-0016 决策 4：Host 每模块一次静态合并）。
-                      B6/#79：M5 模板字典随模块迁 StarPie.Shell，经跨程序集 pack URI 合并；
-                      B9/#82：M1 模板字典随模块迁 StarPie.Gestures，经跨程序集 pack URI 合并；
-                      Host 临时模板字典（外观聚合页）仍居 exe（目标态留 Host）  -->
+                <!--  模块页面模板字典：Gestures/Shell 经跨程序集 pack URI 合并，
+                      宿主外观聚合页模板由本地 Modules/HostPageTemplates.xaml 提供  -->
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
-            <!--  B5/#78：通用共享转换器随类迁入 Core，实例仍由 App 级单点持有（ADR-0012 决策 5）  -->
+            <!--  通用共享转换器（共享内核 Core）：实例由 App 级资源单点持有  -->
             <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
             <converters:StringToGeometryConverter x:Key="StringToGeometryConverter" />
             <converters:IntEqualsConverter x:Key="IntEqualsConverter" />
             <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
-            <!--  M2 轮盘核图标预览配套（Appearance 聚合页用；B8/#81 已随 M2 收编 StarPie.Wheel/Views/Converters，
-                  裁决随 M2——与 B5/#78 登记一致，Host App.xaml 经跨程序集 clr-namespace 引用实例）  -->
+            <!--  轮盘核图标预览配套转换器（StarPie.Wheel）：外观聚合页预览用，
+                  经跨程序集 clr-namespace 引用实例  -->
             <wheelConverters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />
             <wheelConverters:CoreIconNameConverter x:Key="CoreIconNameConverter" />
         </ResourceDictionary>
