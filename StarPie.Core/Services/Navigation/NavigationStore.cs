@@ -3,10 +3,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace StarPie.Services.Navigation
 {
     /// <summary>
-    /// 导航状态单一根源 (T19)：持当前页面 ViewModel（容器单例引用，切换只换引用不重建状态）。
-    /// 主框架 ViewModel 经其把 <see cref="CurrentViewModel"/> 暴露给 ContentControl，
-    /// 并随其变更同步导航项选中态。UI 无关，可直接单测（Spec 预定缝①）。
+    /// 导航状态单一根源：持当前页面 ViewModel（容器单例引用，切换只换引用不重建状态）。
     /// </summary>
+    /// <remarks>
+    /// 主框架 ViewModel 经其把 <see cref="CurrentViewModel"/> 暴露给 ContentControl，
+    /// 并随其变更同步导航项选中态。UI 无关，可直接单测。
+    /// </remarks>
     public sealed class NavigationStore : ObservableObject
     {
         private ObservableObject? _currentViewModel;

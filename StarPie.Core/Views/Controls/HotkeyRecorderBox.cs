@@ -12,11 +12,13 @@ using Cursors = System.Windows.Input.Cursors;
 namespace StarPie.Views.Controls
 {
     /// <summary>
-    /// 热键录制输入框（ADR-0012/#49 C2）：文案与状态配色一律声明式——占位文案由消费方
-    /// 经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键），录制提示与录制态
-    /// 配色由控件模板（ModernControls.xaml）持有；code-behind 只负责输入逻辑与动态
-    /// 文本/可见性编排，不出现静态文案或 hex 画刷。
+    /// 热键录制输入框：文案与状态配色一律声明式。
     /// </summary>
+    /// <remarks>
+    /// 占位文案由消费方经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键），
+    /// 录制提示与录制态配色由控件模板（ModernControls.xaml）持有；code-behind 只负责
+    /// 输入逻辑与动态文本/可见性编排，不出现静态文案或 hex 画刷。
+    /// </remarks>
     public class HotkeyRecorderBox : Control
     {
         public static readonly DependencyProperty HotkeyTextProperty =
@@ -133,7 +135,7 @@ namespace StarPie.Views.Controls
             e.Handled = true;
             Key key = (e.Key == Key.System) ? e.SystemKey : e.Key;
 
-            // Handle Cancel & Clear
+            // 处理取消（Esc）与清除（Backspace/Delete）。
             if (key == Key.Escape)
             {
                 IsRecording = false;
@@ -151,14 +153,14 @@ namespace StarPie.Views.Controls
                 return;
             }
 
-            // Check if it's purely a modifier key press
+            // 若只按下修饰键（Ctrl/Shift/Alt/Win），仅做组合提示，不结束录制。
             if (IsModifierKey(key))
             {
                 UpdateModifierOnlyDisplay();
                 return;
             }
 
-            // Valid key combo: Build standard representation
+            // 有效组合键：拼出标准表示并结束录制。
             string combo = BuildHotkeyString(key);
             if (!string.IsNullOrEmpty(combo))
             {
@@ -169,6 +171,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>键抬起时若仍在录制，刷新“修饰键 + …”的中间提示（避免抬起后残留旧文本）。</summary>
         protected override void OnPreviewKeyUp(KeyEventArgs e)
         {
             if (IsRecording)
@@ -179,6 +182,7 @@ namespace StarPie.Views.Controls
             base.OnPreviewKeyUp(e);
         }
 
+        /// <summary>判断是否为纯修饰键（左右 Ctrl/Alt/Shift 与 Win 键）。</summary>
         private static bool IsModifierKey(Key key)
         {
             return key == Key.LeftCtrl || key == Key.RightCtrl ||
@@ -187,6 +191,7 @@ namespace StarPie.Views.Controls
                    key == Key.LWin || key == Key.RWin;
         }
 
+        /// <summary>录制中只按下修饰键时，显示"Ctrl + Shift + …"式提示；无修饰键则隐藏提示。</summary>
         private void UpdateModifierOnlyDisplay()
         {
             if (!IsRecording) return;
@@ -210,6 +215,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>把当前按下的修饰键与主键拼成标准的 "Ctrl + Shift + A" 形式；仅修饰键时返回空。</summary>
         private static string BuildHotkeyString(Key mainKey)
         {
             var parts = new List<string>();
@@ -228,21 +234,22 @@ namespace StarPie.Views.Controls
             return string.Join(" + ", parts);
         }
 
+        /// <summary>把 WPF 键值格式化为可读文本：数字键还原数字、符号键还原符号、其余用键名。</summary>
         private static string FormatKeyName(Key key)
         {
-            // D0 - D9
+            // 主键盘数字键 D0–D9：去掉键名前缀输出数字本身。
             if (key >= Key.D0 && key <= Key.D9)
             {
                 return ((int)key - (int)Key.D0).ToString();
             }
 
-            // NumPad0 - NumPad9
+            // 小键盘数字键 NumPad0–NumPad9：加 "Num" 前缀以示区分。
             if (key >= Key.NumPad0 && key <= Key.NumPad9)
             {
                 return "Num" + ((int)key - (int)Key.NumPad0).ToString();
             }
 
-            // Function keys
+            // 功能键 F1–F24：直接用键名。
             if (key >= Key.F1 && key <= Key.F24)
             {
                 return key.ToString();
@@ -270,7 +277,7 @@ namespace StarPie.Views.Controls
                 case Key.Scroll: return "ScrollLock";
                 case Key.NumLock: return "NumLock";
 
-                // OEM Symbols
+                // OEM 符号键：映射为对应符号字符。
                 case Key.Oem1: return ";";
                 case Key.OemPlus: return "=";
                 case Key.OemComma: return ",";
@@ -283,14 +290,14 @@ namespace StarPie.Views.Controls
                 case Key.Oem6: return "]";
                 case Key.Oem7: return "'";
 
-                // Math & Numpad
+                // 小键盘运算键：以 Num 前缀命名，与主键盘符号区分。
                 case Key.Add: return "NumAdd";
                 case Key.Subtract: return "NumSubtract";
                 case Key.Multiply: return "NumMultiply";
                 case Key.Divide: return "NumDivide";
                 case Key.Decimal: return "NumDecimal";
 
-                // Media & Browser
+                // 媒体与浏览器键。
                 case Key.VolumeMute: return "VolumeMute";
                 case Key.VolumeDown: return "VolumeDown";
                 case Key.VolumeUp: return "VolumeUp";
@@ -309,6 +316,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>按当前状态（是否录制、是否有已录制文本）统一编排占位/提示/显示/清除按钮的可见性。</summary>
         private void UpdateVisualDisplay()
         {
             bool isRecording = IsRecording;
@@ -341,6 +349,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>HotkeyText 变化时刷新显示。</summary>
         private static void OnHotkeyTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is HotkeyRecorderBox control)
@@ -349,6 +358,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>录制状态变化时刷新显示。</summary>
         private static void OnIsRecordingChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is HotkeyRecorderBox control)
@@ -357,6 +367,7 @@ namespace StarPie.Views.Controls
             }
         }
 
+        /// <summary>占位文案变化时刷新显示。</summary>
         private static void OnPlaceholderChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is HotkeyRecorderBox control)

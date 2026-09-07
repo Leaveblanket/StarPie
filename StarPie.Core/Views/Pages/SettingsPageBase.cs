@@ -4,12 +4,14 @@ using System.Windows.Controls;
 namespace StarPie.Views.Pages
 {
     /// <summary>
-    /// 设置页面基类 (T19/T21/T24)：页面 View 经 DataTemplate 无参构造、按导航重建。
-    /// T24 起页面文本声明式化——XAML 经 <c>{DynamicResource}</c> 读组合根换入的语言字典
-    /// （见 <see cref="StarPie.Composition"/>），本基类不再订阅 I18n 广播，只保留
+    /// 设置页面基类：页面 View 经 DataTemplate 无参构造、按导航重建。
+    /// </summary>
+    /// <remarks>
+    /// 页面文本声明式化：XAML 经 <c>{DynamicResource}</c> 读组合根换入的语言字典
+    /// （见 <see cref="StarPie.Composition"/>），本基类不订阅语言广播，只保留
     /// <see cref="OnPageLoaded"/>/<see cref="OnPageUnloaded"/> 钩子：页面挂载/卸载时做
     /// View 效果接线的成对订阅退订（页面 VM 是容器单例，页面过期引用靠退订释放）。
-    /// </summary>
+    /// </remarks>
     public abstract class SettingsPageBase : UserControl
     {
         protected SettingsPageBase()

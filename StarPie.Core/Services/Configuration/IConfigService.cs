@@ -1,27 +1,28 @@
 namespace StarPie.Services.Configuration
 {
     /// <summary>
-    /// Config seam (ADR-0002): loading and saving config.json plus profile lookup
-    /// (foreground-process match with Global-profile fallback). The implementation
-    /// owns the file I/O; callers receive it via constructor injection.
-    /// Import/Export stay on the concrete implementation until a consumer needs
-    /// them through this seam.
+    /// 配置服务接缝：负责 config.json 的加载与保存，以及配置方案查找
+    /// （前台进程匹配，未命中回退 Global 方案）。
     /// </summary>
+    /// <remarks>
+    /// 实现方独占文件 I/O，调用方通过构造函数注入获得本接口。
+    /// 导入/导出能力保留在具体实现上，直到有消费方需要经由本接缝使用它们。
+    /// </remarks>
     public interface IConfigService
     {
-        /// <summary>Current live config; defaults when loading failed or never ran — never null.</summary>
+        /// <summary>当前运行态配置；加载失败或从未加载时为默认配置——永不为 null。</summary>
         AppConfig Current { get; }
 
-        /// <summary>Loads from disk; a missing file is seeded with the default config, corrupt JSON falls back to defaults.</summary>
+        /// <summary>从磁盘加载配置：文件缺失时播种默认配置，JSON 损坏时回退默认值（不触碰文件）。</summary>
         void Load();
 
-        /// <summary>Writes the current config back to disk; failures are silent (Debug output), never thrown.</summary>
+        /// <summary>把当前配置写回磁盘；失败仅输出 Debug 日志，绝不抛异常。</summary>
         void Save();
 
-        /// <summary>Returns the profile for the foreground process; empty/unknown process names fall back to the Global profile.</summary>
+        /// <summary>返回前台进程对应的配置方案；进程名为空/未知时回退 Global 方案。</summary>
         WheelProfile GetProfileForProcess(string processName);
 
-        /// <summary>Returns the Global profile; recreates an empty one at the front of Profiles when missing.</summary>
+        /// <summary>返回 Global 方案；缺失时在 Profiles 头部重建一个空的 Global 方案。</summary>
         WheelProfile GetGlobalProfile();
     }
 }

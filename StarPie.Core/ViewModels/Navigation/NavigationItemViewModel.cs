@@ -5,17 +5,19 @@ using CommunityToolkit.Mvvm.Input;
 namespace StarPie.ViewModels.Navigation
 {
     /// <summary>
-    /// 侧边栏导航项 ViewModel (T19，B3/#76 目录驱动)：数据驱动——图标/标题/目标页面类型/选中态；
-    /// 点击经 <see cref="NavigateCommand"/> 走目录执行缝（构造注入的 navigate 委托，由主框架 VM
-    /// 用 <see cref="INavigationExecutor"/> 按槽位接线）。AutomationId 沿用 NavTab{0..4}，
-    /// e2e（pywinauto）依赖该标识。标题随语言广播由主框架 VM 刷新。
+    /// 侧边栏导航项 ViewModel：数据驱动——图标、标题、目标页面类型与选中态。
     /// </summary>
+    /// <remarks>
+    /// 点击经 <see cref="NavigateCommand"/> 走目录执行缝（构造注入的 navigate 委托，
+    /// 由主框架 VM 用 <see cref="INavigationExecutor"/> 按槽位接线）。AutomationId 固定为
+    /// NavTab{0..4}（e2e 依赖）；标题属驻留文案，随语言切换由主框架 VM 刷新。
+    /// </remarks>
     public partial class NavigationItemViewModel : ObservableObject
     {
-        /// <summary>UIA 自动化标识（沿用迁移前 NavTab{0..4}）。</summary>
+        /// <summary>UIA 自动化标识（NavTab{槽位}，e2e 依赖）。</summary>
         public string AutomationId { get; }
 
-        /// <summary>标题的 I18n 键（语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>
+        /// <summary>标题的本地化键（语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>
         public string TitleKey { get; }
 
         /// <summary>导航项标题（已本地化）。</summary>
