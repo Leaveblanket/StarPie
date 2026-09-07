@@ -54,7 +54,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(2, vm.Profiles.Count);
         Assert.Equal("Global", vm.Profiles[0].ProcessName);
         Assert.Equal("chrome.exe", vm.Profiles[1].ProcessName);
-// 默认选中在 VM 内维护：有方案即选中首项并重建槽位（页面 View 不写选中态）。
+        // 默认选中在 VM 内维护：有方案即选中首项并重建槽位（页面 View 不写选中态）。
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
         Assert.Equal(8, vm.SelectedSectorCount);
         Assert.Equal(8, vm.Slots.Count);
@@ -71,7 +71,7 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Slots);
     }
 
-// --- IProfilePreviewSource 只读预览 Profile 来源（选中/首项回落语义） ----
+    // --- IProfilePreviewSource 只读预览 Profile 来源（选中/首项回落语义） ----
 
     [Fact]
     public void ImplementsIProfilePreviewSource_DefaultSelection_ReturnsSelectedProfileModel()
@@ -133,7 +133,7 @@ public sealed class ProfileListViewModelTests
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile() }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization);
 
         Assert.False(vm.SelectProfile(null));
-// 默认选中在 VM 内维护：null 选择不清空当前选中与槽位。
+        // 默认选中在 VM 内维护：null 选择不清空当前选中与槽位。
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
         Assert.Equal(8, vm.Slots.Count);
     }
@@ -167,7 +167,7 @@ public sealed class ProfileListViewModelTests
         Assert.NotNull(notified);
     }
 
-// --- 方向槽位集合重建 ---------------------------------
+    // --- 方向槽位集合重建 ---------------------------------
 
     [Fact]
     public void RebuildSlots_NormalizesInvalidSectorCountTo8SlotsWithoutWritingModelBack()
@@ -219,7 +219,7 @@ public sealed class ProfileListViewModelTests
         vm.SelectProfile(vm.Profiles[0]);
 
         Assert.Equal(8, vm.Slots.Count);
-// 缺省预设仅用于 4/12 键，8 键全部按序补占位
+        // 缺省预设仅用于 4/12 键，8 键全部按序补占位
         Assert.Equal("快捷动作 1", profile.Actions[0].Name);
         Assert.Equal("快捷动作 5", profile.Actions[4].Name);
         Assert.Equal("快捷动作 8", profile.Actions[7].Name);
@@ -341,7 +341,7 @@ public sealed class ProfileListViewModelTests
         var newList = new List<WheelProfile> { MakeProfile("imported.exe", 4) };
         vm.Reload(newList);
 
-// 导入回落：重挂后选中新列表首项并重建槽位。
+        // 导入回落：重挂后选中新列表首项并重建槽位。
         Assert.Single(vm.Profiles);
         Assert.Equal("imported.exe", vm.Profiles[0].ProcessName);
         Assert.Same(vm.Profiles[0], vm.SelectedProfile);
@@ -362,7 +362,7 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Slots);
     }
 
-// --- 瞬态 VM 生命周期（槽位经本 VM Dispose；Dispose 后订阅清零） -------
+    // --- 瞬态 VM 生命周期（槽位经本 VM Dispose；Dispose 后订阅清零） -------
 
     [Fact]
     public void RebuildSlots_DisposesOldSlots_SoLanguageHandlersDoNotAccumulate()
@@ -482,7 +482,7 @@ public sealed class ProfileListViewModelTests
         }
     }
 
-// --- 槽位名称编辑（直写模型、无验证） -------------------------------
+    // --- 槽位名称编辑（直写模型、无验证） -------------------------------
 
     [Fact]
     public void SlotName_Set_WritesThroughToActionAndRaisesChange()
@@ -547,7 +547,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal("TaskManager", slot.IconDisplayText);
     }
 
-// --- 槽位编辑提交转发 ---------------------------------------------------------
+    // --- 槽位编辑提交转发 ---------------------------------------------------------
 
     [Fact]
     public void SlotEditApplied_BubblesUpAsSlotEditCommitted()
@@ -577,7 +577,7 @@ public sealed class ProfileListViewModelTests
         Assert.Equal(before + 1, save.Immediate); // 重建后的新槽位仍上报落盘请求
     }
 
-// --- 名称查重与缺省名 -----------------------------
+    // --- 名称查重与缺省名 -----------------------------
 
     [Fact]
     public void IsProcessNameTaken_MatchesCaseInsensitiveAgainstRuntimeProfiles()
