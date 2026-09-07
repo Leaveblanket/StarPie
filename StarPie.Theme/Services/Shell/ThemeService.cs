@@ -8,16 +8,16 @@ using Windows.UI.ViewManagement;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// App theme service (T09/ADR-0012/ADR-0013 #47): owns the current effective theme and
-    /// the Win32 title-bar surface behind the IThemeService seam. <see cref="SetTheme"/> is
-    /// the single state entry point — it resolves, records <see cref="CurrentEffectiveTheme"/>,
-    /// raises <see cref="ThemeChanged"/> and triggers the palette replacement via the
-    /// attached applier. Theme palettes live as XAML under Views/Styles/Themes (B7/#80 起随 M4
-    /// 居 StarPie.Theme) and are swapped wholesale by ThemePaletteManager (same module), so this
-    /// service never depends on Views.
-    /// The Windows dark-mode probe is injectable so "follow system" resolution is
-    /// unit-testable; production reads the personalize registry key live.
+    /// 界面主题服务（<see cref="IThemeService"/> 实现）：持有当前有效主题，并提供
+    /// IThemeService 接缝背后的 Win32 标题栏深浅色表面。
     /// </summary>
+    /// <remarks>
+    /// <see cref="SetTheme"/> 是唯一状态入口——解析、记录 <see cref="CurrentEffectiveTheme"/>、
+    /// 广播 <see cref="ThemeChanged"/> 并触发调色板整项替换（经附加的 applier）。主题调色板以
+    /// XAML 存放于 Views/Styles/Themes，由同模块的 ThemePaletteManager 整项换入，
+    /// 本服务不依赖 Views。Windows 深色探测可注入，使“跟随系统”解析可单测；
+    /// 生产实现实时读 Personalize 注册表键。
+    /// </remarks>
     public sealed class ThemeService : IThemeService
     {
         public string CurrentEffectiveTheme { get; private set; } = "Light";
@@ -41,10 +41,8 @@ namespace StarPie.Services.Shell
             _windowsInDarkModeProbe = windowsInDarkModeProbe ?? ProbeWindowsDarkMode;
         }
 
-        /// <summary>绑定调色板应用回调（ADR-0012/0013；B7/#80 跨程序集裁决为 public）：
-        /// Host AppHost 构造后调用（ThemePaletteManager 随 M4 迁 StarPie.Theme 并公开，
-        /// Host 装配面先例同 B6/#79 TrayIconManager）；SetTheme 时经 ThemePaletteManager
-        /// 整项替换 MergedDictionaries 活动主题槽。</summary>
+        /// <summary>绑定调色板应用回调：宿主 AppHost 构造后调用；SetTheme 时经该回调
+        /// 整项替换 MergedDictionaries 的活动主题槽。</summary>
         public void AttachPaletteApplier(Action<string> paletteApplier)
         {
             _paletteApplier = paletteApplier;
@@ -52,8 +50,7 @@ namespace StarPie.Services.Shell
 
         public bool IsWindowsInDarkTheme() => _windowsInDarkModeProbe();
 
-        /// <summary>"System"/empty resolves to "Dark"/"Light" via the live Windows
-        /// setting; any other name passes through unchanged.</summary>
+        /// <summary>"System"/空值按实时 Windows 设置解析为 "Dark"/"Light"；其余名称原样通过。</summary>
         public string ResolveEffectiveTheme(string themeName)
         {
             if (string.Equals(themeName, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(themeName))
@@ -67,9 +64,9 @@ namespace StarPie.Services.Shell
         [DllImport("dwmapi.dll", PreserveSig = true)]
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
-        /// <summary>唯一状态/资源入口（ADR-0013）：解析 → 记录 <see cref="CurrentEffectiveTheme"/>
-        /// → 触发宿主调色板整项替换 → 广播 <see cref="ThemeChanged"/>。同一有效主题重复设置是
-        /// no-op；首次应用恒执行（保证 App.xaml 静态 Light 首帧后 manager 调色板也入槽）。</summary>
+        /// <summary>设置请求的主题：解析有效主题后应用——记录 <see cref="CurrentEffectiveTheme"/>
+        /// → 触发调色板整项替换 → 广播 <see cref="ThemeChanged"/>。同一有效主题重复设置是
+        /// no-op；首次应用恒执行（保证 App.xaml 静态 Light 首帧后调色板也入活动主题槽）。</summary>
         public void SetTheme(string themeName)
         {
             RequestedTheme = string.IsNullOrEmpty(themeName) ? "System" : themeName;
@@ -142,7 +139,7 @@ namespace StarPie.Services.Shell
                 }
 
                 int useDark = isDark ? 1 : 0;
-                // DWMWA_USE_IMMERSIVE_DARK_MODE = 20 (Win10 18985+ / Win11), 19 (older Win10)
+                // DWMWA_USE_IMMERSIVE_DARK_MODE：20（Win10 18985+ / Win11），19（旧版 Win10）
                 DwmSetWindowAttribute(hwnd, 20, ref useDark, sizeof(int));
                 DwmSetWindowAttribute(hwnd, 19, ref useDark, sizeof(int));
             }

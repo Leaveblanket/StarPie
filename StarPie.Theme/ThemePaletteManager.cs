@@ -7,18 +7,18 @@ using System.Windows.Media;
 namespace StarPie
 {
     /// <summary>
-/// 主题调色板管理器（ADR-0013/#46，B7/#80 随 M4 迁入 StarPie.Theme）：自包含“加载
-/// Views/Styles/Themes/*.xaml →
-/// 缓存/冻结 → 整项替换 Application MergedDictionaries 活动主题槽”，取代 AppHost 的
-/// 直接键覆盖（ADR-0012 决策 2 被取代）。App.xaml 静态合并 Light 仅作设计时/首帧；
-/// 本管理器把目标主题字典放入合并字典的主题槽（含 /Themes/ 的第一项），切 Light 即
-/// 替换回 Light 字典，直接键零残留。可见性裁决：public（B7/#80）——Host AppHost
-/// 装配面（AttachPaletteApplier + Apply）沿用 B6/#79 TrayIconManager 先例，跨程序集
-/// 由宿主编排调用；模块内部实现细节（主题文件映射/缓存/冻结）保持私有。
-/// </summary>
+    /// 主题调色板管理器：自包含“加载 Views/Styles/Themes/*.xaml → 缓存/冻结 →
+    /// 整项替换 Application MergedDictionaries 活动主题槽”。
+    /// </summary>
+    /// <remarks>
+    /// App.xaml 静态合并 Light 仅作设计时/首帧；本管理器把目标主题字典放入合并字典的主题槽
+    /// （含 /Themes/ 的第一项），切 Light 即替换回 Light 字典，直接键零残留。
+    /// 可见性为 public：宿主 AppHost 装配面（AttachPaletteApplier + Apply）跨程序集编排调用；
+    /// 模块内部实现细节（主题文件映射/缓存/冻结）保持私有。
+    /// </remarks>
     public sealed class ThemePaletteManager
     {
-        // 配置名/遗留别名 → 主题文件规范名（T09 语义：ObsidianDark 等价 Dark）。
+        // 配置名/遗留别名 → 主题文件规范名（ObsidianDark 等价 Dark）。
         private static readonly Dictionary<string, string> ThemeFileNames = new(StringComparer.OrdinalIgnoreCase)
         {
             ["Light"] = "Light",
@@ -68,7 +68,6 @@ namespace StarPie
             string file = ThemeFileNames.TryGetValue(theme, out string? name) ? name : "Light";
             if (_palettes.TryGetValue(file, out ResourceDictionary? cached)) return cached;
 
-            // B7/#80：主题字典随 M4 迁入 StarPie.Theme，pack URI 改经模块程序集（原 /StarPie;component/...）。
             var source = new Uri($"pack://application:,,,/StarPie.Theme;component/Views/Styles/Themes/{file}.xaml", UriKind.Absolute);
             var palette = new ResourceDictionary { Source = source };
             foreach (DictionaryEntry entry in palette)
