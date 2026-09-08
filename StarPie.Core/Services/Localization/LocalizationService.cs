@@ -63,34 +63,35 @@ namespace StarPie.Services.Localization
 
         public string CurrentLanguage => _currentLanguage;
 
+        /// <summary>
+        /// 语言切换入口："Auto"→按当前系统 UI 文化（<see cref="CultureInfo.CurrentUICulture"/>）
+        /// 前缀规则解析为对应的规范码，未命中前缀时兜底 "en"；别名/区域码→经
+        /// <see cref="AliasToCanonical"/> 折叠为规范码；未知/空→zh-CN 兜底。
+        /// 语言实际变化后触发 <see cref="LanguageChanged"/>。
+        /// </summary>
         public void SetLanguage(string code)
         {
-            SetLanguageCore(Resolve(code));
-        }
-
-        /// <summary>"Auto"→按 CurrentUICulture 前缀规则；别名/区域码→规范码；未知/空→zh-CN 兜底。</summary>
-        private static string Resolve(string code)
-        {
+            string language;
             if (string.Equals(code, Auto, StringComparison.OrdinalIgnoreCase))
             {
+                language = "en"; // 默认兜底
                 string culture = CultureInfo.CurrentUICulture.Name;
-                foreach (var (prefix, language) in AutoCultureRules)
+                foreach (var (prefix, canonical) in AutoCultureRules)
                 {
                     if (culture.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     {
-                        return language;
+                        language = canonical;
+                        break;
                     }
                 }
-                return "en";
+            }
+            else
+            {
+                language = code != null && AliasToCanonical.TryGetValue(code, out string? canonical)
+                    ? canonical
+                    : DefaultLanguage;
             }
 
-            return code != null && AliasToCanonical.TryGetValue(code, out string? canonical)
-                ? canonical
-                : DefaultLanguage;
-        }
-
-        private void SetLanguageCore(string language)
-        {
             if (string.Equals(_currentLanguage, language, StringComparison.Ordinal)) return;
             _currentLanguage = language;
             LanguageChanged?.Invoke();
