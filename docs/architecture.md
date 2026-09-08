@@ -161,3 +161,4 @@ Services ---> Models
 | 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） |
 | 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口（契约入 Core + ProgramsModuleRegistrar + 预览桥） |
 | 0020 | `docs/adr/0020-dialogs-assembly-and-m3-scanner-contract.md` | 对话框实现程序集化（StarPie.Dialogs，8 程序集目标态）+ M3 扫描契约收口（ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core）+ ThemeChanged 死事件移除 |
+| 0021 | `docs/adr/0021-navigation-runtime-to-host.md` | 导航运行时归 Host：共享内核仅留目录/槽位契约（#89 Q3/#91 裁决，运行时主体迁 Host + C1 死代码清理） |
