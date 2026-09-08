@@ -33,7 +33,8 @@ public sealed class SlotViewModelTests
             dialogs ?? new TestDialogService(),
             new TestActionExecutor(),
             messenger ?? TestHub.NewMessenger(),
-            Localization);
+            Localization,
+            new TestIconAssetService());
 
     // --- 图标设置 ---------------------------------------------
 
@@ -85,10 +86,10 @@ public sealed class SlotViewModelTests
     [Fact]
     public void VectorIconPathData_WithVectorKey_ReturnsSvgFromS1Export()
     {
-        // 图标取值经共享图标资产出口 IconAssets。
+        // 图标取值经共享图标资产静态纯目录 IconCatalog。
         var slot = MakeSlot(new ActionItem { IconKey = "Copy" });
 
-        Assert.Equal(IconAssets.GetSvgPathByKey("Copy"), slot.VectorIconPathData);
+        Assert.Equal(IconCatalog.GetSvgPathByKey("Copy"), slot.VectorIconPathData);
     }
 
     [Fact]
@@ -183,7 +184,8 @@ public sealed class SlotViewModelTests
             dialogs,
             new TestActionExecutor(),
             messenger,
-            Localization);
+            Localization,
+            new TestIconAssetService());
 
         slot.BrowseFolderCommand.Execute(null);
 
@@ -217,7 +219,8 @@ public sealed class SlotViewModelTests
             dialogs,
             new TestActionExecutor(),
             messenger,
-            Localization);
+            Localization,
+            new TestIconAssetService());
 
         slot.BrowseFolderCommand.Execute(null);
 

@@ -56,7 +56,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var dialogs = new TestDialogService();
         var (messenger, spy) = SaveSpy.Create();
         var loc = localization ?? Localization;
-        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), loc);
+        var profileList = new ProfileListViewModel(configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), loc, new TestIconAssetService());
         var vm = new WheelAppearanceSettingsViewModel(configService, dialogs, messenger, profileList, loc);
         return (vm, configService, dialogs, EventLog.Attach(messenger, spy));
     }
@@ -1151,7 +1151,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var (messenger, _) = SaveSpy.Create();
         // 以真实方案列表 VM（实现方）作接口来源注入——镜像组合根装配（IProfilePreviewSource 别名）。
         var profileList = new ProfileListViewModel(
-            configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization);
+            configService.Current.Profiles, dialogs, messenger, new TestActionExecutor(), Localization, new TestIconAssetService());
         var vm = new WheelAppearanceSettingsViewModel(configService, dialogs, messenger, profileList, Localization);
         IWheelAppearanceState state = vm;
 

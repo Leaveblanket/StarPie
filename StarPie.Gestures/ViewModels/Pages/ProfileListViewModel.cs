@@ -62,6 +62,7 @@ namespace StarPie.ViewModels.Pages
         private readonly IMessenger _messenger;
         private readonly IActionExecutorService _actionExecutor;
         private readonly ILocalizationService _localization;
+        private readonly IIconAssetService _iconAssets;
         private bool _isDisposed;
 
         /// <summary>方案展示列表（按前台进程名展示每个方案，Global 为全局兜底方案）。</summary>
@@ -124,13 +125,15 @@ namespace StarPie.ViewModels.Pages
             IDialogService dialogs,
             IMessenger messenger,
             IActionExecutorService actionExecutor,
-            ILocalizationService localization)
+            ILocalizationService localization,
+            IIconAssetService iconAssets)
         {
             _sourceProfiles = sourceProfiles ?? throw new ArgumentNullException(nameof(sourceProfiles));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
 
             // 导入成功广播 → 以新配置的方案列表自行重挂；默认选中首项由 Reload
             // 内部维护，View 无需同步消息。
@@ -246,7 +249,7 @@ namespace StarPie.ViewModels.Pages
 
                 for (int i = 0; i < count; i++)
                 {
-                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger, _localization);
+                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger, _localization, _iconAssets);
                     Slots.Add(slot);
                 }
             }

@@ -69,7 +69,8 @@ namespace StarPie.Modules
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<IActionExecutorService>(),
-                sp.GetRequiredService<ILocalizationService>()));
+                sp.GetRequiredService<ILocalizationService>(),
+                sp.GetRequiredService<IIconAssetService>()));
             // 配置方案列表 VM 以只读契约 IProfilePreviewSource 暴露给轮盘侧：
             // 轮盘外观设置子 VM 经接口解析，不引用本集具体 VM 类型（契约驻共享内核）。
             services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());

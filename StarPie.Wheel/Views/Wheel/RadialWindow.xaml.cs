@@ -27,6 +27,7 @@ namespace StarPie.Views.Wheel
         private readonly WheelViewModel _viewModel;
         private readonly IThemeService _themeService;
         private readonly ILocalizationService _localization;
+        private readonly IIconAssetService _iconAssets;
         private readonly List<Path> _sectorPaths = new List<Path>();
         private readonly List<StackPanel> _contentPanels = new List<StackPanel>();
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
@@ -48,13 +49,18 @@ namespace StarPie.Views.Wheel
         private double _borderThickness = 1.0;
         private double _highlightBorderThickness = 1.5;
 
-        public RadialWindow(WheelViewModel viewModel, IThemeService themeService, ILocalizationService localization)
+        public RadialWindow(
+            WheelViewModel viewModel,
+            IThemeService themeService,
+            ILocalizationService localization,
+            IIconAssetService iconAssets)
         {
             InitializeComponent();
 
             _viewModel = viewModel;
             _themeService = themeService;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             DataContext = viewModel;
 
             // 白名单订阅边界：订阅 VM PropertyChanged 只驱动纯视觉重绘与窗口生命周期动作
@@ -414,7 +420,7 @@ namespace StarPie.Views.Wheel
                     {
                         if (iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                         {
-                            var custom = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
+                            var custom = _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
                             if (custom != null)
                             {
                                 if (custom.IsSvg)
@@ -440,14 +446,14 @@ namespace StarPie.Views.Wheel
                                         Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
                                         HorizontalAlignment = System.Windows.HorizontalAlignment.Center
                                     };
-                                    img.Source = IconAssets.GetCustomImageSource(custom.FilePath);
+                                    img.Source = _iconAssets.GetCustomImageSource(custom.FilePath);
                                     iconElement = img;
                                 }
                             }
                         }
                         else
                         {
-                            string? svgData = IconAssets.GetSvgPathByKey(iconKey);
+                            string? svgData = IconCatalog.GetSvgPathByKey(iconKey);
                             if (!string.IsNullOrEmpty(svgData))
                             {
                                 iconElement = new Path
@@ -466,7 +472,7 @@ namespace StarPie.Views.Wheel
 
                     if (iconElement == null && actionType == "Launch" && !string.IsNullOrEmpty(parameter))
                     {
-                        System.Windows.Media.Imaging.BitmapSource? iconSrc = IconAssets.GetIcon(parameter);
+                        System.Windows.Media.Imaging.BitmapSource? iconSrc = _iconAssets.GetIcon(parameter);
                         if (iconSrc != null)
                         {
                             iconElement = new System.Windows.Controls.Image
@@ -546,7 +552,7 @@ namespace StarPie.Views.Wheel
         {
             if (type == "Folder" || type == "OpenFolder")
             {
-                return IconAssets.GetSvgPathByKey("Folder");
+                return IconCatalog.GetSvgPathByKey("Folder");
             }
 
             if (type == "Hotkey")
@@ -560,17 +566,17 @@ namespace StarPie.Views.Wheel
                 switch (parameter.Trim().ToLower())
                 {
                     case "lock":
-                        return IconAssets.GetSvgPathByKey("Lock");
+                        return IconCatalog.GetSvgPathByKey("Lock");
                     case "volumeup":
-                        return IconAssets.GetSvgPathByKey("VolumeUp");
+                        return IconCatalog.GetSvgPathByKey("VolumeUp");
                     case "volumedown":
-                        return IconAssets.GetSvgPathByKey("VolumeDown");
+                        return IconCatalog.GetSvgPathByKey("VolumeDown");
                     case "volumemute":
-                        return IconAssets.GetSvgPathByKey("VolumeMute");
+                        return IconCatalog.GetSvgPathByKey("VolumeMute");
                     case "showdesktop":
-                        return IconAssets.GetSvgPathByKey("ShowDesktop");
+                        return IconCatalog.GetSvgPathByKey("ShowDesktop");
                     case "screenshot":
-                        return IconAssets.GetSvgPathByKey("Screenshot");
+                        return IconCatalog.GetSvgPathByKey("Screenshot");
                 }
             }
 

@@ -154,7 +154,7 @@ namespace StarPie.Services.Wheel
                     }
                     if (!string.IsNullOrEmpty(customKey))
                     {
-                        string? data = IconAssets.GetSvgPathByKey(customKey);
+                        string? data = IconCatalog.GetSvgPathByKey(customKey);
                         if (!string.IsNullOrEmpty(data))
                         {
                             try { return Geometry.Parse(data); } catch { }

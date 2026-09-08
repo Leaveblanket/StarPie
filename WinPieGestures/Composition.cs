@@ -33,11 +33,10 @@ namespace StarPie
 
         public Composition()
         {
-            // 跨程序集回填缝：共享内核的 dev 目录分支依赖宿主 DevInstance，.lnk 图标提取
-            // 依赖程序扫描模块的 ShortcutResolver——共享内核不能反向引用宿主/业务程序集，
-            // 故装配前由组合根回填。
+            // 跨程序集环境参数回填缝：共享内核的 dev 目录分支依赖宿主 DevInstance——
+            // 共享内核不能反向引用宿主，故装配前由组合根回填（.lnk 图标提取的解析契约
+            // 自 ADR-0019/#87 起经 DI 注册的 IShortcutTargetResolver 注入，不再静态回填）。
             AppDataPaths.IsDevInstance = DevInstance.IsActive;
-            IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget;
 
             // 组合根容器装配：注册集中在 ConfigureServices，解析点只在本类。
             var services = new ServiceCollection();
@@ -121,6 +120,13 @@ namespace StarPie
             // 惰性解析；AppHost 构造后回填。
             services.AddSingleton(_hostDelegates);
 
+            // 共享图标资产实例服务（S1，ADR-0019/#87）：有状态/IO/Win32 面经 DI 单例；
+            // .lnk 解析契约由 ProgramsModuleRegistrar 注册的 M3 实现（IShortcutTargetResolver）
+            // 提供——共享内核不反向依赖业务程序集。
+            ProgramsModuleRegistrar.RegisterServices(services);
+            services.AddSingleton<IIconAssetService>(sp => new IconAssetService(
+                sp.GetRequiredService<IShortcutTargetResolver>()));
+
             // 主题服务与界面主题设置子 VM 由 ThemeModuleRegistrar 注册（组合根仍唯一
             // BuildServiceProvider；调色板换入面由 AppHost 装配）。
             ThemeModuleRegistrar.RegisterServices(services);
@@ -131,11 +137,16 @@ namespace StarPie
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
             // 程序扫描能力经委托注入对话框服务：DialogService 只持扫描委托并转发给
-            // 程序选择器 VM；图标补全由组合根在此以 IconAssets.GetIcon 注入扫描编排。
+            // 程序选择器 VM；图标补全与 .lnk 解析经 Core 契约（IIconAssetService/
+            // IShortcutTargetResolver，M3 → Core 单向，ADR-0019/#87）注入扫描编排。
             services.AddSingleton(sp => new DialogService(
                 sp.GetRequiredService<IThemeService>(),
                 sp.GetRequiredService<ILocalizationService>(),
-                () => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)));
+                sp.GetRequiredService<IIconAssetService>(),
+                sp.GetRequiredService<IShortcutTargetResolver>(),
+                () => ProgramScanner.ScanInstalledPrograms(
+                    sp.GetRequiredService<IIconAssetService>(),
+                    sp.GetRequiredService<IShortcutTargetResolver>())));
             services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 
@@ -164,7 +175,8 @@ namespace StarPie
             services.AddSingleton(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<InterfaceThemeSettingsViewModel>(),
-                sp.GetRequiredService<WheelAppearanceSettingsViewModel>()));
+                sp.GetRequiredService<WheelAppearanceSettingsViewModel>(),
+                sp.GetRequiredService<IIconAssetService>()));
 
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<ShellViewModel>();

@@ -23,6 +23,7 @@ namespace StarPie.ViewModels.Dialogs
         private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
         private readonly IDialogService _dialogs;
         private readonly ILocalizationService _localization;
+        private readonly IShortcutTargetResolver _shortcutResolver;
         private readonly List<ProgramEntry> _allPrograms = new();
 
         /// <summary>当前过滤条件下的展示列表。</summary>
@@ -55,11 +56,13 @@ namespace StarPie.ViewModels.Dialogs
         public ProgramPickerViewModel(
             Func<IReadOnlyList<ProgramEntry>> scanPrograms,
             IDialogService dialogs,
-            ILocalizationService localization)
+            ILocalizationService localization,
+            IShortcutTargetResolver shortcutResolver)
         {
             _scanPrograms = scanPrograms;
             _dialogs = dialogs;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
             _statusText = _localization.GetString("ProgramPickerScanning");
             _ = LoadAsync();
         }
@@ -131,7 +134,7 @@ namespace StarPie.ViewModels.Dialogs
 
             string chosenPath = picked.Path;
             if (chosenPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) &&
-                ShortcutResolver.ResolveShortcutTarget(chosenPath, out string targetPath, out _, out _) &&
+                _shortcutResolver.ResolveShortcutTarget(chosenPath, out string targetPath, out _, out _) &&
                 !string.IsNullOrEmpty(targetPath) && File.Exists(targetPath))
             {
                 chosenPath = targetPath;

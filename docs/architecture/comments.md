@@ -67,7 +67,7 @@
 /// <summary>
 /// 应用数据目录解析 (T16 自静态配置门面收编，ADR-0002)：dev 实例沙箱隔离与
 /// legacy 目录迁移，供组合根构造 <see cref="JsonConfigService"/> 与共享图标资产（S1）
-/// <see cref="IconAssets"/> 自定义图标目录使用。B2/#75 Core 抽取后随 S2 迁入共享内核：…
+/// <see cref="IconAssetService"/> 自定义图标目录使用。B2/#75 Core 抽取后随 S2 迁入共享内核：…
 /// </summary>
 ```
 

@@ -21,7 +21,9 @@ namespace StarPie.ViewModels.Dialogs
     /// 全部在此；窗口 code-behind 只剩卡片渲染（主题画刷、SVG/位图元素）与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。图标来源注入委托，测试可换假实现。
     /// </summary>
-    /// <remarks>自定义图标条目与默认实现引用共享图标资产出口 <see cref="IconAssets"/>。</remarks>
+    /// <remarks>自定义图标条目引用共享图标资产类型 <see cref="CustomIconItem"/>；删除/导入等
+    /// 存储副作用由 <see cref="DialogService"/> 以实例服务（<see cref="IIconAssetService"/>）
+    /// 方法组注入，本 VM 不直连静态出口。</remarks>
     public partial class IconPickerViewModel : ObservableObject
     {
         /// <summary>导入自定义图标的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
@@ -34,10 +36,10 @@ namespace StarPie.ViewModels.Dialogs
         private string CustomSuffix => _localization.GetString("IconPickerCustomSuffix");
 
         private readonly ILocalizationService _localization;
-        private readonly Func<IReadOnlyList<IconAssets.CustomIconItem>> _getCustomIcons;
+        private readonly Func<IReadOnlyList<CustomIconItem>> _getCustomIcons;
         private readonly Func<IReadOnlyList<VectorIconItem>> _getVectorIcons;
         private readonly Func<string, bool> _deleteCustomIcon;
-        private readonly Func<string, IconAssets.CustomIconItem?> _importCustomIcon;
+        private readonly Func<string, CustomIconItem?> _importCustomIcon;
         private readonly IDialogService _dialogs;
 
         /// <summary>当前过滤条件下的展示列表：自定义图标在前、内置矢量在后。</summary>
@@ -58,21 +60,22 @@ namespace StarPie.ViewModels.Dialogs
         private bool _isCompleted;
 
         public IconPickerViewModel(
-            Func<IReadOnlyList<IconAssets.CustomIconItem>> getCustomIcons,
+            Func<IReadOnlyList<CustomIconItem>> getCustomIcons,
             Func<IReadOnlyList<VectorIconItem>> getVectorIcons,
             IDialogService dialogs,
             ILocalizationService localization,
             string? initialKey = null,
             Func<string, bool>? deleteCustomIcon = null,
-            Func<string, IconAssets.CustomIconItem?>? importCustomIcon = null)
+            Func<string, CustomIconItem?>? importCustomIcon = null)
         {
             _getCustomIcons = getCustomIcons;
             _getVectorIcons = getVectorIcons;
             _dialogs = dialogs;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
-            _deleteCustomIcon = deleteCustomIcon ?? IconAssets.DeleteCustomIcon;
-            // ImportCustomIcon 带可选第二参，方法组不能直接转 Func<string, T>，用 lambda 适配。
-            _importCustomIcon = importCustomIcon ?? (path => IconAssets.ImportCustomIcon(path));
+            // 存储副作用由 DialogService 注入的 IIconAssetService 方法组提供；未注入时
+            // 删除/导入为 no-op（保持 VM 不经容器、单测不触真实文件 IO 的语义）。
+            _deleteCustomIcon = deleteCustomIcon ?? (_ => false);
+            _importCustomIcon = importCustomIcon ?? (_ => null);
 
             SelectedIconKey = initialKey;
             // 初始键非空但未匹配到卡片时显示“(未选择)”文案（键化）；

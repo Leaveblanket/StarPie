@@ -36,7 +36,10 @@ M2 物理落位（B8/#81 起迁入独立模块程序集 `StarPie.Wheel/`，命�
 > 图标/几何三分收口（R6/ADR-0015，T3a–T3d/#65–#68）：轮盘侧 RadialWindow/
 > WheelPreviewRenderer/CoreIconGeometryConverter 直连本模块几何出口 `WheelGeometry`
 > （`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）；动作图标渲染（含核图标 Custom 分支
-> 按 SVG 键回退取值）消费 S1 共享「图标资产」出口 `IconAssets`（见 [layout.md](layout.md)）。
+> 按 SVG 键回退取值）消费 S1 共享「图标资产」（ADR-0019/#87 双形：静态纯目录
+> `IconCatalog` 取矢量 SVG；实例服务 `IIconAssetService` 取自定义图标存储/位图源/文件图标——
+> RadialWindow 经 WheelFactory 注入、WheelPreviewRenderer 经外观页预览桥装配，见
+> [layout.md](layout.md)/[layering.md](layering.md)）。
 > B5/#78 起核图标预览转换器（CoreIconGeometryConverter/CoreIconNameConverter，Appearance 聚合页
 > 用）暂留 Host 的登记已随 B8/#81 清零：两转换器随 M2 迁入 `StarPie.Wheel/Views/Converters/`
 >（裁决随 M2；Host 页面侧经 App 级资源实例消费，模块不反向依赖宿主）。
@@ -89,7 +92,9 @@ M2 物理落位（B8/#81 起迁入独立模块程序集 `StarPie.Wheel/`，命�
    转发取值（#69；B8/#81 起该契约驻 Core），选中/首项回落语义由该来源实现方维护。
    B8/#81 起深浅色探测不再以 Host `MainView` 作参数（模块不反向依赖宿主）：`WheelPreviewRenderer`
    的 `Render` 改收 `bool windowsInDarkMode`，由外观页（Host）经壳层 `MainView.IsWindowsInDarkTheme()`
-   取值传入——行为与迁移前一致。
+   取值传入——行为与迁移前一致。ADR-0019/#87 起渲染器经**已批准预览桥**取得
+   `IIconAssetService`：外观聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露该服务，
+   页面 `OnPageLoaded` 装配 `new WheelPreviewRenderer(iconAssetService)`（layering Views 例外登记）。
 
 ## 扩展点
 

@@ -207,12 +207,12 @@ public sealed class MainViewModelTests
         public PageVmFixture()
         {
             Behavior = new BehaviorSettingsViewModel(Config, Dialogs, Messenger);
-            Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization);
+            Profiles = new ProfileListViewModel(Config.Profiles, Dialogs, Messenger, Executor, Localization, new TestIconAssetService());
             var configService = new TestConfigService { Current = Config };
             InterfaceTheme = new InterfaceThemeSettingsViewModel(configService, Messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 configService, Dialogs, Messenger, Profiles, Localization);
-            Appearance = new AppearanceSettingsViewModel(Messenger, InterfaceTheme, WheelAppearance);
+            Appearance = new AppearanceSettingsViewModel(Messenger, InterfaceTheme, WheelAppearance, new TestIconAssetService());
             General = new GeneralSettingsViewModel(
                 Config,
                 Dialogs,

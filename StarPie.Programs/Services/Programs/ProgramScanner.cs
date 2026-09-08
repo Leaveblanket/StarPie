@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
 using Microsoft.Win32;
+using StarPie.Services.Icons;
 
 namespace StarPie.Services.Programs
 {
@@ -15,15 +15,18 @@ namespace StarPie.Services.Programs
     /// <see cref="ProgramCatalog"/> 纯函数。
     /// </summary>
     /// <remarks>
-    /// 本模块零共享内核依赖：图标补全不直接引用 <c>IconAssets</c>，改由组合根注入图标委托
-    /// （生产以 <c>IconAssets.GetIcon</c> 传入）。本类保持集成性质，不做单元测试。
+    /// ADR-0019/#87 起本模块单向依赖共享内核：图标补全与 .lnk 解析经 Core 契约
+    /// （<see cref="IIconAssetService"/> / <see cref="IShortcutTargetResolver"/>）注入，
+    /// 不再由组合根传委托。本类保持集成性质，不做单元测试。
     /// </remarks>
     public static class ProgramScanner
     {
         /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
-        /// （图标经 <paramref name="iconProvider"/> 在此阶段补齐）。</summary>
+        /// （图标经 <paramref name="iconAssets"/> 在此阶段补齐；.lnk 来源经
+        /// <paramref name="shortcutResolver"/> 解析目标）。</summary>
         public static IReadOnlyList<ProgramEntry> ScanInstalledPrograms(
-            Func<string, ImageSource?> iconProvider)
+            IIconAssetService iconAssets,
+            IShortcutTargetResolver shortcutResolver)
         {
             var candidates = new List<ProgramEntry>();
 
@@ -31,10 +34,10 @@ namespace StarPie.Services.Programs
             AddSystemApps(candidates);
 
             // 2. 开始菜单快捷方式（公共与用户）
-            ScanStartMenuShortcuts(candidates);
+            ScanStartMenuShortcuts(candidates, shortcutResolver);
 
             // 3. 桌面快捷方式（公共与用户）
-            ScanDesktopShortcuts(candidates);
+            ScanDesktopShortcuts(candidates, shortcutResolver);
 
             // 4. 用户 AppData\Local\Programs（VS Code、Discord、Spotify、Xmind 等）
             ScanUserAppDataPrograms(candidates);
@@ -54,7 +57,7 @@ namespace StarPie.Services.Programs
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
             var merged = ProgramCatalog.MergeSources(candidates);
             var list = merged
-                .Select(e => e with { IconSource = iconProvider(e.Path) })
+                .Select(e => e with { IconSource = iconAssets.GetIcon(e.Path) })
                 .ToList();
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
             return list;
@@ -121,7 +124,7 @@ namespace StarPie.Services.Programs
             AddCandidate(candidates, "控制面板 (Control Panel)", Path.Combine(sysDir, "control.exe"));
         }
 
-        private static void ScanStartMenuShortcuts(List<ProgramEntry> candidates)
+        private static void ScanStartMenuShortcuts(List<ProgramEntry> candidates, IShortcutTargetResolver shortcutResolver)
         {
             var searchDirs = new List<string>
             {
@@ -145,7 +148,7 @@ namespace StarPie.Services.Programs
                         string name = Path.GetFileNameWithoutExtension(file);
 
                         // 解析目标路径并拒绝失效快捷方式
-                        if (ShortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
+                        if (shortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
                         {
                             if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath) && targetPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                             {
@@ -161,7 +164,7 @@ namespace StarPie.Services.Programs
             }
         }
 
-        private static void ScanDesktopShortcuts(List<ProgramEntry> candidates)
+        private static void ScanDesktopShortcuts(List<ProgramEntry> candidates, IShortcutTargetResolver shortcutResolver)
         {
             var searchDirs = new List<string>
             {
@@ -180,7 +183,7 @@ namespace StarPie.Services.Programs
                     {
                         string name = Path.GetFileNameWithoutExtension(file);
 
-                        if (ShortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
+                        if (shortcutResolver.ResolveShortcutTarget(file, out string targetPath, out _, out _))
                         {
                             if (!string.IsNullOrEmpty(targetPath) && File.Exists(targetPath) && targetPath.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                             {

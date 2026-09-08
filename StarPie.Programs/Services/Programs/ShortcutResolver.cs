@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using StarPie.Services.Icons;
 
 namespace StarPie.Services.Programs
 {
@@ -55,11 +56,11 @@ namespace StarPie.Services.Programs
     /// 把 Windows 快捷方式（.lnk）解析为真实目标路径与图标位置，
     /// 供 <c>ProgramScanner</c> 与程序选择器直接调用。
     /// </summary>
-    public static class ShortcutResolver
+    public sealed class ShortcutResolver : IShortcutTargetResolver
     {
         /// <summary>解析 Windows 快捷方式（.lnk）的真实目标路径与图标位置；
         /// 快捷方式不存在或解析失败时返回 false（目标与图标均可能为空）。</summary>
-        public static bool ResolveShortcutTarget(string lnkPath, out string targetPath, out string iconPath, out int iconIndex)
+        public bool ResolveShortcutTarget(string lnkPath, out string targetPath, out string iconPath, out int iconIndex)
         {
             targetPath = "";
             iconPath = "";

@@ -21,7 +21,11 @@ public sealed class ProgramPickerViewModelTests
     private static ProgramPickerViewModel Create(
         Func<IReadOnlyList<ProgramEntry>>? scan = null,
         TestDialogService? dialogs = null)
-        => new(scan ?? (() => new List<ProgramEntry>()), dialogs ?? new TestDialogService(), Localization);
+        => new(
+            scan ?? (() => new List<ProgramEntry>()),
+            dialogs ?? new TestDialogService(),
+            Localization,
+            new ShortcutResolver());
 
     // --- 扫描编排 ---------------------------------------------------------------
 

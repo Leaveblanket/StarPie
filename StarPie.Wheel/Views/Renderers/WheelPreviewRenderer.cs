@@ -29,6 +29,7 @@ namespace StarPie.Views.Renderers
     /// </remarks>
     public sealed class WheelPreviewRenderer
     {
+        private readonly IIconAssetService _iconAssets;
         private readonly List<System.Windows.Shapes.Path> _previewSectorPaths = new();
         private readonly List<TranslateTransform> _previewTransforms = new();
         private readonly List<double> _previewAngles = new();
@@ -44,6 +45,11 @@ namespace StarPie.Views.Renderers
         private Ellipse? _previewCoreCircle;
         private System.Windows.Shapes.Path? _previewExitIcon;
         private int _lastHoveredSector = -2;
+
+        public WheelPreviewRenderer(IIconAssetService iconAssets)
+        {
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
+        }
 
         public void Render(Canvas canvas, IWheelAppearanceState state, bool windowsInDarkMode)
         {
@@ -219,17 +225,17 @@ namespace StarPie.Views.Renderers
                         string? customSvg = (profile.Actions != null && i < profile.Actions.Count) ? profile.Actions[i]?.CustomIconSvg : null;
                         string? svgData = null;
 
-                        IconAssets.CustomIconItem? customItem = null;
+                        CustomIconItem? customItem = null;
                         if (!string.IsNullOrEmpty(iconKey) && iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                         {
-                            customItem = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
+                            customItem = _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
                         }
 
                         if (!string.IsNullOrEmpty(customSvg)) svgData = customSvg;
                         else if (customItem != null && customItem.IsSvg) svgData = customItem.SvgData;
-                        else if (!string.IsNullOrEmpty(iconKey) && customItem == null) svgData = IconAssets.GetSvgPathByKey(iconKey);
-                        else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconAssets.GetSvgPathByKey("Folder");
-                        else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconAssets.GetSvgPathByKey(parameter);
+                        else if (!string.IsNullOrEmpty(iconKey) && customItem == null) svgData = IconCatalog.GetSvgPathByKey(iconKey);
+                        else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconCatalog.GetSvgPathByKey("Folder");
+                        else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconCatalog.GetSvgPathByKey(parameter);
 
                         double configuredIconSize = state.SectorIconSize > 0 ? state.SectorIconSize : 20.0;
                         double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
@@ -255,7 +261,7 @@ namespace StarPie.Views.Renderers
                         }
                         else if (customItem != null && !customItem.IsSvg)
                         {
-                            var iconSrc = IconAssets.GetCustomImageSource(customItem.FilePath);
+                            var iconSrc = _iconAssets.GetCustomImageSource(customItem.FilePath);
                             if (iconSrc != null)
                             {
                                 var img = new Image
@@ -272,7 +278,7 @@ namespace StarPie.Views.Renderers
                         }
                         else if (actionType == "Launch" && !string.IsNullOrEmpty(parameter))
                         {
-                            var iconSrc = IconAssets.GetIcon(parameter);
+                            var iconSrc = _iconAssets.GetIcon(parameter);
                             if (iconSrc != null)
                             {
                                 var img = new Image

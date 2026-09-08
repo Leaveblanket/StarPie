@@ -13,23 +13,30 @@ namespace StarPie.Services.Dialogs
     /// <remarks>
     /// 程序选择器、输入框、图标/颜色选择器与屏上取色均已走 VM 化链路。
     /// 程序扫描候选来源经构造注入的扫描委托提供（组合根以
-    /// <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产默认实现引用
-    /// 共享图标资产出口 <see cref="IconAssets"/>——对话框服务不直连业务模块静态内部。
+    /// <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产经注入的
+    /// <see cref="IIconAssetService"/> 实例服务与 <see cref="IconCatalog"/> 纯目录
+    /// （ADR-0019/#87：S1 双形，对话框服务不直连业务模块静态内部）。
     /// </remarks>
     public sealed class DialogService : IDialogService
     {
         private readonly IThemeService _themeService;
         private readonly ILocalizationService _localization;
+        private readonly IIconAssetService _iconAssets;
+        private readonly IShortcutTargetResolver _shortcutResolver;
         private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
         private Window? _owner;
 
         public DialogService(
             IThemeService themeService,
             ILocalizationService localization,
+            IIconAssetService iconAssets,
+            IShortcutTargetResolver shortcutResolver,
             Func<IReadOnlyList<ProgramEntry>> scanPrograms)
         {
             _themeService = themeService;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
+            _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
             _scanPrograms = scanPrograms ?? throw new ArgumentNullException(nameof(scanPrograms));
         }
 
@@ -38,7 +45,7 @@ namespace StarPie.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var viewModel = new ProgramPickerViewModel(_scanPrograms, this, _localization);
+            var viewModel = new ProgramPickerViewModel(_scanPrograms, this, _localization, _shortcutResolver);
             var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
@@ -59,12 +66,14 @@ namespace StarPie.Services.Dialogs
         public IconPickResult? ShowIconPicker(string? currentIconKey)
         {
             var viewModel = new IconPickerViewModel(
-                IconAssets.GetCustomIcons,
-                () => IconAssets.VectorIconList,
+                _iconAssets.GetCustomIcons,
+                () => IconCatalog.VectorIconList,
                 this,
                 _localization,
-                currentIconKey);
-            var picker = new IconPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
+                currentIconKey,
+                _iconAssets.DeleteCustomIcon,
+                path => _iconAssets.ImportCustomIcon(path));
+            var picker = new IconPickerWindow(_themeService, viewModel, _localization, _iconAssets) { Owner = _owner };
             return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
