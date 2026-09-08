@@ -51,8 +51,10 @@
   ModernControls.xaml 全局控件样式字典）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
-  程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver），零共享内核依赖；命名空间
-  统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
+  程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver 与模块注册器
+  ProgramsModuleRegistrar，ADR-0019/#87 起），**单向依赖共享内核**（IShortcutTargetResolver
+  契约驻 Core，ShortcutResolver 实例实现）；命名空间统一为 `StarPie.*`
+  （B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B6/#79 起，首个带 DI 的模块程序集）：`StarPie.Shell/`（WPF 类库，程序集
   `StarPie.Shell`）承载 M5 壳层服务与系统设置面（TrayIconManager/AutostartRegistry/MemoryOptimizer/
   GeneralSettingsViewModel+AdvancedSettingsPage/AboutViewModel+AboutSettingsPage 与正式模块注册器
@@ -150,3 +152,4 @@ Services ---> Models
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行（7 程序集、导航自治、演进式组合根、B0–B10） |
 | 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） |
 | 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） |
+| 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口（契约入 Core + ProgramsModuleRegistrar + 预览桥） |

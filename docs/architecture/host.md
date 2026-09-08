@@ -25,10 +25,10 @@
    - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()` → 内存整理兜底
      `MemoryOptimizer.TrimMemory(true)`（见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition.ConfigureServices`（全部单例）：
-   - B2/#75 装配前回填跨程序集缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`（S2 dev 目录
-     分支）与 `IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget`（S1 .lnk
-     提取；B4/#77 起 M3 `ShortcutResolver` 驻 `StarPie.Programs`，Host 显式引用）——Core 不反向
-     引用宿主/业务模块（见 [layering.md](layering.md) 程序集层）。
+   - B2/#75 装配前回填跨程序集环境参数缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`
+     （S2 dev 目录分支）——Core 不反向引用宿主（见 [layering.md](layering.md) 程序集层）；
+     S1 .lnk 图标提取的解析契约自 ADR-0019/#87 起经 DI 注入的 `IShortcutTargetResolver`
+     （ProgramsModuleRegistrar 注册 M3 实现），不再静态回填。
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、
      开放泛型 `INavigationService<>` → `NavigationService<>`。B7/#80 起 M4 的
@@ -37,14 +37,19 @@
      （`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册下放
      `WheelModuleRegistrar.RegisterServices`（StarPie.Wheel，D5——工厂随 M2 收编、接口留 M2 侧，
      M1 手势侧只经接口消费），组合根不再直接登记轮盘工厂。
+   - ADR-0019/#87 注：`ProgramsModuleRegistrar.RegisterServices` 在组合根调用（M3 → Core 单向，
+     注册 `IShortcutTargetResolver→ShortcutResolver`）；组合根注册
+     `IIconAssetService`→`IconAssetService`（注入上述解析契约，目录默认
+     `AppDataPaths.GetAppDataFolder`）——S1 图标资产不再经静态回填缝接线。
    - B3/#76（导航自治）+ B6/#79（M5 拆集）+ B9/#82（M1 拆集）：`NavigationCatalog` 由
      `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、`StarPie.Shell` 的
      `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar` 按固定顺序装配并
      `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
      `INavigationExecutor` → `NavigationExecutor`（目录执行缝，主导航入口，见 [navigation.md](navigation.md)）。
-   - 服务：`DialogService`（T3c/#67：构造注入 M3 程序扫描委托；B4/#77 起登记为
-     `() => ProgramScanner.ScanInstalledPrograms(IconAssets.GetIcon)`——M3 零 Core 依赖，S1 图标
-     补全由组合根以委托注入；+`IDialogService`）、`ISaveDebouncer`、
+   - 服务：`DialogService`（T3c/#67：构造注入 M3 程序扫描委托；ADR-0019/#87 起登记为
+     `() => ProgramScanner.ScanInstalledPrograms(iconAssetService, shortcutResolver)`——M3 单向
+     Core，扫描经 Core 契约 `IIconAssetService`/`IShortcutTargetResolver` 注入；对话框服务另注入
+     共享图标资产实例服务与解析契约，供图标/程序选择器使用；+`IDialogService`）、`ISaveDebouncer`、
      `SettingsSaveOrchestrator`。（M1 手势管线 `MouseHook`/`IActionExecutorService`/
      `IWindowContext`/`GestureEngine`/`GestureController` 的注册已随 B9/#82 由
      `GesturesModuleRegistrar.RegisterServices` 下放 `StarPie.Gestures`，组合根不再直接登记；

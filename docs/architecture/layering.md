@@ -18,7 +18,7 @@ Services ---> Models
 
 ```text
 WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
-                                          ──→ StarPie.Programs（M3 模块程序集，B4/#77；零 Core 依赖）
+                                          ──→ StarPie.Programs ──→ StarPie.Core（M3 模块程序集，B4/#77；ADR-0019/#87 起单向 Core）
                                           ──→ StarPie.Shell（M5 模块程序集，B6/#79；单向 Core）
                                           ──→ StarPie.Theme（M4 界面主题模块程序集，B7/#80；单向 Core）
                                           ──→ StarPie.Wheel（M2 轮盘与渲染模块程序集，B8/#81；单向 Core + M4 允许边）
@@ -37,8 +37,10 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）；S6 取色对话框行为
   （SpectrumCanvasBehavior，依赖 Host VM 的 SpectrumPoint）仍留 Host（S6 对话框实现留 Host）。
 - M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
-  ShortcutResolver/ProgramEntry）；**零共享内核依赖**——扫描结果的 S1 图标补全不直引 Core，改经
-  组合根注入的 `IconAssets.GetIcon` 委托完成（见 [programs.md](programs.md)/[host.md](host.md)）。
+  ShortcutResolver/ProgramEntry 与 ProgramsModuleRegistrar）；**单向依赖 Core**（ADR-0019/#87
+  边界收口）——扫描图标补全与 .lnk 解析经 Core 契约 `IIconAssetService`/`IShortcutTargetResolver`
+  注入，`ShortcutResolver` 实例实现契约；不引用 Host/其它业务模块
+  （见 [programs.md](programs.md)/[host.md](host.md)）。
 - M4（`StarPie.Theme/`，B7/#80）承载界面主题体系（IThemeService/ThemeService、
   ThemePaletteManager、五套主题字典 Views/Styles/Themes/*.xaml、InterfaceThemeSettingsViewModel、
   ThemeModuleRegistrar）；**单向依赖 Core**：主题服务与主题设置子 VM 的 DI 注册经
@@ -78,8 +80,6 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 - 跨程序集回填缝（B2/#75 起，属 H1 装配职责，不是 Core 反向依赖）：
   - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支；
     消费方含 M5 AutostartRegistry（B6/#79）与 M1 MouseHook（B9/#82），模块均不反向引用 Host）；
-  - `IconAssets.ResolveShortcutTarget`：组合根装配前以 M3 `ShortcutResolver.ResolveShortcutTarget`
-    回填（S1 .lnk 图标提取；M3 自 B4/#77 起驻 `StarPie.Programs`，Host 显式引用）。
   - `AppHostDelegates`（B6/#79 上提 Core）：组合根注册单例、AppHost 构造后回填托盘气泡/退出，
     M5 注册器工厂经容器解析（模块只依赖 Core）。
 
@@ -96,6 +96,10 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 ### 必须遵守的例外与说明
 
 1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。
+   - **已批准预览桥例外（ADR-0019/#87 决策 4）**：外观页 `WheelPreviewRenderer` 为 View 层
+     无 DI 构造对象，经聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露的
+     `IIconAssetService` 在 `OnPageLoaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
+     （layering Views 例外登记，见 [wheel.md](wheel.md)）。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
    子 VM `WheelAppearanceSettingsViewModel → IProfilePreviewSource` 经共享内核 Core 只读契约
    读方案列表——B8/#81 起接口上提 Core（D5），#69 起不引用具体 VM 类型）；动态/广播协调一律走
@@ -151,6 +155,10 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeService` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
 - Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具后**经组合根委托注入**给 VM。
+- **S1 图标资产双形先例（ADR-0019/#87）**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序
+  图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
+  （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
+  有状态/IO/Win32 = 实例服务」判据的统一表述。
 - 服务注册以单例为主；页面 VM 单例、轮盘 VM 按手势瞬态创建（见 [gestures.md](gestures.md)/[wheel.md](wheel.md)）。
 
 ## ViewModels

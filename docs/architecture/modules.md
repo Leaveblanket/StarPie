@@ -36,7 +36,9 @@
   主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
   M2 轮盘工厂与轮盘外观设置子 VM DI 注册已下放 `WheelModuleRegistrar`（B8/#81 迁入
   `StarPie.Wheel`，M2 无导航页），M1 手势管线/页面 VM/`IProfilePreviewSource` 别名 DI 注册已下放
-  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；仅 Host 外观聚合页 VM 仍由组合根
+  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；M3 快捷方式解析契约注册已下放
+  `ProgramsModuleRegistrar`（ADR-0019/#87 迁入 `StarPie.Programs`，M3 无导航页，无
+  RegisterNavigation）；仅 Host 外观聚合页 VM 仍由组合根
   注册；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
@@ -71,8 +73,10 @@
 
 #### M3 程序扫描与目录
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
-- **关键内部**：`ProgramScanner`、`ProgramCatalog`、快捷方式解析（`ResolveShortcutTarget`）。
-- **对外契约**：数据经注入/纯函数目录提供给 S6 的程序选择对话框，不反向依赖 S6。
+- **关键内部**：`ProgramScanner`、`ProgramCatalog`、`ShortcutResolver`（实例实现 Core 契约
+  `IShortcutTargetResolver`，ADR-0019/#87）与模块注册器 `ProgramsModuleRegistrar`。
+- **对外契约**：数据经注入/纯函数目录提供给 S6 的程序选择对话框，不反向依赖 S6；消费共享内核
+  S1 契约（`IShortcutTargetResolver`/`IIconAssetService`，M3 → Core 单向）。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部。
 
 #### M4 界面主题
@@ -94,7 +98,11 @@
 
 #### S1 图标资产
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
-- **关键内部**：`Services/Icons/IconAssets.cs`、`Services/Icons/VectorIconItem.cs`（R6 三分物理收编，T3a–T3d/#65–#68）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。
+- **关键内部**（ADR-0019/#87 双形拆分）：静态纯目录 `Services/Icons/IconCatalog.cs`（`VectorIconList`/`GetSvgPathByKey`/`ExtractSvgPathData`，无状态）+ 实例服务
+  `Services/Icons/IIconAssetService.cs`/`IconAssetService.cs`（自定义图标存储与 `GetIcon`，
+  经注入 `IShortcutTargetResolver` 消费 .lnk 解析）+ `CustomIconItem.cs`/`VectorIconItem.cs`；
+  `.lnk` 解析契约 `IShortcutTargetResolver.cs` 亦驻 `Services/Icons/`（由 M3 实现）；
+  消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
 
 #### S2 配置与保存
@@ -149,7 +157,7 @@
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9/#82 M1 模板字典随 `StarPie.Gestures` 迁出（GesturesModuleRegistrar/GesturesPageTemplates.xaml），exe 仅余 Host 外观页模板；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
-| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编） |
+| R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`（ADR-0019/#87 双形拆为 `IconCatalog.cs`+`CustomIconItem.cs`+`IconAssetService.cs` 等，见 §3 S1）、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编；ADR-0019/#87 收口 M3 边界） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
 | R8 | `Models` 语义归属与物理落位 | `WheelProfile`/`ActionItem` → M1（物理 Core `Models/`，配置 POCO）；`WheelPalette*` → M2（B8/#81 起物理随 M2 收编 `StarPie.Wheel/Models/`，语义+物理均归 M2）；`CustomColorPreset` → M2（语义；物理仍 Core `Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `Models/`（Core）+ `StarPie.Wheel/Models/`（B8/#81） | B1/#64 已登记语义；B8/#81 起 WheelPalette* 物理随 M2 收编，wheel.md/layout.md 同步回填 |
 

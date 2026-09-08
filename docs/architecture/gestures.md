@@ -20,8 +20,10 @@ M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，�
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
 - `Models/GesturePoint.cs`（R5：手势坐标点归共享内核（Models 语义）；物理已随 #70 收编 `Models/`，
   见 [modules.md](modules.md) §4 R5）。
-- M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产出口
-  `IconAssets`（R6 三分，T3c/#67 起接线）。
+- M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产
+  （ADR-0019/#87 双形：静态纯目录 `IconCatalog` 取矢量 SVG，注入的 `IIconAssetService` 取
+  自定义图标存储——`ProfileListViewModel`/`SlotViewModel` 构造注入链由 GesturesModuleRegistrar
+  接线；R6 三分，T3c/#67 起接线）。
 
 ## 配置方案设置面的对外只读契约（#69）
 
@@ -53,9 +55,10 @@ Profile 来源」契约——实现方为 M1 侧同目录配置方案设置面 V
 - `StarPie.Gestures/ViewModels/Gestures/SlotViewModel.cs`：方向槽位 VM（+ 同文件 `SystemPresetItem`/
   `ActionTypeOption`），包装扇区绑定的 `ActionItem` 提供编辑绑定——名称直写模型（无额外验证）、
   类型切换、热键录制（`Parameter` 绑定）与参数/图标文本派生；动作编辑闭环（程序/文件夹选择、
-  图标设置）经 `IDialogService` 完成，图标取值消费 S1 共享图标资产出口 `IconAssets`
-  （R6 三分，T3c/#67 起接线，见 [modules.md](modules.md) §4 R6）；编辑提交的落盘请求经 `IMessenger`
-  发送保存消息上报（如 `ImmediateSaveRequestedMessage`，见 [config.md](config.md)）。
+  图标设置）经 `IDialogService` 完成，图标取值经构造注入的 `IIconAssetService` 与静态纯目录
+  `IconCatalog` 消费 S1 共享图标资产（ADR-0019/#87；R6 三分，T3c/#67 起接线，见
+  [modules.md](modules.md) §4 R6）；编辑提交的落盘请求经 `IMessenger` 发送保存消息上报
+  （如 `ImmediateSaveRequestedMessage`，见 [config.md](config.md)）。
 - `StarPie.Gestures/ViewModels/Pages/BehaviorSettingsViewModel.cs` 与
   `StarPie.Gestures/Views/Pages/TriggerSettingsPage.xaml(.cs)`：触发与场景设置面（D1 子面——
   触发阈值/场景隔离/外甩逃逸/进程黑名单；BehaviorSettingsViewModel 直持运行态配置 live-apply，
