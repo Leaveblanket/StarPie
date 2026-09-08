@@ -13,7 +13,7 @@ namespace StarPie.Services.Shell
     /// </summary>
     /// <remarks>
     /// <see cref="SetTheme"/> 是唯一状态入口——解析、记录 <see cref="CurrentEffectiveTheme"/>、
-    /// 广播 <see cref="ThemeChanged"/> 并触发调色板整项替换（经附加的 applier）。主题调色板以
+    /// 并触发调色板整项替换（经附加的 applier）。主题调色板以
     /// XAML 存放于 Views/Styles/Themes，由同模块的 ThemePaletteManager 整项换入，
     /// 本服务不依赖 Views。Windows 深色探测可注入，使“跟随系统”解析可单测；
     /// 生产实现实时读 Personalize 注册表键。
@@ -24,8 +24,6 @@ namespace StarPie.Services.Shell
 
         /// <summary>当前请求的主题名（"System"/空 = 跟随系统；固定名 = 不跟随）。</summary>
         public string RequestedTheme { get; private set; } = "System";
-
-        public event Action? ThemeChanged;
 
         private readonly Func<bool> _windowsInDarkModeProbe;
         private Action<string>? _paletteApplier;
@@ -65,7 +63,7 @@ namespace StarPie.Services.Shell
         private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
         /// <summary>设置请求的主题：解析有效主题后应用——记录 <see cref="CurrentEffectiveTheme"/>
-        /// → 触发调色板整项替换 → 广播 <see cref="ThemeChanged"/>。同一有效主题重复设置是
+        /// → 触发调色板整项替换。同一有效主题重复设置是
         /// no-op；首次应用恒执行（保证 App.xaml 静态 Light 首帧后调色板也入活动主题槽）。</summary>
         public void SetTheme(string themeName)
         {
@@ -76,7 +74,6 @@ namespace StarPie.Services.Shell
             CurrentEffectiveTheme = effectiveTheme;
             _paletteApplier?.Invoke(effectiveTheme);
             _hasApplied = true;
-            ThemeChanged?.Invoke();
         }
 
         /// <summary>开始监听 Windows 深浅色变化（宿主 AppHost.Run 在初始主题应用后调用；
