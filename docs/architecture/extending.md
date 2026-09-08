@@ -48,7 +48,7 @@
 
 ## 原型 C：新增对话框
 
-1. **VM**：`ViewModels/Dialogs/{Dialog}ViewModel.cs`：构造注入所需服务/委托；完成语义 = `IsCompleted` + `BuildResult()` 返回可空结果；取消/无效 = `null`；不引用 WPF 类型。
+1. **VM**（B11/#88 起在 `StarPie.Dialogs/ViewModels/Dialogs/`，ADR-0020/#88）：`{Dialog}ViewModel.cs`：构造注入所需服务/契约；完成语义 = `IsCompleted` + `BuildResult()` 返回可空结果；取消/无效 = `null`；不引用 WPF 类型。
 2. **结果 record**：`{Dialog}Result` 定义在 `IDialogService.cs`（可空返回）。
 3. **View**：`Views/Dialogs/{Dialog}Window.xaml(.cs)`，构造 `(IThemeService, {Dialog}ViewModel)`；code-behind 仅 ADR-0009 白名单（`IsCompleted→DialogResult=true`、取消、主题、标题拼接例外）。
 4. **服务**：`IDialogService` 加 `Show{Dialog}(...)` 具名方法（同步、返回可空结果）；`DialogService` 实现 = new VM → new Window → `ShowDialog` → `BuildResult`。

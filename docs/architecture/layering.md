@@ -35,11 +35,14 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   （方向见 [assemblies.md](assemblies.md) §3）。依赖宿主/M2 的 UI 专用件（CoreIconGeometry/Name
   核图标预览转换器）已随 B8/#81 收编 M2（`StarPie.Wheel/Views/Converters/`，裁决随 M2，见
   [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）；S6 取色对话框行为
-  （SpectrumCanvasBehavior，依赖 Host VM 的 SpectrumPoint）仍留 Host（S6 对话框实现留 Host）。
-- M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ProgramCatalog/
-  ShortcutResolver/ProgramEntry 与 ProgramsModuleRegistrar）；**单向依赖 Core**（ADR-0019/#87
-  边界收口）——扫描图标补全与 .lnk 解析经 Core 契约 `IIconAssetService`/`IShortcutTargetResolver`
-  注入，`ShortcutResolver` 实例实现契约；不引用 Host/其它业务模块
+  （SpectrumCanvasBehavior，依赖 ColorPickerViewModel.SpectrumPoint）已随 S6 实现迁入
+  `StarPie.Dialogs`（B11/#88/ADR-0020）。
+- M3（`StarPie.Programs/`，B4/#77）承载程序扫描与目录（ProgramScanner/ShortcutResolver 与
+  ProgramsModuleRegistrar）；**单向依赖 Core**（ADR-0019/#87 + ADR-0020/#88 边界收口）——
+  纯数据 `ProgramEntry`、纯规则 `ProgramCatalog` 与新增扫描契约 `IProgramScanner` 上提 Core
+  （`StarPie.Core/Services/Programs/`，命名空间 `StarPie.Services.Programs` 不变），
+  `ProgramScanner` 改实例实现契约（构造注入 `IIconAssetService`/`IShortcutTargetResolver`），
+  `ShortcutResolver` 实例实现 `IShortcutTargetResolver`；不引用 Host/其它业务模块
   （见 [programs.md](programs.md)/[host.md](host.md)）。
 - M4（`StarPie.Theme/`，B7/#80）承载界面主题体系（IThemeService/ThemeService、
   ThemePaletteManager、五套主题字典 Views/Styles/Themes/*.xaml、InterfaceThemeSettingsViewModel、
@@ -77,6 +80,13 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   RegisterNavigation（B9/#82，最后一个业务模块程序集）；M1 不反向引用 Host/其它业务模块——
   MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（同 M5 AutostartRegistry 先例，
   见 [gestures.md](gestures.md)/[host.md](host.md)）。
+- S6（`StarPie.Dialogs/`，B11/#88/ADR-0020）承载对话框实现与界面（DialogService、五对
+  对话框 VM/Window、SpectrumCanvasBehavior 与 DialogsModuleRegistrar）；**单向依赖 Core +
+  允许 Dialogs→Theme（IThemeService）边**：契约 `IDialogService` 与结果 record 留 Core；
+  程序扫描候选经 Core 契约 `IProgramScanner` 注入（M3 注册器提供实现），不再由组合根
+  委托注入静态扫描；`DialogService` 裁决 public——Host AppHost 建窗后调
+  `SetOwner(MainView)` 回填 Owner（ADR-0004）；不引用 Host/Programs/其它业务模块
+  （见 [dialogs.md](dialogs.md)/[host.md](host.md)）。
 - 跨程序集回填缝（B2/#75 起，属 H1 装配职责，不是 Core 反向依赖）：
   - `AppDataPaths.IsDevInstance`：组合根装配前以 `DevInstance.IsActive` 回填（S2 dev 目录分支；
     消费方含 M5 AutostartRegistry（B6/#79）与 M1 MouseHook（B9/#82），模块均不反向引用 Host）；
