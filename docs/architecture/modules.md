@@ -4,7 +4,9 @@
 >
 > 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异清单见 §7，随实施批次（§8）逐批回填叶子。
 >
-> 程序集化目标态（7 程序集）与 B0–B10 批次路线见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)）。
+> 程序集化目标态（8 程序集：ADR-0016 的 7 程序集 + ADR-0020/#88 新增 StarPie.Dialogs）与
+> 批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
+> [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)）。
 
 ## 1. 何时读本文
 
@@ -73,10 +75,14 @@
 
 #### M3 程序扫描与目录
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
-- **关键内部**：`ProgramScanner`、`ProgramCatalog`、`ShortcutResolver`（实例实现 Core 契约
+- **关键内部**：`ProgramScanner`（IO 扫描编排；ADR-0020/#88 起实例实现 Core 契约
+  `IProgramScanner`，构造注入扫描所需 Core 契约）、`ShortcutResolver`（实例实现 Core 契约
   `IShortcutTargetResolver`，ADR-0019/#87）与模块注册器 `ProgramsModuleRegistrar`。
-- **对外契约**：数据经注入/纯函数目录提供给 S6 的程序选择对话框，不反向依赖 S6；消费共享内核
-  S1 契约（`IShortcutTargetResolver`/`IIconAssetService`，M3 → Core 单向）。
+  纯规则目录 `ProgramCatalog` 与纯数据 `ProgramEntry` 已上提 Core（ADR-0020/#88：第二消费方族
+  判据——M3 扫描与 S6 程序选择器共用），不随 M3 物理居留。
+- **对外契约**：扫描/过滤数据经 Core 契约（`IProgramScanner`/`ProgramCatalog`/`ProgramEntry`）
+  提供给 S6 的程序选择对话框，不反向依赖 S6；消费共享内核 S1 契约
+  （`IShortcutTargetResolver`/`IIconAssetService`，M3 → Core 单向）。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部。
 
 #### M4 界面主题
@@ -135,8 +141,13 @@
 
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
-- **关键内部**：`Services/Dialogs/*`、`ViewModels/Dialogs/*`、`Views/Dialogs/*`。
-- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选由组合根注入委托提供，图标资产/快捷方式解析经 S1/M3 出口接线（R7，T3c/#67 已落地，见 §8）；不直穿 M3/S1 内部。
+- **关键内部**：契约 `IDialogService` + 结果 record 驻 Core `Services/Dialogs/`；实现与界面
+  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）物理居独立模块
+  程序集 `StarPie.Dialogs/`（ADR-0020/#88，B11/#88 已落地；`ViewModels/Dialogs`、
+  `Views/Dialogs`、`Views/Controls` 随迁，命名空间不变）。
+- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Core 契约
+  `IProgramScanner`（M3 注册器提供实现，ADR-0020/#88 替代组合根委托注入，S21 归零），
+  图标资产/快捷方式解析经 S1/M3 出口接线（R7，T3c/#67 已落地）；不直穿 M3/S1 内部。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行。
 
 ### 宿主（1）
@@ -158,7 +169,7 @@
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9/#82 M1 模板字典随 `StarPie.Gestures` 迁出（GesturesModuleRegistrar/GesturesPageTemplates.xaml），exe 仅余 Host 外观页模板；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`（ADR-0019/#87 双形拆为 `IconCatalog.cs`+`CustomIconItem.cs`+`IconAssetService.cs` 等，见 §3 S1）、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编；ADR-0019/#87 收口 M3 边界） |
-| R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `ViewModels/Dialogs/`+`Views/Dialogs/` | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零） |
+| R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `StarPie.Dialogs/ViewModels|Views/Dialogs/`（ADR-0020/#88 随 S6 实现迁入，原 Host 目录已清空） | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零；ADR-0020/#88 扫描改经 `IProgramScanner` 契约） |
 | R8 | `Models` 语义归属与物理落位 | `WheelProfile`/`ActionItem` → M1（物理 Core `Models/`，配置 POCO）；`WheelPalette*` → M2（B8/#81 起物理随 M2 收编 `StarPie.Wheel/Models/`，语义+物理均归 M2）；`CustomColorPreset` → M2（语义；物理仍 Core `Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `Models/`（Core）+ `StarPie.Wheel/Models/`（B8/#81） | B1/#64 已登记语义；B8/#81 起 WheelPalette* 物理随 M2 收编，wheel.md/layout.md 同步回填 |
 
 ## 5. 登记表（子职责 / 双职责 / 装配点）
@@ -234,7 +245,8 @@ M2 构造契约变更不再波及 Host/M1 装配点；M1 手势侧自 B9/#82 起
 > CustomColorPreset 仍 Core）。**B9/#82（模块化 M1 Gestures 抽取·收口）已落地**：M1 手势件
 > （手势管线/动作执行/触发+手势设置页）迁入独立模块程序集 `StarPie.Gestures`，模块注册器
 > GesturesModuleRegistrar 下放 DI 与 `IProfilePreviewSource` 别名，7 程序集目标态除命名空间外
-> 达成。下表逐叶对照已无差异。
+> 达成（该目标态已于 ADR-0020/#88 扩展为 8 程序集，现状以 [assemblies.md](assemblies.md) §2 为准）。
+> 下表逐叶对照已无差异。
 
 | 现状叶子 | 目标归属 | 差异（批次登记） |
 |---|---|---|
@@ -259,7 +271,8 @@ M2 构造契约变更不再波及 Host/M1 装配点；M1 手势侧自 B9/#82 起
 > **B8/#81（M2 Wheel 抽取，含 D5）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记。
 >
 > **B9/#82（M1 Gestures 抽取，收口）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记；
-> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（7 程序集目标态除命名空间外达成，余 B10）。
+> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（7 程序集目标态除命名空间外达成，余 B10；
+> 该目标态已于 ADR-0020/#88 扩展为 8 程序集，现状以 [assemblies.md](assemblies.md) §2 为准）。
 >
 > §7 差异表为 ADR-0015 基线的清零状态。**ADR-0016 程序集化批次差异（B1 起）另见 [assemblies.md](assemblies.md) §8/§9**，§7 不再逐行登记。
 

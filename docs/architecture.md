@@ -39,6 +39,7 @@
 | IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
 | 模块划分 / 归属争议 / 扩展点验收 | [modules.md](architecture/modules.md) |
 | 程序集地图 / 程序集依赖方向 / 导航槽位 / 程序集化批次 | [assemblies.md](architecture/assemblies.md) |
+| 模块间接合缝编目 / 缝裁决 / 程序集依赖基线 | [seams.md](architecture/seams.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
@@ -76,6 +77,11 @@
   （BehaviorSettingsViewModel+TriggerSettingsPage、ProfileListViewModel+SlotViewModel+
   GesturesSettingsPage）与模块注册器 GesturesModuleRegistrar），单向依赖共享内核并允许
   M1→M2（IWheelFactory/IWheelViewModel）边；命名空间统一为 `StarPie.*`（B10/#83）。
+- 模块程序集（B11/#88 起，S6 实现程序集化——共享基础设施模块的独立落点，非新领域模块）：
+  `StarPie.Dialogs/`（WPF 类库，程序集 `StarPie.Dialogs`）承载 S6 对话框实现
+  （DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior，与模块注册器
+  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 仍驻 Core，ADR-0020/#88），
+  单向依赖共享内核并允许 Dialogs→Theme（IThemeService）边；命名空间统一为 `StarPie.*`。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
@@ -92,11 +98,12 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0016）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0020）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（B2/#75 起；B5/#78 含共享 UI 基建，见 layout.md）
+├── StarPie.Dialogs/             # S6 对话框实现模块程序集（B11/#88 起，见 layout.md）
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（B4/#77 起，见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（B6/#79 起，见 layout.md）
 ├── StarPie.Theme/               # M4 界面主题模块程序集（B7/#80 起，见 layout.md）
@@ -106,7 +113,7 @@ StarPie/
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Programs、Shell、Theme、Wheel 与 Gestures；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Programs、Shell、Theme、Wheel 与 Gestures；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 
@@ -153,3 +160,4 @@ Services ---> Models
 | 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） |
 | 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） |
 | 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口（契约入 Core + ProgramsModuleRegistrar + 预览桥） |
+| 0020 | `docs/adr/0020-dialogs-assembly-and-m3-scanner-contract.md` | 对话框实现程序集化（StarPie.Dialogs，8 程序集目标态）+ M3 扫描契约收口（ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core）+ ThemeChanged 死事件移除 |

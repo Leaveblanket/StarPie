@@ -25,6 +25,8 @@
     <ProjectReference Include="..\WinPieGestures\WinPieGestures.csproj" />
     <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
+    <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/AboutViewModel/ShellModuleRegistrar 等测试直用） -->

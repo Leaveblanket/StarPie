@@ -9,7 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 namespace StarPie.ViewModels.Dialogs
 {
     /// <summary>
-    /// 程序选择器 ViewModel：完整接管扫描编排（注入扫描委托，测试可换假实现）、
+    /// 程序选择器 ViewModel：完整接管扫描编排（注入 <see cref="IProgramScanner"/>，
+    /// 测试可换假实现）、
     /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。
     /// </summary>
@@ -20,7 +21,7 @@ namespace StarPie.ViewModels.Dialogs
         /// <summary>手动浏览的系统文件对话框过滤器（即时取词：文件对话框瞬态呈现）。</summary>
         public string ManualBrowseFilter => _localization.GetString("ProgramPickerExeFilter");
 
-        private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
+        private readonly IProgramScanner _programScanner;
         private readonly IDialogService _dialogs;
         private readonly ILocalizationService _localization;
         private readonly IShortcutTargetResolver _shortcutResolver;
@@ -54,12 +55,12 @@ namespace StarPie.ViewModels.Dialogs
         private bool _isCompleted;
 
         public ProgramPickerViewModel(
-            Func<IReadOnlyList<ProgramEntry>> scanPrograms,
+            IProgramScanner programScanner,
             IDialogService dialogs,
             ILocalizationService localization,
             IShortcutTargetResolver shortcutResolver)
         {
-            _scanPrograms = scanPrograms;
+            _programScanner = programScanner ?? throw new ArgumentNullException(nameof(programScanner));
             _dialogs = dialogs;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
@@ -81,7 +82,7 @@ namespace StarPie.ViewModels.Dialogs
 
             try
             {
-                var programs = await Task.Run(() => _scanPrograms());
+                var programs = await Task.Run(() => _programScanner.ScanInstalledPrograms());
                 _allPrograms.Clear();
                 _allPrograms.AddRange(programs);
                 ApplySearch(SearchText);

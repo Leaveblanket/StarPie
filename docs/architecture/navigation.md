@@ -76,6 +76,12 @@ as-built（B6/#79 起；B9/#82 起 M1 亦跨程序集自治）：
 - Host（外观聚合页，目标态留 Host）：仍由 exe 内 HostModuleRegistrar + HostPageTemplates.xaml
   登记，页面 VM 的 DI 注册在 `Composition.ConfigureServices`。
 
+**槽位容量（Q4=a，ADR-0020/#88 登记）**：槽位表 = Core `NavigationSlot` 固定 0–4
+（`NavigationSlots.All` + e2e `NavTab0..4`），是产品侧边栏顺序的唯一正典；**产品页面数封顶
+5**。新增第 6 页起需改 Core 枚举与收口测试（可能波及 e2e AutomationId），属放行共享面而非
+纯模块内部——此约束被有意接受；若未来出现新模块页面需求，再议槽位表可扩展化（字符串槽位/
+目录驱动注册，会破坏 NavTab0..4 稳定性，需先写 ADR）。
+
 ## 参见 ADR
 
 [0005](../adr/0005-di-container-for-navigation.md)（DI 导航）、[0016](../adr/0016-assembly-split-target-and-roadmap.md)（导航自治注册）。

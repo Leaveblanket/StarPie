@@ -12,8 +12,8 @@ namespace StarPie.Services.Dialogs
     /// </summary>
     /// <remarks>
     /// 程序选择器、输入框、图标/颜色选择器与屏上取色均已走 VM 化链路。
-    /// 程序扫描候选来源经构造注入的扫描委托提供（组合根以
-    /// <see cref="ProgramScanner.ScanInstalledPrograms"/> 登记），图标资产经注入的
+    /// 程序扫描候选来源经构造注入的 <see cref="IProgramScanner"/> 契约提供（契约驻共享
+    /// 内核、实现与注册由 M3 下放，ADR-0020/#88），图标资产经注入的
     /// <see cref="IIconAssetService"/> 实例服务与 <see cref="IconCatalog"/> 纯目录
     /// （ADR-0019/#87：S1 双形，对话框服务不直连业务模块静态内部）。
     /// </remarks>
@@ -23,7 +23,7 @@ namespace StarPie.Services.Dialogs
         private readonly ILocalizationService _localization;
         private readonly IIconAssetService _iconAssets;
         private readonly IShortcutTargetResolver _shortcutResolver;
-        private readonly Func<IReadOnlyList<ProgramEntry>> _scanPrograms;
+        private readonly IProgramScanner _programScanner;
         private Window? _owner;
 
         public DialogService(
@@ -31,13 +31,13 @@ namespace StarPie.Services.Dialogs
             ILocalizationService localization,
             IIconAssetService iconAssets,
             IShortcutTargetResolver shortcutResolver,
-            Func<IReadOnlyList<ProgramEntry>> scanPrograms)
+            IProgramScanner programScanner)
         {
             _themeService = themeService;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
-            _scanPrograms = scanPrograms ?? throw new ArgumentNullException(nameof(scanPrograms));
+            _programScanner = programScanner ?? throw new ArgumentNullException(nameof(programScanner));
         }
 
         /// <summary>组合根在设置窗口创建完成后回填 Owner；此前调用任何 Show* 都不带 Owner。</summary>
@@ -45,7 +45,7 @@ namespace StarPie.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var viewModel = new ProgramPickerViewModel(_scanPrograms, this, _localization, _shortcutResolver);
+            var viewModel = new ProgramPickerViewModel(_programScanner, this, _localization, _shortcutResolver);
             var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();

@@ -136,18 +136,10 @@ namespace StarPie
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            // 程序扫描能力经委托注入对话框服务：DialogService 只持扫描委托并转发给
-            // 程序选择器 VM；图标补全与 .lnk 解析经 Core 契约（IIconAssetService/
-            // IShortcutTargetResolver，M3 → Core 单向，ADR-0019/#87）注入扫描编排。
-            services.AddSingleton(sp => new DialogService(
-                sp.GetRequiredService<IThemeService>(),
-                sp.GetRequiredService<ILocalizationService>(),
-                sp.GetRequiredService<IIconAssetService>(),
-                sp.GetRequiredService<IShortcutTargetResolver>(),
-                () => ProgramScanner.ScanInstalledPrograms(
-                    sp.GetRequiredService<IIconAssetService>(),
-                    sp.GetRequiredService<IShortcutTargetResolver>())));
-            services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
+            // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放 StarPie.Dialogs
+            // （ADR-0020/#88）：扫描能力经 Core 契约 IProgramScanner 注入（M3 注册器
+            // 提供实现），组合根不再直接装配对话框服务。
+            DialogsModuleRegistrar.RegisterServices(services);
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 
             // 消息总线（WeakReferenceMessenger 实例注入，便于测试替换）与落盘编排订阅者。

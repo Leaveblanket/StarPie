@@ -1,4 +1,3 @@
-using System;
 using System.Windows;
 
 namespace StarPie.Services.Shell
@@ -17,11 +16,8 @@ namespace StarPie.Services.Shell
         /// "RoyalViolet"/"TitaniumGray"）；首次应用前为 "Light"。</summary>
         string CurrentEffectiveTheme { get; }
 
-        /// <summary>有效主题实际变化后触发（单一入口契约：订阅方只观察 SetTheme）。</summary>
-        event Action? ThemeChanged;
-
         /// <summary>唯一的状态/资源入口：经实时 Windows 探测解析 "System"/空值，记录
-        /// <see cref="CurrentEffectiveTheme"/>，触发宿主调色板整项替换并广播 <see cref="ThemeChanged"/>。
+        /// <see cref="CurrentEffectiveTheme"/>，触发宿主调色板整项替换。
         /// 重复应用同一有效主题为 no-op。</summary>
         void SetTheme(string themeName);
 

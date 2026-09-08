@@ -30,9 +30,11 @@ M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命�
   `Services/Messages/Messages.cs`（Core），放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
-DialogService/对话框）与 M2 轮盘侧（B8/#81 起 StarPie.Wheel，经允许边 Wheel → Theme）经模块
-程序集引用消费 `IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的 `Func<bool>` 委托
-（B6/#79 起，Shell 不反向引用 M4）；Theme → Core 单向，不反向引用 Host/其它业务模块。
+DialogService 装配面）与 M2 轮盘侧（B8/#81 起 StarPie.Wheel，经允许边 Wheel → Theme）及 S6
+对话框侧（B11/#88 起 StarPie.Dialogs，对话框窗口主题应用经允许边 Dialogs → Theme，ADR-0020）
+经模块程序集引用消费 `IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的
+`Func<bool>` 委托（B6/#79 起，Shell 不反向引用 M4）；Theme → Core 单向，不反向引用
+Host/其它业务模块。
 
 ## 关键流程
 
@@ -59,10 +61,12 @@ DialogService/对话框）与 M2 轮盘侧（B8/#81 起 StarPie.Wheel，经允�
    `WheelAppearanceSettingsViewModel`，见 [wheel.md](wheel.md)）。
 5. **ThemeService**（`StarPie.Theme/Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/`CurrentEffectiveTheme`
    状态、`ResolveEffectiveTheme`（`System`/空经注册表探测实时判定）、`SetTheme`（唯一状态/资源入口，
-   解析→记录→触发调色板替换→广播 `ThemeChanged`；同有效主题 no-op）、`EnableSystemThemeTracking`
-   （`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher 封送 → 仅 System/空模式重解析）、
-   `ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20）。
-6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView` 与四个对话框窗口构造注入做白名单应用
+   解析→记录→触发调色板替换；同有效主题 no-op。ADR-0020/#88 起不再广播 `ThemeChanged`——主题
+   变更的唯一通知通道是 `AppThemeChangedMessage`（见上流程 4），接口事件已移除）、
+   `EnableSystemThemeTracking`（`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher 封送 →
+   仅 System/空模式重解析）、`ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20）。
+6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView`（Host）与对话框窗口
+   （`StarPie.Dialogs`，B11/#88 起）构造注入做白名单应用
    （[ADR-0009](../adr/0009-view-code-behind-whitelist.md)）。
 
 ## 扩展点

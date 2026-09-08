@@ -7,13 +7,23 @@ using StarPie;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 程序选择器 ViewModel 的行为覆盖：扫描编排（注入假扫描委托）、搜索过滤接线、
+/// 程序选择器 ViewModel 的行为覆盖：扫描编排（注入假 <see cref="IProgramScanner"/>）、搜索过滤接线、
 /// 选择结果与手动浏览编排（mock 对话框服务）。完成经
 /// <see cref="ProgramPickerViewModel.IsCompleted"/> 可观察状态驱动，无效选择提示经 IDialogService。
 /// </summary>
 public sealed class ProgramPickerViewModelTests
 {
     private static readonly LocalizationService Localization = new();
+
+    /// <summary>扫描契约测试替身：按注入委托返回列表或抛错（不触真实注册表/文件 IO）。</summary>
+    private sealed class FakeProgramScanner : IProgramScanner
+    {
+        private readonly Func<IReadOnlyList<ProgramEntry>> _scan;
+
+        public FakeProgramScanner(Func<IReadOnlyList<ProgramEntry>> scan) => _scan = scan;
+
+        public IReadOnlyList<ProgramEntry> ScanInstalledPrograms() => _scan();
+    }
 
     private static ProgramEntry Entry(string name, string path)
         => new(name, path, path, IconSource: null);
@@ -22,7 +32,7 @@ public sealed class ProgramPickerViewModelTests
         Func<IReadOnlyList<ProgramEntry>>? scan = null,
         TestDialogService? dialogs = null)
         => new(
-            scan ?? (() => new List<ProgramEntry>()),
+            new FakeProgramScanner(scan ?? (() => new List<ProgramEntry>())),
             dialogs ?? new TestDialogService(),
             Localization,
             new ShortcutResolver());

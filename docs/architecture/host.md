@@ -41,16 +41,22 @@
      注册 `IShortcutTargetResolver→ShortcutResolver`）；组合根注册
      `IIconAssetService`→`IconAssetService`（注入上述解析契约，目录默认
      `AppDataPaths.GetAppDataFolder`）——S1 图标资产不再经静态回填缝接线。
+   - ADR-0020/#88 注：`ProgramsModuleRegistrar.RegisterServices` 增注册
+     `IProgramScanner→ProgramScanner`（`ProgramScanner` 由 static 改实例实现，构造注入
+     `IIconAssetService`/`IShortcutTargetResolver`）；`ProgramEntry`/`ProgramCatalog`/
+     `IProgramScanner` 上提 `StarPie.Core/Services/Programs/`，组合根删除
+     `() => ProgramScanner.ScanInstalledPrograms(...)` 委托行（S21 归零）。
    - B3/#76（导航自治）+ B6/#79（M5 拆集）+ B9/#82（M1 拆集）：`NavigationCatalog` 由
      `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、`StarPie.Shell` 的
      `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar` 按固定顺序装配并
      `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
      `INavigationExecutor` → `NavigationExecutor`（目录执行缝，主导航入口，见 [navigation.md](navigation.md)）。
-   - 服务：`DialogService`（T3c/#67：构造注入 M3 程序扫描委托；ADR-0019/#87 起登记为
-     `() => ProgramScanner.ScanInstalledPrograms(iconAssetService, shortcutResolver)`——M3 单向
-     Core，扫描经 Core 契约 `IIconAssetService`/`IShortcutTargetResolver` 注入；对话框服务另注入
-     共享图标资产实例服务与解析契约，供图标/程序选择器使用；+`IDialogService`）、`ISaveDebouncer`、
-     `SettingsSaveOrchestrator`。（M1 手势管线 `MouseHook`/`IActionExecutorService`/
+   - 服务：`DialogService`（T3c/#67：构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描
+     契约；ADR-0019/#87 起扫描/图标经 Core 契约注入；ADR-0020/#88 起程序扫描候选经
+     `IProgramScanner`（Core 契约，M3 注册器提供实现）注入、组合根不再登记委托——`DialogService`
+     与 `IDialogService` 的注册随 S6 实现下放 `DialogsModuleRegistrar.RegisterServices`
+     （StarPie.Dialogs，B11/#88）；对话框服务另注入共享图标资产实例服务与解析契约，
+     供图标/程序选择器使用）、`ISaveDebouncer`、`SettingsSaveOrchestrator`。（M1 手势管线 `MouseHook`/`IActionExecutorService`/
      `IWindowContext`/`GestureEngine`/`GestureController` 的注册已随 B9/#82 由
      `GesturesModuleRegistrar.RegisterServices` 下放 `StarPie.Gestures`，组合根不再直接登记；
      `IWheelFactory` 的注册见 WheelModuleRegistrar 注。）
@@ -86,7 +92,8 @@
      `AppDataPaths.IsDevInstance` 回填缝（组合根装配前已以 DevInstance.IsActive 回填，
      语义与迁移前一致），M1 不反向引用 Host。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
-   - **Views 不注册**（页面无参构造；`MainView`/对话框 Window 由 `AppHost` 或 `DialogService` 显式 `new`）。
+   - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
+     `DialogService` 在 `StarPie.Dialogs` 内显式 `new`，B11/#88 起不经 Host）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`；
@@ -102,7 +109,8 @@
      首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
      `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，B3/#76 目录槽位）→
      `new MainView(...)` + 应用初始界面主题
-     （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→ `_dialogService.SetOwner(_mainView)`
+      （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
+      `_dialogService.SetOwner(_mainView)`（StarPie.Dialogs public 装配面，ADR-0020/#88）
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
 5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
    → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
