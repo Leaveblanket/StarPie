@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0020/#88：S6 对话框实现与界面程序集（契约留 Core：IDialogService + 结果
+         record；实现 DialogService 与五对对话框 VM/Window + 取色行为 SpectrumCanvasBehavior
+         随迁，命名空间沿用 StarPie.* 树，RootNamespace=StarPie）。
+         依赖方向：StarPie.Dialogs → StarPie.Core 单向 + StarPie.Dialogs → StarPie.Theme
+         允许边（窗口主题应用消费 IThemeService，同 M2→M4 先例）；不引用 Programs/Host/其它
+         业务模块——程序扫描经 Core 契约 IProgramScanner 注入（ADR-0020/#88）。
+         DI 注册经 DialogsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
+         BuildServiceProvider；DialogService 裁决 public（宿主 SetOwner 装配面）。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Dialogs</AssemblyName>
+    <RootNamespace>StarPie</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ADR-0020/#88：S6 契约（IDialogService/结果 record）驻共享内核 -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0020/#88：对话框窗口主题应用消费 M4 IThemeService（允许边） -->
+    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+  </ItemGroup>
+
+</Project>

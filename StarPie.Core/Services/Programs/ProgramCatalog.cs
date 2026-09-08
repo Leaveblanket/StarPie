@@ -9,6 +9,8 @@ namespace StarPie.Services.Programs
     /// 程序目录的纯规则函数：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。
     /// 刻意不带 IO（文件存在性、注册表检查）——此类扫描 IO 由 <see cref="ProgramScanner"/>
     /// 编排并保持集成性质不单测；这里的规则全部是无副作用的字符串/路径判定，可直接单测。
+    /// ADR-0020/#88 起上提共享内核（消费方：M3 扫描编排 + StarPie.Dialogs 程序选择器过滤，
+    /// 满足共享件第二消费方族提升判据），命名空间保持 StarPie.Services.Programs。
     /// </summary>
     public static class ProgramCatalog
     {

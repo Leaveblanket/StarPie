@@ -12,7 +12,8 @@ namespace StarPie.Tests;
 /// 共享内核 <c>StarPie.Core</c>；App.xaml 经跨程序集 pack URI 合并该字典。轮盘核图标
 /// 预览转换器（CoreIconGeometry/Name）位于 <c>StarPie.Wheel</c>（见
 /// <see cref="WheelAssemblyPlacementTests"/>）；取色对话框行为
-/// （SpectrumCanvasBehavior，依赖宿主 VM 的 SpectrumPoint）仍驻宿主，
+/// （SpectrumCanvasBehavior，依赖 ColorPickerViewModel.SpectrumPoint）随 S6 实现
+/// 迁入 <c>StarPie.Dialogs</c>（ADR-0020/#88，见 DialogsAssemblyPlacementTests），
 /// Core 不反向依赖宿主。
 /// </summary>
 public sealed class SharedUiAssemblyPlacementTests
@@ -57,13 +58,13 @@ public sealed class SharedUiAssemblyPlacementTests
     }
 
     [Fact]
-    public void S6取色对话框专用UI件_维持Host待后续批次()
+    public void S6取色对话框专用UI件_随S6实现迁入StarPie_Dialogs()
     {
         // CoreIconGeometryConverter/CoreIconNameConverter（轮盘核图标预览配套）位于
-        // StarPie.Wheel（归属裁决见 WheelAssemblyPlacementTests）；本测试只收口仍驻宿主的
-        // 取色对话框行为：SpectrumCanvasBehavior 依赖宿主 ColorPickerViewModel.SpectrumPoint
-        // （对话框实现留宿主），避免 Core 反向依赖宿主。
-        Assert.Equal("StarPie", typeof(SpectrumCanvasBehavior).Assembly.GetName().Name);
+        // StarPie.Wheel（归属裁决见 WheelAssemblyPlacementTests）；本测试收口取色对话框
+        // 行为的随迁归属：SpectrumCanvasBehavior 依赖 ColorPickerViewModel.SpectrumPoint，
+        // 现与对话框实现同驻 StarPie.Dialogs（ADR-0020/#88），避免 Core 反向依赖宿主。
+        Assert.Equal("StarPie.Dialogs", typeof(SpectrumCanvasBehavior).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Views.Controls", typeof(SpectrumCanvasBehavior).Namespace);
     }

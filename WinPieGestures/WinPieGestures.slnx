@@ -1,6 +1,7 @@
 <Solution>
   <Project Path="WinPieGestures.csproj" />
   <Project Path="..\StarPie.Core\StarPie.Core.csproj" />
+  <Project Path="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
   <Project Path="..\StarPie.Programs\StarPie.Programs.csproj" />
   <Project Path="..\StarPie.Shell\StarPie.Shell.csproj" />
   <Project Path="..\StarPie.Theme\StarPie.Theme.csproj" />

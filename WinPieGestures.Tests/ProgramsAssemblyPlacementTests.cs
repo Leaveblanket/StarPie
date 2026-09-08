@@ -19,19 +19,20 @@ public sealed class ProgramsAssemblyPlacementTests
     public void M3出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Programs", typeof(ProgramScanner).Assembly.GetName().Name);
-        Assert.Equal("StarPie.Programs", typeof(ProgramCatalog).Assembly.GetName().Name);
         Assert.Equal("StarPie.Programs", typeof(ShortcutResolver).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Services.Programs", typeof(ProgramEntry).Namespace);
     }
 
     [Fact]
-    public void M3出口_ProgramEntry与IProgramScanner_上提共享内核Core()
+    public void M3出口_ProgramEntry与IProgramScanner及ProgramCatalog_上提共享内核Core()
     {
         Assert.Equal("StarPie.Core", typeof(ProgramEntry).Assembly.GetName().Name);
         Assert.Equal("StarPie.Core", typeof(IProgramScanner).Assembly.GetName().Name);
+        Assert.Equal("StarPie.Core", typeof(ProgramCatalog).Assembly.GetName().Name);
         Assert.Equal("StarPie.Services.Programs", typeof(ProgramEntry).Namespace);
         Assert.Equal("StarPie.Services.Programs", typeof(IProgramScanner).Namespace);
+        Assert.Equal("StarPie.Services.Programs", typeof(ProgramCatalog).Namespace);
 
         Assert.Equal("StarPie.Programs", typeof(ProgramScanner).Assembly.GetName().Name);
         Assert.True(typeof(IProgramScanner).IsAssignableFrom(typeof(ProgramScanner)));
@@ -40,7 +41,7 @@ public sealed class ProgramsAssemblyPlacementTests
     [Fact]
     public void M3程序集_单向依赖共享内核Core_不引用Host与其他业务模块()
     {
-        string?[] referenced = typeof(ProgramCatalog).Assembly
+        string?[] referenced = typeof(ProgramScanner).Assembly
             .GetReferencedAssemblies()
             .Select(a => a.Name)
             .ToArray();

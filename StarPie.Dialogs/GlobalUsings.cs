@@ -1,0 +1,11 @@
+global using StarPie.Models;
+global using StarPie.Services.Configuration;
+global using StarPie.Services.Dialogs;
+global using StarPie.Services.Icons;
+global using StarPie.Services.Localization;
+global using StarPie.Services.Messages;
+global using StarPie.Services.Programs;
+global using StarPie.Services.Shell;
+global using StarPie.ViewModels.Dialogs;
+global using StarPie.Views.Controls;
+global using StarPie.Views.Dialogs;
