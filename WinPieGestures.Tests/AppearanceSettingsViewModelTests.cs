@@ -54,11 +54,11 @@ public sealed class AppearanceSettingsViewModelTests
             Reload = PageReloadLog.Attach(messenger);
 
             ProfileList = new ProfileListViewModel(
-                ConfigService.Current.Profiles, Dialogs, messenger, new TestActionExecutor(), Localization);
+                ConfigService.Current.Profiles, Dialogs, messenger, new TestActionExecutor(), Localization, new TestIconAssetService());
             InterfaceTheme = new InterfaceThemeSettingsViewModel(ConfigService, messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 ConfigService, Dialogs, messenger, ProfileList, Localization);
-            Vm = new AppearanceSettingsViewModel(messenger, InterfaceTheme, WheelAppearance);
+            Vm = new AppearanceSettingsViewModel(messenger, InterfaceTheme, WheelAppearance, new TestIconAssetService());
         }
     }
 

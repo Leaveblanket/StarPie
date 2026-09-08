@@ -15,7 +15,7 @@ public sealed class WheelPreviewRendererTests
     [Fact]
     public void RenderAndMouseMove_AcceptIWheelAppearanceState_NotConcreteAggregateVm()
     {
-        var renderer = new WheelPreviewRenderer();
+        var renderer = new WheelPreviewRenderer(new TestIconAssetService());
 
         // 渲染器不反向引用宿主：深浅色探测由调用方以 bool 传入；
         // 方法组转换继续在编译期钉住公开签名。

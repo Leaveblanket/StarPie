@@ -136,6 +136,8 @@ public sealed class WheelAssemblyPlacementTests
         services.AddSingleton<ILocalizationService>(localization);
         services.AddSingleton<IMessenger>(TestHub.NewMessenger());
         services.AddSingleton<IDialogService>(new TestDialogService());
+        // ADR-0019/#87：WheelFactory 消费共享图标资产实例服务（S1），微型容器需注册替身。
+        services.AddSingleton<IIconAssetService>(new TestIconAssetService());
         // 实现方（ProfileListViewModel，位于 StarPie.Gestures）：本用例只验证轮盘注册器
         // 对只读契约的消费，以替身注册别名即可（真实别名装配由 GesturesModuleRegistrar 覆盖）。
         services.AddSingleton<IProfilePreviewSource>(new FakeProfilePreviewSource());

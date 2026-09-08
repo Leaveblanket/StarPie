@@ -18,12 +18,18 @@ namespace StarPie.Services.Wheel
         private readonly IConfigService _config;
         private readonly IThemeService _themeService;
         private readonly ILocalizationService _localization;
+        private readonly IIconAssetService _iconAssets;
 
-        public WheelFactory(IConfigService config, IThemeService themeService, ILocalizationService localization)
+        public WheelFactory(
+            IConfigService config,
+            IThemeService themeService,
+            ILocalizationService localization,
+            IIconAssetService iconAssets)
         {
             _config = config;
             _themeService = themeService;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
         }
 
         public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
@@ -34,7 +40,7 @@ namespace StarPie.Services.Wheel
             dispatcher.Invoke(() =>
             {
                 viewModel = new WheelViewModel(center, profile, _config.Current, _localization);
-                window = new RadialWindow(viewModel, _themeService, _localization);
+                window = new RadialWindow(viewModel, _themeService, _localization, _iconAssets);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
         }

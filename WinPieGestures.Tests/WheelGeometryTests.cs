@@ -124,7 +124,7 @@ public sealed class WheelGeometryTests
     [Fact]
     public void GetCoreIconGeometry_CustomWithKey_FallsBackToCatalogSvg()
     {
-        string folderSvg = IconAssets.GetSvgPathByKey("Folder")!;
+        string folderSvg = IconCatalog.GetSvgPathByKey("Folder")!;
 
         AssertBoundsEqual(folderSvg, WheelGeometry.GetCoreIconGeometry("Custom", customKey: "Folder"));
     }

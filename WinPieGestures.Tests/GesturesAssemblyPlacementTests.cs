@@ -153,6 +153,9 @@ public sealed class GesturesAssemblyPlacementTests
         services.AddSingleton<ILocalizationService>(localization);
         services.AddSingleton<IMessenger>(TestHub.NewMessenger());
         services.AddSingleton<IDialogService>(new TestDialogService());
+        // ADR-0019/#87：M1 页面 VM（ProfileListViewModel/SlotViewModel）消费共享图标资产
+        // 实例服务（S1），微型容器需注册替身（镜像组合根：IIconAssetService 单例）。
+        services.AddSingleton<IIconAssetService>(new TestIconAssetService());
 
         // 镜像组合根装配顺序：主题（IThemeService）→ 轮盘（IWheelFactory，手势→轮盘允许边）
         // → 手势（手势管线/页面 VM）。

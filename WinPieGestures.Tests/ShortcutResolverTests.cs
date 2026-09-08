@@ -15,7 +15,7 @@ public sealed class ShortcutResolverTests
     [InlineData("   ")]
     public void ResolveShortcutTarget_NullOrWhitespace_ReturnsFalseWithDefaults(string? lnkPath)
     {
-        bool resolved = ShortcutResolver.ResolveShortcutTarget(
+        bool resolved = new ShortcutResolver().ResolveShortcutTarget(
             lnkPath!, out string targetPath, out string iconPath, out int iconIndex);
 
         Assert.False(resolved);
@@ -29,7 +29,7 @@ public sealed class ShortcutResolverTests
     {
         string missingPath = @"C:\StarPie-Tests\missing-" + Guid.NewGuid().ToString("N") + ".lnk";
 
-        bool resolved = ShortcutResolver.ResolveShortcutTarget(
+        bool resolved = new ShortcutResolver().ResolveShortcutTarget(
             missingPath, out string targetPath, out string iconPath, out int iconIndex);
 
         Assert.False(resolved);

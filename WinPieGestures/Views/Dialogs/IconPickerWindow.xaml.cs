@@ -23,13 +23,19 @@ namespace StarPie.Views.Dialogs
     public partial class IconPickerWindow : Window
     {
         private readonly IconPickerViewModel _vm;
+        private readonly IIconAssetService _iconAssets;
         private Border? _selectedCard;
 
-        public IconPickerWindow(IThemeService themeService, IconPickerViewModel viewModel, ILocalizationService localization)
+        public IconPickerWindow(
+            IThemeService themeService,
+            IconPickerViewModel viewModel,
+            ILocalizationService localization,
+            IIconAssetService iconAssets)
         {
             InitializeComponent();
             themeService.ApplyWindowTheme(this);
             _vm = viewModel;
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             DataContext = _vm;
             _vm.PropertyChanged += OnViewModelPropertyChanged;
             _vm.DisplayedIcons.CollectionChanged += DisplayedIcons_Changed;
@@ -119,7 +125,7 @@ namespace StarPie.Views.Dialogs
                     HorizontalAlignment = HorizontalAlignment.Center,
                     Margin = new Thickness(0, 0, 0, 4)
                 };
-                img.Source = IconAssets.GetCustomImageSource(entry.FilePath);
+                img.Source = _iconAssets.GetCustomImageSource(entry.FilePath);
                 iconElem = img;
             }
 

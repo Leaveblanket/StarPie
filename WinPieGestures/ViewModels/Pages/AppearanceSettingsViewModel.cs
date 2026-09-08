@@ -39,14 +39,21 @@ namespace StarPie.ViewModels.Pages
         /// <see cref="IWheelAppearanceState"/> 由该子 VM 独占。</summary>
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }
 
+        /// <summary>共享图标资产实例服务（S1，ADR-0019/#87）：外观页实时预览渲染器为
+        /// View 层无 DI 构造对象，经本聚合 VM（容器单例）暴露的已批准预览桥取得服务，
+        /// 供页面 OnPageLoaded 装配 <c>WheelPreviewRenderer</c>。</summary>
+        public IIconAssetService IconAssetService { get; }
+
         public AppearanceSettingsViewModel(
             IMessenger messenger,
             InterfaceThemeSettingsViewModel interfaceTheme,
-            WheelAppearanceSettingsViewModel wheelAppearance)
+            WheelAppearanceSettingsViewModel wheelAppearance,
+            IIconAssetService iconAssetService)
         {
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             InterfaceTheme = interfaceTheme ?? throw new ArgumentNullException(nameof(interfaceTheme));
             WheelAppearance = wheelAppearance ?? throw new ArgumentNullException(nameof(wheelAppearance));
+            IconAssetService = iconAssetService ?? throw new ArgumentNullException(nameof(iconAssetService));
 
             // 导入成功广播 → 子 VM 各自订阅自行重挂；聚合壳只做页面级收尾广播——外观页
             // View 收到后重绘实时预览（状态与下拉项已声明式绑定，随子 VM 通知自动刷新）。

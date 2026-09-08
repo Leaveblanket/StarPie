@@ -34,6 +34,7 @@ namespace StarPie.ViewModels.Gestures
         private bool _isDisposed;
         private readonly IActionExecutorService _actionExecutor;
         private readonly IMessenger _messenger;
+        private readonly IIconAssetService _iconAssets;
 
         public static readonly List<SystemPresetItem> SystemPresetList = new List<SystemPresetItem>
         {
@@ -208,12 +209,12 @@ namespace StarPie.ViewModels.Gestures
                 {
                     if (IconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
                     {
-                        var custom = IconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == IconKey);
+                        var custom = _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == IconKey);
                         if (custom != null && custom.IsSvg) data = custom.SvgData;
                     }
                     else
                     {
-                        data = IconAssets.GetSvgPathByKey(IconKey);
+                        data = IconCatalog.GetSvgPathByKey(IconKey);
                     }
                 }
 
@@ -276,7 +277,8 @@ namespace StarPie.ViewModels.Gestures
             IDialogService dialogs,
             IActionExecutorService actionExecutor,
             IMessenger messenger,
-            ILocalizationService localization)
+            ILocalizationService localization,
+            IIconAssetService iconAssets)
         {
             DirectionLabel = directionLabel;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
@@ -284,6 +286,7 @@ namespace StarPie.ViewModels.Gestures
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
 
             _languageChangedHandler = () =>
             {
