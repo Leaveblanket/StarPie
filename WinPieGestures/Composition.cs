@@ -136,17 +136,16 @@ namespace StarPie
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            // 程序扫描能力经委托注入对话框服务：DialogService 只持扫描委托并转发给
-            // 程序选择器 VM；图标补全与 .lnk 解析经 Core 契约（IIconAssetService/
-            // IShortcutTargetResolver，M3 → Core 单向，ADR-0019/#87）注入扫描编排。
+            // 程序扫描能力经 IProgramScanner 契约注入对话框服务（契约驻 Core、实现与
+            // 注册由 M3 ProgramsModuleRegistrar 下放，ADR-0020/#88）；图标补全与 .lnk
+            // 解析在 ProgramScanner 实现内部经注入的 Core 契约完成（M3 → Core 单向，
+            // ADR-0019/#87）。
             services.AddSingleton(sp => new DialogService(
                 sp.GetRequiredService<IThemeService>(),
                 sp.GetRequiredService<ILocalizationService>(),
                 sp.GetRequiredService<IIconAssetService>(),
                 sp.GetRequiredService<IShortcutTargetResolver>(),
-                () => ProgramScanner.ScanInstalledPrograms(
-                    sp.GetRequiredService<IIconAssetService>(),
-                    sp.GetRequiredService<IShortcutTargetResolver>())));
+                sp.GetRequiredService<IProgramScanner>()));
             services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<DialogService>());
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 

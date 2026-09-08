@@ -19,14 +19,23 @@ namespace StarPie.Services.Programs
     /// （<see cref="IIconAssetService"/> / <see cref="IShortcutTargetResolver"/>）注入，
     /// 不再由组合根传委托。本类保持集成性质，不做单元测试。
     /// </remarks>
-    public static class ProgramScanner
+    public sealed class ProgramScanner : IProgramScanner
     {
-        /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
-        /// （图标经 <paramref name="iconAssets"/> 在此阶段补齐；.lnk 来源经
-        /// <paramref name="shortcutResolver"/> 解析目标）。</summary>
-        public static IReadOnlyList<ProgramEntry> ScanInstalledPrograms(
+        private readonly IIconAssetService _iconAssets;
+        private readonly IShortcutTargetResolver _shortcutResolver;
+
+        /// <summary>构造注入扫描所需的共享内核契约（图标补全与 .lnk 解析）。</summary>
+        public ProgramScanner(
             IIconAssetService iconAssets,
             IShortcutTargetResolver shortcutResolver)
+        {
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
+            _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
+        }
+
+        /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
+        /// （图标与 .lnk 解析经构造注入的共享内核契约完成）。</summary>
+        public IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
         {
             var candidates = new List<ProgramEntry>();
 
@@ -34,10 +43,10 @@ namespace StarPie.Services.Programs
             AddSystemApps(candidates);
 
             // 2. 开始菜单快捷方式（公共与用户）
-            ScanStartMenuShortcuts(candidates, shortcutResolver);
+            ScanStartMenuShortcuts(candidates, _shortcutResolver);
 
             // 3. 桌面快捷方式（公共与用户）
-            ScanDesktopShortcuts(candidates, shortcutResolver);
+            ScanDesktopShortcuts(candidates, _shortcutResolver);
 
             // 4. 用户 AppData\Local\Programs（VS Code、Discord、Spotify、Xmind 等）
             ScanUserAppDataPrograms(candidates);
@@ -57,7 +66,7 @@ namespace StarPie.Services.Programs
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
             var merged = ProgramCatalog.MergeSources(candidates);
             var list = merged
-                .Select(e => e with { IconSource = iconAssets.GetIcon(e.Path) })
+                .Select(e => e with { IconSource = _iconAssets.GetIcon(e.Path) })
                 .ToList();
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
             return list;
