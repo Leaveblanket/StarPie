@@ -24,32 +24,32 @@ namespace StarPie.Views.Renderers
         public double BorderThickness { get; protected set; } = 1.0;
         public double HighlightBorderThickness { get; protected set; } = 1.5;
 
-        public bool IsLightTheme { get; protected set; } = false;
+        public bool IsLightPalette { get; protected set; } = false;
         protected AppConfig? _config;
 
         /// <summary>轮盘配色目录中的风格键（与 <see cref="StyleRendererFactory"/> 分支同名），
         /// 决定该风格的默认深浅观感与 Light 方案是否套用标准浅色表。</summary>
         protected abstract string WheelStyleName { get; }
 
-        public virtual void Initialize(string theme, AppConfig config, bool windowsInDarkMode)
+        public virtual void Initialize(string palette, AppConfig config, bool windowsInDarkMode)
         {
             _config = config;
             BorderThickness = 1.0;
             HighlightBorderThickness = 1.5;
 
-            string effectiveTheme = WheelPaletteParser.ResolveEffectiveTheme(theme, windowsInDarkMode);
-            IsLightTheme = string.Equals(effectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
+            string effectivePalette = WheelPaletteParser.ResolveEffectivePalette(palette, windowsInDarkMode);
+            IsLightPalette = string.Equals(effectivePalette, "Light", StringComparison.OrdinalIgnoreCase);
 
             // 方案名→色值组只在解析层发生；渲染器只消费解析结果构造画刷。
-            WheelPalette palette = WheelPaletteParser.Resolve(theme, config, windowsInDarkMode, WheelStyleName);
+            WheelPalette wheelPalette = WheelPaletteParser.Resolve(palette, config, windowsInDarkMode, WheelStyleName);
 
-            DefaultSectorBrush = CreateBrush(palette.SectorBg);
-            HighlightSectorBrush = CreateBrush(palette.HighlightBg);
-            SectorBorderBrush = CreateBrush(palette.SectorBorder);
-            HighlightBorderBrush = CreateBrush(palette.HighlightBorder);
-            TextColorBrush = CreateBrush(palette.TextColor);
-            CoreBgBrush = CreateBrush(palette.CoreBg);
-            CoreBorderBrush = CreateBrush(palette.CoreBorder);
+            DefaultSectorBrush = CreateBrush(wheelPalette.SectorBg);
+            HighlightSectorBrush = CreateBrush(wheelPalette.HighlightBg);
+            SectorBorderBrush = CreateBrush(wheelPalette.SectorBorder);
+            HighlightBorderBrush = CreateBrush(wheelPalette.HighlightBorder);
+            TextColorBrush = CreateBrush(wheelPalette.TextColor);
+            CoreBgBrush = CreateBrush(wheelPalette.CoreBg);
+            CoreBorderBrush = CreateBrush(wheelPalette.CoreBorder);
 
             PostInitialize();
         }

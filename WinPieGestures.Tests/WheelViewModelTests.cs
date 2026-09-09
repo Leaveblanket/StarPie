@@ -146,14 +146,14 @@ public sealed class WheelViewModelTests
     }
 
     [Fact]
-    public void Ctor_ThemeAndStyleFallBackToDefaults_WhenUnset()
+    public void Ctor_PaletteAndStyleFallBackToDefaults_WhenUnset()
     {
-        var config = new AppConfig { Theme = null!, UiStyle = null! };
+        var config = new AppConfig { WheelPalette = null!, WheelStyle = null! };
 
         var vm = Create(Profile(8), config);
 
-        Assert.Equal("System", vm.Theme);
-        Assert.Equal("ClassicRing", vm.UiStyle);
+        Assert.Equal("System", vm.WheelPalette);
+        Assert.Equal("ClassicRing", vm.WheelStyle);
     }
 
     // --- 引擎驱动状态变更 ----------------------------------------

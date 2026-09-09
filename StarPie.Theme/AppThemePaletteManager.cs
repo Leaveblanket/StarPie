@@ -16,7 +16,7 @@ namespace StarPie
     /// 可见性为 public：宿主 AppHost 装配面（AttachPaletteApplier + Apply）跨程序集编排调用；
     /// 模块内部实现细节（主题文件映射/缓存/冻结）保持私有。
     /// </remarks>
-    public sealed class ThemePaletteManager
+    public sealed class AppThemePaletteManager
     {
         // 配置名/遗留别名 → 主题文件规范名（ObsidianDark 等价 Dark）。
         private static readonly Dictionary<string, string> ThemeFileNames = new(StringComparer.OrdinalIgnoreCase)

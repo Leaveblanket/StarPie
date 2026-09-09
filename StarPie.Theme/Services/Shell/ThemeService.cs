@@ -14,7 +14,7 @@ namespace StarPie.Services.Shell
     /// <remarks>
     /// <see cref="SetTheme"/> 是唯一状态入口——解析、记录 <see cref="CurrentEffectiveTheme"/>、
     /// 并触发调色板整项替换（经附加的 applier）。主题调色板以
-    /// XAML 存放于 Views/Styles/Themes，由同模块的 ThemePaletteManager 整项换入，
+    /// XAML 存放于 Views/Styles/Themes，由同模块的 AppThemePaletteManager 整项换入，
     /// 本服务不依赖 Views。Windows 深色探测可注入，使“跟随系统”解析可单测；
     /// 生产实现实时读 Personalize 注册表键。
     /// </remarks>

@@ -68,7 +68,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     {
         var config = new AppConfig
         {
-            UiStyle = "Glassmorphism", Theme = "Dark", Shape = "Circle",
+            WheelStyle = "Glassmorphism", WheelPalette = "Dark", Shape = "Circle",
             WheelRadius = 160, InnerRadius = 60, CoreRadius = 55, SectorGap = 3, SectorCornerRadius = 6,
             ShowText = false, IconLayoutMode = "TextOnly", SectorIconSize = 28, SectorFontSize = 12.5,
             HighlightGlowPreset = "Blue", HighlightGlowColor = "#3B82F6",
@@ -78,8 +78,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         var (vm, configService, _, log) = Create(config);
 
-        Assert.Equal("Glassmorphism", vm.UiStyle);
-        Assert.Equal("Dark", vm.SelectedTheme);
+        Assert.Equal("Glassmorphism", vm.WheelStyle);
+        Assert.Equal("Dark", vm.SelectedPalette);
         Assert.Equal("Circle", vm.Shape);
         Assert.Equal(160, vm.WheelRadius);
         Assert.Equal("160", vm.WheelRadiusLabel);
@@ -156,7 +156,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     public void Constructor_CustomPresetTheme_ShowsPresetButtonsAndExpandsPanel()
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "我的配色" };
-        var (vm, _, _, _) = Create(new AppConfig { Theme = "CustomPreset_p1", CustomColorPresets = new List<CustomColorPreset> { preset } });
+        var (vm, _, _, _) = Create(new AppConfig { WheelPalette = "CustomPreset_p1", CustomColorPresets = new List<CustomColorPreset> { preset } });
 
         Assert.True(vm.IsCustomPresetSelected);
         Assert.True(vm.IsCustomColorExpanderExpanded);
@@ -191,13 +191,13 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void UiStyleChange_WritesConfigAndRaisesPreview_ButNeverRequestsSave()
+    public void WheelStyleChange_WritesConfigAndRaisesPreview_ButNeverRequestsSave()
     {
         var (vm, config, _, log) = Create();
 
-        vm.UiStyle = "CleanSectors";
+        vm.WheelStyle = "CleanSectors";
 
-        Assert.Equal("CleanSectors", config.Current.UiStyle);
+        Assert.Equal("CleanSectors", config.Current.WheelStyle);
         Assert.Equal(1, log.Preview);
         Assert.Equal(0, log.AutoSave);
         Assert.Equal(0, log.SaveNow);
@@ -428,13 +428,13 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("#333333", preset.HighlightBg);
         Assert.Equal("#444444", preset.HighlightBorder);
         Assert.Equal("#555555", preset.TextColor);
-        Assert.Equal("CustomPreset_" + preset.Id, config.Current.Theme);
-        Assert.Equal("CustomPreset_" + preset.Id, vm.SelectedTheme);
+        Assert.Equal("CustomPreset_" + preset.Id, config.Current.WheelPalette);
+        Assert.Equal("CustomPreset_" + preset.Id, vm.SelectedPalette);
         Assert.True(vm.IsCustomPresetSelected);
         Assert.True(vm.IsCustomColorExpanderExpanded);
-        // 预设下拉由 VM 的 ThemeOptions 驱动——保存后重建（6 固定 + 1 自定义）。
-        Assert.Equal(7, vm.ThemeOptions.Count);
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
+        // 预设下拉由 VM 的 PaletteOptions 驱动——保存后重建（6 固定 + 1 自定义）。
+        Assert.Equal(7, vm.PaletteOptions.Count);
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_" + preset.Id && o.Label.Contains("我的预设"));
         Assert.Equal(1, log.SaveNow);
         // 保存成功提示经对话框服务（编排内聚进 VM），文案即时取词键化
         var info = Assert.Single(dialogs.InfoCalls);
@@ -451,7 +451,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.SavePresetCommand.Execute(null);
 
         Assert.Empty(config.Current.CustomColorPresets);
-        Assert.Equal(6, vm.ThemeOptions.Count); // 取消不新增自定义项
+        Assert.Equal(6, vm.PaletteOptions.Count); // 取消不新增自定义项
         Assert.Equal(0, log.SaveNow);
         Assert.Empty(dialogs.InfoCalls);
     }
@@ -494,7 +494,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.SavePresetCommand.Execute(null);
 
         Assert.Equal("我的预设", config.Current.CustomColorPresets!.Single().Name);
-        Assert.Contains(vm.ThemeOptions, o => o.Label.Contains("我的预设"));
+        Assert.Contains(vm.PaletteOptions, o => o.Label.Contains("我的预设"));
     }
 
     [Fact]
@@ -506,7 +506,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.SavePresetCommand.Execute(null);
 
         Assert.Empty(config.Current.CustomColorPresets);
-        Assert.Equal(6, vm.ThemeOptions.Count); // 空名拒绝：不新增自定义项
+        Assert.Equal(6, vm.PaletteOptions.Count); // 空名拒绝：不新增自定义项
         Assert.Equal(0, log.SaveNow);
         var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
@@ -519,7 +519,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
         var (vm, config, dialogs, log) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.InputToPick = new InputDialogResult("新名");
@@ -528,9 +528,9 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         Assert.Equal("旧名", dialogs.LastInputDefaultText);
         Assert.Equal("新名", preset.Name);
-        Assert.Equal("CustomPreset_p1", vm.SelectedTheme); // 选中保持不变
-        // 改名后 VM 重建 ThemeOptions 刷新下拉标签。
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
+        Assert.Equal("CustomPreset_p1", vm.SelectedPalette); // 选中保持不变
+        // 改名后 VM 重建 PaletteOptions 刷新下拉标签。
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
         Assert.Equal(1, log.SaveNow);
     }
 
@@ -540,7 +540,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
         var (vm, _, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.InputToPick = null; // 取消一次即可捕获对话框实参
@@ -558,7 +558,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
         var (vm, _, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.InputToPick = new InputDialogResult("  新名  ");
@@ -566,7 +566,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal("新名", preset.Name);
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("新名"));
     }
 
     [Fact]
@@ -575,7 +575,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
         var (vm, _, dialogs, log) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.InputToPick = new InputDialogResult("   ");
@@ -585,7 +585,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("旧名", preset.Name);
         Assert.Equal(0, log.SaveNow);
         // 空名拒绝：不改名不重建下拉，错误信息键化
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
         var info = Assert.Single(dialogs.InfoCalls);
         Assert.Equal(Localization.GetString("Notice"), info.Title);
         Assert.Equal(Localization.GetString("CustomPresetNameEmpty"), info.Message);
@@ -599,7 +599,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         vm.RenamePresetCommand.Execute(null);
 
         Assert.Equal(0, dialogs.InputCalls);
-        Assert.Equal(6, vm.ThemeOptions.Count); // 未选中预设不重建不新增
+        Assert.Equal(6, vm.PaletteOptions.Count); // 未选中预设不重建不新增
     }
 
     [Fact]
@@ -608,7 +608,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "旧名" };
         var (vm, _, dialogs, log) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.InputToPick = null;
@@ -617,7 +617,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         Assert.Equal("旧名", preset.Name);
         // 取消改名不动下拉项。
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_p1" && o.Label.Contains("旧名"));
     }
 
     [Fact]
@@ -626,7 +626,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
         var (vm, _, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.ConfirmResult = true;
@@ -648,7 +648,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
         var (vm, config, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
         dialogs.ConfirmResult = false;
@@ -676,14 +676,14 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var other = new CustomColorPreset { Id = "p2", Name = "保留" };
         var (vm, config, dialogs, log) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset, other }
         });
 
         vm.ConfirmDeleteCustomColorPreset(preset);
 
-        Assert.Equal("System", config.Current.Theme);
-        Assert.Equal("System", vm.SelectedTheme);
+        Assert.Equal("System", config.Current.WheelPalette);
+        Assert.Equal("System", vm.SelectedPalette);
         Assert.False(vm.IsCustomPresetSelected);
         Assert.DoesNotContain(preset, config.Current.CustomColorPresets!);
         Assert.Contains(other, config.Current.CustomColorPresets!);
@@ -701,7 +701,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "待删" };
         var (vm, config, dialogs, log) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
 
@@ -714,7 +714,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
     // --- 预设对话框文案语言切换 ----------------------------------------------
     // 对话框/成功提示属即时取词：每次命令执行读当前语言；预设名落库后是用户数据，
-    // 切语只重建下拉后缀（WheelThemeCustomPreset），名称永不翻译。
+    // 切语只重建下拉后缀（WheelPaletteCustomPreset），名称永不翻译。
 
     [Fact]
     public void SavePreset_UsesDialogCopyAndDefaultNameOfCurrentLanguage()
@@ -753,11 +753,11 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         loc.SetLanguage("en");
 
-        // 名称保持用户数据原样；下拉标签仅后缀随语言切换（模板 WheelThemeCustomPreset）
+        // 名称保持用户数据原样；下拉标签仅后缀随语言切换（模板 WheelPaletteCustomPreset）
         Assert.Equal(savedName, config.Current.CustomColorPresets!.Single().Name);
-        string label = Assert.Single(vm.ThemeOptions, o => o.Tag == "CustomPreset_" + config.Current.CustomColorPresets[0].Id).Label;
+        string label = Assert.Single(vm.PaletteOptions, o => o.Tag == "CustomPreset_" + config.Current.CustomColorPresets[0].Id).Label;
         Assert.Contains(savedName, label);
-        Assert.Equal(string.Format(loc.GetString("WheelThemeCustomPreset"), savedName), label);
+        Assert.Equal(string.Format(loc.GetString("WheelPaletteCustomPreset"), savedName), label);
     }
 
     [Fact]
@@ -768,7 +768,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "My Preset" };
         var (vm, _, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         }, loc);
         dialogs.InputToPick = null; // 取消一次即可捕获对话框实参
@@ -788,7 +788,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var preset = new CustomColorPreset { Id = "p1", Name = "My Preset" };
         var (vm, _, dialogs, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         }, loc);
         dialogs.ConfirmResult = true;
@@ -804,91 +804,91 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void ThemeOptions_Constructor_SeedsStaticAndCustomPresetsInOrder()
+    public void PaletteOptions_Constructor_SeedsStaticAndCustomPresetsInOrder()
     {
         var preset = new CustomColorPreset { Id = "p1", Name = "方案一" };
         var (vm, _, _, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { preset }
         });
 
         // 配色下拉固定 6 项在前、自定义预设按配置顺序追加。
-        Assert.Equal(7, vm.ThemeOptions.Count);
-        Assert.Equal("System", vm.ThemeOptions[0].Tag);
-        Assert.Equal("MorandiMuted", vm.ThemeOptions[5].Tag);
-        Assert.Equal("CustomPreset_p1", vm.ThemeOptions[6].Tag);
-        Assert.Contains("方案一", vm.ThemeOptions[6].Label);
+        Assert.Equal(7, vm.PaletteOptions.Count);
+        Assert.Equal("System", vm.PaletteOptions[0].Tag);
+        Assert.Equal("MorandiMuted", vm.PaletteOptions[5].Tag);
+        Assert.Equal("CustomPreset_p1", vm.PaletteOptions[6].Tag);
+        Assert.Contains("方案一", vm.PaletteOptions[6].Label);
     }
 
     [Fact]
-    public void ReloadFromConfig_RebuildsThemeOptionsFromImportedConfig()
+    public void ReloadFromConfig_RebuildsPaletteOptionsFromImportedConfig()
     {
         var oldPreset = new CustomColorPreset { Id = "p1", Name = "旧预设" };
         var (vm, config, _, _) = Create(new AppConfig
         {
-            Theme = "CustomPreset_p1",
+            WheelPalette = "CustomPreset_p1",
             CustomColorPresets = new List<CustomColorPreset> { oldPreset }
         });
-        Assert.Equal(7, vm.ThemeOptions.Count);
+        Assert.Equal(7, vm.PaletteOptions.Count);
 
         var imported = new AppConfig
         {
-            Theme = "System",
+            WheelPalette = "System",
             CustomColorPresets = new List<CustomColorPreset> { new CustomColorPreset { Id = "p2", Name = "导入预设" } }
         };
         config.Current = imported;
         string? selectedNotified = null;
-        vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(vm.SelectedTheme)) selectedNotified = e.PropertyName; };
+        vm.PropertyChanged += (_, e) => { if (e.PropertyName == nameof(vm.SelectedPalette)) selectedNotified = e.PropertyName; };
         vm.ReloadFromConfig();
 
-        Assert.Equal("System", vm.SelectedTheme);
-        // 重建下拉后补发选中通知，保证 ComboBox 能从新 ThemeOptions 恢复选中。
-        Assert.Equal(nameof(vm.SelectedTheme), selectedNotified);
-        Assert.Equal(7, vm.ThemeOptions.Count);
-        Assert.DoesNotContain(vm.ThemeOptions, o => o.Tag == "CustomPreset_p1");
-        Assert.Contains(vm.ThemeOptions, o => o.Tag == "CustomPreset_p2" && o.Label.Contains("导入预设"));
+        Assert.Equal("System", vm.SelectedPalette);
+        // 重建下拉后补发选中通知，保证 ComboBox 能从新 PaletteOptions 恢复选中。
+        Assert.Equal(nameof(vm.SelectedPalette), selectedNotified);
+        Assert.Equal(7, vm.PaletteOptions.Count);
+        Assert.DoesNotContain(vm.PaletteOptions, o => o.Tag == "CustomPreset_p1");
+        Assert.Contains(vm.PaletteOptions, o => o.Tag == "CustomPreset_p2" && o.Label.Contains("导入预设"));
     }
 
     // --- 主题选择边界 -------------------------------------------------------------------
 
     [Fact]
-    public void SelectedTheme_TransientNullOrEmpty_IsIgnored()
+    public void SelectedPalette_TransientNullOrEmpty_IsIgnored()
     {
-        var (vm, config, _, log) = Create(new AppConfig { Theme = "Dark" });
+        var (vm, config, _, log) = Create(new AppConfig { WheelPalette = "Dark" });
 
-        vm.SelectedTheme = null!;
-        vm.SelectedTheme = "";
+        vm.SelectedPalette = null!;
+        vm.SelectedPalette = "";
 
-        Assert.Equal("Dark", config.Current.Theme);
-        Assert.Equal("Dark", vm.SelectedTheme);
+        Assert.Equal("Dark", config.Current.WheelPalette);
+        Assert.Equal("Dark", vm.SelectedPalette);
         Assert.Equal(0, log.SaveNow);
     }
 
     [Fact]
-    public void SelectedTheme_StaticTheme_WritesConfig_KeepsExpanderState()
+    public void SelectedPalette_StaticTheme_WritesConfig_KeepsExpanderState()
     {
-        var (vm, config, _, log) = Create(new AppConfig { Theme = "CustomPreset_p1" });
+        var (vm, config, _, log) = Create(new AppConfig { WheelPalette = "CustomPreset_p1" });
 
-        vm.SelectedTheme = "MatchaForest";
+        vm.SelectedPalette = "MatchaForest";
 
-        Assert.Equal("MatchaForest", config.Current.Theme);
+        Assert.Equal("MatchaForest", config.Current.WheelPalette);
         Assert.False(vm.IsCustomPresetSelected);
         Assert.True(vm.IsCustomColorExpanderExpanded); // 展开面板不自动收起
         Assert.Equal(1, log.SaveNow);
     }
 
     [Fact]
-    public void SelectedTheme_CustomPreset_LoadsPresetColorsIntoFields()
+    public void SelectedPalette_CustomPreset_LoadsPresetColorsIntoFields()
     {
         var preset = new CustomColorPreset
         {
             Id = "p1", SectorBg = "#AAAAAA", SectorBorder = "#BBBBBB",
             HighlightBg = "#CCCCCC", HighlightBorder = "#DDDDDD", TextColor = "#EEEEEE"
         };
-        var (vm, config, _, _) = Create(new AppConfig { Theme = "Dark", CustomColorPresets = new List<CustomColorPreset> { preset } });
+        var (vm, config, _, _) = Create(new AppConfig { WheelPalette = "Dark", CustomColorPresets = new List<CustomColorPreset> { preset } });
 
-        vm.SelectedTheme = "CustomPreset_p1";
+        vm.SelectedPalette = "CustomPreset_p1";
 
         Assert.Equal("#AAAAAA", vm.CustomSectorBgText);
         Assert.Equal("#BBBBBB", vm.CustomSectorBorderText);
@@ -1082,7 +1082,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
         var profile = new WheelProfile { ProcessName = "chrome.exe", SectorCount = 8 };
         var config = new AppConfig
         {
-            UiStyle = "Glassmorphism", Theme = "MatchaForest", Shape = "Circle",
+            WheelStyle = "Glassmorphism", WheelPalette = "MatchaForest", Shape = "Circle",
             WheelRadius = 160, InnerRadius = 60, CoreRadius = 55, SectorGap = 3, SectorCornerRadius = 6,
             IconLayoutMode = "TextOnly", ShowText = true, SectorIconSize = 28, SectorFontSize = 12.5,
             ShowCoreIcon = false, CoreIconType = "Crosshair",
@@ -1093,8 +1093,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         IWheelAppearanceState state = vm;
 
-        Assert.Equal("Glassmorphism", state.UiStyle);
-        Assert.Equal("MatchaForest", state.SelectedTheme);
+        Assert.Equal("Glassmorphism", state.WheelStyle);
+        Assert.Equal("MatchaForest", state.SelectedPalette);
         Assert.Equal("Circle", state.Shape);
         Assert.Equal(160, state.WheelRadius);
         Assert.Equal(60, state.InnerRadius);

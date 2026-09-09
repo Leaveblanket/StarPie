@@ -39,9 +39,9 @@ namespace StarPie
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
-        // 主题调色板整项换入由 ThemePaletteManager（public 装配面）执行；
+        // 主题调色板整项换入由 AppThemePaletteManager（public 装配面）执行；
         // 宿主只负责编排回调，不再做直接键覆盖。
-        private readonly ThemePaletteManager _paletteManager = new();
+        private readonly AppThemePaletteManager _paletteManager = new();
         private TrayIconManager? _trayIcon;
         private MainView? _mainView;
 
@@ -72,7 +72,7 @@ namespace StarPie
             _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
 
-            // 主题画刷换入经 ThemePaletteManager 的 public 装配面：整项替换合并字典的
+            // 主题画刷换入经 AppThemePaletteManager 的 public 装配面：整项替换合并字典的
             // 活动主题槽；主题服务不接触视图资源，只经回调触发换入。
             themeService.AttachPaletteApplier(effectiveTheme => _paletteManager.Apply(effectiveTheme, Application.Current!));
 

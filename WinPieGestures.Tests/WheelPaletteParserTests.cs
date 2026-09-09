@@ -48,9 +48,9 @@ public sealed class WheelPaletteParserTests
     [InlineData(null, false, "Light")]
     [InlineData("Dark", true, "Dark")]
     [InlineData("CustomPreset_p1", false, "CustomPreset_p1")]
-    public void ResolveEffectiveTheme_SystemOrEmpty_FollowsOsDarkness(string? theme, bool windowsInDarkMode, string expected)
+    public void ResolveEffectivePalette_SystemOrEmpty_FollowsOsDarkness(string? theme, bool windowsInDarkMode, string expected)
     {
-        Assert.Equal(expected, WheelPaletteParser.ResolveEffectiveTheme(theme!, windowsInDarkMode));
+        Assert.Equal(expected, WheelPaletteParser.ResolveEffectivePalette(theme!, windowsInDarkMode));
     }
 
     [Theory]
@@ -121,7 +121,7 @@ public sealed class WheelPaletteParserTests
     }
 
     [Fact]
-    public void Resolve_ThemeEqualsPresetName_AppliesPresetColors()
+    public void Resolve_PaletteEqualsPresetName_AppliesPresetColors()
     {
         var preset = new CustomColorPreset
         {
@@ -136,7 +136,7 @@ public sealed class WheelPaletteParserTests
     }
 
     [Fact]
-    public void Resolve_ThemeEqualsPresetId_AppliesPresetColors()
+    public void Resolve_PaletteEqualsPresetId_AppliesPresetColors()
     {
         var preset = new CustomColorPreset
         {

@@ -247,7 +247,7 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     Test v1.2.4 features:
     1. Navigation to Appearance Tab (NavTab1).
     2. Verification that 'AppThemeComboBox' (软件控制台界面主题) exists and functions.
-    3. Verification that 'ThemeComboBox' (轮盘配色方案) with 7+ presets exists.
+    3. Verification that 'WheelPaletteComboBox' (轮盘配色方案) with 7+ presets exists.
     4. Verification that Wheel Background images card is removed.
     5. AppTheme selection, saving, and JSON persistence validation.
     """
@@ -262,8 +262,8 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     assert app_theme_combo.exists(timeout=3), "AppThemeComboBox should exist"
     
     # 2. Verify Wheel Theme dropdown (轮盘配色方案)
-    wheel_theme_combo = win.child_window(auto_id="ThemeComboBox", control_type="ComboBox")
-    assert wheel_theme_combo.exists(timeout=3), "ThemeComboBox should exist"
+    wheel_theme_combo = win.child_window(auto_id="WheelPaletteComboBox", control_type="ComboBox")
+    assert wheel_theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
     
     # 3. Verify Wheel Background images controls are removed
     wheel_bg_box = win.child_window(auto_id="WheelBgImageTextBox", control_type="Edit")
@@ -299,8 +299,8 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
 def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     """
     Test v1.3.0 features:
-    1. Verify 4 core Wheel Styles in UiStyleComboBox.
-    2. Verify 7 core Wheel Color Themes in ThemeComboBox.
+    1. Verify 4 core Wheel Styles in WheelStyleComboBox.
+    2. Verify 7 core Wheel Color Themes in WheelPaletteComboBox.
     3. Verify SaveCustomColorPresetButton exists.
     4. Verify ShowText and IconLayoutMode synchronization.
     5. Save settings and verify config persistence.
@@ -311,15 +311,15 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     tab1.click_input()
     time.sleep(0.4)
     
-    # 1. Verify UiStyle dropdown (轮盘主题风格)
-    ui_style_combo = win.child_window(auto_id="UiStyleComboBox", control_type="ComboBox")
-    assert ui_style_combo.exists(timeout=3), "UiStyleComboBox should exist"
+    # 1. Verify WheelStyle dropdown (轮盘主题风格)
+    ui_style_combo = win.child_window(auto_id="WheelStyleComboBox", control_type="ComboBox")
+    assert ui_style_combo.exists(timeout=3), "WheelStyleComboBox should exist"
     
     # 2. Verify Theme dropdown (轮盘配色方案)
-    wheel_theme_combo = win.child_window(auto_id="ThemeComboBox", control_type="ComboBox")
-    assert wheel_theme_combo.exists(timeout=3), "ThemeComboBox should exist"
+    wheel_theme_combo = win.child_window(auto_id="WheelPaletteComboBox", control_type="ComboBox")
+    assert wheel_theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
     
-    # 3. Select Theme (Index 1: Dark) and UiStyle (Index 1: CleanSectors)
+    # 3. Select Theme (Index 1: Dark) and WheelStyle (Index 1: CleanSectors)
     wheel_theme_combo.select(1)
     ui_style_combo.select(1)
     time.sleep(0.4)
@@ -351,8 +351,8 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
         
-    assert config.get("Theme") == "Dark", f"Theme ({config.get('Theme')}) should be 'Dark'"
-    assert config.get("UiStyle") == "CleanSectors", f"UiStyle ({config.get('UiStyle')}) should be 'CleanSectors'"
+        assert config.get("WheelPalette") == "Dark", f"WheelPalette ({config.get('WheelPalette')}) should be 'Dark'"
+    assert config.get("WheelStyle") == "CleanSectors", f"WheelStyle ({config.get('WheelStyle')}) should be 'CleanSectors'"
 
 
 def test_v132_shapes_fontsize_and_iconsize_control(app):
@@ -486,7 +486,7 @@ def test_v134_memory_autosave_and_theme_persistence(app):
     """
     Test v1.3.4 features:
     1. Switch AppTheme to Modern Light (极简纯白).
-    2. Switch UiStyle, Wheel Theme, and change sliders.
+    2. Switch WheelStyle, Wheel Theme, and change sliders.
     3. Verify config is automatically persisted to disk via debounce / window close.
     4. Verify settings persistence without needing explicit SaveButton click.
     """
@@ -631,7 +631,7 @@ def test_v136_custom_color_preset_deletion_and_management(app):
     """
     Test v1.3.6 Custom Color Preset Deletion & Management:
     1. Navigate to Appearance Tab (NavTab1).
-    2. Open ThemeComboBox and select Custom ("自定义高级配色").
+    2. Open WheelPaletteComboBox and select Custom ("自定义高级配色").
     3. Verify CustomColorsPanel is visible, and Save button exists.
     4. Select a custom preset if present or check Delete button functionality and visibility.
     5. Verify clean management of custom color presets and config synchronization.
@@ -643,9 +643,9 @@ def test_v136_custom_color_preset_deletion_and_management(app):
     tab1.click_input()
     time.sleep(0.4)
     
-    # 2. Check ThemeComboBox existence
-    theme_combo = win.child_window(auto_id="ThemeComboBox", control_type="ComboBox")
-    assert theme_combo.exists(timeout=3), "ThemeComboBox should exist"
+    # 2. Check WheelPaletteComboBox existence
+    theme_combo = win.child_window(auto_id="WheelPaletteComboBox", control_type="ComboBox")
+    assert theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
     
     # 3. Verify CustomColorExpander exists
     color_expander = win.child_window(auto_id="CustomColorExpander", control_type="Group")
@@ -778,7 +778,7 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     """
     Test v1.4.0 Features:
     1. Appearance Tab (NavTab1):
-       - Verify UiStyleComboBox does not contain CatPaw.
+       - Verify WheelStyleComboBox does not contain CatPaw.
        - Verify CustomColorExpander exists and is collapsible.
     2. Gestures Tab (NavTab2):
        - Verify Launch and Folder browse buttons exist.
@@ -792,10 +792,10 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     tab1.click_input()
     time.sleep(0.4)
     
-    ui_style_combo = win.child_window(auto_id="UiStyleComboBox", control_type="ComboBox")
-    assert ui_style_combo.exists(timeout=3), "UiStyleComboBox should exist"
+    ui_style_combo = win.child_window(auto_id="WheelStyleComboBox", control_type="ComboBox")
+    assert ui_style_combo.exists(timeout=3), "WheelStyleComboBox should exist"
     # Should have exactly 3 styles now (ClassicRing, CleanSectors, Glassmorphism)
-    assert ui_style_combo.item_count() == 3, f"UiStyleComboBox should have 3 items without CatPaw, got {ui_style_combo.item_count()}"
+    assert ui_style_combo.item_count() == 3, f"WheelStyleComboBox should have 3 items without CatPaw, got {ui_style_combo.item_count()}"
     
     color_expander = win.child_window(auto_id="CustomColorExpander", control_type="Group")
     assert color_expander.exists(timeout=3), "CustomColorExpander should exist"

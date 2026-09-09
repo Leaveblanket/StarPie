@@ -18,8 +18,8 @@ namespace StarPie.Models
 
         // —— 主题与 UI 风格 ——
         public string AppTheme { get; set; } = "System"; // 应用界面主题："System" / "Light" / "Dark" / "MidnightNavy" / "RoyalViolet" / "TitaniumGray"
-        public string Theme { get; set; } = "System"; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
-        public string UiStyle { get; set; } = "ClassicRing"; // 轮盘 UI 风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
+        public string WheelPalette { get; set; } = "System"; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
+        public string WheelStyle { get; set; } = "ClassicRing"; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
 
         // —— 轮盘几何 ——
         public bool ShowText { get; set; } = true; // 扇区上是否显示文字标签
@@ -47,14 +47,14 @@ namespace StarPie.Models
         public double HighlightGlowRadius { get; set; } = 24.0; // 光晕扩散半径：8.0 ~ 48.0 px
         public double HighlightGlowOpacity { get; set; } = 0.85; // 光晕不透明度：0.0 ~ 1.0
 
-        // —— 自定义配色微调（Theme = "Custom" 时逐项覆盖风格默认观感）——
+        // —— 自定义配色微调（WheelPalette = "Custom" 时逐项覆盖风格默认观感）——
         public string CustomSectorBg { get; set; } = "#9016161A"; // 扇区背景色
         public string CustomSectorBorder { get; set; } = "#35FFFFFF"; // 扇区边框色
         public string CustomHighlightBg { get; set; } = "#E06C4DFF"; // 高亮扇区背景色
         public string CustomHighlightBorder { get; set; } = "#A0FFFFFF"; // 高亮扇区边框色
         public string CustomText { get; set; } = "#E0FFFFFF"; // 扇区文字颜色
 
-        /// <summary>用户保存的自定义配色预设列表（Theme 可选 "CustomPreset_{Id}" 或预设名引用）。</summary>
+        /// <summary>用户保存的自定义配色预设列表（WheelPalette 可选 "CustomPreset_{Id}" 或预设名引用）。</summary>
         public List<CustomColorPreset> CustomColorPresets { get; set; } = new List<CustomColorPreset>();
 
         // —— 背景图片与纹理自定义 ——

@@ -42,9 +42,9 @@ namespace StarPie.ViewModels.Wheel
 
         public string CoreSubtitle { get; }
 
-        public string Theme { get; }
+        public string WheelPalette { get; }
 
-        public string UiStyle { get; }
+        public string WheelStyle { get; }
 
         public double InnerRadius { get; }
 
@@ -67,8 +67,8 @@ namespace StarPie.ViewModels.Wheel
                 .Select(i => new WheelSectorViewModel(i, i < profile.Actions.Count ? profile.Actions[i] : null))
                 .ToList();
 
-            Theme = config.Theme ?? "System";
-            UiStyle = config.UiStyle ?? "ClassicRing";
+            WheelPalette = config.WheelPalette ?? "System";
+            WheelStyle = config.WheelStyle ?? "ClassicRing";
             OuterRadius = config.WheelRadius;
             CoreRadius = config.CoreRadius;
             // 安全边界：环不得退化，内半径保持小于外半径。

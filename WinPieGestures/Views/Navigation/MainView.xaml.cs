@@ -44,14 +44,14 @@ namespace StarPie.Views.Navigation
 
             // 主题变更消息订阅（壳层 code-behind 白名单）：界面主题子 VM 写穿配置后发布，
             // 此处执行窗口主题应用；弱引用接收，壳层随窗口生命周期常驻。
-            WeakReferenceMessenger.Default.Register<AppThemeChangedMessage>(this, (_, m) => ApplyAppTheme(m.Theme));
+            WeakReferenceMessenger.Default.Register<AppThemeChangedMessage>(this, (_, m) => ApplyAppTheme(m.AppTheme));
         }
 
         /// <summary>应用界面主题到主窗口（窗口视觉是壳层职责：外观页切换主题与导入后同步经此调用，
         /// 页面不持 IThemeService——保持无参构造不经容器）。单一入口 SetTheme + 本窗口 DWM 应用。</summary>
-        public void ApplyAppTheme(string theme)
+        public void ApplyAppTheme(string appTheme)
         {
-            _themeService.SetTheme(theme);
+            _themeService.SetTheme(appTheme);
             _themeService.ApplyWindowTheme(this);
         }
 

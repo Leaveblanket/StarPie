@@ -18,10 +18,10 @@ namespace StarPie.Tests;
 /// 主题模块（Theme）跨程序集归属、依赖与可见性收口：主题服务
 /// （<see cref="ThemeService"/>）、五套主题字典（Views/Styles/Themes/*.xaml）、主题设置子 VM
 /// （<see cref="InterfaceThemeSettingsViewModel"/>/<see cref="AppThemeOptionItem"/>）与调色板
-/// 换入 <see cref="ThemePaletteManager"/> 位于 <c>StarPie.Theme</c>；出口契约
+/// 换入 <see cref="AppThemePaletteManager"/> 位于 <c>StarPie.Theme</c>；出口契约
 /// <see cref="IThemeService"/> 随实现方下沉 <c>StarPie.Theme.Contracts</c>（ADR-0023/#97，
 /// 自 StarPie.Theme 迁出，命名空间不变）；模块注册器 <see cref="ThemeModuleRegistrar"/> 下放
-/// 服务与主题 VM 的 DI 注册；ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为
+/// 服务与主题 VM 的 DI 注册；AppThemePaletteManager 与 ThemeService.AttachPaletteApplier 为
 /// public（供宿主 AppHost 装配面跨程序集编排）；主题应用消息 AppThemeChangedMessage 位于
 /// 共享内核消息 Hub。Theme → Core + Theme.Contracts 单向，不引用宿主/其它业务模块 runtime。
 /// </summary>
@@ -31,13 +31,13 @@ public sealed class ThemeAssemblyPlacementTests
     public void M4出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
         Assert.Equal("StarPie.Theme", typeof(ThemeService).Assembly.GetName().Name);
-        Assert.Equal("StarPie.Theme", typeof(ThemePaletteManager).Assembly.GetName().Name);
+        Assert.Equal("StarPie.Theme", typeof(AppThemePaletteManager).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(InterfaceThemeSettingsViewModel).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(AppThemeOptionItem).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(ThemeModuleRegistrar).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Services.Shell", typeof(ThemeService).Namespace);
-        Assert.Equal("StarPie", typeof(ThemePaletteManager).Namespace);
+        Assert.Equal("StarPie", typeof(AppThemePaletteManager).Namespace);
         Assert.Equal("StarPie.ViewModels.Pages", typeof(InterfaceThemeSettingsViewModel).Namespace);
         Assert.Equal("StarPie.Modules", typeof(ThemeModuleRegistrar).Namespace);
     }
@@ -77,10 +77,10 @@ public sealed class ThemeAssemblyPlacementTests
     [Fact]
     public void 主题换入装配面_裁决public_供HostAppHost跨程序集编排()
     {
-        // ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为 public：
-        // 宿主 AppHost 装配面（new ThemePaletteManager + AttachPaletteApplier + Apply）
+        // AppThemePaletteManager 与 ThemeService.AttachPaletteApplier 为 public：
+        // 宿主 AppHost 装配面（new AppThemePaletteManager + AttachPaletteApplier + Apply）
         // 跨程序集编排；不引入 InternalsVisibleTo。
-        Assert.True(typeof(ThemePaletteManager).IsPublic);
+        Assert.True(typeof(AppThemePaletteManager).IsPublic);
         Assert.True(typeof(ThemeService).IsPublic);
         Assert.True(typeof(IThemeService).IsPublic);
         Assert.True(typeof(ThemeModuleRegistrar).IsPublic);
@@ -90,7 +90,7 @@ public sealed class ThemeAssemblyPlacementTests
     [Fact]
     public void 五套主题字典_BAML已编入模块程序集()
     {
-        var assembly = typeof(ThemePaletteManager).Assembly;
+        var assembly = typeof(AppThemePaletteManager).Assembly;
         string resourcesName = assembly.GetManifestResourceNames().Single(n => n.EndsWith(".g.resources", System.StringComparison.OrdinalIgnoreCase));
         using var stream = assembly.GetManifestResourceStream(resourcesName);
         using var reader = new ResourceReader(stream!);

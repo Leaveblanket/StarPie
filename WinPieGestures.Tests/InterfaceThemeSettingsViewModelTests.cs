@@ -20,7 +20,7 @@ public sealed class InterfaceThemeSettingsViewModelTests
         public static ThemeApplyLog Attach(WeakReferenceMessenger messenger)
         {
             var log = new ThemeApplyLog();
-            messenger.Register<AppThemeChangedMessage>(log, (_, m) => log.Themes.Add(m.Theme));
+            messenger.Register<AppThemeChangedMessage>(log, (_, m) => log.Themes.Add(m.AppTheme));
             return log;
         }
     }

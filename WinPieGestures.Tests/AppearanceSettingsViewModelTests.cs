@@ -27,7 +27,7 @@ public sealed class AppearanceSettingsViewModelTests
         {
             var log = new PageReloadLog();
             messenger.Register<PageConfigReloadedMessage>(log, (_, m) => log.ReloadedPages.Add(m.ViewModelType));
-            messenger.Register<AppThemeChangedMessage>(log, (_, m) => log.AppliedThemes.Add(m.Theme));
+            messenger.Register<AppThemeChangedMessage>(log, (_, m) => log.AppliedThemes.Add(m.AppTheme));
             return log;
         }
     }
@@ -94,11 +94,11 @@ public sealed class AppearanceSettingsViewModelTests
         // 导入成功 → 界面主题子 VM 重挂并只发一条 AppThemeChangedMessage（壳层执行窗口
         // 主题应用）；轮盘外观子 VM 自订阅重挂（重建配色下拉/恢复选中）；聚合壳广播
         // PageConfigReloadedMessage(typeof 外观聚合 VM) 通知页面 View 重绘实时预览。
-        var h = new Harness(new AppConfig { AppTheme = "Dark", Theme = "CustomPreset_p1" });
+        var h = new Harness(new AppConfig { AppTheme = "Dark", WheelPalette = "CustomPreset_p1" });
         var imported = new AppConfig
         {
             AppTheme = "RoyalViolet",
-            Theme = "CustomPreset_p9",
+            WheelPalette = "CustomPreset_p9",
             CustomColorPresets = new List<CustomColorPreset>
             {
                 new() { Id = "p9", Name = "导入预设" }
@@ -113,9 +113,9 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Equal("RoyalViolet", apply);
         // 页面级收尾广播：外观页 View 订阅 PageConfigReloadedMessage 后重绘预览。
         Assert.Contains(typeof(AppearanceSettingsViewModel), h.Reload.ReloadedPages);
-        // 轮盘子 VM 已从新配置重挂：重建 ThemeOptions 并恢复选中。
-        Assert.Equal("CustomPreset_p9", h.WheelAppearance.SelectedTheme);
-        Assert.Contains(h.WheelAppearance.ThemeOptions, o => o.Tag == "CustomPreset_p9" && o.Label.Contains("导入预设"));
+        // 轮盘子 VM 已从新配置重挂：重建 PaletteOptions 并恢复选中。
+        Assert.Equal("CustomPreset_p9", h.WheelAppearance.SelectedPalette);
+        Assert.Contains(h.WheelAppearance.PaletteOptions, o => o.Tag == "CustomPreset_p9" && o.Label.Contains("导入预设"));
         // 重挂只是视图/壳层路径：不触发落盘请求。
         Assert.Equal(0, h.Spy.Debounced);
         Assert.Equal(0, h.Spy.Immediate);
@@ -128,7 +128,7 @@ public sealed class AppearanceSettingsViewModelTests
         // 薄壳语义：聚合壳自身不持有轮盘外观状态——导入广播的处理只做页面级收尾，状态重挂
         // 全部由子 VM 自订阅完成。
         var h = new Harness();
-        var imported = new AppConfig { AppTheme = "MidnightNavy", Theme = "Dark" };
+        var imported = new AppConfig { AppTheme = "MidnightNavy", WheelPalette = "Dark" };
         h.ConfigService.Current = imported;
 
         h.Messenger.Send(new ConfigImportedMessage(imported));
@@ -136,7 +136,7 @@ public sealed class AppearanceSettingsViewModelTests
         Assert.Contains(typeof(AppearanceSettingsViewModel), h.Reload.ReloadedPages);
         // 界面主题子 VM 自订阅重挂：导入后补发主题应用消息，由壳层执行窗口主题应用。
         Assert.Equal("MidnightNavy", Assert.Single(h.Reload.AppliedThemes));
-        Assert.Equal("Dark", h.WheelAppearance.SelectedTheme);
+        Assert.Equal("Dark", h.WheelAppearance.SelectedPalette);
     }
 
     // --- Dispose 链 ----------------------------------------------------------------
@@ -159,7 +159,7 @@ public sealed class AppearanceSettingsViewModelTests
             Assert.True(themeNotifications > 0);
             Assert.True(wheelNotifications > 0);
             string enThemeLabel = h.InterfaceTheme.AppThemeOptions[2].Label;
-            string enWheelLabel = h.WheelAppearance.ThemeOptions[1].Label;
+            string enWheelLabel = h.WheelAppearance.PaletteOptions[1].Label;
 
             themeNotifications = 0;
             wheelNotifications = 0;
@@ -170,7 +170,7 @@ public sealed class AppearanceSettingsViewModelTests
 
             // 退订后切语不再重建驻留目录/补发选中通知。
             Assert.Equal(enThemeLabel, h.InterfaceTheme.AppThemeOptions[2].Label);
-            Assert.Equal(enWheelLabel, h.WheelAppearance.ThemeOptions[1].Label);
+            Assert.Equal(enWheelLabel, h.WheelAppearance.PaletteOptions[1].Label);
             Assert.Equal(0, themeNotifications);
             Assert.Equal(0, wheelNotifications);
         }

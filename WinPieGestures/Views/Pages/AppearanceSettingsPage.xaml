@@ -61,20 +61,20 @@
                                     <TextBlock Text="{DynamicResource StyleTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
                                     <TextBlock Text="{DynamicResource StyleTypeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                                    <ComboBox x:Name="UiStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding UiStyle}">
+                                    <ComboBox x:Name="WheelStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding WheelStyle}">
                                         <ComboBoxItem Content="{DynamicResource StyleClassic}" Tag="ClassicRing"/>
                                         <ComboBoxItem Content="{DynamicResource StyleClean}" Tag="CleanSectors"/>
                                         <ComboBoxItem Content="{DynamicResource StyleGlass}" Tag="Glassmorphism"/>
 
                                     </ComboBox>
 
-                                    <TextBlock Text="{DynamicResource ThemeTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource WheelPaletteTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                                     <Grid Margin="0,0,0,10">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <ComboBox x:Name="ThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding ThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedTheme, Mode=TwoWay}"/>
+                                        <ComboBox x:Name="WheelPaletteComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding PaletteOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedPalette, Mode=TwoWay}"/>
                                         <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="{DynamicResource RenamePresetTooltip}"/>
                                     </Grid>
 

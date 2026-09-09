@@ -130,6 +130,67 @@ public sealed class JsonConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Load_LegacyThemeAndUiStyleKeys_MigrateToCanonicalKeysAndSaveWritesOnlyNewKeys()
+    {
+        File.WriteAllText(_configPath, """
+            {
+              "Theme": "MatchaForest",
+              "UiStyle": "CleanSectors"
+            }
+            """);
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.Equal("MatchaForest", service.Current.WheelPalette);
+        Assert.Equal("CleanSectors", service.Current.WheelStyle);
+
+        service.Save();
+
+        string saved = File.ReadAllText(_configPath);
+        Assert.Contains("\"WheelPalette\": \"MatchaForest\"", saved);
+        Assert.Contains("\"WheelStyle\": \"CleanSectors\"", saved);
+        Assert.DoesNotContain("\"Theme\"", saved);
+        Assert.DoesNotContain("\"UiStyle\"", saved);
+    }
+
+    [Fact]
+    public void Load_CanonicalKeysTakePrecedence_OverLegacyKeys()
+    {
+        File.WriteAllText(_configPath, """
+            {
+              "WheelPalette": "Dark",
+              "Theme": "MatchaForest",
+              "WheelStyle": "Glassmorphism",
+              "UiStyle": "CleanSectors"
+            }
+            """);
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.Equal("Dark", service.Current.WheelPalette);
+        Assert.Equal("Glassmorphism", service.Current.WheelStyle);
+    }
+
+    [Fact]
+    public void Load_LegacyKeysAreMatchedCaseInsensitively()
+    {
+        File.WriteAllText(_configPath, """
+            {
+              "theme": "GlacialIce",
+              "uistyle": "CatPaw"
+            }
+            """);
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.Equal("GlacialIce", service.Current.WheelPalette);
+        Assert.Equal("CatPaw", service.Current.WheelStyle);
+    }
+
+    [Fact]
     public void GetProfileForProcess_MatchesCaseInsensitively_AndFallsBackToGlobal()
     {
         var service = new JsonConfigService(_configPath, Localization);

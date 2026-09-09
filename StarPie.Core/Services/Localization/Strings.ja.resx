@@ -101,7 +101,7 @@
   <data name="StyleClassic" xml:space="preserve"><value>クラシックリング</value></data>
   <data name="StyleClean" xml:space="preserve"><value>クリーンセクター</value></data>
   <data name="StyleCatPaw" xml:space="preserve"><value>キュートキャットポー (肉球)</value></data>
-  <data name="ThemeTitle" xml:space="preserve"><value>ホイール配色テーマ:</value></data>
+<data name="WheelPaletteTitle" xml:space="preserve"><value>ホイールパレット:</value></data>
   <data name="WheelCoreTitle" xml:space="preserve"><value>グローバル操作</value></data>
   <data name="WheelCoreSubtitle" xml:space="preserve"><value>{0} アクション</value></data>
   <data name="WheelSectorEmpty" xml:space="preserve"><value>未設定</value></data>
@@ -148,13 +148,13 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 ミッドナイトネイビー</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 ロイヤルバイオレット</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ チタングレー</value></data>
-  <data name="WheelThemeSystem" xml:space="preserve"><value>システム自動</value></data>
-  <data name="WheelThemeLight" xml:space="preserve"><value>ライト</value></data>
-  <data name="WheelThemeDark" xml:space="preserve"><value>ダーク</value></data>
-  <data name="WheelThemeMatchaForest" xml:space="preserve"><value>抹茶フォレスト</value></data>
-  <data name="WheelThemeGlacialIce" xml:space="preserve"><value>グレイシャルアイス</value></data>
-  <data name="WheelThemeMorandiMuted" xml:space="preserve"><value>モランディミュート</value></data>
-  <data name="WheelThemeCustomPreset" xml:space="preserve"><value>🎨 {0} (カスタムプリセット)</value></data>
+  <data name="WheelPaletteSystem" xml:space="preserve"><value>システム自動</value></data>
+  <data name="WheelPaletteLight" xml:space="preserve"><value>ライト</value></data>
+  <data name="WheelPaletteDark" xml:space="preserve"><value>ダーク</value></data>
+  <data name="WheelPaletteMatchaForest" xml:space="preserve"><value>抹茶フォレスト</value></data>
+  <data name="WheelPaletteGlacialIce" xml:space="preserve"><value>グレイシャルアイス</value></data>
+  <data name="WheelPaletteMorandiMuted" xml:space="preserve"><value>モランディミュート</value></data>
+  <data name="WheelPaletteCustomPreset" xml:space="preserve"><value>🎨 {0} (カスタムプリセット)</value></data>
   <data name="GesturesHeader" xml:space="preserve"><value>セクター配置とアクション設定</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4キー (十字方向)</value></data>
@@ -228,7 +228,7 @@
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>インストール済みアプリ一覧から除外するアプリを選択します</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>入力欄のプロセス名を除外ブラックリストに追加します</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>コンソール全体の配色をカスタマイズし、Windows のライト/ダークモードに追従できます。</value></data>
-  <data name="StyleTypeLabel" xml:space="preserve"><value>レンダースタイル (UiStyle):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>レンダースタイル (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセット名を変更します</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>カスタム16進色（カラーホイール/スクリーンピッカー）:</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>セクター背景色:</value></data>

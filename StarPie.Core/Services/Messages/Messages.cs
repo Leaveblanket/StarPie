@@ -52,13 +52,13 @@ namespace StarPie.Services.Messages
     /// </summary>
     public sealed class AppThemeChangedMessage
     {
-        public AppThemeChangedMessage(string theme)
+        public AppThemeChangedMessage(string appTheme)
         {
-            Theme = theme ?? string.Empty;
+            AppTheme = appTheme ?? string.Empty;
         }
 
         /// <summary>变更后的界面主题名（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。</summary>
-        public string Theme { get; }
+        public string AppTheme { get; }
     }
 
     /// <summary>外观设置页请求 View 重绘实时预览。</summary>
