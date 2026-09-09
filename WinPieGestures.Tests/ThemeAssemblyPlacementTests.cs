@@ -16,20 +16,20 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 主题模块（Theme）跨程序集归属、依赖与可见性收口：主题服务
-/// （<see cref="IThemeService"/>/<see cref="ThemeService"/>）、五套主题字典
-/// （Views/Styles/Themes/*.xaml）、主题设置子 VM（<see cref="InterfaceThemeSettingsViewModel"/>/
-/// <see cref="AppThemeOptionItem"/>）与调色板换入 <see cref="ThemePaletteManager"/> 位于
-/// <c>StarPie.Theme</c>；模块注册器 <see cref="ThemeModuleRegistrar"/> 下放服务与主题 VM 的
-/// DI 注册；ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为 public（供宿主
-/// AppHost 装配面跨程序集编排）；主题应用消息 AppThemeChangedMessage 位于共享内核消息 Hub。
-/// Theme → Core 单向，不引用宿主/其它业务模块。
+/// （<see cref="ThemeService"/>）、五套主题字典（Views/Styles/Themes/*.xaml）、主题设置子 VM
+/// （<see cref="InterfaceThemeSettingsViewModel"/>/<see cref="AppThemeOptionItem"/>）与调色板
+/// 换入 <see cref="ThemePaletteManager"/> 位于 <c>StarPie.Theme</c>；出口契约
+/// <see cref="IThemeService"/> 随实现方下沉 <c>StarPie.Theme.Contracts</c>（ADR-0023/#97，
+/// 自 StarPie.Theme 迁出，命名空间不变）；模块注册器 <see cref="ThemeModuleRegistrar"/> 下放
+/// 服务与主题 VM 的 DI 注册；ThemePaletteManager 与 ThemeService.AttachPaletteApplier 为
+/// public（供宿主 AppHost 装配面跨程序集编排）；主题应用消息 AppThemeChangedMessage 位于
+/// 共享内核消息 Hub。Theme → Core + Theme.Contracts 单向，不引用宿主/其它业务模块 runtime。
 /// </summary>
 public sealed class ThemeAssemblyPlacementTests
 {
     [Fact]
     public void M4出口_归属独立模块程序集_且命名空间统一为StarPie()
     {
-        Assert.Equal("StarPie.Theme", typeof(IThemeService).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(ThemeService).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(ThemePaletteManager).Assembly.GetName().Name);
         Assert.Equal("StarPie.Theme", typeof(InterfaceThemeSettingsViewModel).Assembly.GetName().Name);
@@ -37,14 +37,25 @@ public sealed class ThemeAssemblyPlacementTests
         Assert.Equal("StarPie.Theme", typeof(ThemeModuleRegistrar).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Services.Shell", typeof(ThemeService).Namespace);
-        Assert.Equal("StarPie.Services.Shell", typeof(IThemeService).Namespace);
         Assert.Equal("StarPie", typeof(ThemePaletteManager).Namespace);
         Assert.Equal("StarPie.ViewModels.Pages", typeof(InterfaceThemeSettingsViewModel).Namespace);
         Assert.Equal("StarPie.Modules", typeof(ThemeModuleRegistrar).Namespace);
     }
 
     [Fact]
-    public void M4程序集_单向依赖共享内核Core_不引用Host与其他业务模块()
+    public void M4契约_随实现方下沉ThemeContracts_命名空间不变()
+    {
+        // ADR-0023/#97：IThemeService 自 StarPie.Theme 迁出，实现（ThemeService）与
+        // 注册器仍驻 runtime。
+        Assert.Equal("StarPie.Theme.Contracts", typeof(IThemeService).Assembly.GetName().Name);
+        Assert.Equal("StarPie.Services.Shell", typeof(IThemeService).Namespace);
+
+        Assert.Equal("StarPie.Theme", typeof(ThemeService).Assembly.GetName().Name);
+        Assert.True(typeof(IThemeService).IsAssignableFrom(typeof(ThemeService)));
+    }
+
+    [Fact]
+    public void M4程序集_单向依赖Core与自身契约_不引用Host与其他业务模块runtime()
     {
         string?[] referenced = typeof(ThemeService).Assembly
             .GetReferencedAssemblies()
@@ -52,9 +63,15 @@ public sealed class ThemeAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Core", referenced);
+        // ADR-0023/#97：M4 runtime 实现自有契约（ThemeService 实现 IThemeService）。
+        Assert.Contains("StarPie.Theme.Contracts", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);
+        Assert.DoesNotContain("StarPie.Dialogs", referenced);
+        Assert.DoesNotContain("StarPie.Wheel", referenced);
+        Assert.DoesNotContain("StarPie.Gestures", referenced);
+        Assert.DoesNotContain("StarPie.Icons", referenced);
     }
 
     [Fact]

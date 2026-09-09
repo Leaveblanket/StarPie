@@ -22,9 +22,10 @@ namespace StarPie.Tests;
 /// <see cref="IDialogService"/> 与结果 record 随实现方下沉 <c>StarPie.Dialogs.Contracts</c>
 /// （ADR-0023/#96，自 Core 迁出）；模块注册器 <see cref="DialogsModuleRegistrar"/> 下放 DI
 /// 注册。依赖方向：Dialogs → Dialogs.Contracts + Programs.Contracts（扫描/.lnk 契约，
-/// ADR-0023/#96）+ Core 单向（S2/S3/S4 共享基建）+ Theme 允许边（窗口主题应用消费
-/// <see cref="IThemeService"/>）+ Icons.Contracts 契约边（ADR-0023/#95），不引用
-/// Programs runtime/Host/其它业务模块——程序扫描经 Programs.Contracts 契约
+/// ADR-0023/#96）+ Core 单向（S2/S3/S4 共享基建）+ Theme.Contracts 契约边（ADR-0023/#97：
+/// Dialogs→M4 runtime 允许边清零，窗口主题应用消费 <see cref="IThemeService"/>）+
+/// Icons.Contracts 契约边（ADR-0023/#95），不引用 Programs runtime/Host/其它业务模块——
+/// 程序扫描经 Programs.Contracts 契约
 /// <see cref="IProgramScanner"/> 注入；DialogService 裁决 public（宿主 SetOwner 装配面）。
 /// </summary>
 public sealed class DialogsAssemblyPlacementTests
@@ -54,7 +55,7 @@ public sealed class DialogsAssemblyPlacementTests
     }
 
     [Fact]
-    public void S6程序集_单向依赖Contracts与Core并允许M4边_不引用Host与其他业务模块runtime()
+    public void S6程序集_单向依赖Contracts与Core_不引用Host与其他业务模块runtime()
     {
         string?[] referenced = typeof(DialogService).Assembly
             .GetReferencedAssemblies()
@@ -66,8 +67,10 @@ public sealed class DialogsAssemblyPlacementTests
         Assert.Contains("StarPie.Programs.Contracts", referenced);
         // S2/S3/S4 等共享基建仍经共享内核。
         Assert.Contains("StarPie.Core", referenced);
-        // 对话框窗口主题应用消费 M4 IThemeService（允许边，同 M2→M4 先例）。
-        Assert.Contains("StarPie.Theme", referenced);
+        // ADR-0023/#97：对话框窗口主题应用消费 M4 IThemeService 改经 Theme.Contracts
+        // 契约边（Dialogs→M4 runtime 允许边清零）。
+        Assert.Contains("StarPie.Theme.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Theme", referenced);
         // ADR-0023/#95：对话框链经 S1 契约程序集消费图标能力，不引用 Icons runtime。
         Assert.Contains("StarPie.Icons.Contracts", referenced);
         Assert.DoesNotContain("StarPie.Icons", referenced);
@@ -143,7 +146,7 @@ public sealed class DialogsAssemblyPlacementTests
         services.AddSingleton<IIconAssetService>(new TestIconAssetService());
         services.AddSingleton<IShortcutTargetResolver>(new FakeShortcutResolver());
         services.AddSingleton<IProgramScanner>(new FakeProgramScanner());
-        // IThemeService 由主题模块注册器提供（对话框消费允许边）。
+        // IThemeService 由主题模块注册器提供（对话框经 Theme.Contracts 契约边消费）。
         ThemeModuleRegistrar.RegisterServices(services);
 
         DialogsModuleRegistrar.RegisterServices(services);

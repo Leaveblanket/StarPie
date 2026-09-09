@@ -33,10 +33,13 @@ namespace StarPie.Tests;
 /// 模块注册器 <see cref="GesturesModuleRegistrar"/>
 /// （RegisterNavigation + RegisterServices）驻本程序集，页面 VM 的 DI 注册与
 /// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集；
+/// 出口契约 <see cref="IProfilePreviewSource"/> 随实现方下沉
+/// <c>StarPie.Gestures.Contracts</c>（ADR-0023/#97，自 Core 迁出，命名空间不变）；
 /// 命名空间统一为 StarPie.*（跨程序集共享命名空间树）。
-/// Gestures → Core 单向 + Gestures → Wheel 允许边（IWheelFactory/IWheelViewModel）+
-/// Gestures → Icons.Contracts 契约边（ADR-0023/#95，不引用 Icons runtime），
-/// 不引用宿主/其它业务模块；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
+/// Gestures → Core 单向 + Gestures.Contracts（自身契约）+ Wheel.Contracts 契约边
+/// （M1→M2 runtime 允许边清零，IWheelFactory/IWheelViewModel）+ Icons.Contracts 契约边
+/// （ADR-0023/#95，不引用 Icons runtime）+ Dialogs.Contracts 契约边（ADR-0023/#96），
+/// 不引用宿主/其它业务模块 runtime；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
 /// </summary>
 public sealed class GesturesAssemblyPlacementTests
 {
@@ -69,7 +72,7 @@ public sealed class GesturesAssemblyPlacementTests
     }
 
     [Fact]
-    public void M1程序集_单向依赖共享内核Core并允许M2边_不引用Host与其他业务模块()
+    public void M1程序集_单向依赖Contracts与Core_不引用Host与其他业务模块runtime()
     {
         string?[] referenced = typeof(GestureEngine).Assembly
             .GetReferencedAssemblies()
@@ -77,16 +80,35 @@ public sealed class GesturesAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Core", referenced);
-        // 手势 → 轮盘允许边：GestureEngine/GestureController 经 IWheelFactory/
-        // IWheelViewModel 消费瞬态轮盘。
-        Assert.Contains("StarPie.Wheel", referenced);
+        // ADR-0023/#97：M1 runtime 实现自有契约（ProfileListViewModel 实现
+        // IProfilePreviewSource，注册器注册别名）。
+        Assert.Contains("StarPie.Gestures.Contracts", referenced);
+        // M1 → M2 runtime 允许边清零：GestureEngine 经 Wheel.Contracts 的
+        // IWheelFactory/IWheelViewModel 消费瞬态轮盘。
+        Assert.Contains("StarPie.Wheel.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Wheel", referenced);
         // ADR-0023/#95：手势链经 S1 契约程序集消费图标能力，不引用 Icons runtime。
         Assert.Contains("StarPie.Icons.Contracts", referenced);
+        // ADR-0023/#96：手势链经 S6 契约程序集消费对话框能力。
+        Assert.Contains("StarPie.Dialogs.Contracts", referenced);
         Assert.DoesNotContain("StarPie.Icons", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);
         Assert.DoesNotContain("StarPie.Theme", referenced);
+        Assert.DoesNotContain("StarPie.Dialogs", referenced);
+    }
+
+    [Fact]
+    public void M1出口契约_随实现方下沉GesturesContracts_命名空间不变()
+    {
+        // ADR-0023/#97 Q4：IProfilePreviewSource 自 Core 迁出随实现方 M1 下沉
+        // Gestures.Contracts，实现（ProfileListViewModel）与注册器驻 runtime。
+        Assert.Equal("StarPie.Gestures.Contracts", typeof(IProfilePreviewSource).Assembly.GetName().Name);
+        Assert.Equal("StarPie.ViewModels.Pages", typeof(IProfilePreviewSource).Namespace);
+
+        Assert.Equal("StarPie.Gestures", typeof(ProfileListViewModel).Assembly.GetName().Name);
+        Assert.True(typeof(IProfilePreviewSource).IsAssignableFrom(typeof(ProfileListViewModel)));
     }
 
     [Fact]
@@ -187,7 +209,8 @@ public sealed class GesturesAssemblyPlacementTests
         Assert.Equal("StarPie.Gestures", executor.GetType().Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", behavior.GetType().Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", profiles.GetType().Assembly.GetName().Name);
-        // 别名即手势实现方单例（镜像组合根装配：契约在 Core、别名在模块注册器注册）。
+        // 别名即手势实现方单例（镜像组合根装配：契约随实现方下沉 Gestures.Contracts、
+        // 别名在模块注册器注册）。
         Assert.IsType<ProfileListViewModel>(source);
         Assert.Same(profiles, source);
         Assert.Same(behavior, provider.GetRequiredService<BehaviorSettingsViewModel>());

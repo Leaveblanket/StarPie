@@ -44,6 +44,14 @@
     <!-- ADR-0023/#96：M3 扫描契约独立成集显式引用（Composition 直用 IShortcutTargetResolver/
          IProgramScanner 契约面，不再经 Core 传递） -->
     <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
+    <!-- ADR-0023/#97：M4 主题契约独立成集显式引用（MainView/组合根消费 IThemeService 契约面） -->
+    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
+    <!-- ADR-0023/#97：M2 轮盘契约独立成集显式引用（外观页预览 code-behind 消费
+         IWheelAppearanceState 只读状态接口） -->
+    <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
+    <!-- ADR-0023/#97：M1 预览 Profile 契约独立成集显式引用（组合根/注释面消费
+         IProfilePreviewSource，别名由 GesturesModuleRegistrar 注册） -->
+    <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General+About 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />

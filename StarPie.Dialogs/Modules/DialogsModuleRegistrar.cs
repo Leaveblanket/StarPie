@@ -17,7 +17,8 @@ namespace StarPie.Modules
     /// 与结果 record 随实现方下沉 <c>StarPie.Dialogs.Contracts</c>；扫描/.lnk 能力经
     /// <c>StarPie.Programs.Contracts</c> 契约（<see cref="IProgramScanner"/>/
     /// <see cref="IShortcutTargetResolver"/>）注入（M3 注册器提供实现），Dialogs→Programs
-    /// 仅经契约边；窗口主题应用消费 <see cref="IThemeService"/>（M4 允许边）。
+    /// 仅经契约边；窗口主题应用消费 <see cref="IThemeService"/>（Theme.Contracts 契约边，
+    /// Dialogs→M4 runtime 允许边清零，ADR-0023/#97）。
     /// <see cref="DialogService"/> 裁决 public——宿主 AppHost 建窗后调
     /// <c>SetOwner(MainView)</c> 惰性回填 Owner（ADR-0004）。
     /// </remarks>

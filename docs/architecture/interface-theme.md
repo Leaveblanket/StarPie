@@ -12,11 +12,14 @@
 ## 组成文件
 
 M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命名空间统一为 `StarPie.*`
-（B10/#83））：
+（B10/#83）；ADR-0023/#97 起出口契约随实现方再下沉 `StarPie.Theme.Contracts/`）：
 
-- `StarPie.Theme/Services/Shell/`：`IThemeService`/`ThemeService`（命名空间
-  `StarPie.Services.Shell` 与物理目录一致，B10/#83 统一；Host 侧原
-  `WinPieGestures/Services/Shell/` 物理目录已随 B7 清空移除）。
+- `StarPie.Theme.Contracts/Services/Shell/IThemeService.cs`（M4 出口契约 `IThemeService`，
+  ADR-0023/#97 自 StarPie.Theme 迁出独立成集；命名空间 `StarPie.Services.Shell` 不变，
+  B10/#83 统一）。
+- `StarPie.Theme/Services/Shell/ThemeService.cs`（`IThemeService` 实现，命名空间
+  `StarPie.Services.Shell`；Host 侧原 `WinPieGestures/Services/Shell/` 物理目录已随 B7
+  清空移除）。
 - `StarPie.Theme/ThemePaletteManager.cs`（模块根，主题调色板整项替换；B7/#80 可见性裁决为
   public——Host `AppHost` 装配面，同 B6/#79 `TrayIconManager` 先例，见
   [assemblies.md](assemblies.md) §7）。
@@ -24,17 +27,19 @@ M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命�
 - `StarPie.Theme/ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，
   #54/ADR-0014 决策 6/7）。
 - `StarPie.Theme/Modules/ThemeModuleRegistrar.cs`（M4 模块注册器：`RegisterServices` 下放
-  `ThemeService`/`IThemeService`/`InterfaceThemeSettingsViewModel` 的 DI 注册；M4 无导航页，
-  不提供 `RegisterNavigation`）。
+  `ThemeService`/`IThemeService`（契约驻 Theme.Contracts）/`InterfaceThemeSettingsViewModel`
+  的 DI 注册；M4 无导航页，不提供 `RegisterNavigation`）。
 - `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
   `Services/Messages/Messages.cs`（Core），放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
-DialogService 装配面）与 M2 轮盘侧（B8/#81 起 StarPie.Wheel，经允许边 Wheel → Theme）及 S6
-对话框侧（B11/#88 起 StarPie.Dialogs，对话框窗口主题应用经允许边 Dialogs → Theme，ADR-0020）
-经模块程序集引用消费 `IThemeService`/`ThemeService`；M5 托盘深色探针经组合根注入的
-`Func<bool>` 委托（B6/#79 起，Shell 不反向引用 M4）；Theme → Core 单向，不反向引用
-Host/其它业务模块。
+DialogService 装配面）显式引用 Theme runtime 与 Theme.Contracts——装配面经 runtime 引用消费
+`ThemeService`/`ThemePaletteManager`，窗口主题应用消费 `IThemeService` 契约；M2 轮盘侧
+（B8/#81 起 StarPie.Wheel）与 S6 对话框侧（B11/#88 起 StarPie.Dialogs）自 ADR-0023/#97 起
+只经 `StarPie.Theme.Contracts` 契约边消费 `IThemeService`（M2→M4、Dialogs→M4 两条 runtime
+允许边清零，不再引用 Theme runtime）；M5 托盘深色探针经组合根注入的 `Func<bool>` 委托
+（B6/#79 起，Shell 不反向引用 M4）；Theme runtime → Core + Theme.Contracts 单向，不反向
+引用 Host/其它业务模块 runtime。
 
 ## 关键流程
 

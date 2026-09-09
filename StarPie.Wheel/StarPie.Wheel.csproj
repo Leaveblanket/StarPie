@@ -3,14 +3,15 @@
   <PropertyGroup>
     <!-- B8/#81：M2 轮盘与渲染模块程序集（ADR-0016 决策 1/8/11/12）。
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
-         依赖方向：StarPie.Wheel → StarPie.Core 单向 + StarPie.Wheel → StarPie.Theme
-         允许边（M2→M4，IThemeService 消费，assemblies.md §3）；
-         ADR-0023/#96 起另经 Dialogs.Contracts 契约边消费 S6（IDialogService）；
-         不引用 Host/其它业务模块（M1 手势侧自 B9/#82 起驻 StarPie.Gestures，只经
-         IWheelFactory 接口消费）。
-         WheelFactory/工厂接口随 M2 收编（D5，ADR-0016 决策 11）；轮盘外观设置子 VM
-         与轮盘 VM/窗口/渲染器/配色/工厂的 DI 注册经 WheelModuleRegistrar.RegisterServices
-         下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
+         依赖方向：StarPie.Wheel → StarPie.Core 单向（共享基建/Models）+ 自身契约
+         StarPie.Wheel.Contracts（实现自有契约，ADR-0023/#97）+ Theme.Contracts
+         （M2→M4 runtime 允许边删除，IThemeService 经契约边）+ Gestures.Contracts
+         （IProfilePreviewSource 预览源契约边）+ Dialogs.Contracts/Icons.Contracts
+         （ADR-0023/#96/#95）；不引用 Host/任何其它业务模块 runtime（M1 手势侧驻
+         StarPie.Gestures，只经 Wheel.Contracts 接口消费，runtime 互引清零）。
+         工厂接口/轮盘 VM 接口/签名暴露件随 M2 收编 Wheel.Contracts（D5，ADR-0016 决策 11）；
+         轮盘外观设置子 VM 与轮盘 VM/窗口/渲染器/配色/工厂的 DI 注册经
+         WheelModuleRegistrar.RegisterServices 下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Wheel</AssemblyName>
@@ -28,8 +29,16 @@
     <!-- B8/#81：M2 → Core 单向依赖（轮盘 VM/渲染器消费 S1/S2/S3/S4 契约与共享 Models；
          配色 WPF-free 值类型随 M2 物理收编于本集 Models，CustomColorPreset 仍居 Core Models） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- B8/#81：M2 → M4 允许边（RadialWindow/WheelFactory 消费 IThemeService，assemblies.md §3） -->
-    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+    <!-- ADR-0023/#97：M2 → Theme.Contracts（RadialWindow/WheelFactory 消费 IThemeService，
+         M2→M4 runtime 允许边清零） -->
+    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
+    <!-- ADR-0023/#97：M2 → Wheel.Contracts（实现自有契约：WheelFactory/WheelViewModel/
+         WheelAppearanceSettingsViewModel 实现 IWheelFactory/IWheelViewModel/
+         IWheelAppearanceState，自 StarPie.Wheel 迁出） -->
+    <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
+    <!-- ADR-0023/#97：M2 → Gestures.Contracts（WheelAppearanceSettingsViewModel 经
+         IProfilePreviewSource 契约取预览 Profile，预览源语义归 M1 生产方，自 Core 迁出） -->
+    <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <!-- ADR-0023/#95：S1 契约独立成集（RadialWindow/WheelFactory/WheelPreviewRenderer/
          WheelGeometry 消费 IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />

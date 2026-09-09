@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0023/#97：M4 界面主题契约随实现方（StarPie.Theme）下沉独立成集——
+         IThemeService 自 StarPie.Theme/Services/Shell 迁出（命名空间 StarPie.Services.Shell
+         不变，B10/#83 共享命名空间树）；Wheel/Dialogs runtime 的 M2→M4、Dialogs→M4 允许边
+         删除，改经本契约边（runtime 互不引用）。契约程序集按需引用 WPF：
+         ApplyWindowTheme(FrameworkElement?) 签名含 WPF 类型（ADR-0023 Q5 先例：Contracts
+         形态与类型级分层无关）。无任何 ProjectReference（薄契约）。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Theme.Contracts</AssemblyName>
+    <RootNamespace>StarPie</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

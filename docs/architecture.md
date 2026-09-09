@@ -46,56 +46,65 @@
 ## 3. 技术栈
 
 - .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
-- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S2–S6
-  共享件（Configuration/Localization/Messages/Dialogs 契约/Navigation 目录与槽位契约——
+- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S2–S5
+  共享件（Configuration/Localization/Messages/Navigation 目录与槽位契约——
   ADR-0021/#92 起导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
   NavigationItemViewModel）归 Host `WinPieGestures/Services/Navigation/` 与
   `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
-  `Services/AppHostDelegates`、跨 M 只读契约 `ViewModels/Pages/IProfilePreviewSource`；S1 图标
-  资产已随 ADR-0023/#95 独立成集（`Services/Icons/` 仅余 #95 中间态 `IShortcutTargetResolver`，
-  #96 随 Programs.Contracts 迁出）；共享 UI
+  `Services/AppHostDelegates`；**不含任何模块出口契约**——S1 图标资产已随 ADR-0023/#95
+  独立成集、扫描/SPI/对话框契约已随 #96 下沉 Programs.Contracts/Dialogs.Contracts、预览
+  Profile 契约已随 #97 下沉 Gestures.Contracts；共享 UI
   基建已随 ADR-0022/#94 去共享化——通用转换器与 `ModernControls.xaml`（全局控件样式字典）迁
   Host `WinPieGestures/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
   `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 删除（五页 XAML 根直承 `UserControl`）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
   程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver 与模块注册器
-  ProgramsModuleRegistrar，ADR-0019/#87 起），**单向依赖共享内核**（IShortcutTargetResolver
-  契约驻 Core（#95 中间态），ShortcutResolver 实例实现）并引用 `StarPie.Icons.Contracts`
-  （S1 契约边，ADR-0023/#95）；命名空间统一为 `StarPie.*`
+  ProgramsModuleRegistrar，ADR-0019/#87 起），M3 出口契约（IProgramScanner/ProgramEntry/
+  ProgramCatalog/SPI IShortcutTargetResolver）随实现方驻 `StarPie.Programs.Contracts`
+  （ADR-0023/#96），runtime 只引用自身契约 + `StarPie.Icons.Contracts`
+  （S1 契约边，ADR-0023/#95），不再引用共享内核；命名空间统一为 `StarPie.*`
   （B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B6/#79 起，首个带 DI 的模块程序集）：`StarPie.Shell/`（WPF 类库，程序集
   `StarPie.Shell`）承载 M5 壳层服务与系统设置面（TrayIconManager/AutostartRegistry/MemoryOptimizer/
   GeneralSettingsViewModel+AdvancedSettingsPage/AboutViewModel+AboutSettingsPage 与正式模块注册器
   ShellModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`（B10/#83）。
-- 模块程序集（B7/#80 起）：`StarPie.Theme/`（WPF 类库，程序集 `StarPie.Theme`）承载 M4
-  界面主题体系（ThemeService/IThemeService、ThemePaletteManager（public，Host AppHost 装配面）、
-  五套主题字典 Views/Styles/Themes、InterfaceThemeSettingsViewModel 与模块注册器
-  ThemeModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`（B10/#83）。
-- 模块程序集（B8/#81 起）：`StarPie.Wheel/`（WPF 类库，程序集 `StarPie.Wheel`）承载 M2
-  轮盘与渲染（轮盘 VM ViewModels/Wheel、RadialWindow、Views/Renderers 样式渲染器与预览、
-  Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
-  WheelGeometry 视觉几何与 WheelFactory/工厂接口（D5，ADR-0016 决策 11）与模块注册器
-  WheelModuleRegistrar），单向依赖共享内核并允许 M2→M4（IThemeService）边；命名空间统一为
-  `StarPie.*`（B10/#83）。
+- 模块程序集（B7/#80 起；出口契约 ADR-0023/#97 随实现方再下沉）：`StarPie.Theme/`（WPF
+  类库，程序集 `StarPie.Theme`）承载 M4 界面主题实现（ThemeService、ThemePaletteManager
+  （public，Host AppHost 装配面）、五套主题字典 Views/Styles/Themes、
+  InterfaceThemeSettingsViewModel 与模块注册器 ThemeModuleRegistrar），
+  `StarPie.Theme.Contracts/`（WPF 类库，程序集 `StarPie.Theme.Contracts`）承载出口契约
+  `IThemeService`（命名空间不变）；Theme runtime → Core + Theme.Contracts 单向；命名空间
+  统一为 `StarPie.*`（B10/#83）。
+- 模块程序集（B8/#81 起；出口契约 ADR-0023/#97 随实现方再下沉）：`StarPie.Wheel/`（WPF
+  类库，程序集 `StarPie.Wheel`）承载 M2 轮盘与渲染（WheelViewModel/RadialWindow/
+  Views/Renderers 样式渲染器与预览、Views/Converters 核图标预览转换器、Models/WheelPalette*
+  配色目录与解析、Services/Wheel WheelGeometry 视觉几何与 WheelFactory 实现（D5，
+  ADR-0016 决策 11）与模块注册器 WheelModuleRegistrar），`StarPie.Wheel.Contracts/`（类库，
+  程序集 `StarPie.Wheel.Contracts`）承载出口契约（IWheelFactory/IWheelViewModel/
+  IWheelAppearanceState，命名空间不变）；runtime → Core + Wheel.Contracts + Theme.Contracts +
+  Gestures.Contracts 等契约单向（M2→M4 runtime 允许边清零）；命名空间统一为 `StarPie.*`（B10/#83）。
 - 模块程序集（B9/#82 起，最后一个业务模块程序集）：`StarPie.Gestures/`（WPF 类库，程序集
   `StarPie.Gestures`）承载 M1 手势与动作（手势管线 Services/Gestures（MouseHook/
   GestureController/GestureEngine/IWindowContext/WindowContext）、动作执行 Services/Actions
   （IActionExecutorService/ActionExecutorService/ActionRouting）、触发+手势设置页
   （BehaviorSettingsViewModel+TriggerSettingsPage、ProfileListViewModel+SlotViewModel+
-  GesturesSettingsPage）与模块注册器 GesturesModuleRegistrar），单向依赖共享内核并允许
-  M1→M2（IWheelFactory/IWheelViewModel）边；命名空间统一为 `StarPie.*`（B10/#83）。
+  GesturesSettingsPage）与模块注册器 GesturesModuleRegistrar），`StarPie.Gestures.Contracts/`
+  （类库，程序集 `StarPie.Gestures.Contracts`）承载出口契约 `IProfilePreviewSource`
+  （命名空间不变）；runtime → Core + Gestures.Contracts + Wheel.Contracts 等契约单向
+  （M1→M2 runtime 允许边清零）；命名空间统一为 `StarPie.*`（B10/#83）。
 - 模块程序集（B11/#88 起，S6 实现程序集化——共享基础设施模块的独立落点，非新领域模块）：
   `StarPie.Dialogs/`（WPF 类库，程序集 `StarPie.Dialogs`）承载 S6 对话框实现
   （DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior，与模块注册器
-  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 仍驻 Core，ADR-0020/#88），
-  单向依赖共享内核并允许 Dialogs→Theme（IThemeService）边；命名空间统一为 `StarPie.*`。
+  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 驻 `StarPie.Dialogs.Contracts`，
+  ADR-0023/#96），runtime → Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core +
+  Theme.Contracts 单向（Dialogs→M4 runtime 允许边清零，ADR-0023/#97）；命名空间统一为 `StarPie.*`。
 - S1 图标服务成集（ADR-0023/#95，共享基础设施模块的独立落点）：`StarPie.Icons.Contracts/`
   （WPF 类库，程序集 `StarPie.Icons.Contracts`）承载契约四件（`IIconAssetService`/`IconCatalog`/
   `CustomIconItem`/`VectorIconItem`，命名空间 `StarPie.Services.Icons` 不变、零程序集依赖）；
   `StarPie.Icons/`（WPF 类库，程序集 `StarPie.Icons`）承载实现 `IconAssetService` 与注册器
-  `IconsModuleRegistrar`——Icons → Icons.Contracts + Core 单向（#95 中间态
-  `IShortcutTargetResolver` 暂驻 Core，#96 迁出），实现 runtime 只被 Host/测试引用。
+  `IconsModuleRegistrar`——Icons → Icons.Contracts + Programs.Contracts（SPI 契约边，#96）
+  + Core（S2 AppDataPaths）单向，实现 runtime 只被 Host/测试引用。
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
@@ -112,13 +121,18 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0020）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0023）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
 ├── WinPieGestures/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（B2/#75 起；不再含共享 UI 基建，ADR-0022/#94，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（ADR-0023/#95 起，见 layout.md）
 ├── StarPie.Icons/               # S1 图标实现程序集（ADR-0023/#95 起，见 layout.md）
+├── StarPie.Programs.Contracts/  # M3 扫描/SPI 契约程序集（ADR-0023/#96 起，见 layout.md）
+├── StarPie.Dialogs.Contracts/   # S6 对话框契约程序集（ADR-0023/#96 起，见 layout.md）
+├── StarPie.Theme.Contracts/     # M4 界面主题契约程序集（ADR-0023/#97 起，见 layout.md）
+├── StarPie.Wheel.Contracts/     # M2 轮盘契约程序集（ADR-0023/#97 起，见 layout.md）
+├── StarPie.Gestures.Contracts/  # M1 预览 Profile 契约程序集（ADR-0023/#97 起，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（B11/#88 起，见 layout.md）
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（B4/#77 起，见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（B6/#79 起，见 layout.md）
@@ -129,7 +143,7 @@ StarPie/
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Programs、Shell、Theme、Wheel、Gestures、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95/#96/#97）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 

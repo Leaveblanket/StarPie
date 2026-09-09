@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0023/#97：M1 预览 Profile 契约随实现方（StarPie.Gestures）下沉独立成集——
+         IProfilePreviewSource 自 Core ViewModels/Pages 迁出（命名空间 StarPie.ViewModels.Pages
+         不变，B10/#83 共享命名空间树）；生产方语义（预览源属 M1 配置方案数据）且破除
+         Wheel ↔ Gestures runtime 程序集环（Q4 裁决），Wheel runtime 改经本契约边消费。
+         签名依赖共享内核 Models 数据（WheelProfile，config POCO，Core 收窄后仍居共享内核），
+         故本薄契约仅引用 Core；无任何业务 runtime 引用。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <AssemblyName>StarPie.Gestures.Contracts</AssemblyName>
+    <RootNamespace>StarPie</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 共享内核 Models（WheelProfile）：全局数据，非模块出口契约 -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+  </ItemGroup>
+
+</Project>

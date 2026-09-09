@@ -3,12 +3,14 @@ using System.Windows;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// 界面主题服务接缝：拥有当前有效主题；主题变更经单一入口 <see cref="SetTheme"/> 应用，
-    /// 并负责窗口 DWM 标题栏的深浅色切换（<see cref="ApplyWindowTheme"/>）。
+    /// 界面主题服务接缝（随实现方 M4 下沉驻 <c>StarPie.Theme.Contracts</c>，ADR-0023/#97）：
+    /// 拥有当前有效主题；主题变更经单一入口 <see cref="SetTheme"/> 应用，并负责窗口 DWM
+    /// 标题栏的深浅色切换（<see cref="ApplyWindowTheme"/>）。
     /// </summary>
     /// <remarks>
     /// 调色板整项替换由模块级 ThemePaletteManager 回调执行，本服务不触碰 Views。
-    /// 消费方为宿主的窗口/对话框工厂与轮盘侧；页面不持有本服务（壳层 View 效果白名单）。
+    /// 消费方为宿主的窗口/对话框工厂与轮盘侧（Wheel/Dialogs runtime 只经本契约边消费，
+    /// 不再引用 Theme runtime）；页面不持有本服务（壳层 View 效果白名单）。
     /// </remarks>
     public interface IThemeService
     {
