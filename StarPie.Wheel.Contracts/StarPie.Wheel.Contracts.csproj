@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0023/#97：M2 轮盘契约随实现方（StarPie.Wheel）下沉独立成集——
+         IWheelFactory/IWheelViewModel 与签名暴露件 IWheelAppearanceState 自 StarPie.Wheel
+         迁出（命名空间 StarPie.Services.Wheel / StarPie.ViewModels.Wheel 不变，B10/#83 共享
+         命名空间树）；Gestures runtime 的 M1→M2 允许边删除，改经本契约边（runtime 互不引用）。
+         签名依赖共享内核 Models 数据（GesturePoint/WheelProfile/AppConfig，config POCO/
+         值类型，Core 收窄后仍居共享内核），故本薄契约仅引用 Core；无任何业务 runtime 引用。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <AssemblyName>StarPie.Wheel.Contracts</AssemblyName>
+    <RootNamespace>StarPie</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 共享内核 Models（GesturePoint/WheelProfile/AppConfig）：全局数据，非模块出口契约 -->
+    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+  </ItemGroup>
+
+</Project>

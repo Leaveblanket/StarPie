@@ -8,9 +8,9 @@
          StarPie.Dialogs.Contracts、IProgramScanner/IShortcutTargetResolver 迁
          StarPie.Programs.Contracts（程序扫描/.lnk 解析经 Programs 契约边注入，不再经 Core）。
          依赖方向：StarPie.Dialogs → Core 单向（S2/S3/S4 共享基建）+ Dialogs.Contracts +
-         Programs.Contracts + Icons.Contracts + StarPie.Dialogs → StarPie.Theme 允许边（窗口
-         主题应用消费 IThemeService，同 M2→M4 先例）；不引用 Programs runtime/Host/其它业务
-         模块（Dialogs→Programs 仅经 Programs.Contracts）。
+         Programs.Contracts + Icons.Contracts + Theme.Contracts（ADR-0023/#97：Dialogs→M4
+         runtime 允许边清零，窗口主题应用消费 IThemeService 改经契约边）；不引用 Programs
+         runtime/Host/其它业务模块（Dialogs→Programs 仅经 Programs.Contracts）。
          DI 注册经 DialogsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider；DialogService 裁决 public（宿主 SetOwner 装配面）。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -34,8 +34,9 @@
     <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
     <!-- 共享内核（S2 配置/S3 本地化/S4 消息/Models 等共享基建） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0020/#88：对话框窗口主题应用消费 M4 IThemeService（允许边） -->
-    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+    <!-- ADR-0023/#97：对话框窗口主题应用消费 M4 IThemeService（Dialogs→M4 runtime 允许边
+         清零，改经 Theme.Contracts 契约边） -->
+    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- ADR-0023/#95：S1 契约独立成集（DialogService/IconPickerWindow 等消费
          IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />

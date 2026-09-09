@@ -68,7 +68,8 @@ public sealed class SharedUiAssemblyPlacementTests
     [Fact]
     public void 共享内核Core_不再持有通用转换器与共享控件()
     {
-        // #96 起 Core 不再承载 S6 契约（IDialogService 已随实现方下沉 Dialogs.Contracts），
+        // #96 起 Core 不再承载 S6 契约（IDialogService 已随实现方下沉 Dialogs.Contracts）；
+        // #97 起预览 Profile 契约（IProfilePreviewSource）亦随 M1 下沉 Gestures.Contracts。
         // 此处以共享基建类型 ILocalizationService 定位 Core 程序集。
         var coreAssembly = typeof(ILocalizationService).Assembly;
         Assert.Equal("StarPie.Core", coreAssembly.GetName().Name);
@@ -78,7 +79,8 @@ public sealed class SharedUiAssemblyPlacementTests
             t.Name == nameof(StringToGeometryConverter) ||
             t.Name == nameof(IntEqualsConverter) ||
             t.Name == nameof(FilePathToImageConverter) ||
-            t.Name == nameof(HotkeyRecorderBox));
+            t.Name == nameof(HotkeyRecorderBox) ||
+            t.Name == nameof(IProfilePreviewSource));
     }
 
     [Fact]

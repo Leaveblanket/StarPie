@@ -75,13 +75,18 @@ public sealed class ProgramsAssemblyPlacementTests
     [Fact]
     public void Core不含模块出口契约()
     {
-        // ADR-0023/#96：扫描/SPI/对话框契约随实现方下沉 Contracts，Core 不再承载
-        // 任何模块出口契约（类型级 + 依赖级双层收口）。
+        // ADR-0023/#96/#97：扫描/SPI/对话框/主题/轮盘/预览源契约随实现方下沉各
+        // *.Contracts，Core 不再承载任何模块出口契约（类型级 + 依赖级双层收口）。
         Assert.NotEqual("StarPie.Core", typeof(IProgramScanner).Assembly.GetName().Name);
         Assert.NotEqual("StarPie.Core", typeof(ProgramEntry).Assembly.GetName().Name);
         Assert.NotEqual("StarPie.Core", typeof(ProgramCatalog).Assembly.GetName().Name);
         Assert.NotEqual("StarPie.Core", typeof(IShortcutTargetResolver).Assembly.GetName().Name);
         Assert.NotEqual("StarPie.Core", typeof(IDialogService).Assembly.GetName().Name);
+        Assert.NotEqual("StarPie.Core", typeof(IThemeService).Assembly.GetName().Name);
+        Assert.NotEqual("StarPie.Core", typeof(IWheelFactory).Assembly.GetName().Name);
+        Assert.NotEqual("StarPie.Core", typeof(IWheelViewModel).Assembly.GetName().Name);
+        Assert.NotEqual("StarPie.Core", typeof(IWheelAppearanceState).Assembly.GetName().Name);
+        Assert.NotEqual("StarPie.Core", typeof(IProfilePreviewSource).Assembly.GetName().Name);
 
         string?[] coreReferences = typeof(StarPie.Services.Localization.ILocalizationService).Assembly
             .GetReferencedAssemblies()
@@ -90,6 +95,9 @@ public sealed class ProgramsAssemblyPlacementTests
         Assert.DoesNotContain("StarPie.Programs.Contracts", coreReferences);
         Assert.DoesNotContain("StarPie.Dialogs.Contracts", coreReferences);
         Assert.DoesNotContain("StarPie.Icons.Contracts", coreReferences);
+        Assert.DoesNotContain("StarPie.Theme.Contracts", coreReferences);
+        Assert.DoesNotContain("StarPie.Wheel.Contracts", coreReferences);
+        Assert.DoesNotContain("StarPie.Gestures.Contracts", coreReferences);
     }
 
     [Fact]

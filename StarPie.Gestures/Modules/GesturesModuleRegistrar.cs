@@ -20,8 +20,9 @@ namespace StarPie.Modules
     /// <see cref="RegisterServices"/> 把本模块手势管线服务、页面 VM 与只读预览契约
     /// <see cref="IProfilePreviewSource"/> 别名的 DI 注册下放本程序集（组合根仍唯一
     /// BuildServiceProvider，本注册器只注册不解析）。新增页面/动作/触发规则只动本模块内部。
-    /// 依赖方向：本模块依赖共享内核契约，仅经 <c>IWheelFactory</c>/<c>IWheelViewModel</c>
-    /// 接口消费瞬态轮盘，不反向引用宿主；MouseHook 的 dev 分支读共享内核
+    /// 依赖方向：本模块依赖共享内核契约，仅经 <c>StarPie.Wheel.Contracts</c> 的
+    /// <c>IWheelFactory</c>/<c>IWheelViewModel</c> 契约接口消费瞬态轮盘（M1→M2 runtime
+    /// 允许边清零，ADR-0023/#97），不反向引用宿主；MouseHook 的 dev 分支读共享内核
     /// <see cref="AppDataPaths.IsDevInstance"/> 回填缝（组合根装配前以 DevInstance.IsActive 回填）。
     /// </remarks>
     public static class GesturesModuleRegistrar
@@ -44,9 +45,9 @@ namespace StarPie.Modules
         /// <summary>
         /// 注册本模块手势管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
         /// 引擎/控制器与触发+手势两页 VM 全部在本注册器接线；工厂经 ServiceProvider
-        /// 惰性解析共享内核契约。<see cref="ProfileListViewModel"/> 另以只读契约
-        /// <see cref="IProfilePreviewSource"/> 注册别名——消费方轮盘外观设置子 VM
-        /// 只依赖共享内核契约，不引用本集具体 VM。
+        /// 惰性解析 Wheel.Contracts 契约。<see cref="ProfileListViewModel"/> 另以只读契约
+        /// <see cref="IProfilePreviewSource"/>（驻 Gestures.Contracts，ADR-0023/#97）
+        /// 注册别名——消费方轮盘外观设置子 VM 只依赖契约程序集，不引用本集具体 VM。
         /// </summary>
         public static void RegisterServices(IServiceCollection services)
         {
@@ -72,7 +73,8 @@ namespace StarPie.Modules
                 sp.GetRequiredService<ILocalizationService>(),
                 sp.GetRequiredService<IIconAssetService>()));
             // 配置方案列表 VM 以只读契约 IProfilePreviewSource 暴露给轮盘侧：
-            // 轮盘外观设置子 VM 经接口解析，不引用本集具体 VM 类型（契约驻共享内核）。
+            // 轮盘外观设置子 VM 经接口解析，不引用本集具体 VM 类型
+            //（契约随实现方下沉 Gestures.Contracts，ADR-0023/#97）。
             services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
         }
 

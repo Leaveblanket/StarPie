@@ -45,13 +45,22 @@
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
     <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+    <!-- ADR-0023/#97：M4 主题契约独立成集（IThemeService 直用，Theme/SharedUi 等
+         PlacementTests 断言归属） -->
+    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- ADR-0016/B8：#81 M2 轮盘与渲染模块程序集（WheelViewModel/RadialWindow/渲染器/配色/
          WheelFactory/WheelModuleRegistrar/CoreIcon* 转换器等测试直用） -->
     <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />
+    <!-- ADR-0023/#97：M2 轮盘契约独立成集（IWheelFactory/IWheelViewModel/IWheelAppearanceState
+         直用，Wheel 等 PlacementTests 断言归属） -->
+    <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
     <!-- ADR-0016/B9：#82 M1 手势与动作模块程序集（MouseHook/GestureEngine/ActionExecutor/
          BehaviorSettingsViewModel/ProfileListViewModel/SlotViewModel/Trigger+Gestures 页/
          GesturesModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
+    <!-- ADR-0023/#97：M1 预览 Profile 契约独立成集（IProfilePreviewSource 直用，Wheel/
+         Gestures/ProfileList 等测试与替身断言归属） -->
+    <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
