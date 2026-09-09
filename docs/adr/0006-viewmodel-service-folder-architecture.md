@@ -1,5 +1,7 @@
 # ViewModels/Services 文件夹与命名空间架构
 
+> Status: Active
+
 T19 后 `ViewModels` 与 `Services` 都是扁平目录，分别积累到 15 与 33 个文件，命名空间无法表达职责，新文件归属只能靠个人判断。决定按功能域划分子目录，命名空间与目录同步；服务接口与实现同目录存放，组合根仍集中在 `Composition`，本轮不拆多类型文件。
 
 ## Status
@@ -42,3 +44,5 @@ ViewModels/
 - 新增功能时同步更新 `GlobalUsings.cs` 或显式 `using`，以引用子命名空间。
 - XAML 的 VM `DataType` 映射使用对应 `ViewModels.Pages` / `ViewModels.Gestures` 等命名空间。
 - 不改变 DI 注册语义；`Composition` 仍是唯一装配与解析点，延续 ADR-0005。
+
+> 结构细节正典：[layout.md](../architecture/layout.md)。

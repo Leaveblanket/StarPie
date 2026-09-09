@@ -10,8 +10,7 @@
 
 ## 组成文件
 
-M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命名空间统一为 `StarPie.*`
-（B10/#83））：
+M5 物理落位（独立模块程序集 `StarPie.Shell/`）：
 
 - `StarPie.Shell/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为驻模块，
   由 Host `AppHost.Run` 装配实例——见下方关键流程 1）、`AutostartRegistry.cs`（R1）、
@@ -23,41 +22,41 @@ M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命�
 - `StarPie.Shell/Modules/ShellModuleRegistrar.cs` + `ShellPageTemplates.xaml`（正式模块注册器与
   页面模板字典，自报导航项/模板并下放页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
 - 共享内核同时登记宿主回调契约 `StarPie.Core/Services/AppHostDelegates.cs`（托盘气泡/退出，
-  B6/#79 上提，见 [host.md](host.md)）。
+  见 [host.md](host.md)）。
 
-M4 的主题件 `IThemeService`/`ThemeService` 原与 M5 同目录登记于 Host `Services/Shell/`，B7/#80
-已随 M4 迁入独立模块程序集 `StarPie.Theme/Services/Shell/`（命名空间 `StarPie.Services.Shell`，
-B10/#83 统一，见 [interface-theme.md](interface-theme.md)）；Host 侧该目录已清空移除，水平目录不再跨模块登记。
+M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `StarPie.Theme/Services/Shell/`
+（命名空间 `StarPie.Services.Shell`，见 [interface-theme.md](interface-theme.md)），不在 Host；
+各业务目录不跨模块登记。
 
-- `ViewModels/Navigation/ShellViewModel.cs`（B1/D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
+- `ViewModels/Navigation/ShellViewModel.cs`（D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
-- `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；B3/#76 起 `MainView.xaml`
-  为纯壳——页面 DataTemplate 已迁至 App 级模块页面模板字典（M5 在 `StarPie.Shell`、M1 在
-  `StarPie.Gestures`（B9/#82 起）、Host 外观聚合页在 `StarPie/Modules/`，
-  见 [navigation.md](navigation.md)），分区 DataContext 接线见下关键流程 4）。
+- `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml`
+  为纯壳——页面 DataTemplate 在 App 级模块页面模板字典（M5 在 `StarPie.Shell`、M1 在
+  `StarPie.Gestures`、Host 外观聚合页在 `StarPie/Modules/`，见 [navigation.md](navigation.md)），
+  分区 DataContext 接线见下关键流程 4）。
 
 ## 关键流程
 
-1. **托盘**：`TrayIconManager`（B6/#79 起驻 `StarPie.Shell`，`AppHost.Run` 创建）持 tooltip
+1. **托盘**：`TrayIconManager`（驻 `StarPie.Shell`，`AppHost.Run` 创建）持 tooltip
    （暂停态实时文案）、双击直达、
    右键菜单（`AppHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
    气泡通知、`Dispose`；tooltip 在语言切换时由宿主 `AppHost.RefreshTrayTooltip` 按暂停态刷新
-   （宿主编排见 [host.md](host.md)）。托盘菜单深色配色原直读 M4 `IThemeService`；B6/#79 起 Shell
+   （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
    不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针
-   （`ThemeService.IsWindowsInDarkTheme`；B7/#80 起该服务驻 `StarPie.Theme`，Host 显式引用）。
+   （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Theme`，Host 显式引用）。
 2. **内存**：`MemoryOptimizer.TrimMemory()` 在 `App` 启动兜底与 `AppHost` 主框架隐藏时直调
    （不进业务层，调用点见 [host.md](host.md)）；“立即清理”由 `GeneralSettingsViewModel` 直调
    （VM 与工具同驻 `StarPie.Shell`，行为不变）。
-3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（B6/#79 起与 VM 同驻
+3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
    `StarPie.Shell`），经模块注册器 `ShellModuleRegistrar.RegisterServices` 委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`setAutoStart`），不进 VM/View。
 4. **关窗驻留**：`MainView` 壳层 code-behind（`Window_Closing` 隐藏到托盘 + 淡出，退出态读
-   `ShellViewModel.IsExiting`）属 ADR-0009 白名单；壳层成员（`WindowTitle`/`IsExiting`/`Save()`）已收进
-   `ShellViewModel`（B1/D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
+   `ShellViewModel.IsExiting`）属 ADR-0009 白名单；壳层成员（`WindowTitle`/`IsExiting`/`Save()`）在
+   `ShellViewModel`（D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
    操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
    `CloseButton_Click` 纯 UI 取消语义。
 5. **高级与关于设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
-   Core 契约 `AppHostDelegates` 转发（B6/#79 上提；模块注册器只依赖 Core，宿主回填实现，
+   Core 契约 `AppHostDelegates` 转发（模块注册器只依赖 Core，宿主回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。
 

@@ -1,7 +1,7 @@
 # 模块：消息与通知
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；新增/修改跨模块消息或通知类型时读本篇
-> （B1/#64 自原「本地化与消息」叶拆出：消息与本地化无共享上下文，不并入 [localization.md](localization.md)）。
+> （消息与本地化无共享上下文，不并入 [localization.md](localization.md)）。
 
 ## 职责
 
@@ -11,14 +11,14 @@
 
 ## 组成文件
 
-**共享内核（`StarPie.Core/Services/Messages/`，B2/#75 起）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
+**共享内核（`StarPie.Core/Services/Messages/`）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
 （非 messenger 的跨层载体：`NoticeKind`/`NoticeRequest`）。
 
 ## 关键流程
 
 1. `Messages.cs` 放跨模块协调消息：`DebouncedSaveRequestedMessage`/`ImmediateSaveRequestedMessage`
    （保存语义见 [config.md](config.md)）、`ConfigImportedMessage`、`MinimizedToTrayMessage`、
-   `PageConfigReloadedMessage`、#54 起 `AppThemeChangedMessage`（主题应用语义见
+   `PageConfigReloadedMessage`、`AppThemeChangedMessage`（主题应用语义见
    [interface-theme.md](interface-theme.md)）。
 2. `Notices.cs` 放非 messenger 的跨层载体（`NoticeKind`/`NoticeRequest`），供托盘气泡等通知使用。
 3. 消息命名遵循 [naming.md](naming.md) 的消息命名表（`XxxRequestedMessage`/`XxxChangedMessage`/…）；

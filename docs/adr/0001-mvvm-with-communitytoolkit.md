@@ -1,11 +1,13 @@
 # 全量 MVVM 架构与 CommunityToolkit.Mvvm
 
+> Status: Active
+
 StarPie 现状是约 13.5k 行的 code-behind 单层结构、10 个静态类、零单元测试。决定将全部 UI 重构为 MVVM：视图状态进 ViewModel（CommunityToolkit.Mvvm 的 ObservableObject / RelayCommand），绘制代码留在 View 层；手势控制拆为无 WPF 依赖的纯逻辑状态机加轮盘 ViewModel。引入 CommunityToolkit.Mvvm 作为唯一的 MVVM 基建依赖。
 
 ## Considered Options
 
 - 部分 MVVM（自绘的轮盘窗口保持 code-behind）：被否——目标是全项目统一架构，且轮盘状态联动（选中扇区、转义状态）需要可测。
-- Microsoft.Extensions.DependencyInjection 容器：被否，见 ADR-0002。
+- Microsoft.Extensions.DependencyInjection 容器：MEDI 备选已随 [ADR-0005](./0005-di-container-for-navigation.md) 否决。
 
 ## Consequences
 

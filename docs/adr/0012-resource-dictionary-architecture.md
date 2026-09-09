@@ -1,5 +1,7 @@
 # 样式资源架构：主题令牌 XAML 化 + 宿主换入 + App 单点合并
 
+> Status: Active（部分被 0013 修订）
+
 设置界面样式资源长期以 `App.xaml` 与 `Views/Styles/SettingsStyles.xaml` 双文件维护：
 同一批主题画刷在 App.xaml、SettingsStyles.xaml、`ThemeService`（C# 五套 hex）三处重复；
 `SettingsStyles.xaml` 被主框架、侧栏与五个页面共 7 处合并，页面/侧栏因解析期
@@ -57,48 +59,9 @@ Accepted（grilling 共识 1C/2C/3B + T1/S1/U2；#35 起分批实施）。
    显式 `Style={x:Null}`。转换器统一实例（`BoolToVis`）。
 6. **排版与几何令牌**：排版属性归一层；`CornerRadius` 等魔法数令牌化（#38 实施）。
 
-## Appendix: U2 按钮触发器与模板去重（#37 spike 结论）
+## Appendix
 
-`ModernButtonStyle`/`PrimaryButtonStyle` 原本各持一份整段 `ControlTemplate`，
-hover/pressed 视觉硬编码在模板触发器内，派生样式无法复用单模板。#37 spike
-（net8.0-windows STA；派生 Style「同属性、同触发值」覆盖实验 + `XamlReader`
-整段解析最终 XAML 形态）确认 WPF 派生样式语义：
-
-- 派生 Style 中与基样式「同属性、同触发值」的 `Style.Triggers` 触发器会覆盖基
-  样式触发器，条件退出后干净回落到派生 Setter，不残留基样式触发值；
-- 基样式触发器优先级高于派生样式 Setter——派生若不复写触发器，hover 仍取基值。
-
-据此决定按钮链：**Button 隐式样式（唯一完整模板）→ 键控 `ModernButtonStyle`
-兼容别名（BasedOn 隐式）→ `PrimaryButtonStyle`（BasedOn 别名，仅覆盖颜色与
-触发器）**。hover/pressed 触发器统一上移到 `Style.Triggers`，`ControlTemplate`
-不再含触发器，三份按钮模板收敛为一份；透明/无边框特例（如 HotkeyRecorderBox
-✕ 清除钮）显式 `Style={x:Null}` 复位，不落入隐式默认。
-
-## Appendix: 排版与几何令牌归一（#38）
-
-**实证发现**：WPF 资源查找「同字典本地项优先于 MergedDictionaries」。因此
-#36 后 `App.xaml` 本地隐式 TextBox（仅排版）实际**遮蔽** ModernControls 合并
-字典中的完整 TextBox 模板——现代 TextBox 外观全 App 失效，而非 issue 原描述
-的「排版样式被模板顶掉」。#38 spike（STA + Window 实测）确认。
-
-排版机制决定为**隐式样式单一来源**（覆盖所有窗口，不依赖窗口根继承）：
-
-- `RenderOptions.ClearTypeHint` 不走 DP 继承，必须落在每个文本控件自身的隐式
-  样式上；
-- `TextOptions.*`、`SnapsToDevicePixels`、`UseLayoutRounding` 会沿可视树继承，
-  但隐式样式 Setter 优先级高于继承值，作为统一来源同样成立；
-- 故两份隐式排版样式移入 `ModernControls.xaml`：隐式 TextBlock 保留，
-  TextBox 隐式样式把排版 setters 与完整模板合一（消除遮蔽）；
-- `App.xaml` 不再定义任何隐式 TextBlock/TextBox；MainView 与五个页面根上的
-  TextFormattingMode/TextRenderingMode/ClearTypeHint 冗余删除；MainView 根
-  保留 `UseLayoutRounding`/`SnapsToDevicePixels` 作为非文本布局提示；
-- 本地覆盖 TextBlock 隐式样式处（ProgramPicker 占位/状态文案）改为
-  `BasedOn="{StaticResource {x:Type TextBlock}}"`，排版不被局部 Style 重置。
-
-几何令牌：`ModernControls.xaml` 顶部新增 7 个 `CornerRadius` 令牌
-（Control/Item/Card/NavTab/ToggleTrack/ScrollThumb/SliderTrack），全部模板
-魔法数（6/5/8/11/4/2.5）逐一替换；本次仅令牌化 ModernControls 模板内取值，
-页面/对话框卡片圆角与 ListView 观感不在 #38 范围。
+#37/#38 spike 结论已回填正文（Decision 5/6）。
 
 ## Consequences
 

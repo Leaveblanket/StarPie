@@ -1,5 +1,7 @@
 # 术语终态与全仓正名：不留历史别名，只留持久化迁移
 
+> Status: Active
+
 领域/架构术语经 grill-with-docs 会话（issue #98）审查后定为**单一名义终态**，代码、
 UI 文案、resx 键、config.json、UIA 自动化 ID、e2e、注释与文档全部对齐；不再使用
 「旧名为历史遗留、仅加注不扩散」的双轨措辞。唯一例外是 `config.json` 的**持久化

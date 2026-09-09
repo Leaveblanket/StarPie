@@ -1,5 +1,7 @@
 # 注释规范：代码注释不承载溯源，理由归 git / ADR / 架构叶子
 
+> Status: Active
+
 全仓 `///` 与 `//` 注释长期内嵌 issue / 批次 / ADR 溯源（`T##`、`B#/#NN`、`ADR-NNNN`、`S#/M#/H#` 等，约 540 行），把“变更史”混进“API 契约”，随批次持续累积噪音。决定：XML 文档注释与行注释只保留当前事实与信息增量，禁止编号化溯源；决策理由与变更史归 git commit、`docs/adr/` 与架构叶子；配套新叶子 `docs/architecture/comments.md` 执行，存量另立 issue #84 清理。
 
 ## Status
@@ -32,6 +34,4 @@ Accepted（grilling 共识 Q1–Q10，2026-09-07）。
 
 ## 参考事实（2026-09-07 快照）
 
-- 规模：`///` 约 360 行、`//` 约 180 行携带溯源标记。
-- 例：`AppDataPaths.cs` 类头（T16 / ADR-0002 / B2/#75 / H1 / Composition）、各 `GlobalUsings.cs` 文件头、模块注册器注释。
-- 依据：MS Learn《Create XML documentation》与《How to write /// docs for .NET API ref》；dotnet/runtime 注释指南（公共成员应文档化，复杂内部成员鼓励）；社区共识：issue 号 / 人名 / 日期属版本管理职责，不进源码注释。
+`///` 约 360 行、`//` 约 180 行携带溯源标记（典型如 `AppDataPaths.cs` 类头与各 `GlobalUsings.cs` 文件头）；依据 MS Learn 与 dotnet/runtime 注释指南。

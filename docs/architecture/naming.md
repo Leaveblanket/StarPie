@@ -28,8 +28,8 @@
 | `AboutViewModel` | `AboutSettingsPage` | 关于与更新 |
 
 规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属模块注册器
-`RegisterNavigation`（B6/#79 起 M5 为 `StarPie.Shell` 的 `ShellModuleRegistrar`、B9/#82 起 M1 为
-`StarPie.Gestures` 的 `GesturesModuleRegistrar`，Host 外观聚合页仍 exe 内 `HostModuleRegistrar`）
+`RegisterNavigation`（M5 为 `StarPie.Shell` 的 `ShellModuleRegistrar`、M1 为
+`StarPie.Gestures` 的 `GesturesModuleRegistrar`，Host 外观聚合页为 exe 内 `HostModuleRegistrar`）
 + 所属模块页面模板字典 DataTemplate（M5 在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在
 `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`）+ 本表各登记一行**；映射表是唯一事实来源
 （接线流程见 [navigation.md](navigation.md)）。

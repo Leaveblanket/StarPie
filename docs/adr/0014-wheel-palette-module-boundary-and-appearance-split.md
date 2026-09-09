@@ -1,5 +1,7 @@
 # 轮盘配色模块归属与外观设置模块化拆分（界面主题模块边界 + 预设名语义）
 
+> Status: Active
+
 2026-09-04 对 #51 完成 grilling-with-docs 共识（Q1–Q14）后裁决：为 #41/#50 重构中
 范围外暂存的轮盘配色（`SelectedTheme`/自定义预设）定稿模块归属、外观 VM 拆分目标
 形态与预设名显示语义。本 ADR 记录该共识；只涉及设计与文档，不推翻 ADR-0013 既有
@@ -146,19 +148,3 @@ Accepted（grilling 共识 Q1–Q14/#51，2026-09-04；实施批次待 #51 backl
   绿，涉及可见文案时 e2e 绿。
 - CONTEXT 无需修订：现有术语（界面主题/轮盘配色/主题风格）已覆盖；「界面主题模块」
   是架构模块名而非领域术语，按共识不进词汇表。
-
-## Appendix：参考事实（2026-09-04 快照）
-
-- 轮盘配色消费链：`RadialWindow`/`WheelPreviewRenderer` → `StyleRendererFactory` →
-  `IRadialStyleRenderer.Initialize(theme, config, windowsInDarkMode)`；方案 hex 表现
-  硬编码于 `Views/Renderers/BaseStyleRenderer.cs`（MatchaForest/GlacialIce/
-  MorandiMuted/自定义预设/Custom 分支）。
-- 外观页卡片：Card 0 界面主题（`AppThemeComboBox`，静态 ComboBoxItem + 事件应用）；
-  Theme & Style Preset 卡（`UiStyleComboBox` + `ThemeComboBox` ItemsSource 化）；
-  自定义高级配色扩展器（五色微调 + 预设 CRUD）；光晕/几何/排版/核图标卡。
-- 预设 CRUD 硬编码中文残留（`AppearanceSettingsViewModel.cs`）：保存默认名/标题/提示
-  （680）、保存成功提示（705）、空名校验（722）、删除确认（742）、删除成功提示
-  （759）。
-- 界面主题令牌：`Views/Styles/Themes/*.xaml` 27 key × 五套同 key 集（#49 一致性测试
-  保护）；`IThemeService` 注入面：设置窗口、对话框、轮盘工厂、托盘（仅 OS 深浅色
-  探测为轮盘侧唯一接触点）。

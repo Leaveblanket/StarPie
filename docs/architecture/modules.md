@@ -1,13 +1,10 @@
-# 模块划分地图与模块化路线（模块地图）
+# 模块划分地图（模块地图）
 
-> 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：目标模块清单、职责、归属裁定、扩展点验收与模块化候选。
+> 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：模块清单、职责、归属裁定、扩展点验收与模块化候选。
 >
-> 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异清单见 §7，随实施批次（§8）逐批回填叶子。
+> 本文按 as-built 现状撰写；代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。
 >
-> 程序集化目标态（15 程序集：ADR-0016 的 7 + ADR-0020/#88 新增 StarPie.Dialogs +
-> ADR-0023/#95 S1 成集新增 StarPie.Icons.Contracts/StarPie.Icons + ADR-0023/#96 新增
-> StarPie.Programs.Contracts/StarPie.Dialogs.Contracts + ADR-0023/#97 新增
-> Theme.Contracts/Wheel.Contracts/Gestures.Contracts）与批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
+> 程序集化现状（15 程序集）与程序集级依赖方向见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
 > [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)、
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）。
 
@@ -18,7 +15,7 @@
 | 归属争议：某个文件/职责属于哪个模块 | 本文 §4 + ADR-0015 |
 | 模块内代码怎么组织、关键流程 | 对应叶子（路由见 [architecture.md](../architecture.md)） |
 | 加/改功能应动哪些内部 | 本文 §6 验收表 |
-| 程序集化目标态 / 依赖方向 / 导航槽位 / 批次 | [assemblies.md](assemblies.md) + ADR-0016 |
+| 程序集化现状 / 依赖方向 / 导航槽位 | [assemblies.md](assemblies.md) |
 | 为什么这样划分 | ADR-0015 + ADR-0016 |
 
 ## 2. 划分判据
@@ -26,8 +23,7 @@
 1. **独立修整单元**：修改或新增一个功能，只动“相关模块的内部”；跨模块只经稳定契约，或触碰 §2.3 放行共享面。
 2. **模块 = 领域能力**：一个模块拥有它的运行态/服务、配置面（设置子 VM/卡片）与领域数据语义；页面是聚合壳（§5 D6），不强行归单一模块。
 3. **契约归属（ADR-0023/#96 修订）**：模块出口契约（接口 + 跨模块 DTO/纯数据）随**实现方模块**
-   下沉其 `*.Contracts` 程序集（取代 ADR-0020/#88「第二消费方族 → 上提 Core」的旧执行口径，
-   历史落点见 [assemblies.md](assemblies.md) §9）；共享件出现第二个消费方族时——若属全局
+   下沉其 `*.Contracts` 程序集（取代 ADR-0020/#88「第二消费方族 → 上提 Core」的旧执行口径，历史见 ADR-0023 与 git）；共享件出现第二个消费方族时——若属全局
    机制/数据入共享内核，若属某模块出口契约下沉该模块 Contracts（单一消费方的能力留在消费
    模块内部，ADR-0014 消费方判据的推广）。
 4. **无“文档分组惯性”**：没有共享领域上下文、没有耦合、只因“都小/都横切”而并在一起的概念，不得并成一个模块（历史反例：本地化与消息，已拆）。
@@ -38,19 +34,17 @@
 
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
-- `Composition.cs` / 导航登记一次（B3/#76 起：exe 内 Host 临时注册器（M1/M5 已随 B9/#82/
-  B6/#79 迁出）+ M1/M5 正式注册器 `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）/
-  `ShellModuleRegistrar`（B6/#79 迁入 `StarPie.Shell`）`RegisterNavigation` + 模块页面模板字典 +
-  [naming.md](naming.md) 映射表；M5 页面 VM DI 注册已下放 ShellModuleRegistrar、M4 主题服务与
-  主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
-  M2 轮盘工厂与轮盘外观设置子 VM DI 注册已下放 `WheelModuleRegistrar`（B8/#81 迁入
-  `StarPie.Wheel`，M2 无导航页），M1 手势管线/页面 VM/`IProfilePreviewSource` 别名 DI 注册已下放
-  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；S1 图标资产实例服务注册已下放
-  `IconsModuleRegistrar`（ADR-0023/#95 迁入 `StarPie.Icons`，S1 无导航页，无
-  RegisterNavigation）；M3 快捷方式解析契约注册已下放
-  `ProgramsModuleRegistrar`（ADR-0019/#87 迁入 `StarPie.Programs`，M3 无导航页，无
-  RegisterNavigation）；仅 Host 外观聚合页 VM 仍由组合根
-  注册；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
+- `Composition.cs` / 导航登记一次：模块注册器 `RegisterNavigation` + 模块页面模板字典 +
+  [naming.md](naming.md) 映射表（M5：`StarPie.Shell` 的 `ShellModuleRegistrar`；M1：
+  `StarPie.Gestures` 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
+  `HostModuleRegistrar`）；页面 VM DI 注册由所属注册器下放——M5 页面 VM 由
+  ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Theme`，
+  M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelModuleRegistrar`（`StarPie.Wheel`，
+  M2 无导航页）、M1 手势管线/页面 VM/`IProfilePreviewSource` 别名由
+  `GesturesModuleRegistrar`（`StarPie.Gestures`）、S1 图标资产实例服务由
+  `IconsModuleRegistrar`（`StarPie.Icons`，ADR-0023/#95）、M3 快捷方式解析与扫描契约注册由
+  `ProgramsModuleRegistrar`（`StarPie.Programs`，ADR-0019/#87）下放；仅 Host 外观聚合页 VM 仍
+  由组合根注册；注册器 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
 - 共享视图基础设施（**ADR-0022/#94 已去共享化**，共享内核不再持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
@@ -60,69 +54,67 @@
   根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
 
-## 3. 模块地图（目标划分，12 个模块）
+## 3. 模块地图（12 个模块）
 
 ### 业务纵向模块（5）
 
 #### M1 手势与动作
 - **职责**：手势触发判定与执行全链、动作系统端到端、配置方案（Profile）编辑面。
-- **关键内部**：`Services/Gestures/*`（MouseHook、GestureController、GestureEngine、WindowContext；
-  轮盘工厂 `WheelFactory` 已随 D5/B8 收编 M2，见 [wheel.md](wheel.md)）、`Services/Actions/*`（路由/执行/系统命令映射）、动作系统预设目录、`Models/ActionItem` 语义、触发与场景设置面（`BehaviorSettingsViewModel`/`TriggerSettingsPage`）、配置方案设置面（`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）。
-- **对外契约**：经 Wheel.Contracts 契约 `IWheelFactory` 装配 M2 瞬态轮盘（B8/#81 D5 工厂随
-  M2 收编；ADR-0023/#97 契约下沉 `StarPie.Wheel.Contracts`，M1→M2 runtime 允许边清零——
-  M1 手势侧只经契约接口消费）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读
-  `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，#69
-  已落地；ADR-0023/#97 起契约随实现方 M1 下沉 `StarPie.Gestures.Contracts`）。
+- **关键内部**：手势触发与执行全链（MouseHook/GestureController/GestureEngine/WindowContext）、
+  动作路由/执行/系统命令映射与预设目录、动作项 `ActionItem` 语义、触发与场景设置面
+  （`BehaviorSettingsViewModel`/`TriggerSettingsPage`）、配置方案设置面
+  （`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）；物理路径见 [layout.md](layout.md)
+  与 [gestures.md](gestures.md)。
+- **对外契约**：经 Wheel.Contracts 契约 `IWheelFactory` 装配 M2 瞬态轮盘（M1→M2 runtime 允许
+  边经契约清零，ADR-0023/#97）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读
+  `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，契约
+  随实现方驻 `StarPie.Gestures.Contracts`）。
 - **扩展局部性**：新增动作类型（原型 D）、新增触发条件/场景规则 → M1 内部；新图标资产 → S1；新文案 → S3。
 
 #### M2 轮盘与渲染
 - **职责**：手势轮盘瞬态 VM、窗口呈现、样式渲染体系、外观配置面、轮盘配色解析、实时预览。
-- **关键内部**（B8/#81 起物理居 `StarPie.Wheel/`；#97 起出口契约下沉
-  `StarPie.Wheel.Contracts/`）：`ViewModels/Wheel/WheelViewModel.cs`（`IWheelViewModel`
-  实现）、
-  `WheelAppearanceSettingsViewModel`（`ViewModels/Pages`）、`Views/Wheel/RadialWindow`、
-  `Views/Renderers/*`、`Views/Converters/CoreIcon*`（B8/#81 归属裁决随 M2）、
-  `Models/WheelPalette/Catalog/Parser`（物理随 M2 收编）、轮盘视觉几何与轮盘工厂
-  （`Services/Wheel/WheelGeometry.cs` + `WheelFactory`，R6 三分 + D5 收编）。
+- **关键内部**：`WheelViewModel`（实现 `IWheelViewModel`）、`WheelAppearanceSettingsViewModel`
+  （实现 `IWheelAppearanceState`）、`RadialWindow`、样式渲染器与实时预览、`CoreIcon*` 核图标
+  预览转换器、轮盘配色 `WheelPalette*`、视觉几何 `WheelGeometry` 与轮盘工厂 `WheelFactory`
+  （出口契约 `IWheelFactory`/`IWheelViewModel`/`IWheelAppearanceState` 驻
+  `StarPie.Wheel.Contracts`，ADR-0023/#97）；物理路径见 [layout.md](layout.md) 与
+  [wheel.md](wheel.md)。
 - **对外契约**：由 M1 经 Wheel.Contracts 契约 `IWheelFactory`/`IWheelViewModel` 装配
   （ADR-0023/#97）；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`
-  （M2→M4 runtime 允许边 #97 清零，改经 Theme.Contracts 契约边）；预览 Profile 上下文经
-  M1 只读 `IProfilePreviewSource`（#97 起驻 `StarPie.Gestures.Contracts`）转发（#69 已落地）。
+  （M2→M4 runtime 允许边经 Theme.Contracts 契约边清零）；预览 Profile 上下文经 M1 只读
+  `IProfilePreviewSource`（驻 `StarPie.Gestures.Contracts`）转发。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
 #### M3 程序扫描与目录
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
-- **关键内部**：契约与实现分居——出口契约驻 `StarPie.Programs.Contracts/`
-  （`Services/Programs/`：`IProgramScanner`/`ProgramCatalog`/`ProgramEntry` + `Services/Icons/`：
-  SPI `IShortcutTargetResolver`，命名空间不变，ADR-0023/#96 自 Core 迁出）；实现驻
-  `StarPie.Programs/`——`ProgramScanner`（IO 扫描编排；ADR-0020/#88 起实例实现契约
-  `IProgramScanner`，构造注入 Icons.Contracts 的 `IIconAssetService` + Programs.Contracts 的
-  `IShortcutTargetResolver`）、`ShortcutResolver`（实例实现 SPI `IShortcutTargetResolver`，
-  ADR-0019/#87）与模块注册器 `ProgramsModuleRegistrar`。
-- **对外契约**：扫描/过滤数据经 Programs.Contracts 契约（`IProgramScanner`/
-  `ProgramCatalog`/`ProgramEntry`）提供给 S6 的程序选择对话框等消费方（Dialogs → Programs
-  仅经契约边），不反向依赖 S6；.lnk SPI 经 Programs.Contracts 提供给 S1 图标服务（Icons
-  runtime → Programs.Contracts 契约边）；消费 S1 契约 `IIconAssetService`（ADR-0023/#95 起驻
-  `StarPie.Icons.Contracts`，M3 → Contracts 契约边）。M3 runtime → Programs.Contracts +
-  Icons.Contracts 单向，不再引用共享内核 Core/其它业务模块 runtime。
+- **关键内部**：出口契约 `IProgramScanner`/`ProgramCatalog`/`ProgramEntry`/
+  `IShortcutTargetResolver` 驻 `StarPie.Programs.Contracts`（ADR-0023/#96）；实现
+  `ProgramScanner`/`ShortcutResolver`/`ProgramsModuleRegistrar` 驻 `StarPie.Programs`
+  （`ProgramScanner` 构造注入 Icons.Contracts 的 `IIconAssetService` 与 Programs.Contracts 的
+  `IShortcutTargetResolver`）；物理路径见 [layout.md](layout.md) 与 [programs.md](programs.md)。
+- **对外契约**：扫描/过滤数据经 Programs.Contracts 契约提供给 S6 的程序选择对话框等消费方
+  （Dialogs → Programs 仅经契约边）；.lnk SPI 经 Programs.Contracts 提供给 S1 图标服务
+  （Icons runtime → Programs.Contracts 契约边）；消费 S1 契约 `IIconAssetService`。M3 runtime
+  → Programs.Contracts + Icons.Contracts 单向，不引用共享内核 Core/其它业务模块 runtime。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部；新增扫描/跨模块协议 → 扩展
   `StarPie.Programs.Contracts`（消费方驱动）。
 
 #### M4 界面主题
 - **职责**：窗口 UI 主题体系（AppTheme）——配置与解析、状态/切换/系统跟随、XAML 令牌集与整项替换、界面主题设置面、主题应用消息。
-- **关键内部**：`ThemeService`（实现 `IThemeService`）、根 `ThemePaletteManager.cs`、
-  `Views/Styles/Themes/*.xaml`、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；
-  **B7/#80 起物理居独立模块程序集 `StarPie.Theme/`（Services/Shell/ThemeService.cs、模块根
-  ThemePaletteManager、Views/Styles/Themes、ViewModels/Pages、Modules 注册器
-  ThemeModuleRegistrar）；ADR-0023/#97 起出口契约 `IThemeService` 下沉
-  `StarPie.Theme.Contracts/`（Services/Shell/IThemeService.cs，自 StarPie.Theme 迁出）**；
-  各窗口（MainView/对话框/RadialWindow）仅按 ADR-0009 白名单注入应用——M2/S6 消费方经
-  Theme.Contracts 契约边（M2→M4、Dialogs→M4 runtime 允许边 #97 清零）。
+- **关键内部**：`ThemeService`（实现 `IThemeService`）、根 `AppThemePaletteManager`、五套主题
+  画刷令牌字典、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；出口契约
+  `IThemeService` 驻 `StarPie.Theme.Contracts`（ADR-0023/#97）；物理路径见 [layout.md](layout.md)
+  与 [interface-theme.md](interface-theme.md)。各窗口（MainView/对话框/RadialWindow）仅按
+  ADR-0009 白名单注入应用——M2/S6 消费方经 Theme.Contracts 契约边（M2→M4、Dialogs→M4
+  runtime 允许边清零）。
 - **扩展局部性**：新增主题方案/令牌/跟随策略 → M4 内部 + S3 文案。
 
 #### M5 壳层与系统集成
 - **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级与关于设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
-- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、`GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage`；**B6/#79 起物理居独立模块程序集 `StarPie.Shell/`（Services/Shell、ViewModels|Views/Pages、Modules 注册器/模板字典）**。（`MainView.xaml.cs` 不再归 M5——R4/ADR-0016 重新归属 Host 壳窗口）
+- **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、
+  `GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage` 与模块
+  注册器/页面模板字典（物理居 `StarPie.Shell/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
+  不归 M5——R4/ADR-0016 归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
 
@@ -130,23 +122,20 @@
 
 #### S1 图标资产
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
-- **关键内部**（ADR-0019/#87 双形拆分 + ADR-0023/#95 成集）：契约四件驻
-  `StarPie.Icons.Contracts/Services/Icons/`——静态纯目录 `IconCatalog.cs`
-  （`VectorIconList`/`GetSvgPathByKey`/`ExtractSvgPathData`，无状态）+ 实例服务契约
-  `IIconAssetService.cs` + `CustomIconItem.cs`/`VectorIconItem.cs`（命名空间
-  `StarPie.Services.Icons` 不变，零程序集依赖）；实现 `IconAssetService.cs` 与注册器
-  `IconsModuleRegistrar` 驻 `StarPie.Icons/`（`Services/Icons/` + `Modules/`，经注入
-  `IShortcutTargetResolver` 消费 .lnk 解析）；`.lnk` 解析契约 `IShortcutTargetResolver.cs`
-  自 ADR-0023/#96 起随 M3 下沉 `StarPie.Programs.Contracts/Services/Icons/`（由 M3 实现，
-  Icons runtime → Programs.Contracts 契约边；Icons → Core 仅余 S2 AppDataPaths 共享基建）；
-  消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器（Dialogs/Wheel/Gestures/Programs/Host
-  csproj 显式引用 `StarPie.Icons.Contracts`，不再经 Core 消费 S1 类型）。
+- **关键内部**（契约与实现分居，ADR-0019/#87、ADR-0023/#95/#96）：契约四件（静态纯目录
+  `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）驻
+  `StarPie.Icons.Contracts`；实现 `IconAssetService` 与注册器 `IconsModuleRegistrar` 驻
+  `StarPie.Icons`；`.lnk` 解析契约 `IShortcutTargetResolver` 随 M3 驻
+  `StarPie.Programs.Contracts`（Icons runtime 经契约边消费，Icons → Core 仅余 S2
+  AppDataPaths）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。物理路径见
+  [layout.md](layout.md)。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
 
 #### S2 配置与保存
 - **职责**：`config.json` 读写/宽松解析/默认播种/向后兼容、运行态配置、防抖与立即保存编排、导入/导出、`AppDataPaths`。
-- **关键内部**：`Services/Configuration/*`（不含 `AutostartRegistry`——R1 已随 #70 迁至 M5 侧
-  `Services/Shell/`，见 §4）；`Models/` 配置 POCO 的物理居所（语义归属见 R8）。
+- **关键内部**：配置服务与保存编排（`IConfigService`/`JsonConfigService`/`ISaveDebouncer`/
+  `SettingsSaveOrchestrator`/`AppDataPaths`；不含 `AutostartRegistry`——归 M5，见 §4）；
+  `Models/` 配置 POCO（语义归属见 R8）。
 - **扩展局部性**：加配置字段（原型 A 模型步）→ S2 + 所属模块 VM（放行共享面）。
 
 #### S3 本地化
@@ -164,33 +153,26 @@
   槽位表 0–4 正典、页面注册目录与完整性收口；页面模板由所属模块提供（ADR-0016）。
   导航运行时主体（当前页状态/执行入口/导航项 VM/主框架 VM）归 H1 宿主壳件
   （ADR-0021/#92，与 R4/D3 同判据——单一消费方在 Host，模块对运行时类型零引用）。
-- **关键内部**：共享内核仅留 `Services/Navigation/NavigationCatalog.cs`（`NavigationCatalog`/
-  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——跨模块注册契约，模块注册器写、
-  控制台读）；运行时主体物理居 Host `Services/Navigation/`（`NavigationStore`/
-  `NavigationExecutor` 含 `INavigationExecutor`）+ `ViewModels/Navigation/`
-  （`NavigationItemViewModel`/`MainViewModel` 纯导航目录驱动，ADR-0021/#92 迁入、命名空间不变，
-  见 [host.md](host.md)/[navigation.md](navigation.md)）、`SidebarView`（导航壳 UI 属 Host，见
-  [assemblies.md](assemblies.md) §4）。
+- **关键内部**：共享内核含目录/槽位契约 `NavigationCatalog`（`NavigationCatalog`/
+  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——模块注册器写、控制台读）；
+  运行时主体（`NavigationStore`/`NavigationExecutor` 含 `INavigationExecutor`/`MainViewModel`/
+  `NavigationItemViewModel`）在 Host（ADR-0021/#92，命名空间不变，见
+  [host.md](host.md)/[navigation.md](navigation.md)）；`SidebarView` 属 Host。
 - **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
-  （B3/#76 起 exe 内先行；B6/#79 起 M5 已跨程序集自治——新增 M5 页面只动模块内部，页面 VM DI 注册
-  随 ShellModuleRegistrar 下放；B9/#82 起 M1 同款自治——新增 M1 页面只动
-  `StarPie.Gestures` 模块内部，页面 VM DI 注册随 GesturesModuleRegistrar 下放）；目标态为 S5/H1 之外的模块自治
-  （见 [assemblies.md](assemblies.md) §5）。
+  （M5 只动 `StarPie.Shell`、M1 只动 `StarPie.Gestures` 模块内部，页面 VM DI 注册随各自
+  ShellModuleRegistrar/GesturesModuleRegistrar 下放；Host 外观聚合页经 exe 内
+  HostModuleRegistrar/HostPageTemplates），不碰其它模块（见 [assemblies.md](assemblies.md) §5）。
 
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
-- **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Dialogs.Contracts/`
-  `Services/Dialogs/`（ADR-0023/#96 自 Core 迁出，纯 C#，命名空间 `StarPie.Services.Dialogs`
-  不变）；实现与界面（`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）
-  物理居独立模块程序集 `StarPie.Dialogs/`（ADR-0020/#88，B11/#88 已落地；`ViewModels/Dialogs`、
-  `Views/Dialogs`、`Views/Controls` 随迁，命名空间不变）。
+- **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Dialogs.Contracts`
+  `Services/Dialogs/`（纯 C#，命名空间不变，ADR-0023/#96）；实现与界面（`DialogService`、五对
+  对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻 `StarPie.Dialogs`（ADR-0020/#88）。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Programs.Contracts 契约
-  `IProgramScanner`（M3 注册器提供实现，ADR-0020/#88 替代组合根委托注入，S21 归零；
-  ADR-0023/#96 起 Dialogs → Programs 仅经契约边），图标资产/快捷方式解析经 Icons.Contracts /
-  Programs.Contracts 出口接线（R7，T3c/#67 已落地）；窗口主题应用消费 M4 `IThemeService`
-  （ADR-0023/#97 起经 Theme.Contracts 契约边，Dialogs→M4 runtime 允许边清零）；不直穿
-  M3/S1/M4 runtime 内部；消费方（M1/M2/M5/Host）只显式引用 `StarPie.Dialogs.Contracts`
-  调 `IDialogService`。
+  `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Icons.Contracts /
+  Programs.Contracts 出口接线；窗口主题应用消费 M4 `IThemeService`（经 Theme.Contracts 契约边，
+  Dialogs→M4 runtime 允许边清零，ADR-0023/#97）；不直穿 M3/S1/M4 runtime 内部；消费方
+  （M1/M2/M5/Host）只显式引用 `StarPie.Dialogs.Contracts` 调 `IDialogService`。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
   扩展 `StarPie.Dialogs.Contracts`。
 
@@ -199,8 +181,8 @@
 #### H1 宿主与组合根
 - **职责**：进程生命周期（单实例、全局异常、启动/退出/隐藏协调）、DI 组合根注册与解析、宿主回调委托、开发实例。
 - **关键内部**：`App`/`AppHost`/`Composition`/`DevInstance`（R2）；宿主回调委托包
-  `AppHostDelegates` 为 H1 职责——类型本体已上提 Core 契约（B6/#79，`StarPie.Core/Services/`），
-  回填实现仍归 Host（见 [host.md](host.md)/[layering.md](layering.md)）。
+  `AppHostDelegates` 为 H1 职责——类型本体为 Core 公开契约（`StarPie.Core/Services/`），
+  回填实现归 Host（见 [host.md](host.md)/[layering.md](layering.md)）。
 - **扩展局部性**：新服务/页面 VM 注册一行（放行）；不承载业务逻辑。
 
 ## 4. 归属裁定表（R1–R8）
@@ -264,72 +246,16 @@ WheelAppearanceSettingsViewModel 均只依赖契约程序集）。M2 构造契�
 | 原型/场景 | 示例 | 只动 | 放行共享面 |
 |---|---|---|---|
 | A 新增设置项 | 现有页加开关 | 所属模块 VM | S2 模型字段、S3 文案键 |
-| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，目标态见 [assemblies.md](assemblies.md) §5） | B6/#79 起 M5：只动 `StarPie.Shell` 模块内部；B9/#82 起 M1：只动 `StarPie.Gestures` 模块内部（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页仍 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根（目标态 Host 页）；目标态：新增页面不碰 Host，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面 | 新导航页 | 新域/所属模块（注册器 + 页面模板字典，见 [assemblies.md](assemblies.md) §5） | M5 只动 `StarPie.Shell` 模块内部；M1 只动 `StarPie.Gestures` 模块内部（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框 | 新模态 | S6 内部 | 调用方模块一行（经 `IDialogService`） |
 | D 新增动作类型 | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射） | 新图标资产 → S1；S3 文案；config 兼容 |
 | E 新增轮盘样式 | 新 Renderer | M2 内部（渲染器/工厂/配色目录/外观选项） | S3 文案 |
-| F 新增后台服务/监听器 | 新 Hook/Service | 所属模块内部 | B3 前：H1 注册一行；目标态（B4 起）：所属模块注册器一行、新增模块才 H1 |
+| F 新增后台服务/监听器 | 新 Hook/Service | 所属模块内部 | 所属模块注册器一行、新增模块才 H1 |
 | 附加：新语言 | — | S3 | — |
 | 附加：新消息/通知类型 | — | S4 | 放行共享面（Q16-A） |
 | 附加：新图标资产 | — | S1 | 放行共享面 |
 | 附加：新主题方案 | — | M4 | S3 文案 |
 | 附加：新程序来源 | — | M3 | — |
-
-## 7. 现状叶子 → 目标模块对照与差异
-
-> **B1（#64，纯文档基线）已完成**：`localization.md`/`shell.md` 按 S3+S4 / M4+M5 拆分表述（新建
-> [messages.md](messages.md)/[interface-theme.md](interface-theme.md)），`config.md`/`host.md`/
-> `navigation.md`/`gestures.md`/`wheel.md` 按 §4 归属裁定回填（R1 文档摘除、R2/R3 去重、R4 文件级登记、
-> R8 语义登记、D3/D4 叶子表述）。**B3（图标/几何/解析三分，T3a–T3d/#65–#68）已完成**：S1/M2/M3
-> 出口与接线落地（#65–#67）、旧入口删除与条目物理收编（#68），programs.md/wheel.md 差异行随本批
-> 清零。**B5（#70，物理小件迁移）已完成**：`GesturePoint`→`Models/`（R5）、`AutostartRegistry`→
-> `Services/Shell/`（R1）、`DevInstance`→工程根（R2），config.md/host.md/gestures.md/shell.md/layout.md
-> 差异行随本批清零；MainViewModel 未拆分（D3 非目标登记）。**B2/B4/B6 已按 #71 收口**：gestures.md 按 as-built 补全 M1 配置方案设置面（B2，见 [gestures.md](gestures.md)）；dialogs.md 的 R7 接缝整理代码已在 T3c/#67 落地，本批登记清零（B4）；
-> B6 降级为方向性注记（见 §8）。**B7/#80（模块化 M4 Theme 抽取）已落地**：界面主题体系
-> （ThemeService/IThemeService、ThemePaletteManager、五套主题字典、InterfaceThemeSettingsViewModel、
-> ThemeModuleRegistrar）迁入独立模块程序集 `StarPie.Theme`（依赖方向/现状见
-> [assemblies.md](assemblies.md) §3/§9；本节 M4 归属与差异行维持清零）。**B8/#81（模块化 M2
-> Wheel 抽取，含 D5 解结）已落地**：M2 轮盘件（VM/窗口/渲染器/配色/工厂 + 核图标预览转换器）迁入
-> 独立模块程序集 `StarPie.Wheel`；D5 清零——`WheelFactory` 随 M2 收编、`IWheelFactory` 留 M2 侧
-> 接口、`IProfilePreviewSource` 上提 Core；R8 物理落位同步（WheelPalette* 随 M2 收编、
-> CustomColorPreset 仍 Core）。**B9/#82（模块化 M1 Gestures 抽取·收口）已落地**：M1 手势件
-> （手势管线/动作执行/触发+手势设置页）迁入独立模块程序集 `StarPie.Gestures`，模块注册器
-> GesturesModuleRegistrar 下放 DI 与 `IProfilePreviewSource` 别名，7 程序集目标态除命名空间外
-> 达成（该目标态已于 ADR-0020/#88 扩展为 8 程序集，现状以 [assemblies.md](assemblies.md) §2 为准）。
-> **ADR-0023/#97（Theme/Wheel/Gestures 契约化，允许 runtime 边清零）已落地**：
-> `IThemeService` 下沉 `StarPie.Theme.Contracts`、`IWheelFactory`/`IWheelViewModel`/
-> `IWheelAppearanceState` 下沉 `StarPie.Wheel.Contracts`、`IProfilePreviewSource` 下沉
-> `StarPie.Gestures.Contracts`；M1→M2、M2→M4、Dialogs→M4 三条 runtime 允许边清零（改经各自
-> Contracts 契约边），15 程序集目标态达成；现状以 [assemblies.md](assemblies.md) §2 为准。
-> 下表逐叶对照已无差异。
-
-| 现状叶子 | 目标归属 | 差异（批次登记） |
-|---|---|---|
-| [dialogs.md](dialogs.md) | S6 | —（B4/T3c–#67 接线落地 + #71 登记清零；ADR-0023/#97 已清零：Dialogs→Theme 允许边改经 Theme.Contracts 契约边） |
-| [gestures.md](gestures.md) | M1 | —（B2/#71 已清零：配置方案设置面叶子补全；B8/#81 D5 已清零：工厂随 M2、M1 只经 IWheelFactory 接口引用；B9/#82 已清零：M1 成集 StarPie.Gestures + GesturesModuleRegistrar；ADR-0023/#97 已清零：IProfilePreviewSource 随 M1 下沉 Gestures.Contracts、M1→M2 允许边改经 Wheel.Contracts 契约边） |
-| [localization.md](localization.md) | S3 | —（B1/#64 已清零） |
-| [messages.md](messages.md)（B1 新叶） | S4 | —（B1/#64 已清零） |
-| [navigation.md](navigation.md) | S5 | —（B1/#64 已清零：R4/D3） |
-| [programs.md](programs.md) | M3 | —（B3/T3a–T3d/#65–#68 已清零：三分收口与叶子回填） |
-| [shell.md](shell.md) | M5 | —（B1/#64 已清零） |
-| [interface-theme.md](interface-theme.md)（B1 新叶） | M4 | —（B1/#64 已清零；ADR-0023/#97 已清零：IThemeService 下沉 Theme.Contracts，M2/S6 消费方改经契约边） |
-| [wheel.md](wheel.md) | M2 | —（B3/T3a–T3d/#65–#68 已清零：几何收编与叶子回填；B8/#81 已清零：M2 成集 StarPie.Wheel + 配色物理收编 + D5 工厂收编；ADR-0023/#97 已清零：Wheel.Contracts 契约下沉、M2→M4 允许边改经 Theme.Contracts 契约边） |
-
-## 8. 模块化路线（ADR-0016：B0–B10 排期）
-
-> ADR-0015 时代的候选路线 B1–B6（#64–#71）已全部完成并归档（见 §7 注记）。自 [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) 起，模块化升级为**程序集化排期批次 B0–B10**；路线、每批内容与验收见 [assemblies.md](assemblies.md) §8。
->
-> 每批：独立 issue；构建 + xUnit 绿；涉及可见文案时 e2e 绿；完成后回填对应叶子并从路线移除。
->
-> **B0（本批，纯文档）**：ADR-0016 + assemblies.md + 本节修订 + architecture.md 路由/索引。B1 起为代码批次。
->
-> **B8/#81（M2 Wheel 抽取，含 D5）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记。
->
-> **B9/#82（M1 Gestures 抽取，收口）已落地**：见 [assemblies.md](assemblies.md) §9 现状补记；
-> 本节与 §7/§4/§5 差异行随代码与叶子回填同步清零（7 程序集目标态除命名空间外达成，余 B10；
-> 该目标态已于 ADR-0020/#88 扩展为 8 程序集，现状以 [assemblies.md](assemblies.md) §2 为准）。
->
-> §7 差异表为 ADR-0015 基线的清零状态。**ADR-0016 程序集化批次差异（B1 起）另见 [assemblies.md](assemblies.md) §8/§9**，§7 不再逐行登记。
 
 ## 参见 ADR
 

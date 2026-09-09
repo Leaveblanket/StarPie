@@ -1,5 +1,7 @@
 # 对话框服务设计（IDialogService）
 
+> Status: Active
+
 设置窗口 code-behind 散落 12 处模态对话框调用（程序选择器 ×3、输入框 ×4、图标选择 ×2、颜色选择 ×1、屏上取色 ×1、系统文件对话框 ×1）。决定全部收敛到 `IDialogService`，VM 层达成零对话框类型引用。
 
 ## 接口形状
@@ -24,3 +26,5 @@
 ## 排查结论
 
 - 12 处均为模态调用；对话框确认后一次性写回，与"立即生效"语义无中间态冲突。
+
+> 物理落点演进：[ADR-0020](./0020-dialogs-assembly-and-m3-scanner-contract.md)（`StarPie.Dialogs` 程序集）与 [ADR-0023](./0023-module-contracts-hard-boundary-and-core-narrowing.md)（契约下沉 `Dialogs.Contracts`）。

@@ -1,10 +1,15 @@
 # 模块划分共识：12 模块地图、归属裁定与修整单元判据
 
+> Status: Active（部分被 0016/0023 修订）
+
+> 决策 3（结构形态：概念模块 + 端口）被 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订；共享内核放行/契约归属判据被 [ADR-0023](./0023-module-contracts-hard-boundary-and-core-narrowing.md) 修订。
+> 模块地图正典：[modules.md](../architecture/modules.md)（本 ADR 为决策依据）。
+
 2026-09-04 对模块划分会话（grilling-with-docs，Q1–Q17）达成共识后裁决：为模块化路线定稿目标模块划分、归属裁定与“独立修整单元”判据。本 ADR 记录该共识；只涉及设计/文档，不推翻既有叶子（as-built）条款——叶子按 ADR-0014 同款“随实施批次回填”惯例维持现状，差异清单与批次见 [modules.md](../architecture/modules.md) §7/§8。
 
 ## Status
 
-Accepted（grilling 共识 Q1–Q17/模块划分会话，2026-09-04；实施批次 B1–B6 待排期，架构叶子维持 as-built，随批次回填）。
+Accepted（grilling 共识 Q1–Q17/模块划分会话，2026-09-04；架构叶子维持 as-built，随批次回填）。
 
 ## Considered Options
 
@@ -51,25 +56,16 @@ Accepted（grilling 共识 Q1–Q17/模块划分会话，2026-09-04；实施批�
 5. **配置方案设置面并入手势与动作（M1）**：不单独成模；M1 内部登记三个子面（D1）。
 6. **界面主题升为顶层模块（M4）**：文档先行，物理目录暂不动。
 7. **消息 hub 保留（S4）**：新增消息类型为放行共享面；本地化与消息在文档层拆为 S3/S4。
-8. **图标与几何裁决（R6）**：IconHelper 三分——图标资产 → S1、几何 → M2、程序侧 → M3；实施见 B3。
+8. **图标与几何裁决（R6）**：IconHelper 三分——图标资产 → S1、几何 → M2、程序侧 → M3；实施沿 [modules.md](../architecture/modules.md) §8 路线。
 9. **归属裁定 R1–R8 采纳**（modules.md §4）。
 10. **登记表 D1–D6 采纳**（modules.md §5），其中 MainViewModel 主归属 S5、壳层成员登记类型级双职责例外（D3）。
 11. **页面壳原则**：页面 = 聚合壳；配置面按卡片/子 VM 归模块（#56 Appearance 先例推广，D6）。
-12. **候选路线 B1–B6**：记录于 modules.md §8，非规范、方向性，随批次回填叶子并从路线移除。
+12. **候选路线**：记录于 [modules.md](../architecture/modules.md) §8，非规范、方向性，随批次回填叶子并从路线移除。
 
 ## Consequences
 
 - 新建 [modules.md](../architecture/modules.md) 作为模块地图与模块化路线；本 ADR 为决策依据。
-- 架构叶子维持 as-built，不先行描述未实现结构；差异对照见 modules.md §7，回填按 B1–B6 批次（与 #42–#56 的 S1–S9/分批回填惯例一致）。
+- 架构叶子维持 as-built，不先行描述未实现结构；差异对照见 modules.md §7，回填按 modules.md §8 路线批次进行。
 - CONTEXT 无需修订：模块名（界面主题模块等）与“修整单元”是架构术语而非领域术语（ADR-0014 先例）。
 - 本 ADR 不推翻 ADR-0005（消息总线）、0006/0007（目录正典）、0011（Composition/AppHost 拆分）、0013（本地化/主题）、0014（轮盘配色归属与外观拆分）；0014 的“界面主题模块”正名由本 ADR 收口为 12 模块地图中的 M4。
 - 本 ADR 不做代码改动；后续批次每批需 issue 排期 + 构建 + xUnit 绿（涉及可见文案时 e2e 绿），再回填叶子。
-
-## Appendix：参考事实（2026-09-04 快照）
-
-- 现状叶子 9 个：config/dialogs/gestures/host/localization/navigation/programs/shell/wheel。
-- `GlobalUsings.cs` 全局引入全部 `WinPieGestures.*` 命名空间 → 命名空间级扫描失效，取证按类型级引用。
-- `Messages.cs`/`Notices.cs` 不引用本地化；本地化不引用消息；仅 `AppHost` 同时消费两者。
-- `IconHelper` 消费方：几何成员（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）唯一消费族 = 轮盘（RadialWindow/WheelPreviewRenderer/CoreIconGeometryConverter）；图标资产成员（矢量清单/SVG 键/自定义图标存储/`GetIcon`）被 M1 槽位编辑、S6 图标选择器、M2 渲染共用；`ResolveShortcutTarget` 被 ProgramScanner/ProgramPicker 使用。
-- `MainViewModel` 同时承载导航（NavigationItems/CurrentViewModel/SyncSelection/5 个 `INavigationService<>`）与壳层职责（`WindowTitle`+`DevInstance.Suffix`/`IsExiting`/`Save()`），成员级交织于同一类型。
-- `extending.md` 原型 A–F 为验收样例来源。

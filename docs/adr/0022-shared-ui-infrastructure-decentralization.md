@@ -1,5 +1,7 @@
 # 共享 UI 基建去共享化：转换器/样式字典归 Host、专用控件归模块、页面基类删除
 
+> Status: Active
+
 把共享内核 `StarPie.Core` 中的可复用呈现实现件（共享 UI 基建：4 个通用转换器、
 `ModernControls.xaml`、`HotkeyRecorderBox`、`SettingsPageBase`）移出内核：转换器与
 全局样式字典归宿主 `WinPieGestures`（Host）、专用控件归唯一消费方 `StarPie.Gestures`、
@@ -9,7 +11,7 @@ issue #90；决策记录 #93。
 ## Status
 
 Accepted（2026-09-08/09 grill-with-docs 会话：Q1=B 局部处置、Q3 按推荐；决策先行——
-本 ADR 落地后由实施票 #94 执行，叶子维持 as-built 随实施回填，ADR-0016/0021 同款纪律）。
+实施落地后叶子维持 as-built 随实施回填，ADR-0016/0021 同款纪律）。
 
 ## 背景与动机
 
@@ -72,8 +74,8 @@ Accepted（2026-09-08/09 grill-with-docs 会话：Q1=B 局部处置、Q3 按推�
    改 `UserControl`（`x:Class` 不变）；Trigger/Advanced/Appearance 3 页 code-behind 改为
    `Loaded`/`Unloaded` 成对订阅；Gestures/About 仅换根。
 5. **Core `Views/` 清空**：`Converters/`、`Controls/`、`Styles/`、`Pages/` 目录移除后，
-   Core 不再含呈现实现件（其余收窄随 ADR-0023/#95–#97）。
-6. **测试与文档收口随实施票 #94**：`SharedUiAssemblyPlacementTests`/
+   Core 不再含呈现实现件（其余收窄随 ADR-0023）。
+6. **测试与文档收口随实施落地**：`SharedUiAssemblyPlacementTests`/
    `ShellAssemblyPlacementTests` 断言更新或删除；必要时新增 Gestures 侧断言；叶子回填见
    Consequences。
 7. **e2e 判定**：页面 XAML 根与资源字典有改动，命中 ADR-0018「页面/窗口 XAML」必跑面；
@@ -88,7 +90,7 @@ Accepted（2026-09-08/09 grill-with-docs 会话：Q1=B 局部处置、Q3 按推�
   `/StarPie.Gestures;component/...`（HotkeyRecorderBox 样式段）；key 集不变。
 - **页面代码**：5 页 XAML 根类型变化（无可见行为变化）；3 页 code-behind 订阅从基类
   virtual 钩子改为自订阅，退订义务随页（与 RadiaWindow/MainView 同款成对纪律）。
-- **回填清单（随 #94 落地，维持 as-built 纪律）**：
+- **回填清单（随实施落地，维持 as-built 纪律）**：
   - `modules.md`：§2.3 共享放行清单「共享视图基础设施」行改写（落点 Host/Gestures/
     删除）；
   - `assemblies.md`：§2 Core 行（去掉 Views 件）、§9 B5/B6 历史行加注；
@@ -99,16 +101,3 @@ Accepted（2026-09-08/09 grill-with-docs 会话：Q1=B 局部处置、Q3 按推�
   - `architecture.md`：§3 Core 描述（ADR 索引行随本批）。
 - **与 ADR-0023 的关系**：本决策先行移除 UI 实现件，ADR-0023 随后移除模块契约与 S1，
   两批共同把 Core 收窄为「全局机制/数据 + 共享基建」。
-
-## 参考事实（2026-09-09 快照）
-
-- `StarPie.Core/Views/` 共 7 件：`Converters/`（`HexToBrushConverter`/
-  `StringToGeometryConverter`/`IntEqualsConverter`/`FilePathToImageConverter`）、
-  `Controls/HotkeyRecorderBox.cs`、`Styles/ModernControls.xaml`、
-  `Pages/SettingsPageBase.cs`（B5/#78、B6/#79 落位）。
-- `App.xaml` 现状：合并 Theme Light / Core ModernControls / Gestures+Shell 模板字典 /
-  HostPageTemplates；实例化 4 个 Core 转换器 + 2 个 Wheel 转换器。
-- 编译期消费：`HotkeyRecorderBox` 仅 `GesturesSettingsPage.xaml`；`SettingsPageBase`
-  为 Trigger/Gestures/Advanced/About/Appearance 5 页基类（override 3 页）。
-- 测试：`WinPieGestures.Tests/SharedUiAssemblyPlacementTests.cs` 与
-  `ShellAssemblyPlacementTests.cs` 断言上述件现驻 StarPie.Core。

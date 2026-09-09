@@ -1,5 +1,9 @@
 # 视图导航重构引入 DI 容器（ServiceCollection）
 
+> Status: Active（部分被 0016 修订）
+
+> 注册源条款由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可分散（模块注册器），解析点仍集中（Host 组合根）。
+
 T19 设置控制台重构（MainView 主框架 + 左侧导航 + 五页面经 DataTemplate 映射切换）把装配面从"一个根 VM + 一个窗口"扩大到五个页面 ViewModel、NavigationStore、导航服务等十余个解析点；参照的导航模式（SingletonSean WpfNavigationDemo）亦以容器解析为前提。决定：引入 Microsoft.Extensions.DependencyInjection 作为组合根的装配手段，推翻 ADR-0002"手动组合根、不使用容器"的核心决定。
 
 ## Status

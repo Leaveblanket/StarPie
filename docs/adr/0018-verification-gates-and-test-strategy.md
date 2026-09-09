@@ -1,6 +1,8 @@
 # 验证义务分层：提交级全量 xUnit + e2e 免跑判定，合入门全量
 
-模块化程序集拆分（7 程序集，#75–#83）完成后，“每次 feature/bug-fix 提交都跑全量 xUnit + pywinauto e2e”成为分支内最高频成本；评估“按修改模块拆分测试子集以省全量”时实测：xUnit 全量 569 例仅 0.5s（含构建 12.8s），e2e 单文件 19 例、function-scope 每例冷启动（全量估 2–4 分钟）。决定：不按模块拆分测试工程或用例组，改为两级验证门 + e2e 免跑判定，全量兜底放在合入门；e2e 每用例冷启动予以保留。
+> Status: Active
+
+模块化程序集拆分完成后，“每次 feature/bug-fix 提交都跑全量 xUnit + pywinauto e2e”成为分支内最高频成本；评估“按修改模块拆分测试子集以省全量”时实测：xUnit 全量（569 例）纯执行仅约 0.5s，e2e 为每用例 function-scope 冷启动（全量估 2–4 分钟）。决定：不按模块拆分测试工程或用例组，改为两级验证门 + e2e 免跑判定，全量兜底放在合入门；e2e 每用例冷启动予以保留。
 
 ## Status
 
@@ -9,7 +11,7 @@ Accepted（grilling 共识 Q1–Q5，2026-09-07，issue #86）。
 ## Considered Options
 
 1. **按模块拆分 xUnit/e2e 子集（多测试工程或影响集脚本）**：xUnit 全量 0.5s，无可省空间；测试文件平铺且跨程序集引用（如 MainViewModelTests 同时依赖 Host/Shell/Gestures 注册器），归属映射与收口集需持续维护 → 否。
-2. **e2e 按页面拆组或会话级复用同一应用实例**：每例冷启动 = 每例独立沙箱 + 默认配置确定性；19 例多数写穿 config 不还原（AppTheme/Theme/UiStyle/SectorCount/WheelRadius/CoreIconType/Action Type 等），断言隐含“未被前例污染”；移除重启引入顺序依赖与单例崩溃级联失败，收益上限约 40–90s → 否。
+2. **e2e 按页面拆组或会话级复用同一应用实例**：每例冷启动 = 每例独立沙箱 + 默认配置确定性；多数用例写穿 config 不还原（AppTheme/Theme/UiStyle/SectorCount/WheelRadius/CoreIconType/Action Type 等），断言隐含“未被前例污染”；移除重启引入顺序依赖与单例崩溃级联失败，省时收益有限 → 否。
 3. **两级验证门 + e2e 免跑判定** → **采纳**。
 
 ## Decision

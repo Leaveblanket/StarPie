@@ -1,5 +1,7 @@
 # 本地化与主题切换推翻性重构：resx+强类型+实例服务 / 主题整项替换+实时跟随
 
+> Status: Active
+
 2026-09-04 对 `main` 完成 grilling-with-docs 共识（#41，Q1–Q13）后裁决：将本地化
 （ADR-0010，#29–#33/#40 建立）与主题切换（ADR-0012，#35–#38 建立）**推翻式重构**
 为下述主流形态。本 ADR 记录新目标态，并修订/取代 ADR-0010 决策 1 与 ADR-0012
@@ -118,15 +120,6 @@ Accepted（grilling 共识 Q9-B/Q10-A/Q11 四项全做/Q12 轮盘配色范围外
     仅 System/空模式跟随，固定主题 no-op；AppHost.Run 初始主题应用后启动跟踪。
 - 单测以可变探针模拟系统切换（xUnit 398 绿）；真实系统切换由人工/e2e 冒烟验证。
 
-## 附录：S9 定稿（#50，2026-09-04）
+## 附录：S9 定稿（#50）
 
-- 实施闭环：S1–S9 已全部合入 main（#42–#50）。静态 `I18n` 删除（S4/#45）；主题
-  `ThemePaletteManager` 整项替换 + `SetTheme`/`ThemeChanged` 单一入口（S5/S6，#46/#47）；
-  系统深浅色实时跟随（S7，#48）；键隔离/一致性测试与 C2/C6/C7 文案治理（S8，#49，含外观
-  VM 轮盘配色标签键化；#51 仅余模块拆分/预设名语义/渲染审计）。
-- 资产终态：语言键 260×4 驻 resx（中性 zh-CN + 卫星 zh-TW/en/ja，无 zh-CN 卫星文件）；
-  主题令牌 27 个 × 五套同 key 集（#49 C2 增 `DangerBrush`）。
-- as-built：`localization.md`/`shell.md` 已回填终态（#50）；`architecture.md` 路由与仓库
-  边界、`layout.md` 根级文件表同步；ADR-0010/0012 顶部标注 0013 修订指针。
-- 验证：#50 全量 xUnit 399/399 绿；pywinauto e2e 19/19 绿（conftest 输出路径补
-  `net8.0-windows10.0.19041.0` 后于 Release 产物上执行）。
+S1–S9（#42–#50）已全部合入 main 并回填叶子：静态 `I18n` 删除、主题整项替换与 `SetTheme`/`ThemeChanged` 单一入口、系统深浅色实时跟随、键隔离与文案治理落地；全量 xUnit 399/399、pywinauto e2e 19/19 绿。

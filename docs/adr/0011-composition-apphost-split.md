@@ -1,5 +1,9 @@
 # Composition 拆分：组合根与 AppHost 宿主编排分离
 
+> Status: Active（部分被 0016 修订）
+
+> 注册源由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可下放模块注册器（`RegisterServices`/`RegisterNavigation`），解析点仍集中 Host 组合根。
+
 `Composition.cs` 原本同时承担 DI 组合根与宿主启动/退出编排：`ConfigureServices`、`Run`、
 托盘菜单、语言字典刷新、`ExitApplication`、`Dispose` 全收在一个类里。ADR-0005 引入
 `ServiceCollection` 后装配面扩大到十余个解析点，但 `Run` 及其托盘/退出/语言副作用仍留在
@@ -38,5 +42,3 @@ Accepted。
   从 `Run` 上移到 `CreateAppHost`（仍在 `Config.Load` 之后）。
 - 架构叶子 `host.md`、`layout.md` 同步登记 `AppHost.cs`；后续新增托盘入口/启动副作用改
   `AppHost`，新增服务/页面 VM 仍改 `Composition.ConfigureServices`。
-- ADR-0005 的重新评估触发器继续有效：出现插件系统、多环境/多实例生命周期或 ILogger 生态
-  时再评估 Host 化。

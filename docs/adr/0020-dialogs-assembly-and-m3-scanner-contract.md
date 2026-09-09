@@ -1,5 +1,9 @@
 # 对话框实现程序集化与 M3 扫描契约收口（8 程序集目标态）
 
+> Status: Active（部分被 0023 修订）
+
+> [ADR-0023](./0023-module-contracts-hard-boundary-and-core-narrowing.md) 修订契约落点：`IDialogService` 与结果 record 由 Core 下沉 `StarPie.Dialogs.Contracts`。
+
 把 S6「对话框」实现从宿主 exe 抽为独立模块程序集 `StarPie.Dialogs`（契约 `IDialogService`
 与结果 record 留共享内核 Core），并收口接合缝审查发现的组合根委托注入缝——`ProgramEntry`/
 `ProgramCatalog`/新增 `IProgramScanner` 契约上提 Core、`ProgramScanner` 改实例实现、注册器
@@ -8,8 +12,7 @@ ADR-0016 的 7 程序集扩展为 8 程序集。
 
 ## Status
 
-Accepted（2026-09-08 grill-with-docs 会话：接合缝审查 → Q1–Q6 裁决 → Q7–Q12 全部按推荐
-认可；实施批次 #88 已落地：代码 + 叶子回填 + seams.md 编目同步完成）。
+Accepted（2026-09-08 grill-with-docs 会话：接合缝审查 → Q1–Q6 裁决 → Q7–Q12 全部按推荐认可；实施批次 #88 已落地）。
 
 ## 背景与动机
 

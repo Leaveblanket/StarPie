@@ -1,5 +1,9 @@
 # 图标资产实例服务化、M3 边界例外收口与模块化边界维持
 
+> Status: Active（部分被 0023 修订）
+
+> [ADR-0023](./0023-module-contracts-hard-boundary-and-core-narrowing.md) 修订本 ADR 决策 2“S1 不拆独立模块/程序集”：S1 现已独立成集 `StarPie.Icons.Contracts` + `StarPie.Icons`。
+
 为对齐上游（SoftBlack42/StarPie，本地基线 V1.7.0 / HEAD v1.7.1-beta1）并收纳合理改动，把 S1
 「图标资产」修整为“无状态静态目录 + 有状态/IO/Win32 实例服务”双形，收口 B4/#77 遗留的 M3
 “零 Core 依赖”例外（契约进 Core、`StarPie.Programs` 单向依赖 Core、补模块注册器、取消静态
@@ -160,37 +164,4 @@ Accepted（2026-09-08 grill-with-docs 会话；Q1 命名/位置、Q2 预览桥�
   `gestures.md`（S1 消费表述）、`architecture.md`（技术栈模块程序集段、ADR 索引登记 0019）。
 - 死信处理：ADR-0002 静态清单“IconHelper 保持静态”等历史表述不直接改写（ADR 为历史记录），
   以本 ADR 为现行判据依据；layering.md 同步为现行规范。
-- 上游登记：移植开始前建立登记文档（建议 `docs/architecture/upstream.md` 或独立 leaf），
-  基线快照见 Appendix。
-
-## Appendix：参考事实（2026-09-08 快照）
-
-- 上游：SoftBlack42/StarPie，本地拉取 `D:\Project\.net\Upsteam`，253 commits，HEAD
-  v1.7.1-beta1；功能基线 = V1.7.0 稳定 tag；本地 254 commits，与上游共享初始提交 v1.3.8
-  `214caec`。
-- 本地程序集：Host（exe，`StarPie`）+ Core + Programs + Shell + Theme + Wheel + Gestures；
-  `StarPie.Programs` 为唯一无 ProjectReference 的业务程序集（B4/#77 零 Core 例外）。
-- S1 现状引用：`IconAssets` 文件约 550 行；static 面 = `VectorIconList`/`SvgByKey`/
-  `GetSvgPathByKey`/`ExtractSvgPathData`；有状态/IO/Win32 面 = `_cachedCustomIcons`、
-  `GetCustomIconsDirectory`/`GetCustomIcons`/`ImportCustomIcon`/`ImportCustomSvgData`/
-  `DeleteCustomIcon`/`GetCustomImageSource`/`GetIcon`（SHGetFileInfo/ExtractIconEx/DestroyIcon）
-  与 static 回填 `ResolveShortcutTarget`。
-- S1 消费方（含测试）：M1 `SlotViewModel`（GetCustomIcons/GetSvgPathByKey）；M2
-  `WheelGeometry`（GetSvgPathByKey）、`WheelPreviewRenderer`（GetCustomIcons/
-  GetSvgPathByKey/GetCustomImageSource/GetIcon）、`RadialWindow.xaml.cs`
-  （GetCustomIcons/GetCustomImageSource/GetSvgPathByKey/GetIcon）；Host `DialogService`/
-  `IconPickerViewModel`/`IconPickerWindow.xaml.cs`（GetCustomIcons/VectorIconList/
-  DeleteCustomIcon/ImportCustomIcon/GetCustomImageSource）；Composition 回填行；
-  测试 IconAssetsTests/IconPickerViewModelTests/SlotViewModelTests/WheelGeometryTests。
-- M3 现状：`StarPie.Programs/Services/Programs/` 三文件（ProgramScanner/ProgramCatalog/
-  ShortcutResolver），无 Modules/；`ProgramScanner.ScanInstalledPrograms(
-  Func<string, ImageSource?> iconProvider)` static、不单测；`ProgramPickerViewModel.cs:134`
-  直呼 `ShortcutResolver.ResolveShortcutTarget`；Host Composition 第 40 行回填
-  `IconAssets.ResolveShortcutTarget = ShortcutResolver.ResolveShortcutTarget`。
-- 预览现状：`AppearanceSettingsPage.xaml.cs` 字段 `new WheelPreviewRenderer()`，`OnPageLoaded`
-  自聚合 VM DataContext 缓存 `IWheelAppearanceState`——预览桥先例成立（ADR-0009 白名单 +
-  layering Views 例外登记）。
-- DI/模块化评估引用：MS Learn dependency-injection-guidelines（反对有状态静态类/服务定位器、
-  容器能力边界）、service-registration（Add{GROUP}/TryAdd*）、Ploeh Composition Root、
-  Prism legacy Initializing（Bootstrapper/IModuleCatalog）、modular monolith 每模块容器权衡
-  （kgrzybek ADR-0016 反例）。评估结论：现模式即主流做法，维持。
+- 上游登记：移植开始前建立登记文档（建议 `docs/architecture/upstream.md` 或独立 leaf）。

@@ -1,5 +1,7 @@
 # Views 文件夹与命名空间架构
 
+> Status: Active
+
 延续 ADR-0006 的功能目录原则整理 `Views`。原来 `Views` 根目录同时承载对话框窗口、轮盘窗口和共享样式，命名空间 `WinPieGestures.Views` 无法表达这些窗口的角色；决定把根目录下的视图文件归入功能子目录，并同步命名空间，保持 `Navigation`、`Pages`、`Renderers` 现有目录不变。
 
 ## Status
@@ -31,3 +33,5 @@ Views/
 - `x:Class` 与代码后置命名空间必须同步更新，避免 WPF partial class 失配。
 - 资源引用路径更新为 `../Styles/SettingsStyles.xaml`。
 - `GlobalUsings.cs` 导入 `WinPieGestures.Views.Dialogs`、`Navigation`、`Pages`、`Renderers`、`Wheel` 子命名空间。
+
+> 结构细节正典：[layout.md](../architecture/layout.md)。

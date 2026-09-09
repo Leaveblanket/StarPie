@@ -11,17 +11,9 @@
 > 本文只收**当前活缝**；历史已归零的缝（D5 WheelFactory 收编、S21 扫描委托、ThemeChanged
 > 死事件、IconAssets 静态回填等）在各 ADR/叶子有记录，不在此重复。
 
-## 1. 程序集依赖基线（as-built，15 程序集：ADR-0020/#88 的 8 + ADR-0023/#95 S1 成集新增 2 + ADR-0023/#96 Programs/Dialogs.Contracts 新增 2 + ADR-0023/#97 Theme/Wheel/Gestures.Contracts 新增 3）
+## 1. 程序集依赖基线
 
-```text
-StarPie (Host/exe) ──→ Core / Dialogs / Programs / Shell / Theme / Wheel / Gestures / Icons / Icons.Contracts / Programs.Contracts / Dialogs.Contracts / Theme.Contracts / Wheel.Contracts / Gestures.Contracts
-Gestures ──→ Core + Gestures.Contracts(自身契约) + Wheel.Contracts(契约边) + Dialogs.Contracts(契约边)      Wheel ──→ Core + Wheel.Contracts(自身契约) + Theme.Contracts(契约边) + Gestures.Contracts(契约边) + Dialogs.Contracts(契约边)
-Dialogs  ──→ Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core + Theme.Contracts(契约边)
-Programs ──→ Programs.Contracts（自身契约）+ Icons.Contracts
-Gestures/Wheel/Dialogs/Programs 另 ──→ Icons.Contracts（契约边，ADR-0023/#95）
-Icons    ──→ Icons.Contracts + Programs.Contracts（SPI 契约边，#96）+ Core（S2 AppDataPaths）
-其余 M* ──→ Core 单向；模块 runtime 之间零 ProjectReference（#97，仅 Host 引用 runtime）       Tests ──→ 全部（显式，无传递）
-```
+程序集依赖基线（as-built，15 程序集）见 [assemblies.md](assemblies.md) §3，本文不重复。
 
 ## 2. 规范内缝（approved，改动受 ADR/收口测试守护）
 
@@ -49,26 +41,14 @@ Icons    ──→ Icons.Contracts + Programs.Contracts（SPI 契约边，#96）
 
 | 缝 | 位置 | 压力 | 裁决/触发条件 |
 |---|---|---|---|
-| Host 装配面 | Composition/CreateAppHost 直取模块具体类型（MouseHook/ThemeService/两子 VM 等）；AppHost 编排托盘菜单/ThemePaletteManager/MouseHook 暂停态；Host 聚合页拼装 M2/M4 子 VM | Host 对"模块暴露哪些 public 装配件"有编译期认知；模块不能脱离 Host 决定宿主装配 | ADR-0016 决策 13（组合根集中）；目标态留 Host；不引入子容器/Prism |
-| 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavTab0..4` | 新增第 6 页需改 Core 枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | Q4=a：产品页面数封顶，改动属放行共享面；navigation.md 登记 |
+| Host 装配面 | Composition/CreateAppHost 直取模块具体类型（MouseHook/ThemeService/两子 VM 等）；AppHost 编排托盘菜单/AppThemePaletteManager/MouseHook 暂停态；Host 聚合页拼装 M2/M4 子 VM | Host 对"模块暴露哪些 public 装配件"有编译期认知；模块不能脱离 Host 决定宿主装配 | ADR-0016 决策 13（组合根集中）；留 Host；不引入子容器/Prism |
+| 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 Core 枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | Q4=a：产品页面数封顶，改动属放行共享面；navigation.md 登记 |
 | 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`；模块 VM 构造抓引用，导入后消息自挂 | 任何模块可读写任何配置区；模块间经"同一对象 + 广播"隐式协作 | 放行共享面（modules.md §2.3）；config.json 向后兼容 Hard Constraint |
 | Models 物理残留（R8） | `WheelProfile`/`ActionItem` 语义归 M1、物理 Core；`CustomColorPreset` 语义归 M2、物理 Core（AppConfig 引用） | 业务领域形状渗入共享内核 | R8 已登记；迁移触发条件 = 配置模型与模块语义解耦时再议 |
 
 ## 4. 残留缝（已裁决清理方向，未排期）
 
-当前无。已归零：S21 程序扫描委托（ADR-0020/#88）、ThemeChanged 死事件（ADR-0020/#88）、
-D5 WheelFactory 装配点（B8/#81）、IconAssets 静态回填（ADR-0019/#87）、M3 零 Core 例外
-（ADR-0019/#87）。**ADR-0023/#96（契约下沉，历史注记）**：ADR-0020/#88 上提 Core 的契约
-收容所落点已清零——`IDialogService`/结果 record 迁 `StarPie.Dialogs.Contracts`、
-`IProgramScanner`/`ProgramEntry`/`ProgramCatalog`/`IShortcutTargetResolver` 迁
-`StarPie.Programs.Contracts`，Core `Services/{Programs,Dialogs}` 目录清空；Dialogs→Programs、
-Icons→M3(SPI)、M1/M2/M5→S6 均改经 Contracts 契约边，runtime 互引清零。S21 扫描委托归零
-历史仍指向 ADR-0020/#88。**ADR-0023/#97（允许 runtime 边清零，历史注记）**：原三条允许
-runtime 单向边 M1→M2、M2→M4、Dialogs→M4 已全部删除——`IWheelFactory`/`IWheelViewModel`/
-`IWheelAppearanceState` 迁 `StarPie.Wheel.Contracts`、`IThemeService` 迁
-`StarPie.Theme.Contracts`、`IProfilePreviewSource` 迁 `StarPie.Gestures.Contracts`（自 Core
-迁出）；模块 runtime 互不引用仅经 Contracts 通信（RuntimeNoCrossReferenceTests 守护），
-本文 §1 基线与契约缝行已按 15 程序集改写。
+当前无残留缝。
 
 ## 维护义务
 
