@@ -47,7 +47,7 @@ StarPie/
 │   ├── Services/
 │   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（Host 组合根注册单例、AppHost 回填）
 │   │   ├── Configuration/         # S2：配置读写、防抖保存、AppDataPaths（dev 分支经组合根回填）
-│   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）
+│   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）+ 设计期投影字典 DesignTimeStrings.xaml（Page 编译）与生成脚本（见 design-time-preview.md）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
 │   │   └── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–4；运行时在 Host，仅此文件）
 │   └── ViewModels/Pages/          # 已清空（IProfilePreviewSource.cs 在 StarPie.Gestures.Contracts，ADR-0023；
@@ -153,7 +153,7 @@ StarPie/
 | `Services/Dialogs/` | 契约 `IDialogService` + 结果 record 在 `StarPie.Dialogs.Contracts`；实现 `DialogService` 在 `StarPie.Dialogs` | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View |
 | `Services/Gestures/` | `StarPie.Gestures/Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`、`IWindowContext`/`WindowContext`（`WheelFactory` 属 M2，见 `Services/Wheel/` 行） | 手势判定纯逻辑不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
 | `Services/Icons/` | 契约四件在 `StarPie.Icons.Contracts`；实现 `IconAssetService` 在 `StarPie.Icons`；.lnk 契约 `IShortcutTargetResolver` 在 `StarPie.Programs.Contracts` | 几何/程序解析类入口不在此（归属见 [modules.md](modules.md) §3 S1）；有状态/IO/Win32 面只经实例服务注入 |
-| `Services/Localization/` | `StarPie.Core/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx` | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
+| `Services/Localization/` | `StarPie.Core/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx`；设计期投影 `DesignTimeStrings.xaml`（Page 编译签入生成物）与生成脚本同目录（ADR-0025 例外） | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
 | `Services/Messages/` | `StarPie.Core/`：`Messages.cs`（IMessenger 消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest`） | 同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | Core：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Wheel/` | `StarPie.Wheel/Services/Wheel/`：`WheelGeometry`、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Wheel.Contracts`） | 工厂只经 Wheel.Contracts 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
@@ -188,8 +188,6 @@ StarPie/
 
 ## 根级文件规则
 
-- `design/`：设计期资源单源与生成脚本（`DesignTimeStrings.xaml` + 生成脚本；由 resx 派生并签入，
-  见 [design-time-preview.md](design-time-preview.md)）。
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
@@ -204,7 +202,9 @@ StarPie/
   Programs.Contracts/Dialogs.Contracts，ADR-0023）、`ViewModels/Pages/`（IProfilePreviewSource
   在 Gestures.Contracts，ADR-0023）与 `Views/`（共享 UI 基建：通用转换器/ModernControls.xaml
   在 Host `Views/Converters|Styles/`、HotkeyRecorderBox（控件+样式字典）在 `StarPie.Gestures/`、
-  共享页面基类 SettingsPageBase 已删除）在 Core 均已清空）。
+  共享页面基类 SettingsPageBase 已删除）在 Core 均已清空）——唯一 XAML 例外：
+  `Services/Localization/DesignTimeStrings.xaml`（设计期投影字典，Page 编译签入生成物）与同目录
+  生成脚本 `GenerateDesignTimeStrings.ps1`（见 [design-time-preview.md](design-time-preview.md)）。
 - `StarPie.Icons.Contracts.csproj`：S1 契约程序集工程入口（ADR-0023，WPF 类库、零
   ProjectReference）；`StarPie.Icons.Contracts/` 源码根目录**只允许** `Services/Icons/`
   （`IIconAssetService.cs`/`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`）。

@@ -23,10 +23,11 @@
 ### 字典单源落位
 - **(c) 仓库根松散单源 + 相对合并**：`design/DesignTimeStrings.xaml` 一份，各工程资源锚以
   `../../design/...` 合并。零编译产物、零 Core 污染；依赖设计器对松散文件的相对路径合并行为 →
-  **先试**；spike 失败回退 (a)。
+  尝试后因 spike 无法验证而回退（无 VS 设计器、无官方文档支撑跨工程父目录松散合并）。
 - **(a) Core 编译惰性字典 + pack URI**：`StarPie.Core/Services/Localization/DesignTimeStrings.xaml`
   编入 Core、pack URI 合并。机制文档化、稳；代价是 Core 出现首份 XAML 与“运行时永不合并”的
-  惰性 BAML，需与“去共享化 / 不得另建文案字典”划清界限（定位为设计期投影，非运行时第二数据源）。
+  惰性 BAML，需与“去共享化 / 不得另建文案字典”划清界限（定位为设计期投影，非运行时第二数据源）→
+  **选此**。
 - 每工程生成副本：N 份 267 键副本与同步护栏，维护负担高 → 否。
 
 ### 设计视口口径
@@ -49,8 +50,9 @@
 1. 每个含 UI 工程（StarPie / StarPie.Shell / StarPie.Gestures / StarPie.Dialogs /
    StarPie.Wheel）建 `Properties/DesignTimeResources.xaml` 资源锚，仅设计期合并单源设计期字符串
    字典（zh-CN，派生自 `Strings.resx`）。
-2. 字典单源先试仓库根 `design/DesignTimeStrings.xaml` 松散相对合并；spike 验证失败则回退
-   Core 编译字典 + pack URI 合并（位置随回退修订并登记）。
+2. 字典单源 = Core 编译惰性字典 + pack URI 合并：`StarPie.Core/Services/Localization/
+   DesignTimeStrings.xaml`（Page 编译、签入生成物，生成脚本同目录）；(c) 仓库根松散相对合并
+   因 spike 无法验证（无 VS 设计器、无官方文档支撑跨工程父目录松散合并行为）按契约回退。
 3. 字典为签入生成物：生成脚本从 resx 派生，新增 xUnit 一致性测试锁键集与值；新增文案键后必须
    再生成。
 4. 设计期尺寸 = 运行时真实视口锚点的登记值；不伪造内容全高；清理既有 `d:Height`/`d:Background`
@@ -62,10 +64,11 @@
 
 ## Consequences
 
-- 各 UI 工程新增 `Properties/DesignTimeResources.xaml`（含 csproj `Page` 元数据）；仓库根新增
-  `design/`（单源字典 + 生成脚本）；Host/Gestures/Dialogs 新增 `Views/DesignTime/`——目录与文件
-  在 `layout.md` 登记，协议细则在 `docs/architecture/design-time-preview.md`。
-- Core 仅在回退路径含惰性 XAML 字典（作为唯一例外登记）。
+- 各 UI 工程新增 `Properties/DesignTimeResources.xaml`（含 csproj `Page` 元数据）；Host/
+  Gestures/Dialogs 新增 `Views/DesignTime/`；Core 新增
+  `Services/Localization/DesignTimeStrings.xaml`（Page 编译签入生成物）与同目录生成脚本——
+  目录与文件在 `layout.md` 登记，协议细则在 `docs/architecture/design-time-preview.md`。
+- Core 含惰性 XAML 字典（回退路径的唯一 XAML 例外登记：设计期投影、非运行时第二数据源）。
 - 设计期文本与视口可还原；对非 100% 缩放 / 自定义标题栏为近似；若 VS 不再借用 Host 上下文，
   视觉会退化（不预建副本）。
 - 全仓 XAML 批量改动属 feature 变更，按提交纪律走任务分支与验证门。
