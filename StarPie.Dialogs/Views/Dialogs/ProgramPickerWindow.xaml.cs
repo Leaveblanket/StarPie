@@ -23,6 +23,17 @@ namespace StarPie.Views.Dialogs
             Title = $"{localization.GetString("ProgramPickerTitle")} - StarPie"; // 窗口标题品牌后缀拼接：XAML 表达不了，对话框每次新建即时取词
         }
 
+        /// <summary>
+        /// 设计期专用无参构造（ADR-0025/#101）：仅供 VS 设计器实例化根窗口以预览 L1 样例
+        /// （d:DataContext 提供 ProgramPickerDesignTimeData）；运行时由
+        /// <see cref="DialogService"/> 走带参构造装配，不触碰本构造。
+        /// </summary>
+        public ProgramPickerWindow()
+        {
+            InitializeComponent();
+            _vm = null!;
+        }
+
         /// <summary>确认结果（仅在 DialogResult == true 时非空）。</summary>
         public ProgramPickResult? BuildResult() => _vm.BuildResult();
 

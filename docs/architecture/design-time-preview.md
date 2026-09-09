@@ -79,6 +79,9 @@ StarPie.Dialogs / StarPie.Wheel。
 
 ## 已知限制
 
+- 带 DI 构造的窗口（`MainView`、除 ProgramPickerWindow 外的对话框、`RadialWindow`）尚无
+  设计期无参构造，VS 设计器无法实例化其根窗口做整窗预览；页面（UserControl）均为默认构造、
+  ProgramPickerWindow 已补设计期无参构造（见上）。若需整窗设计预览，须按同款补设计期无参构造。
 - 视觉资源不注入：设计期配色与控件样式依赖 VS 借用 Host `App.xaml` 上下文（Light +
   ModernControls + 模块模板字典）；若 VS 未来不再借用，模块页视觉退化——不预建跨工程视觉副本。
 - 设计视口是 100% 缩放 + 标准标题栏下的近似；页面有 `ScrollViewer` 兜底，不追求任意 DPI 等价。

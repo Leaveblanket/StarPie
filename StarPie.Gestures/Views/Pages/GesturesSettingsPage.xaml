@@ -5,10 +5,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:controls="clr-namespace:StarPie.Views.Controls"
         xmlns:vm="clr-namespace:StarPie.ViewModels.Gestures"
+        xmlns:dt="clr-namespace:StarPie.Views.DesignTime"
         mc:Ignorable="d"
-        d:DesignHeight="600" d:DesignWidth="760"
+        d:DesignHeight="569" d:DesignWidth="780"
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
-        RenderOptions.BitmapScalingMode="HighQuality">
+        RenderOptions.BitmapScalingMode="HighQuality"
+        d:DataContext="{d:DesignInstance Type=dt:GesturesSettingsDesignTimeData, IsDesignTimeCreatable=True}">
 
     <Grid>
         <Grid>

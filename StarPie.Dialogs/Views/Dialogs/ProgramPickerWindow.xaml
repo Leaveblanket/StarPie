@@ -2,13 +2,18 @@
     x:Class="StarPie.Views.Dialogs.ProgramPickerWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:dt="clr-namespace:StarPie.Views.DesignTime"
     Title="选择程序 - StarPie"
     Width="440"
     Height="540"
     Background="{DynamicResource WindowBackgroundBrush}"
     FontFamily="Segoe UI, Microsoft YaHei"
     ShowInTaskbar="False"
-    WindowStartupLocation="CenterOwner">
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d"
+    d:DataContext="{d:DesignInstance Type=dt:ProgramPickerDesignTimeData, IsDesignTimeCreatable=True}">
 
     <Grid Margin="18">
         <Grid.RowDefinitions>

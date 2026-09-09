@@ -3,12 +3,12 @@
                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                        d:DesignHeight="600" d:DesignWidth="760"
+                        d:DesignHeight="569" d:DesignWidth="780"
                         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
                         RenderOptions.BitmapScalingMode="HighQuality"
                         mc:Ignorable="d">
 
-    <Grid d:Background="Yellow" d:Height="900">
+    <Grid>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
