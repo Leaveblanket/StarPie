@@ -4,12 +4,12 @@
 > [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md) +
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
 > 目标程序集划分、程序集级依赖规则、导航槽位表、注册/可见性契约与批次历史（B0–B10、B11/#88
-> 与 ADR-0023 批次 #95/#96 已全部落地）。
+> 与 ADR-0023 批次 #95/#96/#97 已全部落地）。
 >
-> **12 程序集已落地（ADR-0016 的 7 + ADR-0020/#88 的 Dialogs + ADR-0023/#95 S1 成集新增
-> Icons.Contracts/Icons + ADR-0023/#96 新增 Programs.Contracts/Dialogs.Contracts）**：
-> 程序集化批次（B0–B10、B11/#88 与 ADR-0023 批次 #95/#96）无进行中批次（#97 将按 ADR-0023
-> 续扩 Theme/Wheel/Gestures.Contracts 至 15）；代码现状以 §9 与各叶子（`docs/architecture/*.md`）
+> **15 程序集已落地（ADR-0016 的 7 + ADR-0020/#88 的 Dialogs + ADR-0023/#95 S1 成集新增
+> Icons.Contracts/Icons + ADR-0023/#96 新增 Programs.Contracts/Dialogs.Contracts +
+> ADR-0023/#97 新增 Theme.Contracts/Wheel.Contracts/Gestures.Contracts）**：
+> 程序集化批次（B0–B10、B11/#88 与 ADR-0023 批次 #95/#96/#97）无进行中批次；代码现状以 §9 与各叶子（`docs/architecture/*.md`）
 > 为准，冲突时叶子优先。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
 
 ## 1. 何时读本文
@@ -23,33 +23,37 @@
 | 程序集化批次历史与现状 | 本文 §8–§9 |
 | 为什么这样定 | [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) |
 
-## 2. 目标程序集地图（12 程序集：ADR-0020/#88 的 8 程序集 + ADR-0023/#95 S1 成集新增 2 + ADR-0023/#96 Programs/Dialogs.Contracts 新增 2）
+## 2. 目标程序集地图（15 程序集：ADR-0020/#88 的 8 程序集 + ADR-0023/#95 S1 成集新增 2 + ADR-0023/#96 Programs/Dialogs.Contracts 新增 2 + ADR-0023/#97 Theme/Wheel/Gestures.Contracts 新增 3）
 
 | 程序集 | 形态 | 承载（目标态） |
 |---|---|---|
 | `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel——ADR-0021/#92 迁入，命名空间不变）；Appearance 聚合页；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`，ADR-0022/#94 迁入——App.xaml 本地单点实例化/合并、资源 key 不变）；仅保留 DialogService.SetOwner 回填等宿主装配面（S6 实现已随 B11/#88 迁出） |
-| `StarPie.Core` | WPF 类库 | 共享内核（S2/S3/S4/S5 共享件 + Models）：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，ADR-0021/#92 起运行时主体不居 Core）；宿主回调契约 `Services/AppHostDelegates`（B6/#79 上提）；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`（B8/#81 上提）——**不再含共享 UI 基建**（ADR-0022/#94 去共享化）、**S1 图标资产已独立成集（ADR-0023/#95）**、**不含任何模块出口契约（扫描/对话框/.lnk SPI 已随 ADR-0023/#96 迁出，`Services/Programs/`、`Services/Dialogs/` 目录清空）** |
+| `StarPie.Core` | WPF 类库 | 共享内核（S2/S3/S4/S5 共享件 + Models）：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，ADR-0021/#92 起运行时主体不居 Core）；宿主回调契约 `Services/AppHostDelegates`（B6/#79 上提）——**不再含共享 UI 基建**（ADR-0022/#94 去共享化）、**S1 图标资产已独立成集（ADR-0023/#95）**、**不含任何模块出口契约（扫描/对话框/.lnk SPI 已随 ADR-0023/#96 迁出，主题/轮盘/预览 Profile 契约已随 ADR-0023/#97 迁出；`Services/Programs/`、`Services/Dialogs/`、`ViewModels/Pages/` 目录清空）** |
 | `StarPie.Icons.Contracts` | WPF 类库 | S1 图标契约（**ADR-0023/#95 已落地**）：`IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`（命名空间 `StarPie.Services.Icons` 不变；零 ProjectReference——薄契约，按需 WPF） |
 | `StarPie.Icons` | WPF 类库 | S1 图标实现（**ADR-0023/#95 已落地**）：`IconAssetService` + `IconsModuleRegistrar`；Icons → Icons.Contracts + Programs.Contracts（SPI 契约边，ADR-0023/#96）+ Core（S2 AppDataPaths 共享基建）单向；实现 runtime 只被 Host/注册器/测试引用 |
 | `StarPie.Programs.Contracts` | WPF 类库 | M3 扫描/SPI 契约（**ADR-0023/#96 已落地**）：`IProgramScanner`/`ProgramEntry`/`ProgramCatalog`（`Services/Programs/`，命名空间 `StarPie.Services.Programs` 不变）+ `IShortcutTargetResolver`（`Services/Icons/`，命名空间 `StarPie.Services.Icons` 不变，自 Core 迁出；零 ProjectReference——薄契约，按需 WPF：ProgramEntry.IconSource） |
 | `StarPie.Dialogs.Contracts` | 类库（纯 C#） | S6 对话框契约（**ADR-0023/#96 已落地**）：`IDialogService` + 6 结果 record（`Services/Dialogs/`，命名空间 `StarPie.Services.Dialogs` 不变，自 Core 迁出；零 ProjectReference——薄契约） |
-| `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（**B11/#88 已落地**；契约随实现方下沉 Dialogs.Contracts（ADR-0023/#96）；Dialogs → Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core（S2/S3/S4）单向 + Theme 允许边，不引用 Programs runtime/Host/其它模块 runtime） |
-| `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页、热键录制控件 HotkeyRecorderBox（控件 + 样式字典 Views/Styles/HotkeyRecorderBox.xaml，ADR-0022/#94 下沉；**B9/#82 已落地**；Gestures → Core 单向 + Wheel 允许边） |
-| `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（**B8/#81 已落地**；含 D5 工厂收编；Wheel → Core 单向 + M4 允许边） |
+| `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（**B11/#88 已落地**；契约随实现方下沉 Dialogs.Contracts（ADR-0023/#96）；Dialogs → Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core（S2/S3/S4）+ Theme.Contracts（ADR-0023/#97，Dialogs→M4 runtime 允许边清零）单向，不引用任何 runtime/Host/其它模块 runtime） |
+| `StarPie.Gestures.Contracts` | 类库 | M1 预览 Profile 契约（**ADR-0023/#97 已落地**）：`IProfilePreviewSource`（`ViewModels/Pages/`，命名空间 `StarPie.ViewModels.Pages` 不变，自 Core 迁出；仅引用 Core（WheelProfile 签名）——薄契约） |
+| `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页、热键录制控件 HotkeyRecorderBox（控件 + 样式字典 Views/Styles/HotkeyRecorderBox.xaml，ADR-0022/#94 下沉；**B9/#82 已落地**；Gestures → Core 单向 + Gestures.Contracts + Wheel.Contracts（#97，M1→M2 runtime 允许边清零）+ Dialogs.Contracts + Icons.Contracts） |
+| `StarPie.Wheel.Contracts` | 类库 | M2 轮盘契约（**ADR-0023/#97 已落地**）：`IWheelFactory`（`Services/Wheel/`）、`IWheelViewModel`/`IWheelAppearanceState`（`ViewModels/Wheel/`，命名空间不变，自 StarPie.Wheel 迁出；仅引用 Core（GesturePoint/WheelProfile/AppConfig 签名）——薄契约） |
+| `StarPie.Wheel` | 类库 | M2 轮盘与渲染：WheelViewModel/RadialWindow/Renderers/WheelPalette*/WheelGeometry/WheelFactory（**B8/#81 已落地**；含 D5 工厂收编；Wheel → Core + Wheel.Contracts（自身契约）+ Theme.Contracts（#97，M2→M4 runtime 允许边清零）+ Gestures.Contracts + Dialogs.Contracts + Icons.Contracts 单向） |
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录实现：ProgramScanner/ShortcutResolver + ProgramsModuleRegistrar（B4/#77 已落地；契约本体驻 Programs.Contracts，ADR-0023/#96 起 M3 → Programs.Contracts + Icons.Contracts 单向，不再引用 Core/其它模块 runtime） |
-| `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager（裁决 public——Host AppHost 装配面）（**B7/#80 已落地**；Theme → Core 单向） |
+| `StarPie.Theme.Contracts` | WPF 类库 | M4 界面主题契约（**ADR-0023/#97 已落地**）：`IThemeService`（`Services/Shell/`，命名空间 `StarPie.Services.Shell` 不变，自 StarPie.Theme 迁出；零 ProjectReference——薄契约，按需 WPF：ApplyWindowTheme(FrameworkElement)） |
+| `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager（裁决 public——Host AppHost 装配面）（**B7/#80 已落地**；Theme → Core + Theme.Contracts 单向，实现自有契约） |
 | `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General+About 设置页（**B6/#79 已落地**；`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
 
 ## 3. 程序集级依赖规则
 
 ```text
 StarPie (Host/exe) ──→ StarPie.Core
-     │──→ StarPie.Dialogs ──→ StarPie.Dialogs.Contracts + StarPie.Programs.Contracts + StarPie.Icons.Contracts + StarPie.Core + StarPie.Theme   （B11/#88 已落地；S6→M4 允许边；契约边 ADR-0023/#96，不引用 Programs runtime）
-     │──→ StarPie.Gestures ──→ StarPie.Wheel ──→ StarPie.Theme   （B9/#82 已落地；M1→M2 边）
+     │──→ StarPie.Dialogs ──→ StarPie.Dialogs.Contracts + StarPie.Programs.Contracts + StarPie.Icons.Contracts + StarPie.Core + StarPie.Theme.Contracts   （B11/#88 + ADR-0023/#96/#97 已落地；Dialogs→M4 runtime 允许边清零，改经 Theme.Contracts；不引用任何 runtime）
+     │──→ StarPie.Gestures ──→ StarPie.Core + StarPie.Gestures.Contracts + StarPie.Wheel.Contracts + StarPie.Dialogs.Contracts + StarPie.Icons.Contracts   （B9/#82 + ADR-0023/#95/#96/#97 已落地；M1→M2 runtime 允许边清零，改经 Wheel.Contracts）
+     │──→ StarPie.Wheel ──→ StarPie.Core + StarPie.Wheel.Contracts + StarPie.Theme.Contracts + StarPie.Gestures.Contracts + StarPie.Dialogs.Contracts + StarPie.Icons.Contracts   （B8/#81 + ADR-0023/#95/#96/#97 已落地；M2→M4 runtime 允许边清零，改经 Theme.Contracts）
      │──→ StarPie.Gestures/Shell/Wheel ──→ StarPie.Dialogs.Contracts   （ADR-0023/#96 契约边）
      │──→ StarPie.Programs ──→ StarPie.Programs.Contracts（零依赖） + StarPie.Icons.Contracts   （ADR-0023/#96 已落地；M3 不再引用 Core）
-     │──→ StarPie.Shell ──→ StarPie.Core
-     │──→ StarPie.Theme ──→ StarPie.Core   （B7/#80 已落地）
+     │──→ StarPie.Shell ──→ StarPie.Core + StarPie.Dialogs.Contracts
+     │──→ StarPie.Theme ──→ StarPie.Core + StarPie.Theme.Contracts   （B7/#80 + ADR-0023/#97 已落地）
      │──→ StarPie.Icons ──→ StarPie.Icons.Contracts（零依赖） + StarPie.Programs.Contracts + StarPie.Core   （ADR-0023/#95/#96 已落地；SPI 经 Programs.Contracts 契约边，Core 仅 S2 AppDataPaths）
      └────────────────────────────────────────→ StarPie.Core
 ```
@@ -61,11 +65,12 @@ StarPie (Host/exe) ──→ StarPie.Core
   契约、注册器 `ProgramsModuleRegistrar` 下放注册））；**Theme 已落地（B7/#80）**：M4 主题服务与主题设置子 VM 只依赖
   Core 契约（S2/S3/S4），调色板换入经本集 public `ThemePaletteManager` 由 Host AppHost 装配面编排；
   **Shell 已落地（B6/#79）**：M5 托盘深色配色经组合根注入的 `Func<bool>` 探针
-  （不引用 IThemeService/ThemeService）、自启 dev 分支改读 Core `AppDataPaths.IsDevInstance`
-  回填缝——Shell 只依赖 Core 契约）；**Gestures 已落地（B9/#82）**：M1 手势管线/动作执行/触发+
-  手势设置页只消费 Core 契约与 M2 侧接口（`IWheelFactory`/`IWheelViewModel`，允许边），
-  MouseHook dev 分支同款改读 Core `AppDataPaths.IsDevInstance` 回填缝——M1 不反向引用
-  Host/Shell/Theme/Programs；`Host → 全部`（仅调用各模块注册器与装配宿主对象，不引用模块内部）。
+   （不引用 IThemeService/ThemeService）、自启 dev 分支改读 Core `AppDataPaths.IsDevInstance`
+   回填缝——Shell 只依赖 Core 契约）；**Gestures 已落地（B9/#82 + ADR-0023/#97）**：M1 手势
+   管线/动作执行/触发+手势设置页只消费 Core 契约与 Wheel.Contracts 契约接口
+   （`IWheelFactory`/`IWheelViewModel`，M1→M2 runtime 允许边清零），MouseHook dev 分支同款
+   改读 Core `AppDataPaths.IsDevInstance` 回填缝——M1 不反向引用 Host/Shell/Theme/Programs；
+   `Host → 全部`（仅调用各模块注册器与装配宿主对象，不引用模块内部）。
 - **S1 已独立成集（ADR-0023/#95）**：契约四件驻 `StarPie.Icons.Contracts`（零依赖薄契约），
   实现 `IconAssetService` + 注册器 `IconsModuleRegistrar` 驻 `StarPie.Icons` runtime；
   消费方 Dialogs/Wheel/Gestures/Programs/Host 的 csproj 显式引用 `StarPie.Icons.Contracts`
@@ -73,10 +78,12 @@ StarPie (Host/exe) ──→ StarPie.Core
   业务模块零引用，模块 runtime 互引清零仍成立；`.lnk` SPI `IShortcutTargetResolver` 自
   ADR-0023/#96 起随 M3 下沉 Programs.Contracts，Icons runtime 改经契约边消费（Icons → Core
   仅余 S2 AppDataPaths 共享基建）。
-- 允许的模块间单向边仅：**M1→M2**（`IWheelFactory`，接口在 M2 侧）、**M2→M4**（`IThemeService`
-  消费）、**Dialogs→M4**（`IThemeService`，窗口主题应用，ADR-0020/#88）。其余跨模块依赖一律经
-  `*.Contracts` 契约边（模块 runtime 互引清零；Dialogs→Programs 经 Programs.Contracts、
-  M1/M2/M5→S6 经 Dialogs.Contracts、S1→M3 SPI 经 Programs.Contracts）。
+- 模块 runtime 之间**零 ProjectReference**（ADR-0023/#97 已清零）：原三条允许 runtime 单向边
+  M1→M2（`IWheelFactory`/`IWheelViewModel`）、M2→M4（`IThemeService`）、Dialogs→M4
+  （`IThemeService`，窗口主题应用，ADR-0020/#88）已全部删除，跨模块依赖一律经 `*.Contracts`
+  契约边（Dialogs→Programs 经 Programs.Contracts、M1/M2/M5→S6 经 Dialogs.Contracts、
+  S1→M3 SPI 经 Programs.Contracts、M2→M4/Dialogs→M4 经 Theme.Contracts、M1→M2 经
+  Wheel.Contracts、M2→M1 预览源经 Gestures.Contracts）；仅 Host（组合根）引用全部 runtime。
 - S6 对话框契约在 `StarPie.Dialogs.Contracts`（`IDialogService` + 结果 record，纯 C#，
   ADR-0023/#96 自 Core 迁出），实现（DialogService/五对对话框 VM/Window/SpectrumCanvasBehavior）
   驻 `StarPie.Dialogs`（B11/#88，ADR-0020）；M 页面经 Dialogs.Contracts 的 `IDialogService`
@@ -136,7 +143,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航�
 
 ## 6. DI 与注册契约（目标态）
 
-- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项；**B7/#80 起 M4 以 ThemeModuleRegistrar 落地**：RegisterServices 下放主题服务与主题设置子 VM 注册，M4 无导航页故无 RegisterNavigation；**B8/#81 起 M2 以 WheelModuleRegistrar 落地**：RegisterServices 下放轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 注册，M2 无导航页故无 RegisterNavigation——D5 工厂随 M2，M1 手势侧只经 M2 侧接口消费；**B9/#82 起 M1 以 GesturesModuleRegistrar 落地（最后一个业务模块程序集）**：RegisterServices 下放手势管线（MouseHook/IActionExecutorService/IWindowContext/GestureEngine/GestureController）、触发+手势两页 VM 与 `IProfilePreviewSource` 别名（实现方 `ProfileListViewModel`）注册，RegisterNavigation 自报槽位 0/2 导航项）。
+- **注册自治**：每个业务程序集暴露注册器（建议形态：公开静态类，含 `RegisterServices(IServiceCollection)` 与 `RegisterNavigation(NavigationCatalog)`）；Host Composition 按固定顺序调用（**B6/#79 起以 ShellModuleRegistrar 为首个带 DI 的跨程序集样板落地**：RegisterServices 下放 M5 页面 VM 注册，RegisterNavigation 自报导航项；**B7/#80 起 M4 以 ThemeModuleRegistrar 落地**：RegisterServices 下放主题服务与主题设置子 VM 注册，M4 无导航页故无 RegisterNavigation；**B8/#81 起 M2 以 WheelModuleRegistrar 落地**：RegisterServices 下放轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 注册，M2 无导航页故无 RegisterNavigation——D5 工厂随 M2（#97 契约下沉 Wheel.Contracts），M1 手势侧只经 Wheel.Contracts 契约接口消费；**B9/#82 起 M1 以 GesturesModuleRegistrar 落地（最后一个业务模块程序集）**：RegisterServices 下放手势管线（MouseHook/IActionExecutorService/IWindowContext/GestureEngine/GestureController）、触发+手势两页 VM 与 `IProfilePreviewSource` 别名（实现方 `ProfileListViewModel`）注册，RegisterNavigation 自报槽位 0/2 导航项）。
 - **ADR-0019/#87 起 M3 以 `ProgramsModuleRegistrar` 补齐注册器样板**：RegisterServices 下放
   快捷方式解析契约 `IShortcutTargetResolver→ShortcutResolver` 与
   `IProgramScanner→ProgramScanner` 注册（契约随实现方驻 Programs.Contracts，ADR-0023/#96），
@@ -144,7 +151,7 @@ B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航�
 - **ADR-0020/#88 起 S6 以 `DialogsModuleRegistrar` 补齐共享基础设施模块的注册器样板**：
   RegisterServices 下放 `IDialogService→DialogService` 注册（工厂经容器解析
   Dialogs.Contracts 契约、Programs.Contracts 的 `IProgramScanner`/`IShortcutTargetResolver` 与
-  M4 `IThemeService`，ADR-0023/#96），S6 无导航页故无 RegisterNavigation——对话框实现自 Host
+  Theme.Contracts 的 M4 `IThemeService`，ADR-0023/#96/#97），S6 无导航页故无 RegisterNavigation——对话框实现自 Host
   抽出独立程序集后，组合根不再直接装配对话框服务，仅保留 `DialogService.SetOwner(MainView)` 回填面。
 - **ADR-0023/#95 起 S1 以 `IconsModuleRegistrar` 补齐共享基础设施模块的注册器样板**：
   RegisterServices 下放 `IIconAssetService→IconAssetService` 注册（工厂经容器惰性解析
@@ -157,7 +164,8 @@ B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航�
   Host，为宿主内部件，seams.md 不登记）。
 - `AppHostDelegates` 已上提为 Core 公开契约（B6/#79：`StarPie.Core/Services/AppHostDelegates.cs`；
   Host 组合根以单例注册并在 AppHost 构造后回填实现），M5 注册器只依赖 Core（B9/#82 起 M1 注册器
-  同款只依赖 Core 契约；其手势管线消费的 M2 侧接口属允许边，不在注册器内直接引用 M2 类型）。
+  同款只依赖 Core 契约与各自 Contracts；其手势管线消费的 Wheel.Contracts 接口（#97）不在
+  注册器内直接引用 Wheel runtime 类型）。
 - CreateAppHost 的硬编码解析清单 → 目录/启动激活钩子驱动；eager 页面实例化语义已在 B3/#76 验证保留
   （CreateAppHost 遍历 `NavigationCatalog.Entries` 逐个 eager 解析页面 VM）。
 - 不引入子容器、Generic Host、Autofac、Prism（ADR-0016 决策 13）。
@@ -220,7 +228,8 @@ B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航�
   `StarPie.Core.csproj`；B4/#77 起含 `StarPie.Programs.csproj`；B7/#80 起含
   `StarPie.Theme.csproj`；B8/#81 起含 `StarPie.Wheel.csproj`；B9/#82 起含
   `StarPie.Gestures.csproj`；ADR-0023/#95 起含 `StarPie.Icons.Contracts.csproj` 与
-  `StarPie.Icons.csproj`）同一时间只允许一张票落地。
+  `StarPie.Icons.csproj`；#96 起含 Programs.Contracts/Dialogs.Contracts；#97 起含
+  Theme.Contracts/Wheel.Contracts/Gestures.Contracts）同一时间只允许一张票落地。
   B1–B9（#75–#82）与 B10/#83（命名空间统一，触及全部 csproj RootNamespace/GlobalUsings 文件面）
   均已按此规则串行落地。
 - `App.xaml`、主题/控件资源字典及其 pack URI 同一时间只允许一张票落地。B5/#78（ModernControls
@@ -256,9 +265,14 @@ ADR-0023/#95 起）+ S1 实现程序集（`StarPie.Icons/`，程序集 `StarPie.
 ADR-0023/#95 起）+ M3 契约程序集（`StarPie.Programs.Contracts/`，程序集
 `StarPie.Programs.Contracts`，WPF 类库，ADR-0023/#96 起）+ S6 契约程序集
 （`StarPie.Dialogs.Contracts/`，程序集 `StarPie.Dialogs.Contracts`，纯 C# 类库，
-ADR-0023/#96 起）+ `WinPieGestures.Tests`（显式引用十二工程——Host/Core/Dialogs/
-Dialogs.Contracts/Programs/Programs.Contracts/Shell/Theme/Wheel/Gestures/Icons.Contracts/Icons，
-不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
+ADR-0023/#96 起）+ M4 契约程序集（`StarPie.Theme.Contracts/`，程序集
+`StarPie.Theme.Contracts`，WPF 类库，ADR-0023/#97 起）+ M2 契约程序集
+（`StarPie.Wheel.Contracts/`，程序集 `StarPie.Wheel.Contracts`，类库，
+ADR-0023/#97 起）+ M1 契约程序集（`StarPie.Gestures.Contracts/`，程序集
+`StarPie.Gestures.Contracts`，类库，ADR-0023/#97 起）+ `WinPieGestures.Tests`
+（显式引用十五工程——Host/Core/Dialogs/Dialogs.Contracts/Programs/Programs.Contracts/
+Shell/Theme/Theme.Contracts/Wheel/Wheel.Contracts/Gestures/Gestures.Contracts/
+Icons.Contracts/Icons，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
 S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
 NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core（导航运行时物理居 Core 的表述已由
 ADR-0021/#92 修订——迁 Host，见下段）。**B3/#76 已落地**：`MainViewModel`
@@ -436,14 +450,31 @@ runtime」「Core 不含模块出口契约（类型级 + 依赖级）」断言�
 3/§3 M3/S6/S1、assemblies.md §2/§3/§6/§9、layering.md 程序集层、seams.md（S21 历史注记）、
 programs.md/dialogs.md。
 
-**8 程序集目标态（含命名空间）已全部达成，并经 ADR-0023/#95/#96 扩展为 12 程序集**：
+**ADR-0023/#97（Theme/Wheel/Gestures 契约化，允许 runtime 边清零）已落地**：新建
+`StarPie.Theme.Contracts`（WPF 类库，零引用）——`IThemeService` 自
+`StarPie.Theme/Services/Shell/` 迁出；新建 `StarPie.Wheel.Contracts`（仅引用 Core）——
+`IWheelFactory`/`IWheelViewModel`/`IWheelAppearanceState` 自 StarPie.Wheel 迁出；新建
+`StarPie.Gestures.Contracts`（仅引用 Core）——`IProfilePreviewSource` 自
+`StarPie.Core/ViewModels/Pages/` 迁出（命名空间均不变）。依赖改引：Wheel runtime 删
+StarPie.Theme 引用增 Theme.Contracts/Gestures.Contracts（+ 自身 Wheel.Contracts）；
+Gestures runtime 删 StarPie.Wheel 引用增 Wheel.Contracts（+ 自身 Gestures.Contracts）；
+Dialogs runtime 删 StarPie.Theme 引用增 Theme.Contracts；Theme runtime 增自身
+Theme.Contracts（实现接口）；Host/Tests 显式引用三新契约程序集，slnx 登记三新工程。
+三条允许 runtime 边（M1→M2、M2→M4、Dialogs→M4）全部清零，模块 runtime 互不引用
+（仅 Host 组合根引用 runtime）。测试收口：Theme/Wheel/Gestures/Dialogs/SharedUi
+PlacementTests 更新契约归属与依赖断言，新增 RuntimeNoCrossReferenceTests
+（「runtime 互不引用」「runtime 引用自身契约」「契约不引用 runtime/Host」断言族）；
+叶子回填见 modules.md §3/§5 D5、assemblies.md §2/§3/§6/§9、layering.md 程序集层、
+seams.md、interface-theme.md/wheel.md/gestures.md/dialogs.md、layout.md、architecture.md。
+
+**8 程序集目标态（含命名空间）已全部达成，并经 ADR-0023/#95/#96/#97 扩展为 15 程序集**：
 Host/Core/Dialogs/Programs/Shell/Theme/Wheel/Gestures 各自成集且依赖方向落地，S1 契约/
 实现成集（`StarPie.Icons.Contracts` + `StarPie.Icons`）落地（7 程序集目标态经 ADR-0020/#88
 扩展为 8、ADR-0023/#95 S1 成集扩展为 10、ADR-0023/#96 Programs/Dialogs.Contracts 扩展为 12；
-#97 将按 ADR-0023 续扩 Theme/Wheel/Gestures.Contracts 至 15 程序集）；
+ADR-0023/#97 Theme/Wheel/Gestures.Contracts 扩展为 15）；
 B10/#83 命名空间统一收尾后，全仓命名空间统一为 `StarPie.*`（全仓前缀替换，保持跨程序集
 共享命名空间树，与迁移前 `WinPieGestures.*` 同构），程序集化批次全部清零（B0–B10 + B11/#88；
-ADR-0023 批次的实施票 #95/#96 已落地，#97 未落地）。
+ADR-0023 批次的实施票 #95/#96/#97 已全部落地，无进行中批次）。
 
 ## 参见 ADR
 

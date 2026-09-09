@@ -13,8 +13,12 @@ M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，�
 `GesturesPageTemplates.xaml` 随模块迁出 exe，见 [assemblies.md](assemblies.md) §9）：
 
 - `StarPie.Gestures/Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`。
-  （B8/#81 起轮盘工厂 `IWheelFactory`/`WheelFactory` 已随 M2 收编 `StarPie.Wheel/Services/Wheel/`，
-  D5/ADR-0016 决策 11——M1 手势侧只经 M2 侧接口引用，见 [wheel.md](wheel.md)/[modules.md](modules.md) §5 D5。）
+  （B8/#81 起轮盘工厂随 M2 收编 `StarPie.Wheel/`；ADR-0023/#97 起工厂契约
+  `IWheelFactory`/`IWheelViewModel` 下沉 `StarPie.Wheel.Contracts`——M1 手势侧只经
+  Wheel.Contracts 契约接口引用，M1→M2 runtime 允许边清零，见
+  [wheel.md](wheel.md)/[modules.md](modules.md) §5 D5。）
+- `StarPie.Gestures.Contracts/ViewModels/Pages/IProfilePreviewSource.cs`（M1 出口契约集，
+  ADR-0023/#97 自 Core 迁出独立成集，命名空间不变；签名依赖共享内核 Models，仅引用 Core）。
 - `StarPie.Gestures/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 的语义归 M1；物理均居
   `Models/` 共享内核，见 [modules.md](modules.md) §4 R8）。
@@ -27,14 +31,17 @@ M1 物理落位（B9/#82 起迁入独立模块程序集 `StarPie.Gestures/`，�
 
 ## 配置方案设置面的对外只读契约（#69）
 
-`StarPie.Core/ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 起上提共享内核 Core，D5/
-ADR-0016 决策 11；命名空间 `StarPie.ViewModels.Pages`，B10/#83 统一）：M1 对外只读「预览
-Profile 来源」契约——实现方为 M1 侧同目录配置方案设置面 VM `ProfileListViewModel`
+`StarPie.Gestures.Contracts/ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 上提 Core
+后，ADR-0023/#97 起随实现方 M1 下沉独立成集——生产方语义 + 避免 Wheel ↔ Gestures runtime
+程序集环，Q4 裁决；D5/ADR-0016 决策 11；命名空间 `StarPie.ViewModels.Pages` 不变，
+B10/#83 统一）：M1 对外只读「预览 Profile 来源」契约——实现方为 M1 侧配置方案设置面 VM
+`ProfileListViewModel`
 （B9/#82 起随 `StarPie.Gestures` 迁入 ViewModels/Pages；选中/首项回落语义，
 见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费
 （`WheelAppearanceSettingsViewModel` 构造注入本接口并转发给 `IWheelAppearanceState.PreviewProfile`，
-见 [wheel.md](wheel.md)）；实现方与消费方分属 M1/M2、均只依赖 Core 契约；接口只读，轮盘侧不
-引用具体方案列表 VM 类型。
+见 [wheel.md](wheel.md)）；实现方与消费方分属 M1/M2、均只依赖契约程序集（与共享内核
+Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Wheel runtime → Gestures.Contracts
+契约边）。
 
 ## 配置方案设置面（D1 子面组成，B2/#71 补全）
 
@@ -84,7 +91,7 @@ Profile 来源」契约——实现方为 M1 侧同目录配置方案设置面 V
    UI 线程 `Dispatcher.Invoke` 中创建 `WheelViewModel` + `RadialWindow`，返回
    `DispatchedWheelViewModel` 包装（所有轮盘交互封送回 UI 线程；窗口字段作 GC 根防未显示即回收；
    轮盘 VM/窗口见 [wheel.md](wheel.md)）；`GestureEngine`/`GestureController` 只依赖
-   M2 侧接口 `IWheelFactory`，不反向组装轮盘。
+   Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023/#97），不反向组装轮盘。
 
 ## 扩展点
 

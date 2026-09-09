@@ -17,8 +17,8 @@ VM 层零对话框类型引用的统一模态对话框入口。
   `Views/Controls/SpectrumCanvasBehavior.cs`（契约与实现跨程序集，接口稳定）。依赖方向：
   Dialogs → Dialogs.Contracts（自身契约）+ Programs.Contracts（程序扫描候选经 `IProgramScanner`
   注入，M3 注册器提供实现——不引用 `StarPie.Programs` runtime）+ Icons.Contracts（图标资产/
-  .lnk SPI 消费）+ Core（S2/S3/S4 共享基建）+ StarPie.Theme 允许边（窗口主题应用消费
-  M4 `IThemeService`）。
+  .lnk SPI 消费）+ Core（S2/S3/S4 共享基建）+ Theme.Contracts（ADR-0023/#97：Dialogs→M4
+  runtime 允许边清零，窗口主题应用消费 M4 `IThemeService` 经契约边，不引用 Theme runtime）。
 
 ## 唯一形态（正典）
 
@@ -46,4 +46,5 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 [0004](../adr/0004-dialog-service-design.md)、[0009](../adr/0009-view-code-behind-whitelist.md)、[0010](../adr/0010-localization-copy-principles.md)、
 [0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)（S6 实现程序集化 + 扫描契约收口）、
-[0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（#96：S6 契约随实现方下沉 Dialogs.Contracts）。
+[0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（#96：S6 契约随实现方
+下沉 Dialogs.Contracts；#97：Dialogs→Theme runtime 允许边清零，改经 Theme.Contracts 契约边）。
