@@ -43,8 +43,12 @@
   RegisterNavigation）；仅 Host 外观聚合页 VM 仍由组合根
   注册；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
 - 「消息与通知」hub 新增消息/通知类型（Q16-A，ADR-0015 决策 7）；
-- 共享视图基础设施（`Views/Converters/`、`Views/Controls/`、`Views/Styles/`、`Views/Pages/`
-  （`SettingsPageBase`，B6/#79 迁入），无业务归属，非模块）；
+- 共享视图基础设施（**ADR-0022/#94 已去共享化**，共享内核不再持有 UI 实现件）：通用共享转换器与
+  全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
+  实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
+  `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 `StarPie.Gestures`（模块内部）；
+  共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance/About 五页 XAML
+  根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
 
 ## 3. 模块地图（目标划分，12 个模块）

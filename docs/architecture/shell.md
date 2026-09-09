@@ -18,7 +18,8 @@ M5 物理落位（B6/#79 起迁入独立模块程序集 `StarPie.Shell/`，命�
   `MemoryOptimizer.cs`（R3）。
 - `StarPie.Shell/ViewModels/Pages/GeneralSettingsViewModel.cs`、`AboutViewModel.cs` 与
   `StarPie.Shell/Views/Pages/AdvancedSettingsPage.xaml(.cs)`、`AboutSettingsPage.xaml(.cs)`
-  （D6：M5 设置面；页面基类 `SettingsPageBase` 迁共享内核 `StarPie.Core/Views/Pages/`，B6/#79）。
+  （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已随
+  ADR-0022/#94 删除）。
 - `StarPie.Shell/Modules/ShellModuleRegistrar.cs` + `ShellPageTemplates.xaml`（正式模块注册器与
   页面模板字典，自报导航项/模板并下放页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
 - 共享内核同时登记宿主回调契约 `StarPie.Core/Services/AppHostDelegates.cs`（托盘气泡/退出，

@@ -24,10 +24,10 @@
 
 | 程序集 | 形态 | 承载（目标态） |
 |---|---|---|
-| `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel——ADR-0021/#92 迁入，命名空间不变）；Appearance 聚合页；仅保留 DialogService.SetOwner 回填等宿主装配面（S6 实现已随 B11/#88 迁出） |
-| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，ADR-0021/#92 起运行时主体不居 Core）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；共享页面基类 `Views/Pages/SettingsPageBase`，B6/#79 迁入；宿主回调契约 `Services/AppHostDelegates`，B6/#79 上提；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`，B8/#81 上提） |
+| `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel——ADR-0021/#92 迁入，命名空间不变）；Appearance 聚合页；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`，ADR-0022/#94 迁入——App.xaml 本地单点实例化/合并、资源 key 不变）；仅保留 DialogService.SetOwner 回填等宿主装配面（S6 实现已随 B11/#88 迁出） |
+| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，ADR-0021/#92 起运行时主体不居 Core）；宿主回调契约 `Services/AppHostDelegates`（B6/#79 上提）；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`（B8/#81 上提）——**不再含共享 UI 基建**（ADR-0022/#94 去共享化：转换器/ModernControls.xaml → Host、HotkeyRecorderBox → Gestures、SettingsPageBase 删除） |
 | `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（**B11/#88 已落地**；契约 IDialogService 与结果 record 留 Core；Dialogs → Core 单向 + Theme 允许边） |
-| `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页（**B9/#82 已落地**；Gestures → Core 单向 + Wheel 允许边） |
+| `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页、热键录制控件 HotkeyRecorderBox（控件 + 样式字典 Views/Styles/HotkeyRecorderBox.xaml，ADR-0022/#94 下沉；**B9/#82 已落地**；Gestures → Core 单向 + Wheel 允许边） |
 | `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（**B8/#81 已落地**；含 D5 工厂收编；Wheel → Core 单向 + M4 允许边） |
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录：ProgramScanner/ProgramCatalog/ShortcutResolver + ProgramsModuleRegistrar（B4/#77 已落地；ADR-0019/#87 起 M3 → Core 单向，ShortcutResolver 实例实现 Core 契约） |
 | `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/ThemePaletteManager（裁决 public——Host AppHost 装配面）（**B7/#80 已落地**；Theme → Core 单向） |
@@ -63,7 +63,8 @@ StarPie (Host/exe) ──→ StarPie.Core
   VM/Window/SpectrumCanvasBehavior）驻 `StarPie.Dialogs`（B11/#88，ADR-0020）；M 页面经 Core
   的 `IDialogService` 调用，实现由 DialogsModuleRegistrar 注册，Host 组合根仅保留
   `SetOwner(MainView)` 装配面。
-- 共享放行清单（config 模型字段、i18n 键、消息/通知类型、共享 UI 基建、图标资产）维持 modules.md §2.3，不视为跨模块违规。
+- 共享放行清单（config 模型字段、i18n 键、消息/通知类型、图标资产；共享视图基础设施已去共享化，
+  落点与资源缝放行面见 modules.md §2.3）维持 modules.md §2.3，不视为跨模块违规。
 
 ## 4. 导航与“壳”的分层语义（防混淆）
 
@@ -198,7 +199,8 @@ B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航�
   迁 Core）、B7/#80（M4 Themes XAML 拆集 + App.xaml Light 改跨集 pack URI）与 B8/#81
   （M2 核图标预览转换器改经 `assembly=StarPie.Wheel` App 级实例）与 B9/#82（M1 模板字典迁
   `StarPie.Gestures`，Host App.xaml 改跨程序集 pack URI 合并）均已落地；B10/#83（XAML xmlns/
-  x:Class 改名，触及同一资源面）为最后一个此类批次，已排队集成落地。
+  x:Class 改名，触及同一资源面）与 ADR-0022/#94（共享 UI 基建去共享化：App.xaml 资源缝改本地
+  合并 ModernControls + 跨集合并 Gestures 热键样式字典）均已按同约束串行落地。
 - `Services/Shell`、`ThemePaletteManager.cs`、主题与壳层宿主接线存在物理文件重叠，已按串行约束
   先后落地：B6/#79 把 M5 三件（TrayIconManager/AutostartRegistry/MemoryOptimizer）迁入
   `StarPie.Shell/Services/Shell`；B7/#80 把 M4 件（IThemeService/ThemeService/ThemePaletteManager/
@@ -248,11 +250,15 @@ Geometry 转换器直连 M2 `WheelGeometry`，B8 收编前 Core 不得反向依�
 M2（见下 B8 段）；S6 取色对话框行为 `SpectrumCanvasBehavior`（依赖 Host
 `ColorPickerViewModel.SpectrumPoint`；S6 对话框实现留 Host）仍留 Host（B11/#88 起随 S6 实现
 迁入 `StarPie.Dialogs`，见下 B11 段）。
+**上述迁入 Core 的共享 UI 件已于 ADR-0022/#94 全部迁出**（转换器/ModernControls.xaml → Host、
+HotkeyRecorderBox → StarPie.Gestures、SettingsPageBase 删除），Core `Views/` 目录清空，
+见下方 ADR-0022/#94 段。
 **B6/#79 已落地**：M5 壳层服务与系统设置面成独立模块程序集——TrayIconManager/AutostartRegistry/
 MemoryOptimizer 迁入 `StarPie.Shell/Services/Shell`，GeneralSettingsViewModel+AdvancedSettingsPage 与
 AboutViewModel+AboutSettingsPage 迁入 `StarPie.Shell/ViewModels|Views/Pages`（命名空间当时维持
 `WinPieGestures.*`，B10/#83 统一为 `StarPie.*`）；共享页面基类 `SettingsPageBase` 迁入 `StarPie.Core/Views/Pages`
-（跨集页面共用，Host/M5/M1 页 XAML 根经 assembly=StarPie.Core 引用）；exe 内临时注册器
+（跨集页面共用，Host/M5/M1 页 XAML 根经 assembly=StarPie.Core 引用；该基类已随 ADR-0022/#94
+删除——五页 XAML 根改直承 UserControl，见下方 ADR-0022/#94 段）；exe 内临时注册器
 `M5ModuleRegistrar`/`M5PageTemplates.xaml` 替换为模块内正式 `ShellModuleRegistrar`
 （RegisterServices + RegisterNavigation）与 `ShellPageTemplates.xaml`（Host App.xaml 经跨程序集
 pack URI `/StarPie.Shell;component/Modules/ShellPageTemplates.xaml` 单点合并；M1/Host 注册器与
@@ -343,6 +349,21 @@ SharedUi/Programs Placement 断言随迁更新；新增 seams.md 活缝编目（
 与其它模块注册器 csproj 一致）；执行缝自"已批准解析缝"清单移除（Host 内部件，seams.md
 不登记跨集缝）；新增 `NavigationAssemblyPlacementTests` 2 例收口运行时四类归属 `StarPie`、
 目录契约四件归属 `StarPie.Core`（命名空间均不变）。
+
+**ADR-0022/#94（共享 UI 基建去共享化）已落地**：4 个通用转换器（HexToBrushConverter/
+StringToGeometryConverter/IntEqualsConverter/FilePathToImageConverter）与全局控件样式字典
+`ModernControls.xaml` 自 `StarPie.Core/Views/` 迁 Host `WinPieGestures/Views/{Converters,Styles}`
+（命名空间不变）；Host `App.xaml` 改本地 xmlns 实例化/本地合并该字典，并新增跨程序集 pack URI
+合并 `StarPie.Gestures` 的 `Views/Styles/HotkeyRecorderBox.xaml`（HotkeyRecorderBox 控件自 Core
+`Views/Controls` 下沉 `StarPie.Gestures/Views/Controls`，样式段随迁模块——资源 key 集不变、
+Dialogs/Gestures 等模块 XAML 运行期 `{StaticResource}` 消费零改动，仅 GesturesSettingsPage
+`xmlns:controls` 改本地引用）；共享页面基类 `SettingsPageBase` 自 `StarPie.Core/Views/Pages`
+删除——Trigger/Gestures/Advanced/Appearance/About 五页 XAML 根改 `UserControl`（x:Class 不变），
+Trigger/Advanced/Appearance 三页 code-behind 改 `Loaded`/`Unloaded` 成对自订阅（ADR-0009 白名单
+第 1 条，与 InputDialog/RadialWindow 同款纪律），Gestures/About 仅换根；Core `Views/`
+（Converters/Controls/Pages/Styles）目录整体清空；SharedUi/Gestures/Shell PlacementTests 断言
+更新（转换器→`StarPie`、ModernControls BAML→Host、HotkeyRecorderBox 控件+样式字典→
+`StarPie.Gestures`、SettingsPageBase 删除、五页直承 `UserControl`）。
 
 **8 程序集目标态（含命名空间）已全部达成**：Host/Core/Dialogs/Programs/Shell/Theme/Wheel/
 Gestures 各自成集且依赖方向落地（7 程序集目标态经 ADR-0020/#88 扩展为 8 程序集）；

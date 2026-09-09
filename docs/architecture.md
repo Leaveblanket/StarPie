@@ -50,9 +50,11 @@
   共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 目录与槽位契约——
   ADR-0021/#92 起导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
   NavigationItemViewModel）归 Host `WinPieGestures/Services/Navigation/` 与
-  `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与共享
-  UI 基建（B5/#78：Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/
-  ModernControls.xaml 全局控件样式字典）；
+  `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
+  `Services/AppHostDelegates`、跨 M 只读契约 `ViewModels/Pages/IProfilePreviewSource`；共享 UI
+  基建已随 ADR-0022/#94 去共享化——通用转换器与 `ModernControls.xaml`（全局控件样式字典）迁
+  Host `WinPieGestures/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
+  `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 删除（五页 XAML 根直承 `UserControl`）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
   程序扫描与目录（ProgramScanner/ProgramCatalog/ShortcutResolver 与模块注册器
@@ -104,8 +106,8 @@ StarPie/
 │   ├── adr/                     # 决策记录（ADR-0001 ~ 0020）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
-├── WinPieGestures/              # 主程序（规范对象，见 layout.md）
-├── StarPie.Core/                # 共享内核程序集（B2/#75 起；B5/#78 含共享 UI 基建，见 layout.md）
+├── WinPieGestures/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
+├── StarPie.Core/                # 共享内核程序集（B2/#75 起；不再含共享 UI 基建，ADR-0022/#94，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（B11/#88 起，见 layout.md）
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（B4/#77 起，见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（B6/#79 起，见 layout.md）

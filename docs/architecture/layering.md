@@ -27,11 +27,13 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
                        （显式引用，不依赖传递）
 ```
 
-- Core 承载 S1–S6 共享件、Models 与共享 UI 基建（B5/#78：Views/Converters 通用转换器、
-  Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml；B6/#79 起含共享页面基类
-  `Views/Pages/SettingsPageBase` 与宿主回调契约 `Services/AppHostDelegates`；B8/#81 起含
-  `ViewModels/Pages/IProfilePreviewSource`（D5 上提，见 [gestures.md](gestures.md)）；`StarPie.Core/`
-  目录树见 [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约
+- Core 承载 S1–S6 共享件、Models、宿主回调契约 `Services/AppHostDelegates`（B6/#79 上提）与
+  跨 M 只读契约 `ViewModels/Pages/IProfilePreviewSource`（B8/#81 上提，D5，见
+  [gestures.md](gestures.md)）；**不再含共享 UI 基建（ADR-0022/#94 去共享化）**——通用转换器与
+  `ModernControls.xaml` 在 Host `Views/Converters|Styles/`（App.xaml 单点实例化/本地合并）、
+  `HotkeyRecorderBox`（控件+样式字典）在 `StarPie.Gestures/Views/Controls|Styles/`、共享页面基类
+  `SettingsPageBase` 已删除（五页 XAML 根直承 `UserControl`）；`StarPie.Core/` 目录树见
+  [layout.md](layout.md)；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约
   （方向见 [assemblies.md](assemblies.md) §3）。S5 导航自 ADR-0021/#92 起为纯契约共享模块——
   Core 仅持目录/槽位契约（`NavigationCatalog`），运行时主体（`NavigationStore`/`NavigationExecutor`/
   `MainViewModel`/`NavigationItemViewModel`）随壳窗口判据归 Host，Core 不再持有导航 VM/执行件
@@ -75,7 +77,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   GestureController/GestureEngine/IWindowContext/WindowContext）、动作执行 Services/Actions
   （IActionExecutorService/ActionExecutorService/ActionRouting）、触发+手势设置页
   （BehaviorSettingsViewModel+TriggerSettingsPage、ProfileListViewModel+SlotViewModel+
-  GesturesSettingsPage）与 GesturesModuleRegistrar）；**单向依赖 Core + 允许 M1→M2
+  GesturesSettingsPage）、热键录制控件 `HotkeyRecorderBox`（Views/Controls + 样式字典
+  Views/Styles/HotkeyRecorderBox.xaml，ADR-0022/#94 下沉）与 GesturesModuleRegistrar）；
+  **单向依赖 Core + 允许 M1→M2
   （IWheelFactory/IWheelViewModel）边**：GestureEngine/GestureController 只经 M2 侧接口消费
   瞬态轮盘（D5/ADR-0016 决策 11），页面 VM/槽位 VM 消费 S1/S2/S3/S4/S6 与 Core 契约
   （预览 Profile 契约 IProfilePreviewSource 在 Core，别名由本集注册器下放）；手势管线与页面
@@ -111,7 +115,7 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。
    - **已批准预览桥例外（ADR-0019/#87 决策 4）**：外观页 `WheelPreviewRenderer` 为 View 层
      无 DI 构造对象，经聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露的
-     `IIconAssetService` 在 `OnPageLoaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
+     `IIconAssetService` 在页面 `Loaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
      （layering Views 例外登记，见 [wheel.md](wheel.md)）。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
    子 VM `WheelAppearanceSettingsViewModel → IProfilePreviewSource` 经共享内核 Core 只读契约
@@ -214,8 +218,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   B6/#79 起 M5 模板字典在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、B9/#82 起 M1 模板
   字典在 `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`，均经跨程序集 pack URI 合并；
   exe `Modules/` 仅余 Host 外观聚合页 `HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
-  （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面根元素
-  基类 `SettingsPageBase` 在共享内核 `StarPie.Core/Views/Pages/`（跨集页面共用，B6/#79 迁入）；
+  （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
+  （共享页面基类 `SettingsPageBase` 已随 ADR-0022/#94 删除——Trigger/Advanced/Appearance 三页
+  code-behind 以 `Loaded`/`Unloaded` 成对自订阅取代原基类 virtual 钩子）；
   页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
 - 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 ADR-0009 输入适配）。
