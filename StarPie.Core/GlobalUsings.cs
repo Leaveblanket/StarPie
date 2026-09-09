@@ -5,4 +5,3 @@ global using StarPie.Services.Icons;
 global using StarPie.Services.Localization;
 global using StarPie.Services.Messages;
 global using StarPie.Services.Navigation;
-global using StarPie.ViewModels.Navigation;

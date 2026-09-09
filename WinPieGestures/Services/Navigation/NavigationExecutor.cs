@@ -5,13 +5,14 @@ using Microsoft.Extensions.DependencyInjection;
 namespace StarPie.Services.Navigation
 {
     /// <summary>
-    /// 导航目录执行缝：目录驱动的导航执行入口——按 <see cref="NavigationSlot"/> 从
+    /// 目录驱动导航执行入口：按 <see cref="NavigationSlot"/> 从
     /// <see cref="NavigationCatalog"/> 取注册项，再从容器惰性解析目标页面 VM。
     /// </summary>
     /// <remarks>
-    /// 页面 VM 为容器单例，多次导航同一实例、状态常驻（与 <see cref="NavigationService{TViewModel}"/>
-    /// 同属已批准解析缝）。主框架导航项、托盘直达与初始导航均经本接口按槽位导航，
-    /// 消费方不持有页面类型。
+    /// 页面 VM 为容器单例，多次导航同一实例、状态常驻。接口随实现整体归 Host
+    /// （ADR-0021/#92），属宿主内部件而非跨程序集解析缝——消费方（主框架导航项、
+    /// 托盘直达与初始导航）均在 Host，经本接口按槽位导航，不持有页面类型；
+    /// 第二消费方出现时按 <see cref="IDialogService"/> 先例把接口上提共享内核。
     /// </remarks>
     public interface INavigationExecutor
     {
@@ -21,7 +22,7 @@ namespace StarPie.Services.Navigation
     }
 
     /// <summary><see cref="INavigationExecutor"/> 默认实现：经 <see cref="NavigationCatalog"/>
-    /// 槽位表解析目标类型并交给容器解析（解析点收在导航执行缝，组合根只注册）。</summary>
+    /// 槽位表解析目标类型并交给容器解析（解析点收在本执行缝，组合根只注册）。</summary>
     public sealed class NavigationExecutor : INavigationExecutor
     {
         private readonly NavigationStore _store;

@@ -12,9 +12,9 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 导航件的行为覆盖：NavigationStore 当前页状态序列、
-/// 泛型导航服务按容器解析切换、目录执行缝按槽位解析、主框架 VM 目录驱动的导航项与选中态同步。
+/// 目录执行缝按槽位解析、主框架 VM 目录驱动的导航项与选中态同步。
 /// 只测外部行为——CurrentViewModel 的类型序列与选中态，不测实现细节。直接 new + 替身，不经容器
-/// （导航服务与目录执行缝的容器解析语义用例例外——已批准解析缝，用微型容器验证）。
+/// （目录执行缝的容器解析语义用例例外——Host 内部解析缝，用微型容器验证）。
 /// </summary>
 public sealed class NavigationStoreTests
 {
@@ -58,64 +58,9 @@ public sealed class NavigationStoreTests
     }
 }
 
-public sealed class NavigationServiceTests
-{
-    private sealed class PageAViewModel : ObservableObject { }
-    private sealed class PageBViewModel : ObservableObject { }
-
-    private static (NavigationStore Store, IServiceProvider Services) CreateHub(Action<ServiceCollection>? extra = null)
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton<NavigationStore>();
-        services.AddSingleton<PageAViewModel>();
-        services.AddSingleton<PageBViewModel>();
-        extra?.Invoke(services);
-        return (new NavigationStore(), services.BuildServiceProvider());
-    }
-
-    [Fact]
-    public void Navigate_SetsStoreCurrentViewModelToResolvedInstance()
-    {
-        var (store, provider) = CreateHub();
-        var service = new NavigationService<PageAViewModel>(store, provider);
-
-        service.Navigate();
-
-        Assert.IsType<PageAViewModel>(store.CurrentViewModel);
-    }
-
-    [Fact]
-    public void Navigate_ResolvesSingleton_SameInstanceAcrossNavigations()
-    {
-        var (store, provider) = CreateHub();
-        var service = new NavigationService<PageAViewModel>(store, provider);
-
-        service.Navigate();
-        var first = store.CurrentViewModel;
-        store.CurrentViewModel = null;
-        service.Navigate();
-
-        Assert.Same(first, store.CurrentViewModel);
-    }
-
-    [Fact]
-    public void Navigate_TypeSequence_SwitchesBetweenPageTypes()
-    {
-        var (store, provider) = CreateHub();
-        var toA = new NavigationService<PageAViewModel>(store, provider);
-        var toB = new NavigationService<PageBViewModel>(store, provider);
-
-        toA.Navigate();
-        toB.Navigate();
-
-        Assert.IsType<PageBViewModel>(store.CurrentViewModel);
-        Assert.IsNotType<PageAViewModel>(store.CurrentViewModel);
-    }
-}
-
 /// <summary>
 /// 导航目录执行缝的行为覆盖：按槽位从目录取注册项并惰性解析页面 VM
-/// （容器单例）。微型容器用例与 <see cref="NavigationServiceTests"/> 同属已批准解析缝验证。
+/// （容器单例）。微型容器用例覆盖 Host 内部解析缝语义（ADR-0021/#92）。
 /// </summary>
 public sealed class NavigationExecutorTests
 {
