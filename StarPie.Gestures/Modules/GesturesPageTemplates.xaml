@@ -4,8 +4,8 @@
                     xmlns:pages="clr-namespace:StarPie.Views.Pages">
 
     <!-- 本模块页面模板字典：模块自带 DataTemplate，由宿主经跨程序集 pack URI 每模块静态合并一次。
-         页面 View 无参构造、按导航重建、不经容器；页面基类 SettingsPageBase 在共享内核
-         （Views/Pages），本字典只映射本模块两页。 -->
+         页面 View 无参构造、按导航重建、不经容器；共享页面基类已随 ADR-0022/#94 删除，
+         页面直承 UserControl，本字典只映射本模块两页。 -->
     <DataTemplate DataType="{x:Type vm:BehaviorSettingsViewModel}">
         <pages:TriggerSettingsPage/>
     </DataTemplate>

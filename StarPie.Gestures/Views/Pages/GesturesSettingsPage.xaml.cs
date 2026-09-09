@@ -1,3 +1,5 @@
+using System.Windows.Controls;
+
 namespace StarPie.Views.Pages
 {
     /// <summary>
@@ -6,7 +8,7 @@ namespace StarPie.Views.Pages
     /// 均在 VM 内维护），code-behind 已无业务（本地化文本经语言字典声明式化；
     /// 页面副标题等未本地化硬编码文案维持现状，非本票范围）。
     /// </summary>
-    public partial class GesturesSettingsPage : SettingsPageBase
+    public partial class GesturesSettingsPage : UserControl
     {
         public GesturesSettingsPage()
         {

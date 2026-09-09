@@ -17,8 +17,9 @@ namespace StarPie.Tests;
 /// 壳层模块（Shell）跨程序集归属与依赖收口：壳层服务（托盘/自启/内存）与高级/关于设置面
 /// （VM+View）位于 <c>StarPie.Shell</c>；模块注册器（<see cref="ShellModuleRegistrar"/>：
 /// RegisterNavigation + RegisterServices）随模块驻本程序集；宿主回调契约
-/// <see cref="AppHostDelegates"/> 与共享页面基类 <see cref="SettingsPageBase"/> 位于
-/// 共享内核 <c>StarPie.Core</c>（跨程序集页面共用）。
+/// <see cref="AppHostDelegates"/> 位于共享内核 <c>StarPie.Core</c>；共享页面基类
+/// <c>SettingsPageBase</c> 已随 ADR-0022/#94 删除，M5 设置页 XAML 根直承
+/// <c>UserControl</c>（跨模块五页断言见 SharedUiAssemblyPlacementTests）。
 /// Shell → Core 单向，不引用宿主/其它业务模块。
 /// </summary>
 public sealed class ShellAssemblyPlacementTests
@@ -55,12 +56,17 @@ public sealed class ShellAssemblyPlacementTests
     }
 
     [Fact]
-    public void 宿主回调契约与页面基类_归属共享内核Core且公开()
+    public void 宿主回调契约_归属共享内核Core且公开()
     {
         Assert.Equal("StarPie.Core", typeof(AppHostDelegates).Assembly.GetName().Name);
         Assert.True(typeof(AppHostDelegates).IsPublic);
-        Assert.Equal("StarPie.Core", typeof(SettingsPageBase).Assembly.GetName().Name);
-        Assert.True(typeof(SettingsPageBase).IsPublic);
+    }
+
+    [Fact]
+    public void M5设置页_去共享化后直承UserControl()
+    {
+        Assert.Equal("System.Windows.Controls.UserControl", typeof(AdvancedSettingsPage).BaseType!.FullName);
+        Assert.Equal("System.Windows.Controls.UserControl", typeof(AboutSettingsPage).BaseType!.FullName);
     }
 
     [Fact]

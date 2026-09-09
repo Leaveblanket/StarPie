@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
@@ -16,7 +17,7 @@ namespace StarPie.Views.Pages
     /// 成对订阅退订，防过期页面引用泄漏。
     /// 实时预览渲染器（View 层无 DI 构造）经已批准预览桥取得共享图标资产实例服务：
     /// 聚合 VM <see cref="AppearanceSettingsViewModel.IconAssetService"/> 暴露
-    /// <see cref="IIconAssetService"/>，页面在 OnPageLoaded 阶段读取并装配渲染器
+    /// <see cref="IIconAssetService"/>，页面在 Loaded 阶段读取并装配渲染器
     /// （ADR-0019/#87 决策 4，layering Views 例外登记）。
     /// 界面主题卡 DataContext 指向 <see cref="InterfaceThemeSettingsViewModel"/>（经
     /// <see cref="AppearanceSettingsViewModel.InterfaceTheme"/> 绑定）；主题应用改消息驱动，
@@ -25,11 +26,11 @@ namespace StarPie.Views.Pages
     /// 实时预览渲染/交互路径只依赖轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>；
     /// 具体聚合 VM 引用仅用于 DataContext 桥接（取 WheelAppearance 子 VM）。
     /// </remarks>
-    public partial class AppearanceSettingsPage : SettingsPageBase
+    public partial class AppearanceSettingsPage : UserControl
     {
         private WheelPreviewRenderer? _previewRenderer;
 
-        // 预览桥接在 Loaded 时缓存(Unloaded 阶段 DataContext 已置空,见 SettingsPageBase 约定)为
+        // 预览桥接在 Loaded 时缓存（Unloaded 阶段 DataContext 已置空）为
         // IWheelAppearanceState：渲染/交互代码路径只读该接口，具体实现是聚合 VM 暴露的轮盘外观子 VM。
         private IWheelAppearanceState _previewState = null!;
 
@@ -38,9 +39,15 @@ namespace StarPie.Views.Pages
         public AppearanceSettingsPage()
         {
             InitializeComponent();
+
+            // ADR-0009 白名单第 1 条（生命周期接线）：页面挂载/卸载成对订阅退订 View 效果
+            // 消息（共享页面基类 SettingsPageBase 随 ADR-0022/#94 删除后改自订阅，
+            // 与 InputDialog/RadialWindow 同款成对纪律）。
+            Loaded += OnPageLoaded;
+            Unloaded += OnPageUnloaded;
         }
 
-        protected override void OnPageLoaded()
+        private void OnPageLoaded(object sender, RoutedEventArgs e)
         {
             // 页面整体 DataContext 是薄聚合 VM；预览状态经其 WheelAppearance 子 VM 取得。
             _previewState = ((AppearanceSettingsViewModel)DataContext).WheelAppearance;
@@ -56,7 +63,7 @@ namespace StarPie.Views.Pages
             RenderLiveWheelPreview();
         }
 
-        protected override void OnPageUnloaded()
+        private void OnPageUnloaded(object sender, RoutedEventArgs e)
         {
             WeakReferenceMessenger.Default.Unregister<AppearancePreviewInvalidatedMessage>(this);
             WeakReferenceMessenger.Default.Unregister<PageConfigReloadedMessage>(this);
