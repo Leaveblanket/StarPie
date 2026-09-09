@@ -14,12 +14,12 @@
     <SolidColorBrush x:Key="InputBorderBrush" Color="#24365C" />
     <SolidColorBrush x:Key="ItemHoverBrush" Color="#1E2C4F" />
     <SolidColorBrush x:Key="SubtleCardBrush" Color="#0B1224" />
-    <SolidColorBrush x:Key="NavTabDefaultBgBrush" Color="#00000000" />
-    <SolidColorBrush x:Key="NavTabDefaultFgBrush" Color="#A5B4FC" />
-    <SolidColorBrush x:Key="NavTabHoverBgBrush" Color="#1E2C4F" />
-    <SolidColorBrush x:Key="NavTabHoverFgBrush" Color="#F0F6FC" />
-    <SolidColorBrush x:Key="NavTabActiveBgBrush" Color="#1E2C4F" />
-    <SolidColorBrush x:Key="NavTabActiveFgBrush" Color="#38BDF8" />
+    <SolidColorBrush x:Key="NavPageDefaultBgBrush" Color="#00000000" />
+    <SolidColorBrush x:Key="NavPageDefaultFgBrush" Color="#A5B4FC" />
+    <SolidColorBrush x:Key="NavPageHoverBgBrush" Color="#1E2C4F" />
+    <SolidColorBrush x:Key="NavPageHoverFgBrush" Color="#F0F6FC" />
+    <SolidColorBrush x:Key="NavPageActiveBgBrush" Color="#1E2C4F" />
+    <SolidColorBrush x:Key="NavPageActiveFgBrush" Color="#38BDF8" />
     <SolidColorBrush x:Key="ButtonDefaultBgBrush" Color="#18243E" />
     <SolidColorBrush x:Key="ButtonDefaultFgBrush" Color="#F0F6FC" />
     <SolidColorBrush x:Key="ButtonDefaultBorderBrush" Color="#2B3E68" />

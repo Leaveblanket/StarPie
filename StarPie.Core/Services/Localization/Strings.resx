@@ -68,11 +68,11 @@
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>现代鼠标轮盘笔势系统</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie 设置控制台 (Preferences)</value></data>
-  <data name="TabTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
-  <data name="TabAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
-  <data name="TabGestures" xml:space="preserve"><value>⚡ 手势与动作</value></data>
-  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
-  <data name="TabAbout" xml:space="preserve"><value>📋 关于与更新</value></data>
+  <data name="PageTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
+  <data name="PageAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
+  <data name="PageGestures" xml:space="preserve"><value>⚡ 手势与动作</value></data>
+  <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
+  <data name="PageAbout" xml:space="preserve"><value>📋 关于与更新</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>保存更改</value></data>
   <data name="BtnClose" xml:space="preserve"><value>关闭并隐藏</value></data>
@@ -101,7 +101,7 @@
   <data name="StyleClassic" xml:space="preserve"><value>经典圆环 (Classic Ring)</value></data>
   <data name="StyleClean" xml:space="preserve"><value>极简扇区 (Clean Sectors)</value></data>
   <data name="StyleCatPaw" xml:space="preserve"><value>萌宠猫爪 (Cute Cat Paw)</value></data>
-  <data name="ThemeTitle" xml:space="preserve"><value>轮盘配色方案 (Wheel Theme):</value></data>
+<data name="WheelPaletteTitle" xml:space="preserve"><value>轮盘配色方案 (Wheel Palette):</value></data>
   <data name="WheelCoreTitle" xml:space="preserve"><value>全局动作</value></data>
   <data name="WheelCoreSubtitle" xml:space="preserve"><value>{0} 键动作</value></data>
   <data name="WheelSectorEmpty" xml:space="preserve"><value>未设置</value></data>
@@ -148,13 +148,13 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 午夜深蓝 (Midnight Navy)</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 暗夜紫罗兰 (Royal Violet)</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ 钛金深灰 (Titanium Gray)</value></data>
-  <data name="WheelThemeSystem" xml:space="preserve"><value>跟随系统 (System Auto)</value></data>
-  <data name="WheelThemeLight" xml:space="preserve"><value>浅色模式 (Light)</value></data>
-  <data name="WheelThemeDark" xml:space="preserve"><value>深色模式 (Dark)</value></data>
-  <data name="WheelThemeMatchaForest" xml:space="preserve"><value>抹茶森林 (Matcha Forest)</value></data>
-  <data name="WheelThemeGlacialIce" xml:space="preserve"><value>冰川透蓝 (Glacial Ice)</value></data>
-  <data name="WheelThemeMorandiMuted" xml:space="preserve"><value>莫兰迪柔灰 (Morandi Muted)</value></data>
-  <data name="WheelThemeCustomPreset" xml:space="preserve"><value>🎨 {0} (自定义预设)</value></data>
+  <data name="WheelPaletteSystem" xml:space="preserve"><value>跟随系统 (System Auto)</value></data>
+  <data name="WheelPaletteLight" xml:space="preserve"><value>浅色模式 (Light)</value></data>
+  <data name="WheelPaletteDark" xml:space="preserve"><value>深色模式 (Dark)</value></data>
+  <data name="WheelPaletteMatchaForest" xml:space="preserve"><value>抹茶森林 (Matcha Forest)</value></data>
+  <data name="WheelPaletteGlacialIce" xml:space="preserve"><value>冰川透蓝 (Glacial Ice)</value></data>
+  <data name="WheelPaletteMorandiMuted" xml:space="preserve"><value>莫兰迪柔灰 (Morandi Muted)</value></data>
+  <data name="WheelPaletteCustomPreset" xml:space="preserve"><value>🎨 {0} (自定义预设)</value></data>
   <data name="GesturesHeader" xml:space="preserve"><value>手势轮盘分位与动作配置</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>轮盘方位按键数 (Sector Count)</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4 键 (十字方位 / Cross 4-Way)</value></data>
@@ -228,7 +228,7 @@
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>从已安装软件列表中快速选择要排除的程序</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>将输入框中的进程名称加入排除黑名单</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</value></data>
-  <data name="StyleTypeLabel" xml:space="preserve"><value>主题风格 (UiStyle):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>主题风格 (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>重命名当前选中的自定义配色方案预设</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>自定义十六进制色彩 (色盘调色 / 屏幕吸色):</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>扇区底色:</value></data>

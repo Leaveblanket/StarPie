@@ -31,7 +31,7 @@ namespace StarPie.Views.Renderers
         {
             // 纯悬浮观感：无厚重背景盘——扇区带独立玻璃折射与阴影，直接浮于桌面/应用之上。
             
-            Color ringColor = IsLightTheme ? Color.FromArgb(40, 100, 116, 139) : Color.FromArgb(35, 255, 255, 255);
+            Color ringColor = IsLightPalette ? Color.FromArgb(40, 100, 116, 139) : Color.FromArgb(35, 255, 255, 255);
             var innerGlassRing = new Ellipse
             {
                 Width = coreRadius * 2.0 + 4.0,

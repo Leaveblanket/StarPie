@@ -1,0 +1,510 @@
+<UserControl x:Class="StarPie.Views.Pages.AppearanceSettingsPage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="d"
+        d:DesignHeight="600" d:DesignWidth="760"
+        FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
+        RenderOptions.BitmapScalingMode="HighQuality">
+
+    <Grid>
+<Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <TextBlock Text="{DynamicResource AppearanceHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock AutomationProperties.AutomationId="AppearancePageSubheader" Text="{DynamicResource AppearanceSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!--  分割布局：左侧配置区（1.15*）+ 右侧实时预览区（1*）  -->
+                <Grid Grid.Row="1">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1.15*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!--  左侧配置区控件  -->
+                    <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,14,0">
+                        <StackPanel Margin="0,0,6,0">
+                            <!--  卡片 0：软件界面主题风格  -->
+                            <!--  界面主题卡 DataContext 指向界面主题设置子 VM（外观聚合 VM 的
+                                  InterfaceTheme 属性）；选项目录随语言重建（新增主题不再改页面
+                                  XAML），主题应用经消息由壳层执行。  -->
+                            <Border DataContext="{Binding InterfaceTheme}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource ConsoleThemeTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                                    <TextBlock Text="{DynamicResource ConsoleThemeDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+
+                                    <!--  AppTheme 双向绑定（SelectedValuePath 取 Tag）+
+                                          选项目录 ItemsSource 化；主题应用由子 VM 发布
+                                          AppThemeChangedMessage、壳层主窗口订阅执行，
+                                          页面不挂 SelectionChanged。  -->
+                                    <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding AppThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!--  主题与风格预设  -->
+                            <!--  本卡（含内部自定义高级配色与光晕控件区）DataContext 指向
+                                  轮盘外观设置子 VM，绑定源为 WheelAppearance。  -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource StyleTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+
+                                    <TextBlock Text="{DynamicResource StyleTypeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="WheelStyleComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding WheelStyle}">
+                                        <ComboBoxItem Content="{DynamicResource StyleClassic}" Tag="ClassicRing"/>
+                                        <ComboBoxItem Content="{DynamicResource StyleClean}" Tag="CleanSectors"/>
+                                        <ComboBoxItem Content="{DynamicResource StyleGlass}" Tag="Glassmorphism"/>
+
+                                    </ComboBox>
+
+                                    <TextBlock Text="{DynamicResource WheelPaletteTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <Grid Margin="0,0,0,10">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox x:Name="WheelPaletteComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding PaletteOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedPalette, Mode=TwoWay}"/>
+                                        <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="{DynamicResource RenamePresetTooltip}"/>
+                                    </Grid>
+
+                                                                    <!--  卡片 1.5：自定义高级配色（可折叠）  -->
+                            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,12">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <Expander x:Name="CustomColorExpander" IsExpanded="{Binding IsCustomColorExpanderExpanded}" Background="Transparent" BorderThickness="0">
+                                    <Expander.Header>
+                                        <StackPanel Margin="0,2,0,2">
+                                            <TextBlock Text="{DynamicResource CustomColorsExpanderTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{DynamicResource CustomColorsExpanderDesc}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Expander.Header>
+                                    <StackPanel x:Name="CustomColorsPanel" Margin="0,12,0,4">
+                                        <TextBlock Text="{DynamicResource CustomColorsLabel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+                                        <!--  扇区常规颜色  -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="68"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource CustomSectorBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgText, Converter={StaticResource HexToBrushConverter}}"/>
+                                            </Button>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
+                                        </Grid>
+
+                                        <!--  扇区常规边框  -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="68"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource CustomSectorBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderText, Converter={StaticResource HexToBrushConverter}}"/>
+                                            </Button>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                        </Grid>
+
+                                        <!--  扇区高亮颜色  -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="68"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource CustomHighlightBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgText, Converter={StaticResource HexToBrushConverter}}"/>
+                                            </Button>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
+                                        </Grid>
+
+                                        <!--  扇区高亮边框  -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="68"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource CustomHighlightBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderText, Converter={StaticResource HexToBrushConverter}}"/>
+                                            </Button>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                        </Grid>
+
+                                        <!--  文字颜色  -->
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="68"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{DynamicResource CustomTextColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                            <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" Text="{Binding CustomTextText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
+                                                <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextText, Converter={StaticResource HexToBrushConverter}}"/>
+                                            </Button>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
+                                        </Grid>
+
+                                        <Grid Margin="0,6,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Button x:Name="SaveCustomColorPresetButton" Content="{DynamicResource SaveCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="30" FontWeight="Medium" Command="{Binding SavePresetCommand}"/>
+                                            <Button x:Name="DeletePresetInPanelButton" Grid.Column="1" Content="{DynamicResource BtnDeletePreset}" Style="{StaticResource ModernButtonStyle}" Height="30" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding DeletePresetCommand}" ToolTip="{DynamicResource DeletePresetTooltip}"/>
+                                        </Grid>
+                                    </StackPanel>
+                                </Expander>
+                            </Border>
+
+                            <!--  高亮边缘光晕与发光特效控件区  -->
+                                    <TextBlock Text="{DynamicResource GlowTitle}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,10,0,4"/>
+                                    <ComboBox x:Name="HighlightGlowPresetComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,8" SelectedValuePath="Tag" SelectedValue="{Binding HighlightGlowPreset}">
+                                        <ComboBoxItem Content="{DynamicResource GlowFollowTheme}" Tag="Auto"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetLilac}" Tag="Lilac"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetBlue}" Tag="Blue"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetEmerald}" Tag="Emerald"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetRose}" Tag="Rose"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetAmber}" Tag="Amber"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetRed}" Tag="Red"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetWhite}" Tag="White"/>
+                                        <ComboBoxItem Content="{DynamicResource GlowPresetCustom}" Tag="Custom"/>
+                                    </ComboBox>
+
+                                    <!--  自定义高亮光晕颜色行  -->
+                                    <Grid x:Name="CustomHighlightGlowPanel" Visibility="{Binding IsCustomGlowVisible, Converter={StaticResource BoolToVis}}" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="68"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{DynamicResource GlowColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" Text="{Binding HighlightGlowColorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
+                                        <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickGlowColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
+                                            <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorText, Converter={StaticResource HexToBrushConverter}}"/>
+                                        </Button>
+                                        <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickGlowEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
+                                    </Grid>
+
+                                    <!--  高亮光晕模糊半径  -->
+                                    <TextBlock Text="{DynamicResource GlowRadius}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="HighlightGlowRadiusSlider" Minimum="8" Maximum="48" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding HighlightGlowRadius}"/>
+                                        <TextBlock x:Name="HighlightGlowRadiusLabel" Grid.Column="1" Text="{Binding HighlightGlowRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  高亮光晕不透明度  -->
+                                    <TextBlock Text="{DynamicResource GlowOpacity}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="HighlightGlowOpacitySlider" Minimum="0" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding HighlightGlowOpacityPercent}"/>
+                                        <TextBlock x:Name="HighlightGlowOpacityLabel" Grid.Column="1" Text="{Binding HighlightGlowOpacityLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!--  几何尺寸与高级形状  -->
+                            <!--  DataContext 指向轮盘外观设置子 VM（WheelAppearance）。  -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource GeometryTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,10"/>
+
+                                    <!--  形状选择  -->
+                                    <TextBlock Text="{DynamicResource ShapeTypeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="ShapeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding Shape}">
+                                        <ComboBoxItem Content="{DynamicResource ShapeOriginal}" Tag="Original"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeCircle}" Tag="Circle"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeRounded}" Tag="RoundedCapsule"/>
+                                        <ComboBoxItem Content="{DynamicResource ShapeHexagon}" Tag="HexagonHive"/>
+                                    </ComboBox>
+
+                                    <!--  扇区间隙  -->
+                                    <TextBlock Text="{DynamicResource SectorGap}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="SectorGapSlider" Minimum="0" Maximum="12" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorGap}"/>
+                                        <TextBlock x:Name="SectorGapLabel" Grid.Column="1" Text="{Binding SectorGapLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  扇区圆角半径  -->
+                                    <TextBlock Text="{DynamicResource SectorCornerRadius}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="SectorCornerRadiusSlider" Minimum="0" Maximum="16" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorCornerRadius}"/>
+                                        <TextBlock x:Name="SectorCornerRadiusLabel" Grid.Column="1" Text="{Binding SectorCornerRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  轮盘半径  -->
+                                    <TextBlock Text="{DynamicResource RadiusOuter}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="WheelRadiusSlider" Minimum="100" Maximum="200" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding WheelRadius}"/>
+                                        <TextBlock x:Name="WheelRadiusLabel" Grid.Column="1" Text="{Binding WheelRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  内半径  -->
+                                    <TextBlock Text="{DynamicResource RadiusInner}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="InnerRadiusSlider" Minimum="30" Maximum="90" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding InnerRadius}"/>
+                                        <TextBlock x:Name="InnerRadiusLabel" Grid.Column="1" Text="{Binding InnerRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  核心半径  -->
+                                    <TextBlock Text="{DynamicResource RadiusCore}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="CoreRadiusSlider" Minimum="30" Maximum="80" TickFrequency="2" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding CoreRadius}"/>
+                                        <TextBlock x:Name="CoreRadiusLabel" Grid.Column="1" Text="{Binding CoreRadiusLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!--  排版与布局选项  -->
+                            <!--  DataContext 指向轮盘外观设置子 VM（WheelAppearance）。  -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource IconLayoutTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+
+                                    <TextBlock Text="{DynamicResource LayoutModeLabel}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <ComboBox x:Name="IconLayoutModeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding IconLayoutMode}">
+                                        <ComboBoxItem Content="{DynamicResource LayoutIconText}" Tag="IconAndText"/>
+                                        <ComboBoxItem Content="{DynamicResource LayoutIconOnly}" Tag="IconOnly"/>
+                                        <ComboBoxItem Content="{DynamicResource LayoutTextOnly}" Tag="TextOnly"/>
+                                    </ComboBox>
+
+                                    <!--  扇区图标大小  -->
+                                    <TextBlock Text="{DynamicResource SectorIconSize}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="SectorIconSizeSlider" Minimum="14" Maximum="36" SmallChange="1" LargeChange="2" TickFrequency="1" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorIconSize}"/>
+                                        <TextBlock x:Name="SectorIconSizeLabel" Grid.Column="1" Text="{Binding SectorIconSizeLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!--  扇区字号  -->
+                                    <TextBlock Text="{DynamicResource SectorFontSize}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <Grid Margin="0,2,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="45"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="SectorFontSizeSlider" Minimum="8" Maximum="18" SmallChange="0.5" LargeChange="1.0" TickFrequency="0.5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Value="{Binding SectorFontSize}"/>
+                                        <TextBlock x:Name="SectorFontSizeLabel" Grid.Column="1" Text="{Binding SectorFontSizeLabel}" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <CheckBox x:Name="ShowTextCheckBox" Content="{DynamicResource ShowTextLabel}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,4,0,0" IsChecked="{Binding ShowText}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!--  中心核与图案选项  -->
+                            <!--  DataContext 指向轮盘外观设置子 VM（WheelAppearance）。  -->
+                            <Border DataContext="{Binding WheelAppearance}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                                </Border.Effect>
+                                <StackPanel>
+                                    <TextBlock Text="{DynamicResource CoreTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+
+                                    <!--  ShowCoreIcon 双向绑定；setter 补发
+                                           AppearancePreviewInvalidatedMessage（预览重绘全部经
+                                           消息管线）。  -->
+                                    <CheckBox x:Name="ShowCoreIconCheckBox" Content="{DynamicResource CoreShowIcon}" Style="{StaticResource ToggleSwitchStyle}" Margin="0,0,0,10" IsChecked="{Binding ShowCoreIcon, Mode=TwoWay}"/>
+
+                                    <TextBlock Text="{DynamicResource CoreIconType}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                                    <!--  CoreIconType 双向绑定；面板可见性/图标预览/名称文本
+                                           均声明式绑定（DataTrigger/MultiBinding）。  -->
+                                    <ComboBox x:Name="CoreIconTypeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" Margin="0,0,0,10" SelectedValuePath="Tag" SelectedValue="{Binding CoreIconType, Mode=TwoWay}">
+                                        <ComboBoxItem Content="{DynamicResource CorePatternExit}" Tag="Exit"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCrosshair}" Tag="Crosshair"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternWindows}" Tag="Windows"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternDot}" Tag="Dot"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternHome}" Tag="Home"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternPower}" Tag="Power"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCompass}" Tag="Compass"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCatPaw}" Tag="CatPaw"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternCustom}" Tag="Custom"/>
+                                        <ComboBoxItem Content="{DynamicResource CorePatternImage}" Tag="Image"/>
+                                    </ComboBox>
+
+                                    <!--  自定义核心矢量图标行  -->
+                                    <Grid x:Name="CustomCoreIconPanel" Margin="0,0,0,4">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CoreIconType}" Value="Custom">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Background="{DynamicResource InputBackgroundBrush}" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Path x:Name="CustomCoreIconPreviewPath" Width="16" Height="16" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                    <Path.Data>
+                                                        <MultiBinding Converter="{StaticResource CoreIconGeometryConverter}">
+                                                            <Binding Path="CoreIconType"/>
+                                                            <Binding Path="CoreCustomIconKey"/>
+                                                            <Binding Path="CoreCustomIconSvg"/>
+                                                        </MultiBinding>
+                                                    </Path.Data>
+                                                </Path>
+                                                <TextBlock x:Name="CustomCoreIconNameLabel" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center">
+                                                    <TextBlock.Text>
+                                                        <MultiBinding Converter="{StaticResource CoreIconNameConverter}">
+                                                            <Binding Path="CoreCustomIconKey"/>
+                                                            <Binding Path="CoreCustomIconSvg"/>
+                                                        </MultiBinding>
+                                                    </TextBlock.Text>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Border>
+                                        <Button x:Name="PickCoreIconButton" Grid.Column="1" Content="{DynamicResource BtnChooseIcon}" Style="{StaticResource ModernButtonStyle}" Padding="12,6" Margin="8,0,0,0" Command="{Binding PickCoreIconCommand}"/>
+                                    </Grid>
+
+                                    <!--  自定义核心图片行  -->
+                                    <Grid x:Name="CustomCoreImagePanel" Margin="0,0,0,4">
+                                        <Grid.Style>
+                                            <Style TargetType="Grid">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CoreIconType}" Value="Image">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Grid.Style>
+
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border x:Name="CoreImageThumbnailBorder" Width="32" Height="32" CornerRadius="16" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Margin="0,0,8,0" Background="{DynamicResource InputBackgroundBrush}" VerticalAlignment="Center" ClipToBounds="True">
+                                            <Image x:Name="CoreImageThumbnail" Stretch="UniformToFill" Source="{Binding CoreCustomImagePath, Converter={StaticResource FilePathToImageConverter}}"/>
+                                        </Border>
+                                        <!--  CoreCustomImagePath 双向绑定（逐键更新源）；
+                                              缩略图经 FilePathToImageConverter 随绑定刷新。  -->
+                                        <TextBox x:Name="CoreImagePathTextBox" Grid.Column="1" Height="32" VerticalContentAlignment="Center" Margin="0,0,8,0" Text="{Binding CoreCustomImagePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ToolTip="{DynamicResource CoreCustomImageTooltip}"/>
+                                    <Button x:Name="BrowseCoreImageButton" Grid.Column="2" Content="{DynamicResource BtnBrowseImage}" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="12,0" Margin="0,0,6,0" Command="{Binding BrowseCoreImageCommand}"/>
+                                    <Button x:Name="ClearCoreImageButton" Grid.Column="3" Content="{DynamicResource BtnClear}" Style="{StaticResource ModernButtonStyle}" Height="32" Padding="10,0" Command="{Binding ClearCoreImageCommand}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  右侧实时交互预览画布  -->
+                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Row="0" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{DynamicResource LivePreviewTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <Border Grid.Column="1" Background="#ECFDF5" CornerRadius="4" Padding="6,2">
+                                        <TextBlock Text="{DynamicResource LivePreviewFps}" FontSize="10" FontWeight="Bold" Foreground="#059669"/>
+                                    </Border>
+                                </Grid>
+                                <TextBlock Text="{DynamicResource LivePreviewHint}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                            </StackPanel>
+
+                            <!--  实时画布区  -->
+                            <Border Grid.Row="1" Background="{DynamicResource PreviewCanvasBackgroundBrush}" BorderBrush="{DynamicResource PreviewCanvasBorderBrush}" BorderThickness="1" CornerRadius="10" ClipToBounds="True" Margin="0,4,0,10">
+                                <Grid>
+                                    <!--  细微网格纹理线  -->
+                                    <Path Stroke="{DynamicResource PreviewGridLineBrush}" StrokeThickness="0.5" Data="M0,150 L300,150 M150,0 L150,300" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                    <!--  交互式实时画布  -->
+                                    <Canvas x:Name="LiveWheelPreviewCanvas" Width="300" Height="300" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                            MouseMove="LiveWheelPreviewCanvas_MouseMove" MouseLeave="LiveWheelPreviewCanvas_MouseLeave"/>
+                                </Grid>
+                            </Border>
+
+                            <!--  一键重置按钮  -->
+                            <!--  一键重置属轮盘外观命令，绑定经聚合 VM 的 WheelAppearance
+                                   子 VM。  -->
+                            <Button x:Name="ResetDimensionsButton" Grid.Row="2" Content="{DynamicResource BtnResetGeometry}" Style="{StaticResource ModernButtonStyle}" Height="32" Command="{Binding WheelAppearance.ResetDimensionsCommand}" HorizontalAlignment="Right"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
+    </Grid>
+</UserControl>

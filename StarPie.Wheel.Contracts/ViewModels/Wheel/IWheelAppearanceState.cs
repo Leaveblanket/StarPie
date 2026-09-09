@@ -4,7 +4,7 @@ namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘外观只读状态接口（签名暴露件，随实现方 M2 下沉驻 <c>StarPie.Wheel.Contracts</c>，
-    /// ADR-0023/#97）：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——皮肤/
+    /// ADR-0023/#97）：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/
     /// 配色方案选中、几何与排版参数、核图标相关、当前运行配置与预览所用 Profile 上下文。
     /// </summary>
     /// <remarks>
@@ -14,13 +14,13 @@ namespace StarPie.ViewModels.Wheel
     /// </remarks>
     public interface IWheelAppearanceState
     {
-        // ---- 皮肤与配色方案选中 -------------------------------------------------
+        // ---- 主题风格与配色方案选中 -------------------------------------------------
 
-        /// <summary>轮盘皮肤（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。</summary>
-        string UiStyle { get; }
+        /// <summary>轮盘主题风格（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。</summary>
+        string WheelStyle { get; }
 
         /// <summary>轮盘配色方案（System/Dark/Light/固定方案或 CustomPreset_{id}）。</summary>
-        string SelectedTheme { get; }
+        string SelectedPalette { get; }
 
         // ---- 几何与排版参数 -----------------------------------------------------
 

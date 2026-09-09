@@ -51,6 +51,7 @@ namespace StarPie.Services.Configuration
                         ReadCommentHandling = JsonCommentHandling.Skip
                     };
                     _config = JsonSerializer.Deserialize<AppConfig>(json, options) ?? CreateDefaultConfig();
+                    MigrateLegacyKeys(json, _config);
                 }
                 else
                 {
@@ -144,6 +145,7 @@ namespace StarPie.Services.Configuration
                 var imported = JsonSerializer.Deserialize<AppConfig>(json);
                 if (imported != null)
                 {
+                    MigrateLegacyKeys(json, imported);
                     _config = imported;
                     Save();
                     return true;
@@ -164,6 +166,52 @@ namespace StarPie.Services.Configuration
             {
                 Directory.CreateDirectory(directory);
             }
+        }
+
+        /// <summary>
+        /// 终态键单次迁移：config.json 可能来自旧版本（轮盘配色旧键 Theme / 主题风格旧键
+        /// UiStyle）。终态键缺失时按旧键读取一次，保存统一写终态键；旧键是持久化兼容行为，
+        /// 不出现在新代码与新文档。
+        /// </summary>
+        private static void MigrateLegacyKeys(string json, AppConfig config)
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json, new JsonDocumentOptions
+                {
+                    CommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true
+                });
+                if (doc.RootElement.ValueKind != JsonValueKind.Object) return;
+
+                string? palette = FindValue(doc.RootElement, "WheelPalette", "Theme");
+                if (palette != null) config.WheelPalette = palette;
+
+                string? style = FindValue(doc.RootElement, "WheelStyle", "UiStyle");
+                if (style != null) config.WheelStyle = style;
+            }
+            catch (Exception)
+            {
+                // 旧键扫描失败不阻断加载（与整体宽松读取语义一致）。
+            }
+        }
+
+        /// <summary>按大小写不敏感取属性值：命中终态键即返回；否则回退旧键（仅在新键缺失时生效）。</summary>
+        private static string? FindValue(JsonElement root, string primary, string legacy)
+        {
+            string? legacyValue = null;
+            foreach (var property in root.EnumerateObject())
+            {
+                if (string.Equals(property.Name, primary, StringComparison.OrdinalIgnoreCase))
+                {
+                    return property.Value.ValueKind == JsonValueKind.Null ? null : property.Value.GetString();
+                }
+                if (legacyValue == null && string.Equals(property.Name, legacy, StringComparison.OrdinalIgnoreCase))
+                {
+                    legacyValue = property.Value.ValueKind == JsonValueKind.Null ? null : property.Value.GetString();
+                }
+            }
+            return legacyValue;
         }
 
         /// <summary>构建默认配置：Global（8 键）+ Chrome（4 键）+ VS Code（8 键）三个示例方案。</summary>

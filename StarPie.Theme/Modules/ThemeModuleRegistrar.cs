@@ -18,7 +18,7 @@ namespace StarPie.Modules
     /// <see cref="InterfaceThemeSettingsViewModel"/> 只依赖共享内核与自身契约程序集
     /// （ADR-0023/#97：IThemeService 驻 StarPie.Theme.Contracts，Wheel/Dialogs 消费方经
     /// 契约边引用，本 runtime 不再被其它业务 runtime 引用），不反向引用宿主；
-    /// 调色板换入（ThemePaletteManager，public）由宿主 <c>AppHost</c> 装配面编排
+    /// 调色板换入（AppThemePaletteManager，public）由宿主 <c>AppHost</c> 装配面编排
     /// （AttachPaletteApplier + Apply），本注册器不触碰 Application 资源。
     /// </remarks>
     public static class ThemeModuleRegistrar

@@ -1,5 +1,7 @@
 # 导航运行时归 Host：共享内核仅留目录/槽位契约
 
+> Status: Active
+
 把设置控制台的导航运行时主体（`NavigationStore`/`NavigationExecutor`/`MainViewModel`/
 `NavigationItemViewModel`，含 `INavigationExecutor`）自共享内核 `StarPie.Core` 迁回宿主
 `WinPieGestures`（Host/exe）；`StarPie.Core` 仅保留导航注册契约（`NavigationCatalog`/
@@ -14,27 +16,9 @@ as-built，随实施批次回填，ADR-0016 同款纪律）。
 
 ## 背景与动机
 
-1. **#89 Q1 判据口径不含运行时主体**：Q1 已确认"内核成员 = 服务全局的能力/全局数据"，其
-   "全局机制"示例列的是 `NavigationCatalog`/`NavigationSlots`（目录/槽位），未含运行时主体。
-   #91 选项 a 把"整组导航模块 = 全局机制"当作已确认判据，属口径放大。
-2. **运行时主体是单消费方件**：`Composition`/`AppHost`/`MainView`（全部在 Host）是四类的
-   全部生产消费者；模块程序集（Shell/Gestures/Wheel/Theme/Programs/Dialogs）对四类**零引用**，
-   只消费 `NavigationCatalog` 注册面。按 ADR-0015 §2.3 消费方判据（推广 ADR-0014）：
-   单一消费方的能力应留在消费方内部，不属于共享内核。
-3. **共享内核携带 Host 窗口 VM 与 DI 解析缝**：`MainViewModel`/`NavigationItemViewModel` 是
-   Host 壳窗口 `MainView` 的 DataContext VM；`NavigationExecutor` 是 Core 内仅有的两个使用
-   `Microsoft.Extensions.DependencyInjection` 的文件之一（另一个是死代码
-   `NavigationService`）。运行时迁出（+ C1 删除）后 Core 可整体移除 MS.DI 包引用，向"共享
-   内核零外部依赖、只放多模块真正需要的类型"收敛（社区 shared-kernel 通行规则）。
-4. **同窗同判据先例已存在**：ADR-0016 决策 6/7（R4/D3）裁定同一 `MainView` 的壳层 VM
-   `ShellViewModel` 留 Host，判据 = "壳窗口归 Host"；`MainViewModel` 只是同一窗口导航区的
-   DataContext。B3/#76 当时把 `MainViewModel` 进 Core 是"S5 归属裁定"，不是编译器强制。
-5. **迁 Host 不破坏 B3/#76 验收目标**："新增页面不碰 Host"由"目录驱动 + 模块注册器 +
-   模块页面模板字典"实现，与运行时所在程序集无关；`NavigationCatalog` 契约留 Core 不动，
-   模块加页仍只动模块内部。
-6. **社区参照**：模块化单体 shared kernel 只放 ≥2 模块需要的契约（不放 ViewModel/基础设施）；
-   App Shell 模式由壳拥有导航与布局；Prism 的 Shell 主窗属应用工程、模块只向区域贡献视图。
-   本仓是单应用（无跨应用框架复用前提），导航运行时更应随宿主壳，而非留在共享内核。
+1. **内核判据不含运行时主体**：#89 Q1 确认“内核成员 = 全局机制/全局数据，变更受治理”，其“全局机制”示例仅目录/槽位契约（`NavigationCatalog`/`NavigationSlots`），不含运行时主体；导航运行时是单消费方件——生产消费者全部在 Host，模块程序集只消费 `NavigationCatalog` 注册面，对四类运行时类型零引用（ADR-0015 §2.3 消费方判据；同 ADR-0016 决策 6/7“壳窗口归 Host”先例）。
+2. **Core 携带 Host 窗口 VM 与 DI 解析缝**：`MainViewModel`/`NavigationItemViewModel` 是 Host 壳窗口 `MainView` 的 DataContext VM；运行时迁出后 Core 可移除 `Microsoft.Extensions.DependencyInjection` 包引用，向“共享内核零外部依赖、只放多模块真正需要的类型”收敛（社区 shared-kernel 规则）。
+3. **迁 Host 不破坏“新增页面不碰 Host”验收目标**：“新增页面不碰 Host”由目录驱动 + 模块注册器 + 模块页面模板字典实现，与运行时所在程序集无关；App Shell 模式由壳拥有导航与布局，本仓是单应用（无跨应用框架复用前提），导航运行时应随宿主壳。
 
 ## Considered Options
 
@@ -120,16 +104,3 @@ as-built，随实施批次回填，ADR-0016 同款纪律）。
     注记）；ADR 索引新增本行（随本文档批）。
 - **未来演进路径**：若出现第二消费方（如 M* 页面请求导航、消息驱动跳转），按契约上提
   流程把 `INavigationExecutor`（或导航请求消息）提回 Core，另写收口测试。
-
-## 参考事实（2026-09-08 快照）
-
-- `StarPie.Core/Services/Navigation/`：`NavigationCatalog.cs`（契约四件）、`NavigationStore.cs`、
-  `NavigationExecutor.cs`（接口+实现）、`INavigationService.cs`、`NavigationService.cs`；
-  `StarPie.Core/ViewModels/Navigation/`：`MainViewModel.cs`、`NavigationItemViewModel.cs`。
-- 运行时消费者全部在 Host：`Composition.cs`（L149–154 注册 `NavigationStore`/开放泛型/
-  `INavigationExecutor`，L173 注册 `MainViewModel`；L74/L94 解析）、`AppHost.cs`（L31–71）、
-  `MainView.xaml.cs`（L30 DataContext）、`ShellViewModel`（XML 注释）。
-- 模块程序集对四类运行时类型零引用（grep 验证）；Core 中 `Microsoft.Extensions.
-  DependencyInjection` 仅 `NavigationExecutor.cs` 与 `NavigationService.cs` 使用。
-- `NavigationTests.cs` 覆盖 NavigationStore/NavigationService（C1 用例将删除）/
-  NavigationExecutor/MainViewModel。

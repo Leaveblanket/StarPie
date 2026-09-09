@@ -38,7 +38,7 @@ namespace StarPie.ViewModels.Pages
             // 主题应用消息，由壳层主窗口订阅执行（含配置导入后重挂路径）。
             messenger.Register<ConfigImportedMessage>(this, (_, _) => ReloadFromConfig());
 
-            RebuildThemeOptions();
+            RebuildAppThemeOptions();
 
             // 主题选项目录标签属驻留文案：语言切换时重建（单例 VM 成对退订）。
             _localization.LanguageChanged += OnLanguageChanged;
@@ -78,7 +78,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>重建 <see cref="AppThemeOptions"/>（切语/构造时调用；目录固定六项、标签随语言变化）。</summary>
-        private void RebuildThemeOptions()
+        private void RebuildAppThemeOptions()
         {
             AppThemeOptions = new[]
             {
@@ -94,7 +94,7 @@ namespace StarPie.ViewModels.Pages
         /// <summary>语言切换后重建界面主题选项目录并补发选中通知，让 ComboBox 从新目录恢复选中。</summary>
         private void OnLanguageChanged()
         {
-            RebuildThemeOptions();
+            RebuildAppThemeOptions();
             OnPropertyChanged(nameof(AppTheme));
         }
 

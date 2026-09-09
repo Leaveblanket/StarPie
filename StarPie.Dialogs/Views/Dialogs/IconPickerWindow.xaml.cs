@@ -206,7 +206,7 @@ namespace StarPie.Views.Dialogs
             }
 
             _selectedCard = card;
-            card.Background = (Brush)FindResource("NavTabActiveBgBrush");
+            card.Background = (Brush)FindResource("NavPageActiveBgBrush");
             card.BorderBrush = (Brush)FindResource("AccentPrimaryBrush");
         }
 

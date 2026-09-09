@@ -69,7 +69,7 @@ namespace StarPie.Views.Wheel
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             Closed += (_, _) => _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
-            InitializeThemeAndStyle();
+            InitializePaletteAndStyle();
             CoreTextPanel.Visibility = Visibility.Collapsed;
 
             // 白名单（生命周期接线/纯视觉渲染）：Loaded 按 VM 只读状态一次性定位窗口并绘制扇区；
@@ -77,11 +77,11 @@ namespace StarPie.Views.Wheel
             Loaded += RadialWindow_Loaded;
         }
 
-        private void InitializeThemeAndStyle()
+        private void InitializePaletteAndStyle()
         {
             // 经工厂实例化对应样式渲染器
-            _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.UiStyle);
-            _styleRenderer.Initialize(_viewModel.Theme, _viewModel.Config, _themeService.IsWindowsInDarkTheme());
+            _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.WheelStyle);
+            _styleRenderer.Initialize(_viewModel.WheelPalette, _viewModel.Config, _themeService.IsWindowsInDarkTheme());
 
             _innerRadius = _viewModel.InnerRadius;
             _outerRadius = _viewModel.OuterRadius;
@@ -164,7 +164,7 @@ namespace StarPie.Views.Wheel
             CoreTitle.FontSize = Math.Max(8.0, coreRadius / 5.0);
             CoreSubtitle.FontSize = Math.Max(6.0, coreRadius / 7.0);
 
-            bool isCatPaw = _viewModel.UiStyle == "CatPaw";
+            bool isCatPaw = _viewModel.WheelStyle == "CatPaw";
             bool showCoreIcon = _viewModel.ShowCoreIcon;
             string coreType = _viewModel.Config.CoreIconType ?? "Exit";
 

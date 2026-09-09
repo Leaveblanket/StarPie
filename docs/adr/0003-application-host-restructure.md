@@ -1,5 +1,7 @@
 # 应用宿主重组：移除 StartupUri，托盘上移应用层
 
+> Status: Active
+
 现状是"设置窗口即应用宿主"：`App.xaml` 的 `StartupUri="SettingsWindow.xaml"` 让框架用无参构造自动创建设置窗口，托盘在 `SettingsWindow` 构造函数里寄生创建，窗口靠拦截 `Closing` + `Hide()` 续命。MVVM 的构造注入与 `StartupUri` 不兼容。决定：移除 `StartupUri`，组合根装配全部服务（含 `ITrayIconService`）后显式创建并显示初始设置窗口；托盘生命周期归应用层；真退出由托盘菜单触发 `Application.Shutdown`。
 
 ## Consequences

@@ -1,16 +1,17 @@
 # 模块契约硬边界与共享内核收窄：模块出口契约入 `*.Contracts`、S1 成集、Core 仅留全局机制/数据
 
+> Status: Active
+
 模块出口契约（接口 + 跨模块 DTO/纯数据）随**实现方模块**下沉到各自 `*.Contracts`
 程序集；模块 runtime 之间**互不引用**，只经 Contracts 通信（.NET 模块化单体硬边界派）；
 `StarPie.Icons`（S1 图标服务）独立成集以解 SPI 归属死结；`StarPie.Core` 收窄为
 「全局机制/数据 + 共享基建」。本决策是 #89（共享内核章程）Q2 的裁决，讨论锚点 #90；
-前导：ADR-0021/#92（导航运行时迁 Host）、ADR-0022（共享 UI 基建去共享化）；决策记录
-#93，实施票 #95–#97。
+前导：ADR-0021/#92（导航运行时迁 Host）、ADR-0022（共享 UI 基建去共享化）；决策记录 #93。
 
 ## Status
 
 Accepted（2026-09-08/09 grill-with-docs 会话：#89 Q2/#90，用户裁决硬边界派并解除
-「8 程序集不变」前提；决策先行——实施票 #95/#96/#97 落地，叶子维持 as-built 随实施
+「8 程序集不变」前提；决策先行——实施票已落地，叶子维持 as-built 随实施
 回填，ADR-0016/0020/0021 同款纪律）。
 
 ## 背景与动机
@@ -91,8 +92,8 @@ Accepted（2026-09-08/09 grill-with-docs 会话：#89 Q2/#90，用户裁决硬�
 4. **S1 成集**：`StarPie.Icons.Contracts` = `IIconAssetService`/`IconCatalog`/
    `CustomIconItem`/`VectorIconItem`（`IconCatalog` 为无状态纯资产表，作资产目录契约
    随集）；`StarPie.Icons` = `IconAssetService` + `IconsModuleRegistrar`。实施中间态
-   （#95）`IShortcutTargetResolver` 暂留 Core（Icons runtime → Core），#96 迁
-   Programs.Contracts 后 Icons runtime 改经 Programs.Contracts。
+   `IShortcutTargetResolver` 暂留 Core（Icons runtime → Core），Programs.Contracts 落地后
+   Icons runtime 改经 Programs.Contracts。
 5. **允许 runtime 边清零**：M1→M2（`IWheelFactory`）、M2→M4（`IThemeService`）、
    Dialogs→M4（`IThemeService`）三条 runtime 允许边删除，改经 Wheel.Contracts /
    Theme.Contracts 契约边；seams.md 允许边档相应改写。Host → 全部 runtime（组合根
@@ -104,12 +105,7 @@ Accepted（2026-09-08/09 grill-with-docs 会话：#89 Q2/#90，用户裁决硬�
    基建 runtime ≠ 模块间互引，同 fullstackhero 引用 Infrastructure 项目）。
 7. **命名与命名空间**：程序集/项目名 `<模块>.Contracts`；命名空间维持 `StarPie.*`
    树不变（B10/#83 先例：命名空间 ≠ 程序集名），搬迁零 `using` 改动面。
-8. **实施批次**：#95（S1 成集）→ #96（Programs.Contracts + Dialogs.Contracts）→
-   #97（Theme/Wheel/Gestures.Contracts + 允许边清零）；前置 #92（导航迁 Host）与 #93
-   （本批 ADR docs）先行；#94（UI 基建去共享化，ADR-0022）与 #95–#97 依集成面串行
-   （csproj/slnx/Composition 同批互斥）。每票验收 = build 0 警告 0 错误 + xUnit 全量绿
-   + PlacementTests 更新 + 叶子回填；e2e 按 ADR-0018 免跑判定（无可见文案/DataTemplate/
-   AutomationId/槽位/主题/配置变化时免跑，拿不准全量）。
+8. **实施批次**：S1 成集 → Programs.Contracts + Dialogs.Contracts → Theme/Wheel/Gestures.Contracts + 允许边清零（前置/串行排定见 #92/#93/#94）。每批验收 = build 0 警告 0 错误 + xUnit 全量绿 + PlacementTests 更新 + 叶子回填；e2e 按 ADR-0018 免跑判定（无可见文案/DataTemplate/AutomationId/槽位/主题/配置变化时免跑，拿不准全量）。
 
 ## Consequences
 
@@ -122,8 +118,8 @@ Accepted（2026-09-08/09 grill-with-docs 会话：#89 Q2/#90，用户裁决硬�
   增加「接口驻 Contracts」「runtime 互不引用」断言族；Dialogs/Programs/Theme/Wheel/
   Gestures/SharedUi 既有断言随迁更新。
 - **运行期行为**：无用户可见变化（资源键/窗口/主题/槽位不变）；XAML 中
-  `assembly=StarPie.Core` 的 xmlns 引用（HotkeyRecorderBox 等）属 #94/#97 处理面。
-- **回填清单（随 #95–#97 落地，维持 as-built 纪律）**：
+  `assembly=StarPie.Core` 的 xmlns 引用（HotkeyRecorderBox 等）属后续实施处理面。
+- **回填清单（随实施批次落地，维持 as-built 纪律）**：
   - `modules.md`：§2 判据 3 修订、§2.3 放行清单、§3 M1/M2/M3/M4/S1/S6 对外契约表述、
     §5 D5；
   - `assemblies.md`：§2/§3/§4/§5 目标态 15 程序集与依赖矩阵、§8 批次历史注记、§9
@@ -137,22 +133,3 @@ Accepted（2026-09-08/09 grill-with-docs 会话：#89 Q2/#90，用户裁决硬�
 - **未来演进**：出现第二消费方或新跨模块协议时按本判据开新 Contracts 或扩展现有
   Contracts（消费方驱动）；S2/S3/S4 若出现独立 runtime 诉求，按 Dialogs/S1 先例成集
   （触发条件登记入章程 B 类）。
-
-## 参考事实（2026-09-09 快照）
-
-- 现 csproj 引用：Dialogs → Core+Theme；Gestures → Core+Wheel；Wheel → Core+Theme；
-  Programs/Shell/Theme → Core；Host → 全部；Tests → 显式全部。
-- 消费矩阵（非测试引用次数）：`IDialogService` Gestures 10/Shell 6/Wheel 3/Host 2；
-  `IProgramScanner` Dialogs 8/Host 1；`IThemeService` Dialogs 8/Wheel 5/Host 3；
-  `IWheelFactory` Gestures 4/Host 1；`IProfilePreviewSource` Wheel 8/Host 2；
-  `IShortcutTargetResolver` Programs 7（实现）/Dialogs 5/Core 4（IconAssetService）/
-  Host 3；`IIconAssetService` Dialogs 8/Wheel 6/Gestures 5/Programs 3/Host 5。
-- `StarPie.Core/Services/Icons/` 六文件：`IconCatalog`/`IIconAssetService`/
-  `IconAssetService`/`IShortcutTargetResolver`/`CustomIconItem`/`VectorIconItem`；
-  `Services/Dialogs/`：`IDialogService` + 6 record；`Services/Programs/`：
-  `IProgramScanner`/`ProgramEntry`/`ProgramCatalog`；`ViewModels/Pages/`：
-  `IProfilePreviewSource`。
-- `ProgramEntry` = `record(string Name, string Path, string FriendlyPath,
-  ImageSource? IconSource)` → Programs.Contracts 为 WPF 类库。
-- Gestures 对 Wheel 的引用仅 `IWheelFactory`/`IWheelViewModel`（GestureEngine）；
-  Wheel/Dialogs 对 Theme 的引用全部为 `IThemeService`。

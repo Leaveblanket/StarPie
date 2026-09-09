@@ -11,42 +11,42 @@ namespace StarPie.Models
     public static class WheelPaletteParser
     {
         /// <summary>System/空值按 OS 深浅色解析为 Dark/Light；命名方案原样透传（沿用渲染器原语义）。</summary>
-        public static string ResolveEffectiveTheme(string theme, bool windowsInDarkMode)
+        public static string ResolveEffectivePalette(string palette, bool windowsInDarkMode)
         {
-            if (string.IsNullOrEmpty(theme) || string.Equals(theme, "System", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(palette) || string.Equals(palette, "System", StringComparison.OrdinalIgnoreCase))
             {
                 return windowsInDarkMode ? "Dark" : "Light";
             }
-            return theme;
+            return palette;
         }
 
         /// <summary>方案名 → 色值组：风格默认观感为基底，依次应用标准浅色/系统预设/
         /// 自定义预设匹配/Custom 微调；最终任一色值非法即整组回落紧急色。</summary>
-        public static WheelPalette Resolve(string theme, AppConfig config, bool windowsInDarkMode, string style)
+        public static WheelPalette Resolve(string palette, AppConfig config, bool windowsInDarkMode, string style)
         {
-            string effectiveTheme = ResolveEffectiveTheme(theme, windowsInDarkMode);
-            theme ??= "";
-            WheelPalette palette = WheelPaletteCatalog.GetStyleDefault(style, effectiveTheme);
+            string effectivePalette = ResolveEffectivePalette(palette, windowsInDarkMode);
+            palette ??= "";
+            WheelPalette styleDefault = WheelPaletteCatalog.GetStyleDefault(style, effectivePalette);
 
-            if (theme == "Light" && WheelPaletteCatalog.UsesStandardLightFallback(style))
+            if (palette == "Light" && WheelPaletteCatalog.UsesStandardLightFallback(style))
             {
                 return WheelPaletteCatalog.StandardLight;
             }
-            if (theme == "MatchaForest")
+            if (palette == "MatchaForest")
             {
                 return WheelPaletteCatalog.MatchaForest;
             }
-            if (theme == "GlacialIce")
+            if (palette == "GlacialIce")
             {
                 return WheelPaletteCatalog.GlacialIce;
             }
-            if (theme == "MorandiMuted")
+            if (palette == "MorandiMuted")
             {
                 return WheelPaletteCatalog.MorandiMuted;
             }
-            if (theme.StartsWith("CustomPreset_", StringComparison.Ordinal) || IsReferencedPreset(theme, config))
+            if (palette.StartsWith("CustomPreset_", StringComparison.Ordinal) || IsReferencedPreset(palette, config))
             {
-                CustomColorPreset? preset = FindPreset(theme, config);
+                CustomColorPreset? preset = FindPreset(palette, config);
                 if (preset != null)
                 {
                     // 命中预设即整组采用其色值；任一字段 null/非法即整组回落紧急色。
@@ -58,21 +58,21 @@ namespace StarPie.Models
                 }
 
                 // 带前缀但预设已不存在：保持风格默认观感。
-                return palette;
+                return styleDefault;
             }
-            if (theme == "Custom")
+            if (palette == "Custom")
             {
-                return ResolveCustom(config, palette);
+                return ResolveCustom(config, styleDefault);
             }
 
-            return palette;
+            return styleDefault;
         }
 
-        private static bool IsReferencedPreset(string theme, AppConfig config)
-            => config.CustomColorPresets != null && config.CustomColorPresets.Exists(p => p.Id == theme || p.Name == theme);
+        private static bool IsReferencedPreset(string palette, AppConfig config)
+            => config.CustomColorPresets != null && config.CustomColorPresets.Exists(p => p.Id == palette || p.Name == palette);
 
-        private static CustomColorPreset? FindPreset(string theme, AppConfig config)
-            => config.CustomColorPresets?.Find(p => p.Id == theme || p.Name == theme || ("CustomPreset_" + p.Id) == theme);
+        private static CustomColorPreset? FindPreset(string palette, AppConfig config)
+            => config.CustomColorPresets?.Find(p => p.Id == palette || p.Name == palette || ("CustomPreset_" + p.Id) == palette);
 
         private static WheelPalette ResolveCustom(AppConfig config, WheelPalette styleDefault)
         {

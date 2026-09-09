@@ -63,7 +63,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsRecording" Value="True">
                             <Setter TargetName="PART_Border" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}" />
-                            <Setter TargetName="PART_Border" Property="Background" Value="{DynamicResource NavTabActiveBgBrush}" />
+                            <Setter TargetName="PART_Border" Property="Background" Value="{DynamicResource NavPageActiveBgBrush}" />
                             <Setter TargetName="PART_DisplayText" Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>

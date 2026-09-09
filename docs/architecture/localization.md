@@ -9,12 +9,11 @@
 
 ## 组成文件
 
-**共享内核（`StarPie.Core/Services/Localization/`，B2/#75 起）**：
+**共享内核（`StarPie.Core/Services/Localization/`）**：
 `ILocalizationService.cs`、`LocalizationService.cs`、`Strings.resx`（中性 = zh-CN）与
 `Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
-`EmbeddedResource` 条目随 S3 迁入 `StarPie.Core.csproj`；B10/#83 起 `RootNamespace=StarPie`
-使强类型类落在 `StarPie.Services.Localization`（与迁移前 `WinPieGestures.Services.Localization`
-同构，仅前缀替换）。
+`EmbeddedResource` 条目配置于 `StarPie.Core.csproj`；`RootNamespace=StarPie`
+使强类型类落在 `StarPie.Services.Localization`）。
 
 > 宿主消费边界（[modules.md](modules.md) §5 D4）：运行时语言字典投影与壳外文案刷新由宿主侧（H1，
 > 见 [host.md](host.md)）维护，属 H1 对 S3 的消费，不是本模块组成文件。
@@ -34,11 +33,11 @@
 3. **文案分类**（术语见 `CONTEXT.md`）：声明式（`{DynamicResource}`）/ 驻留（长期 VM 持有、
    语言切换时刷新：壳层 `ShellViewModel.WindowTitle`（H1 壳窗口，见 [shell.md](shell.md)）/
     导航标题（`MainViewModel`——导航运行时归 Host，见 [navigation.md](navigation.md)）、
-   `WheelAppearanceSettingsViewModel.ThemeOptions`（轮盘配色，M2，见 [wheel.md](wheel.md)）、
-   `InterfaceThemeSettingsViewModel.AppThemeOptions`（界面主题，M4，见 [interface-theme.md](interface-theme.md)）等）/
+   `WheelAppearanceSettingsViewModel.PaletteOptions`（轮盘配色，M2，见 [wheel.md](wheel.md)）、
+   `InterfaceThemeSettingsViewModel.AppPaletteOptions`（界面主题，M4，见 [interface-theme.md](interface-theme.md)）等）/
    即时取词（每次展示读当前语言：通知、对话框标题与系统文件对话框文案、托盘菜单）/
    壳外（托盘 tooltip：宿主 `AppHost` 订阅 `LanguageChanged` 按暂停态刷新，见 [host.md](host.md)）。
-4. **新增/修改文案后**补齐四语言 resx 键值并核对 `docs/i18n-copy-inventory.md`。
+4. **新增/修改文案后**补齐四语言 resx 键值（新增/修改与盘点登记流程见下方扩展点）。
 
 ## 扩展点
 

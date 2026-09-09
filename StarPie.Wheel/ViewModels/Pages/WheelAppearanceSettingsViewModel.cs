@@ -8,8 +8,8 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——皮肤选择
-    /// （UiStyle）、轮盘配色方案与自定义配色预设、高亮边缘光晕、几何尺寸、排版与文字显示、
+    /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——主题风格
+    /// （WheelStyle）、轮盘配色方案与自定义配色预设、高亮边缘光晕、几何尺寸、排版与文字显示、
     /// 中心核图标。全部设置改动即时写穿 <see cref="IConfigService.Current"/>（立即生效）；
     /// 落盘请求经 <see cref="IMessenger"/> 上报组合根编排的订阅者（防抖/立即两类消息）。
     /// </summary>
@@ -85,53 +85,53 @@ namespace StarPie.ViewModels.Pages
             => (IReadOnlyList<CustomColorPreset>?)Config.CustomColorPresets ?? Array.Empty<CustomColorPreset>();
 
         /// <summary>轮盘配色下拉的固定配色项（Tag 供匹配，标签即时取词）。</summary>
-        private ThemeOptionItem[] BuildStaticThemeOptions()
+        private PaletteOptionItem[] BuildStaticPaletteOptions()
         {
-            return new ThemeOptionItem[]
+            return new PaletteOptionItem[]
             {
-                new("System", _localization.GetString("WheelThemeSystem")),
-                new("Dark", _localization.GetString("WheelThemeDark")),
-                new("Light", _localization.GetString("WheelThemeLight")),
-                new("MatchaForest", _localization.GetString("WheelThemeMatchaForest")),
-                new("GlacialIce", _localization.GetString("WheelThemeGlacialIce")),
-                new("MorandiMuted", _localization.GetString("WheelThemeMorandiMuted"))
+                new("System", _localization.GetString("WheelPaletteSystem")),
+                new("Dark", _localization.GetString("WheelPaletteDark")),
+                new("Light", _localization.GetString("WheelPaletteLight")),
+                new("MatchaForest", _localization.GetString("WheelPaletteMatchaForest")),
+                new("GlacialIce", _localization.GetString("WheelPaletteGlacialIce")),
+                new("MorandiMuted", _localization.GetString("WheelPaletteMorandiMuted"))
             };
         }
 
-        private IReadOnlyList<ThemeOptionItem> _themeOptions = Array.Empty<ThemeOptionItem>();
+        private IReadOnlyList<PaletteOptionItem> _paletteOptions = Array.Empty<PaletteOptionItem>();
 
         /// <summary>轮盘配色下拉选项（固定配色 + 自定义预设；导入/增删改名后重建）。</summary>
-        public IReadOnlyList<ThemeOptionItem> ThemeOptions
+        public IReadOnlyList<PaletteOptionItem> PaletteOptions
         {
-            get => _themeOptions;
-            private set => SetProperty(ref _themeOptions, value);
+            get => _paletteOptions;
+            private set => SetProperty(ref _paletteOptions, value);
         }
 
-        /// <summary>重建 <see cref="ThemeOptions"/>：固定配色在前、自定义预设按配置顺序追加（Tag=CustomPreset_{id}）。</summary>
-        private void RebuildThemeOptions()
+        /// <summary>重建 <see cref="PaletteOptions"/>：固定配色在前、自定义预设按配置顺序追加（Tag=CustomPreset_{id}）。</summary>
+        private void RebuildPaletteOptions()
         {
             var presets = Config.CustomColorPresets;
-            var staticOptions = BuildStaticThemeOptions();
-            var options = new List<ThemeOptionItem>(staticOptions.Length + (presets?.Count ?? 0));
+            var staticOptions = BuildStaticPaletteOptions();
+            var options = new List<PaletteOptionItem>(staticOptions.Length + (presets?.Count ?? 0));
             options.AddRange(staticOptions);
             if (presets != null)
             {
                 foreach (var preset in presets)
                 {
-                    options.Add(new ThemeOptionItem(
+                    options.Add(new PaletteOptionItem(
                         $"CustomPreset_{preset.Id}",
-                        string.Format(_localization.GetString("WheelThemeCustomPreset"), preset.Name)));
+                        string.Format(_localization.GetString("WheelPaletteCustomPreset"), preset.Name)));
                 }
             }
-            ThemeOptions = options;
+            PaletteOptions = options;
         }
 
         /// <summary>语言切换后重建轮盘配色下拉选项（固定标签 + 自定义预设后缀均为文案，预设名保持用户数据）。</summary>
         private void OnLanguageChanged()
         {
-            RebuildThemeOptions();
-            // 同 ReloadFromConfig 语义：补发选中通知，让 ComboBox 从新 ThemeOptions 恢复选中。
-            OnPropertyChanged(nameof(SelectedTheme));
+            RebuildPaletteOptions();
+            // 同 ReloadFromConfig 语义：补发选中通知，让 ComboBox 从新 PaletteOptions 恢复选中。
+            OnPropertyChanged(nameof(SelectedPalette));
         }
 
         /// <summary>退订本地化事件（单例 VM 配 IDisposable，随组合根释放调用）。</summary>
@@ -147,34 +147,34 @@ namespace StarPie.ViewModels.Pages
         {
             get
             {
-                string theme = SelectedTheme ?? "";
-                if (!theme.StartsWith("CustomPreset_")) return null;
-                string presetId = theme.Substring("CustomPreset_".Length);
+                string palette = SelectedPalette ?? "";
+                if (!palette.StartsWith("CustomPreset_")) return null;
+                string presetId = palette.Substring("CustomPreset_".Length);
                 return Config.CustomColorPresets?.Find(p => p.Id == presetId);
             }
         }
 
-        // ---- 皮肤选择 & 配色方案 -------------------------------------------------
+        // ---- 主题风格 & 配色方案 -------------------------------------------------
 
-        /// <summary>轮盘皮肤（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
+        /// <summary>轮盘主题风格（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
         [ObservableProperty]
-        private string _uiStyle = "ClassicRing";
+        private string _wheelStyle = "ClassicRing";
 
         /// <summary>轮盘配色方案（含 CustomPreset_{id} 动态项）。瞬态空值（下拉动态项重建时的 null 回推）不写入状态。</summary>
-        private string _selectedTheme = "System";
+        private string _selectedPalette = "System";
 
-        public string SelectedTheme
+        public string SelectedPalette
         {
-            get => _selectedTheme;
+            get => _selectedPalette;
             set
             {
-                // 动态项重建期间绑定回推 null：不得清掉当前主题
+                // 动态项重建期间绑定回推 null：不得清掉当前配色方案
                 if (string.IsNullOrEmpty(value)) return;
-                if (_loading) { _selectedTheme = value; return; }
+                if (_loading) { _selectedPalette = value; return; }
 
-                if (!SetProperty(ref _selectedTheme, value)) return;
+                if (!SetProperty(ref _selectedPalette, value)) return;
 
-                Config.Theme = value;
+                Config.WheelPalette = value;
                 bool isCustomPreset = value.StartsWith("CustomPreset_");
                 IsCustomPresetSelected = isCustomPreset;
 
@@ -389,11 +389,11 @@ namespace StarPie.ViewModels.Pages
 
         // ---- 变更管线（写穿配置 + 通知标签 + 事件） ---------------------------------
 
-        partial void OnUiStyleChanged(string value)
+        partial void OnWheelStyleChanged(string value)
         {
             if (_loading) return;
-            Config.UiStyle = value;
-            // 皮肤切换只重绘预览，不请求落盘
+            Config.WheelStyle = value;
+            // 主题风格切换只重绘预览，不请求落盘
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 
@@ -697,11 +697,11 @@ namespace StarPie.ViewModels.Pages
             };
 
             Config.CustomColorPresets.Add(newPreset);
-            Config.Theme = "CustomPreset_" + newPreset.Id;
+            Config.WheelPalette = "CustomPreset_" + newPreset.Id;
 
             // 先重建下拉项（新 Tag 才有落点），再切选中触发主题管线
-            RebuildThemeOptions();
-            SelectedTheme = "CustomPreset_" + newPreset.Id;
+            RebuildPaletteOptions();
+            SelectedPalette = "CustomPreset_" + newPreset.Id;
             _dialogs.ShowInfo(
                 _localization.GetString("Notice"),
                 string.Format(_localization.GetString("SaveCustomPresetSuccess"), presetName));
@@ -727,7 +727,7 @@ namespace StarPie.ViewModels.Pages
             if (RejectBlankPresetName(newName)) return;
 
             preset.Name = newName;
-            RebuildThemeOptions();
+            RebuildPaletteOptions();
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
@@ -756,10 +756,10 @@ namespace StarPie.ViewModels.Pages
             if (Config.CustomColorPresets == null || !Config.CustomColorPresets.Contains(preset)) return;
 
             Config.CustomColorPresets.Remove(preset);
-            Config.Theme = "System";
+            Config.WheelPalette = "System";
 
-            RebuildThemeOptions();
-            SelectedTheme = "System";
+            RebuildPaletteOptions();
+            SelectedPalette = "System";
             _dialogs.ShowInfo(
                 _localization.GetString("Notice"),
                 string.Format(_localization.GetString("DeleteCustomPresetSuccess"), preset.Name));
@@ -778,7 +778,7 @@ namespace StarPie.ViewModels.Pages
         /// <summary>
         /// 导入配置后从当前配置重挂播种快照状态：<see cref="_loading"/> 抑制与构造播种一致
         /// （只落状态不回写配置、不发落盘/预览事件），随后补发绑定通知让透传属性绑定同步
-        /// 拉取新值，并重建 <see cref="ThemeOptions"/> 供配色下拉。
+        /// 拉取新值，并重建 <see cref="PaletteOptions"/> 供配色下拉。
         /// </summary>
         public void ReloadFromConfig()
         {
@@ -797,9 +797,9 @@ namespace StarPie.ViewModels.Pages
             OnPropertyChanged(nameof(CoreCustomIconKey));
             OnPropertyChanged(nameof(CoreCustomIconSvg));
             OnPropertyChanged(nameof(CoreCustomImagePath));
-            // 重建下拉项后补发选中通知，让 ComboBox 从新 ThemeOptions 恢复选中（
-            // LoadFromConfig 播种期 SelectedTheme 走 _loading 短路不通知）。
-            OnPropertyChanged(nameof(SelectedTheme));
+            // 重建下拉项后补发选中通知，让 ComboBox 从新 PaletteOptions 恢复选中（
+            // LoadFromConfig 播种期 SelectedPalette 走 _loading 短路不通知）。
+            OnPropertyChanged(nameof(SelectedPalette));
         }
 
         /// <summary>
@@ -810,8 +810,8 @@ namespace StarPie.ViewModels.Pages
         {
             var c = Config;
 
-            UiStyle = string.IsNullOrEmpty(c.UiStyle) ? "ClassicRing" : c.UiStyle;
-            SelectedTheme = string.IsNullOrEmpty(c.Theme) ? "System" : c.Theme;
+            WheelStyle = string.IsNullOrEmpty(c.WheelStyle) ? "ClassicRing" : c.WheelStyle;
+            SelectedPalette = string.IsNullOrEmpty(c.WheelPalette) ? "System" : c.WheelPalette;
             Shape = MapLegacyShapeTag(c.Shape);
             IconLayoutMode = string.IsNullOrEmpty(c.IconLayoutMode) ? "IconAndText" : c.IconLayoutMode;
             ShowText = c.ShowText;
@@ -836,10 +836,10 @@ namespace StarPie.ViewModels.Pages
             CustomHighlightBorderText = c.CustomHighlightBorder ?? "";
             CustomTextText = c.CustomText ?? "";
 
-            IsCustomPresetSelected = SelectedTheme.StartsWith("CustomPreset_");
-            IsCustomColorExpanderExpanded = c.Theme == "Custom" || IsCustomPresetSelected;
+            IsCustomPresetSelected = SelectedPalette.StartsWith("CustomPreset_");
+            IsCustomColorExpanderExpanded = c.WheelPalette == "Custom" || IsCustomPresetSelected;
 
-            RebuildThemeOptions();
+            RebuildPaletteOptions();
         }
 
         /// <summary>旧版 Shape 标签 → 当前 Combo Tag 的兼容映射。</summary>
@@ -854,13 +854,13 @@ namespace StarPie.ViewModels.Pages
     }
 
     /// <summary>轮盘配色下拉选项条目：Tag 供 SelectedValue 匹配，Label 为展示文案。</summary>
-    public sealed class ThemeOptionItem
+    public sealed class PaletteOptionItem
     {
         public string Tag { get; }
 
         public string Label { get; }
 
-        public ThemeOptionItem(string tag, string label)
+        public PaletteOptionItem(string tag, string label)
         {
             Tag = tag;
             Label = label;

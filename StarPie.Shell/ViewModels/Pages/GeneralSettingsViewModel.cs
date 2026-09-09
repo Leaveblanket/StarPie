@@ -149,7 +149,7 @@ namespace StarPie.ViewModels.Pages
         public void NotifyMinimizedToTray()
         {
             _showTrayBalloonTip(
-                "WinPieGestures",
+                "StarPie",
                 "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
         }
 
@@ -162,7 +162,7 @@ namespace StarPie.ViewModels.Pages
         {
             try
             {
-                string exePath = Environment.ProcessPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "WinPieGestures.exe");
+                string exePath = Environment.ProcessPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
                 _startElevated(exePath);
                 _exitApplication();
             }
@@ -191,7 +191,7 @@ namespace StarPie.ViewModels.Pages
         {
             var picked = _dialogs.ShowSaveFileDialog(
                 "JSON 配置文件 (*.json)|*.json",
-                $"WinPieGestures_Config_Backup_{DateTime.Now:yyyyMMdd}.json",
+                $"StarPie_Config_Backup_{DateTime.Now:yyyyMMdd}.json",
                 "导出配置文件");
 
             if (picked == null) return;

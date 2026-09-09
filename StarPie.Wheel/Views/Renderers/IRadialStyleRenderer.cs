@@ -22,10 +22,10 @@ namespace StarPie.Views.Renderers
         double BorderThickness { get; }
         double HighlightBorderThickness { get; }
 
-        /// <summary>配置当前主题并解析色值：主题为 "System"/空值时按调用方提供的实时
+        /// <summary>配置当前轮盘配色方案并解析色值：方案为 "System"/空值时按调用方提供的实时
         /// Windows 深色标志解析；方案→色值换算在 <see cref="WheelPaletteParser"/>，
         /// 渲染器只把解析后的 <see cref="WheelPalette"/> 转成画刷。</summary>
-        void Initialize(string theme, AppConfig config, bool windowsInDarkMode);
+        void Initialize(string palette, AppConfig config, bool windowsInDarkMode);
 
         /// <summary>绘制当前样式的装饰；轮盘状态（几何、是否显示核图标）由调用方
         /// 从轮盘视图模型传入。</summary>

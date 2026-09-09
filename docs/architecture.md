@@ -14,7 +14,6 @@
 | `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
 | `docs/architecture/modules.md` | 模块划分地图（目标态 + 方向性，ADR-0015；程序集化路线见 assemblies.md/ADR-0016） | 归属争议、扩展点验收时 |
 | `docs/architecture/assemblies.md` | 程序集地图与程序集化收尾（目标态 = as-built，路线已清零，见 ADR-0016） | 程序集归属、依赖方向、导航槽位、批次历史与现状时 |
-| `docs/i18n-copy-inventory.md` | 界面文案键位盘点 | 新增/修改用户可见文案时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
 
@@ -49,13 +48,13 @@
 - 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S2–S5
   共享件（Configuration/Localization/Messages/Navigation 目录与槽位契约——
   ADR-0021/#92 起导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
-  NavigationItemViewModel）归 Host `WinPieGestures/Services/Navigation/` 与
-  `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
+  NavigationItemViewModel）归 Host `StarPie/Services/Navigation/` 与
+  `StarPie/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
   `Services/AppHostDelegates`；**不含任何模块出口契约**——S1 图标资产已随 ADR-0023/#95
   独立成集、扫描/SPI/对话框契约已随 #96 下沉 Programs.Contracts/Dialogs.Contracts、预览
   Profile 契约已随 #97 下沉 Gestures.Contracts；共享 UI
   基建已随 ADR-0022/#94 去共享化——通用转换器与 `ModernControls.xaml`（全局控件样式字典）迁
-  Host `WinPieGestures/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
+  Host `StarPie/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
   `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 删除（五页 XAML 根直承 `UserControl`）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
@@ -70,7 +69,7 @@
   GeneralSettingsViewModel+AdvancedSettingsPage/AboutViewModel+AboutSettingsPage 与正式模块注册器
   ShellModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`（B10/#83）。
 - 模块程序集（B7/#80 起；出口契约 ADR-0023/#97 随实现方再下沉）：`StarPie.Theme/`（WPF
-  类库，程序集 `StarPie.Theme`）承载 M4 界面主题实现（ThemeService、ThemePaletteManager
+  类库，程序集 `StarPie.Theme`）承载 M4 界面主题实现（ThemeService、AppThemePaletteManager
   （public，Host AppHost 装配面）、五套主题字典 Views/Styles/Themes、
   InterfaceThemeSettingsViewModel 与模块注册器 ThemeModuleRegistrar），
   `StarPie.Theme.Contracts/`（WPF 类库，程序集 `StarPie.Theme.Contracts`）承载出口契约
@@ -108,7 +107,7 @@
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
-- 单元测试：`WinPieGestures.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
+- 单元测试：`StarPie.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
 - e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务分层（提交级全量 xUnit + e2e 免跑判定、合入门全量）见 [ADR-0018](adr/0018-verification-gates-and-test-strategy.md) 与 [git-commits](agents/git-commits.md)。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
 
@@ -121,10 +120,9 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0023）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0024）
 │   ├── agents/                  # Agent 工作流文档
-│   └── i18n-copy-inventory.md   # 文案盘点
-├── WinPieGestures/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
+├── StarPie/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（B2/#75 起；不再含共享 UI 基建，ADR-0022/#94，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（ADR-0023/#95 起，见 layout.md）
 ├── StarPie.Icons/               # S1 图标实现程序集（ADR-0023/#95 起，见 layout.md）
@@ -139,11 +137,11 @@ StarPie/
 ├── StarPie.Theme/               # M4 界面主题模块程序集（B7/#80 起，见 layout.md）
 ├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（B8/#81 起，见 layout.md）
 ├── StarPie.Gestures/            # M1 手势与动作模块程序集（B9/#82 起，见 layout.md）
-├── WinPieGestures.Tests/        # xUnit 单元测试
+├── StarPie.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95/#96/#97）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95/#96/#97）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 
@@ -163,34 +161,42 @@ Services ---> Models
 
 1. 规范内容变更只改**对应叶子文件**；新增主题时先建叶子并在本文路由表登记。
 2. 新增决策若满足 ADR 三条件，先新增 ADR，再把结论回填对应叶子；反之只改叶子。
-3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja），并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](architecture/localization.md)）。
+3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja）——声明式文案经 XAML `{DynamicResource}`、动态文案经 `ILocalizationService` 即时取词（见 [localization.md](architecture/localization.md)）。
 4. 叶子增删、文件路径变化时同步更新本文（文档体系表 + 路由表 + 仓库边界树）。
 5. 验证义务与测试策略按 [ADR-0018](adr/0018-verification-gates-and-test-strategy.md) 分层：提交级 build + 全量 xUnit + e2e 免跑判定；合入 main 前全量 xUnit + 全量 e2e；不按模块拆测试、不移除 e2e 每用例冷启动。
+6. ADR 头部必带状态（Active / Superseded by NNN / Active（部分被 NNN 修订））与修订指针；状态速览见附录。
+7. 叶子与 ADR 不记录“已落地/已清零/批次流水/日期快照”：完成即删，历史归 git 与 issue。
+8. 程序集地图与依赖方向只许 `assemblies.md` §2/§3 一份正典，其它叶子引用不抄写。
+9. CONTEXT 只收领域术语；架构词（宿主/模块/程序集/M1–M5 等）正典在 `modules.md`/`assemblies.md`。
+10. 任务型盘点文档必须带“关闭即删”义务，不保留为常驻文档。
 
 ## 附录：ADR 索引
 
-| 编号 | 文件 | 主题 |
-|---|---|---|
-| 0001 | `docs/adr/0001-mvvm-with-communitytoolkit.md` | MVVM 采用 CommunityToolkit |
-| 0002 | `docs/adr/0002-manual-composition-root.md` | 手动组合根与接缝 |
-| 0003 | `docs/adr/0003-application-host-restructure.md` | 应用宿主重构 |
-| 0004 | `docs/adr/0004-dialog-service-design.md` | 对话框服务设计 |
-| 0005 | `docs/adr/0005-di-container-for-navigation.md` | 容器化导航 |
-| 0006 | `docs/adr/0006-viewmodel-service-folder-architecture.md` | VM/服务目录架构 |
-| 0007 | `docs/adr/0007-views-folder-and-namespace-architecture.md` | Views 目录与命名空间 |
-| 0008 | `docs/adr/0008-strict-viewmodel-view-boundary.md` | VM/View 严格边界 |
-| 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 |
-| 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 |
-| 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 |
-| 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） |
-| 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） |
-| 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分（界面主题模块边界 + 预设名语义） |
-| 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） |
-| 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行（7 程序集、导航自治、演进式组合根、B0–B10） |
-| 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） |
-| 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） |
-| 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口（契约入 Core + ProgramsModuleRegistrar + 预览桥） |
-| 0020 | `docs/adr/0020-dialogs-assembly-and-m3-scanner-contract.md` | 对话框实现程序集化（StarPie.Dialogs，8 程序集目标态）+ M3 扫描契约收口（ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core）+ ThemeChanged 死事件移除 |
-| 0021 | `docs/adr/0021-navigation-runtime-to-host.md` | 导航运行时归 Host：共享内核仅留目录/槽位契约（#89 Q3/#91 裁决，运行时主体迁 Host + C1 死代码清理） |
-| 0022 | `docs/adr/0022-shared-ui-infrastructure-decentralization.md` | 共享 UI 基建去共享化：转换器/ModernControls→Host、HotkeyRecorderBox→Gestures、SettingsPageBase 删除（#89 会话前提，决策 #93/实施 #94） |
-| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄：模块出口契约入 *.Contracts、S1 成集、Core 仅留全局机制/数据（#89 Q2/#90 裁决，决策 #93/实施 #95–#97） |
+| 编号 | 文件 | 主题 | 状态 |
+|---|---|---|---|
+| 0001 | `docs/adr/0001-mvvm-with-communitytoolkit.md` | MVVM 采用 CommunityToolkit | Active |
+| 0002 | `docs/adr/0002-manual-composition-root.md` | 手动组合根与接缝 | Superseded by 0005 |
+| 0003 | `docs/adr/0003-application-host-restructure.md` | 应用宿主重构 | Active（演进见 0011） |
+| 0004 | `docs/adr/0004-dialog-service-design.md` | 对话框服务设计 | Active（落点见 0020/0023） |
+| 0005 | `docs/adr/0005-di-container-for-navigation.md` | 容器化导航 | Active（注册源被 0016 修订） |
+| 0006 | `docs/adr/0006-viewmodel-service-folder-architecture.md` | VM/服务目录架构 | Active |
+| 0007 | `docs/adr/0007-views-folder-and-namespace-architecture.md` | Views 目录与命名空间 | Active |
+| 0008 | `docs/adr/0008-strict-viewmodel-view-boundary.md` | VM/View 严格边界 | Active |
+| 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 | Active（0014 补充） |
+| 0010 | `docs/adr/0010-localization-copy-principles.md` | 本地化文案原则 | Superseded by 0013 |
+| 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 | Active（注册源被 0016 修订） |
+| 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） | Active（决策 2 被 0013 修订） |
+| 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） | Active |
+| 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分（界面主题模块边界 + 预设名语义） | Active |
+| 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） | Active（决策 3 被 0016、判据被 0023 修订） |
+| 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行（7 程序集、导航自治、演进式组合根、B0–B10） | Active（目标态被 0020–0023 演进） |
+| 0017 | `docs/adr/0017-comment-conventions.md` | 注释规范（注释不承载溯源，理由入 git / ADR / 叶子） | Active |
+| 0018 | `docs/adr/0018-verification-gates-and-test-strategy.md` | 验证义务分层（两层门 + e2e 免跑判定，不做按模块拆测试） | Active |
+| 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口 | Active（决策 2 被 0023 修订） |
+| 0020 | `docs/adr/0020-dialogs-assembly-and-m3-scanner-contract.md` | 对话框实现程序集化（StarPie.Dialogs）与 M3 扫描契约收口 | Active（契约落点被 0023 修订） |
+| 0021 | `docs/adr/0021-navigation-runtime-to-host.md` | 导航运行时归 Host：共享内核仅留目录/槽位契约 | Active |
+| 0022 | `docs/adr/0022-shared-ui-infrastructure-decentralization.md` | 共享 UI 基建去共享化（转换器/ModernControls→Host、HotkeyRecorderBox→Gestures、基类删除） | Active |
+| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active |
+| 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
+
+状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代（文件保留决策史）；`Active（被 NNN 修订）` 部分条款被演进。各文件头部 Status 为权威，本表为速览。

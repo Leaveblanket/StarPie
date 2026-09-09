@@ -1,0 +1,38 @@
+<Application
+    x:Class="StarPie.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:StarPie.Views.Converters"
+    xmlns:wheelConverters="clr-namespace:StarPie.Views.Converters;assembly=StarPie.Wheel">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!--  Light 主题默认/设计时画刷：经跨程序集 pack URI 合并；运行时由
+                      AppThemePaletteManager 整项替换同源主题槽  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Theme;component/Views/Styles/Themes/Light.xaml" />
+                <!--  全局控件样式字典（宿主本地）：随共享 UI 基建去共享化迁入 Host
+                      （ADR-0022/#94），本地合并  -->
+                <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
+                <!--  热键录制控件样式字典（StarPie.Gestures）：样式段随控件下沉模块后
+                      经跨程序集 pack URI 合并  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Views/Styles/HotkeyRecorderBox.xaml" />
+                <!--  模块页面模板字典：Gestures/Shell 经跨程序集 pack URI 合并，
+                      宿主外观聚合页模板由本地 Modules/HostPageTemplates.xaml 提供  -->
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
+                <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis" />
+            <!--  通用共享转换器（宿主本地，自 Core 迁入）：实例由 App 级资源单点持有  -->
+            <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
+            <converters:StringToGeometryConverter x:Key="StringToGeometryConverter" />
+            <converters:IntEqualsConverter x:Key="IntEqualsConverter" />
+            <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
+            <!--  轮盘核图标预览配套转换器（StarPie.Wheel）：外观聚合页预览用，
+                  经跨程序集 clr-namespace 引用实例  -->
+            <wheelConverters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />
+            <wheelConverters:CoreIconNameConverter x:Key="CoreIconNameConverter" />
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

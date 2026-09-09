@@ -79,14 +79,14 @@ namespace StarPie.Views.Renderers
                 if (innerR >= outerR) innerR = outerR * 0.5;
                 if (coreR >= innerR) coreR = innerR * 0.8;
 
-                string uiStyle = state.UiStyle ?? "ClassicRing";
-                string theme = state.SelectedTheme ?? "System";
+                string wheelStyle = state.WheelStyle ?? "ClassicRing";
+                string palette = state.SelectedPalette ?? "System";
                 string shape = state.Shape ?? "Original";
                 string layoutMode = state.IconLayoutMode ?? "IconAndText";
                 bool showText = state.ShowText && layoutMode != "IconOnly";
 
-                _previewStyleRenderer = StyleRendererFactory.CreateRenderer(uiStyle);
-                _previewStyleRenderer.Initialize(theme, state.CurrentConfig, windowsInDarkMode);
+                _previewStyleRenderer = StyleRendererFactory.CreateRenderer(wheelStyle);
+                _previewStyleRenderer.Initialize(palette, state.CurrentConfig, windowsInDarkMode);
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;
@@ -125,7 +125,7 @@ namespace StarPie.Views.Renderers
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
-                        Visibility = (state.ShowCoreIcon && state.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
                     if (!string.IsNullOrEmpty(state.CoreCustomImagePath) && File.Exists(state.CoreCustomImagePath))
                     {
@@ -155,7 +155,7 @@ namespace StarPie.Views.Renderers
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
-                        Visibility = (state.ShowCoreIcon && state.UiStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
                     };
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }

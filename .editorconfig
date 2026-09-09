@@ -1,5 +1,5 @@
 # 仓库级统一 .editorconfig（#62/#39 C8）：覆盖主工程外的测试工程与其余目录。
-# 说明：原 WinPieGestures/.editorconfig 已收敛至此为单一真源，子目录无需重复全量规则。
+# 说明：原工程内 .editorconfig 已收敛至此为单一真源，子目录无需重复全量规则。
 root = true
 
 # c# 文件

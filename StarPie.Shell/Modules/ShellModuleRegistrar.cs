@@ -30,12 +30,12 @@ namespace StarPie.Modules
             catalog.RegisterPage<GeneralSettingsViewModel>(
                 NavigationSlot.Advanced,
                 NavigationSlots.GetAutomationId(NavigationSlot.Advanced),
-                "TabAdvanced",
+                "PageAdvanced",
                 IconAdvanced);
             catalog.RegisterPage<AboutViewModel>(
                 NavigationSlot.About,
                 NavigationSlots.GetAutomationId(NavigationSlot.About),
-                "TabAbout",
+                "PageAbout",
                 IconAbout);
         }
 

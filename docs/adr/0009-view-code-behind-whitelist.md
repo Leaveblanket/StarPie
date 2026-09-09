@@ -1,6 +1,10 @@
 # View code-behind 白名单与输入适配边界
 
+> Status: Active
+
 > **更新（ADR-0010）**：白名单第 2 条（本地化）范围收窄为“XAML 表达不了的位置”（Title 拼接、原生壳、动态生成项）；静态文案一律声明式化，文案分类与 VM 生命周期契约见 [ADR-0010](./0010-localization-copy-principles.md)。
+
+> **更新（ADR-0014）**：界面主题应用与预览重绘补充消息化驱动（`AppThemeChangedMessage`/`AppearancePreviewInvalidatedMessage`），见 [ADR-0014](./0014-wheel-palette-module-boundary-and-appearance-split.md) 决策 7。
 
 承接 ADR-0008 的严格边界，明确 `docs/architecture/layering.md`（Views 规范）之下 View 的 `.cs` 里允许保留什么、哪些必须 Binding/ICommand 化。此前各页迁移后仍残留手写 VM 状态读写、空壳事件与 View→Composition 反向依赖，且无文档界定归属，未来 agent 无法判断某段 code-behind 该留该迁。
 
@@ -27,4 +31,3 @@ accepted
 - 新增或遗留 code-behind 按上表分类：白名单项保留并注释指向本 ADR；非白名单项（状态回填、VM 改写、事件当命令入口、反向依赖）迁到 Binding/命令/VM。
 - 未来 agent 不得把白名单项“好心”迁进 ViewModel——它们是呈现层适配而非领域状态。
 - 新输入控件先找 `Command`/`InputBinding`/`MouseBinding`/附加行为，再考虑事件。
-- 页面残留清理按 T21（页面收口）、T22（对话框与壳层）、T23（RadialWindow/渲染器审查落档）三票交付。

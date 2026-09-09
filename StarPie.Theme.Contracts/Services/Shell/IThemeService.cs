@@ -8,7 +8,7 @@ namespace StarPie.Services.Shell
     /// 标题栏的深浅色切换（<see cref="ApplyWindowTheme"/>）。
     /// </summary>
     /// <remarks>
-    /// 调色板整项替换由模块级 ThemePaletteManager 回调执行，本服务不触碰 Views。
+    /// 调色板整项替换由模块级 AppThemePaletteManager 回调执行，本服务不触碰 Views。
     /// 消费方为宿主的窗口/对话框工厂与轮盘侧（Wheel/Dialogs runtime 只经本契约边消费，
     /// 不再引用 Theme runtime）；页面不持有本服务（壳层 View 效果白名单）。
     /// </remarks>
