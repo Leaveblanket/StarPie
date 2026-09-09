@@ -4,9 +4,11 @@
 >
 > 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异清单见 §7，随实施批次（§8）逐批回填叶子。
 >
-> 程序集化目标态（8 程序集：ADR-0016 的 7 程序集 + ADR-0020/#88 新增 StarPie.Dialogs）与
-> 批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
-> [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)）。
+> 程序集化目标态（10 程序集：ADR-0016 的 7 + ADR-0020/#88 新增 StarPie.Dialogs +
+> ADR-0023/#95 S1 成集新增 StarPie.Icons.Contracts/StarPie.Icons；#96/#97 将按 ADR-0023
+> 续扩 *.Contracts）与批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
+> [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)、
+> [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）。
 
 ## 1. 何时读本文
 
@@ -38,7 +40,9 @@
   主题设置子 VM DI 注册已下放 `ThemeModuleRegistrar`（B7/#80 迁入 `StarPie.Theme`，M4 无导航页），
   M2 轮盘工厂与轮盘外观设置子 VM DI 注册已下放 `WheelModuleRegistrar`（B8/#81 迁入
   `StarPie.Wheel`，M2 无导航页），M1 手势管线/页面 VM/`IProfilePreviewSource` 别名 DI 注册已下放
-  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；M3 快捷方式解析契约注册已下放
+  `GesturesModuleRegistrar`（B9/#82 迁入 `StarPie.Gestures`）；S1 图标资产实例服务注册已下放
+  `IconsModuleRegistrar`（ADR-0023/#95 迁入 `StarPie.Icons`，S1 无导航页，无
+  RegisterNavigation）；M3 快捷方式解析契约注册已下放
   `ProgramsModuleRegistrar`（ADR-0019/#87 迁入 `StarPie.Programs`，M3 无导航页，无
   RegisterNavigation）；仅 Host 外观聚合页 VM 仍由组合根
   注册；程序集化目标态：所属模块注册器 + 槽位表 + 模板字典，见 [assemblies.md](assemblies.md) §5）；
@@ -80,13 +84,16 @@
 #### M3 程序扫描与目录
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
 - **关键内部**：`ProgramScanner`（IO 扫描编排；ADR-0020/#88 起实例实现 Core 契约
-  `IProgramScanner`，构造注入扫描所需 Core 契约）、`ShortcutResolver`（实例实现 Core 契约
-  `IShortcutTargetResolver`，ADR-0019/#87）与模块注册器 `ProgramsModuleRegistrar`。
+  `IProgramScanner`，构造注入扫描所需契约——Icons.Contracts 的 `IIconAssetService` +
+  Core 的 `IShortcutTargetResolver`（#95 中间态，ADR-0023））、`ShortcutResolver`
+  （实例实现 Core 契约 `IShortcutTargetResolver`，ADR-0019/#87）与模块注册器
+  `ProgramsModuleRegistrar`。
   纯规则目录 `ProgramCatalog` 与纯数据 `ProgramEntry` 已上提 Core（ADR-0020/#88：第二消费方族
   判据——M3 扫描与 S6 程序选择器共用），不随 M3 物理居留。
 - **对外契约**：扫描/过滤数据经 Core 契约（`IProgramScanner`/`ProgramCatalog`/`ProgramEntry`）
-  提供给 S6 的程序选择对话框，不反向依赖 S6；消费共享内核 S1 契约
-  （`IShortcutTargetResolver`/`IIconAssetService`，M3 → Core 单向）。
+  提供给 S6 的程序选择对话框，不反向依赖 S6；消费 S1 契约 `IIconAssetService`
+  （ADR-0023/#95 起驻 `StarPie.Icons.Contracts`，M3 → Contracts 契约边）与 Core 契约
+  `IShortcutTargetResolver`（#95 中间态暂驻 Core，#96 随 Programs.Contracts 迁出）。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部。
 
 #### M4 界面主题
@@ -108,11 +115,16 @@
 
 #### S1 图标资产
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
-- **关键内部**（ADR-0019/#87 双形拆分）：静态纯目录 `Services/Icons/IconCatalog.cs`（`VectorIconList`/`GetSvgPathByKey`/`ExtractSvgPathData`，无状态）+ 实例服务
-  `Services/Icons/IIconAssetService.cs`/`IconAssetService.cs`（自定义图标存储与 `GetIcon`，
-  经注入 `IShortcutTargetResolver` 消费 .lnk 解析）+ `CustomIconItem.cs`/`VectorIconItem.cs`；
-  `.lnk` 解析契约 `IShortcutTargetResolver.cs` 亦驻 `Services/Icons/`（由 M3 实现）；
-  消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。
+- **关键内部**（ADR-0019/#87 双形拆分 + ADR-0023/#95 成集）：契约四件驻
+  `StarPie.Icons.Contracts/Services/Icons/`——静态纯目录 `IconCatalog.cs`
+  （`VectorIconList`/`GetSvgPathByKey`/`ExtractSvgPathData`，无状态）+ 实例服务契约
+  `IIconAssetService.cs` + `CustomIconItem.cs`/`VectorIconItem.cs`（命名空间
+  `StarPie.Services.Icons` 不变，零程序集依赖）；实现 `IconAssetService.cs` 与注册器
+  `IconsModuleRegistrar` 驻 `StarPie.Icons/`（`Services/Icons/` + `Modules/`，经注入
+  `IShortcutTargetResolver` 消费 .lnk 解析）；`.lnk` 解析契约 `IShortcutTargetResolver.cs`
+  #95 中间态仍驻 Core `Services/Icons/`（由 M3 实现，#96 随 Programs.Contracts 迁出）；
+  消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器（Dialogs/Wheel/Gestures/Programs/Host
+  csproj 显式引用 `StarPie.Icons.Contracts`，不再经 Core 消费 S1 类型）。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
 
 #### S2 配置与保存
