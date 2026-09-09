@@ -118,7 +118,6 @@ StarPie/
 │   ├── architecture/            # 架构叶子文档
 │   ├── adr/                     # 决策记录（ADR-0001 ~ 0025，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
-├── design/                      # 设计期资源单源与生成脚本（见 architecture/design-time-preview.md）
 ├── StarPie/              # 主程序（规范对象；含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（见 layout.md）

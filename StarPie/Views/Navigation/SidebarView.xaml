@@ -3,8 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:dt="clr-namespace:StarPie.Views.DesignTime"
         mc:Ignorable="d"
-        d:DesignHeight="640" d:DesignWidth="230">
+        d:DesignHeight="681" d:DesignWidth="230"
+        d:DataContext="{d:DesignInstance Type=dt:SidebarDesignTimeData, IsDesignTimeCreatable=True}">
 
     <!--  左侧导航栏：导航项数据驱动（图标/标题/目标 VM 类型/选中态），
           由导航 VM 的 NavigationItems 提供；AutomationId 沿用 NavPage{0..4} 供 e2e 使用。  -->

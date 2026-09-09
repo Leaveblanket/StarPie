@@ -25,4 +25,11 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- ADR-0025/#101：设计期字符串字典（签入生成物，由同目录生成脚本从 Strings.resx 派生）
+         Page 编译为惰性 BAML，仅供各 UI 工程 Properties/DesignTimeResources.xaml 资源锚
+         以 pack URI 设计期合并；运行时永不自动合并。 -->
+    <Page Update="Services\Localization\DesignTimeStrings.xaml" />
+  </ItemGroup>
+
 </Project>

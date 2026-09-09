@@ -42,4 +42,13 @@
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- ADR-0025/#101：VS 设计期资源锚（仅设计期合并，运行时不会自动合并）。 -->
+    <Page Update="Properties\DesignTimeResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+      <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
+    </Page>
+  </ItemGroup>
+
 </Project>
