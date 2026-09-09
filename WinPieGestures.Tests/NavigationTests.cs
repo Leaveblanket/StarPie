@@ -77,9 +77,9 @@ public sealed class NavigationExecutorTests
         var store = provider.GetRequiredService<NavigationStore>();
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         catalog.RegisterPage<AppearanceViewModel>(
-            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "TabAppearance", "");
+            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
         return (new NavigationExecutor(store, catalog, provider), store, provider);
     }
 
@@ -116,7 +116,7 @@ public sealed class NavigationExecutorTests
         var store = provider.GetRequiredService<NavigationStore>();
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         var executor = new NavigationExecutor(store, catalog, provider);
 
         Assert.Throws<InvalidOperationException>(() => executor.Navigate(NavigationSlot.Advanced));
@@ -233,7 +233,7 @@ public sealed class MainViewModelTests
             typeof(BehaviorSettingsViewModel), typeof(AppearanceSettingsViewModel), typeof(ProfileListViewModel),
             typeof(GeneralSettingsViewModel), typeof(AboutViewModel)
         }, vm.NavigationItems.Select(i => i.TargetViewModelType));
-        Assert.Equal(new[] { "NavTab0", "NavTab1", "NavTab2", "NavTab3", "NavTab4" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             vm.NavigationItems.Select(i => i.AutomationId));
     }
 
@@ -242,11 +242,11 @@ public sealed class MainViewModelTests
     {
         var (vm, _, _) = Create();
 
-        Assert.Equal(Localization.GetString("TabTrigger"), vm.NavigationItems[0].Title);
-        Assert.Equal(Localization.GetString("TabAppearance"), vm.NavigationItems[1].Title);
-        Assert.Equal(Localization.GetString("TabGestures"), vm.NavigationItems[2].Title);
-        Assert.Equal(Localization.GetString("TabAdvanced"), vm.NavigationItems[3].Title);
-        Assert.Equal(Localization.GetString("TabAbout"), vm.NavigationItems[4].Title);
+        Assert.Equal(Localization.GetString("PageTrigger"), vm.NavigationItems[0].Title);
+        Assert.Equal(Localization.GetString("PageAppearance"), vm.NavigationItems[1].Title);
+        Assert.Equal(Localization.GetString("PageGestures"), vm.NavigationItems[2].Title);
+        Assert.Equal(Localization.GetString("PageAdvanced"), vm.NavigationItems[3].Title);
+        Assert.Equal(Localization.GetString("PageAbout"), vm.NavigationItems[4].Title);
     }
 
     [Fact]
@@ -292,8 +292,8 @@ public sealed class MainViewModelTests
         {
             Localization.SetLanguage("en");
 
-            Assert.Equal(Localization.GetString("TabTrigger"), vm.NavigationItems[0].Title);
-            Assert.Equal(Localization.GetString("TabAbout"), vm.NavigationItems[4].Title);
+            Assert.Equal(Localization.GetString("PageTrigger"), vm.NavigationItems[0].Title);
+            Assert.Equal(Localization.GetString("PageAbout"), vm.NavigationItems[4].Title);
         }
         finally
         {
@@ -306,7 +306,7 @@ public sealed class MainViewModelTests
     {
         var (vm, store, fixture) = Create();
 
-        // 目录注册槽位与点击项的 AutomationId 一一对应：NavTab4（槽位 About）→ About VM。
+        // 目录注册槽位与点击项的 AutomationId 一一对应：NavPage4（槽位 About）→ About VM。
         vm.NavigationItems[4].NavigateCommand.Execute(null);
 
         Assert.Same(fixture.About, store.CurrentViewModel);

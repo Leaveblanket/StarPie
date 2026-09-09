@@ -77,8 +77,8 @@ public sealed class ShellAssemblyPlacementTests
 
         Assert.Equal(2, catalog.Entries.Count);
         Assert.Equal(new[] { NavigationSlot.Advanced, NavigationSlot.About }, catalog.Entries.Select(e => e.Slot));
-        Assert.Equal(new[] { "NavTab3", "NavTab4" }, catalog.Entries.Select(e => e.AutomationId));
-        Assert.Equal(new[] { "TabAdvanced", "TabAbout" }, catalog.Entries.Select(e => e.TitleKey));
+        Assert.Equal(new[] { "NavPage3", "NavPage4" }, catalog.Entries.Select(e => e.AutomationId));
+        Assert.Equal(new[] { "PageAdvanced", "PageAbout" }, catalog.Entries.Select(e => e.TitleKey));
         Assert.All(catalog.Entries, e => Assert.Equal("StarPie.Shell", e.ViewModelType.Assembly.GetName().Name));
     }
 

@@ -7,7 +7,7 @@
         d:DesignHeight="640" d:DesignWidth="230">
 
     <!--  左侧导航栏：导航项数据驱动（图标/标题/目标 VM 类型/选中态），
-          由导航 VM 的 NavigationItems 提供；AutomationId 沿用 NavTab{0..4} 供 e2e 使用。  -->
+          由导航 VM 的 NavigationItems 提供；AutomationId 沿用 NavPage{0..4} 供 e2e 使用。  -->
     <Border Background="{DynamicResource SidebarBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0" Padding="16,20,16,15">
         <Grid>
             <Grid.RowDefinitions>
@@ -41,7 +41,7 @@
             <ItemsControl Grid.Row="1" ItemsSource="{Binding NavigationItems}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <RadioButton Style="{StaticResource NavTabRadioButtonStyle}" GroupName="SidebarTabs"
+                        <RadioButton Style="{StaticResource NavPageRadioButtonStyle}" GroupName="SidebarPages"
                                      AutomationProperties.AutomationId="{Binding AutomationId}"
                                      AutomationProperties.Name="{Binding Title}"
                                      IsChecked="{Binding IsSelected, Mode=TwoWay}"
@@ -58,7 +58,7 @@
 
             <!--  版本页脚  -->
             <StackPanel Grid.Row="2" Margin="0,15,0,5">
-                <Border Background="{DynamicResource NavTabActiveBgBrush}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Margin="0,0,0,4">
+                <Border Background="{DynamicResource NavPageActiveBgBrush}" CornerRadius="4" Padding="6,3" HorizontalAlignment="Left" Margin="0,0,0,4">
                     <TextBlock Text="v1.4.1" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </Border>
                 <TextBlock Text="© 2026 StarPie" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>

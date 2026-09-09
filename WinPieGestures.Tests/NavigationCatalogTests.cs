@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 导航目录与全局槽位表收口：0–4 槽位、NavTab0..4 正典、
+/// 导航目录与全局槽位表收口：0–4 槽位、NavPage0..4 正典、
 /// 注册条目按槽位排序与缺失/重复/未知槽位拦截。只测外部行为——注册结果与校验异常，
 /// 不测实现细节（直接 new，不经容器）。
 /// </summary>
@@ -22,23 +22,23 @@ public sealed class NavigationCatalogTests
     {
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<GesturesViewModel>(
-            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "TabGestures", "G");
+            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "PageGestures", "G");
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "T");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "T");
         catalog.RegisterPage<AboutViewModel>(
-            NavigationSlot.About, NavigationSlots.GetAutomationId(NavigationSlot.About), "TabAbout", "A");
+            NavigationSlot.About, NavigationSlots.GetAutomationId(NavigationSlot.About), "PageAbout", "A");
         catalog.RegisterPage<AppearanceViewModel>(
-            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "TabAppearance", "Ap");
+            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "Ap");
         catalog.RegisterPage<AdvancedViewModel>(
-            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "TabAdvanced", "Ad");
+            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "Ad");
         return catalog;
     }
 
     [Fact]
-    public void NavigationSlots_CanonicalAutomationIds_AreNavTab0To4()
+    public void NavigationSlots_CanonicalAutomationIds_AreNavPage0To4()
     {
         Assert.Equal(new[] { 0, 1, 2, 3, 4 }, NavigationSlots.All.Select(s => (int)s));
-        Assert.Equal(new[] { "NavTab0", "NavTab1", "NavTab2", "NavTab3", "NavTab4" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             NavigationSlots.All.Select(NavigationSlots.GetAutomationId));
     }
 
@@ -54,11 +54,11 @@ public sealed class NavigationCatalogTests
             NavigationSlot.Trigger, NavigationSlot.Appearance, NavigationSlot.Gestures,
             NavigationSlot.Advanced, NavigationSlot.About
         }, catalog.Entries.Select(e => e.Slot));
-        Assert.Equal(new[] { "NavTab0", "NavTab1", "NavTab2", "NavTab3", "NavTab4" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             catalog.Entries.Select(e => e.AutomationId));
         Assert.Equal(new[]
         {
-            "TabTrigger", "TabAppearance", "TabGestures", "TabAdvanced", "TabAbout"
+            "PageTrigger", "PageAppearance", "PageGestures", "PageAdvanced", "PageAbout"
         }, catalog.Entries.Select(e => e.TitleKey));
         Assert.Equal(new[]
         {
@@ -72,13 +72,13 @@ public sealed class NavigationCatalogTests
     {
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         catalog.RegisterPage<GesturesViewModel>(
-            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "TabGestures", "");
+            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "PageGestures", "");
         catalog.RegisterPage<AdvancedViewModel>(
-            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "TabAdvanced", "");
+            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "");
         catalog.RegisterPage<AboutViewModel>(
-            NavigationSlot.About, NavigationSlots.GetAutomationId(NavigationSlot.About), "TabAbout", "");
+            NavigationSlot.About, NavigationSlots.GetAutomationId(NavigationSlot.About), "PageAbout", "");
 
         var ex = Assert.Throws<InvalidOperationException>(() => catalog.Validate());
 
@@ -90,11 +90,11 @@ public sealed class NavigationCatalogTests
     {
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
             catalog.RegisterPage<AppearanceViewModel>(
-                NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "TabAppearance", ""));
+                NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", ""));
 
         Assert.Contains(nameof(NavigationSlot.Trigger), ex.Message);
     }
@@ -104,11 +104,11 @@ public sealed class NavigationCatalogTests
     {
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
 
         Assert.Throws<InvalidOperationException>(() =>
             catalog.RegisterPage<AppearanceViewModel>(
-                NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabAppearance", ""));
+                NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageAppearance", ""));
     }
 
     [Fact]
@@ -117,7 +117,7 @@ public sealed class NavigationCatalogTests
         var catalog = new NavigationCatalog();
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            catalog.RegisterPage<TriggerViewModel>((NavigationSlot)7, "NavTab7", "TabTrigger", ""));
+            catalog.RegisterPage<TriggerViewModel>((NavigationSlot)7, "NavPage7", "PageTrigger", ""));
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public sealed class NavigationCatalogTests
         var entry = catalog.GetEntry(NavigationSlot.Gestures);
 
         Assert.Equal(NavigationSlot.Gestures, entry.Slot);
-        Assert.Equal("NavTab2", entry.AutomationId);
+        Assert.Equal("NavPage2", entry.AutomationId);
         Assert.Equal(typeof(GesturesViewModel), entry.ViewModelType);
     }
 
@@ -137,7 +137,7 @@ public sealed class NavigationCatalogTests
     {
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
-            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "TabTrigger", "");
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
 
         Assert.Throws<InvalidOperationException>(() => catalog.GetEntry(NavigationSlot.About));
     }

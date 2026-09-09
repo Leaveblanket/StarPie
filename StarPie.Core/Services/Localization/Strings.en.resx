@@ -68,11 +68,11 @@
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>Modern Mouse Radial Gestures</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie Preferences Console</value></data>
-  <data name="TabTrigger" xml:space="preserve"><value>🎯 Trigger &amp; Scenes</value></data>
-  <data name="TabAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
-  <data name="TabGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
-  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
-  <data name="TabAbout" xml:space="preserve"><value>📋 About &amp; Updates</value></data>
+  <data name="PageTrigger" xml:space="preserve"><value>🎯 Trigger &amp; Scenes</value></data>
+  <data name="PageAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
+  <data name="PageGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
+  <data name="PageAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
+  <data name="PageAbout" xml:space="preserve"><value>📋 About &amp; Updates</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes take effect in memory immediately. Click [Save Changes] to persist to disk.</value></data>
   <data name="BtnSave" xml:space="preserve"><value>Save Changes</value></data>
   <data name="BtnClose" xml:space="preserve"><value>Close &amp; Hide</value></data>

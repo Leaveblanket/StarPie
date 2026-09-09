@@ -19,7 +19,7 @@ namespace StarPie.Modules
             catalog.RegisterPage<AppearanceSettingsViewModel>(
                 NavigationSlot.Appearance,
                 NavigationSlots.GetAutomationId(NavigationSlot.Appearance),
-                "TabAppearance",
+                "PageAppearance",
                 IconAppearance);
         }
 

@@ -10,11 +10,11 @@ namespace StarPie.ViewModels.Navigation
     /// <remarks>
     /// 点击经 <see cref="NavigateCommand"/> 走目录执行缝（构造注入的 navigate 委托，
     /// 由主框架 VM 用 <see cref="INavigationExecutor"/> 按槽位接线）。AutomationId 固定为
-    /// NavTab{0..4}（e2e 依赖）；标题属驻留文案，随语言切换由主框架 VM 刷新。
+    /// NavPage{0..4}（e2e 依赖）；标题属驻留文案，随语言切换由主框架 VM 刷新。
     /// </remarks>
     public partial class NavigationItemViewModel : ObservableObject
     {
-        /// <summary>UIA 自动化标识（NavTab{槽位}，e2e 依赖）。</summary>
+        /// <summary>UIA 自动化标识（NavPage{槽位}，e2e 依赖）。</summary>
         public string AutomationId { get; }
 
         /// <summary>标题的本地化键（语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>

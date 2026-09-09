@@ -68,11 +68,11 @@
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>次世代マウスラジアルジェスチャー</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie 環境設定コンソール</value></data>
-  <data name="TabTrigger" xml:space="preserve"><value>🎯 トリガーとシーン</value></data>
-  <data name="TabAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
-  <data name="TabGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
-  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
-  <data name="TabAbout" xml:space="preserve"><value>📋 情報と更新</value></data>
+  <data name="PageTrigger" xml:space="preserve"><value>🎯 トリガーとシーン</value></data>
+  <data name="PageAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
+  <data name="PageGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
+  <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
+  <data name="PageAbout" xml:space="preserve"><value>📋 情報と更新</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更はメモリ上で即座に有効になります。[変更を保存] で設定ファイルに永続化されます。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>変更を保存</value></data>
   <data name="BtnClose" xml:space="preserve"><value>閉じて隠す</value></data>

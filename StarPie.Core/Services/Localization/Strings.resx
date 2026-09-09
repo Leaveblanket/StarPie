@@ -68,11 +68,11 @@
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>现代鼠标轮盘笔势系统</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie 设置控制台 (Preferences)</value></data>
-  <data name="TabTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
-  <data name="TabAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
-  <data name="TabGestures" xml:space="preserve"><value>⚡ 手势与动作</value></data>
-  <data name="TabAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
-  <data name="TabAbout" xml:space="preserve"><value>📋 关于与更新</value></data>
+  <data name="PageTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
+  <data name="PageAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
+  <data name="PageGestures" xml:space="preserve"><value>⚡ 手势与动作</value></data>
+  <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
+  <data name="PageAbout" xml:space="preserve"><value>📋 关于与更新</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>保存更改</value></data>
   <data name="BtnClose" xml:space="preserve"><value>关闭并隐藏</value></data>

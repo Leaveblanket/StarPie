@@ -152,8 +152,8 @@ public sealed class GesturesAssemblyPlacementTests
 
         Assert.Equal(2, catalog.Entries.Count);
         Assert.Equal(new[] { NavigationSlot.Trigger, NavigationSlot.Gestures }, catalog.Entries.Select(e => e.Slot));
-        Assert.Equal(new[] { "NavTab0", "NavTab2" }, catalog.Entries.Select(e => e.AutomationId));
-        Assert.Equal(new[] { "TabTrigger", "TabGestures" }, catalog.Entries.Select(e => e.TitleKey));
+        Assert.Equal(new[] { "NavPage0", "NavPage2" }, catalog.Entries.Select(e => e.AutomationId));
+        Assert.Equal(new[] { "PageTrigger", "PageGestures" }, catalog.Entries.Select(e => e.TitleKey));
         Assert.All(catalog.Entries, e => Assert.Equal("StarPie.Gestures", e.ViewModelType.Assembly.GetName().Name));
     }
 

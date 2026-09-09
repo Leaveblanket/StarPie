@@ -56,7 +56,7 @@
                                                Foreground="{DynamicResource TextPrimaryBrush}"
                                                Text="StarPie" />
                                     <Border Margin="8,0,0,0" Padding="6,2" VerticalAlignment="Center"
-                                            Background="{DynamicResource NavTabActiveBgBrush}"
+                                            Background="{DynamicResource NavPageActiveBgBrush}"
                                             CornerRadius="4">
                                         <TextBlock FontSize="11" FontWeight="Bold"
                                                    Foreground="{DynamicResource AccentPrimaryBrush}"
@@ -192,7 +192,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Padding="6,2" HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
-                                            Background="{DynamicResource NavTabActiveBgBrush}"
+                                            Background="{DynamicResource NavPageActiveBgBrush}"
                                             CornerRadius="4">
                                         <TextBlock FontSize="11" FontWeight="Bold"
                                                    Foreground="{DynamicResource AccentPrimaryBrush}"
@@ -225,7 +225,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Padding="6,2" HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
-                                            Background="{DynamicResource NavTabActiveBgBrush}"
+                                            Background="{DynamicResource NavPageActiveBgBrush}"
                                             CornerRadius="4">
                                         <TextBlock FontSize="11" FontWeight="Bold"
                                                    Foreground="{DynamicResource AccentPrimaryBrush}"
@@ -258,7 +258,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Border Padding="6,2" HorizontalAlignment="Left"
                                             VerticalAlignment="Top"
-                                            Background="{DynamicResource NavTabActiveBgBrush}"
+                                            Background="{DynamicResource NavPageActiveBgBrush}"
                                             CornerRadius="4">
                                         <TextBlock FontSize="11" FontWeight="Bold"
                                                    Foreground="{DynamicResource AccentPrimaryBrush}"

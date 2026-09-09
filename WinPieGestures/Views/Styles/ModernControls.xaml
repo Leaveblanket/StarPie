@@ -8,7 +8,7 @@
     <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
     <CornerRadius x:Key="ItemCornerRadius">5</CornerRadius>
     <CornerRadius x:Key="CardCornerRadius">8</CornerRadius>
-    <CornerRadius x:Key="NavTabCornerRadius">8</CornerRadius>
+    <CornerRadius x:Key="NavPageCornerRadius">8</CornerRadius>
     <CornerRadius x:Key="ToggleTrackCornerRadius">11</CornerRadius>
     <CornerRadius x:Key="ScrollThumbCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="SliderTrackCornerRadius">2.5</CornerRadius>
@@ -98,8 +98,8 @@
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource ItemHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavTabActiveBgBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource NavTabActiveFgBrush}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavPageActiveBgBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource NavPageActiveFgBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -242,8 +242,8 @@
                             <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavTabActiveBgBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource NavTabActiveFgBrush}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource NavPageActiveBgBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource NavPageActiveFgBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -413,9 +413,9 @@
     </Style>
 
     <!--  侧边栏导航 RadioButton 样式  -->
-    <Style x:Key="NavTabRadioButtonStyle" TargetType="RadioButton">
-        <Setter Property="Background" Value="{DynamicResource NavTabDefaultBgBrush}" />
-        <Setter Property="Foreground" Value="{DynamicResource NavTabDefaultFgBrush}" />
+    <Style x:Key="NavPageRadioButtonStyle" TargetType="RadioButton">
+        <Setter Property="Background" Value="{DynamicResource NavPageDefaultBgBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource NavPageDefaultFgBrush}" />
         <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Margin" Value="0,0,0,6" />
@@ -423,20 +423,20 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
-                    <Border x:Name="TabBorder"
+                    <Border x:Name="PageBorder"
                             Padding="{TemplateBinding Padding}"
                             Background="{TemplateBinding Background}"
-                            CornerRadius="{StaticResource NavTabCornerRadius}" SnapsToDevicePixels="True">
+                            CornerRadius="{StaticResource NavPageCornerRadius}" SnapsToDevicePixels="True">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource NavTabHoverBgBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource NavTabHoverFgBrush}" />
+                            <Setter TargetName="PageBorder" Property="Background" Value="{DynamicResource NavPageHoverBgBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource NavPageHoverFgBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource NavTabActiveBgBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource NavTabActiveFgBrush}" />
+                            <Setter TargetName="PageBorder" Property="Background" Value="{DynamicResource NavPageActiveBgBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource NavPageActiveFgBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>
