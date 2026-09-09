@@ -12,7 +12,7 @@
 
 `App.xaml(.cs)`、`Composition.cs`、`AppHost.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）。
 
-导航运行时（归 H1，ADR-0021/#92，命名空间不变）：
+导航运行时（归 H1，命名空间不变）：
 
 - `Services/Navigation/`：`NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`）；
 - `ViewModels/Navigation/`：`MainViewModel`、`NavigationItemViewModel`（与 `ShellViewModel` 同目录族）。
@@ -31,34 +31,33 @@
 2. `Composition.ConfigureServices`（全部单例）：
    - 装配前回填跨程序集环境参数缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`
      （S2 dev 目录分支）——Core 不反向引用宿主；S1 .lnk 图标提取的解析契约经 DI 注入的
-     `IShortcutTargetResolver`（ProgramsModuleRegistrar 注册 M3 实现），无静态回填
-     （ADR-0019/#87）。
+     `IShortcutTargetResolver`（ProgramsModuleRegistrar 注册 M3 实现），无静态回填。
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、
      `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体归 Host，
-     目录执行缝为 Host 内部件，ADR-0021/#92）。M4 的 `ThemeService`（具体类）+
+     目录执行缝为 Host 内部件）。M4 的 `ThemeService`（具体类）+
      `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Theme；
-     `IThemeService` 契约驻 Theme.Contracts，ADR-0023/#97），组合根不直接登记主题服务；M2 的
+     `IThemeService` 契约驻 Theme.Contracts，ADR-0023），组合根不直接登记主题服务；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
-     `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 Wheel.Contracts，ADR-0023/#97，
+     `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 Wheel.Contracts，ADR-0023，
      M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
    - `ProgramsModuleRegistrar.RegisterServices` 在组合根调用——注册
      `IShortcutTargetResolver→ShortcutResolver` 与 `IProgramScanner→ProgramScanner`（契约随
-     实现方驻 `StarPie.Programs.Contracts`，ADR-0023/#96；M3 → Programs.Contracts +
-     Icons.Contracts 单向，不再引用 Core；组合根无静态扫描委托行，ADR-0020/#88）。
+     实现方驻 `StarPie.Programs.Contracts`，ADR-0023；M3 → Programs.Contracts +
+     Icons.Contracts 单向，不再引用 Core；组合根无静态扫描委托行）。
    - S1 图标资产实例服务由 `IconsModuleRegistrar.RegisterServices`（StarPie.Icons，
-     ADR-0023/#95）注册（`IconAssetService` 构造惰性解析 Programs.Contracts 的
-     `IShortcutTargetResolver`（ADR-0023/#96），目录默认 Core `AppDataPaths.GetAppDataFolder`）；组合根
+     ADR-0023）注册（`IconAssetService` 构造惰性解析 Programs.Contracts 的
+     `IShortcutTargetResolver`（ADR-0023），目录默认 Core `AppDataPaths.GetAppDataFolder`）；组合根
      不直接登记 `IIconAssetService→IconAssetService`。
    - `NavigationCatalog` 由 `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、
      `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不硬编码页面类型（运行时
-     类型与执行缝的注册见上段基础设施，ADR-0021/#92）。
+     类型与执行缝的注册见上段基础设施）。
    - 服务：`DialogService`（构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描契约——
      扫描/.lnk 经 Programs.Contracts、图标经 Icons.Contracts 契约注入，程序扫描候选经
-     `IProgramScanner`（M3 注册器提供实现）注入（ADR-0019/#87、ADR-0020/#88、ADR-0023/#95/#96）；
+     `IProgramScanner`（M3 注册器提供实现）注入（ADR-0023）；
      `DialogService` 与 `IDialogService` 的注册随 S6 实现由 `DialogsModuleRegistrar.RegisterServices`
-     下放（StarPie.Dialogs，ADR-0020/#88）；对话框服务另注入共享图标资产实例服务与解析契约，
+     下放（StarPie.Dialogs）；对话框服务另注入共享图标资产实例服务与解析契约，
      供图标/程序选择器使用）、`ISaveDebouncer`、`SettingsSaveOrchestrator`。（M1 手势管线
      `MouseHook`/`IActionExecutorService`/`IWindowContext`/`GestureEngine`/`GestureController`
      的注册由 `GesturesModuleRegistrar.RegisterServices` 下放 `StarPie.Gestures`；`IWheelFactory`
@@ -73,27 +72,27 @@
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeModuleRegistrar 注册）与
      `WheelAppearanceSettingsViewModel`（由 WheelModuleRegistrar 注册，随 StarPie.Wheel 下放），
      均另行注册单例）、`MainViewModel`（目录驱动：导航项/选中态全部来自目录注册；运行时主体
-     在 Host `ViewModels/Navigation/`，命名空间不变（ADR-0021/#92）；页面 VM 的 DI 注册已全部
+     在 Host `ViewModels/Navigation/`，命名空间不变；页面 VM 的 DI 注册已全部
      下放所属模块注册器，仅 Host 外观聚合页 VM 与导航 VM 留在组合根；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
-     GesturesModuleRegistrar 下放（契约随实现方 M1 驻 Gestures.Contracts，ADR-0023/#97，
+     GesturesModuleRegistrar 下放（契约随实现方 M1 驻 Gestures.Contracts，ADR-0023，
      供轮盘外观设置子 VM 经契约边消费））、`ShellViewModel`（D3：Host 壳窗口壳层 VM——窗口
      标题/退出态/保存，主框架分区 DataContext 的壳区，见 [shell.md](shell.md)）。
    - `AppHostDelegates` 为 Core 公开契约（`Services/AppHostDelegates.cs`）并以单例注册进容器，
      `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 Core。
     - `ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core + Theme.Contracts
       单向），主题服务/主题设置子 VM 的工厂只解析 Core 契约（`IThemeService` 契约驻
-      Theme.Contracts，ADR-0023/#97）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
+      Theme.Contracts，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
       直接 `new`（StarPie.Theme public，Host 装配面）。
     - `WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Core +
       Wheel.Contracts/Theme.Contracts/Gestures.Contracts 等契约），轮盘工厂
       `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析契约程序集（`IThemeService`
-      经 Theme.Contracts，M2→M4 runtime 允许边清零，ADR-0023/#97）；RadialWindow 不经 Host
+      经 Theme.Contracts，M2→M4 runtime 允许边清零，ADR-0023）；RadialWindow 不经 Host
       直接 new——由 WheelFactory 在 StarPie.Wheel 内创建。
     - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Core + Wheel.Contracts
       等契约），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析 Core 契约与
       Wheel.Contracts 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
-      ADR-0023/#97）；MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（组合根
+      ADR-0023）；MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（组合根
       装配前已以 DevInstance.IsActive 回填），M1 不反向引用 Host。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
@@ -114,7 +113,7 @@
      `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
      `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
-      `_dialogService.SetOwner(_mainView)`（StarPie.Dialogs public 装配面，ADR-0020/#88）
+      `_dialogService.SetOwner(_mainView)`（StarPie.Dialogs public 装配面）
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
 5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
    → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
@@ -142,4 +141,4 @@
 
 ## 参见 ADR
 
-[0002](../adr/0002-manual-composition-root.md)（手动组合根）、[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）。
+[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）。

@@ -12,10 +12,10 @@
 ## 组成文件
 
 M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现方独立成集
-`StarPie.Theme.Contracts/`，ADR-0023/#97）：
+`StarPie.Theme.Contracts/`，ADR-0023）：
 
 - `StarPie.Theme.Contracts/Services/Shell/IThemeService.cs`（M4 出口契约 `IThemeService`，
-  ADR-0023/#97；命名空间 `StarPie.Services.Shell` 不变）。
+  ADR-0023；命名空间 `StarPie.Services.Shell` 不变）。
 - `StarPie.Theme/Services/Shell/ThemeService.cs`（`IThemeService` 实现，命名空间
   `StarPie.Services.Shell`；Host 侧无此目录）。
 - `StarPie.Theme/AppThemePaletteManager.cs`（模块根，主题调色板整项替换；裁决 public——Host
@@ -32,7 +32,7 @@ M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现
 DialogService 装配面）显式引用 Theme runtime 与 Theme.Contracts——装配面经 runtime 引用消费
 `ThemeService`/`AppThemePaletteManager`，窗口主题应用消费 `IThemeService` 契约；M2 轮盘侧
 （StarPie.Wheel）与 S6 对话框侧（StarPie.Dialogs）只经 `StarPie.Theme.Contracts` 契约边消费
-`IThemeService`（M2→M4、Dialogs→M4 两条 runtime 允许边清零，ADR-0023/#97）；M5 托盘深色
+`IThemeService`（M2→M4、Dialogs→M4 两条 runtime 允许边清零，ADR-0023）；M5 托盘深色
 探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Theme runtime → Core +
 Theme.Contracts 单向，不反向引用 Host/其它业务模块 runtime。
 
@@ -42,7 +42,7 @@ Theme.Contracts 单向，不反向引用 Host/其它业务模块 runtime。
    画刷令牌存于 `StarPie.Theme/Views/Styles/Themes/*.xaml`（五套同 key 集）；Host `App.xaml`
    经跨程序集 pack URI
    `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并 Light 仅作设计时/首帧默认，
-   并本地单点合并宿主 `Views/Styles/ModernControls.xaml`（全局控件样式字典，ADR-0022/#94；
+   并本地单点合并宿主 `Views/Styles/ModernControls.xaml`（全局控件样式字典；
    原 Core 跨集合并已移除）+ 跨集合并 `StarPie.Gestures` 的 `Views/Styles/HotkeyRecorderBox.xaml`。
 2. **整项替换**：`AppThemePaletteManager`（驻 `StarPie.Theme`，public，自包含）加载/缓存/
    冻结主题 XAML，把目标调色板**整项替换** Application `MergedDictionaries` 中含 `/Themes/` 的
@@ -62,7 +62,7 @@ Theme.Contracts 单向，不反向引用 Host/其它业务模块 runtime。
 5. **ThemeService**（`StarPie.Theme/Services/Shell` 单例，不接触 Views 资源）：`RequestedTheme`/`CurrentEffectiveTheme`
    状态、`ResolveEffectiveTheme`（`System`/空经注册表探测实时判定）、`SetTheme`（唯一状态/资源入口，
    解析→记录→触发调色板替换；同有效主题 no-op。不再广播 `ThemeChanged`——主题
-   变更的唯一通知通道是 `AppThemeChangedMessage`（见上流程 4），接口事件已移除（ADR-0020/#88））、
+   变更的唯一通知通道是 `AppThemeChangedMessage`（见上流程 4），接口事件已移除）、
    `EnableSystemThemeTracking`（`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher 封送 →
    仅 System/空模式重解析）、`ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20）。
 6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView`（Host）与对话框窗口

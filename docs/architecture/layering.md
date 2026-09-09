@@ -33,25 +33,25 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 ### 必须遵守的例外与说明
 
 1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。
-   - **已批准预览桥例外（ADR-0019/#87 决策 4）**：外观页 `WheelPreviewRenderer` 为 View 层
+   - **已批准预览桥例外**：外观页 `WheelPreviewRenderer` 为 View 层
      无 DI 构造对象，经聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露的
      `IIconAssetService` 在页面 `Loaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
      （layering Views 例外登记，见 [wheel.md](wheel.md)）。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
    子 VM `WheelAppearanceSettingsViewModel` 经 Gestures.Contracts 的 `IProfilePreviewSource`
-   只读契约读方案列表——ADR-0023/#97，D5；不引用具体 VM 类型）；动态/广播协调一律走
+   只读契约读方案列表——ADR-0023，D5；不引用具体 VM 类型）；动态/广播协调一律走
    IMessenger；
    同页状态不得用 messenger 替代绑定。
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
-   - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；ADR-0021/#92 起随
+   - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
      运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
-     [seams.md](seams.md)；C1 死代码 `NavigationService<T>` 开放泛型例外已随之删除）；
+     [seams.md](seams.md)；开放泛型 `NavigationService<T>` 例外已删除）；
    - `WheelFactory`（驻 `StarPie.Wheel/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
-     [wheel.md](wheel.md)），仅经 Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023/#97）暴露，
+     [wheel.md](wheel.md)），仅经 Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023）暴露，
      由 WheelModuleRegistrar/组合根注册。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
-5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0008/0009）。
+5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0009）。
 
 ## 命名空间与可见性
 
@@ -63,8 +63,8 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   `StarPie.Core.Services.*`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
-  - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（B2 先例：`AppDataPaths`——
-    原 internal，随 S2 迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
+  - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（先例：`AppDataPaths`——
+    原 internal，迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：`StarPie.Shell` 的
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
     `AutostartRegistry` 只被同集注册器接线，保持 internal；`StarPie.Theme` 的
@@ -95,7 +95,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeService` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
 - Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具后**经组合根委托注入**给 VM。
-- **S1 图标资产双形先例（ADR-0019/#87）**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序
+- **S1 图标资产双形先例**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
   有状态/IO/Win32 = 实例服务」判据的统一表述。
@@ -106,7 +106,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 容器单例（状态跨导航常驻）；轮盘 VM 按手势创建、不注册；对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
 - 主框架 VM 拆分（D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；目录驱动；运行时主体在
-  Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host，ADR-0021/#92）与
+  Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与
   `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区 DataContext 的
   导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
@@ -139,7 +139,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`，均经跨程序集 pack URI 合并；Host 外观
   聚合页在 exe `StarPie/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
-  （共享页面基类 `SettingsPageBase` 已随 ADR-0022/#94 删除——Trigger/Advanced/Appearance 三页
+  （共享页面基类 `SettingsPageBase` 已删除——Trigger/Advanced/Appearance 三页
   code-behind 以 `Loaded`/`Unloaded` 成对自订阅取代原基类 virtual 钩子）；
   页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。

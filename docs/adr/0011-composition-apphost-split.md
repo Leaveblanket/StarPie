@@ -5,14 +5,10 @@
 > 注册源由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可下放模块注册器（`RegisterServices`/`RegisterNavigation`），解析点仍集中 Host 组合根。
 
 `Composition.cs` 原本同时承担 DI 组合根与宿主启动/退出编排：`ConfigureServices`、`Run`、
-托盘菜单、语言字典刷新、`ExitApplication`、`Dispose` 全收在一个类里。ADR-0005 引入
-`ServiceCollection` 后装配面扩大到十余个解析点，但 `Run` 及其托盘/退出/语言副作用仍留在
-同一类，组合根持续膨胀。决定：`Composition` 收敛为唯一 DI 组合根（注册 + 解析），新增
+托盘菜单、语言字典刷新、`ExitApplication`、`Dispose` 全收在一个类里。[ADR-0005](./0005-di-container-for-navigation.md)
+引入 `ServiceCollection` 后装配面扩大到十余个解析点，但 `Run` 及其托盘/退出/语言副作用仍
+留在同一类，组合根持续膨胀。决定：`Composition` 收敛为唯一 DI 组合根（注册 + 解析），新增
 `AppHost` 承接启动/退出编排；解析点仍只出现在组合根。
-
-## Status
-
-Accepted。
 
 ## Considered Options
 

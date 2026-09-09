@@ -6,7 +6,7 @@
 ## 职责
 
 跨模块协调事件契约 hub（IMessenger 消息）与弹窗通知载体（非 messenger 的跨层载体）。中心 hub 保留
-（[ADR-0015](../adr/0015-module-map-and-ownership.md) 决策 7/Q16-A）；新消息/通知类型是放行共享面
+（[ADR-0015](../adr/0015-module-map-and-ownership.md) 决策 7）；新消息/通知类型是放行共享面
 （[modules.md](modules.md) §2.3），领域语义的消费流程在各所属模块叶子描述，本叶承载 hub 的物理集中。
 
 ## 组成文件

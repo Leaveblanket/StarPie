@@ -28,7 +28,3 @@
 - 新设置变更：变更处发保存消息即可，不直接写文件。
 - 调整落盘节奏：改 `AutoSaveDelay`。
 - 改配置路径：S2 内只动 `AppDataPaths`（开发配置夹分支依赖 `DevInstance`，见 [host.md](host.md)）。
-
-## 参见 ADR
-
-[0002](../adr/0002-manual-composition-root.md)（配置接缝）。

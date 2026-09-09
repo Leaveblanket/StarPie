@@ -13,24 +13,24 @@ M1 物理落位（独立模块程序集 `StarPie.Gestures/`；模块注册器 `G
 
 - `StarPie.Gestures/Services/Gestures/`：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`。
   （轮盘工厂契约 `IWheelFactory`/`IWheelViewModel` 驻 `StarPie.Wheel.Contracts`——M1 手势侧
-  只经 Wheel.Contracts 契约接口引用，M1→M2 runtime 允许边清零，ADR-0023/#97，见
+  只经 Wheel.Contracts 契约接口引用，M1→M2 runtime 允许边清零，ADR-0023，见
   [wheel.md](wheel.md)/[modules.md](modules.md) §5 D5。）
 - `StarPie.Gestures.Contracts/ViewModels/Pages/IProfilePreviewSource.cs`（M1 出口契约集，
-  ADR-0023/#97；命名空间不变，仅引用 Core）。
+  ADR-0023；命名空间不变，仅引用 Core）。
 - `StarPie.Gestures/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 语义归 M1、
   物理居共享内核 `Models/`，见 [modules.md](modules.md) §4 R8）。
 - `Models/GesturePoint.cs`（R5：手势坐标点归共享内核 `Models/`，见 [modules.md](modules.md) §4 R5）。
 - M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产
-  （ADR-0019/#87 双形：静态纯目录 `IconCatalog` 取矢量 SVG，注入的 `IIconAssetService` 取
+  （双形：静态纯目录 `IconCatalog` 取矢量 SVG，注入的 `IIconAssetService` 取
   自定义图标存储——`ProfileListViewModel`/`SlotViewModel` 构造注入链由 GesturesModuleRegistrar
   接线；R6 三分，见 [modules.md](modules.md) §4 R6）。
 
 ## 配置方案设置面的对外只读契约
 
 `StarPie.Gestures.Contracts/ViewModels/Pages/IProfilePreviewSource.cs`（契约随实现方 M1 独立
-成集——生产方语义 + 避免 Wheel ↔ Gestures runtime 程序集环，Q4 裁决/D5/ADR-0016 决策 11；
-ADR-0023/#97；命名空间 `StarPie.ViewModels.Pages` 不变）：M1 对外只读「预览 Profile 来源」
+成集——生产方语义 + 避免 Wheel ↔ Gestures runtime 程序集环（D5/ADR-0016 决策 11）；
+ADR-0023；命名空间 `StarPie.ViewModels.Pages` 不变）：M1 对外只读「预览 Profile 来源」
 契约——实现方为 M1 侧配置方案设置面 VM `ProfileListViewModel`
 （选中/首项回落语义，见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费
 （`WheelAppearanceSettingsViewModel` 构造注入本接口并转发给 `IWheelAppearanceState.PreviewProfile`，
@@ -58,7 +58,7 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
   `ActionTypeOption`），包装扇区绑定的 `ActionItem` 提供编辑绑定——名称直写模型（无额外验证）、
   类型切换、热键录制（`Parameter` 绑定）与参数/图标文本派生；动作编辑闭环（程序/文件夹选择、
   图标设置）经 `IDialogService` 完成，图标取值经构造注入的 `IIconAssetService` 与静态纯目录
-  `IconCatalog` 消费 S1 共享图标资产（ADR-0019/#87；R6 三分，见 [modules.md](modules.md) §4 R6）；
+  `IconCatalog` 消费 S1 共享图标资产（R6 三分，见 [modules.md](modules.md) §4 R6）；
   编辑提交的落盘请求经 `IMessenger` 发送保存消息上报
   （如 `ImmediateSaveRequestedMessage`，见 [config.md](config.md)）。
 - `StarPie.Gestures/ViewModels/Pages/BehaviorSettingsViewModel.cs` 与
@@ -86,13 +86,9 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
    UI 线程 `Dispatcher.Invoke` 中创建 `WheelViewModel` + `RadialWindow`，返回
    `DispatchedWheelViewModel` 包装（所有轮盘交互封送回 UI 线程；窗口字段作 GC 根防未显示即回收；
    轮盘 VM/窗口见 [wheel.md](wheel.md)）；`GestureEngine`/`GestureController` 只依赖
-   Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023/#97），不反向组装轮盘。
+   Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023），不反向组装轮盘。
 
 ## 扩展点
 
 - 新增动作类型 = `ActionItem` 新类型值 + `ActionRouting.ResolveRoute` + `ActionExecutorService` 分支 + 动作选择 UI 选项 + i18n + config 兼容（清单见 [extending.md](extending.md) 原型 D）。
 - 调整手感常量/死区比例/外甩倍数：改 `GestureEngine` 常量（`CenterDeadzoneFractionOfThreshold`、`OuterEscapeFractionOfRadius`）。
-
-## 参见 ADR
-
-[0002](../adr/0002-manual-composition-root.md)（引擎纯函数/副作用接缝）。

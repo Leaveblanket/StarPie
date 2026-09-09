@@ -11,7 +11,7 @@
 
 ## 组成文件
 
-- **契约（`StarPie.Programs.Contracts/`，ADR-0023/#96）**：
+- **契约（`StarPie.Programs.Contracts/`，ADR-0023）**：
   `Services/Programs/IProgramScanner.cs`、`ProgramEntry.cs`、`ProgramCatalog.cs`（命名空间
   `StarPie.Services.Programs` 不变）+ `Services/Icons/IShortcutTargetResolver.cs`（SPI 随实现方
   M3 驻此，命名空间 `StarPie.Services.Icons` 不变）。契约程序集按需引用 WPF（`ProgramEntry.IconSource`
@@ -19,13 +19,13 @@
 - **实现与注册（`StarPie.Programs/`）**：
   `Services/Programs/ProgramScanner.cs`（IO 扫描编排；实例实现契约
   `IProgramScanner`，构造注入 Icons.Contracts 的 `IIconAssetService` 与 Programs.Contracts 的
-  `IShortcutTargetResolver`）、`Services/Programs/ShortcutResolver.cs`（M3 快捷方式解析出口；实例实现 SPI `IShortcutTargetResolver`，ADR-0019/#87）与
+  `IShortcutTargetResolver`）、`Services/Programs/ShortcutResolver.cs`（M3 快捷方式解析出口；实例实现 SPI `IShortcutTargetResolver`）与
   `Modules/ProgramsModuleRegistrar.cs`（`RegisterServices`，注册 `IShortcutTargetResolver→ShortcutResolver`
   与 `IProgramScanner→ProgramScanner`；M3 无导航页故无 `RegisterNavigation`）。
 
 Host exe、测试工程与消费方（Dialogs runtime 程序扫描注入、Icons runtime SPI 消费）**显式**
 `ProjectReference` `StarPie.Programs.Contracts`；Host/Tests 另显式引用 `StarPie.Programs`
-（slnx 登记，不依赖传递引用）。**M3 → Programs.Contracts + Icons.Contracts 单向**（ADR-0019/#87、ADR-0020/#88、ADR-0023/#96；
+（slnx 登记，不依赖传递引用）。**M3 → Programs.Contracts + Icons.Contracts 单向**（ADR-0023；
 M3 runtime 不引用共享内核 Core，也不引用 Host/其它业务模块 runtime；程序集依赖方向见
 [assemblies.md](assemblies.md) §3）。
 
@@ -38,10 +38,10 @@ M3 runtime 不引用共享内核 Core，也不引用 Host/其它业务模块 run
    跨源去重与显示名升级 → 经**注入的契约补图标与解析 .lnk**（`IIconAssetService.GetIcon` /
    `IShortcutTargetResolver`，Icons.Contracts / Programs.Contracts 契约边）→ 自然排序返回
    `ProgramEntry` 列表。
-2. `ProgramPickerViewModel`（`StarPie.Dialogs`，ADR-0020/#88）构造时注入 `IProgramScanner` 与
+2. `ProgramPickerViewModel`（`StarPie.Dialogs`）构造时注入 `IProgramScanner` 与
    `IShortcutTargetResolver`（契约驻 Programs.Contracts、实现与注册由 M3 `ProgramsModuleRegistrar`
    下放——Dialogs → Programs 仅经契约边，不依赖 M3 runtime 内部，可测性见 [dialogs.md](dialogs.md)）；
-   手动浏览的 .lnk 解析走注入的解析契约实例（`ShortcutResolver` 实现 SPI，ADR-0019/#87，见 [host.md](host.md)）。
+   手动浏览的 .lnk 解析走注入的解析契约实例（`ShortcutResolver` 实现 SPI，见 [host.md](host.md)）。
 
 ## 扩展点
 
@@ -53,7 +53,6 @@ M3 runtime 不引用共享内核 Core，也不引用 Host/其它业务模块 run
 
 [0004](../adr/0004-dialog-service-design.md)（对话框服务/集成性质不测）、
 [0015](../adr/0015-module-map-and-ownership.md)（M3/S1 三分归属 R6）、
-[0016](../adr/0016-assembly-split-target-and-roadmap.md)（B4：M3 独立模块程序集）、
-[0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)（扫描契约收口与 ProgramEntry/
-ProgramCatalog 上提）、[0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)
-（#96：扫描/SPI 契约随 M3 下沉 Programs.Contracts）。
+[0016](../adr/0016-assembly-split-target-and-roadmap.md)（M3 独立模块程序集）、
+[0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)
+（扫描/SPI 契约随 M3 下沉 Programs.Contracts）。

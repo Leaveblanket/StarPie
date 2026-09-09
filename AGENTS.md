@@ -22,4 +22,4 @@ Single-context layout: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `
 
 Commits follow Conventional Commits with Chinese subjects, reference a GitHub issue (`#NN` at the end of the subject), and land via task branches merged with explicit `merge` commits. Build must pass before any commit; feature/bug-fix commits additionally require the xUnit and pywinauto e2e suites to pass. See `docs/agents/git-commits.md`.
 
-验证义务分两层门（ADR-0018）：每个代码提交须 build 通过且 xUnit 全量绿；feature/bug-fix 提交按免跑判定跑全量 pywinauto e2e；合入 main 前须一次全量 xUnit + 全量 e2e。See `docs/agents/git-commits.md` and `docs/adr/0018-verification-gates-and-test-strategy.md`.
+验证义务分两层门：每个代码提交须 build 通过且 xUnit 全量绿；feature/bug-fix 提交按免跑判定跑全量 pywinauto e2e；合入 main 前须一次全量 xUnit + 全量 e2e。See `docs/agents/git-commits.md`.
