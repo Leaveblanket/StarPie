@@ -10,7 +10,7 @@ M1 手势件已随 B9/#82 迁出 exe）。
 
 ```text
 StarPie/
-├── WinPieGestures/                # Host 宿主工程（exe，程序集 StarPie）：组合根、宿主壳窗口、S6 对话框与外观聚合页
+├── WinPieGestures/                # Host 宿主工程（exe，程序集 StarPie）：组合根、宿主壳窗口、导航运行时、S6 对话框与外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
 │   ├── Composition.cs             # DI 组合根（唯一）：注册与解析（含 B2 跨程序集回填缝，见 layering.md）
@@ -24,9 +24,11 @@ StarPie/
 │   ├── assets/
 │   │   ├── app_icon.ico           # 应用图标（csproj ApplicationIcon 引用）
 │   │   └── logo.png
+│   ├── Services/
+│   │   └── Navigation/            # 导航运行时（ADR-0021/#92 迁入）：NavigationStore、NavigationExecutor（含 INavigationExecutor）
 │   ├── ViewModels/
 │   │   ├── Pages/                 # Host 外观聚合页 VM：AppearanceSettingsViewModel（单例）
-│   │   └── Navigation/            # ShellViewModel（MainViewModel 已迁 Core，B3/#76）
+│   │   └── Navigation/            # 导航 VM：MainViewModel、NavigationItemViewModel（ADR-0021/#92 迁入）+ ShellViewModel（B1/D3 Host 壳层 VM）
 │   └── Views/
 │       ├── Pages/                 # Host 外观聚合页 View：AppearanceSettingsPage（M1 两页已迁 StarPie.Gestures，B9/#82）
 │       └── Navigation/            # MainView、SidebarView
@@ -48,10 +50,9 @@ StarPie/
 │   │   ├── Icons/                 # S1：IconCatalog/IIconAssetService/IconAssetService/IShortcutTargetResolver/CustomIconItem/VectorIconItem（ADR-0019/#87 双形）
 │   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
-│   │   └── Navigation/            # S5：导航内核 + NavigationCatalog/NavigationSlots（槽位表 0–4）
+│   │   └── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–4；ADR-0021/#92 起运行时在 Host，仅此文件）
 │   ├── ViewModels/
-│       ├── Navigation/            # S5：NavigationItemViewModel、MainViewModel（B3/#76 迁入，目录驱动）
-│       └── Pages/                 # 跨 M 只读契约：IProfilePreviewSource.cs（B8/#81 上提，D5）
+│       └── Pages/                 # 跨 M 只读契约：IProfilePreviewSource.cs（B8/#81 上提，D5；Navigation 目录已随 ADR-0021/#92 迁 Host 清零）
 │   └── Views/                     # 共享 UI 基建（B5/#78 迁入；B6/#79 增共享页面基类）
 │       ├── Converters/            # 通用共享转换器：HexToBrush/StringToGeometry/IntEquals/FilePathToImage
 │       ├── Controls/              # 共享自定义控件：HotkeyRecorderBox（模板样式在 Styles/ModernControls.xaml）
@@ -113,9 +114,8 @@ StarPie/
 
 > 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Shell/`、`StarPie.Theme/`、`StarPie.Wheel/`、`StarPie.Gestures/` 与 `WinPieGestures/`
 > 中各自保持“命名空间 = 物理目录”；
-> 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Icons|Localization|Messages|Navigation|Programs（ADR-0020/#88：ProgramEntry/ProgramCatalog/IProgramScanner）、
-> Services/AppHostDelegates.cs（B6/#79）、ViewModels/Navigation/NavigationItemViewModel.cs、
-> ViewModels/Pages/IProfilePreviewSource.cs（B8/#81 上提））与共享
+> 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Icons|Localization|Messages|Navigation（目录契约 NavigationCatalog.cs，ADR-0021/#92 起运行时不在 Core）|Programs（ADR-0020/#88：ProgramEntry/ProgramCatalog/IProgramScanner）、
+> Services/AppHostDelegates.cs（B6/#79）、ViewModels/Pages/IProfilePreviewSource.cs（B8/#81 上提））与共享
 > UI 基建（Views/Converters|Controls、Views/Styles/ModernControls.xaml（B5/#78 迁入）、
 > Views/Pages/SettingsPageBase.cs（B6/#79 迁入））只存在于 `StarPie.Core/`；M3 业务目录
 > （ProgramScanner/ShortcutResolver）只存在于 `StarPie.Programs/`（B4/#77 起；ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core 同目录，ADR-0020/#88）；M5 业务目录
@@ -130,15 +130,16 @@ StarPie/
 > `ViewModels/Pages/` 的 BehaviorSettingsViewModel/ProfileListViewModel、`Views/Pages/` 的
 > TriggerSettingsPage/GesturesSettingsPage、`Modules/` 的 GesturesModuleRegistrar/
 > GesturesPageTemplates.xaml）只存在于 `StarPie.Gestures/`（B9/#82 起）；
-> 其余业务目录（Host 外观聚合页/壳窗口等）留 `WinPieGestures/`；S6 对话框实现目录
+> 其余业务目录（Host 外观聚合页/壳窗口/导航运行时（`Services/Navigation/` +
+> `ViewModels/Navigation/`，ADR-0021/#92 迁入）等）留 `WinPieGestures/`；S6 对话框实现目录
 （`Services/Dialogs`、`ViewModels/Dialogs`、`Views/Dialogs`、`Views/Controls/SpectrumCanvasBehavior`）在 `StarPie.Dialogs/`（ADR-0020/#88）。
 > 依赖方向见 [assemblies.md](assemblies.md) §3。
 
 ## 各目录职责细则
 
 > 目录相对所属工程：共享内核件位于 `StarPie.Core/`——`Models/`、`Services/Configuration`|
-> `Dialogs`(契约)|`Icons`|`Localization`|`Messages`|`Navigation`、`ViewModels/Navigation/`
-> （`NavigationItemViewModel.cs`，B2/#75）与 `MainViewModel.cs`（B3/#76 迁入），以及共享 UI 基建
+> `Dialogs`(契约)|`Icons`|`Localization`|`Messages`|`Navigation`（ADR-0021/#92 起仅目录契约
+> `NavigationCatalog.cs`；运行时主体已迁 Host），以及共享 UI 基建
 > `Views/Converters/`（通用转换器）、`Views/Controls/`（`HotkeyRecorderBox`）、`Views/Styles/`
 > （`ModernControls.xaml`，B5/#78 迁入）、`Views/Pages/`（`SettingsPageBase`，B6/#79 迁入）与
 > `Services/AppHostDelegates.cs`（B6/#79 上提）、`ViewModels/Pages/IProfilePreviewSource.cs`
@@ -150,7 +151,10 @@ StarPie/
 > M2 轮盘件（WheelPalette*/WheelGeometry/轮盘 VM/RadialWindow/渲染器/工厂/核图标转换器/
 > WheelAppearanceSettingsViewModel，B8/#81 迁入）位于 `StarPie.Wheel/`（见下模块程序集目录表）；
 > M1 手势件（手势管线/动作执行/触发+手势设置页/SlotViewModel，B9/#82 迁入）位于
-> `StarPie.Gestures/`（见下模块程序集目录表）；其余位于 `WinPieGestures/`（Host）。
+> `StarPie.Gestures/`（见下模块程序集目录表）；导航运行时（`Services/Navigation/` 的
+> `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）、`ViewModels/Navigation/`
+> 的 `MainViewModel`/`NavigationItemViewModel`，ADR-0021/#92 迁入、命名空间不变）与其余业务
+> 目录位于 `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
@@ -163,12 +167,12 @@ StarPie/
 | `Services/Icons/` | **B2/#75 起在 `StarPie.Core/`**：S1 双形（ADR-0019/#87）——静态纯目录 `IconCatalog`（矢量清单/SVG 键目录/`ExtractSvgPathData`）、实例服务 `IIconAssetService`/`IconAssetService`（自定义图标存储/位图源/文件图标提取）、.lnk 契约 `IShortcutTargetResolver`（M3 实现）、`CustomIconItem`/`VectorIconItem` | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；有状态/IO/Win32 面只经实例服务注入，不进 VM/View；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（语言状态以规范 BCP-47 码字符串为唯一表示，别名表在服务内）；**B2/#75 起在 `StarPie.Core/`** | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体）；**B2/#75 起在 `StarPie.Core/`** | 不放绑定语义；同页状态不得用消息替代绑定 |
-| `Services/Navigation/` | `NavigationStore`、`INavigationService<T>`/`NavigationService<T>`、`NavigationCatalog`/`NavigationSlots`（槽位表 0–4）；**B2/#75 起在 `StarPie.Core/`** | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
+| `Services/Navigation/` | **分置（ADR-0021/#92）**：共享内核（`StarPie.Core/Services/Navigation/`，B2/#75 起）：目录/槽位契约 `NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`（仅 `NavigationCatalog.cs`）；宿主（`WinPieGestures/Services/Navigation/`）：导航运行时 `NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`，命名空间 `StarPie.Services.Navigation` 不变） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Wheel/` | **B8/#81 起在 `StarPie.Wheel/Services/Wheel/`**：`WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何）、`IWheelFactory`/`WheelFactory`（D5 收编，命名空间 `StarPie.Services.Wheel` 与物理目录一致） | 实现见 [wheel.md](wheel.md)；工厂只经 M2 侧接口被 M1 消费 |
 | `ViewModels/Pages/` | Host：外观聚合页 VM `AppearanceSettingsViewModel`（单例）；M1 两 VM（`BehaviorSettingsViewModel`/`ProfileListViewModel`）已迁 `StarPie.Gestures/ViewModels/Pages/`（B9/#82）；M5 两 VM（`GeneralSettingsViewModel`/`AboutViewModel`）已迁 `StarPie.Shell/ViewModels/Pages/`（B6/#79）；M4 主题设置子 VM（`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`）已迁 `StarPie.Theme/ViewModels/Pages/`（B7/#80）；M2 轮盘外观设置子 VM `WheelAppearanceSettingsViewModel` 已迁 `StarPie.Wheel/ViewModels/Pages/`（B8/#81）；Core 含跨 M 只读契约 `IProfilePreviewSource.cs`（B8/#81 上提） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | **ADR-0020/#88 起在 `StarPie.Dialogs/ViewModels/Dialogs/`**：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | **B9/#82 起在 `StarPie.Gestures/ViewModels/Gestures/`**：方向槽位等子 VM（`SlotViewModel`，+ `SystemPresetItem`/`ActionTypeOption`） | 不放服务 |
-| `ViewModels/Navigation/` | Core：`NavigationItemViewModel`（B2/#75）、`MainViewModel`（B3/#76 迁入且目录驱动）；Host：`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM） | 导航项文案/图标规则见 [navigation.md](navigation.md) |
+| `ViewModels/Navigation/` | **Host（ADR-0021/#92 迁入，命名空间不变）**：`NavigationItemViewModel`、`MainViewModel`（B3/#76 目录驱动）、`ShellViewModel`（B1/D3 Host 壳窗口壳层 VM）——与 `ShellViewModel` 同目录族 | 导航项文案/图标规则见 [navigation.md](navigation.md) |
 | `ViewModels/Wheel/` | **B8/#81 起在 `StarPie.Wheel/ViewModels/Wheel/`**：`IWheelViewModel`、`WheelViewModel`、`IWheelAppearanceState` | 不注册容器；按手势由 `WheelFactory` 瞬态创建；见 [wheel.md](wheel.md) |
 | `Views/Pages/` | Host：外观聚合页 `AppearanceSettingsPage`（无参构造）；M1 两页（`TriggerSettingsPage`/`GesturesSettingsPage`）已迁 `StarPie.Gestures/Views/Pages/`（B9/#82）；M5 两页（`AdvancedSettingsPage`/`AboutSettingsPage`）已迁 `StarPie.Shell/Views/Pages/`（B6/#79）；共享基类 `SettingsPageBase.cs` 在 Core `Views/Pages/` | 不注册容器；不编排业务/写配置/调服务 |
 | `Views/Dialogs/` | **ADR-0020/#88 起在 `StarPie.Dialogs/Views/Dialogs/`**：`{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放置无配对 Window 的散件 |
@@ -232,7 +236,8 @@ StarPie/
 - `StarPie.Core.csproj` / `GlobalUsings.cs`：共享内核工程入口；`StarPie.Core/` 源码根目录**只允许**
   上表列出的共享内核目录与文件（B2/#75 起；B5/#78 起含 `Views/Converters|Controls|Styles` 共享 UI 基建；
   B6/#79 起含 `Views/Pages/SettingsPageBase.cs` 与 `Services/AppHostDelegates.cs`；
-  B8/#81 起含 `ViewModels/Pages/IProfilePreviewSource.cs`；ADR-0020/#88 起含 `Services/Programs/`（ProgramEntry/ProgramCatalog/IProgramScanner））。
+  B8/#81 起含 `ViewModels/Pages/IProfilePreviewSource.cs`；ADR-0020/#88 起含 `Services/Programs/`（ProgramEntry/ProgramCatalog/IProgramScanner）；
+  ADR-0021/#92 起 `Services/Navigation/` 仅留 `NavigationCatalog.cs`，`ViewModels/Navigation/` 目录在 Core 清零——运行时在 Host）。
 - `StarPie.Dialogs.csproj` / `GlobalUsings.cs`：S6 对话框实现模块程序集工程入口（B11/#88 起，
   ADR-0020：单向引用 Core + 允许引用 Theme（IThemeService 允许边））；`StarPie.Dialogs/` 源码根目录
   **只允许** `Modules/`（DialogsModuleRegistrar）、`Services/Dialogs/`（DialogService）、
@@ -279,6 +284,13 @@ M1 手势件已随 B9/#82 迁出）。
 
 已消除的历史偏差（2026-09-04）：
 
+- **ADR-0021/#92（2026-09-09）**：导航运行时主体迁 Host——`StarPie.Core/Services/Navigation/`
+  的 `NavigationStore.cs`/`NavigationExecutor.cs` → `WinPieGestures/Services/Navigation/`；
+  `StarPie.Core/ViewModels/Navigation/` 的 `MainViewModel.cs`/`NavigationItemViewModel.cs` →
+  `WinPieGestures/ViewModels/Navigation/`（命名空间不变，与 `ShellViewModel` 同目录族）；
+  Core 仅留 `NavigationCatalog.cs`（目录/槽位契约），C1 死代码 `INavigationService.cs`/
+  `NavigationService.cs` 删除，Core 侧 `ViewModels/Navigation/` 目录清零
+  （见 [assemblies.md](assemblies.md) §9）。
 - **ADR-0020/#88（2026-09-08）**：S6 对话框实现迁入独立模块程序集 `StarPie.Dialogs/`——
   DialogService（Services/Dialogs）、五对对话框 VM/Window（ViewModels|Views/Dialogs）与取色行为
   SpectrumCanvasBehavior（Views/Controls）随迁（命名空间沿用 StarPie.* 树，B10/#83 同构）；新增

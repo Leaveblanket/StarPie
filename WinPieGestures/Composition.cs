@@ -146,11 +146,9 @@ namespace StarPie
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             services.AddSingleton<SettingsSaveOrchestrator>();
 
-            // 导航件：NavigationStore 单例 + 泛型导航服务开放泛型注册。
+            // 导航件（ADR-0021/#92 起为 Host 内部件，共享内核仅留目录/槽位契约）：
+            // NavigationStore 单例 + 目录执行缝按槽位注册。
             services.AddSingleton<NavigationStore>();
-            services.AddSingleton(typeof(INavigationService<>), typeof(NavigationService<>));
-            // 导航目录执行缝是目录驱动主入口；开放泛型导航服务保留为类型化解析缝
-            // （NavigationServiceTests 覆盖，与目录执行缝同为已批准解析点）。
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM：容器单例，状态跨导航常驻；解析时机在配置加载后（CreateAppHost）。

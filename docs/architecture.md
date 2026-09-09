@@ -47,7 +47,10 @@
 
 - .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
 - 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S1–S6
-  共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 内核与槽位表）与共享
+  共享件（Configuration/Localization/Messages/Icons/Dialogs 契约/Navigation 目录与槽位契约——
+  ADR-0021/#92 起导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
+  NavigationItemViewModel）归 Host `WinPieGestures/Services/Navigation/` 与
+  `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与共享
   UI 基建（B5/#78：Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/
   ModernControls.xaml 全局控件样式字典）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。

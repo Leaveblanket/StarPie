@@ -13,6 +13,11 @@
 `App.xaml(.cs)`、`Composition.cs`、`AppHost.cs`、`DevInstance.cs`（R2：`DevInstance` 归 H1，物理已随
 #70 收编工程根）。
 
+导航运行时（ADR-0021/#92 起归 H1，命名空间不变）：
+
+- `Services/Navigation/`：`NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`）；
+- `ViewModels/Navigation/`：`MainViewModel`、`NavigationItemViewModel`（与 `ShellViewModel` 同目录族）。
+
 > 归属边界（[modules.md](modules.md) §5 D4）：`AppHost` 的语言字典投影与壳外文案刷新是 H1 对 S3 的消费，
 > 不是本地化组成文件（见 [localization.md](localization.md)）。
 
@@ -30,8 +35,9 @@
      S1 .lnk 图标提取的解析契约自 ADR-0019/#87 起经 DI 注入的 `IShortcutTargetResolver`
      （ProgramsModuleRegistrar 注册 M3 实现），不再静态回填。
    - 基础设施：`JsonConfigService`（具体类，配置路径经 Core `AppDataPaths.GetAppDataFolder()` 构造）+
-     `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、`NavigationStore`、
-     开放泛型 `INavigationService<>` → `NavigationService<>`。B7/#80 起 M4 的
+     `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、
+     `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体随
+     ADR-0021/#92 归 Host，目录执行缝为 Host 内部件）。B7/#80 起 M4 的
      `ThemeService`（具体类）+ `IThemeService` 别名注册下放 `ThemeModuleRegistrar.RegisterServices`
      （StarPie.Theme），组合根不再直接登记主题服务；B8/#81 起 M2 的轮盘工厂
      （`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册下放
@@ -49,8 +55,8 @@
    - B3/#76（导航自治）+ B6/#79（M5 拆集）+ B9/#82（M1 拆集）：`NavigationCatalog` 由
      `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、`StarPie.Shell` 的
      `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar` 按固定顺序装配并
-     `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型；注册
-     `INavigationExecutor` → `NavigationExecutor`（目录执行缝，主导航入口，见 [navigation.md](navigation.md)）。
+     `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型（运行时类型与执行缝的
+     注册见上段基础设施，ADR-0021/#92 起不再登记跨程序集缝）。
    - 服务：`DialogService`（T3c/#67：构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描
      契约；ADR-0019/#87 起扫描/图标经 Core 契约注入；ADR-0020/#88 起程序扫描候选经
      `IProgramScanner`（Core 契约，M3 注册器提供实现）注入、组合根不再登记委托——`DialogService`
@@ -71,8 +77,10 @@
      `InterfaceThemeSettingsViewModel`（B7/#80 起由 ThemeModuleRegistrar 注册）与
      `WheelAppearanceSettingsViewModel`（B8/#81 起由 WheelModuleRegistrar 注册，随
      StarPie.Wheel 下放），均另行注册单例）、
-     `MainViewModel`（B3/#76：已迁 Core 且目录驱动；仍由组合根注册——页面 VM 的 DI 注册
-     已全部下放所属模块注册器（B6/B7/B8/B9），仅 Host 外观聚合页 VM 留在组合根，目标态成立；
+     `MainViewModel`（B3/#76：目录驱动语义成立——导航项/选中态全部来自目录注册；
+     ADR-0021/#92 起运行时主体已自 Core 迁回 Host `ViewModels/Navigation/`，命名空间不变；
+     仍由组合根注册——页面 VM 的 DI 注册已全部下放所属模块注册器（B6/B7/B8/B9），仅 Host
+     外观聚合页 VM 与导航 VM 留在组合根，目标态成立；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作已随 B9/#82
      下放 GesturesModuleRegistrar（接口 B8/#81 起驻 Core，供轮盘外观设置子 VM 经接口消费））、
      `ShellViewModel`（B1/D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，

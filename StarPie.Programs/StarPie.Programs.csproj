@@ -14,6 +14,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- ProgramsModuleRegistrar 直接使用 MS.DI（IServiceCollection 注册面）；自 ADR-0021/#92
+         Core 移除该包后不再经共享内核传递，本模块显式声明（与其它模块注册器 csproj 一致）。 -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- ADR-0019/#87：M3 → Core 单向（IShortcutTargetResolver/IIconAssetService 契约） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>

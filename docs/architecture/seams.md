@@ -35,11 +35,11 @@ Dialogs  ──→ Core + Theme(允许边 IThemeService)
 | 回填缝·dev 标志 | `AppDataPaths.IsDevInstance` 组合根装配前回填（消费 M1/M5/S2） | B2/B6/B9；MouseHook/Autostart 测试 |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 Core（可空 Action 单例），AppHost 构造后回填 | B6/#79；ShellAssemblyPlacementTests |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004/ADR-0020；e2e |
-| 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–4）+ 模块注册器 `RegisterNavigation` + 页面模板字典 | B3/#76；NavigationCatalogTests |
+| 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–4）+ 模块注册器 `RegisterNavigation` + 页面模板字典 | B3/#76；NavigationCatalogTests（ADR-0021/#92 补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |
 | XAML 资源缝 | App.xaml 每模块一次 pack URI 合并（主题/ModernControls/模板字典/转换器） | ADR-0012/B5–B9 |
 | 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`），跨模块广播；新消息 = 放行共享面 | B1/#64；messages.md |
 | 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（ThemeService/ActionExecutorService/VM 委托），生产默认值内建 | layering.md「系统调用接缝模式」；单测替身 |
-| 收口测试缝 | 6 个 `*AssemblyPlacementTests` + NavigationCatalog 收口测试 | 各批次；ADR-0018 |
+| 收口测试缝 | 8 个 `*AssemblyPlacementTests`（含 ADR-0021/#92 新增 Navigation）+ NavigationCatalog 收口测试 | 各批次；ADR-0018 |
 
 ## 3. 需关注缝（有意接受，但对模块化施加压力；改动前先读裁决）
 

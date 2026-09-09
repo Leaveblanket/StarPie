@@ -58,8 +58,8 @@ namespace StarPie.Views.Navigation
         /// <summary>Windows 系统深浅色探测（外观页预览渲染取主题用；同属壳层主题职责）。</summary>
         public bool IsWindowsInDarkTheme() => _themeService.IsWindowsInDarkTheme();
 
-        /// <summary>显示并激活主窗口（托盘直达/双击；页面切换由类型化导航服务先行完成），
-        /// 带淡入动画。</summary>
+        /// <summary>显示并激活主窗口（托盘直达/双击；页面切换由目录执行缝
+        /// <see cref="INavigationExecutor"/> 先行完成），带淡入动画。</summary>
         public void ShowAndActivate()
         {
             Opacity = 0.0;

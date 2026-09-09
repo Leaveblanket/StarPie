@@ -33,7 +33,7 @@ namespace StarPie.Services.Navigation
     }
 
     /// <summary>导航目录注册项：槽位、AutomationId、标题键、图标数据与目标页面 VM 类型。</summary>
-    /// <remarks>导航执行经 <see cref="INavigationExecutor"/> 按槽位惰性解析目标页面 VM。</remarks>
+    /// <remarks>导航执行由 Host 目录驱动执行入口按槽位惰性解析目标页面 VM（ADR-0021/#92）。</remarks>
     public sealed record NavigationPageRegistration(
         NavigationSlot Slot,
         string AutomationId,

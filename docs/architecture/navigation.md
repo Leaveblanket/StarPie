@@ -8,15 +8,29 @@
 
 ## 组成文件
 
-共享内核（`StarPie.Core/`，B2/#75 起；导航 VM B3/#76 迁入）：
+共享内核（`StarPie.Core/`，B2/#75 起；ADR-0021/#92 起仅留目录/槽位契约）：
 
-- `Services/Navigation/`：`NavigationStore`、`INavigationService<T>`/`NavigationService<T>`（类型化解析缝，
-  保留注册与收口测试）、`NavigationCatalog`/`NavigationSlots`（全局槽位表 0–4、`NavTab0..4` 正典与
-  缺失/重复/未知槽位收口测试，见 [assemblies.md](assemblies.md) §5.2）、`INavigationExecutor`/
-  `NavigationExecutor`（B3/#76 目录执行缝——按槽位取目录注册项并惰性解析页面 VM）。
-- `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（B3/#76 迁入 Core 且目录驱动：
-  导航项顺序/标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责已拆至
-  Host `ShellViewModel`，见 [shell.md](shell.md)）。
+- `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
+  `NavigationPageRegistration`（全局槽位表 0–4、`NavTab0..4` 正典与缺失/重复/未知槽位收口测试，
+  见 [assemblies.md](assemblies.md) §5.2）——跨模块注册契约（模块注册器写、控制台读），
+  属共享内核"全局机制"，不受运行时归属影响。
+
+宿主（`WinPieGestures/`，导航运行时主体 ADR-0021/#92 自 Core 迁入，命名空间不变）：
+
+- `Services/Navigation/`：`NavigationStore`（当前页状态单一根源）、`NavigationExecutor`（含
+  `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
+  接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [seams.md](seams.md)；
+  第二消费方出现时按 `IDialogService` 先例把接口上提 Core）。
+- `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（B3/#76 目录驱动：
+  导航项顺序/标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；
+  壳层职责已拆至同目录族的 `ShellViewModel`，见 [shell.md](shell.md)）。
+- `Modules/`（B3/#76 单程序集内先行；M5 已随 B6/#79 迁出、M1 已随 B9/#82 迁出）：exe 内
+  Host 临时注册器 `HostModuleRegistrar`（含 `RegisterNavigation(NavigationCatalog)`）与页面模板
+  字典 `HostPageTemplates.xaml`（App 级每模块一次静态合并，目标态 Host 外观聚合页，
+  见 [assemblies.md](assemblies.md) §5.1/§6）。
+- `Views/Navigation/MainView.xaml`（R4/ADR-0016：Host 壳窗口（H1）文件；B3/#76 起**不再含页面
+  DataTemplate 映射**——纯壳；分区 DataContext 与 `MainView.xaml.cs` 壳层 code-behind 见
+  [shell.md](shell.md)）。
 
 M5 模块程序集（`StarPie.Shell/`，B6/#79 起）：
 
@@ -31,28 +45,18 @@ M1 模块程序集（`StarPie.Gestures/`，B9/#82 起）：
   `IProfilePreviewSource` 别名）与 `Modules/GesturesPageTemplates.xaml`（页面模板字典；Host
   App.xaml 经跨程序集 pack URI 单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
 
-宿主（`WinPieGestures/`）：
-
-- `Modules/`（B3/#76 单程序集内先行；M5 已随 B6/#79 迁出、M1 已随 B9/#82 迁出）：exe 内
-  Host 临时注册器 `HostModuleRegistrar`（含 `RegisterNavigation(NavigationCatalog)`）与页面模板
-  字典 `HostPageTemplates.xaml`（App 级每模块一次静态合并，目标态 Host 外观聚合页，
-  见 [assemblies.md](assemblies.md) §5.1/§6）。
-- `ViewModels/Navigation/`：`ShellViewModel`（Host 壳窗口壳层 VM，见 [shell.md](shell.md)）。
-- `Views/Navigation/MainView.xaml`（R4/ADR-0016：Host 壳窗口（H1）文件；B3/#76 起**不再含页面
-  DataTemplate 映射**——纯壳；分区 DataContext 与 `MainView.xaml.cs` 壳层 code-behind 见
-  [shell.md](shell.md)）。
-
 ## 关键流程
 
 1. `Composition` 装配目录：构造时依次调 `GesturesModuleRegistrar`/`ShellModuleRegistrar`/
    `HostModuleRegistrar.RegisterNavigation(catalog)` 并 `catalog.Validate()`（五槽收口），目录单例注册；
    M5/M1 页面 VM 与手势管线的 DI 注册已分别由 `ShellModuleRegistrar.RegisterServices`（B6/#79，
    含宿主回调经 Core `AppHostDelegates` 的接线）与 `GesturesModuleRegistrar.RegisterServices`
-   （B9/#82，含 `IProfilePreviewSource` 别名下放）下放模块程序集；仅 Host 外观聚合页 VM 仍由
-   `Composition.ConfigureServices` 注册（目标态 Host 页）。
-2. `MainViewModel`（Core，B3/#76 目录驱动）按 `catalog.Entries` 构造 `NavigationItemViewModel` 列表：
-   `AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType` 均来自目录注册，导航 `Action` =
-   `INavigationExecutor.Navigate(槽位)`。
+   （B9/#82，含 `IProfilePreviewSource` 别名下放）下放模块程序集；导航运行时（`NavigationStore`/
+   `NavigationExecutor`/`MainViewModel`）与 Host 外观聚合页 VM 由 `Composition.ConfigureServices`
+   注册——前者为 Host 内部件（ADR-0021/#92），后者目标态 Host 页。
+2. `MainViewModel`（Host，B3/#76 目录驱动；ADR-0021/#92 起运行时归 Host）按 `catalog.Entries`
+   构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType`
+   均来自目录注册，导航 `Action` = `INavigationExecutor.Navigate(槽位)`。
 3. 点击导航项 → `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` → 容器解析
    页面 VM（单例 → 状态常驻）→ 更新 `NavigationStore.CurrentViewModel`。`MainViewModel` 订阅 store
    变更同步各导航项选中态，并随 I18n 广播刷新标题。
@@ -84,4 +88,4 @@ as-built（B6/#79 起；B9/#82 起 M1 亦跨程序集自治）：
 
 ## 参见 ADR
 
-[0005](../adr/0005-di-container-for-navigation.md)（DI 导航）、[0016](../adr/0016-assembly-split-target-and-roadmap.md)（导航自治注册）。
+[0005](../adr/0005-di-container-for-navigation.md)（DI 导航）、[0016](../adr/0016-assembly-split-target-and-roadmap.md)（导航自治注册）、[0021](../adr/0021-navigation-runtime-to-host.md)（导航运行时归 Host）。
