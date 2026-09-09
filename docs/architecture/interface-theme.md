@@ -42,8 +42,9 @@ Host/其它业务模块。
    画刷令牌存于 `StarPie.Theme/Views/Styles/Themes/*.xaml`（五套同 key 集，B7/#80 起随 M4
    成集）；Host `App.xaml` 经跨程序集 pack URI
    `/StarPie.Theme;component/Views/Styles/Themes/Light.xaml` 静态合并 Light 仅作设计时/首帧默认，
-   并单点合并共享内核 `ModernControls.xaml`（B5/#78 起经
-   `/StarPie.Core;component/Views/Styles/ModernControls.xaml`）。
+   并本地单点合并宿主 `Views/Styles/ModernControls.xaml`（全局控件样式字典，ADR-0022/#94 起
+   迁 Host、改本地合并；原 `/StarPie.Core;component/Views/Styles/ModernControls.xaml` 跨集合并
+   已移除）+ 跨集合并 `StarPie.Gestures` 的 `Views/Styles/HotkeyRecorderBox.xaml`。
 2. **整项替换**：`ThemePaletteManager`（B7/#80 起驻 `StarPie.Theme` 且 public，自包含）加载/缓存/
    冻结主题 XAML，把目标调色板**整项替换** Application `MergedDictionaries` 中含 `/Themes/` 的
    活动槽（切 Light 亦整项替换，无直接键残留）。

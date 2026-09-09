@@ -94,7 +94,8 @@ M2 物理落位（B8/#81 起迁入独立模块程序集 `StarPie.Wheel/`，命�
    的 `Render` 改收 `bool windowsInDarkMode`，由外观页（Host）经壳层 `MainView.IsWindowsInDarkTheme()`
    取值传入——行为与迁移前一致。ADR-0019/#87 起渲染器经**已批准预览桥**取得
    `IIconAssetService`：外观聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露该服务，
-   页面 `OnPageLoaded` 装配 `new WheelPreviewRenderer(iconAssetService)`（layering Views 例外登记）。
+   页面在 `Loaded` 事件处理器（原基类 virtual 钩子已随 ADR-0022/#94 改为自订阅，方法名
+   `OnPageLoaded` 保留）装配 `new WheelPreviewRenderer(iconAssetService)`（layering Views 例外登记）。
 
 ## 扩展点
 

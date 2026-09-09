@@ -35,7 +35,8 @@
    Host 页面在 exe `ViewModels/Pages/`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger`
    或组合根/模块注册器委托；单例注册）。
 2. **View**：M5 页面在 `StarPie.Shell/Views/Pages/`、M1 页面在 `StarPie.Gestures/Views/Pages/`、
-   Host 页面在 exe `Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（共享基类 `SettingsPageBase` 在 Core）。
+   Host 页面在 exe `Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（页面 XAML
+   根直承 `UserControl`——共享基类 `SettingsPageBase` 已随 ADR-0022/#94 删除）。
 3. **注册与接线（B3/#76 目录驱动；B6/#79 起跨程序集，B9/#82 起 M1 同款）**：页面 VM 注册——M5 由
    `ShellModuleRegistrar.RegisterServices`、M1 由 `GesturesModuleRegistrar.RegisterServices` 下放
    模块程序集，Host 页仍在 `Composition.ConfigureServices` → 所属模块注册器

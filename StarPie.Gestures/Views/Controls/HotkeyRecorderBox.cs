@@ -16,8 +16,9 @@ namespace StarPie.Views.Controls
     /// </summary>
     /// <remarks>
     /// 占位文案由消费方经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键），
-    /// 录制提示与录制态配色由控件模板（ModernControls.xaml）持有；code-behind 只负责
-    /// 输入逻辑与动态文本/可见性编排，不出现静态文案或 hex 画刷。
+    /// 录制提示与录制态配色由控件模板（StarPie.Gestures/Views/Styles/
+    /// HotkeyRecorderBox.xaml，随控件下沉本模块，ADR-0022/#94）持有；code-behind 只
+    /// 负责输入逻辑与动态文本/可见性编排，不出现静态文案或 hex 画刷。
     /// </remarks>
     public class HotkeyRecorderBox : Control
     {

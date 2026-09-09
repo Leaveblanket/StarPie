@@ -16,6 +16,7 @@ using StarPie.Services.Localization;
 using StarPie.Services.Navigation;
 using StarPie.ViewModels.Gestures;
 using StarPie.ViewModels.Pages;
+using StarPie.Views.Controls;
 using StarPie.Views.Pages;
 
 namespace StarPie.Tests;
@@ -27,7 +28,9 @@ namespace StarPie.Tests;
 /// （<see cref="IActionExecutorService"/>/<see cref="ActionExecutorService"/>/<see cref="ActionRouting"/>）、
 /// 触发+手势设置页（VM <see cref="BehaviorSettingsViewModel"/>/<see cref="ProfileListViewModel"/>/
 /// <see cref="SlotViewModel"/> + View <see cref="TriggerSettingsPage"/>/<see cref="GesturesSettingsPage"/>）
-/// 位于 <c>StarPie.Gestures</c>；模块注册器 <see cref="GesturesModuleRegistrar"/>
+/// 与随共享 UI 基建去共享化下沉的热键录制控件 <see cref="HotkeyRecorderBox"/>（ADR-0022/#94，
+/// 样式字典 Views/Styles/HotkeyRecorderBox.xaml 同驻模块）位于 <c>StarPie.Gestures</c>；
+/// 模块注册器 <see cref="GesturesModuleRegistrar"/>
 /// （RegisterNavigation + RegisterServices）驻本程序集，页面 VM 的 DI 注册与
 /// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集；
 /// 命名空间统一为 StarPie.*（跨程序集共享命名空间树）。
@@ -52,6 +55,7 @@ public sealed class GesturesAssemblyPlacementTests
         Assert.Equal("StarPie.Gestures", typeof(SlotViewModel).Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", typeof(TriggerSettingsPage).Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", typeof(GesturesSettingsPage).Assembly.GetName().Name);
+        Assert.Equal("StarPie.Gestures", typeof(HotkeyRecorderBox).Assembly.GetName().Name);
         Assert.Equal("StarPie.Gestures", typeof(GesturesModuleRegistrar).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Services.Gestures", typeof(GestureEngine).Namespace);
@@ -59,6 +63,7 @@ public sealed class GesturesAssemblyPlacementTests
         Assert.Equal("StarPie.ViewModels.Pages", typeof(ProfileListViewModel).Namespace);
         Assert.Equal("StarPie.ViewModels.Gestures", typeof(SlotViewModel).Namespace);
         Assert.Equal("StarPie.Views.Pages", typeof(TriggerSettingsPage).Namespace);
+        Assert.Equal("StarPie.Views.Controls", typeof(HotkeyRecorderBox).Namespace);
         Assert.Equal("StarPie.Modules", typeof(GesturesModuleRegistrar).Namespace);
     }
 
