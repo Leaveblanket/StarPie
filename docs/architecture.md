@@ -162,3 +162,5 @@ Services ---> Models
 | 0019 | `docs/adr/0019-icon-assets-service-split-and-m3-boundary-cleanup.md` | S1 图标资产双形拆分（IconCatalog + IIconAssetService）与 M3 边界收口（契约入 Core + ProgramsModuleRegistrar + 预览桥） |
 | 0020 | `docs/adr/0020-dialogs-assembly-and-m3-scanner-contract.md` | 对话框实现程序集化（StarPie.Dialogs，8 程序集目标态）+ M3 扫描契约收口（ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core）+ ThemeChanged 死事件移除 |
 | 0021 | `docs/adr/0021-navigation-runtime-to-host.md` | 导航运行时归 Host：共享内核仅留目录/槽位契约（#89 Q3/#91 裁决，运行时主体迁 Host + C1 死代码清理） |
+| 0022 | `docs/adr/0022-shared-ui-infrastructure-decentralization.md` | 共享 UI 基建去共享化：转换器/ModernControls→Host、HotkeyRecorderBox→Gestures、SettingsPageBase 删除（#89 会话前提，决策 #93/实施 #94） |
+| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄：模块出口契约入 *.Contracts、S1 成集、Core 仅留全局机制/数据（#89 Q2/#90 裁决，决策 #93/实施 #95–#97） |
