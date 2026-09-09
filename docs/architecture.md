@@ -14,6 +14,7 @@
 | `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
 | `docs/architecture/modules.md` | 模块划分地图（12 模块 + 修整单元判据） | 归属争议、扩展点验收时 |
 | `docs/architecture/assemblies.md` | 程序集地图与依赖方向（15 程序集现状） | 程序集归属、依赖方向、导航槽位时 |
+| `docs/architecture/design-time-preview.md` | 设计时预览协议（设计期资源注入/视口登记/样例数据） | XAML 设计器预览、DesignTimeResources、设计视口时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
 
@@ -33,6 +34,7 @@
 | 轮盘 VM / RadialWindow / 样式渲染器 | [wheel.md](architecture/wheel.md) |
 | 程序扫描与目录 | [programs.md](architecture/programs.md) |
 | 界面主题(AppTheme)配置与解析 / XAML 令牌与整项替换 / 主题设置面 | [interface-theme.md](architecture/interface-theme.md) |
+| VS XAML 设计器预览 / Properties/DesignTimeResources.xaml / 设计期资源与视口 | [design-time-preview.md](architecture/design-time-preview.md) |
 | 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级与关于设置面 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
 | IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
@@ -114,8 +116,9 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0024，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0025，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
+├── design/                      # 设计期资源单源与生成脚本（见 architecture/design-time-preview.md）
 ├── StarPie/              # 主程序（规范对象；含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（见 layout.md）
@@ -181,5 +184,6 @@ Services ---> Models
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行 | Active（目标态被 0023 演进） |
 | 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active |
 | 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
+| 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
