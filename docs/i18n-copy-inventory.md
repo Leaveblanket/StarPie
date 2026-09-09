@@ -2,7 +2,7 @@
 
 > 依据：ADR-0010「内容与机制分离」；本清单只盘点、不实现。
 > 范围：设置界面（5 页 + 壳层 + 对话框 + View 动态生成项）所有未本地化硬编码文案。
-> 方法：全量扫描 `WinPieGestures/Views/**/*.xaml`（Text/Content/ToolTip/Title 字面量）与 `I18n.Translations` 键表对照；行号基于 `main` @ b46420e。
+> 方法：全量扫描 `StarPie/Views/**/*.xaml`（Text/Content/ToolTip/Title 字面量）与 `I18n.Translations` 键表对照；行号基于 `main` @ b46420e。
 > 非目标：托盘品牌/版本名（StarPie v1.4.1 / DevInstance.Suffix）锁死不翻译；历史里程碑日期、版本号、纯 emoji 不译。
 
 ## 统计

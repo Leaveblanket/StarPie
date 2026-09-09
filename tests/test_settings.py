@@ -5,7 +5,7 @@ import pytest
 from pywinauto import Desktop
 
 def get_config_path(local_app_data):
-    for name in ["StarPie", "WinPieGestures"]:
+    for name in ["StarPie"]:
         p = os.path.join(str(local_app_data), name, "config.json")
         if os.path.exists(p):
             return p

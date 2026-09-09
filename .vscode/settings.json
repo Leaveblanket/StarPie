@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "WinPieGestures/WinPieGestures.slnx",
+    "dotnet.defaultSolution": "StarPie/StarPie.slnx",
     "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
     "dotnet.codeLens.enableReferencesCodeLens": true,
     "dotnet.codeLens.enableTestsCodeLens": true,

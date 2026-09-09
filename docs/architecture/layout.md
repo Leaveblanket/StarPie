@@ -10,7 +10,7 @@ M1 手势件已随 B9/#82 迁出 exe）。
 
 ```text
 StarPie/
-├── WinPieGestures/                # Host 宿主工程（exe，程序集 StarPie）：组合根、宿主壳窗口、导航运行时、S6 对话框与外观聚合页
+├── StarPie/                # Host 宿主工程（exe，程序集 StarPie）：组合根、宿主壳窗口、导航运行时、S6 对话框与外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
 │   ├── Composition.cs             # DI 组合根（唯一）：注册与解析（含 B2 跨程序集回填缝，见 layering.md）
@@ -18,7 +18,7 @@ StarPie/
 │   ├── Modules/                   # B3/#76 临时，B9/#82 起仅余 Host：HostModuleRegistrar + HostPageTemplates.xaml（外观聚合页，目标态留 Host）
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
-│   ├── WinPieGestures.csproj      # SDK 工程文件（.slnx 同层）
+│   ├── StarPie.csproj      # SDK 工程文件（.slnx 同层）
 │   ├── Properties/
 │   │   └── launchSettings.json    # 工程配置；不放源码
 │   ├── assets/
@@ -131,10 +131,10 @@ StarPie/
 │   │   ├── Controls/              # 热键录制控件 HotkeyRecorderBox.cs（ADR-0022/#94 下沉，唯一消费方 GesturesSettingsPage）
 │   │   ├── Pages/                 # M1：TriggerSettingsPage、GesturesSettingsPage（根直承 UserControl，ADR-0022/#94）
 │   │   └── Styles/                # HotkeyRecorderBox.xaml 热键录制控件隐式默认样式字典（App.xaml 经 pack URI 合并）
-└── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host、Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons）
+└── StarPie.Tests/          # xUnit 单测（显式引用 Host、Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons）
 ```
 
-> 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Programs.Contracts/`、`StarPie.Dialogs/`、`StarPie.Dialogs.Contracts/`、`StarPie.Shell/`、`StarPie.Theme/`、`StarPie.Theme.Contracts/`、`StarPie.Wheel/`、`StarPie.Wheel.Contracts/`、`StarPie.Gestures/`、`StarPie.Gestures.Contracts/`、`StarPie.Icons.Contracts/`、`StarPie.Icons/` 与 `WinPieGestures/`
+> 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Programs.Contracts/`、`StarPie.Dialogs/`、`StarPie.Dialogs.Contracts/`、`StarPie.Shell/`、`StarPie.Theme/`、`StarPie.Theme.Contracts/`、`StarPie.Wheel/`、`StarPie.Wheel.Contracts/`、`StarPie.Gestures/`、`StarPie.Gestures.Contracts/`、`StarPie.Icons.Contracts/`、`StarPie.Icons/` 与 `StarPie/`
 > 中各自保持“命名空间 = 物理目录”；
 > 共享内核目录（Models、Services/Configuration|Localization|Messages|Navigation（目录契约 NavigationCatalog.cs，ADR-0021/#92 起运行时不在 Core）、
 > Services/AppHostDelegates.cs（B6/#79））
@@ -173,7 +173,7 @@ StarPie/
 > 的 IShortcutTargetResolver）只存在于 `StarPie.Programs.Contracts/`，S6 契约目录（`Services/Dialogs/`
 > 的 IDialogService + 结果 record）只存在于 `StarPie.Dialogs.Contracts/`（ADR-0023/#96 起）；
 > 其余业务目录（Host 外观聚合页/壳窗口/导航运行时（`Services/Navigation/` +
-> `ViewModels/Navigation/`，ADR-0021/#92 迁入）等）留 `WinPieGestures/`；S6 对话框实现目录
+> `ViewModels/Navigation/`，ADR-0021/#92 迁入）等）留 `StarPie/`；S6 对话框实现目录
 （`Services/Dialogs`、`ViewModels/Dialogs`、`Views/Dialogs`、`Views/Controls/SpectrumCanvasBehavior`）在 `StarPie.Dialogs/`（ADR-0020/#88）。
 > 依赖方向见 [assemblies.md](assemblies.md) §3。
 
@@ -208,7 +208,7 @@ StarPie/
 > ProgramCatalog/IShortcutTargetResolver，ADR-0023/#96 迁入）位于 `StarPie.Programs.Contracts/`、
 > S6 契约件（IDialogService + 结果 record，ADR-0023/#96 迁入）位于
 > `StarPie.Dialogs.Contracts/`（见下模块程序集目录表）；其余业务
-> 目录位于 `WinPieGestures/`（Host）。
+> 目录位于 `StarPie/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
@@ -221,7 +221,7 @@ StarPie/
 | `Services/Icons/` | **分置（ADR-0023/#95 S1 成集 + #96 SPI 下沉）**：契约四件（静态纯目录 `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）在 `StarPie.Icons.Contracts/Services/Icons/`；实现 `IconAssetService` 在 `StarPie.Icons/Services/Icons/`；.lnk 契约 `IShortcutTargetResolver` 驻 `StarPie.Programs.Contracts/Services/Icons/`（M3 实现，自 Core 迁出） | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；有状态/IO/Win32 面只经实例服务注入，不进 VM/View；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（语言状态以规范 BCP-47 码字符串为唯一表示，别名表在服务内）；**B2/#75 起在 `StarPie.Core/`** | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体）；**B2/#75 起在 `StarPie.Core/`** | 不放绑定语义；同页状态不得用消息替代绑定 |
-| `Services/Navigation/` | **分置（ADR-0021/#92）**：共享内核（`StarPie.Core/Services/Navigation/`，B2/#75 起）：目录/槽位契约 `NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`（仅 `NavigationCatalog.cs`）；宿主（`WinPieGestures/Services/Navigation/`）：导航运行时 `NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`，命名空间 `StarPie.Services.Navigation` 不变） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
+| `Services/Navigation/` | **分置（ADR-0021/#92）**：共享内核（`StarPie.Core/Services/Navigation/`，B2/#75 起）：目录/槽位契约 `NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`（仅 `NavigationCatalog.cs`）；宿主（`StarPie/Services/Navigation/`）：导航运行时 `NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`，命名空间 `StarPie.Services.Navigation` 不变） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Wheel/` | **B8/#81 起在 `StarPie.Wheel/Services/Wheel/`**：`WheelGeometry`（M2 轮盘视觉几何出口：扇区/核图标几何）、`WheelFactory`（`IWheelFactory` 实现；契约驻 `StarPie.Wheel.Contracts/Services/Wheel/`，ADR-0023/#97；命名空间 `StarPie.Services.Wheel` 与物理目录一致） | 实现见 [wheel.md](wheel.md)；工厂只经 Wheel.Contracts 契约被 M1 消费 |
 | `ViewModels/Pages/` | Host：外观聚合页 VM `AppearanceSettingsViewModel`（单例）；M1 两 VM（`BehaviorSettingsViewModel`/`ProfileListViewModel`）已迁 `StarPie.Gestures/ViewModels/Pages/`（B9/#82）；M5 两 VM（`GeneralSettingsViewModel`/`AboutViewModel`）已迁 `StarPie.Shell/ViewModels/Pages/`（B6/#79）；M4 主题设置子 VM（`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`）已迁 `StarPie.Theme/ViewModels/Pages/`（B7/#80）；M2 轮盘外观设置子 VM `WheelAppearanceSettingsViewModel` 已迁 `StarPie.Wheel/ViewModels/Pages/`（B8/#81）；跨 M 只读契约 `IProfilePreviewSource.cs` 自 Core 上提后（B8/#81）再随实现方 M1 下沉 `StarPie.Gestures.Contracts/ViewModels/Pages/`（ADR-0023/#97，Core 目录清空） | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | **ADR-0020/#88 起在 `StarPie.Dialogs/ViewModels/Dialogs/`**：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
@@ -244,8 +244,8 @@ StarPie/
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
-| `WinPieGestures/Views/Converters/` | Host 通用共享转换器：`HexToBrushConverter`（hex→Brush，配 Core `Models/RgbColor`）、`StringToGeometryConverter`（SVG 路径→Geometry）、`IntEqualsConverter`、`FilePathToImageConverter`（本地图片→缩略图）；实例由 Host `App.xaml` App 级单点持有（ADR-0012 决策 5） | 不放业务模块专用转换器（M2 核图标预览转换器在 `StarPie.Wheel/Views/Converters/`，B8/#81） |
-| `WinPieGestures/Views/Styles/` | Host `ModernControls.xaml` 全局控件样式字典（隐式默认/键控变体/共享模板；App.xaml **本地合并**；几何令牌经 DynamicResource 供跨字典模板引用） | 不放主题画刷令牌（`Themes/*.xaml` 属 M4，B7/#80 起居 `StarPie.Theme/Views/Styles/Themes/`）；不放 HotkeyRecorderBox 专用样式段（在 Gestures） |
+| `StarPie/Views/Converters/` | Host 通用共享转换器：`HexToBrushConverter`（hex→Brush，配 Core `Models/RgbColor`）、`StringToGeometryConverter`（SVG 路径→Geometry）、`IntEqualsConverter`、`FilePathToImageConverter`（本地图片→缩略图）；实例由 Host `App.xaml` App 级单点持有（ADR-0012 决策 5） | 不放业务模块专用转换器（M2 核图标预览转换器在 `StarPie.Wheel/Views/Converters/`，B8/#81） |
+| `StarPie/Views/Styles/` | Host `ModernControls.xaml` 全局控件样式字典（隐式默认/键控变体/共享模板；App.xaml **本地合并**；几何令牌经 DynamicResource 供跨字典模板引用） | 不放主题画刷令牌（`Themes/*.xaml` 属 M4，B7/#80 起居 `StarPie.Theme/Views/Styles/Themes/`）；不放 HotkeyRecorderBox 专用样式段（在 Gestures） |
 | `StarPie.Gestures/Views/Controls/` | M1：共享自定义控件 `HotkeyRecorderBox.cs`（唯一编译期消费方 `GesturesSettingsPage.xaml`，xmlns 本地引用；隐式默认样式模板在同模块 `Views/Styles/HotkeyRecorderBox.xaml`） | 不放对话框专用行为（`SpectrumCanvasBehavior` 已随 S6 迁 `StarPie.Dialogs`，ADR-0020/#88） |
 | `StarPie.Gestures/Views/Styles/` | M1：`HotkeyRecorderBox.xaml` 热键录制控件样式字典（由 Host `App.xaml` 经 `/StarPie.Gestures;component/Views/Styles/HotkeyRecorderBox.xaml` 单点合并） | 不放全局控件样式（`ModernControls.xaml` 在 Host） |
 
@@ -367,7 +367,7 @@ StarPie/
   （HotkeyRecorderBox.cs，ADR-0022/#94）、`Views/Styles/`（HotkeyRecorderBox.xaml，ADR-0022/#94）
   与 `Views/Pages/`（TriggerSettingsPage/GesturesSettingsPage）。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
-  `WinPieGestures/`、`StarPie.Core/`、`StarPie.Dialogs/`、`StarPie.Programs/`、`StarPie.Shell/`、
+  `StarPie/`、`StarPie.Core/`、`StarPie.Dialogs/`、`StarPie.Programs/`、`StarPie.Shell/`、
   `StarPie.Theme/`、`StarPie.Theme.Contracts/`、`StarPie.Wheel/`、`StarPie.Wheel.Contracts/`、
   `StarPie.Gestures/`、`StarPie.Gestures.Contracts/`、`StarPie.Icons.Contracts/`、
   `StarPie.Icons/`、`StarPie.Programs.Contracts/` 或 `StarPie.Dialogs.Contracts/` 下。
@@ -380,7 +380,7 @@ M1 手势件已随 B9/#82 迁出）。
 
 ### 当前登记（Host 外观聚合页，B3/#76 临时面；B6/#79 迁 M5、B9/#82 迁 M1 后仅剩 Host）
 
-- `WinPieGestures/Modules/`：Host 外观聚合页注册器 `HostModuleRegistrar` 与页面模板字典
+- `StarPie/Modules/`：Host 外观聚合页注册器 `HostModuleRegistrar` 与页面模板字典
   `HostPageTemplates.xaml`（App 级每模块一次静态合并）。外观聚合页目标态留 Host
   （[assemblies.md](assemblies.md) §5.2 槽位 1），B3 以同形临时注册器先行验证“新增页面不碰 Host”
   路径（M5 已随 B6/#79 迁入 `StarPie.Shell/Modules/`、M1 已随 B9/#82 迁入
@@ -429,9 +429,9 @@ M1 手势件已随 B9/#82 迁出）。
   Core `Views/`（Converters/Controls/Pages/Styles）目录整体清空移除
   （见 [assemblies.md](assemblies.md) §9）。
 - **ADR-0021/#92（2026-09-09）**：导航运行时主体迁 Host——`StarPie.Core/Services/Navigation/`
-  的 `NavigationStore.cs`/`NavigationExecutor.cs` → `WinPieGestures/Services/Navigation/`；
+  的 `NavigationStore.cs`/`NavigationExecutor.cs` → `StarPie/Services/Navigation/`；
   `StarPie.Core/ViewModels/Navigation/` 的 `MainViewModel.cs`/`NavigationItemViewModel.cs` →
-  `WinPieGestures/ViewModels/Navigation/`（命名空间不变，与 `ShellViewModel` 同目录族）；
+  `StarPie/ViewModels/Navigation/`（命名空间不变，与 `ShellViewModel` 同目录族）；
   Core 仅留 `NavigationCatalog.cs`（目录/槽位契约），C1 死代码 `INavigationService.cs`/
   `NavigationService.cs` 删除，Core 侧 `ViewModels/Navigation/` 目录清零
   （见 [assemblies.md](assemblies.md) §9）。
@@ -446,7 +446,7 @@ M1 手势件已随 B9/#82 迁出）。
   （MouseHook/GestureController/GestureEngine/IWindowContext/WindowContext，Services/Gestures）、
   动作执行（IActionExecutorService/ActionExecutorService/ActionRouting，Services/Actions）、
   触发+手势设置页（BehaviorSettingsViewModel/TriggerSettingsPage、ProfileListViewModel/
-  GesturesSettingsPage、SlotViewModel）随迁（命名空间当时维持 WinPieGestures.*，B10/#83
+  GesturesSettingsPage、SlotViewModel）随迁（命名空间当时维持 StarPie.*，B10/#83
   统一为 StarPie.*）；exe 内 M1 临时注册器/
   模板字典替换为 `GesturesModuleRegistrar` + `GesturesPageTemplates.xaml`（Host App.xaml 经
   跨程序集 pack URI `/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml` 合并）；
@@ -458,10 +458,10 @@ M1 手势件已随 B9/#82 迁出）。
   （ViewModels/Wheel）、RadialWindow（Views/Wheel）、样式渲染器与实时预览（Views/Renderers）、
   轮盘配色 WheelPalette*/WheelPaletteParser/WheelPaletteCatalog（自 Core Models 物理收编
   StarPie.Wheel/Models）、WheelGeometry（Services/Wheel）、轮盘工厂 IWheelFactory/WheelFactory
-  （Services/Wheel，命名空间 `WinPieGestures.Services.Gestures` → `WinPieGestures.Services.Wheel`
+  （Services/Wheel，命名空间 `StarPie.Services.Gestures` → `StarPie.Services.Wheel`
   与物理目录一致）与核图标预览转换器 CoreIconGeometryConverter/CoreIconNameConverter
   （Views/Converters，B5/#78 暂留 Host 的归属裁决：随 M2）随迁（命名空间当时维持
-  WinPieGestures.*，B10/#83 统一为 StarPie.*）；
+  StarPie.*，B10/#83 统一为 StarPie.*）；
   外观设置子 VM WheelAppearanceSettingsViewModel 随迁 ViewModels/Pages；预览 Profile 只读契约
   IProfilePreviewSource 上提 `StarPie.Core/ViewModels/Pages/`（D5）；新增 `WheelModuleRegistrar`
   （RegisterServices 下放 M2 的 DI 注册，M2 无导航页）；Host/Tests 显式引用、slnx 登记；
@@ -512,7 +512,7 @@ M1 手势件已随 B9/#82 迁出）。
   槽位表）迁入 `StarPie.Core/`，Host exe 显式引用 Core；跨程序集回填缝（`AppDataPaths.IsDevInstance`、
   `IconAssets.ResolveShortcutTarget`）由组合根装配前回填。
 - 页面/侧栏各自合并 `SettingsStyles.xaml`（7 处）收敛为 App 级单点合并 `ModernControls.xaml`；样式资源字典四层化（主题令牌/排版/控件样式/宿主装配，见 [ADR-0012](../adr/0012-resource-dictionary-architecture.md)）。
-- 删除空目录 `WinPieGestures/Controls/`（自定义控件统一在 `Views/Controls/`）。
+- 删除空目录 `StarPie/Controls/`（自定义控件统一在 `Views/Controls/`）。
 - 移除源码根杂项 `DashboardPrototype.html`（原型/杂项不进源码根）。
 - 把 code-only 的 `ScreenEyedropperOverlay`（位于 `ColorPickerWindow.xaml.cs` 的 `#region`）拆分为独立 `Views/Dialogs/ScreenEyedropperWindow.xaml(.cs)`（见 [dialogs.md](dialogs.md)/[naming.md](naming.md)）。
 - `Models/ColorMath.cs` 含 `RgbColor` 值类型：符合 [layering.md](layering.md)（Models）定义，确认为非偏差保留。

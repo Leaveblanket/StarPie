@@ -1,4 +1,4 @@
-# StarPie (WinPieGestures)
+# StarPie
 
 Windows 鼠标轮盘笔势与效率工具：按住鼠标拖动弹出径向菜单，松开执行选中扇区绑定的动作。
 

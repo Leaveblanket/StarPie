@@ -33,7 +33,7 @@ B10/#83 统一，见 [interface-theme.md](interface-theme.md)）；Host 侧该�
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
 - `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；B3/#76 起 `MainView.xaml`
   为纯壳——页面 DataTemplate 已迁至 App 级模块页面模板字典（M5 在 `StarPie.Shell`、M1 在
-  `StarPie.Gestures`（B9/#82 起）、Host 外观聚合页在 `WinPieGestures/Modules/`，
+  `StarPie.Gestures`（B9/#82 起）、Host 外观聚合页在 `StarPie/Modules/`，
   见 [navigation.md](navigation.md)），分区 DataContext 接线见下关键流程 4）。
 
 ## 关键流程

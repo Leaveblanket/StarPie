@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- B2/#75：共享内核程序集（S1–S6 合并 + Models，ADR-0016 决策 1/12）。
-         B10/#83：命名空间统一为 StarPie.* 前缀替换（与迁移前共享 WinPieGestures.* 树同构），
+         B10/#83：命名空间统一为 StarPie.* 前缀替换（跨程序集共享命名空间树），
          RootNamespace=StarPie 使 resx 强类型生成类（VocaDb.ResXFileCodeGenerator）
          落在 StarPie.Services.Localization。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>

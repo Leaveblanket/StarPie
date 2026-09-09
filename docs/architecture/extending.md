@@ -15,7 +15,7 @@
    见 [navigation.md](navigation.md)），映射表（[naming.md](naming.md)）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本用 `I18n` 键 + 四语言值，并核对 `docs/i18n-copy-inventory.md`（见 [localization.md](localization.md)）。
-7. 新增单测：`WinPieGestures.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
+7. 新增单测：`StarPie.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
 8. 目录/注册/映射变化后同步对应叶子文档；满足 ADR 三条件时新增 ADR。
 
 ## 原型 A：新增设置项（在现有页面加开关/滑块/输入）

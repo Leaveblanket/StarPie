@@ -87,13 +87,13 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 1. **Build must pass**（每个提交前）:
 
    ```bash
-   dotnet build WinPieGestures/WinPieGestures.slnx
+   dotnet build StarPie/StarPie.slnx
    ```
 
 2. **xUnit 全量**（每个代码提交，含 refactor）:
 
    ```bash
-   dotnet test WinPieGestures.Tests/WinPieGestures.Tests.csproj
+   dotnet test StarPie.Tests/StarPie.Tests.csproj
    ```
 
 3. **pywinauto e2e（提交级免跑判定）**: feature / bug-fix 提交按下表判定，命中“必跑”时才先 build 再全量跑：

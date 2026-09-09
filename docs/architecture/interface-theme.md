@@ -18,7 +18,7 @@ M4 物理落位（B7/#80 起迁入独立模块程序集 `StarPie.Theme/`，命�
   ADR-0023/#97 自 StarPie.Theme 迁出独立成集；命名空间 `StarPie.Services.Shell` 不变，
   B10/#83 统一）。
 - `StarPie.Theme/Services/Shell/ThemeService.cs`（`IThemeService` 实现，命名空间
-  `StarPie.Services.Shell`；Host 侧原 `WinPieGestures/Services/Shell/` 物理目录已随 B7
+  `StarPie.Services.Shell`；Host 侧原 `StarPie/Services/Shell/` 物理目录已随 B7
   清空移除）。
 - `StarPie.Theme/ThemePaletteManager.cs`（模块根，主题调色板整项替换；B7/#80 可见性裁决为
   public——Host `AppHost` 装配面，同 B6/#79 `TrayIconManager` 先例，见

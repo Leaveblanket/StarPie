@@ -208,14 +208,14 @@
 | # | 项 | 归属 | 物理现状 | 迁移 |
 |---|---|---|---|---|
 | R1 | `AutostartRegistry` | M5 壳层 | `Services/Shell/` | 已落地（#70：物理迁至 M5 侧目录并同步命名空间） |
-| R2 | `DevInstance` | H1 宿主 | `WinPieGestures/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
+| R2 | `DevInstance` | H1 宿主 | `StarPie/`（工程根） | 已落地（#70：物理迁至工程根并同步命名空间） |
 | R3 | `MemoryOptimizer` | M5 壳层 | `Services/Shell/` | 已清零（B1/#64：host.md 组成摘除） |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已随 B3/#76 迁出 MainView（App 级模块模板字典，B6/B9 随程序集再迁） | `Views/Navigation/` | B1/#74 已落地（MainView 分区 DataContext + ShellViewModel）；B3/#76 已落地（页面 DataTemplate 迁至 exe `Modules/` 模块模板字典，MainView 纯壳）；B6/#79 M5 模板字典随 `StarPie.Shell` 迁出（ShellModuleRegistrar/ShellPageTemplates.xaml）；B9/#82 M1 模板字典随 `StarPie.Gestures` 迁出（GesturesModuleRegistrar/GesturesPageTemplates.xaml），exe 仅余 Host 外观页模板；目标态见 [assemblies.md](assemblies.md) §4 |
 | R5 | `GesturePoint` | 共享内核值类型（目标迁 `Models`） | `Models/` | 已落地（#70：自 `GestureEngine.cs` 提取独立文件并迁入 `Models/`） |
 | R6 | `IconHelper` | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3 | 原 `Services/Programs/IconHelper.cs`（T3d/#68 已删）；收编结果：S1 `Services/Icons/IconAssets.cs`+`VectorIconItem.cs`（ADR-0019/#87 双形拆为 `IconCatalog.cs`+`CustomIconItem.cs`+`IconAssetService.cs` 等，见 §3 S1）、M2 `Services/Wheel/WheelGeometry.cs`（B8/#81 起物理随 M2 迁 `StarPie.Wheel/Services/Wheel/`）、M3 `Services/Programs/ShortcutResolver.cs` | 已落地（B3/T3a–T3d/#65–#68 接线迁移 + 物理收编 + 叶子回填；B8/#81 物理落位随 M2 收编；ADR-0019/#87 收口 M3 边界） |
 | R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `StarPie.Dialogs/ViewModels|Views/Dialogs/`（ADR-0020/#88 随 S6 实现迁入，原 Host 目录已清空） | 已落地（B4/T3c–#67：数据经注入提供者 + S1/M3 出口接线；#71 登记清零；ADR-0020/#88 扫描改经 `IProgramScanner` 契约） |
 | R8 | `Models` 语义归属与物理落位 | `WheelProfile`/`ActionItem` → M1（物理 Core `Models/`，配置 POCO）；`WheelPalette*` → M2（B8/#81 起物理随 M2 收编 `StarPie.Wheel/Models/`，语义+物理均归 M2）；`CustomColorPreset` → M2（语义；物理仍 Core `Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `Models/`（Core）+ `StarPie.Wheel/Models/`（B8/#81） | B1/#64 已登记语义；B8/#81 起 WheelPalette* 物理随 M2 收编，wheel.md/layout.md 同步回填 |
-| R9 | 导航运行时主体（`NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）/`MainViewModel`/`NavigationItemViewModel`） | H1 宿主壳（与 R4/D3 同判据——运行时消费者全部在 Host，模块程序集零引用） | `WinPieGestures/Services/Navigation/` + `WinPieGestures/ViewModels/Navigation/`（命名空间不变，B10/#83 共享命名空间树） | 已落地（ADR-0021/#92：运行时四类迁 Host；共享内核仅留目录/槽位契约 `NavigationCatalog` 四件；C1 死代码 `INavigationService`/`NavigationService` 删除） |
+| R9 | 导航运行时主体（`NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）/`MainViewModel`/`NavigationItemViewModel`） | H1 宿主壳（与 R4/D3 同判据——运行时消费者全部在 Host，模块程序集零引用） | `StarPie/Services/Navigation/` + `StarPie/ViewModels/Navigation/`（命名空间不变，B10/#83 共享命名空间树） | 已落地（ADR-0021/#92：运行时四类迁 Host；共享内核仅留目录/槽位契约 `NavigationCatalog` 四件；C1 死代码 `INavigationService`/`NavigationService` 删除） |
 
 ## 5. 登记表（子职责 / 双职责 / 装配点）
 
@@ -234,7 +234,7 @@ ADR-0016 决策 7（Q18）已落地（B1/#74）：`MainViewModel` 收敛为纯�
 迁 Core（MainViewModel 无页面类型硬编码，导航项来自 `NavigationCatalog` 模块注册）。
 **物理落点修订（ADR-0021/#92，决策 3）**：ADR-0016 决策 7 中"MainViewModel 随 S5 导航内核进
 Core"的物理落点表述被部分推翻——导航运行时主体（含 `MainViewModel`）迁回 Host
-（`WinPieGestures/Services/Navigation/` 与 `WinPieGestures/ViewModels/Navigation/`，命名空间
+（`StarPie/Services/Navigation/` 与 `StarPie/ViewModels/Navigation/`，命名空间
 不变）；职责拆分语义（纯导航 vs 壳层职责）与 B3/#76 目录驱动设计全部保留（见 R9）。
 
 ### D4 AppHost 语言字典投影

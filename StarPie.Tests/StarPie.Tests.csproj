@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WinPieGestures\WinPieGestures.csproj" />
+    <ProjectReference Include="..\StarPie\StarPie.csproj" />
     <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0023/#95：S1 契约独立成集（IIconAssetService/IconCatalog/条目类型/

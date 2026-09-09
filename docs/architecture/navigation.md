@@ -15,7 +15,7 @@
   见 [assemblies.md](assemblies.md) §5.2）——跨模块注册契约（模块注册器写、控制台读），
   属共享内核"全局机制"，不受运行时归属影响。
 
-宿主（`WinPieGestures/`，导航运行时主体 ADR-0021/#92 自 Core 迁入，命名空间不变）：
+宿主（`StarPie/`，导航运行时主体 ADR-0021/#92 自 Core 迁入，命名空间不变）：
 
 - `Services/Navigation/`：`NavigationStore`（当前页状态单一根源）、`NavigationExecutor`（含
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；

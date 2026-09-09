@@ -182,7 +182,7 @@ public sealed class GeneralSettingsViewModelTests
         vm.NotifyMinimizedToTray();
 
         var request = Assert.Single(balloon);
-        Assert.Equal("WinPieGestures", request.Split('|')[0]);
+        Assert.Equal("StarPie", request.Split('|')[0]);
         Assert.Equal("应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。", request.Split('|')[1]);
     }
 
@@ -259,7 +259,7 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal("JSON 配置文件 (*.json)|*.json", call.Filter);
         Assert.Equal("导出配置文件", call.Title);
         // 备份文件名含日期前缀
-        Assert.Matches(@"^WinPieGestures_Config_Backup_\d{8}\.json$", call.FileName ?? "");
+        Assert.Matches(@"^StarPie_Config_Backup_\d{8}\.json$", call.FileName ?? "");
         Assert.Equal(new[] { @"D:\backup\config.json" }, exported);
         var notice = Assert.Single(notices);
         Assert.Equal("提示", notice.Title);

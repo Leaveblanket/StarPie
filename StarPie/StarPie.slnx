@@ -1,5 +1,5 @@
 <Solution>
-  <Project Path="WinPieGestures.csproj" />
+  <Project Path="StarPie.csproj" />
   <Project Path="..\StarPie.Core\StarPie.Core.csproj" />
   <Project Path="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
   <Project Path="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
@@ -14,5 +14,5 @@
   <Project Path="..\StarPie.Wheel\StarPie.Wheel.csproj" />
   <Project Path="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
   <Project Path="..\StarPie.Gestures\StarPie.Gestures.csproj" />
-  <Project Path="..\WinPieGestures.Tests\WinPieGestures.Tests.csproj" />
+  <Project Path="..\StarPie.Tests\StarPie.Tests.csproj" />
 </Solution>

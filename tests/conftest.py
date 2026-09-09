@@ -30,14 +30,9 @@ def app(sandbox_env, request):
     # Locate the executable
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
-        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows10.0.19041.0", "StarPie.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows10.0.19041.0", "WinPieGestures.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows10.0.19041.0", "StarPie.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows10.0.19041.0", "WinPieGestures.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows", "StarPie.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Release", "net8.0-windows", "WinPieGestures.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows", "StarPie.exe"),
-        os.path.join(project_root, "WinPieGestures", "bin", "Debug", "net8.0-windows", "WinPieGestures.exe"),
+        os.path.join(project_root, "StarPie", "bin", config, tfm, "StarPie.exe")
+        for config in ("Release", "Debug")
+        for tfm in ("net8.0-windows10.0.19041.0", "net8.0-windows")
     ]
     app_path = next((c for c in candidates if os.path.exists(c)), None)
     if not app_path:
@@ -49,7 +44,7 @@ def app(sandbox_env, request):
     # Connect pywinauto using PID; poll for readiness instead of a fixed sleep
     try:
         pw_app = Application(backend="uia").connect(process=proc.pid, timeout=15)
-        win = pw_app.window(title_re="(StarPie|WinPieGestures).*")
+        win = pw_app.window(title_re="StarPie.*")
         win.wait("visible", timeout=15)
     except Exception as ex:
         proc.terminate()

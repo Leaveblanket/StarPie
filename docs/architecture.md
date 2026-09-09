@@ -49,13 +49,13 @@
 - 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`，B2/#75 起）承载 Models、S2–S5
   共享件（Configuration/Localization/Messages/Navigation 目录与槽位契约——
   ADR-0021/#92 起导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
-  NavigationItemViewModel）归 Host `WinPieGestures/Services/Navigation/` 与
-  `WinPieGestures/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
+  NavigationItemViewModel）归 Host `StarPie/Services/Navigation/` 与
+  `StarPie/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
   `Services/AppHostDelegates`；**不含任何模块出口契约**——S1 图标资产已随 ADR-0023/#95
   独立成集、扫描/SPI/对话框契约已随 #96 下沉 Programs.Contracts/Dialogs.Contracts、预览
   Profile 契约已随 #97 下沉 Gestures.Contracts；共享 UI
   基建已随 ADR-0022/#94 去共享化——通用转换器与 `ModernControls.xaml`（全局控件样式字典）迁
-  Host `WinPieGestures/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
+  Host `StarPie/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式字典）下沉
   `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 删除（五页 XAML 根直承 `UserControl`）；
   命名空间统一为 `StarPie.*`（B10/#83：全仓前缀替换，跨程序集共享命名空间树）。
 - 模块程序集（B4/#77 起）：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3
@@ -108,7 +108,7 @@
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
-- 单元测试：`WinPieGestures.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
+- 单元测试：`StarPie.Tests`（xUnit，直接 `new` + 手写替身，不用 mocking 框架）。
 - e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务分层（提交级全量 xUnit + e2e 免跑判定、合入门全量）见 [ADR-0018](adr/0018-verification-gates-and-test-strategy.md) 与 [git-commits](agents/git-commits.md)。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
 
@@ -124,7 +124,7 @@ StarPie/
 │   ├── adr/                     # 决策记录（ADR-0001 ~ 0023）
 │   ├── agents/                  # Agent 工作流文档
 │   └── i18n-copy-inventory.md   # 文案盘点
-├── WinPieGestures/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
+├── StarPie/              # 主程序（规范对象；ADR-0022/#94 起含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（B2/#75 起；不再含共享 UI 基建，ADR-0022/#94，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（ADR-0023/#95 起，见 layout.md）
 ├── StarPie.Icons/               # S1 图标实现程序集（ADR-0023/#95 起，见 layout.md）
@@ -139,11 +139,11 @@ StarPie/
 ├── StarPie.Theme/               # M4 界面主题模块程序集（B7/#80 起，见 layout.md）
 ├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（B8/#81 起，见 layout.md）
 ├── StarPie.Gestures/            # M1 手势与动作模块程序集（B9/#82 起，见 layout.md）
-├── WinPieGestures.Tests/        # xUnit 单元测试
+├── StarPie.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-测试约定：单测文件平铺于 `WinPieGestures.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95/#96/#97）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（当前 Core、Dialogs、Dialogs.Contracts、Programs、Programs.Contracts、Shell、Theme、Theme.Contracts、Wheel、Wheel.Contracts、Gestures、Gestures.Contracts、Icons.Contracts 与 Icons；不依赖传递引用，ADR-0016/B2/B4/B6/B7/B8/B9 + ADR-0020/#88 + ADR-0023/#95/#96/#97）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 

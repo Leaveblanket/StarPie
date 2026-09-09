@@ -13,7 +13,7 @@
 `ILocalizationService.cs`、`LocalizationService.cs`、`Strings.resx`（中性 = zh-CN）与
 `Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
 `EmbeddedResource` 条目随 S3 迁入 `StarPie.Core.csproj`；B10/#83 起 `RootNamespace=StarPie`
-使强类型类落在 `StarPie.Services.Localization`（与迁移前 `WinPieGestures.Services.Localization`
+使强类型类落在 `StarPie.Services.Localization`（与迁移前 `StarPie.Services.Localization`
 同构，仅前缀替换）。
 
 > 宿主消费边界（[modules.md](modules.md) §5 D4）：运行时语言字典投影与壳外文案刷新由宿主侧（H1，

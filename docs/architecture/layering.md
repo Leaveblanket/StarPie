@@ -17,7 +17,7 @@ Services ---> Models
 ## 程序集层（B2/#75 起）
 
 ```text
-WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
+StarPie (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内核，程序集 StarPie.Core）
                                           ──→ StarPie.Programs ──→ StarPie.Programs.Contracts（零依赖）+ StarPie.Icons.Contracts（M3 模块程序集，B4/#77；#96 起不再引用 Core）
                                           ──→ StarPie.Programs.Contracts（M3 契约程序集，ADR-0023/#96；扫描/SPI 契约，Dialogs/Icons/Host 亦经此契约边）
                                           ──→ StarPie.Shell（M5 模块程序集，B6/#79；单向 Core）
@@ -31,7 +31,7 @@ WinPieGestures (Host/exe, 程序集 StarPie) ──→ StarPie.Core（共享内�
                                           ──→ StarPie.Dialogs.Contracts（S6 契约程序集，ADR-0023/#96；纯 C#，M1/M2/M5/Host 亦经此契约边）
                                           ──→ StarPie.Icons（S1 实现程序集，ADR-0023/#95）──→ StarPie.Icons.Contracts（零依赖）+ StarPie.Programs.Contracts（SPI 契约边，#96）+ StarPie.Core（S2 AppDataPaths）
                                           ──→ StarPie.Icons.Contracts（S1 契约程序集，ADR-0023/#95；Dialogs/Wheel/Gestures/Programs 亦经此契约边消费 S1，不再经 Core）
-WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Dialogs + StarPie.Dialogs.Contracts + StarPie.Programs + StarPie.Programs.Contracts + StarPie.Shell + StarPie.Theme + StarPie.Theme.Contracts + StarPie.Wheel + StarPie.Wheel.Contracts + StarPie.Gestures + StarPie.Gestures.Contracts + StarPie.Icons.Contracts + StarPie.Icons
+StarPie.Tests ──→ StarPie + StarPie.Core + StarPie.Dialogs + StarPie.Dialogs.Contracts + StarPie.Programs + StarPie.Programs.Contracts + StarPie.Shell + StarPie.Theme + StarPie.Theme.Contracts + StarPie.Wheel + StarPie.Wheel.Contracts + StarPie.Gestures + StarPie.Gestures.Contracts + StarPie.Icons.Contracts + StarPie.Icons
                        （显式引用，不依赖传递）
 ```
 
@@ -165,7 +165,7 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Dialogs +
   `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`AppHost`、
   `Composition`）在 `StarPie`。
 - **命名空间统一为 `StarPie.*`**（B10/#83 落地，ADR-0016 决策 12）：与迁移前共享
-  `WinPieGestures.*` 树同构，仅做全仓前缀替换——命名空间根是产品名 `StarPie` 而非程序集名，
+  `StarPie.*` 树同构，仅做全仓前缀替换——命名空间根是产品名 `StarPie` 而非程序集名，
   故 `StarPie.Core/` 内文件仍声明 `StarPie.Services.*`（不是 `StarPie.Core.Services.*`）；
   跨程序集共享同一棵命名空间树。
 - **可见性**：
@@ -242,7 +242,7 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Dialogs +
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
-- 页面经 App 级模块页面模板字典（B3/#76 起 exe 内 `WinPieGestures/Modules/*PageTemplates.xaml`；
+- 页面经 App 级模块页面模板字典（B3/#76 起 exe 内 `StarPie/Modules/*PageTemplates.xaml`；
   B6/#79 起 M5 模板字典在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、B9/#82 起 M1 模板
   字典在 `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`，均经跨程序集 pack URI 合并；
   exe `Modules/` 仅余 Host 外观聚合页 `HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
