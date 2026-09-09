@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:controls="clr-namespace:StarPie.Views.Controls;assembly=StarPie.Core"
+        xmlns:controls="clr-namespace:StarPie.Views.Controls"
                         xmlns:pages="clr-namespace:StarPie.Views.Pages;assembly=StarPie.Core"
         xmlns:vm="clr-namespace:StarPie.ViewModels.Gestures"
         mc:Ignorable="d"
