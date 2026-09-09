@@ -27,6 +27,9 @@
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0020/#88：对话框窗口主题应用消费 M4 IThemeService（允许边） -->
     <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集（DialogService/IconPickerWindow 等消费
+         IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

@@ -21,7 +21,8 @@ namespace StarPie.Tests;
 /// <see cref="SpectrumCanvasBehavior"/>）位于 <c>StarPie.Dialogs</c>；契约
 /// <see cref="IDialogService"/> 与结果 record 留共享内核 Core；模块注册器
 /// <see cref="DialogsModuleRegistrar"/> 下放 DI 注册。依赖方向：Dialogs → Core 单向 +
-/// Dialogs → Theme 允许边（窗口主题应用消费 <see cref="IThemeService"/>），
+/// Dialogs → Theme 允许边（窗口主题应用消费 <see cref="IThemeService"/>）+ Dialogs →
+/// Icons.Contracts 契约边（ADR-0023/#95：S1 契约独立成集，不再经 Core 消费 S1 类型），
 /// 不引用 Host/Programs/其它业务模块——程序扫描经 Core 契约 <see cref="IProgramScanner"/>
 /// 注入；DialogService 裁决 public（宿主 SetOwner 装配面）。
 /// </summary>
@@ -62,6 +63,9 @@ public sealed class DialogsAssemblyPlacementTests
         Assert.Contains("StarPie.Core", referenced);
         // 对话框窗口主题应用消费 M4 IThemeService（允许边，同 M2→M4 先例）。
         Assert.Contains("StarPie.Theme", referenced);
+        // ADR-0023/#95：对话框链经 S1 契约程序集消费图标能力，不引用 Icons runtime。
+        Assert.Contains("StarPie.Icons.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Icons", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);
@@ -98,9 +102,10 @@ public sealed class DialogsAssemblyPlacementTests
     [Fact]
     public void DialogService_依赖经共享契约注入_不直连业务模块具体类型()
     {
-        // 扫描/图标/.lnk/主题能力全部经共享契约（IProgramScanner/IIconAssetService/
-        // IShortcutTargetResolver 驻 Core，IThemeService 驻 M4）注入——构造签名不含
-        // Programs/Host 具体类型，编译期证明 S6 不反向引用业务模块。
+        // 扫描/图标/.lnk/主题能力全部经契约注入（IProgramScanner 驻 Core、
+        // IIconAssetService 驻 Icons.Contracts（ADR-0023/#95）、IShortcutTargetResolver
+        // #95 中间态暂驻 Core、IThemeService 驻 M4）——构造签名不含 Programs/Host
+        // 具体类型，编译期证明 S6 不反向引用业务模块。
         var ctor = typeof(DialogService).GetConstructors().Single();
         var paramTypes = ctor.GetParameters().Select(p => p.ParameterType).ToArray();
 

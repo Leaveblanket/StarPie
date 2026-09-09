@@ -34,7 +34,8 @@ namespace StarPie.Tests;
 /// （RegisterNavigation + RegisterServices）驻本程序集，页面 VM 的 DI 注册与
 /// <see cref="IProfilePreviewSource"/> 别名（实现方 ProfileListViewModel）下放本程序集；
 /// 命名空间统一为 StarPie.*（跨程序集共享命名空间树）。
-/// Gestures → Core 单向 + Gestures → Wheel 允许边（IWheelFactory/IWheelViewModel），
+/// Gestures → Core 单向 + Gestures → Wheel 允许边（IWheelFactory/IWheelViewModel）+
+/// Gestures → Icons.Contracts 契约边（ADR-0023/#95，不引用 Icons runtime），
 /// 不引用宿主/其它业务模块；MouseHook dev 分支经 Core AppDataPaths.IsDevInstance 回填缝。
 /// </summary>
 public sealed class GesturesAssemblyPlacementTests
@@ -79,6 +80,9 @@ public sealed class GesturesAssemblyPlacementTests
         // 手势 → 轮盘允许边：GestureEngine/GestureController 经 IWheelFactory/
         // IWheelViewModel 消费瞬态轮盘。
         Assert.Contains("StarPie.Wheel", referenced);
+        // ADR-0023/#95：手势链经 S1 契约程序集消费图标能力，不引用 Icons runtime。
+        Assert.Contains("StarPie.Icons.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Icons", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);

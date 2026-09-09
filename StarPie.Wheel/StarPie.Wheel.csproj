@@ -29,6 +29,9 @@
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- B8/#81：M2 → M4 允许边（RadialWindow/WheelFactory 消费 IThemeService，assemblies.md §3） -->
     <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集（RadialWindow/WheelFactory/WheelPreviewRenderer/
+         WheelGeometry 消费 IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

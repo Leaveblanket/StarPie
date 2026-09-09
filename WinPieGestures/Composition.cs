@@ -120,12 +120,13 @@ namespace StarPie
             // 惰性解析；AppHost 构造后回填。
             services.AddSingleton(_hostDelegates);
 
-            // 共享图标资产实例服务（S1，ADR-0019/#87）：有状态/IO/Win32 面经 DI 单例；
-            // .lnk 解析契约由 ProgramsModuleRegistrar 注册的 M3 实现（IShortcutTargetResolver）
-            // 提供——共享内核不反向依赖业务程序集。
+            // M3 程序扫描与 .lnk 解析契约：IShortcutTargetResolver 由 ProgramsModuleRegistrar
+            // 注册的 M3 实现提供（#95 中间态暂驻 Core，#96 随 Programs.Contracts 迁出）。
             ProgramsModuleRegistrar.RegisterServices(services);
-            services.AddSingleton<IIconAssetService>(sp => new IconAssetService(
-                sp.GetRequiredService<IShortcutTargetResolver>()));
+            // 共享图标资产实例服务（S1，ADR-0023/#95）：实现与注册器随 S1 成集下放
+            // StarPie.Icons（IconsModuleRegistrar），契约经 StarPie.Icons.Contracts 显式引用；
+            // IconAssetService 构造所需 IShortcutTargetResolver 惰性解析自 M3 注册器。
+            IconsModuleRegistrar.RegisterServices(services);
 
             // 主题服务与界面主题设置子 VM 由 ThemeModuleRegistrar 注册（组合根仍唯一
             // BuildServiceProvider；调色板换入面由 AppHost 装配）。
