@@ -80,6 +80,9 @@ public sealed class WheelAssemblyPlacementTests
         Assert.Contains("StarPie.Core", referenced);
         // 轮盘 → 主题允许边：RadialWindow/WheelFactory 消费 IThemeService。
         Assert.Contains("StarPie.Theme", referenced);
+        // ADR-0023/#95：轮盘链经 S1 契约程序集消费图标能力，不引用 Icons runtime。
+        Assert.Contains("StarPie.Icons.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Icons", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);

@@ -8,7 +8,9 @@ namespace StarPie.Tests;
 /// <summary>
 /// 程序模块（Programs）跨程序集归属与依赖收口：程序扫描/目录/快捷方式解析位于
 /// <c>StarPie.Programs</c>；ADR-0019/#87 起 M3 单向依赖 Core（契约
-/// <see cref="IShortcutTargetResolver"/> 驻共享内核）；ADR-0020/#88 起纯数据
+/// <see cref="IShortcutTargetResolver"/> #95 中间态暂驻共享内核；ADR-0023/#95 起
+/// <see cref="IIconAssetService"/> 契约随 S1 成集驻 StarPie.Icons.Contracts，
+/// #96 随 Programs.Contracts 迁出）；ADR-0020/#88 起纯数据
 /// <see cref="ProgramEntry"/> 与扫描契约 <see cref="IProgramScanner"/> 上提 Core
 /// （实现 <see cref="ProgramScanner"/> 在模块内、注册器下放注册），不引用 Host/其它业务模块；
 /// 宿主对话框链与测试工程显式引用共享出口。
@@ -47,6 +49,10 @@ public sealed class ProgramsAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Core", referenced);
+        // ADR-0023/#95：ProgramScanner 经 S1 契约程序集消费 IIconAssetService，
+        // 不引用 Icons runtime。
+        Assert.Contains("StarPie.Icons.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Icons", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Gestures", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);
@@ -57,6 +63,7 @@ public sealed class ProgramsAssemblyPlacementTests
     [Fact]
     public void M3契约_驻共享内核_并由ShortcutResolver在模块内实现()
     {
+        // #95 中间态：SPI 暂留 Core（#96 随 Programs.Contracts 迁出后本断言随迁更新）。
         Assert.Equal("StarPie.Core", typeof(IShortcutTargetResolver).Assembly.GetName().Name);
         Assert.Equal("StarPie.Services.Icons", typeof(IShortcutTargetResolver).Namespace);
 

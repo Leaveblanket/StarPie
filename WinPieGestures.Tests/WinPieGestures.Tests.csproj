@@ -25,6 +25,12 @@
     <ProjectReference Include="..\WinPieGestures\WinPieGestures.csproj" />
     <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集（IIconAssetService/IconCatalog/条目类型/
+         IconCatalogTests/TestIconAssetService 直用） -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- ADR-0023/#95：S1 实现 runtime（IconAssetService/IconsModuleRegistrar 直用，
+         IconsAssemblyPlacementTests 断言归属/依赖） -->
+    <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->

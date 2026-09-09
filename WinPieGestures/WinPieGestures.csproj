@@ -54,6 +54,10 @@
          组合根调 GesturesModuleRegistrar 装配导航与 M1 DI、AppHost 持有 MouseHook，
          手势侧只经 M2 IWheelFactory/IWheelViewModel 接口消费轮盘） -->
     <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集——契约程序集显式引用（IIconAssetService 等类型面）；
+         实现 runtime 显式引用（组合根调 IconsModuleRegistrar 注册 IIconAssetService） -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
   </ItemGroup>
 
 </Project>

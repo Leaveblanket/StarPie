@@ -8,8 +8,8 @@ namespace StarPie.Services.Configuration
     /// </summary>
     /// <remarks>
     /// dev/正式分支由 <see cref="IsDevInstance"/> 决定；该标记由宿主组合根在装配前回填，
-    /// 应用代码只读不写。目录供 <see cref="JsonConfigService"/>（config.json）与
-    /// <see cref="IconAssetService"/>（自定义图标目录）使用。
+    /// 应用代码只读不写。目录供 <see cref="JsonConfigService"/>（config.json）与 S1 图标资产服务
+    /// （StarPie.Icons 的 IconAssetService，自定义图标目录，ADR-0023/#95 成集迁出）使用。
     /// </remarks>
     public static class AppDataPaths
     {

@@ -30,6 +30,9 @@
     <!-- B9/#82：M1 → M2 允许边（GestureEngine/GestureController 只经 M2 侧 IWheelFactory /
          IWheelViewModel 接口消费瞬态轮盘，assemblies.md §3/ADR-0016 决策 11） -->
     <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
+         消费 IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

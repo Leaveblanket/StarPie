@@ -20,8 +20,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ADR-0019/#87：M3 → Core 单向（IShortcutTargetResolver/IIconAssetService 契约） -->
+    <!-- ADR-0019/#87：M3 → Core 单向（#95 中间态 IShortcutTargetResolver 仍驻 Core；
+         #96 随 Programs.Contracts 迁出） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0023/#95：S1 契约独立成集（ProgramScanner 消费 IIconAssetService 契约），
+         不再经 Core 消费 S1 类型 -->
+    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
 </Project>
