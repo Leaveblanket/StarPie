@@ -33,8 +33,14 @@
     <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
+    <!-- ADR-0023/#96：S6 契约独立成集（IDialogService/结果 record 直用，
+         Dialogs/SharedUi 等 PlacementTests 断言归属） -->
+    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
+    <!-- ADR-0023/#96：M3 扫描契约独立成集（IProgramScanner/ProgramEntry/ProgramCatalog/
+         IShortcutTargetResolver 直用，Programs 等 PlacementTests 断言归属） -->
+    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/AboutViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
     <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->

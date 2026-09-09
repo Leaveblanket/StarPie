@@ -2,7 +2,9 @@ namespace StarPie.Services.Icons
 {
     /// <summary>
     /// Windows 快捷方式（.lnk）目标解析契约：由程序模块（StarPie.Programs）实现，
-    /// 供共享内核「图标资产」实例服务在提取 .lnk 图标时消费——共享内核不反向依赖业务模块。
+    /// 供 S1「图标资产」实例服务（StarPie.Icons）在提取 .lnk 图标时经契约边消费——
+    /// ADR-0023/#96 起随实现方 M3 下沉 <c>StarPie.Programs.Contracts</c>（自 Core 迁出，
+    /// 命名空间保持 StarPie.Services.Icons；模块 runtime 只经 Contracts 通信）。
     /// </summary>
     public interface IShortcutTargetResolver
     {

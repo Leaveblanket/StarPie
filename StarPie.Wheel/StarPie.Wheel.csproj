@@ -5,6 +5,7 @@
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Wheel → StarPie.Core 单向 + StarPie.Wheel → StarPie.Theme
          允许边（M2→M4，IThemeService 消费，assemblies.md §3）；
+         ADR-0023/#96 起另经 Dialogs.Contracts 契约边消费 S6（IDialogService）；
          不引用 Host/其它业务模块（M1 手势侧自 B9/#82 起驻 StarPie.Gestures，只经
          IWheelFactory 接口消费）。
          WheelFactory/工厂接口随 M2 收编（D5，ADR-0016 决策 11）；轮盘外观设置子 VM
@@ -24,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- B8/#81：M2 → Core 单向依赖（轮盘 VM/渲染器消费 S1/S2/S3/S4/S6 契约与共享 Models；
+    <!-- B8/#81：M2 → Core 单向依赖（轮盘 VM/渲染器消费 S1/S2/S3/S4 契约与共享 Models；
          配色 WPF-free 值类型随 M2 物理收编于本集 Models，CustomColorPreset 仍居 Core Models） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- B8/#81：M2 → M4 允许边（RadialWindow/WheelFactory 消费 IThemeService，assemblies.md §3） -->
@@ -32,6 +33,9 @@
     <!-- ADR-0023/#95：S1 契约独立成集（RadialWindow/WheelFactory/WheelPreviewRenderer/
          WheelGeometry 消费 IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- ADR-0023/#96：S6 对话框契约独立成集（WheelAppearanceSettingsViewModel 消费
+         IDialogService），不再经 Core 消费 S6 类型 -->
+    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

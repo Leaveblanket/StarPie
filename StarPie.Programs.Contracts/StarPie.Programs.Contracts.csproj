@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0023/#96：M3 程序扫描与目录契约随实现方（StarPie.Programs）下沉独立成集——
+         IProgramScanner/ProgramEntry/ProgramCatalog 自 Core 迁出，SPI IShortcutTargetResolver
+         一并随实现方迁入（命名空间分别维持 StarPie.Services.Programs / StarPie.Services.Icons
+         不变，B10/#83 共享命名空间树）；模块 runtime 只经 Contracts 通信，Dialogs/Icons/Host
+         消费方改经本契约边。契约程序集按需引用 WPF：ProgramEntry.IconSource 携带 ImageSource
+         （ADR-0023 Q5 先例：Contracts 形态与类型级分层无关）。无任何 ProjectReference（薄契约）。 -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Programs.Contracts</AssemblyName>
+    <RootNamespace>StarPie</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

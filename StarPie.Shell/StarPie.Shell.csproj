@@ -3,7 +3,8 @@
   <PropertyGroup>
     <!-- B6/#79：M5 壳层与系统集成模块程序集（ADR-0016 决策 1/8/12；首个带 DI 的模块程序集）。
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
-         依赖方向：StarPie.Shell → StarPie.Core 单向（assemblies.md §3）；不引用 Host/其它业务模块。
+         依赖方向：StarPie.Shell → StarPie.Core 单向 + Dialogs.Contracts 契约边（S6
+         IDialogService，ADR-0023/#96；assemblies.md §3）；不引用 Host/其它业务模块。
          页面/VM 的 DI 注册与导航自报经 ShellModuleRegistrar（RegisterServices + RegisterNavigation）
          下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -20,8 +21,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- B6/#79：M5 → Core 单向依赖（页面 VM 消费 S2/S3/S4/S6 契约、AppHostDelegates 宿主回调契约） -->
+    <!-- B6/#79：M5 → Core 单向依赖（页面 VM 消费 S2/S3/S4 契约、AppHostDelegates 宿主回调契约） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- ADR-0023/#96：S6 对话框契约独立成集（GeneralSettingsViewModel/AboutViewModel 消费
+         IDialogService），不再经 Core 消费 S6 类型 -->
+    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

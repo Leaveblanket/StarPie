@@ -15,8 +15,8 @@ namespace StarPie.Services.Icons
     /// <summary>
     /// 「图标资产」实例服务：自定义图标存储（目录/列表缓存/导入/删除/图像源）与
     /// 文件/程序图标提取（Win32 Shell）。.lnk 目标解析经注入的
-    /// <see cref="IShortcutTargetResolver"/>（由 M3 程序模块实现，ADR-0023/#95 中间态暂驻 Core，
-    /// #96 随 Programs.Contracts 迁出后本 runtime 改经契约边）。
+    /// <see cref="IShortcutTargetResolver"/>（由 M3 程序模块实现，ADR-0023/#96 起契约随
+    /// 实现方下沉 Programs.Contracts，本 runtime 经契约边消费）。
     /// </summary>
     public sealed class IconAssetService : IIconAssetService
     {
