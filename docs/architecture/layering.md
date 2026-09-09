@@ -32,7 +32,10 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
   `Views/Pages/SettingsPageBase` 与宿主回调契约 `Services/AppHostDelegates`；B8/#81 起含
   `ViewModels/Pages/IProfilePreviewSource`（D5 上提，见 [gestures.md](gestures.md)）；`StarPie.Core/`
   目录树见 [layout.md](layout.md)）；**Core 不引用 Host/业务模块**，跨模块依赖一律经 Core 契约
-  （方向见 [assemblies.md](assemblies.md) §3）。依赖宿主/M2 的 UI 专用件（CoreIconGeometry/Name
+  （方向见 [assemblies.md](assemblies.md) §3）。S5 导航自 ADR-0021/#92 起为纯契约共享模块——
+  Core 仅持目录/槽位契约（`NavigationCatalog`），运行时主体（`NavigationStore`/`NavigationExecutor`/
+  `MainViewModel`/`NavigationItemViewModel`）随壳窗口判据归 Host，Core 不再持有导航 VM/执行件
+  （见 [navigation.md](navigation.md)/[assemblies.md](assemblies.md) §2/§4）。依赖宿主/M2 的 UI 专用件（CoreIconGeometry/Name
   核图标预览转换器）已随 B8/#81 收编 M2（`StarPie.Wheel/Views/Converters/`，裁决随 M2，见
   [wheel.md](wheel.md)/[assemblies.md](assemblies.md) §9）；S6 取色对话框行为
   （SpectrumCanvasBehavior，依赖 ColorPickerViewModel.SpectrumPoint）已随 S6 实现迁入
@@ -115,7 +118,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
    读方案列表——B8/#81 起接口上提 Core（D5），#69 起不引用具体 VM 类型）；动态/广播协调一律走
    IMessenger；同页状态不得用 messenger 替代绑定。
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
-   - `NavigationService<T>` 持有 `IServiceProvider`（开放泛型注册，[ADR-0005](../adr/0005-di-container-for-navigation.md)）；
+   - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；ADR-0021/#92 起随
+     运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
+     [seams.md](seams.md)；C1 死代码 `NavigationService<T>` 开放泛型例外已随之删除）；
    - `WheelFactory`（B8/#81 起驻 `StarPie.Wheel/Services/Wheel/`，随 M2 收编，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
      [wheel.md](wheel.md)），仅经 WheelModuleRegistrar/组合根注册的 M2 侧 `IWheelFactory` 接口暴露。
@@ -160,7 +165,7 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 
 - **接口与实现同目录**：`IXxxService` / `XxxService`。
 - **只由组合根注册（可经模块注册器 RegisterServices 下放）**；View/ViewModel 不自行 `new` 服务、
-  不使用服务定位器（`NavigationService<T>` 例外见上）。
+  不使用服务定位器（导航执行入口 `NavigationExecutor` 例外见上——Host 内部解析缝）。
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeService` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
@@ -175,8 +180,9 @@ WinPieGestures.Tests ──→ WinPieGestures + StarPie.Core + StarPie.Programs 
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 容器单例（状态跨导航常驻）；轮盘 VM 按手势创建、不注册；对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
-- 主框架 VM 拆分（B1/D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；B3/#76 目录驱动后随 S5 导航
-  内核迁入 Core）与 `ShellViewModel`（窗口标题/退出态/保存，留 Host 壳窗口）分别供 `MainView` 分区
+- 主框架 VM 拆分（B1/D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；B3/#76 目录驱动；
+  ADR-0021/#92 起运行时主体随导航件迁回 Host `ViewModels/Navigation/`——与 `ShellViewModel`
+  均归 Host）与 `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区
   DataContext 的导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。

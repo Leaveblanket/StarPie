@@ -24,8 +24,8 @@
 
 | 程序集 | 形态 | 承载（目标态） |
 |---|---|---|
-| `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；Appearance 聚合页；仅保留 DialogService.SetOwner 回填等宿主装配面（S6 实现已随 B11/#88 迁出） |
-| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航内核（NavigationStore/INavigationService/NavigationService/NavigationItemViewModel/NavigationCatalog/槽位表/MainViewModel 纯导航）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；共享页面基类 `Views/Pages/SettingsPageBase`，B6/#79 迁入；宿主回调契约 `Services/AppHostDelegates`，B6/#79 上提；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`，B8/#81 上提） |
+| `StarPie`（项目 `WinPieGestures`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel——ADR-0021/#92 迁入，命名空间不变）；Appearance 聚合页；仅保留 DialogService.SetOwner 回填等宿主装配面（S6 实现已随 B11/#88 迁出） |
+| `StarPie.Core` | WPF 类库 | S1–S6 共享内核合并：Models（轮盘配色 WheelPalette* 已随 B8/#81 收编 M2、CustomColorPreset 仍居此——配置 POCO 引用）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S1 Icons；S6 对话框契约（接口/结果 record）；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，ADR-0021/#92 起运行时主体不居 Core）；共享 UI 基建（Views/Converters 通用转换器、Views/Controls/HotkeyRecorderBox、Views/Styles/ModernControls.xaml，B5/#78 已落地；共享页面基类 `Views/Pages/SettingsPageBase`，B6/#79 迁入；宿主回调契约 `Services/AppHostDelegates`，B6/#79 上提；跨 M 预览 Profile 只读契约 `ViewModels/Pages/IProfilePreviewSource`，B8/#81 上提） |
 | `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（**B11/#88 已落地**；契约 IDialogService 与结果 record 留 Core；Dialogs → Core 单向 + Theme 允许边） |
 | `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页（**B9/#82 已落地**；Gestures → Core 单向 + Wheel 允许边） |
 | `StarPie.Wheel` | 类库 | M2 轮盘与渲染：ViewModels/Wheel、RadialWindow、Renderers、WheelPalette*、WheelGeometry、WheelFactory（**B8/#81 已落地**；含 D5 工厂收编；Wheel → Core 单向 + M4 允许边） |
@@ -65,23 +65,28 @@ StarPie (Host/exe) ──→ StarPie.Core
   `SetOwner(MainView)` 装配面。
 - 共享放行清单（config 模型字段、i18n 键、消息/通知类型、共享 UI 基建、图标资产）维持 modules.md §2.3，不视为跨模块违规。
 
-## 4. “壳”的三层语义（防混淆）
+## 4. 导航与“壳”的分层语义（防混淆）
 
-程序集化后“壳”分三层，术语别混用：
+程序集化后导航契约与“壳”相关概念分四层，术语别混用：
 
 | 层 | 归属 | 程序集 | 内容 |
 |---|---|---|---|
-| 导航内核/状态 | S5 | Core | NavigationStore、INavigationService<>、NavigationCatalog、MainViewModel（纯导航） |
+| 导航目录/槽位契约 | S5（纯契约共享模块，ADR-0021/#92） | Core | NavigationCatalog、NavigationSlot/NavigationSlots、NavigationPageRegistration |
+| 导航运行时/状态 | H1（宿主壳，与 R4/D3 同判据——单一消费方在 Host） | StarPie（exe） | NavigationStore、NavigationExecutor（含 INavigationExecutor）、MainViewModel、NavigationItemViewModel（ADR-0021/#92 迁入，命名空间不变） |
 | 壳层服务与系统集成 | M5 | StarPie.Shell | 托盘、自启、内存、Advanced/About 设置面（B6/#79 已落地） |
-| Host 壳窗口 | H1（宿主壳） | StarPie（exe） | MainView 全文件、ShellViewModel、App/AppHost/Composition |
+| Host 壳窗口 | H1（宿主壳） | StarPie（exe） | MainView 全文件、ShellViewModel、App/AppHost/Composition（导航 VM 与主框架同窗，物理同居 Host） |
 
 `MainView.xaml.cs` 与 `ShellViewModel` **归 Host 壳窗口**（ADR-0016 决策 6/7），不再归 M5；M5 只拥有壳层服务与设置面。
+导航运行时（含主框架导航区 VM `MainViewModel`）随壳窗口同判据归 Host（ADR-0021/#92，R9）。
 
 ## 5. 导航架构（目标态：模块自治注册）
 
 ### 5.1 机制
 
-- Core 提供 `NavigationCatalog`：`RegisterPage<TViewModel>(槽位, automationId, titleKey, iconData, …)` + 导航执行缝（同 `NavigationService<T>` 的已批准惰性解析）。
+- Core 提供目录契约 `NavigationCatalog`：`RegisterPage<TViewModel>(槽位, automationId, titleKey, iconData, …)`（纯契约共享模块，ADR-0021/#92 起运行时不居 Core）。
+- Host 提供导航执行入口（`NavigationExecutor`/`INavigationExecutor`）：随运行时归 H1 后为宿主内部件
+  （ADR-0021/#92；不再是跨程序集"已批准解析缝"，见 [seams.md](seams.md)；第二消费方出现时按
+  `IDialogService` 先例把接口上提 Core）。
 - 模块注册器自报导航项与页面模板字典（`DataTemplate DataType=VM → View`）；Host 在 App 资源里**每模块一次** pack URI 静态合并。
 - 新增页面 = 所属模块内部（注册器声明导航项 + 模板字典加条目），**不碰 Host**。
 - 新增模块 = Host 登记：程序集引用 + 注册器调用 + 模板字典合并（各一次，放行共享面）。
@@ -104,8 +109,9 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 4 | `NavTab4` | `TabAbout` | `AboutViewModel` | `AboutSettingsPage` | M5 Shell（B6/#79 已落地） |
 
 缺失/重复/未知槽位由 Core 收口测试拦截；槽位表是侧边栏顺序唯一正典（B2/#75 契约与收口测试已落地；
-B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册构造导航项，导航执行走
-`INavigationExecutor` 目录执行缝）。
+B3/#76 目录驱动接线已落地：MainViewModel 按目录注册构造导航项，导航执行走
+`INavigationExecutor` 目录执行缝；ADR-0021/#92 起运行时主体（含 MainViewModel）迁 Host，
+目录契约仍驻 Core——程序集归属见 §2/§4）。
 
 ## 6. DI 与注册契约（目标态）
 
@@ -118,8 +124,9 @@ B3/#76 目录驱动接线已落地：MainViewModel 迁 Core 并按目录注册�
   `IProgramScanner`），S6 无导航页故无 RegisterNavigation——对话框实现自 Host 抽出独立
   程序集后，组合根不再直接装配对话框服务，仅保留 `DialogService.SetOwner(MainView)` 回填面。
 - **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateAppHost`；模块不解析、不持容器。
-- **已批准解析缝**：`NavigationService<T>`、导航目录执行缝（`INavigationExecutor`，B3/#76 已落地）、
-  `WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
+- **已批准解析缝**：`WheelFactory`、`DialogService`、模块注册器（仅注册不解析）。
+  导航目录执行缝自 ADR-0021/#92 起不再是跨程序集缝（`INavigationExecutor` 随运行时整体归
+  Host，为宿主内部件，seams.md 不登记）。
 - `AppHostDelegates` 已上提为 Core 公开契约（B6/#79：`StarPie.Core/Services/AppHostDelegates.cs`；
   Host 组合根以单例注册并在 AppHost 构造后回填实现），M5 注册器只依赖 Core（B9/#82 起 M1 注册器
   同款只依赖 Core 契约；其手势管线消费的 M2 侧接口属允许边，不在注册器内直接引用 M2 类型）。
@@ -216,8 +223,10 @@ M2 模块程序集（`StarPie.Wheel/`，程序集 `StarPie.Wheel`，WPF 类库�
 M1 模块程序集（`StarPie.Gestures/`，程序集 `StarPie.Gestures`，WPF 类库，B9/#82 起）+
 `WinPieGestures.Tests`（显式引用七工程，不依赖传递引用）。B2/#75 已落地：Models、S2/S3/S4/S1、
 S6 契约、S5 导航内核（NavigationStore/INavigationService/NavigationService/
-NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core。**B3/#76 已落地**：`MainViewModel`
-目录驱动后迁入 Core（无页面类型硬编码）；导航执行走 `INavigationExecutor` 目录执行缝；exe 内按
+NavigationItemViewModel/NavigationCatalog/槽位表）迁入 Core（导航运行时物理居 Core 的表述已由
+ADR-0021/#92 修订——迁 Host，见下段）。**B3/#76 已落地**：`MainViewModel`
+目录驱动后迁入 Core（无页面类型硬编码；B3/#76 历史与目录驱动验收不回开，物理落点以
+ADR-0021/#92 为准——运行时主体迁回 Host）；导航执行走 `INavigationExecutor` 目录执行缝；exe 内按
 M1/Host 临时注册器（`RegisterNavigation`）与模块页面模板字典（App 级每模块一次静态合并）；
 CreateAppHost 页面 eager 解析清单目录化（语义保留）；MainView.xaml 纯壳（不再含页面 DataTemplate）。
 **B4/#77 已落地**：M3 三件（ProgramScanner/ProgramCatalog(+ProgramEntry)/ShortcutResolver）迁入
@@ -319,6 +328,21 @@ AttachPaletteApplier 计数）；slnx 登记 StarPie.Dialogs，Host/Tests 显式
 Host 侧 Services/Dialogs、ViewModels/Dialogs、Views/Dialogs、Views/Controls 目录随迁清空。
 新增 DialogsAssemblyPlacementTests 6 例收口归属/依赖/BAML/契约/构造签名/注册器；
 SharedUi/Programs Placement 断言随迁更新；新增 seams.md 活缝编目（见 [seams.md](seams.md)）。
+
+**ADR-0021/#92（导航运行时归 Host）已落地**：导航运行时主体自 `StarPie.Core` 迁入 Host——
+`NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）落
+`WinPieGestures/Services/Navigation/`，`MainViewModel`/`NavigationItemViewModel` 落
+`WinPieGestures/ViewModels/Navigation/`（命名空间不变：`StarPie.Services.Navigation` /
+`StarPie.ViewModels.Navigation`，与 `ShellViewModel` 同目录族）；Core 仅留目录契约
+`Services/Navigation/NavigationCatalog.cs` 四件（`NavigationCatalog`/`NavigationSlot`/
+`NavigationSlots`/`NavigationPageRegistration`），不动；C1 死代码删除（`INavigationService`/
+`NavigationService` + `Composition.cs` 开放泛型注册行 + `NavigationTests` 的
+`NavigationServiceTests` 用例）；`StarPie.Core.csproj` 移除
+`Microsoft.Extensions.DependencyInjection` 包引用（Core 内已无使用点；`StarPie.Programs`
+因 `ProgramsModuleRegistrar` 直用 `IServiceCollection`，改为自身显式 PackageReference，
+与其它模块注册器 csproj 一致）；执行缝自"已批准解析缝"清单移除（Host 内部件，seams.md
+不登记跨集缝）；新增 `NavigationAssemblyPlacementTests` 2 例收口运行时四类归属 `StarPie`、
+目录契约四件归属 `StarPie.Core`（命名空间均不变）。
 
 **8 程序集目标态（含命名空间）已全部达成**：Host/Core/Dialogs/Programs/Shell/Theme/Wheel/
 Gestures 各自成集且依赖方向落地（7 程序集目标态经 ADR-0020/#88 扩展为 8 程序集）；
