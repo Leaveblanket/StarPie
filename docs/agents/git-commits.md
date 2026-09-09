@@ -1,68 +1,59 @@
-# Git Commits
+# Git 提交约定
 
-Commit workflow and message rules for `Leaveblanket/StarPie`. Applies to human
-and agent commits alike. This is a **documentation-only convention** — no
-commitlint, husky, or other tooling is enforced.
+`Leaveblanket/StarPie` 的提交工作流与提交消息规则，对人类与 agent 的提交同等适用。本文档仅为**纯文档约定**——不强制启用 commitlint、husky 或其它工具。
 
-## Workflow: task branch + merge commit
+## 工作流：任务分支 + merge 提交
 
-Every task gets its own branch off `main`; the branch is merged back with an
-explicit merge commit (`--no-ff`). Do not fast-forward or squash.
+每个任务都从 `main` 分出独立分支；分支合回 `main` 时使用显式 merge 提交（`--no-ff`）。不要 fast-forward 或 squash。
 
-- Branch naming: `<type>/#<issue>-<slug>`
+- 分支命名：`<type>/#<issue>-<slug>`
 
   ```text
   refactor/#18-settings-console-split
   fix/#21-startup-crash-on-nav
   ```
 
-- Rebase the task branch onto `main` before merging when it has drifted.
-- Merge with an explicit merge commit:
+- 任务分支与 `main` 发生漂移时，合并前先 rebase 到 `main`。
+- 使用显式 merge 提交合回：
 
   ```bash
   git checkout main
   git merge --no-ff refactor/#18-settings-console-split -m "merge: #18 设置控制台拆分"
   ```
 
-- A merge commit message is `merge: #<issue> <summary>`.
+- merge 提交的消息格式为 `merge: #<issue> <summary>`。
 
-## Every code change references a GitHub issue
+## 每次代码改动都引用一个 GitHub issue
 
-Issues are tracked as GitHub Issues in `Leaveblanket/StarPie`; see
-`docs/agents/issue-tracker.md` for CLI usage.
+Issue 以 GitHub Issues 形式记录在 `Leaveblanket/StarPie`；CLI 用法见 `docs/agents/issue-tracker.md`。
 
-- Feature, bug-fix, and refactor work must map to one open issue and reference
-  it in the commit subject.
-- Reference style: issue number at the **end of the subject** in parentheses —
-  `fix: 修复启动崩溃 (#21)`. (A bare `#21` in prose is fine in the body.)
-- `chore` and `docs` commits may omit the issue reference when there is no
-  corresponding issue.
+- feature、bug-fix、refactor 类工作必须对应一个未关闭的 issue，并在提交主题中引用它。
+- 引用格式：issue 编号放在**主题末尾**的括号内——`fix: 修复启动崩溃 (#21)`。（正文行文中裸写 `#21` 是允许的。）
+- 没有对应 issue 时，`chore` 与 `docs` 提交可以省略 issue 引用。
 
-## Commit message format
+## 提交消息格式
 
-Conventional Commits with a Chinese subject:
+采用 Conventional Commits，主题用中文：
 
 ```
 <type>(<scope>): <subject>
 ```
 
-- `<type>`: `feat` | `fix` | `refactor` | `docs` | `chore` | `test` | `perf` | `merge`
-- `<scope>` (optional): the affected subsystem, e.g. `feat(settings): …`,
-  or omit it and let the issue reference carry context.
-- `<subject>`: concise Chinese, no trailing period. Add parenthesized key
-  points when the change is broad:
+- `<type>`：`feat` | `fix` | `refactor` | `docs` | `chore` | `test` | `perf` | `merge`
+- `<scope>`（可选）：受影响的子系统，例如 `feat(settings): …`；也可以省略，让 issue 引用承载上下文。
+- `<subject>`：简洁中文，结尾不带句号。改动面较宽时在括号内补充关键点：
   `refactor: 设置控制台拆分(主框架+侧边栏+五页面导航+消息协调)`
-- Keep the subject short; move details to the body.
+- 主题保持简短；细节移入正文。
 
-### Body
+### 正文
 
-Write a body when the change is non-trivial:
+改动不平凡时写正文：
 
-- why the change exists;
-- key decisions / root causes (bullet list for multi-cause fixes);
-- verification summary (what ran and the result).
+- 改动存在的原因；
+- 关键决策 / 根因（多因修复用项目符号列表）；
+- 验证摘要（执行了什么、结果如何）。
 
-Example shape (from an actual repo commit):
+示例形态（取自仓库真实提交）：
 
 ```text
 fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
@@ -73,14 +64,14 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 验证:沙箱完整启动路径五页真实点击往返全通;370 xUnit 绿;pywinauto e2e 18/18
 ```
 
-## Atomicity
+## 原子性
 
-- One commit = one logical change.
-- Keep deletions / moves / formatting separate from feature work.
-- Never mix types in one commit (especially `chore` with `feat`/`fix`).
-- No WIP commits on `main`.
+- 一次提交 = 一个逻辑改动。
+- 删除 / 移动 / 格式化与功能改动分开提交。
+- 一个提交内绝不混类型（尤其不要把 `chore` 与 `feat`/`fix` 混在一起）。
+- `main` 上不允许 WIP 提交。
 
-## Required verification before committing
+## 提交前必须完成的验证
 
 验证义务分两层门：**提交级**与**合入门**。xUnit 全量便宜（569 例，纯执行约 0.5s），任何代码提交都全量跑，不按模块拆分；e2e 用免跑判定，不拆用例子集、不移除每例冷启动。拿不准时跑全量。
 
@@ -117,9 +108,7 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 
 4. **合入门（merge 到 main 前）**: 主干同步后至少一次全量 xUnit + 一次全量 pywinauto e2e（agent 本地执行）；CI 只强制 xUnit。
 
-## Do not rewrite published history
+## 不要改写已发布的历史
 
-- Do not `amend`, `rebase`, or `reset` commits that are already pushed to
-  `origin/main` or an open task branch used by others.
-- Local, unpushed commits on a task branch may be cleaned up freely before the
-  merge.
+- 已推送到 `origin/main`、或推送到他人正在使用的开放任务分支的提交，禁止 `amend`、`rebase` 或 `reset`。
+- 任务分支上尚未推送的本地提交，可以在合并前随意清理。
