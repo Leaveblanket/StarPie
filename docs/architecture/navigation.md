@@ -20,7 +20,8 @@
 - `Services/Navigation/`：`NavigationStore`（当前页状态单一根源）、`NavigationExecutor`（含
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
   接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [seams.md](seams.md)；
-  第二消费方出现时按 `IDialogService` 先例把接口上提 Core）。
+  第二消费方出现时按 ADR-0023 契约归属判据裁决落点——属全局机制入内核、属某模块出口契约
+  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方入 Dialogs.Contracts，#96））。
 - `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（B3/#76 目录驱动：
   导航项顺序/标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；
   壳层职责已拆至同目录族的 `ShellViewModel`，见 [shell.md](shell.md)）。

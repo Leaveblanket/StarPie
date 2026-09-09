@@ -11,14 +11,15 @@
 > 本文只收**当前活缝**；历史已归零的缝（D5 WheelFactory 收编、S21 扫描委托、ThemeChanged
 > 死事件、IconAssets 静态回填等）在各 ADR/叶子有记录，不在此重复。
 
-## 1. 程序集依赖基线（as-built，10 程序集：ADR-0020/#88 的 8 + ADR-0023/#95 S1 成集新增 2）
+## 1. 程序集依赖基线（as-built，12 程序集：ADR-0020/#88 的 8 + ADR-0023/#95 S1 成集新增 2 + ADR-0023/#96 Programs/Dialogs.Contracts 新增 2）
 
 ```text
-StarPie (Host/exe) ──→ Core / Dialogs / Programs / Shell / Theme / Wheel / Gestures / Icons / Icons.Contracts
-Gestures ──→ Core + Wheel(允许边 IWheelFactory)      Wheel ──→ Core + Theme(允许边 IThemeService)
-Dialogs  ──→ Core + Theme(允许边 IThemeService)
+StarPie (Host/exe) ──→ Core / Dialogs / Programs / Shell / Theme / Wheel / Gestures / Icons / Icons.Contracts / Programs.Contracts / Dialogs.Contracts
+Gestures ──→ Core + Wheel(允许边 IWheelFactory) + Dialogs.Contracts(契约边)      Wheel ──→ Core + Theme(允许边 IThemeService) + Dialogs.Contracts(契约边)
+Dialogs  ──→ Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core + Theme(允许边 IThemeService)
+Programs ──→ Programs.Contracts（自身契约）+ Icons.Contracts
 Gestures/Wheel/Dialogs/Programs 另 ──→ Icons.Contracts（契约边，ADR-0023/#95）
-Icons    ──→ Icons.Contracts + Core（#95 中间态 IShortcutTargetResolver；#96 迁出后 Core 边删除）
+Icons    ──→ Icons.Contracts + Programs.Contracts（SPI 契约边，#96）+ Core（S2 AppDataPaths）
 其余 M* ──→ Core 单向       Tests ──→ 全部（显式，无传递）
 ```
 
@@ -27,13 +28,13 @@ Icons    ──→ Icons.Contracts + Core（#95 中间态 IShortcutTargetResolve
 | 缝 | 载体（契约/实现） | 裁决/守护 |
 |---|---|---|
 | 契约缝·图标资产 | 契约四件（`IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`）驻 Icons.Contracts；`IconAssetService` + `IconsModuleRegistrar` 驻 Icons runtime（实现只被 Host/测试引用） | ADR-0023/#95（ADR-0019/#87 前史）；IconCatalogTests/IconsAssemblyPlacementTests |
-| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 Core ← M3 `ShortcutResolver`（#95 中间态暂留 Core；#96 随 Programs.Contracts 迁出后契约脱离 Core，Icons runtime 改经契约边） | ADR-0019/#87 + ADR-0023/#95；ProgramsAssemblyPlacementTests |
-| 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 Core ← M3 `ProgramScanner`（实例） | ADR-0020/#88（S21 归零）；ProgramsAssemblyPlacementTests |
+| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 Programs.Contracts ← M3 `ShortcutResolver`（ADR-0023/#96 自 Core 迁出；Icons runtime 经契约边消费，命名空间 `StarPie.Services.Icons` 不变） | ADR-0019/#87 + ADR-0023/#95/#96；ProgramsAssemblyPlacementTests |
+| 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 Programs.Contracts ← M3 `ProgramScanner`（实例；Dialogs/Host 经契约边消费，命名空间 `StarPie.Services.Programs` 不变） | ADR-0020/#88（S21 归零）+ ADR-0023/#96；Programs/Dialogs AssemblyPlacementTests |
 | 契约缝·主题 | `IThemeService` 驻 M4 ← 消费方 Host/M2/Dialogs（允许边） | B7/#80/B8/#81/ADR-0020；Theme/Wheel/Dialogs Placement |
 | 契约缝·轮盘工厂 | `IWheelFactory` 驻 M2 ← 消费方 M1（允许边） | B8/#81 D5；WheelAssemblyPlacementTests |
 | 契约缝·预览 Profile | `IProfilePreviewSource` 驻 Core，别名 = M1 `ProfileListViewModel`，消费 M2 | B8/#81 D5；Wheel/Gestures Placement |
-| 契约缝·对话框 | `IDialogService`/结果 record 驻 Core ← 实现 `DialogService` 驻 Dialogs | ADR-0020/#88；DialogsAssemblyPlacementTests |
-| 注册缝 | 7 个 `*ModuleRegistrar`（Core 除外：Programs/Theme/Shell/Wheel/Gestures/Dialogs + ADR-0023/#95 Icons）下放 DI/导航注册；组合根唯一解析 | B4–B9 + ADR-0020 + ADR-0023/#95；各 PlacementTests |
+| 契约缝·对话框 | `IDialogService`/结果 record 驻 Dialogs.Contracts（纯 C#，ADR-0023/#96 自 Core 迁出）← 实现 `DialogService` 驻 Dialogs；M1/M2/M5/Host 经契约边调用 | ADR-0020/#88 + ADR-0023/#96；DialogsAssemblyPlacementTests |
+| 注册缝 | 7 个 `*ModuleRegistrar`（Core 除外：Programs/Theme/Shell/Wheel/Gestures/Dialogs + ADR-0023/#95 Icons）下放 DI/导航注册（#96 起 Programs/Dialogs 注册的契约类型驻各自 Contracts 程序集）；组合根唯一解析 | B4–B9 + ADR-0020 + ADR-0023/#95/#96；各 PlacementTests |
 | 回填缝·dev 标志 | `AppDataPaths.IsDevInstance` 组合根装配前回填（消费 M1/M5/S2） | B2/B6/B9；MouseHook/Autostart 测试 |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 Core（可空 Action 单例），AppHost 构造后回填 | B6/#79；ShellAssemblyPlacementTests |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004/ADR-0020；e2e |
@@ -41,7 +42,7 @@ Icons    ──→ Icons.Contracts + Core（#95 中间态 IShortcutTargetResolve
 | XAML 资源缝 | App.xaml 资源单点合并/实例化：主题与模板字典（+HotkeyRecorderBox 样式字典）经跨集 pack URI、ModernControls.xaml 宿主本地合并、转换器 App 级实例（ADR-0022/#94：ModernControls 与通用转换器迁 Host、热键样式字典随控件下沉 Gestures） | ADR-0012/B5–B9/ADR-0022 |
 | 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`），跨模块广播；新消息 = 放行共享面 | B1/#64；messages.md |
 | 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（ThemeService/ActionExecutorService/VM 委托），生产默认值内建 | layering.md「系统调用接缝模式」；单测替身 |
-| 收口测试缝 | 9 个 `*AssemblyPlacementTests`（含 ADR-0021/#92 新增 Navigation、ADR-0023/#95 新增 Icons）+ NavigationCatalog 收口测试 | 各批次；ADR-0018 |
+| 收口测试缝 | 9 个 `*AssemblyPlacementTests`（含 ADR-0021/#92 新增 Navigation、ADR-0023/#95 新增 Icons；#96 起 Dialogs/Programs/Icons/SharedUi 断言覆盖契约归属 Contracts 与 Dialogs→Programs 互引为零）+ NavigationCatalog 收口测试 | 各批次；ADR-0018 |
 
 ## 3. 需关注缝（有意接受，但对模块化施加压力；改动前先读裁决）
 
@@ -56,7 +57,12 @@ Icons    ──→ Icons.Contracts + Core（#95 中间态 IShortcutTargetResolve
 
 当前无。已归零：S21 程序扫描委托（ADR-0020/#88）、ThemeChanged 死事件（ADR-0020/#88）、
 D5 WheelFactory 装配点（B8/#81）、IconAssets 静态回填（ADR-0019/#87）、M3 零 Core 例外
-（ADR-0019/#87）。
+（ADR-0019/#87）。**ADR-0023/#96（契约下沉，历史注记）**：ADR-0020/#88 上提 Core 的契约
+收容所落点已清零——`IDialogService`/结果 record 迁 `StarPie.Dialogs.Contracts`、
+`IProgramScanner`/`ProgramEntry`/`ProgramCatalog`/`IShortcutTargetResolver` 迁
+`StarPie.Programs.Contracts`，Core `Services/{Programs,Dialogs}` 目录清空；Dialogs→Programs、
+Icons→M3(SPI)、M1/M2/M5→S6 均改经 Contracts 契约边，runtime 互引清零。S21 扫描委托归零
+历史仍指向 ADR-0020/#88。
 
 ## 维护义务
 

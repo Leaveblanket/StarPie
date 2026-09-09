@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Linq;
 using System.Resources;
+using StarPie.Services.Localization;
 using StarPie.Views.Converters;
 using StarPie.Views.Controls;
 
@@ -67,7 +68,9 @@ public sealed class SharedUiAssemblyPlacementTests
     [Fact]
     public void 共享内核Core_不再持有通用转换器与共享控件()
     {
-        var coreAssembly = typeof(IDialogService).Assembly;
+        // #96 起 Core 不再承载 S6 契约（IDialogService 已随实现方下沉 Dialogs.Contracts），
+        // 此处以共享基建类型 ILocalizationService 定位 Core 程序集。
+        var coreAssembly = typeof(ILocalizationService).Assembly;
         Assert.Equal("StarPie.Core", coreAssembly.GetName().Name);
 
         Assert.DoesNotContain(coreAssembly.GetTypes(), t =>
@@ -83,7 +86,7 @@ public sealed class SharedUiAssemblyPlacementTests
     {
         // SettingsPageBase 已随 ADR-0022/#94 删除：Core 无同名类型，五页根基类均不再
         // 指向跨程序集共享页面基类。
-        Assert.DoesNotContain(typeof(IDialogService).Assembly.GetTypes(), t => t.Name == "SettingsPageBase");
+        Assert.DoesNotContain(typeof(ILocalizationService).Assembly.GetTypes(), t => t.Name == "SettingsPageBase");
 
         Assert.Equal("System.Windows.Controls.UserControl", typeof(TriggerSettingsPage).BaseType!.FullName);
         Assert.Equal("System.Windows.Controls.UserControl", typeof(GesturesSettingsPage).BaseType!.FullName);

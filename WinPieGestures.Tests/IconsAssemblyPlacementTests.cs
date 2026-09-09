@@ -11,9 +11,9 @@ namespace StarPie.Tests;
 /// （<see cref="IIconAssetService"/>/<see cref="IconCatalog"/>/<see cref="CustomIconItem"/>/
 /// <see cref="VectorIconItem"/>）独立成集驻 <c>StarPie.Icons.Contracts</c>；实现
 /// （<see cref="IconAssetService"/>）与注册器 <see cref="IconsModuleRegistrar"/> 驻
-/// <c>StarPie.Icons</c> runtime。依赖方向：Icons → Contracts + Core（#95 中间态
-/// <see cref="IShortcutTargetResolver"/> 暂留 Core，契约即 S1 的 SPI，.lnk 解析依赖；
-/// #96 随 Programs.Contracts 迁出）；无 Core → Icons 反向；Icons runtime 只被
+/// <c>StarPie.Icons</c> runtime。依赖方向：Icons → Icons.Contracts + Programs.Contracts
+/// （ADR-0023/#96：SPI <see cref="IShortcutTargetResolver"/> 随 M3 下沉，.lnk 解析经契约边）
+/// + Core（S2 AppDataPaths 共享基建）；无 Core → Icons 反向；Icons runtime 只被
 /// Host/注册器/测试引用，业务模块零引用（模块 runtime 互引清零仍成立）。
 /// </summary>
 public sealed class IconsAssemblyPlacementTests
@@ -38,11 +38,11 @@ public sealed class IconsAssemblyPlacementTests
     }
 
     [Fact]
-    public void S1中间态_IShortcutTargetResolver暂留共享内核Core()
+    public void S1SPI_IShortcutTargetResolver随M3下沉ProgramsContracts_命名空间不变()
     {
-        // #95 中间态：SPI 暂留 Core（Icons runtime → Core 允许），#96 随 Programs.Contracts
-        // 迁出后本断言随迁更新（契约脱离 Core，Icons runtime 改经 Contracts 边）。
-        Assert.Equal("StarPie.Core", typeof(IShortcutTargetResolver).Assembly.GetName().Name);
+        // ADR-0023/#96：SPI 随实现方 M3 下沉 Programs.Contracts（自 Core 迁出，
+        // Icons runtime 改经契约边消费，契约脱离 Core）。
+        Assert.Equal("StarPie.Programs.Contracts", typeof(IShortcutTargetResolver).Assembly.GetName().Name);
         Assert.Equal("StarPie.Services.Icons", typeof(IShortcutTargetResolver).Namespace);
     }
 
@@ -60,7 +60,7 @@ public sealed class IconsAssemblyPlacementTests
     }
 
     [Fact]
-    public void S1实现程序集_单向依赖Contracts与Core_不引用Host与其他业务模块()
+    public void S1实现程序集_单向依赖ContractsProgramsContracts与Core_不引用Host与其他业务模块runtime()
     {
         string?[] referenced = typeof(IconAssetService).Assembly
             .GetReferencedAssemblies()
@@ -68,11 +68,14 @@ public sealed class IconsAssemblyPlacementTests
             .ToArray();
 
         Assert.Contains("StarPie.Icons.Contracts", referenced);
-        // #95 中间态：IconAssetService .lnk 解析依赖的 SPI 暂留 Core。
+        // ADR-0023/#96：IconAssetService .lnk 解析依赖的 SPI 经 Programs.Contracts 契约边，
+        // 不引用 Programs runtime。
+        Assert.Contains("StarPie.Programs.Contracts", referenced);
+        Assert.DoesNotContain("StarPie.Programs", referenced);
+        // S2 AppDataPaths 共享基建（IconAssetService 默认数据目录提供）。
         Assert.Contains("StarPie.Core", referenced);
         Assert.DoesNotContain("StarPie", referenced);
         Assert.DoesNotContain("StarPie.Dialogs", referenced);
-        Assert.DoesNotContain("StarPie.Programs", referenced);
         Assert.DoesNotContain("StarPie.Shell", referenced);
         Assert.DoesNotContain("StarPie.Theme", referenced);
         Assert.DoesNotContain("StarPie.Wheel", referenced);

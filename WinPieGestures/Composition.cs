@@ -120,8 +120,9 @@ namespace StarPie
             // 惰性解析；AppHost 构造后回填。
             services.AddSingleton(_hostDelegates);
 
-            // M3 程序扫描与 .lnk 解析契约：IShortcutTargetResolver 由 ProgramsModuleRegistrar
-            // 注册的 M3 实现提供（#95 中间态暂驻 Core，#96 随 Programs.Contracts 迁出）。
+            // M3 程序扫描与 .lnk 解析契约：IShortcutTargetResolver/IProgramScanner 随实现方
+            // 下沉 Programs.Contracts（ADR-0023/#96），由 ProgramsModuleRegistrar 注册的
+            // M3 实现提供。
             ProgramsModuleRegistrar.RegisterServices(services);
             // 共享图标资产实例服务（S1，ADR-0023/#95）：实现与注册器随 S1 成集下放
             // StarPie.Icons（IconsModuleRegistrar），契约经 StarPie.Icons.Contracts 显式引用；
@@ -138,8 +139,9 @@ namespace StarPie
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
             // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放 StarPie.Dialogs
-            // （ADR-0020/#88）：扫描能力经 Core 契约 IProgramScanner 注入（M3 注册器
-            // 提供实现），组合根不再直接装配对话框服务。
+            // （ADR-0020/#88；契约随实现方下沉 Dialogs.Contracts，ADR-0023/#96）：扫描能力经
+            // Programs.Contracts 契约 IProgramScanner 注入（M3 注册器提供实现），组合根不再
+            // 直接装配对话框服务。
             DialogsModuleRegistrar.RegisterServices(services);
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 

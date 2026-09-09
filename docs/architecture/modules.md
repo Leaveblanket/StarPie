@@ -4,9 +4,10 @@
 >
 > 本文含**目标态与方向性**内容，不是纯 as-built。代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先；差异清单见 §7，随实施批次（§8）逐批回填叶子。
 >
-> 程序集化目标态（10 程序集：ADR-0016 的 7 + ADR-0020/#88 新增 StarPie.Dialogs +
-> ADR-0023/#95 S1 成集新增 StarPie.Icons.Contracts/StarPie.Icons；#96/#97 将按 ADR-0023
-> 续扩 *.Contracts）与批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
+> 程序集化目标态（12 程序集：ADR-0016 的 7 + ADR-0020/#88 新增 StarPie.Dialogs +
+> ADR-0023/#95 S1 成集新增 StarPie.Icons.Contracts/StarPie.Icons + ADR-0023/#96 新增
+> StarPie.Programs.Contracts/StarPie.Dialogs.Contracts；#97 将按 ADR-0023 续扩
+> Theme/Wheel/Gestures.Contracts）与批次历史见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
 > [ADR-0020](../adr/0020-dialogs-assembly-and-m3-scanner-contract.md)、
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）。
 
@@ -24,7 +25,11 @@
 
 1. **独立修整单元**：修改或新增一个功能，只动“相关模块的内部”；跨模块只经稳定契约，或触碰 §2.3 放行共享面。
 2. **模块 = 领域能力**：一个模块拥有它的运行态/服务、配置面（设置子 VM/卡片）与领域数据语义；页面是聚合壳（§5 D6），不强行归单一模块。
-3. **消费方归属**：共享件出现第二个消费方族才提升为共享模块；单一消费方的能力留在消费模块内部（ADR-0014 消费方判据的推广）。
+3. **契约归属（ADR-0023/#96 修订）**：模块出口契约（接口 + 跨模块 DTO/纯数据）随**实现方模块**
+   下沉其 `*.Contracts` 程序集（取代 ADR-0020/#88「第二消费方族 → 上提 Core」的旧执行口径，
+   历史落点见 [assemblies.md](assemblies.md) §9）；共享件出现第二个消费方族时——若属全局
+   机制/数据入共享内核，若属某模块出口契约下沉该模块 Contracts（单一消费方的能力留在消费
+   模块内部，ADR-0014 消费方判据的推广）。
 4. **无“文档分组惯性”**：没有共享领域上下文、没有耦合、只因“都小/都横切”而并在一起的概念，不得并成一个模块（历史反例：本地化与消息，已拆）。
 
 ### 2.3 共享内核放行清单（不算“其它业务模块内部”）
@@ -83,18 +88,21 @@
 
 #### M3 程序扫描与目录
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
-- **关键内部**：`ProgramScanner`（IO 扫描编排；ADR-0020/#88 起实例实现 Core 契约
-  `IProgramScanner`，构造注入扫描所需契约——Icons.Contracts 的 `IIconAssetService` +
-  Core 的 `IShortcutTargetResolver`（#95 中间态，ADR-0023））、`ShortcutResolver`
-  （实例实现 Core 契约 `IShortcutTargetResolver`，ADR-0019/#87）与模块注册器
-  `ProgramsModuleRegistrar`。
-  纯规则目录 `ProgramCatalog` 与纯数据 `ProgramEntry` 已上提 Core（ADR-0020/#88：第二消费方族
-  判据——M3 扫描与 S6 程序选择器共用），不随 M3 物理居留。
-- **对外契约**：扫描/过滤数据经 Core 契约（`IProgramScanner`/`ProgramCatalog`/`ProgramEntry`）
-  提供给 S6 的程序选择对话框，不反向依赖 S6；消费 S1 契约 `IIconAssetService`
-  （ADR-0023/#95 起驻 `StarPie.Icons.Contracts`，M3 → Contracts 契约边）与 Core 契约
-  `IShortcutTargetResolver`（#95 中间态暂驻 Core，#96 随 Programs.Contracts 迁出）。
-- **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部。
+- **关键内部**：契约与实现分居——出口契约驻 `StarPie.Programs.Contracts/`
+  （`Services/Programs/`：`IProgramScanner`/`ProgramCatalog`/`ProgramEntry` + `Services/Icons/`：
+  SPI `IShortcutTargetResolver`，命名空间不变，ADR-0023/#96 自 Core 迁出）；实现驻
+  `StarPie.Programs/`——`ProgramScanner`（IO 扫描编排；ADR-0020/#88 起实例实现契约
+  `IProgramScanner`，构造注入 Icons.Contracts 的 `IIconAssetService` + Programs.Contracts 的
+  `IShortcutTargetResolver`）、`ShortcutResolver`（实例实现 SPI `IShortcutTargetResolver`，
+  ADR-0019/#87）与模块注册器 `ProgramsModuleRegistrar`。
+- **对外契约**：扫描/过滤数据经 Programs.Contracts 契约（`IProgramScanner`/
+  `ProgramCatalog`/`ProgramEntry`）提供给 S6 的程序选择对话框等消费方（Dialogs → Programs
+  仅经契约边），不反向依赖 S6；.lnk SPI 经 Programs.Contracts 提供给 S1 图标服务（Icons
+  runtime → Programs.Contracts 契约边）；消费 S1 契约 `IIconAssetService`（ADR-0023/#95 起驻
+  `StarPie.Icons.Contracts`，M3 → Contracts 契约边）。M3 runtime → Programs.Contracts +
+  Icons.Contracts 单向，不再引用共享内核 Core/其它业务模块 runtime。
+- **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部；新增扫描/跨模块协议 → 扩展
+  `StarPie.Programs.Contracts`（消费方驱动）。
 
 #### M4 界面主题
 - **职责**：窗口 UI 主题体系（AppTheme）——配置与解析、状态/切换/系统跟随、XAML 令牌集与整项替换、界面主题设置面、主题应用消息。
@@ -122,7 +130,8 @@
   `StarPie.Services.Icons` 不变，零程序集依赖）；实现 `IconAssetService.cs` 与注册器
   `IconsModuleRegistrar` 驻 `StarPie.Icons/`（`Services/Icons/` + `Modules/`，经注入
   `IShortcutTargetResolver` 消费 .lnk 解析）；`.lnk` 解析契约 `IShortcutTargetResolver.cs`
-  #95 中间态仍驻 Core `Services/Icons/`（由 M3 实现，#96 随 Programs.Contracts 迁出）；
+  自 ADR-0023/#96 起随 M3 下沉 `StarPie.Programs.Contracts/Services/Icons/`（由 M3 实现，
+  Icons runtime → Programs.Contracts 契约边；Icons → Core 仅余 S2 AppDataPaths 共享基建）；
   消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器（Dialogs/Wheel/Gestures/Programs/Host
   csproj 显式引用 `StarPie.Icons.Contracts`，不再经 Core 消费 S1 类型）。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
@@ -163,14 +172,18 @@
 
 #### S6 对话框
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
-- **关键内部**：契约 `IDialogService` + 结果 record 驻 Core `Services/Dialogs/`；实现与界面
-  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）物理居独立模块
-  程序集 `StarPie.Dialogs/`（ADR-0020/#88，B11/#88 已落地；`ViewModels/Dialogs`、
+- **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Dialogs.Contracts/`
+  `Services/Dialogs/`（ADR-0023/#96 自 Core 迁出，纯 C#，命名空间 `StarPie.Services.Dialogs`
+  不变）；实现与界面（`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）
+  物理居独立模块程序集 `StarPie.Dialogs/`（ADR-0020/#88，B11/#88 已落地；`ViewModels/Dialogs`、
   `Views/Dialogs`、`Views/Controls` 随迁，命名空间不变）。
-- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Core 契约
-  `IProgramScanner`（M3 注册器提供实现，ADR-0020/#88 替代组合根委托注入，S21 归零），
-  图标资产/快捷方式解析经 S1/M3 出口接线（R7，T3c/#67 已落地）；不直穿 M3/S1 内部。
-- **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行。
+- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Programs.Contracts 契约
+  `IProgramScanner`（M3 注册器提供实现，ADR-0020/#88 替代组合根委托注入，S21 归零；
+  ADR-0023/#96 起 Dialogs → Programs 仅经契约边），图标资产/快捷方式解析经 Icons.Contracts /
+  Programs.Contracts 出口接线（R7，T3c/#67 已落地）；不直穿 M3/S1 runtime 内部；消费方
+  （M1/M2/M5/Host）只显式引用 `StarPie.Dialogs.Contracts` 调 `IDialogService`。
+- **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
+  扩展 `StarPie.Dialogs.Contracts`。
 
 ### 宿主（1）
 

@@ -15,8 +15,9 @@ namespace StarPie.Services.Programs
     /// <see cref="ProgramCatalog"/> 纯函数。
     /// </summary>
     /// <remarks>
-    /// ADR-0019/#87 起本模块单向依赖共享内核：图标补全与 .lnk 解析经 Core 契约
-    /// （<see cref="IIconAssetService"/> / <see cref="IShortcutTargetResolver"/>）注入，
+    /// ADR-0019/#87 起本模块单向依赖契约：图标补全与 .lnk 解析经
+    /// <see cref="IIconAssetService"/>（Icons.Contracts，ADR-0023/#95）与
+    /// <see cref="IShortcutTargetResolver"/>（Programs.Contracts，ADR-0023/#96）注入，
     /// 不再由组合根传委托。本类保持集成性质，不做单元测试。
     /// </remarks>
     public sealed class ProgramScanner : IProgramScanner
@@ -24,7 +25,7 @@ namespace StarPie.Services.Programs
         private readonly IIconAssetService _iconAssets;
         private readonly IShortcutTargetResolver _shortcutResolver;
 
-        /// <summary>构造注入扫描所需的共享内核契约（图标补全与 .lnk 解析）。</summary>
+        /// <summary>构造注入扫描所需契约（图标补全与 .lnk 解析）。</summary>
         public ProgramScanner(
             IIconAssetService iconAssets,
             IShortcutTargetResolver shortcutResolver)
@@ -34,7 +35,7 @@ namespace StarPie.Services.Programs
         }
 
         /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
-        /// （图标与 .lnk 解析经构造注入的共享内核契约完成）。</summary>
+        /// （图标与 .lnk 解析经构造注入的契约完成）。</summary>
         public IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
         {
             var candidates = new List<ProgramEntry>();

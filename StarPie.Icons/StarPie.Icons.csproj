@@ -3,10 +3,11 @@
   <PropertyGroup>
     <!-- ADR-0023/#95：S1 图标实现独立成集（IconAssetService + IconsModuleRegistrar）——
          解 IShortcutTargetResolver（SPI）归属死结：消费方随 S1 离开 Core，SPI #96 随
-         Programs.Contracts 迁出。依赖方向：StarPie.Icons → StarPie.Icons.Contracts（契约）
-         + StarPie.Core（#95 中间态 IShortcutTargetResolver 暂留 Core；#96 迁出后改经
-         Contracts 边）；无 Core → Icons 反向。实现 runtime 只被 Host/注册器/测试引用，
-         业务模块零引用（模块 runtime 互引清零仍成立）。
+         Programs.Contracts 迁出（#96 已落地）。依赖方向：StarPie.Icons → StarPie.Icons.Contracts
+         （契约）+ StarPie.Programs.Contracts（SPI 消费，.lnk 解析经 M3 契约边）
+         + StarPie.Core（S2 AppDataPaths 默认数据目录提供，共享基建例外）；无 Core → Icons
+         反向。实现 runtime 只被 Host/注册器/测试引用，业务模块零引用（模块 runtime 互引
+         清零仍成立）。
          DI 注册经 IconsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider。 -->
     <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
@@ -26,8 +27,11 @@
   <ItemGroup>
     <!-- ADR-0023/#95：S1 契约（IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem） -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
-    <!-- ADR-0023/#95 中间态：IconAssetService .lnk 解析依赖的 IShortcutTargetResolver 暂留
-         Core（IShortcutTargetResolver.cs 未随迁；#96 随 Programs.Contracts 迁出后本引用删除） -->
+    <!-- ADR-0023/#96：IconAssetService .lnk 解析依赖的 SPI IShortcutTargetResolver 已随
+         M3 契约下沉 Programs.Contracts（命名空间 StarPie.Services.Icons 不变） -->
+    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
+    <!-- 共享内核 S2 AppDataPaths（IconAssetService 默认数据目录提供）——共享基建例外，
+         与 SPI 无关，本引用不随 #96 删除 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>
 

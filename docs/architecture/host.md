@@ -43,23 +43,24 @@
      （`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册下放
      `WheelModuleRegistrar.RegisterServices`（StarPie.Wheel，D5——工厂随 M2 收编、接口留 M2 侧，
      M1 手势侧只经接口消费），组合根不再直接登记轮盘工厂。
-   - ADR-0019/#87 注：`ProgramsModuleRegistrar.RegisterServices` 在组合根调用（M3 → Core 单向，
-     注册 `IShortcutTargetResolver→ShortcutResolver`）；组合根注册
-     `IIconAssetService`→`IconAssetService`（注入上述解析契约，目录默认
-     `AppDataPaths.GetAppDataFolder`）——S1 图标资产不再经静态回填缝接线。
-   - ADR-0020/#88 注：`ProgramsModuleRegistrar.RegisterServices` 增注册
-     `IProgramScanner→ProgramScanner`（`ProgramScanner` 由 static 改实例实现，构造注入
-     `IIconAssetService`/`IShortcutTargetResolver`）；`ProgramEntry`/`ProgramCatalog`/
-     `IProgramScanner` 上提 `StarPie.Core/Services/Programs/`，组合根删除
-     `() => ProgramScanner.ScanInstalledPrograms(...)` 委托行（S21 归零）。
+   - ADR-0019/#87 + ADR-0020/#88 + ADR-0023/#96 注：`ProgramsModuleRegistrar.RegisterServices`
+     在组合根调用——注册 `IShortcutTargetResolver→ShortcutResolver` 与
+     `IProgramScanner→ProgramScanner`（契约随实现方驻 `StarPie.Programs.Contracts`，M3 →
+     Programs.Contracts + Icons.Contracts 单向，#96 起不再引用 Core；S21 归零——组合根删除
+     `() => ProgramScanner.ScanInstalledPrograms(...)` 委托行）。
+   - ADR-0023/#95 注：S1 图标资产实例服务自 #95 起由 `IconsModuleRegistrar.RegisterServices`
+     （StarPie.Icons）注册（`IconAssetService` 构造惰性解析 Programs.Contracts 的
+     `IShortcutTargetResolver`（#96 起），目录默认 Core `AppDataPaths.GetAppDataFolder`）——
+     组合根不再直接登记 `IIconAssetService→IconAssetService`，S1/.lnk 不再经静态回填缝接线。
    - B3/#76（导航自治）+ B6/#79（M5 拆集）+ B9/#82（M1 拆集）：`NavigationCatalog` 由
      `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、`StarPie.Shell` 的
      `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar` 按固定顺序装配并
      `Validate()` 后单例注册——导航装配/解析清单不再硬编码页面类型（运行时类型与执行缝的
      注册见上段基础设施，ADR-0021/#92 起不再登记跨程序集缝）。
    - 服务：`DialogService`（T3c/#67：构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描
-     契约；ADR-0019/#87 起扫描/图标经 Core 契约注入；ADR-0020/#88 起程序扫描候选经
-     `IProgramScanner`（Core 契约，M3 注册器提供实现）注入、组合根不再登记委托——`DialogService`
+     契约；ADR-0019/#87 + ADR-0020/#88 + ADR-0023/#95/#96 起扫描/.lnk 经 Programs.Contracts、
+     图标经 Icons.Contracts 契约注入；程序扫描候选经 `IProgramScanner`（Programs.Contracts
+     契约，M3 注册器提供实现）注入、组合根不再登记委托——`DialogService`
      与 `IDialogService` 的注册随 S6 实现下放 `DialogsModuleRegistrar.RegisterServices`
      （StarPie.Dialogs，B11/#88）；对话框服务另注入共享图标资产实例服务与解析契约，
      供图标/程序选择器使用）、`ISaveDebouncer`、`SettingsSaveOrchestrator`。（M1 手势管线 `MouseHook`/`IActionExecutorService`/

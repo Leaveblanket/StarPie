@@ -34,10 +34,16 @@
          VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、
          AppHost 建窗后调 DialogService.SetOwner 回填 Owner 装配面） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
+    <!-- ADR-0023/#96：S6 契约独立成集显式引用（NavigationExecutor/ShellViewModel 消费
+         IDialogService/结果 record，不再经 Core 传递） -->
+    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <!-- B4/#77：M3 模块程序集显式引用（ProgramScanner/ProgramCatalog/ShortcutResolver 随迁；
          ADR-0019/#87 起 M3 单向依赖 Core，组合根调 ProgramsModuleRegistrar 注册
          IShortcutTargetResolver 契约，扫描经 Core 契约注入） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
+    <!-- ADR-0023/#96：M3 扫描契约独立成集显式引用（Composition 直用 IShortcutTargetResolver/
+         IProgramScanner 契约面，不再经 Core 传递） -->
+    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General+About 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />

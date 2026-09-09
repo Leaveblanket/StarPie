@@ -47,9 +47,6 @@ StarPie/
 │   ├── Services/
 │   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（B6/#79 上提；Host 组合根注册单例、AppHost 回填）
 │   │   ├── Configuration/         # S2：配置读写、防抖保存、AppDataPaths（dev 分支经组合根回填）
-│   │   ├── Dialogs/               # S6 契约：IDialogService + 结果 record
-│   │   ├── Programs/              # M3 纯数据/纯规则/契约上提：ProgramEntry、ProgramCatalog、IProgramScanner（ADR-0020/#88）
-│   │   ├── Icons/                 # S1：仅余 .lnk 解析契约 IShortcutTargetResolver.cs（#95 中间态，ADR-0023/#95；其余 S1 件已迁 StarPie.Icons.Contracts/StarPie.Icons，见下两工程）
 │   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
 │   │   └── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–4；ADR-0021/#92 起运行时在 Host，仅此文件）
@@ -58,12 +55,19 @@ StarPie/
 ├── StarPie.Icons.Contracts/       # S1 图标契约程序集（WPF 类库，程序集 StarPie.Icons.Contracts；命名空间 StarPie.*；ADR-0023/#95 起）
 │   ├── StarPie.Icons.Contracts.csproj  # SDK 工程文件（RootNamespace=StarPie；零 ProjectReference——薄契约）
 │   └── Services/Icons/            # S1 契约四件：IIconAssetService.cs、IconCatalog.cs、CustomIconItem.cs、VectorIconItem.cs（命名空间 StarPie.Services.Icons 不变）
-├── StarPie.Icons/                 # S1 图标实现程序集（WPF 类库，程序集 StarPie.Icons；命名空间 StarPie.*；ADR-0023/#95 起；单向 Icons.Contracts + Core（#95 中间态））
-│   ├── StarPie.Icons.csproj       # SDK 工程文件（RootNamespace=StarPie；引用 Icons.Contracts + Core（IShortcutTargetResolver，#95 中间态）；MS.DI 包——注册器用）
+├── StarPie.Icons/                 # S1 图标实现程序集（WPF 类库，程序集 StarPie.Icons；命名空间 StarPie.*；ADR-0023/#95 起；单向 Icons.Contracts + Programs.Contracts（SPI，#96）+ Core（S2 AppDataPaths））
+│   ├── StarPie.Icons.csproj       # SDK 工程文件（RootNamespace=StarPie；引用 Icons.Contracts + Programs.Contracts（IShortcutTargetResolver，#96）+ Core（S2 AppDataPaths）；MS.DI 包——注册器用）
 │   ├── Modules/                   # IconsModuleRegistrar.cs（RegisterServices；S1 无导航页/模板字典）
 │   └── Services/Icons/            # S1：IconAssetService.cs（自定义图标存储/位图源/GetIcon）
+├── StarPie.Programs.Contracts/    # M3 扫描/SPI 契约程序集（WPF 类库，程序集 StarPie.Programs.Contracts；命名空间 StarPie.*；ADR-0023/#96 起）
+│   ├── StarPie.Programs.Contracts.csproj  # SDK 工程文件（RootNamespace=StarPie；零 ProjectReference——薄契约，按需 WPF：ProgramEntry.IconSource）
+│   ├── Services/Programs/         # M3 契约：IProgramScanner.cs、ProgramEntry.cs、ProgramCatalog.cs（命名空间 StarPie.Services.Programs 不变）
+│   └── Services/Icons/            # SPI：IShortcutTargetResolver.cs（命名空间 StarPie.Services.Icons 不变）
+├── StarPie.Dialogs.Contracts/     # S6 对话框契约程序集（纯 C# 类库，程序集 StarPie.Dialogs.Contracts；命名空间 StarPie.*；ADR-0023/#96 起）
+│   ├── StarPie.Dialogs.Contracts.csproj  # SDK 工程文件（RootNamespace=StarPie；零 ProjectReference——薄契约，纯 C#）
+│   └── Services/Dialogs/          # S6 契约：IDialogService.cs + 6 结果 record（命名空间 StarPie.Services.Dialogs 不变）
 ├── StarPie.Dialogs/               # S6 对话框实现模块程序集（WPF 类库，程序集 StarPie.Dialogs；命名空间 StarPie.*；ADR-0020/#88 B11 起）
-│   ├── StarPie.Dialogs.csproj     # SDK 工程文件（RootNamespace=StarPie；引用 Core + Theme（IThemeService 允许边）+ Icons.Contracts（ADR-0023/#95））
+│   ├── StarPie.Dialogs.csproj     # SDK 工程文件（RootNamespace=StarPie；引用 Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core（S2/S3/S4）+ Theme（IThemeService 允许边））
 │   ├── GlobalUsings.cs            # 工程级全局 using（模块所需 Core/M4 命名空间）
 │   ├── Modules/                   # DialogsModuleRegistrar.cs（RegisterServices；S6 无导航页/模板字典）
 │   ├── Services/Dialogs/          # S6：DialogService（public——Host SetOwner 装配面）
@@ -72,9 +76,9 @@ StarPie/
 │       ├── Dialogs/               # S6：五对对话框 Window.xaml(.cs)
 │       └── Controls/              # S6：SpectrumCanvasBehavior（取色对话框专用）
 ├── StarPie.Programs/              # M3 模块程序集（WPF 类库，程序集 StarPie.Programs；命名空间 StarPie.*，B10/#83 统一；B4/#77 起）
-│   ├── StarPie.Programs.csproj    # SDK 工程文件（RootNamespace=StarPie；引用 Core + Icons.Contracts（ADR-0023/#95），M3 → Core/Contracts 单向）
+│   ├── StarPie.Programs.csproj    # SDK 工程文件（RootNamespace=StarPie；引用 Programs.Contracts + Icons.Contracts（#96 起不再引用 Core），M3 → 契约单向）
 │   ├── Modules/                   # 模块注册器：ProgramsModuleRegistrar.cs（RegisterServices，ADR-0019/#87 + ADR-0020/#88）
-│   └── Services/Programs/         # M3：ProgramScanner（IO 扫描）、ShortcutResolver（ProgramCatalog/ProgramEntry 已上提 Core，ADR-0020/#88）
+│   └── Services/Programs/         # M3：ProgramScanner（IO 扫描）、ShortcutResolver（契约本体驻 Programs.Contracts，ADR-0023/#96）
 ├── StarPie.Shell/                 # M5 壳层模块程序集（WPF 类库，程序集 StarPie.Shell；命名空间 StarPie.*，B10/#83 统一；B6/#79 起；单向 Core）
 │   ├── StarPie.Shell.csproj       # SDK 工程文件（RootNamespace=StarPie；引用 Core）
 │   ├── GlobalUsings.cs            # 工程级全局 using（模块所需 Core 命名空间）
@@ -119,15 +123,17 @@ StarPie/
 └── WinPieGestures.Tests/          # xUnit 单测（显式引用 Host、Core、Dialogs、Programs、Shell、Theme、Wheel、Gestures、Icons.Contracts 与 Icons）
 ```
 
-> 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Shell/`、`StarPie.Theme/`、`StarPie.Wheel/`、`StarPie.Gestures/` 与 `WinPieGestures/`
+> 程序集归属：目录名在 `StarPie.Core/`、`StarPie.Programs/`、`StarPie.Programs.Contracts/`、`StarPie.Dialogs/`、`StarPie.Dialogs.Contracts/`、`StarPie.Shell/`、`StarPie.Theme/`、`StarPie.Wheel/`、`StarPie.Gestures/`、`StarPie.Icons.Contracts/`、`StarPie.Icons/` 与 `WinPieGestures/`
 > 中各自保持“命名空间 = 物理目录”；
-> 共享内核目录（Models、Services/Configuration|Dialogs(契约)|Localization|Messages|Navigation（目录契约 NavigationCatalog.cs，ADR-0021/#92 起运行时不在 Core）|Programs（ADR-0020/#88：ProgramEntry/ProgramCatalog/IProgramScanner）、
+> 共享内核目录（Models、Services/Configuration|Localization|Messages|Navigation（目录契约 NavigationCatalog.cs，ADR-0021/#92 起运行时不在 Core）、
 > Services/AppHostDelegates.cs（B6/#79）、ViewModels/Pages/IProfilePreviewSource.cs（B8/#81 上提））
-> 只存在于 `StarPie.Core/`（S1 图标资产已随 ADR-0023/#95 成集迁出，`Services/Icons/` 仅余 #95
-> 中间态 `IShortcutTargetResolver.cs`；共享 UI 基建已随 ADR-0022/#94 去共享化：通用转换器/ModernControls.xaml
+> 只存在于 `StarPie.Core/`（S1 图标资产已随 ADR-0023/#95 成集迁出、S6 对话框契约与 M3 扫描/SPI
+> 契约已随 ADR-0023/#96 下沉 Dialogs.Contracts/Programs.Contracts——Core 不含任何模块出口契约；
+> 共享 UI 基建已随 ADR-0022/#94 去共享化：通用转换器/ModernControls.xaml
 > 在 Host `Views/Converters|Styles/`、HotkeyRecorderBox（控件+样式字典）在
 > `StarPie.Gestures/Views/Controls|Styles/`、共享页面基类 SettingsPageBase 已删除）；M3 业务目录
-> （ProgramScanner/ShortcutResolver）只存在于 `StarPie.Programs/`（B4/#77 起；ProgramEntry/ProgramCatalog/IProgramScanner 上提 Core 同目录，ADR-0020/#88）；M5 业务目录
+> （ProgramScanner/ShortcutResolver/ProgramsModuleRegistrar）只存在于 `StarPie.Programs/`
+> （B4/#77 起；契约本体驻 StarPie.Programs.Contracts，ADR-0023/#96）；M5 业务目录
 > （`Services/Shell/`、`ViewModels/Pages/` 的 M5 两 VM、`Views/Pages/` 的 M5 两页、`Modules/`）只
 > 存在于 `StarPie.Shell/`（B6/#79 起）；M4 业务目录（`Services/Shell/` 的 M4 两服务、
 > `ViewModels/Pages/` 的 M4 主题设置子 VM、`Views/Styles/Themes/`、`Modules/` 的 ThemeModuleRegistrar
@@ -143,6 +149,9 @@ StarPie/
 > S1 契约目录（`Services/Icons/` 的 IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem）
 > 只存在于 `StarPie.Icons.Contracts/`，S1 实现目录（`Services/Icons/` 的 IconAssetService +
 > `Modules/` 的 IconsModuleRegistrar）只存在于 `StarPie.Icons/`（ADR-0023/#95 起）；
+> M3 契约目录（`Services/Programs/` 的 IProgramScanner/ProgramEntry/ProgramCatalog + `Services/Icons/`
+> 的 IShortcutTargetResolver）只存在于 `StarPie.Programs.Contracts/`，S6 契约目录（`Services/Dialogs/`
+> 的 IDialogService + 结果 record）只存在于 `StarPie.Dialogs.Contracts/`（ADR-0023/#96 起）；
 > 其余业务目录（Host 外观聚合页/壳窗口/导航运行时（`Services/Navigation/` +
 > `ViewModels/Navigation/`，ADR-0021/#92 迁入）等）留 `WinPieGestures/`；S6 对话框实现目录
 （`Services/Dialogs`、`ViewModels/Dialogs`、`Views/Dialogs`、`Views/Controls/SpectrumCanvasBehavior`）在 `StarPie.Dialogs/`（ADR-0020/#88）。
@@ -151,14 +160,14 @@ StarPie/
 ## 各目录职责细则
 
 > 目录相对所属工程：共享内核件位于 `StarPie.Core/`——`Models/`、`Services/Configuration`|
-> `Dialogs`(契约)|`Localization`|`Messages`|`Navigation`（ADR-0021/#92 起仅目录契约
+> `Localization`|`Messages`|`Navigation`（ADR-0021/#92 起仅目录契约
 > `NavigationCatalog.cs`；运行时主体已迁 Host）、`Services/AppHostDelegates.cs`（B6/#79 上提）、
-> `ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 上提，D5）与 `Services/Icons/` 的
-> `IShortcutTargetResolver.cs`（#95 中间态，ADR-0023/#95）——**不再含共享 UI 基建
+> `ViewModels/Pages/IProfilePreviewSource.cs`（B8/#81 上提，D5）——**不再含共享 UI 基建
 > （ADR-0022/#94 去共享化）**：通用转换器与 `ModernControls.xaml` 在 Host
 > `Views/Converters|Styles/`，`HotkeyRecorderBox`（控件+样式字典）在
-> `StarPie.Gestures/Views/Controls|Styles/`，共享页面基类已删除；M3 三件（`ProgramScanner`/`ProgramCatalog`/
-> `ShortcutResolver`，B4/#77 迁入）位于 `StarPie.Programs/Services/Programs/`；M5 三件与两页
+> `StarPie.Gestures/Views/Controls|Styles/`，共享页面基类已删除；M3 实现两件（`ProgramScanner`/
+> `ShortcutResolver`，B4/#77 迁入）位于 `StarPie.Programs/Services/Programs/`（契约本体驻
+> `StarPie.Programs.Contracts/`，ADR-0023/#96）；M5 三件与两页
 > （B6/#79 迁入）位于 `StarPie.Shell/`；M4 主题件（`IThemeService`/`ThemeService`、
 > `ThemePaletteManager.cs`、`Views/Styles/Themes/*.xaml`、`InterfaceThemeSettingsViewModel`、
 > `ThemeModuleRegistrar`，B7/#80 迁入）位于 `StarPie.Theme/`（见下模块程序集目录表）；
@@ -170,7 +179,10 @@ StarPie/
 > 的 `MainViewModel`/`NavigationItemViewModel`，ADR-0021/#92 迁入、命名空间不变）；S1 契约件
 > （IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem，ADR-0023/#95 迁入）位于
 > `StarPie.Icons.Contracts/`、S1 实现件（IconAssetService + IconsModuleRegistrar，
-> ADR-0023/#95 迁入）位于 `StarPie.Icons/`（见下模块程序集目录表）；其余业务
+> ADR-0023/#95 迁入）位于 `StarPie.Icons/`；M3 契约件（IProgramScanner/ProgramEntry/
+> ProgramCatalog/IShortcutTargetResolver，ADR-0023/#96 迁入）位于 `StarPie.Programs.Contracts/`、
+> S6 契约件（IDialogService + 结果 record，ADR-0023/#96 迁入）位于
+> `StarPie.Dialogs.Contracts/`（见下模块程序集目录表）；其余业务
 > 目录位于 `WinPieGestures/`（Host）。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
@@ -179,9 +191,9 @@ StarPie/
 | `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；不跨目录“借用”他人实现；静态工具需符合 [layering.md](layering.md)（Services） |
 | `Services/Actions/` | **B9/#82 起在 `StarPie.Gestures/Services/Actions/`**：`IActionExecutorService`、`ActionExecutorService`（系统调用层）、`ActionRouting`（纯函数 + `ActionRoute`/`KeyStroke`） | 路由决策不得散落进 VM/View；实现见 [gestures.md](gestures.md) |
 | `Services/Configuration/` | `IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`；**B2/#75 起在 `StarPie.Core/`（dev 目录分支经组合根回填 `AppDataPaths.IsDevInstance`）** | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；实现见 [config.md](config.md) |
-| `Services/Dialogs/` | **分置**：契约 `IDialogService` + 各 `ShowXxx` 的可空结果 record 在 `StarPie.Core/Services/Dialogs/`（B2/#75 起）；实现 `DialogService` 在 `StarPie.Dialogs/Services/Dialogs/`（ADR-0020/#88 B11 起） | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
+| `Services/Dialogs/` | **分置（ADR-0023/#96 起）**：契约 `IDialogService` + 各 `ShowXxx` 的可空结果 record 在 `StarPie.Dialogs.Contracts/Services/Dialogs/`（纯 C#，自 Core 迁出）；实现 `DialogService` 在 `StarPie.Dialogs/Services/Dialogs/`（ADR-0020/#88 B11 起） | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View，系统弹窗边界见 [dialogs.md](dialogs.md) |
 | `Services/Gestures/` | **B9/#82 起在 `StarPie.Gestures/Services/Gestures/`**：`MouseHook`、`GestureController`、`GestureEngine`（+ `GestureState`/`GestureReleaseResult`）、`IWindowContext`/`WindowContext`（M1；`IWheelFactory`/`WheelFactory` 已随 B8/#81 D5 收编 M2，见 `Services/Wheel/` 行） | 手势判定纯逻辑（引擎）不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
-| `Services/Icons/` | **分置（ADR-0023/#95 S1 成集）**：契约四件（静态纯目录 `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）在 `StarPie.Icons.Contracts/Services/Icons/`；实现 `IconAssetService` 在 `StarPie.Icons/Services/Icons/`；.lnk 契约 `IShortcutTargetResolver` #95 中间态仍驻 `StarPie.Core/Services/Icons/`（M3 实现，#96 随 Programs.Contracts 迁出） | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；有状态/IO/Win32 面只经实例服务注入，不进 VM/View；归属见 [modules.md](modules.md) §3 S1 |
+| `Services/Icons/` | **分置（ADR-0023/#95 S1 成集 + #96 SPI 下沉）**：契约四件（静态纯目录 `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）在 `StarPie.Icons.Contracts/Services/Icons/`；实现 `IconAssetService` 在 `StarPie.Icons/Services/Icons/`；.lnk 契约 `IShortcutTargetResolver` 驻 `StarPie.Programs.Contracts/Services/Icons/`（M3 实现，自 Core 迁出） | 几何/程序解析类入口不在此目录（R6 三分，T3a–T3d/#65–#68 收口）；有状态/IO/Win32 面只经实例服务注入，不进 VM/View；归属见 [modules.md](modules.md) §3 S1 |
 | `Services/Localization/` | `ILocalizationService`/`LocalizationService` + `Strings*.resx`（语言状态以规范 BCP-47 码字符串为唯一表示，别名表在服务内）；**B2/#75 起在 `StarPie.Core/`** | VM/View 不得另建文案字典；实现见 [localization.md](localization.md) |
 | `Services/Messages/` | `Messages.cs`（IMessenger 不可变消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest` 等跨层弹窗载体）；**B2/#75 起在 `StarPie.Core/`** | 不放绑定语义；同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | **分置（ADR-0021/#92）**：共享内核（`StarPie.Core/Services/Navigation/`，B2/#75 起）：目录/槽位契约 `NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`（仅 `NavigationCatalog.cs`）；宿主（`WinPieGestures/Services/Navigation/`）：导航运行时 `NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`，命名空间 `StarPie.Services.Navigation` 不变） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
@@ -212,16 +224,19 @@ StarPie/
 | `StarPie.Gestures/Views/Controls/` | M1：共享自定义控件 `HotkeyRecorderBox.cs`（唯一编译期消费方 `GesturesSettingsPage.xaml`，xmlns 本地引用；隐式默认样式模板在同模块 `Views/Styles/HotkeyRecorderBox.xaml`） | 不放对话框专用行为（`SpectrumCanvasBehavior` 已随 S6 迁 `StarPie.Dialogs`，ADR-0020/#88） |
 | `StarPie.Gestures/Views/Styles/` | M1：`HotkeyRecorderBox.xaml` 热键录制控件样式字典（由 Host `App.xaml` 经 `/StarPie.Gestures;component/Views/Styles/HotkeyRecorderBox.xaml` 单点合并） | 不放全局控件样式（`ModernControls.xaml` 在 Host） |
 
-### 模块程序集目录（B4/#77 起；B6/#79 起含首个带 DI 的模块程序集；B7/#80 起含 M4；B8/#81 起含 M2；B9/#82 起含 M1；ADR-0023/#95 起含 S1 契约/实现）
+### 模块程序集目录（B4/#77 起；B6/#79 起含首个带 DI 的模块程序集；B7/#80 起含 M4；B8/#81 起含 M2；B9/#82 起含 M1；ADR-0023/#95 起含 S1 契约/实现；ADR-0023/#96 起含 M3/S6 契约）
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
 | `StarPie.Icons.Contracts/Services/Icons/` | S1 契约四件：`IIconAssetService.cs`/`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`（命名空间 `StarPie.Services.Icons` 不变，零 ProjectReference，ADR-0023/#95） | 不放实现/注册器（在 StarPie.Icons）；契约程序集只承载类型面 |
-| `StarPie.Icons/Services/Icons/` | S1 实现：`IconAssetService.cs`（自定义图标存储/位图源/文件图标提取，Win32；构造注入 Core `IShortcutTargetResolver`，#95 中间态） | 不反向引用 Host/业务模块；有状态/IO/Win32 面只经契约注入消费方，不进 VM/View |
+| `StarPie.Icons/Services/Icons/` | S1 实现：`IconAssetService.cs`（自定义图标存储/位图源/文件图标提取，Win32；构造注入 Programs.Contracts 的 `IShortcutTargetResolver`，#96 起） | 不反向引用 Host/业务模块 runtime；有状态/IO/Win32 面只经契约注入消费方，不进 VM/View |
 | `StarPie.Icons/Modules/` | 模块注册器 `IconsModuleRegistrar.cs`（`RegisterServices(IServiceCollection)` 下放 `IIconAssetService→IconAssetService`；S1 无导航页，无 RegisterNavigation/页面模板字典） | 只注册不解析；不承载业务 |
-| `StarPie.Programs/Services/Programs/` | M3 程序扫描与目录：`ProgramScanner`（IO 扫描；ADR-0020/#88 起实例实现 `IProgramScanner`）、`ShortcutResolver`（快捷方式解析出口，实例实现 Core 契约）；`ProgramCatalog`/`ProgramEntry` 已上提 Core `Services/Programs/` | 集成性质扫描逻辑不进 VM 单测；图标资产契约在 `StarPie.Icons.Contracts`（`IIconAssetService` 注入）、.lnk 契约 #95 中间态在 Core `Services/Icons/`（`IShortcutTargetResolver` 注入，M3 → Core/Contracts 单向，ADR-0019/#87 + ADR-0023/#95）；实现见 [programs.md](programs.md) |
+| `StarPie.Programs.Contracts/Services/Programs/` | M3 扫描契约：`IProgramScanner.cs`/`ProgramEntry.cs`/`ProgramCatalog.cs`（命名空间 `StarPie.Services.Programs` 不变，零 ProjectReference，ADR-0023/#96 自 Core 迁出） | 不放实现/注册器（在 StarPie.Programs）；契约程序集只承载类型面 |
+| `StarPie.Programs.Contracts/Services/Icons/` | M3 SPI：`IShortcutTargetResolver.cs`（.lnk 解析契约，命名空间 `StarPie.Services.Icons` 不变，ADR-0023/#96 自 Core 迁出） | 不放实现（ShortcutResolver 在 StarPie.Programs）；契约程序集只承载类型面 |
+| `StarPie.Programs/Services/Programs/` | M3 程序扫描与目录实现：`ProgramScanner`（IO 扫描；ADR-0020/#88 起实例实现 `IProgramScanner`）、`ShortcutResolver`（快捷方式解析出口，实例实现 SPI）；契约本体驻 Programs.Contracts | 集成性质扫描逻辑不进 VM 单测；图标资产契约在 `StarPie.Icons.Contracts`（`IIconAssetService` 注入）、.lnk 契约在 `StarPie.Programs.Contracts`（`IShortcutTargetResolver` 注入，M3 → Programs.Contracts + Icons.Contracts 单向，ADR-0019/#87 + ADR-0020/#88 + ADR-0023/#96）；实现见 [programs.md](programs.md) |
+| `StarPie.Dialogs.Contracts/Services/Dialogs/` | S6 对话框契约：`IDialogService.cs` + 6 结果 record（命名空间 `StarPie.Services.Dialogs` 不变，纯 C#、零 ProjectReference，ADR-0023/#96 自 Core 迁出） | 不放实现/界面（在 StarPie.Dialogs）；契约程序集只承载类型面 |
 | `StarPie.Dialogs/Services/Dialogs/` | S6：`DialogService`（public——Host `SetOwner(MainView)` 装配面，ADR-0020/#88） | 只注册不解析；Owner 是内部自由不泄露进契约；见 [dialogs.md](dialogs.md) |
-| `StarPie.Dialogs/ViewModels/Dialogs/` | S6：五对对话框 VM（`ProgramPickerViewModel`/`IconPickerViewModel`/`ColorPickerViewModel`/`InputViewModel`/`ScreenEyedropperViewModel`；每次 Show 新建，不注册容器） | 不得引用 WPF 类型；不得反向引用 Host/Programs（扫描经 Core `IProgramScanner`） |
+| `StarPie.Dialogs/ViewModels/Dialogs/` | S6：五对对话框 VM（`ProgramPickerViewModel`/`IconPickerViewModel`/`ColorPickerViewModel`/`InputViewModel`/`ScreenEyedropperViewModel`；每次 Show 新建，不注册容器） | 不得引用 WPF 类型；不得反向引用 Host/Programs runtime（扫描经 Programs.Contracts `IProgramScanner`） |
 | `StarPie.Dialogs/Views/Dialogs/` | S6：五对对话框 Window.xaml(.cs)（唯一形态，code-behind 白名单见 [dialogs.md](dialogs.md)） | 不注册容器；不编排业务 |
 | `StarPie.Dialogs/Views/Controls/` | S6：`SpectrumCanvasBehavior`（取色对话框专用行为，依赖 `ColorPickerViewModel.SpectrumPoint`） | 行为需经 ADR-0009 输入适配裁决 |
 | `StarPie.Dialogs/Modules/` | 模块注册器 `DialogsModuleRegistrar.cs`（`RegisterServices(IServiceCollection)`；S6 无导航页，无 RegisterNavigation/页面模板字典） | 只注册不解析；不承载业务 |
@@ -258,25 +273,34 @@ StarPie/
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**。
 - `StarPie.Core.csproj` / `GlobalUsings.cs`：共享内核工程入口；`StarPie.Core/` 源码根目录**只允许**
   上表列出的共享内核目录与文件（B2/#75 起；含 `Services/AppHostDelegates.cs`（B6/#79 上提）；
-  B8/#81 起含 `ViewModels/Pages/IProfilePreviewSource.cs`；ADR-0020/#88 起含 `Services/Programs/`（ProgramEntry/ProgramCatalog/IProgramScanner）；
+  B8/#81 起含 `ViewModels/Pages/IProfilePreviewSource.cs`；
   ADR-0021/#92 起 `Services/Navigation/` 仅留 `NavigationCatalog.cs`，`ViewModels/Navigation/` 目录在 Core 清零——运行时在 Host；
-  ADR-0023/#95 起 `Services/Icons/` 仅留 `IShortcutTargetResolver.cs`（#95 中间态，#96 随 Programs.Contracts 迁出后目录在 Core 清零）；
+  ADR-0023/#95 起 S1 图标资产目录随成集迁出、ADR-0023/#96 起 `Services/{Programs,Dialogs,Icons}` 契约目录在 Core 清零（IDialogService/结果 record 迁 Dialogs.Contracts，IProgramScanner/ProgramEntry/ProgramCatalog/IShortcutTargetResolver 迁 Programs.Contracts）；
   ADR-0022/#94 起 `Views/`（共享 UI 基建）目录在 Core 清零——通用转换器/ModernControls.xaml 在 Host
   `Views/Converters|Styles/`、HotkeyRecorderBox（控件+样式字典）在 `StarPie.Gestures/`、共享页面基类 SettingsPageBase 已删除）。
 - `StarPie.Icons.Contracts.csproj`：S1 契约程序集工程入口（ADR-0023/#95 起，WPF 类库、零
   ProjectReference）；`StarPie.Icons.Contracts/` 源码根目录**只允许** `Services/Icons/`
   （`IIconAssetService.cs`/`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`）。
 - `StarPie.Icons.csproj`：S1 实现程序集工程入口（ADR-0023/#95 起，WPF 类库；引用
-  Icons.Contracts + Core（#95 中间态 `IShortcutTargetResolver`）+ MS.DI 包）；
+  Icons.Contracts + Programs.Contracts（`IShortcutTargetResolver`，#96）+ Core（S2 AppDataPaths）
+  + MS.DI 包）；
   `StarPie.Icons/` 源码根目录**只允许** `Modules/`（`IconsModuleRegistrar`）与
   `Services/Icons/`（`IconAssetService.cs`）。
+- `StarPie.Programs.Contracts.csproj`：M3 契约程序集工程入口（ADR-0023/#96 起，WPF 类库、零
+  ProjectReference）；`StarPie.Programs.Contracts/` 源码根目录**只允许** `Services/Programs/`
+  （`IProgramScanner.cs`/`ProgramEntry.cs`/`ProgramCatalog.cs`）与 `Services/Icons/`
+  （`IShortcutTargetResolver.cs`）。
+- `StarPie.Dialogs.Contracts.csproj`：S6 契约程序集工程入口（ADR-0023/#96 起，纯 C# 类库、零
+  ProjectReference）；`StarPie.Dialogs.Contracts/` 源码根目录**只允许** `Services/Dialogs/`
+  （`IDialogService.cs`）。
 - `StarPie.Dialogs.csproj` / `GlobalUsings.cs`：S6 对话框实现模块程序集工程入口（B11/#88 起，
-  ADR-0020：单向引用 Core + 允许引用 Theme（IThemeService 允许边）+ 引用 Icons.Contracts
+  ADR-0020：引用 Dialogs.Contracts（自身契约，ADR-0023/#96）+ Programs.Contracts（扫描/.lnk
+  契约边）+ Core（S2/S3/S4）+ 允许引用 Theme（IThemeService 允许边）+ 引用 Icons.Contracts
   （ADR-0023/#95，S1 契约边））；`StarPie.Dialogs/` 源码根目录
   **只允许** `Modules/`（DialogsModuleRegistrar）、`Services/Dialogs/`（DialogService）、
   `ViewModels/Dialogs/`（五对对话框 VM）与 `Views/Dialogs/`、`Views/Controls/`（窗口与取色行为）。
-- `StarPie.Programs.csproj`：M3 模块程序集工程入口（B4/#77 起；ADR-0019/#87 起单向引用 Core +
-  ADR-0023/#95 起引用 Icons.Contracts）；
+- `StarPie.Programs.csproj`：M3 模块程序集工程入口（B4/#77 起；ADR-0023/#96 起引用
+  Programs.Contracts（自身契约）+ ADR-0023/#95 起引用 Icons.Contracts，不再引用 Core）；
   `StarPie.Programs/` 源码根目录**只允许** `Modules/`（`ProgramsModuleRegistrar`）、
   `Services/Programs/`（`ProgramScanner`/`ShortcutResolver`）。
 - `StarPie.Shell.csproj` / `GlobalUsings.cs`：M5 模块程序集工程入口（B6/#79 起，单向引用 Core）；
@@ -303,8 +327,8 @@ StarPie/
   与 `Views/Pages/`（TriggerSettingsPage/GesturesSettingsPage）。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
   `WinPieGestures/`、`StarPie.Core/`、`StarPie.Dialogs/`、`StarPie.Programs/`、`StarPie.Shell/`、
-  `StarPie.Theme/`、`StarPie.Wheel/`、`StarPie.Gestures/`、`StarPie.Icons.Contracts/` 或
-  `StarPie.Icons/` 下。
+  `StarPie.Theme/`、`StarPie.Wheel/`、`StarPie.Gestures/`、`StarPie.Icons.Contracts/`、
+  `StarPie.Icons/`、`StarPie.Programs.Contracts/` 或 `StarPie.Dialogs.Contracts/` 下。
 
 ## 现状偏差与待清理项
 
@@ -322,6 +346,16 @@ M1 手势件已随 B9/#82 迁出）。
 
 已消除的历史偏差（2026-09-04）：
 
+- **ADR-0023/#96（2026-09-09）**：M3 扫描契约三件（`IProgramScanner.cs`/`ProgramEntry.cs`/
+  `ProgramCatalog.cs`）自 `StarPie.Core/Services/Programs/` 迁
+  `StarPie.Programs.Contracts/Services/Programs/`，SPI `IShortcutTargetResolver.cs` 自
+  `StarPie.Core/Services/Icons/` 迁 `StarPie.Programs.Contracts/Services/Icons/`（命名空间不变，
+  零依赖薄契约）；S6 契约 `IDialogService.cs`（含 6 结果 record）自 `StarPie.Core/Services/Dialogs/`
+  迁 `StarPie.Dialogs.Contracts/Services/Dialogs/`（纯 C#，命名空间不变）；Core
+  `Services/{Programs,Dialogs,Icons}` 目录清零；Programs runtime 删 Core 引用，
+  Dialogs/Gestures/Shell/Wheel/Host/Icons runtime 增相应 Contracts 显式引用（Dialogs→Programs
+  仅经契约边、Icons→M3 SPI 经契约边），slnx/测试工程登记两新工程
+  （见 [assemblies.md](assemblies.md) §9）。
 - **ADR-0023/#95（2026-09-09）**：S1 图标资产成集——契约四件（`IIconAssetService.cs`/
   `IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`）自 `StarPie.Core/Services/Icons/`
   迁 `StarPie.Icons.Contracts/Services/Icons/`（命名空间不变，零依赖薄契约）；`IconAssetService.cs`
