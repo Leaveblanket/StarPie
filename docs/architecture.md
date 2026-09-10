@@ -46,7 +46,8 @@
 
 ## 3. 技术栈
 
-- .NET 8 / WPF（`net8.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）。
+- .NET 10 / WPF（`net10.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）；运行时段与
+  windows 投影段的演进政策见 [ADR-0026](adr/0026-runtime-baseline-and-windows-sdk-projection.md)。
 - 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`）承载 Models、共享件
   （Configuration/Localization/Messages/Navigation 目录与槽位契约；导航运行时主体
   （NavigationStore/NavigationExecutor/MainViewModel/NavigationItemViewModel）归 Host
@@ -116,7 +117,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0025，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0026，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie/              # 主程序（规范对象；含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
@@ -184,5 +185,6 @@ Services ---> Models
 | 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active |
 | 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
 | 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active |
+| 0026 | `docs/adr/0026-runtime-baseline-and-windows-sdk-projection.md` | 运行时基线与 Windows SDK 投影版本政策 | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

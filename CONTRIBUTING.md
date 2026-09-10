@@ -7,7 +7,7 @@
 ## 🛠️ 本地开发环境准备
 
 1. **操作系统**：Windows 10 / 11 (x64)；
-2. **.NET 8.0 SDK**：[下载并安装 .NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)；
+2. **.NET 10.0 SDK**：[下载并安装 .NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)（仓库根 `global.json` 固定 SDK 基线，`rollForward` 允许更高特性带）；
 3. **IDE / 编辑器**：Visual Studio 2022 (带 .NET 桌面开发工作负载) 或 VS Code / JetBrains Rider；
 4. **Python 3.10+** (可选，用于运行端到端 GUI 自动化测试)：`pip install pytest pywinauto`。
 
