@@ -13,11 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="10.0.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
-    <!-- xUnit.net v3 的 mtp-off 变体：仍以 VSTest 运行，dotnet test 与 Test Explorer 入口不变 -->
-    <PackageReference Include="xunit.v3.mtp-off" Version="4.0.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
+    <!-- xUnit.net v3 的 mtp-v2 变体：以 Microsoft.Testing.Platform 2.x 进程内运行，
+         dotnet test 走 MTP 模式（global.json 的 test.runner 开关）；VS/VS Code 的
+         Test Explorer 由 MTP 原生支持接管，无需 VSTest 适配器与数据收集器 -->
+    <PackageReference Include="xunit.v3.mtp-v2" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -44,7 +44,7 @@ dotnet run --project StarPie        # launchSettings 已默认附加 --dev
 3. **编写与验证代码**：
    - 保持 C# 编码风格与项目现有架构一致；
    - 新增 UI 字符串请在 `StarPie.Core/Services/Localization/Strings.resx`（及 zh-TW/en/ja 卫星）补四语言键值；声明式文案经 XAML `{DynamicResource}`，动态文案经 `ILocalizationService` 即时取词；
-   - 运行全量 xUnit：`dotnet test StarPie.Tests/StarPie.Tests.csproj`；涉及用户可见 UI 时再运行 e2e：`python -m pytest tests/test_settings.py -v`。
+   - 运行全量 xUnit：`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`；涉及用户可见 UI 时再运行 e2e：`python -m pytest tests/test_settings.py -v`。
 4. **提交 Commit**（推荐采用约定式提交规范）：
    ```text
    feat: 增加新的轮盘渲染形态
