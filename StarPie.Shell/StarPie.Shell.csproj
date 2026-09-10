@@ -23,7 +23,7 @@
   <ItemGroup>
     <!-- B6/#79：M5 → Core 单向依赖（页面 VM 消费 S2/S3/S4 契约、AppHostDelegates 宿主回调契约） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0023/#96：S6 对话框契约独立成集（GeneralSettingsViewModel/AboutViewModel 消费
+    <!-- ADR-0023/#96：S6 对话框契约独立成集（GeneralSettingsViewModel 消费
          IDialogService），不再经 Core 消费 S6 类型 -->
     <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
   </ItemGroup>

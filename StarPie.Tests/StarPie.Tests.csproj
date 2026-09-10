@@ -43,7 +43,7 @@
     <!-- ADR-0023/#96：M3 扫描契约独立成集（IProgramScanner/ProgramEntry/ProgramCatalog/
          IShortcutTargetResolver 直用，Programs 等 PlacementTests 断言归属） -->
     <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
-    <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/AboutViewModel/ShellModuleRegistrar 等测试直用） -->
+    <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
     <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />

@@ -53,7 +53,7 @@
     <!-- ADR-0023/#97：M1 预览 Profile 契约独立成集显式引用（组合根/注释面消费
          IProfilePreviewSource，别名由 GesturesModuleRegistrar 注册） -->
     <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
-    <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General+About 设置面随迁；
+    <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
     <!-- B7/#80：M4 界面主题模块程序集显式引用（ThemeService/ThemePaletteManager/主题字典/

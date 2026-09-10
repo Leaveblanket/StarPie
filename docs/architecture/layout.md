@@ -49,7 +49,7 @@ StarPie/
 │   │   ├── Configuration/         # S2：配置读写、防抖保存、AppDataPaths（dev 分支经组合根回填）
 │   │   ├── Localization/          # S3：ILocalizationService + Strings*.resx（四语言）+ 设计期投影字典 DesignTimeStrings.xaml（Page 编译）与生成脚本（见 design-time-preview.md）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体
-│   │   └── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–4；运行时在 Host，仅此文件）
+│   │   └── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–3；运行时在 Host，仅此文件）
 │   └── ViewModels/Pages/          # 已清空（IProfilePreviewSource.cs 在 StarPie.Gestures.Contracts，ADR-0023；
 │                                  #   Navigation 目录在 Host；Views/ 目录已清空）
 ├── StarPie.Icons.Contracts/       # S1 图标契约程序集（WPF 类库，程序集 StarPie.Icons.Contracts；命名空间 StarPie.*；ADR-0023）
@@ -87,8 +87,8 @@ StarPie/
 │   ├── Properties/                # DesignTimeResources.xaml（设计期资源锚；见 design-time-preview.md）
 │   ├── Modules/                   # ShellModuleRegistrar.cs（RegisterServices+RegisterNavigation）+ ShellPageTemplates.xaml
 │   ├── Services/Shell/            # M5：TrayIconManager(+TrayMenuEntry)、AutostartRegistry、MemoryOptimizer
-│   ├── ViewModels/Pages/          # M5：GeneralSettingsViewModel、AboutViewModel
-│   └── Views/Pages/               # M5：AdvancedSettingsPage、AboutSettingsPage（根直承 UserControl）
+│   ├── ViewModels/Pages/          # M5：GeneralSettingsViewModel
+│   └── Views/Pages/               # M5：AdvancedSettingsPage（根直承 UserControl）
 ├── StarPie.Theme.Contracts/       # M4 界面主题契约程序集（WPF 类库，程序集 StarPie.Theme.Contracts；命名空间 StarPie.*；ADR-0023）
 │   ├── StarPie.Theme.Contracts.csproj  # SDK 工程文件（RootNamespace=StarPie；零 ProjectReference——薄契约，按需 WPF：ApplyWindowTheme(FrameworkElement)）
 │   └── Services/Shell/            # M4 契约：IThemeService.cs（命名空间 StarPie.Services.Shell 不变）
@@ -157,12 +157,12 @@ StarPie/
 | `Services/Messages/` | `StarPie.Core/`：`Messages.cs`（IMessenger 消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest`） | 同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | Core：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Wheel/` | `StarPie.Wheel/Services/Wheel/`：`WheelGeometry`、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Wheel.Contracts`） | 工厂只经 Wheel.Contracts 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
-| `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Gestures`：`BehaviorSettingsViewModel`/`ProfileListViewModel`；`StarPie.Shell`：`GeneralSettingsViewModel`/`AboutViewModel`；`StarPie.Theme`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`；`StarPie.Wheel`：`WheelAppearanceSettingsViewModel`；`StarPie.Gestures.Contracts`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
+| `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Gestures`：`BehaviorSettingsViewModel`/`ProfileListViewModel`；`StarPie.Shell`：`GeneralSettingsViewModel`；`StarPie.Theme`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`；`StarPie.Wheel`：`WheelAppearanceSettingsViewModel`；`StarPie.Gestures.Contracts`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `StarPie.Dialogs/ViewModels/Dialogs/`：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | `StarPie.Gestures/ViewModels/Gestures/`：`SlotViewModel`（+ `SystemPresetItem`/`ActionTypeOption`） | 不放服务 |
 | `ViewModels/Navigation/` | Host：`NavigationItemViewModel`、`MainViewModel`（目录驱动）、`ShellViewModel` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
 | `ViewModels/Wheel/` | `StarPie.Wheel/ViewModels/Wheel/`：`WheelViewModel`（契约 `IWheelViewModel`/`IWheelAppearanceState` 驻 `StarPie.Wheel.Contracts`） | 不注册容器；按手势由 `WheelFactory` 瞬态创建 |
-| `Views/Pages/` | Host：`AppearanceSettingsPage`；`StarPie.Gestures`：`TriggerSettingsPage`/`GesturesSettingsPage`；`StarPie.Shell`：`AdvancedSettingsPage`/`AboutSettingsPage`（XAML 根直承 `UserControl`） | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
+| `Views/Pages/` | Host：`AppearanceSettingsPage`；`StarPie.Gestures`：`TriggerSettingsPage`/`GesturesSettingsPage`；`StarPie.Shell`：`AdvancedSettingsPage`（XAML 根直承 `UserControl`） | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
 | `Views/Dialogs/` | `StarPie.Dialogs/Views/Dialogs/`：`{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放无配对 Window 的散件 |
 | `Views/Navigation/` | Host：`MainView`（纯壳）、`SidebarView` | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
 | `Views/Wheel/` | `StarPie.Wheel/Views/Wheel/`：`RadialWindow` | 状态决策在 `WheelViewModel`；窗口只做视觉呈现与生命周期 |

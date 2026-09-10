@@ -14,12 +14,12 @@ using StarPie.Views.Pages;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 壳层模块（Shell）跨程序集归属与依赖收口：壳层服务（托盘/自启/内存）与高级/关于设置面
+/// 壳层模块（Shell）跨程序集归属与依赖收口：壳层服务（托盘/自启/内存）与高级设置面
 /// （VM+View）位于 <c>StarPie.Shell</c>；模块注册器（<see cref="ShellModuleRegistrar"/>：
 /// RegisterNavigation + RegisterServices）随模块驻本程序集；宿主回调契约
 /// <see cref="AppHostDelegates"/> 位于共享内核 <c>StarPie.Core</c>；共享页面基类
 /// <c>SettingsPageBase</c> 已随 ADR-0022/#94 删除，M5 设置页 XAML 根直承
-/// <c>UserControl</c>（跨模块五页断言见 SharedUiAssemblyPlacementTests）。
+/// <c>UserControl</c>（跨模块四页断言见 SharedUiAssemblyPlacementTests）。
 /// Shell → Core 单向，不引用宿主/其它业务模块。
 /// </summary>
 public sealed class ShellAssemblyPlacementTests
@@ -30,15 +30,12 @@ public sealed class ShellAssemblyPlacementTests
         Assert.Equal("StarPie.Shell", typeof(TrayIconManager).Assembly.GetName().Name);
         Assert.Equal("StarPie.Shell", typeof(MemoryOptimizer).Assembly.GetName().Name);
         Assert.Equal("StarPie.Shell", typeof(GeneralSettingsViewModel).Assembly.GetName().Name);
-        Assert.Equal("StarPie.Shell", typeof(AboutViewModel).Assembly.GetName().Name);
         Assert.Equal("StarPie.Shell", typeof(AdvancedSettingsPage).Assembly.GetName().Name);
-        Assert.Equal("StarPie.Shell", typeof(AboutSettingsPage).Assembly.GetName().Name);
         Assert.Equal("StarPie.Shell", typeof(ShellModuleRegistrar).Assembly.GetName().Name);
 
         Assert.Equal("StarPie.Services.Shell", typeof(TrayIconManager).Namespace);
         Assert.Equal("StarPie.Services.Shell", typeof(MemoryOptimizer).Namespace);
         Assert.Equal("StarPie.ViewModels.Pages", typeof(GeneralSettingsViewModel).Namespace);
-        Assert.Equal("StarPie.ViewModels.Pages", typeof(AboutViewModel).Namespace);
         Assert.Equal("StarPie.Modules", typeof(ShellModuleRegistrar).Namespace);
     }
 
@@ -66,7 +63,6 @@ public sealed class ShellAssemblyPlacementTests
     public void M5设置页_去共享化后直承UserControl()
     {
         Assert.Equal("System.Windows.Controls.UserControl", typeof(AdvancedSettingsPage).BaseType!.FullName);
-        Assert.Equal("System.Windows.Controls.UserControl", typeof(AboutSettingsPage).BaseType!.FullName);
     }
 
     [Fact]
@@ -75,10 +71,10 @@ public sealed class ShellAssemblyPlacementTests
         var catalog = new NavigationCatalog();
         ShellModuleRegistrar.RegisterNavigation(catalog);
 
-        Assert.Equal(2, catalog.Entries.Count);
-        Assert.Equal(new[] { NavigationSlot.Advanced, NavigationSlot.About }, catalog.Entries.Select(e => e.Slot));
-        Assert.Equal(new[] { "NavPage3", "NavPage4" }, catalog.Entries.Select(e => e.AutomationId));
-        Assert.Equal(new[] { "PageAdvanced", "PageAbout" }, catalog.Entries.Select(e => e.TitleKey));
+        Assert.Single(catalog.Entries);
+        Assert.Equal(new[] { NavigationSlot.Advanced }, catalog.Entries.Select(e => e.Slot));
+        Assert.Equal(new[] { "NavPage3" }, catalog.Entries.Select(e => e.AutomationId));
+        Assert.Equal(new[] { "PageAdvanced" }, catalog.Entries.Select(e => e.TitleKey));
         Assert.All(catalog.Entries, e => Assert.Equal("StarPie.Shell", e.ViewModelType.Assembly.GetName().Name));
     }
 
@@ -94,7 +90,7 @@ public sealed class ShellAssemblyPlacementTests
     }
 
     [Fact]
-    public void M5注册器_RegisterServices_可经微型容器解析两页面VM()
+    public void M5注册器_RegisterServices_可经微型容器解析本模块页面VM()
     {
         var services = new ServiceCollection();
         var config = new TestConfigService { Current = new AppConfig() };
@@ -115,10 +111,8 @@ public sealed class ShellAssemblyPlacementTests
         using var provider = services.BuildServiceProvider();
 
         var general = provider.GetRequiredService<GeneralSettingsViewModel>();
-        var about = provider.GetRequiredService<AboutViewModel>();
 
         Assert.Equal("StarPie.Shell", general.GetType().Assembly.GetName().Name);
-        Assert.Equal("StarPie.Shell", about.GetType().Assembly.GetName().Name);
         Assert.Same(general, provider.GetRequiredService<GeneralSettingsViewModel>());
     }
 }

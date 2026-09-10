@@ -43,7 +43,7 @@ namespace StarPie
 
             // 导航目录由 Gestures/Shell 模块注册器与宿主注册器（外观聚合页留宿主）按固定顺序
             // 装配——页面类型不再出现在导航装配/解析清单；Validate 在 BuildServiceProvider
-            // 前收口五个槽位完整，供 CreateAppHost 目录驱动 eager 解析与导航 VM/导航执行消费。
+            // 前收口四个槽位完整，供 CreateAppHost 目录驱动 eager 解析与导航 VM/导航执行消费。
             var navigationCatalog = new NavigationCatalog();
             GesturesModuleRegistrar.RegisterNavigation(navigationCatalog);
             ShellModuleRegistrar.RegisterNavigation(navigationCatalog);
@@ -156,7 +156,7 @@ namespace StarPie
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM：容器单例，状态跨导航常驻；解析时机在配置加载后（CreateAppHost）。
-            // 高级/关于两页的注册已由 ShellModuleRegistrar 下放 StarPie.Shell。
+            // 高级页的注册已由 ShellModuleRegistrar 下放 StarPie.Shell。
             ShellModuleRegistrar.RegisterServices(services);
 
             // 手势与动作的 DI 注册（鼠标钩子/动作执行/窗口上下文/手势引擎与控制器、

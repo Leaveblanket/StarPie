@@ -11,7 +11,7 @@
 共享内核（`StarPie.Core/`；仅留目录/槽位契约）：
 
 - `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
-  `NavigationPageRegistration`（全局槽位表 0–4、`NavPage0..4` 正典与缺失/重复/未知槽位收口测试，
+  `NavigationPageRegistration`（全局槽位表 0–3、`NavPage0..3` 正典与缺失/重复/未知槽位收口测试，
   见 [assemblies.md](assemblies.md) §5.2）——跨模块注册契约（模块注册器写、控制台读），
   属共享内核"全局机制"，不受运行时归属影响。
 
@@ -49,7 +49,7 @@ M1 模块程序集（`StarPie.Gestures/`）：
 ## 关键流程
 
 1. `Composition` 装配目录：构造时依次调 `GesturesModuleRegistrar`/`ShellModuleRegistrar`/
-   `HostModuleRegistrar.RegisterNavigation(catalog)` 并 `catalog.Validate()`（五槽收口），目录单例注册；
+   `HostModuleRegistrar.RegisterNavigation(catalog)` 并 `catalog.Validate()`（四槽收口），目录单例注册；
    M5/M1 页面 VM 与手势管线的 DI 注册分别由 `ShellModuleRegistrar.RegisterServices`（含宿主回调
    经 Core `AppHostDelegates` 的接线）与 `GesturesModuleRegistrar.RegisterServices`（含
    `IProfilePreviewSource` 别名下放）下放模块程序集；导航运行时（`NavigationStore`/
@@ -81,11 +81,12 @@ as-built：
 - Host（外观聚合页，留 Host）：由 exe 内 HostModuleRegistrar + HostPageTemplates.xaml
   登记，页面 VM 的 DI 注册在 `Composition.ConfigureServices`。
 
-**槽位容量**：槽位表 = Core `NavigationSlot` 固定 0–4（`NavigationSlots.All` + e2e
-`NavPage0..4`），是产品侧边栏顺序的唯一正典；**产品页面数封顶 5**。新增第 6 页起需改 Core
+**槽位容量**：槽位表 = Core `NavigationSlot` 固定 0–3（`NavigationSlots.All` + e2e
+`NavPage0..3`），是产品侧边栏顺序的唯一正典；**产品页面数封顶 4**（槽位 4「关于与更新」
+已随 #107 于 2026-09-10 下线移除，其余四页 AutomationId 零漂移）。新增第 5 页起需改 Core
 枚举与收口测试（可能波及 e2e AutomationId），属放行共享面而非纯模块内部——此约束被有意
 接受；若未来出现新模块页面需求，再议槽位表可扩展化（字符串槽位/目录驱动
-注册，会破坏 `NavPage0..4` 稳定性，需先写 ADR）。
+注册，会破坏 `NavPage0..3` 稳定性，需先写 ADR）。
 
 ## 参见 ADR
 

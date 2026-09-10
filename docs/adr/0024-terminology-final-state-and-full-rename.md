@@ -30,14 +30,14 @@
 | 渲染/解析输入 | 参数 `palette`（方案名） | `theme` 参数 |
 | 界面主题整项替换管理器 | `AppThemePaletteManager` | `ThemePaletteManager` |
 | 界面主题变更消息成员 | `AppThemeChangedMessage.AppTheme` | `Theme` 属性 |
-| 页面导航（UIA/resx） | `NavPage0..4` / `PageTrigger..PageAbout` | `NavTab0..4` / `TabTrigger..TabAbout` |
+| 页面导航（UIA/resx） | `NavPage0..3` / `PageTrigger..PageAdvanced`（`PageAbout`/`NavPage4` 随 #107 于 2026-09-10 下线移除） | `NavTab0..4` / `TabTrigger..TabAbout` |
 | 品牌/工程 | `StarPie` | `WinPieGestures`（目录/工程/测试工程/自启值/注释/文档） |
 
 ### 壳层术语（伞形终态）
 
 「壳层 (Shell)」是应用外壳职责的伞形术语，下分两个子词条（CONTEXT.md 已收录）：
 - **壳窗口 (Shell Window)**：设置控制台主窗口的窗口职责（H1：MainView/ShellViewModel/关窗驻留/界面主题应用）；
-- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级与关于设置面；程序集名 `StarPie.Shell` 在伞形语义下自洽，不改名）。
+- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面；程序集名 `StarPie.Shell` 在伞形语义下自洽，不改名）。
 
 ## Decision
 
