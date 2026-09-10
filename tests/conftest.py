@@ -32,7 +32,7 @@ def app(sandbox_env, request):
     candidates = [
         os.path.join(project_root, "StarPie", "bin", config, tfm, "StarPie.exe")
         for config in ("Release", "Debug")
-        for tfm in ("net8.0-windows10.0.19041.0", "net8.0-windows")
+        for tfm in ("net10.0-windows10.0.19041.0", "net10.0-windows")
     ]
     app_path = next((c for c in candidates if os.path.exists(c)), None)
     if not app_path:

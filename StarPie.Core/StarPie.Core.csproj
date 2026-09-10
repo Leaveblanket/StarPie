@@ -5,7 +5,7 @@
          B10/#83：命名空间统一为 StarPie.* 前缀替换（跨程序集共享命名空间树），
          RootNamespace=StarPie 使 resx 强类型生成类（VocaDb.ResXFileCodeGenerator）
          落在 StarPie.Services.Localization。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Core</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>

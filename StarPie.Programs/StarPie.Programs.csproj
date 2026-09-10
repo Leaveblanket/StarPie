@@ -8,7 +8,7 @@
          ADR-0023/#96：M3 扫描/SPI 契约随实现方下沉 Programs.Contracts（IProgramScanner/
          ProgramEntry/ProgramCatalog/IShortcutTargetResolver 迁出 Core），本 runtime 只引用
          自身契约程序集与 Icons.Contracts，不再引用共享内核 Core/其它业务模块。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Programs</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>

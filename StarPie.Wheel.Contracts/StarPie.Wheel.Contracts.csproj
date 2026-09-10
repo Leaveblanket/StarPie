@@ -7,7 +7,7 @@
          命名空间树）；Gestures runtime 的 M1→M2 允许边删除，改经本契约边（runtime 互不引用）。
          签名依赖共享内核 Models 数据（GesturePoint/WheelProfile/AppConfig，config POCO/
          值类型，Core 收窄后仍居共享内核），故本薄契约仅引用 Core；无任何业务 runtime 引用。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>StarPie.Wheel.Contracts</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>

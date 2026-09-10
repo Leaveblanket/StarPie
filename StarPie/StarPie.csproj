@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- ADR-0013/#48：net8.0-windows10.0.19041.0 提供 WinRT UISettings(ColorValuesChanged) 投影 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <!-- ADR-0013：windows 段 10.0.19041.0 提供 WinRT UISettings(ColorValuesChanged) 投影；
+         .NET 段跟随运行时基线（见 ADR-0026） -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
