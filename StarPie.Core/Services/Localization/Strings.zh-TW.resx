@@ -22,7 +22,6 @@
   <data name="IconPickerImport" xml:space="preserve"><value>➕ 匯入自訂圖示...</value></data>
   <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 自訂進階配色與色彩微調</value></data>
   <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>展開後可精準微調扇區底色、高亮光暈、邊框線條、文字與光弧等各項色彩。</value></data>
-  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 展開查看更早的歷史版本演進 (Older Milestones)</value></data>
   <data name="BrowseAppTooltip" xml:space="preserve"><value>選擇應用程式或捷徑...</value></data>
   <data name="BrowseFolderTooltip" xml:space="preserve"><value>選擇本機資料夾...</value></data>
   <data name="BtnConfirm" xml:space="preserve"><value>確定</value></data>
@@ -72,7 +71,6 @@
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外觀與形態</value></data>
   <data name="PageGestures" xml:space="preserve"><value>⚡ 手勢與動作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 進階與系統</value></data>
-  <data name="PageAbout" xml:space="preserve"><value>📋 關於與更新</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>註: 所有修改均在記憶體中即時生效，點擊【儲存變更】持久化儲存至硬碟。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>儲存變更</value></data>
   <data name="BtnClose" xml:space="preserve"><value>關閉並隱藏</value></data>
@@ -194,12 +192,6 @@
   <data name="BtnExportConfig" xml:space="preserve"><value>匯出配置備份</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>匯入設定檔</value></data>
   <data name="BtnResetConfig" xml:space="preserve"><value>恢復原廠設定</value></data>
-  <data name="AboutHeader" xml:space="preserve"><value>關於與更新日誌</value></data>
-  <data name="AboutDesc" xml:space="preserve"><value>高質感、極速現代 Windows 滑鼠輪盤手勢工具</value></data>
-  <data name="BtnOpenChangelog" xml:space="preserve"><value>檢視完整 CHANGELOG</value></data>
-  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md 檔案位於應用程式根目錄。</value></data>
-  <data name="ChangelogOpenFailed" xml:space="preserve"><value>無法開啟 CHANGELOG.md。</value></data>
-  <data name="MilestonesTitle" xml:space="preserve"><value>版本演進里程碑 (Milestones)</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>設定已成功儲存至硬碟！</value></data>
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>確定要永久刪除自訂配色方案預設【{0}】嗎？
 刪除後不可恢復。</value></data>
@@ -209,7 +201,6 @@
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好設定 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外觀與形態 (Appearance)</value></data>
   <data name="TrayGestures" xml:space="preserve"><value>⚡ 手勢與動作 (Mappings)</value></data>
-  <data name="TrayAbout" xml:space="preserve"><value>📋 更新日誌與關於 (About)</value></data>
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ 以系統管理員身分重啟</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 現代化滑鼠輪盤手勢</value></data>
@@ -263,7 +254,6 @@
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>清空快速鍵</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 儲存目前顏色為自訂配色預設...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>刪除目前選取的自訂配色方案預設</value></data>
-  <data name="AboutSubheader" xml:space="preserve"><value>StarPie 現代滑鼠輪盤手勢工具版本資訊與完整演進歷程。</value></data>
   <data name="GlowPresetLilac" xml:space="preserve"><value>💜 丁香晶紫 (Lilac Violet #A855F7)</value></data>
   <data name="GlowPresetBlue" xml:space="preserve"><value>💙 冰川湛藍 (Glacial Blue #3B82F6)</value></data>
   <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 翡翠螢綠 (Emerald Green #10B981)</value></data>

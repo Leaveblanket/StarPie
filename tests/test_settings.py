@@ -59,18 +59,17 @@ def test_modify_slider_and_save(app):
 
 def test_switch_all_tabs_smoothly(app):
     """
-    Test clicking through all 5 navigation radio buttons (NavPage0 ~ NavPage4)
+    Test clicking through all 4 navigation radio buttons (NavPage0 ~ NavPage3)
     to guarantee zero crashes, zero freezes, and that controls remain fully responsive.
     """
     win, local_app_data = app
     
-    # Iterate through all 5 tabs:
+    # Iterate through all 4 tabs:
     # 0: 触发与场景 (NavPage0)
     # 1: 外观与形态 (NavPage1)
     # 2: 手势与动作 (NavPage2)
     # 3: 高级与系统 (NavPage3)
-    # 4: 关于与更新 (NavPage4)
-    for i in range(5):
+    for i in range(4):
         page_btn = win.child_window(auto_id=f"NavPage{i}", control_type="RadioButton")
         assert page_btn.exists(timeout=5), f"NavPage{i} must exist"
         page_btn.click_input()  # T19 命令式导航:UIA Select 只置勾选不触发命令,须真实点击
@@ -104,13 +103,6 @@ def test_switch_all_tabs_smoothly(app):
     time.sleep(0.3)
     auto_start_chk = win.child_window(auto_id="AutoStartCheckBox", control_type="CheckBox")
     assert auto_start_chk.exists(timeout=3), "AutoStartCheckBox should exist in System tab"
-    
-    # Test Page 4 (About)
-    page4 = win.child_window(auto_id="NavPage4", control_type="RadioButton")
-    page4.click_input()
-    time.sleep(0.3)
-    changelog_btn = win.child_window(auto_id="OpenChangelogButton", control_type="Button")
-    assert changelog_btn.exists(timeout=3), "OpenChangelogButton should exist in About tab"
     
     # Final check that window is still healthy and alive
     assert win.is_visible()
@@ -774,7 +766,7 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
     if type_combo is not None:
         assert saved_config["Profiles"][0]["Actions"][0]["Type"] == "Folder", "Action type should persist as Folder"
 
-def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app):
+def test_v140_custom_icons_and_appearance_collapsible(app):
     """
     Test v1.4.0 Features:
     1. Appearance Page (NavPage1):
@@ -782,8 +774,6 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
        - Verify CustomColorExpander exists and is collapsible.
     2. Gestures Page (NavPage2):
        - Verify Launch and Folder browse buttons exist.
-    3. About Page (NavPage4):
-       - Verify Milestone cards exist and OlderMilestonesExpander exists.
     """
     win, local_app_data = app
     
@@ -807,14 +797,6 @@ def test_v140_custom_icons_and_appearance_collapsible_and_milestones_folding(app
     
     action_list_title = win.child_window(auto_id="SectorActionListTitleText", control_type="Text")
     assert action_list_title.exists(timeout=3), "SectorActionListTitleText should exist"
-    
-    # 3. About Page (Page 4)
-    page4 = win.child_window(auto_id="NavPage4", control_type="RadioButton")
-    page4.click_input()
-    time.sleep(0.4)
-    
-    older_expander = win.child_window(auto_id="OlderMilestonesExpander", control_type="Group")
-    assert older_expander.exists(timeout=3), "OlderMilestonesExpander should exist"
 
 def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     """
@@ -899,18 +881,6 @@ def test_t28_hardcoded_copy_follows_language(app):
     assert ges_sub.exists(timeout=3), "GesturesPageSubheader should exist"
     assert "Set dedicated multi-directional gesture wheels" in ges_sub.window_text(), \
         f"Gestures subheader should be en, got {ges_sub.window_text()}"
-
-    # About (NavPage4)
-    page4 = win.child_window(auto_id="NavPage4", control_type="RadioButton")
-    page4.click_input()
-    time.sleep(0.4)
-    about_header = win.child_window(auto_id="AboutPageHeader", control_type="Text")
-    assert about_header.exists(timeout=3), "AboutPageHeader should exist"
-    assert "About & Changelog" in about_header.window_text(), \
-        f"About header should be en, got {about_header.window_text()}"
-    about_sub = win.child_window(auto_id="AboutPageSubheader", control_type="Text")
-    assert "Version info and the complete evolution history" in about_sub.window_text(), \
-        f"About subheader should be en, got {about_sub.window_text()}"
 
     # Appearance (NavPage1)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")

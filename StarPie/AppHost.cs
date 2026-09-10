@@ -183,11 +183,10 @@ namespace StarPie
 
             string pauseText = _mouseHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
             entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
-            // 托盘直达项经目录槽位导航（触发/外观/手势/关于）。
+            // 托盘直达项经目录槽位导航（触发/外观/手势）。
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAbout"), () => NavigateAndShow(NavigationSlot.About)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), () => _general?.ElevateAndRestart()));
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));

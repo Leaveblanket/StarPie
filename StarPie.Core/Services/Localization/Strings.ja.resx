@@ -22,7 +22,6 @@
   <data name="IconPickerImport" xml:space="preserve"><value>➕ カスタムアイコンをインポート...</value></data>
   <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 高度なカラーカスタマイズ</value></data>
   <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>セクター、ハイライト、ボーダー、テキストなどの色を個別に調整します。</value></data>
-  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 過去の更新履歴を表示</value></data>
   <data name="BrowseAppTooltip" xml:space="preserve"><value>アプリまたはショートカットを参照...</value></data>
   <data name="BrowseFolderTooltip" xml:space="preserve"><value>フォルダーを参照...</value></data>
   <data name="BtnConfirm" xml:space="preserve"><value>確定</value></data>
@@ -72,7 +71,6 @@
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
   <data name="PageGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
-  <data name="PageAbout" xml:space="preserve"><value>📋 情報と更新</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更はメモリ上で即座に有効になります。[変更を保存] で設定ファイルに永続化されます。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>変更を保存</value></data>
   <data name="BtnClose" xml:space="preserve"><value>閉じて隠す</value></data>
@@ -194,12 +192,6 @@
   <data name="BtnExportConfig" xml:space="preserve"><value>設定をエクスポート</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>設定をインポート</value></data>
   <data name="BtnResetConfig" xml:space="preserve"><value>初期設定にリセット</value></data>
-  <data name="AboutHeader" xml:space="preserve"><value>情報と更新履歴</value></data>
-  <data name="AboutDesc" xml:space="preserve"><value>洗練されたデザインと高速な応答性を誇る次世代マウスジェスチャーツール</value></data>
-  <data name="BtnOpenChangelog" xml:space="preserve"><value>完全な更新履歴を表示</value></data>
-  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md はアプリケーション フォルダーにあります。</value></data>
-  <data name="ChangelogOpenFailed" xml:space="preserve"><value>CHANGELOG.md を開けません。</value></data>
-  <data name="MilestonesTitle" xml:space="preserve"><value>バージョン履歴</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>設定が正常に保存されました！</value></data>
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>このカラープリセット「{0}」を削除してもよろしいですか？
 削除後は復元できません。</value></data>
@@ -209,7 +201,6 @@
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 環境設定 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
   <data name="TrayGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
-  <data name="TrayAbout" xml:space="preserve"><value>📋 情報と更新履歴</value></data>
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ 管理者として再起動</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ StarPie を終了</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルジェスチャー</value></data>
@@ -263,7 +254,6 @@
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>ショートカットをクリア</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 現在の色をプリセットとして保存...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセットを削除します</value></data>
-  <data name="AboutSubheader" xml:space="preserve"><value>StarPie のバージョン情報と進化の歴史。</value></data>
   <data name="GlowPresetLilac" xml:space="preserve"><value>💜 ライラックバイオレット (#A855F7)</value></data>
   <data name="GlowPresetBlue" xml:space="preserve"><value>💙 グレイシャルブルー (#3B82F6)</value></data>
   <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 エメラルドグリーン (#10B981)</value></data>

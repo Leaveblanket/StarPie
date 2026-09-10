@@ -22,7 +22,6 @@
   <data name="IconPickerImport" xml:space="preserve"><value>➕ Import Custom Icon...</value></data>
   <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 Custom Advanced Color Tuning</value></data>
   <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>Expand to fine-tune individual colors for sectors, highlights, borders, text, and glow.</value></data>
-  <data name="MilestonesOlderExpander" xml:space="preserve"><value>📜 View Older Milestones</value></data>
   <data name="BrowseAppTooltip" xml:space="preserve"><value>Browse application or shortcut...</value></data>
   <data name="BrowseFolderTooltip" xml:space="preserve"><value>Browse local folder...</value></data>
   <data name="BtnConfirm" xml:space="preserve"><value>Confirm</value></data>
@@ -72,7 +71,6 @@
   <data name="PageAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
   <data name="PageGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
-  <data name="PageAbout" xml:space="preserve"><value>📋 About &amp; Updates</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes take effect in memory immediately. Click [Save Changes] to persist to disk.</value></data>
   <data name="BtnSave" xml:space="preserve"><value>Save Changes</value></data>
   <data name="BtnClose" xml:space="preserve"><value>Close &amp; Hide</value></data>
@@ -194,12 +192,6 @@
   <data name="BtnExportConfig" xml:space="preserve"><value>Export Backup</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>Import Config</value></data>
   <data name="BtnResetConfig" xml:space="preserve"><value>Restore Factory Defaults</value></data>
-  <data name="AboutHeader" xml:space="preserve"><value>About &amp; Changelog</value></data>
-  <data name="AboutDesc" xml:space="preserve"><value>High-aesthetic, ultra-fast modern Windows mouse radial gestures tool.</value></data>
-  <data name="BtnOpenChangelog" xml:space="preserve"><value>View Full CHANGELOG</value></data>
-  <data name="ChangelogNotFound" xml:space="preserve"><value>CHANGELOG.md is located in the application directory.</value></data>
-  <data name="ChangelogOpenFailed" xml:space="preserve"><value>Unable to open CHANGELOG.md.</value></data>
-  <data name="MilestonesTitle" xml:space="preserve"><value>Version Milestones</value></data>
   <data name="MsgSaveSuccess" xml:space="preserve"><value>Settings successfully saved to disk!</value></data>
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>Are you sure you want to permanently delete the custom color preset "{0}"?
 This cannot be undone.</value></data>
@@ -209,7 +201,6 @@ This cannot be undone.</value></data>
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Preferences (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
   <data name="TrayGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
-  <data name="TrayAbout" xml:space="preserve"><value>📋 About &amp; Changelog</value></data>
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
@@ -263,7 +254,6 @@ This cannot be undone.</value></data>
   <data name="ClearHotkeyTooltip" xml:space="preserve"><value>Clear hotkey</value></data>
   <data name="SaveCustomPresetButton" xml:space="preserve"><value>💾 Save Current Colors as Preset...</value></data>
   <data name="DeletePresetTooltip" xml:space="preserve"><value>Delete the currently selected custom color preset</value></data>
-  <data name="AboutSubheader" xml:space="preserve"><value>Version info and the complete evolution history of StarPie.</value></data>
   <data name="GlowPresetLilac" xml:space="preserve"><value>💜 Lilac Violet (#A855F7)</value></data>
   <data name="GlowPresetBlue" xml:space="preserve"><value>💙 Glacial Blue (#3B82F6)</value></data>
   <data name="GlowPresetEmerald" xml:space="preserve"><value>💚 Emerald Green (#10B981)</value></data>

@@ -5,11 +5,8 @@
 
     <!-- 模块页面模板字典：模块自带 DataTemplate，宿主每模块一次跨程序集 pack URI 静态合并。
          页面 View 无参构造、按导航重建、不经容器；共享页面基类已随 ADR-0022/#94 删除，
-         页面直承 UserControl，本字典只映射本模块两页。 -->
+         页面直承 UserControl，本字典只映射本模块页。 -->
     <DataTemplate DataType="{x:Type vm:GeneralSettingsViewModel}">
         <pages:AdvancedSettingsPage/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-        <pages:AboutSettingsPage/>
     </DataTemplate>
 </ResourceDictionary>

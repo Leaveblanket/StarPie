@@ -128,7 +128,7 @@ public sealed class MainViewModelTests
     private static readonly LocalizationService Localization = new();
 
     /// <summary>
-    /// 五页面 VM 的真实实例夹具：导航项按目录注册的目标 VM 类型切换，用最简依赖构造真实对象
+    /// 四页面 VM 的真实实例夹具：导航项按目录注册的目标 VM 类型切换，用最简依赖构造真实对象
     /// （替代 mock 派生，锁定类型精确性）。
     /// </summary>
     private sealed class PageVmFixture
@@ -147,7 +147,6 @@ public sealed class MainViewModelTests
         public InterfaceThemeSettingsViewModel InterfaceTheme { get; }
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }
         public GeneralSettingsViewModel General { get; }
-        public AboutViewModel About { get; }
 
         public PageVmFixture()
         {
@@ -170,7 +169,6 @@ public sealed class MainViewModelTests
                 currentConfig: () => Config,
                 messenger: Messenger,
                 localization: Localization);
-            About = new AboutViewModel(Dialogs, () => true, Localization);
         }
     }
 
@@ -215,25 +213,24 @@ public sealed class MainViewModelTests
             [NavigationSlot.Trigger] = fixture.Behavior,
             [NavigationSlot.Appearance] = fixture.Appearance,
             [NavigationSlot.Gestures] = fixture.Profiles,
-            [NavigationSlot.Advanced] = fixture.General,
-            [NavigationSlot.About] = fixture.About
+            [NavigationSlot.Advanced] = fixture.General
         });
         var vm = new MainViewModel(store, catalog, navigation, Localization);
         return (vm, store, fixture);
     }
 
     [Fact]
-    public void Items_AreFiveInNavigationOrder()
+    public void Items_AreFourInNavigationOrder()
     {
         var (vm, _, _) = Create();
 
-        Assert.Equal(5, vm.NavigationItems.Count);
+        Assert.Equal(4, vm.NavigationItems.Count);
         Assert.Equal(new[]
         {
             typeof(BehaviorSettingsViewModel), typeof(AppearanceSettingsViewModel), typeof(ProfileListViewModel),
-            typeof(GeneralSettingsViewModel), typeof(AboutViewModel)
+            typeof(GeneralSettingsViewModel)
         }, vm.NavigationItems.Select(i => i.TargetViewModelType));
-        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3" },
             vm.NavigationItems.Select(i => i.AutomationId));
     }
 
@@ -246,7 +243,6 @@ public sealed class MainViewModelTests
         Assert.Equal(Localization.GetString("PageAppearance"), vm.NavigationItems[1].Title);
         Assert.Equal(Localization.GetString("PageGestures"), vm.NavigationItems[2].Title);
         Assert.Equal(Localization.GetString("PageAdvanced"), vm.NavigationItems[3].Title);
-        Assert.Equal(Localization.GetString("PageAbout"), vm.NavigationItems[4].Title);
     }
 
     [Fact]
@@ -277,10 +273,10 @@ public sealed class MainViewModelTests
     {
         var (vm, store, fixture) = Create();
 
-        store.CurrentViewModel = fixture.About;
+        store.CurrentViewModel = fixture.General;
 
-        Assert.True(vm.NavigationItems[4].IsSelected);
-        Assert.All(vm.NavigationItems.Take(4), i => Assert.False(i.IsSelected));
+        Assert.True(vm.NavigationItems[3].IsSelected);
+        Assert.All(vm.NavigationItems.Take(3), i => Assert.False(i.IsSelected));
     }
 
     [Fact]
@@ -293,7 +289,7 @@ public sealed class MainViewModelTests
             Localization.SetLanguage("en");
 
             Assert.Equal(Localization.GetString("PageTrigger"), vm.NavigationItems[0].Title);
-            Assert.Equal(Localization.GetString("PageAbout"), vm.NavigationItems[4].Title);
+            Assert.Equal(Localization.GetString("PageAdvanced"), vm.NavigationItems[3].Title);
         }
         finally
         {
@@ -306,10 +302,10 @@ public sealed class MainViewModelTests
     {
         var (vm, store, fixture) = Create();
 
-        // 目录注册槽位与点击项的 AutomationId 一一对应：NavPage4（槽位 About）→ About VM。
-        vm.NavigationItems[4].NavigateCommand.Execute(null);
+        // 目录注册槽位与点击项的 AutomationId 一一对应：NavPage3（槽位 Advanced）→ 高级页 VM。
+        vm.NavigationItems[3].NavigateCommand.Execute(null);
 
-        Assert.Same(fixture.About, store.CurrentViewModel);
-        Assert.True(vm.NavigationItems[4].IsSelected);
+        Assert.Same(fixture.General, store.CurrentViewModel);
+        Assert.True(vm.NavigationItems[3].IsSelected);
     }
 }

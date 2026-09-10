@@ -23,7 +23,7 @@ namespace StarPie.ViewModels.Navigation
         private readonly NavigationStore _store;
         private readonly ILocalizationService _localization;
 
-        /// <summary>导航项（按 NavigationCatalog 槽位 0–4 注册顺序，即侧边栏顺序）。</summary>
+        /// <summary>导航项（按 NavigationCatalog 槽位 0–3 注册顺序，即侧边栏顺序）。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
 
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>

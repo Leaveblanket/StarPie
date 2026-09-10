@@ -15,7 +15,7 @@ namespace StarPie.Tests;
 /// 资源 key 不变、运行期消费方零改动）；共享自定义控件
 /// <see cref="HotkeyRecorderBox"/> 下沉唯一编译期消费方 <c>StarPie.Gestures</c>
 /// （样式字典同驻模块，App.xaml 经跨程序集 pack URI 合并）；共享页面基类
-/// <c>SettingsPageBase</c> 删除与五页 XAML 根改 <c>UserControl</c> 由本文件五页断言与
+/// <c>SettingsPageBase</c> 删除与四页 XAML 根改 <c>UserControl</c> 由本文件四页断言与
 /// ShellAssemblyPlacementTests/GesturesAssemblyPlacementTests 收口。
 /// 命名空间统一为 StarPie.*（跨程序集共享命名空间树）。轮盘核图标预览转换器
 /// （CoreIconGeometry/Name）位于 <c>StarPie.Wheel</c>（WheelAssemblyPlacementTests）；
@@ -84,16 +84,15 @@ public sealed class SharedUiAssemblyPlacementTests
     }
 
     [Fact]
-    public void 共享页面基类已删除_五设置页直承UserControl()
+    public void 共享页面基类已删除_四设置页直承UserControl()
     {
-        // SettingsPageBase 已随 ADR-0022/#94 删除：Core 无同名类型，五页根基类均不再
+        // SettingsPageBase 已随 ADR-0022/#94 删除：Core 无同名类型，四页根基类均不再
         // 指向跨程序集共享页面基类。
         Assert.DoesNotContain(typeof(ILocalizationService).Assembly.GetTypes(), t => t.Name == "SettingsPageBase");
 
         Assert.Equal("System.Windows.Controls.UserControl", typeof(TriggerSettingsPage).BaseType!.FullName);
         Assert.Equal("System.Windows.Controls.UserControl", typeof(GesturesSettingsPage).BaseType!.FullName);
         Assert.Equal("System.Windows.Controls.UserControl", typeof(AdvancedSettingsPage).BaseType!.FullName);
-        Assert.Equal("System.Windows.Controls.UserControl", typeof(AboutSettingsPage).BaseType!.FullName);
         Assert.Equal("System.Windows.Controls.UserControl", typeof(AppearanceSettingsPage).BaseType!.FullName);
     }
 }
