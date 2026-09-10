@@ -13,6 +13,8 @@ run.cmd           # Windows
 
 脚本做三件事：Release 构建插件包与宿主 → 跑 13 项探针 → 输出 `p0-report.md`（逐探针原始证据 + 归因诊断）。
 
+> **取证模式**：`P0.Host.dll --diag <用例前缀> --hold <秒>` 只跑一个 ALC 诊断用例并保持进程存活，供 `dotnet-dump` 抓取托管堆做 SOS 定位；根链与穷举清缓存实验见 [`p0-forensics.md`](p0-forensics.md)。
+
 > **本机环境坑（与打样无关，但会挡住所有 dotnet 命令）**：本会话的 shell 环境缺少 Windows 的 `APPDATA` 与 `ProgramFiles` 变量，NuGet 在 `NuGetEnvironment.CalculateFolderPath` 里做 `Path.Combine(null, …)` 直接抛 `Value cannot be null. (Parameter 'path1')`，表现为**全机器 restore 失败**（连 `dotnet new classlib` 都构建不了）。先补齐再跑：
 >
 > ```bash
@@ -82,7 +84,9 @@ System.ComponentModel.ReflectTypeDescriptionProvider.s_attributeCache  → Type(
 System.ComponentModel.TypeDescriptor.s_defaultProviderInitialized      → Type(P0.Plugin.Models.ProbeVm)
 ```
 
-用私有反射把这 5 处全部清空（实验 J/K/N）后：扫描命中归零，**但 ALC 与程序集依旧存活** → 存在至少一个未能定位的 Assembly/Type 级根。因此「靠清缓存换真卸载」这条路在支持手段内不成立。
+用私有反射把这 5 处全部清空（实验 J/K/N）后：扫描命中归零，**但 ALC 与程序集依旧存活**。
+
+追加取证（SOS + 托管堆转储 + 穷举清缓存实验，见 [`p0-forensics.md`](p0-forensics.md)）把该根定位为**多层 WPF 内部缓存 + 运行时内部句柄**的组合：共享 BAML 类型表、资源管理器注册表、绑定访问器表、全局事件 DTypeMap、打包层预载缓存逐层露出；清掉全部可定位层后，残余仍是托管代码无法释放的插件 `RuntimeType` 句柄。因此「靠清缓存换真卸载」这条路在支持手段内不成立。
 
 ### 3.5 对设计的影响（P3 输入）
 
@@ -104,6 +108,7 @@ System.ComponentModel.TypeDescriptor.s_defaultProviderInitialized      → Type(
 prototype/p0-wpf-alc/
 ├── README.md            # 本文（结论 + 白名单 + 复现要点）
 ├── p0-report.md         # 生成物：13 项探针逐条原始证据 + 归因诊断
+├── p0-forensics.md      # 追加取证：卸载根的 SOS 定位与穷举清缓存实验
 ├── run.sh / run.cmd     # 一条命令跑完
 └── src/
     ├── P0.Contracts/    # 共享契约（模拟 Sdk / Sdk.Wpf）
