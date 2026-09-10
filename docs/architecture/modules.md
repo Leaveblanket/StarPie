@@ -1,6 +1,8 @@
 # 模块划分地图（模块地图）
 
 > 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：模块清单、职责、归属裁定、扩展点验收与模块化候选。
+
+> **目标态变更（P1 起）**：插件化后模块口径改为「宿主内核子域 + 能力插件」，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)；P1 落地时本文按目标态回填。
 >
 > 本文按 as-built 现状撰写；代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。
 >

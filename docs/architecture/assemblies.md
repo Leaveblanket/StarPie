@@ -3,6 +3,8 @@
 > 本文记录程序集化目标态（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) +
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
 > 目标程序集划分、程序集级依赖规则、导航槽位表与注册/可见性契约。
+
+> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)；P1 落地前本文仍是 as-built 正典，P1 后按目标态回填。
 >
 > **15 程序集现状**：Host/Core + 5 业务 runtime + `StarPie.Dialogs` + `StarPie.Icons` +
 > 各 `*.Contracts`（划分见 §2）。代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
