@@ -5,7 +5,7 @@
          与 6 个结果 record 自 Core 迁出（命名空间 StarPie.Services.Dialogs 不变，B10/#83 共享
          命名空间树）；M1/M2/M5/Host 消费方改经本契约边。纯 C# 契约（无 WPF 类型），不带
          UseWPF。无任何 ProjectReference（薄契约）。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>StarPie.Dialogs.Contracts</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>
     <Nullable>enable</Nullable>

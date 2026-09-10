@@ -12,7 +12,7 @@
          工厂接口/轮盘 VM 接口/签名暴露件随 M2 收编 Wheel.Contracts（D5，ADR-0016 决策 11）；
          轮盘外观设置子 VM 与轮盘 VM/窗口/渲染器/配色/工厂的 DI 注册经
          WheelModuleRegistrar.RegisterServices 下放本程序集，组合根仍唯一 BuildServiceProvider。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Wheel</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>
@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>

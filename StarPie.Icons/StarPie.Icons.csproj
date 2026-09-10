@@ -10,7 +10,7 @@
          清零仍成立）。
          DI 注册经 IconsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider。 -->
-    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Icons</AssemblyName>
     <RootNamespace>StarPie</RootNamespace>
@@ -21,7 +21,7 @@
   <ItemGroup>
     <!-- IconsModuleRegistrar 直接使用 MS.DI（IServiceCollection 注册面；与其它模块注册器
          csproj 一致，自 ADR-0021/#92 Core 移除该包后不再经共享内核传递）。 -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>
