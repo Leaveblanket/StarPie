@@ -1,7 +1,7 @@
 # 插件体系（目标态）
 
 > **状态**：P1 起的目标态规范；在 P1 落地前，as-built 以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
-> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）。
+> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
 ## 术语（架构词正典在本文）
@@ -136,13 +136,13 @@ StarPie/
 Discovered → Validated → Loading → Starting → Active
                                      ↘ Quarantined（加载/启动/调用/卸载失败）
 Active → Stopping → ReleasingUi → Unloading → Unloaded
-                                 ↘ Quarantined（资产未清零 / ALC 未回收）
+                                 ↘ Quarantined（资产未清零 / 全局根有残留）
 ```
 
 - `ReleasingUi`：仅 UI 插件进入；在 UI 线程执行资产清理并跑泄漏验证。
 - 只有 `Active` 状态允许执行插件代码；`Stopping` 起拒绝新调用，在途调用排空。
-- 重载 = 完整卸载后按新包重新装载；不保留任何插件对象。
-- **触发方式（Q7）**：只在启动扫描 + 管理面手动启停/更新；更新 = 安全点卸载 + 装载新版本。不做目录监视自动重载——卸载时机必须在安全点，监视重载会把用户正在用的插件页抽掉。
+- 重载 = 走完整卸载流程（资产清理 + 服务作用域释放 + `ALC.Unload()`）后按新包重新装载；不保留任何插件对象。UI 插件的旧程序集留在进程内无法回收（ADR-0030），因此 UI 插件的「新版本生效」以重启为界。
+- **触发方式（Q7）**：只在启动扫描 + 管理面手动启停/更新；headless 插件更新 = 安全点卸载 + 装载新版本，UI 插件更新 = 隔离旧版本 + 下次启动装载新版本。不做目录监视自动重载——卸载时机必须在安全点，监视重载会把用户正在用的插件页抽掉。
 - **开发者模式例外（Q7b）**：`--dev` 实例可开「监视 + 自动重载」开关（默认关闭，仅开发实例生效）；重载仍走完整安全点卸载与 UI 清理，不绕过验证。
 - **隔离是持久状态（Q9）**：进入 `Quarantined` 即写 `plugin-state.json`；下次启动**不自动重试**装载，必须用户显式「重试」或「停用」。
 
@@ -166,7 +166,9 @@ public interface IPluginUiModule
 3. 载入口程序集，找 `IPlugin`（不缓存 `Type`），`StartAsync`。
 4. UI 插件由宿主在 UI 线程调 `IPluginUiModule.RegisterUi`；**只做注册，不在此创建窗口/合并资源**。
 5. 注册能力 → `Active`。
-6. **BAML/资源解析是 P0 必测项**：XAML 由插件 ALC 内的程序集加载时，pack URI 解析可能需要 `AssemblyLoadContext.EnterContextualReflection` 支持；P0 打样确定宿主包装方式，未通过则 UI 插件不得进入白名单。
+6. **BAML/pack URI 解析（已认证，宿主包装方式固定）**：插件程序集在 collectible ALC 内时，XAML 视图/窗口与资源字典的 BAML 与 pack URI 解析正常，**宿主不得用 `AssemblyLoadContext.EnterContextualReflection` 包装 XAML 解析**——不需要，且会让 `XamlReader` 路径解析不到自身的 BAML 资源（`组件不具有由 URI 识别的资源`）。
+   - 宿主合并插件资源字典必须用 `new ResourceDictionary { Source = packUri }`；`Application.LoadComponent(绝对 pack URI)` 在 .NET Core 抛「无法使用绝对 URI」。
+   - 松散 XAML（`XamlReader` 解析含 `assembly=` 类型引用的文本）不在支持面：插件 XAML 一律走编译期 BAML。
 
 ### 5.1 `StarPie.Sdk.Wpf` 硬约束（8 条，P2/P3 落地判据）
 
@@ -180,6 +182,30 @@ public interface IPluginUiModule
 | 6 | 宿主负责创建、记账、显示、清理 | 创建时机由宿主在 UI 线程决定，产物先入 `PluginUiAssetRegistry` 再进视觉树 | 未登记资产 = 泄漏残留 → `Quarantined` |
 | 7 | `StarPie.Host` 不引用 `StarPie.Sdk.Wpf` | Host 工程引用白名单 + `BoundaryTests`；`ui.sdk`/`ui.entryType` 的 **UI ABI 校验归 `StarPie.Ui/PluginHosting`**，Host 侧只做纯字符串/数据校验 | 编译期/边界测试拦截；校验错位 = 装载管线缺陷 |
 | 8 | UI SDK ABI additive-only | 与 `StarPie.Sdk` 同政策：接受同主版本、次版本不高于宿主；破坏性变更 = 新描述符/新接口 | 不匹配 → 拒绝装载 |
+
+### 5.2 受支持特性白名单与不支持列表（卸载判据）
+
+白名单逐项只按「宿主清理后资产登记表清零 + 插件对象与插件委托的 `WeakReference` 全部死亡 + 全局根扫描无残留」判定；**UI 插件不判 ALC/程序集回收**（ADR-0030）。
+
+| 特性 | 资产可清零 | 摘除方式 |
+|---|---|---|
+| 插件视图（XAML UserControl） | 是 | 清宿主容器 `Content`/`DataContext`，断绑定 |
+| 插件窗口（XAML Window） | 是 | `Close()` 并等待 `Closed`，清 `Owner`/`DataContext` |
+| 插件资源字典 | 是 | 并入插件资源根，卸载时整根摘除 |
+| 插件 DataTemplate | 是 | 随资源根摘除；宿主容器清 `ContentTemplate` |
+| 宿主签发 `DispatcherTimer` | 是 | `Stop()` + 摘除 Tick 回调，句柄账本清零 |
+| 宿主中介动画 | 是 | **必须 `Storyboard.Remove(元素)`**；只 `Stop()` 会残留时钟与时间线 |
+| 宿主中介事件订阅 | 是 | 宿主吊销即断，订阅计数归零 |
+| 插件 Binding | 是 | `BindingOperations.ClearBinding` + 清 `DataContext` |
+
+**不支持列表**：
+
+- 插件的热卸载与热更新（UI 插件程序集在进程内不可回收；更新 = 隔离旧版本 + 下次启动装载新版本）。
+- 插件自建 `DependencyProperty`/`RoutedEvent`、插件静态缓存、全局静态事件、绕过宿主契约的 WPF 注册。
+- 松散 XAML；`Application.LoadComponent(绝对 pack URI)`；`EnterContextualReflection` 包裹 XAML 解析。
+- `Popup`/`ContextMenu`/`ToolTip` 不经宿主契约自建：它们不在 `Application.Current.Windows` 中，工具提示类资产只能经宿主契约创建或显式登记。
+
+**兜底与可判定的边界**：全局根扫描覆盖 `Application.Current.Resources`（含 `MergedDictionaries` 递归）与 `Application.Current.Windows`（含 `Owner`/`DataContext`），命中即按 plugin id 摘除并记 `Quarantined`；插件内部静态缓存这类根扫描不到，只有 `WeakReference` 判定能兜住，因此两者不可互相替代。
 
 ## 6. 能力注册与调用代理（headless）
 
@@ -261,15 +287,15 @@ public interface IPluginUiContext
       b. Close 全部插件窗口并等待 Closed
       c. 从 MergedDictionaries 摘除插件资源根
       d. 注销命令/InputBinding/菜单
-      e. 停止全部宿主签发定时器/动画
+      e. 停止并摘除全部宿主签发定时器与动画（动画须 `Storyboard.Remove(元素)`）
       f. 断开宿主中介订阅
       g. 断言资产登记表清零
  5. 释放该插件的服务作用域 `PluginServiceScope.Dispose()`（§6.1 约束 7，幂等）；宿主侧缓存/Type/委托清空，含 `IPlugin`/`IPluginUiModule` 入口对象本身
  6. GC.Collect → WaitForPendingFinalizers → GC.Collect
- 7. WeakReference(ALC) + WeakReference(探针对象) 判定
+ 7. `WeakReference` 判定（可判定项）：资产对象与插件委托必须全部死亡
  8. ALC.Unload()
- 9. 再 GC + 二次判定
-失败 → Quarantined + 诊断（残留资产/类型清单）+ 重启提示；不得谎报成功
+ 9. 再 GC + 二次判定：ALC/程序集存活只记诊断——UI 插件不回收是预期（ADR-0030），headless 插件才判回收
+失败（资产未清零 / 全局根有残留） → Quarantined + 诊断（残留资产/类型清单）+ 重启提示；不得谎报成功
 ```
 
 **泄漏扫描**（`PluginUiLeakVerifier`，生产诊断 + 测试共用）至少覆盖：
@@ -281,7 +307,7 @@ public interface IPluginUiContext
 - 插件服务作用域残留（订阅/回调/动作句柄），以及日志/审计 sink 中的插件对象引用（§6.1 约束 6）
 - 泄漏对象的程序集归属，输出"哪个插件、哪类资产、哪条引用"
 
-**测试矩阵**（`StarPie.Tests`，STA harness）：视图、窗口、资源字典、DataTemplate、定时器、动画、事件、绑定逐项覆盖；每项断言 ALC 与探针 `WeakReference` 均死。另需覆盖 HostServices 侧两项：`PluginServiceScope` 释放后句柄账本清零；插件自定义异常/自定义类型经日志与诊断报告后不 root 插件集（对自定义异常实例做 `WeakReference` 判定）。
+**测试矩阵**（`StarPie.Tests`，STA harness）：视图、窗口、资源字典、DataTemplate、定时器、动画、事件、绑定逐项覆盖；每项断言探针对象的 `WeakReference` 均死、资产登记表清零、全局根扫描无残留（ALC/程序集存活记诊断，不作为 UI 插件的失败判据）。动画一项额外断言用 `Storyboard.Remove(元素)` 摘除后才可清零。另需覆盖 HostServices 侧两项：`PluginServiceScope` 释放后句柄账本清零；插件自定义异常/自定义类型经日志与诊断报告后不 root 插件集（对自定义异常实例做 `WeakReference` 判定）。
 
 ## 9. 配置、数据、文案、日志
 
@@ -304,7 +330,7 @@ public interface IPluginUiContext
 - **准入（ADR-0029）**：目标态 = 签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验），未命中即 `Rejected`；首期 = 仅第一方随包插件与**开发者模式**插件（默认关闭的显式开关 + 全信任风险披露）；不做默认侧载放行。
 - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即停用。
 - **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。
-- **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。
+- **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 UI 插件的卸载边界**：程序集在进程内不可回收，卸载语义见 ADR-0030 与 §5.2。
 
 ## 12. 迁移映射（15 集 → 三集 + 插件）
 
@@ -325,13 +351,13 @@ public interface IPluginUiContext
 
 | 阶段 | 内容 | 验证门 |
 |---|---|---|
-| P0 | ALC+WPF 打样：XAML 视图/窗口/资源字典/DataTemplate/定时器/动画/绑定逐项验证可卸载；验证 BAML/pack URI 解析方案（含 `EnterContextualReflection`）；确定受支持特性白名单 | 打样报告 + 泄漏清单；未过项列入不支持列表 |
+| P0 | ALC+WPF 打样：XAML 视图/窗口/资源字典/DataTemplate/定时器/动画/事件/绑定逐项认证；确定 BAML/pack URI 宿主包装方式与卸载判据 | 打样报告 + 受支持特性白名单（§5.2）；未过项列入不支持列表 |
 | P1 | 三集物理重构：建 SDK/Sdk.Wpf/Host/Ui；15 集撤销；现有模块改走统一注册管线但静态加载 | build + 全量 xUnit + 全量 e2e，行为零变化 |
 | P2 | headless 插件运行时 + M3 首个插件：清单/发现/ALC/子容器/能力/安全点卸载/隔离；准入走开发者模式 | 卸载回收（含 §6.1 作用域释放与日志不 root）、隔离持久化、停用态降级（程序选择器）、准入关闭时第三方被拒；全量门 |
-| P3 | 插件 UI 宿主：`PluginHosting` 全层 + 导航动态注册（`NavPlugin_<id>`）+ 首个 UI 示例插件 + 卸载测试矩阵 | STA 卸载矩阵全绿；全量门 |
+| P3 | 插件 UI 宿主：`PluginHosting` 全层 + 导航动态注册（`NavPlugin_<id>`）+ 首个 UI 示例插件 + 卸载测试矩阵 | STA 卸载矩阵全绿（资产清零 + 泄漏隔离，ALC 存活不上判）；全量门 |
 | P4 | 生态化：签名校验 + 审核清单与撤销通道、SDK 文档/示例仓库、插件管理面完善、第三方准入开启 | 发布前评审 |
 | P5 | 视需要评估进程外后端（不可信插件） | 新 ADR |
 
 ## 参见
 
-[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)、[ADR-0029](../adr/0029-plugin-trust-model.md)、[assemblies.md](assemblies.md)（P1 前 as-built）、[modules.md](modules.md)（P1 前 as-built）。
+[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)、[ADR-0029](../adr/0029-plugin-trust-model.md)、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)、[assemblies.md](assemblies.md)（P1 前 as-built）、[modules.md](modules.md)（P1 前 as-built）。
