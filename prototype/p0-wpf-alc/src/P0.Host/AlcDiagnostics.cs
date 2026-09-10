@@ -109,12 +109,36 @@ internal static class AlcDiagnostics
         return log;
     }
 
+    /// <summary>只跑一个有代表性的用例：跑完保持进程存活，供外部（dotnet-dump/SOS）抓取托管堆定位根。</summary>
+    public static void RunOne(string pluginPath, string labelPrefix, List<string> log)
+    {
+        var item = Cases.FirstOrDefault(c => c.Label.StartsWith(labelPrefix, StringComparison.Ordinal));
+        if (item is null)
+        {
+            Emit(log, $"未找到诊断用例：{labelPrefix}");
+            return;
+        }
+
+        Emit(log, "=== ALC 单例诊断（dump 取证模式） ===");
+        Measure(pluginPath, item, log);
+    }
+
     private static void Measure(string pluginPath, Case item, List<string> log)
     {
         var state = Stage(pluginPath, item);
         if (item.PurgeCaches)
         {
             foreach (var line in RootFinder.Purge(PluginAssemblyName))
+            {
+                Emit(log, $"      purge: {line}");
+            }
+
+            foreach (var line in RootFinder.PurgeBamlTypeTable(PluginAssemblyName))
+            {
+                Emit(log, $"      purge: {line}");
+            }
+
+            foreach (var line in RootFinder.PurgeReachable(PluginAssemblyName, maxDepth: 4, budget: 100000))
             {
                 Emit(log, $"      purge: {line}");
             }

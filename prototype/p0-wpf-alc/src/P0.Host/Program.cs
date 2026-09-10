@@ -62,6 +62,20 @@ internal static class Program
         var application = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
         Harness.Init();
 
+        // dump 取证模式：只跑一个 ALC 诊断用例，跑完保持进程存活，供 dotnet-dump 抓取托管堆。
+        var diagCase = ReadOption(args, "--diag");
+        if (diagCase is not null)
+        {
+            AlcDiagnostics.RunOne(pluginPath, diagCase, new List<string>());
+            var holdSeconds = ReadInt(args, "--hold", 60);
+            Console.WriteLine($"HOLD pid={Environment.ProcessId} seconds={holdSeconds}");
+            Console.Out.Flush();
+            Thread.Sleep(TimeSpan.FromSeconds(holdSeconds));
+            Harness.Teardown();
+            application.Shutdown();
+            return 0;
+        }
+
         // ALC 生命周期归因：装载 / resolver / Load 覆写 / 插件类型 / BAML / 全局缓存 逐变量隔离。
         var diagnostics = AlcDiagnostics.Run(pluginPath);
 
@@ -84,6 +98,22 @@ internal static class Program
         Console.WriteLine($"判定汇总：{results.Count - leaked}/{results.Count} 可卸载，{leaked} 未回收");
         return 0;
     }
+
+    private static string? ReadOption(string[] args, string name)
+    {
+        for (var i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == name)
+            {
+                return args[i + 1];
+            }
+        }
+
+        return null;
+    }
+
+    private static int ReadInt(string[] args, string name, int fallback)
+        => int.TryParse(ReadOption(args, name), out var value) ? value : fallback;
 
     private static string ResolvePluginDirectory(string[] args)
     {
