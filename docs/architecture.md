@@ -41,6 +41,7 @@
 | 模块划分 / 归属争议 / 扩展点验收 | [modules.md](architecture/modules.md) |
 | 程序集地图 / 程序集依赖方向 / 导航槽位 | [assemblies.md](architecture/assemblies.md) |
 | 模块间接合缝编目 / 缝裁决 / 程序集依赖基线 | [seams.md](architecture/seams.md) |
+| 插件体系（目标态）：SDK/SDK.Wpf、装载/卸载、能力、插件 UI 托管、文件架构 | [plugins.md](architecture/plugins.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
@@ -117,7 +118,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0026，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0029，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie/              # 主程序（规范对象；含共享 UI 基建，见 layout.md）
 ├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
@@ -137,6 +138,8 @@ StarPie/
 ├── StarPie.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
+
+> 插件化目标态（三集：`StarPie.Sdk` / `StarPie.Sdk.Wpf` / `StarPie.Host` / `StarPie.Ui` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1 落地时本树按目标态回填。
 
 测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
@@ -186,5 +189,8 @@ Services ---> Models
 | 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
 | 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active |
 | 0026 | `docs/adr/0026-runtime-baseline-and-windows-sdk-projection.md` | 运行时基线与 Windows SDK 投影版本政策 | Active |
+| 0027 | `docs/adr/0027-plugin-architecture-and-host-sdk-ui-split.md` | 插件体系与三集物理形态（第三方能力插件 / ALC 真卸载 / 宿主独占呈现） | Active（部分被 0028 修订） |
+| 0028 | `docs/adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md` | 插件 UI 宿主化（允许 XAML/Window/资源字典；宿主托管登记、清理与验证） | Active |
+| 0029 | `docs/adr/0029-plugin-trust-model.md` | 插件信任模型（目标态签名 + 审核白名单；首期开发者模式准入；进程内全信任披露） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
