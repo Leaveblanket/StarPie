@@ -26,6 +26,7 @@ __pycache__/
 *.pyo
 *.pyd
 test_env_appdata/
+TestResults/
 artifacts/
 
 # Large Third-Party Installers & Runtime Packages
@@ -47,5 +48,4 @@ $RECYCLE.BIN/
 
 # Tool Indexes
 .codegraph/
-
 
