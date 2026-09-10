@@ -186,7 +186,8 @@ public sealed class WheelAppearanceSettingsViewModelTests
 
         vm.HighlightGlowOpacityPercent = 40;
 
-        Assert.Equal(0.4, config.Current.HighlightGlowOpacity, 5);
+        // xUnit.net v3 的浮点重载改称容差：等价 v2 的 5 位小数精度
+        Assert.Equal(0.4, config.Current.HighlightGlowOpacity, tolerance: 0.000005);
         Assert.Equal("40%", vm.HighlightGlowOpacityLabel);
     }
 
