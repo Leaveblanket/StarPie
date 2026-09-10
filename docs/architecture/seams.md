@@ -31,7 +31,7 @@
 | 回填缝·dev 标志 | `AppDataPaths.IsDevInstance` 组合根装配前回填（消费 M1/M5/S2） | MouseHook/Autostart 测试 |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 Core（可空 Action 单例），AppHost 构造后回填 | ShellAssemblyPlacementTests |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004；e2e |
-| 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–4）+ 模块注册器 `RegisterNavigation` + 页面模板字典 | NavigationCatalogTests（补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |
+| 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–3）+ 模块注册器 `RegisterNavigation` + 页面模板字典 | NavigationCatalogTests（补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |
 | XAML 资源缝 | App.xaml 资源单点合并/实例化：主题与模板字典（+HotkeyRecorderBox 样式字典）经跨集 pack URI、ModernControls.xaml 宿主本地合并、转换器 App 级实例（ModernControls 与通用转换器迁 Host、热键样式字典随控件下沉 Gestures） | ADR-0012 |
 | 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`），跨模块广播；新消息 = 放行共享面 | messages.md |
 | 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（ThemeService/ActionExecutorService/VM 委托），生产默认值内建 | layering.md「系统调用接缝模式」；单测替身 |
@@ -42,7 +42,7 @@
 | 缝 | 位置 | 压力 | 裁决/触发条件 |
 |---|---|---|---|
 | Host 装配面 | Composition/CreateAppHost 直取模块具体类型（MouseHook/ThemeService/两子 VM 等）；AppHost 编排托盘菜单/AppThemePaletteManager/MouseHook 暂停态；Host 聚合页拼装 M2/M4 子 VM | Host 对"模块暴露哪些 public 装配件"有编译期认知；模块不能脱离 Host 决定宿主装配 | ADR-0016 决策 13（组合根集中）；留 Host；不引入子容器/Prism |
-| 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 Core 枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶，改动属放行共享面；navigation.md 登记 |
+| 导航槽位容量 | `NavigationSlot` 固定 0–3 + Validate + e2e `NavPage0..3` | 新增第 5 页需改 Core 枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶 4，改动属放行共享面；navigation.md 登记 |
 | 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`；模块 VM 构造抓引用，导入后消息自挂 | 任何模块可读写任何配置区；模块间经"同一对象 + 广播"隐式协作 | 放行共享面（modules.md §2.3）；config.json 向后兼容 Hard Constraint |
 | Models 物理残留（R8） | `WheelProfile`/`ActionItem` 语义归 M1、物理 Core；`CustomColorPreset` 语义归 M2、物理 Core（AppConfig 引用） | 业务领域形状渗入共享内核 | R8 已登记；迁移触发条件 = 配置模型与模块语义解耦时再议 |
 

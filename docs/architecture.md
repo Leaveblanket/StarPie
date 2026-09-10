@@ -35,7 +35,7 @@
 | 程序扫描与目录 | [programs.md](architecture/programs.md) |
 | 界面主题(AppTheme)配置与解析 / XAML 令牌与整项替换 / 主题设置面 | [interface-theme.md](architecture/interface-theme.md) |
 | VS XAML 设计器预览 / Properties/DesignTimeResources.xaml / 设计期资源与视口 | [design-time-preview.md](architecture/design-time-preview.md) |
-| 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级与关于设置面 | [shell.md](architecture/shell.md) |
+| 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级设置面 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
 | IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
 | 模块划分 / 归属争议 / 扩展点验收 | [modules.md](architecture/modules.md) |
@@ -56,7 +56,7 @@
   对话框契约下沉 Programs.Contracts/Dialogs.Contracts、预览 Profile 契约下沉
   Gestures.Contracts；共享 UI 基建已去共享化——通用转换器与 `ModernControls.xaml`（全局
   控件样式字典）归 Host `StarPie/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式
-  字典）归 `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 已删除（五页 XAML 根直承
+  字典）归 `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 已删除（四页 XAML 根直承
   `UserControl`）；命名空间统一为 `StarPie.*`（跨程序集共享命名空间树）。
 - 模块程序集：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3 程序扫描
   与目录（ProgramScanner/ProgramCatalog/ShortcutResolver 与模块注册器
@@ -65,8 +65,8 @@
   `StarPie.Icons.Contracts`（S1 契约边），不引用共享内核；命名空间统一为 `StarPie.*`。
 - 模块程序集（首个带 DI 的模块程序集）：`StarPie.Shell/`（WPF 类库，程序集 `StarPie.Shell`）
   承载 M5 壳层服务与系统设置面（TrayIconManager/AutostartRegistry/MemoryOptimizer/
-  GeneralSettingsViewModel+AdvancedSettingsPage/AboutViewModel+AboutSettingsPage 与正式模块注册器
-  ShellModuleRegistrar），单向依赖共享内核；命名空间统一为 `StarPie.*`。
+  GeneralSettingsViewModel+AdvancedSettingsPage 与正式模块注册器 ShellModuleRegistrar），
+  单向依赖共享内核；命名空间统一为 `StarPie.*`。
 - 模块程序集（出口契约随实现方下沉）：`StarPie.Theme/`（WPF 类库，程序集 `StarPie.Theme`）
   承载 M4 界面主题实现（ThemeService、AppThemePaletteManager（public，Host AppHost 装配面）、
   五套主题字典 Views/Styles/Themes、InterfaceThemeSettingsViewModel 与模块注册器

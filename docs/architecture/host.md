@@ -64,7 +64,7 @@
      的注册见 WheelModuleRegistrar 注。）
    - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
      `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Theme`（模块无导航页，只下放 DI
-     注册）；M5 两页（`GeneralSettingsViewModel`/`AboutViewModel`）由
+     注册）；M5 页面（`GeneralSettingsViewModel`）由
      `ShellModuleRegistrar.RegisterServices` 下放模块程序集（ADR-0016 决策 8，见
      [assemblies.md](assemblies.md) §6）；M1 两页（`BehaviorSettingsViewModel`/
      `ProfileListViewModel`）由 `GesturesModuleRegistrar.RegisterServices` 下放

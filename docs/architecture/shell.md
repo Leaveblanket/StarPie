@@ -1,11 +1,11 @@
 # 模块：壳层与系统集成
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及托盘、开机自启、内存整理、主窗口壳层行为
-> 与高级/关于设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)。
+> 与高级设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)。
 
 ## 职责
 
-托盘与气泡、开机自启、内存整理、主窗口壳层行为、高级与关于设置面；子职责目录与护栏（D2）见
+托盘与气泡、开机自启、内存整理、主窗口壳层行为、高级设置面；子职责目录与护栏（D2）见
 [modules.md](modules.md) §5。
 
 ## 组成文件
@@ -15,8 +15,8 @@ M5 物理落位（独立模块程序集 `StarPie.Shell/`）：
 - `StarPie.Shell/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为驻模块，
   由 Host `AppHost.Run` 装配实例——见下方关键流程 1）、`AutostartRegistry.cs`（R1）、
   `MemoryOptimizer.cs`（R3）。
-- `StarPie.Shell/ViewModels/Pages/GeneralSettingsViewModel.cs`、`AboutViewModel.cs` 与
-  `StarPie.Shell/Views/Pages/AdvancedSettingsPage.xaml(.cs)`、`AboutSettingsPage.xaml(.cs)`
+- `StarPie.Shell/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
+  `StarPie.Shell/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
 - `StarPie.Shell/Modules/ShellModuleRegistrar.cs` + `ShellPageTemplates.xaml`（正式模块注册器与
   页面模板字典，自报导航项/模板并下放页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
@@ -54,7 +54,7 @@ M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `Sta
    `ShellViewModel`（D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
    操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
    `CloseButton_Click` 纯 UI 取消语义。
-5. **高级与关于设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
+5. **高级设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
    Core 契约 `AppHostDelegates` 转发（模块注册器只依赖 Core，宿主回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。

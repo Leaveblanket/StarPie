@@ -49,7 +49,7 @@
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
   实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
   `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 `StarPie.Gestures`（模块内部）；
-  共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance/About 五页 XAML
+  共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance 四页 XAML
   根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
 
@@ -114,10 +114,10 @@
 
 #### M5 壳层与系统集成
 
-- **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级与关于设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
+- **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
 - **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、
-  `GeneralSettingsViewModel`+`AdvancedSettingsPage`、`AboutViewModel`+`AboutSettingsPage` 与模块
-  注册器/页面模板字典（物理居 `StarPie.Shell/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
+  `GeneralSettingsViewModel`+`AdvancedSettingsPage` 与模块注册器/页面模板字典
+  （物理居 `StarPie.Shell/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
   不归 M5——R4/ADR-0016 归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
@@ -159,7 +159,7 @@
 #### S5 导航
 
 - **职责**：设置控制台页面切换的**目录/槽位注册契约（纯契约共享模块）**——
-  槽位表 0–4 正典、页面注册目录与完整性收口；页面模板由所属模块提供（ADR-0016）。
+  槽位表 0–3 正典、页面注册目录与完整性收口；页面模板由所属模块提供（ADR-0016）。
   导航运行时主体（当前页状态/执行入口/导航项 VM/主框架 VM）归 H1 宿主壳件
   （与 R4/D3 同判据——单一消费方在 Host，模块对运行时类型零引用）。
 - **关键内部**：共享内核含目录/槽位契约 `NavigationCatalog`（`NavigationCatalog`/
@@ -218,7 +218,7 @@
 
 ### D2 M5 子职责目录与护栏
 
-子职责：托盘 / 自启 / 内存 / 高级与关于设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不再属 M5。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
+子职责：托盘 / 自启 / 内存 / 高级设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不再属 M5。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
 
 ### D3 MainViewModel / ShellViewModel 拆分（ADR-0016）
 
@@ -252,7 +252,7 @@ WheelAppearanceSettingsViewModel 均只依赖契约程序集）。M2 构造契�
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随 `StarPie.Gestures` 成集：
   VM+View+注册器+模板字典均在模块程序集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳；
-- Advanced/About 设置页 = M5 的设置面（随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
+- Advanced 设置页 = M5 的设置面（随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
   均在模块程序集内，新增页面不碰 Host）；
 - 新增设置页按原型 B 走导航登记，不预设归属模块。
 

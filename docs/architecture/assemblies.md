@@ -37,7 +37,7 @@
 | `StarPie.Programs` | 类库 | M3 程序扫描与目录实现：ProgramScanner/ShortcutResolver + ProgramsModuleRegistrar（契约本体驻 Programs.Contracts，ADR-0023 起 M3 → Programs.Contracts + Icons.Contracts 单向，不再引用 Core/其它模块 runtime） |
 | `StarPie.Theme.Contracts` | WPF 类库 | M4 界面主题契约：`IThemeService`（`Services/Shell/`，命名空间 `StarPie.Services.Shell` 不变；零 ProjectReference——薄契约，按需 WPF：ApplyWindowTheme(FrameworkElement)，ADR-0023） |
 | `StarPie.Theme` | 类库 | M4 界面主题：ThemeService/Themes XAML/InterfaceThemeSettingsViewModel/AppThemePaletteManager（裁决 public——Host AppHost 装配面；Theme → Core + Theme.Contracts 单向，实现自有契约） |
-| `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General+About 设置页（`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
+| `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General 设置页（`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
 
 ## 3. 程序集级依赖规则
 
@@ -85,7 +85,7 @@ StarPie (Host/exe) ──→ StarPie.Core
 |---|---|---|---|
 | 导航目录/槽位契约 | S5（纯契约共享模块） | Core | NavigationCatalog、NavigationSlot/NavigationSlots、NavigationPageRegistration |
 | 导航运行时/状态 | H1（宿主壳，与 R4/D3 同判据——单一消费方在 Host） | StarPie（exe） | NavigationStore、NavigationExecutor（含 INavigationExecutor）、MainViewModel、NavigationItemViewModel（命名空间不变） |
-| 壳层服务与系统集成 | M5 | StarPie.Shell | 托盘、自启、内存、Advanced/About 设置面 |
+| 壳层服务与系统集成 | M5 | StarPie.Shell | 托盘、自启、内存、Advanced 设置面 |
 | Host 壳窗口 | H1（宿主壳） | StarPie（exe） | MainView 全文件、ShellViewModel、App/AppHost/Composition（导航 VM 与主框架同窗，物理同居 Host） |
 
 `MainView.xaml.cs` 与 `ShellViewModel` **归 Host 壳窗口**（ADR-0016 决策 6/7），不再归 M5；M5 只拥有壳层服务与设置面。
@@ -103,7 +103,7 @@ StarPie (Host/exe) ──→ StarPie.Core
 - 模块注册器自报导航项与页面模板字典（`DataTemplate DataType=VM → View`）；Host 在 App 资源里**每模块一次** pack URI 静态合并。
 - 新增页面 = 所属模块内部（注册器声明导航项 + 模板字典加条目），**不碰 Host**。
 - 新增模块 = Host 登记：程序集引用 + 注册器调用 + 模板字典合并（各一次，放行共享面）。
-- e2e `AutomationId` 沿用 `NavPage0..4`，随槽位稳定。
+- e2e `AutomationId` 沿用 `NavPage0..3`，随槽位稳定。
 
   as-built：`ShellModuleRegistrar`（RegisterNavigation + RegisterServices）与 `ShellPageTemplates.xaml`
   在 `StarPie.Shell`；`GesturesModuleRegistrar` 与 `GesturesPageTemplates.xaml` 在
@@ -118,7 +118,6 @@ StarPie (Host/exe) ──→ StarPie.Core
 | 1 | `NavPage1` | `PageAppearance` | `AppearanceSettingsViewModel`（聚合壳） | `AppearanceSettingsPage` | Host |
 | 2 | `NavPage2` | `PageGestures` | `ProfileListViewModel` | `GesturesSettingsPage` | M1 Gestures |
 | 3 | `NavPage3` | `PageAdvanced` | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | M5 Shell |
-| 4 | `NavPage4` | `PageAbout` | `AboutViewModel` | `AboutSettingsPage` | M5 Shell |
 
 缺失/重复/未知槽位由 Core 收口测试拦截；槽位表是侧边栏顺序唯一正典。MainViewModel 按目录注册
 构造导航项，导航执行走 `INavigationExecutor` 目录执行缝；运行时主体（含 MainViewModel）在
@@ -174,7 +173,7 @@ Host、目录契约仍驻 Core，程序集归属见 §2/§4。
 
 ## 9. 现状对照与差异登记
 
-15 程序集现状以 §2 程序集地图、§3 依赖规则、§5 导航槽位（NavPage0..4）与 §7 可见性为正典；
+15 程序集现状以 §2 程序集地图、§3 依赖规则、§5 导航槽位（NavPage0..3）与 §7 可见性为正典；
 概念模块归属见 [modules.md](modules.md)。程序集化落地历史见 ADR-0016、ADR-0023 与 git 历史，
 本文不逐批登记。
 

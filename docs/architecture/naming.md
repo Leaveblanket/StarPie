@@ -25,7 +25,6 @@
 | `AppearanceSettingsViewModel` | `AppearanceSettingsPage` | 外观与形态 |
 | `ProfileListViewModel` | `GesturesSettingsPage` | 手势与动作 |
 | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | 高级与系统 |
-| `AboutViewModel` | `AboutSettingsPage` | 关于与更新 |
 
 规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属模块注册器
 `RegisterNavigation`（M5 为 `StarPie.Shell` 的 `ShellModuleRegistrar`、M1 为

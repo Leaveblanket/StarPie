@@ -8,7 +8,7 @@
 
 为全部 XAML 设计面提供“运行时真实视口的像素级还原”预览：
 
-- **设计面清单**：5 设置页（Appearance / Advanced / About / Gestures / Trigger）、`MainView`、
+- **设计面清单**：4 设置页（Appearance / Advanced / Gestures / Trigger）、`MainView`、
   `SidebarView`、5 对话框（ColorPicker / IconPicker / Input / ProgramPicker / ScreenEyedropper）、
   `RadialWindow`。
 - **目标**：声明式文案可见、配色与控件样式沿用 VS Host 上下文、尺寸锚定运行视口；**运行时零行为

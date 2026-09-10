@@ -113,8 +113,8 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或**组合根/模块注册器注入的委托**编排（托盘气泡、退出、自启、导入导出、打开文件：
-  `GeneralSettingsViewModel`/`AboutViewModel` 模式，M5 页面 VM 由 ShellModuleRegistrar
+- 副作用经注入服务或**组合根/模块注册器注入的委托**编排（托盘气泡、退出、自启、导入导出：
+  `GeneralSettingsViewModel` 模式，M5 页面 VM 由 ShellModuleRegistrar
   注册、M1 页面 VM 由 GesturesModuleRegistrar 注册）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
