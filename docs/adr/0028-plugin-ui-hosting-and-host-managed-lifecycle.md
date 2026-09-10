@@ -1,6 +1,6 @@
 # 插件 UI 宿主化：允许 XAML/Window/ResourceDictionary，宿主托管资产生命周期、强制登记、卸载验证与泄漏隔离
 
-> Status: Active
+> Status: Active（决策 4 与决策 6 被 [ADR-0030](0030-ui-plugin-unload-semantics-downgrade.md) 修订）
 >
 > 本文修订 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 决策 2 与决策 8 中「插件不提供 WPF 视图/资源字典」的条款；其余条款（三集形态、collectible ALC 真卸载、SDK 单一引用面、依赖自治）继续有效。目标态规范见 `docs/architecture/plugins.md`。
 
