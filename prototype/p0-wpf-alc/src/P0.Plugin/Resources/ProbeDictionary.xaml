@@ -1,0 +1,16 @@
+<ResourceDictionary x:Class="P0.Plugin.Dictionaries.ProbeDictionary"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:models="clr-namespace:P0.Plugin.Models">
+    <!-- P0 打样：插件资源字典。宿主应把它并入「每插件资源根」，卸载时整根摘除。 -->
+    <SolidColorBrush x:Key="ProbeAccentBrush" Color="#FF3B82F6" />
+
+    <Style x:Key="ProbeButtonStyle" TargetType="Button">
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <DataTemplate x:Key="ProbeTemplate" DataType="{x:Type models:ProbeVm}">
+        <TextBlock Text="{Binding Title}" Foreground="{StaticResource ProbeAccentBrush}" />
+    </DataTemplate>
+</ResourceDictionary>

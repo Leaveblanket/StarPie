@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- P0 打样：模拟目标态的 StarPie.Sdk / StarPie.Sdk.Wpf —— 共享契约集。
+       一律由默认 ALC 加载；插件工程以 ExcludeAssets="runtime" 引用，包里不得出现副本。 -->
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>P0.Contracts</AssemblyName>
+    <RootNamespace>P0.Contracts</RootNamespace>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- P0 打样宿主：STA harness + collectible ALC + 资产登记 + 全局根扫描 + WeakReference 判定 + 报告。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- 保留控制台输出（否则 WPF SDK 会把 Exe 推断成 WinExe） -->
+    <DisableWinExeOutputInference>true</DisableWinExeOutputInference>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>P0.Host</AssemblyName>
+    <RootNamespace>P0.Host</RootNamespace>
+    <!-- collectible ALC 的卸载依赖工作站 GC（与 StarPie.csproj 一致） -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\P0.Contracts\P0.Contracts.csproj" />
+    <!-- 只排构建顺序：不引用插件程序集，避免插件被默认 ALC 解析到 -->
+    <ProjectReference Include="..\P0.Plugin\P0.Plugin.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

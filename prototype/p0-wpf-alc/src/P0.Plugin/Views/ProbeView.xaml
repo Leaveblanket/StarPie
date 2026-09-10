@@ -1,0 +1,10 @@
+<UserControl x:Class="P0.Plugin.Views.ProbeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- P0 打样：插件 XAML 视图。含 BAML 解析 + 绑定到插件 CLR 属性（ProbeVm.Title/Badge）。 -->
+    <StackPanel Orientation="Vertical" Margin="4">
+        <TextBlock x:Name="TitleText" Text="{Binding Title}" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Badge}" Opacity="0.7" />
+        <Button Content="probe" Padding="8,2" HorizontalAlignment="Left" />
+    </StackPanel>
+</UserControl>
