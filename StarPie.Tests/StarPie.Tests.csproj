@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
+    <!-- xUnit.net v3 的测试工程是可独立执行体，运行器入口点随包引入 -->
+    <OutputType>Exe</OutputType>
     <!-- B10/#83：测试命名空间统一为 StarPie.Tests（平铺于工程根，RootNamespace 与声明对齐） -->
     <RootNamespace>StarPie.Tests</RootNamespace>
   </PropertyGroup>
@@ -13,7 +15,8 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="10.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
+    <!-- xUnit.net v3 的 mtp-off 变体：仍以 VSTest 运行，dotnet test 与 Test Explorer 入口不变 -->
+    <PackageReference Include="xunit.v3.mtp-off" Version="4.0.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0" />
   </ItemGroup>
 
