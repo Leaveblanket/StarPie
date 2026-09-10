@@ -19,7 +19,7 @@
   <ItemGroup>
     <!-- ProgramsModuleRegistrar 直接使用 MS.DI（IServiceCollection 注册面）；自 ADR-0021/#92
          Core 移除该包后不再经共享内核传递，本模块显式声明（与其它模块注册器 csproj 一致）。 -->
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
   </ItemGroup>
 
   <ItemGroup>
