@@ -25,7 +25,8 @@
 1. `App.OnStartup`：
    - 单实例互斥（`DevInstance.MutexName`；`--dev` 与正式版并存、同类互斥）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
    - 后台/静默模式：命令行含 `--background` 时，设置窗口离屏（`-32000,-32000`）+ 挂 `WS_EX_NOACTIVATE` + 不进任务栏，
-     且不建托盘、不启全局鼠标钩子；`DialogService` 回填后台模式后提示框不呈现、确认框取"是"。
+     且不建托盘、不启全局鼠标钩子；`DialogService` 回填后台模式后提示框不呈现、确认框取"是"，
+     自定义对话框（程序/图标/颜色选择器、输入框）同样离屏 + 不可激活。
      仅影响窗口呈现/激活与对话框可见性，导航、配置与渲染语义不变（e2e 静默跑用，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md)）。
    - 非首实例：查找既有设置窗口并置前（`FindWindow`/`ShowWindow`/`SetForegroundWindow`），然后 `Shutdown(0)`。
    - 注册全局异常处理器（Dispatcher + AppDomain，均不崩溃）。

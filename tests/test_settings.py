@@ -2,7 +2,7 @@ import base64
 import time
 
 import pytest
-from conftest import dismiss_messagebox, goto, label_value, read_config
+from conftest import ONSCREEN, dismiss_messagebox, goto, label_value, read_config, wait_dialog, wait_dialog_closed
 
 # 1×1 PNG：v136 中心图标用例的自建测试图片（不再依赖 C:\Windows 系统文件）
 PNG_1X1_BASE64 = (
@@ -430,6 +430,41 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
         f"ShowCoreIcon 应翻转（toggle 前 state={pre_state}），got {config.get('ShowCoreIcon')}"
     assert config.get("CoreIconType") == "Crosshair", \
         f"CoreIconType 应为 'Crosshair'，got {config.get('CoreIconType')}"
+
+
+def test_program_picker_opens_and_cancels_cleanly(app):
+    """
+    程序选择器（真实模态对话框）打开/关闭交互：
+    AddProfileButton 打开对话框，CancelButton 干净关闭；关闭后主窗口仍可用、配置无新增方案。
+    后台形态下对话框必须离屏（静默运行承诺，见 #134/#135）。
+    """
+    win, local_app_data = app
+
+    goto(win, 2)
+
+    profiles_before = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
+
+    add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
+    assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
+    add_btn.invoke()
+
+    picker = wait_dialog("选择程序 - StarPie")
+    if not ONSCREEN:
+        rect = picker.element_info.rectangle
+        assert rect.left <= -1000 and rect.top <= -1000, \
+            f"后台形态下程序选择器必须离屏，got {rect}"
+
+    cancel_btn = picker.child_window(auto_id="CancelButton", control_type="Button")
+    assert cancel_btn.exists(timeout=5), "程序选择器 CancelButton 必须存在"
+    cancel_btn.invoke()
+    wait_dialog_closed(picker)
+
+    # 主窗口仍可用：切页往返，锚点断言
+    goto(win, 3)
+    goto(win, 2)
+
+    profiles_after = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
+    assert profiles_after == profiles_before, f"取消选择不应新增方案: {profiles_before} -> {profiles_after}"
 
 
 def test_v136_glow_color_customization_config_memory_and_core_image(app, tmp_path):

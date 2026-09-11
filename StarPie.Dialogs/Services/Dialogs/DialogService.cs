@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using StarPie.Services.Localization;
 
 namespace StarPie.Services.Dialogs
@@ -53,7 +55,7 @@ namespace StarPie.Services.Dialogs
         public ProgramPickResult? ShowProgramPicker()
         {
             var viewModel = new ProgramPickerViewModel(_programScanner, this, _localization, _shortcutResolver);
-            var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
+            var window = PrepareBackgroundDialog(new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner });
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
         }
@@ -66,7 +68,7 @@ namespace StarPie.Services.Dialogs
         {
             // 确认与验证逻辑在 InputViewModel，窗口只剩布局接线。
             var viewModel = new InputViewModel(title, prompt, this, _localization, defaultText, validator);
-            var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
+            var dialog = PrepareBackgroundDialog(new InputDialog(_themeService, viewModel) { Owner = _owner });
             return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
         }
 
@@ -80,14 +82,14 @@ namespace StarPie.Services.Dialogs
                 currentIconKey,
                 _iconAssets.DeleteCustomIcon,
                 path => _iconAssets.ImportCustomIcon(path));
-            var picker = new IconPickerWindow(_themeService, viewModel, _localization, _iconAssets) { Owner = _owner };
+            var picker = PrepareBackgroundDialog(new IconPickerWindow(_themeService, viewModel, _localization, _iconAssets) { Owner = _owner });
             return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
         {
             var viewModel = new ColorPickerViewModel(this, initialHex);
-            var dialog = new ColorPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
+            var dialog = PrepareBackgroundDialog(new ColorPickerWindow(_themeService, viewModel, _localization) { Owner = _owner });
             return dialog.ShowDialog() == true ? dialog.BuildResult() : null;
         }
 
@@ -160,5 +162,45 @@ namespace StarPie.Services.Dialogs
 
             MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
+
+        // ==== 后台模式对话框形态（#135：v135 程序选择器交互用例的真实打开路径）====
+
+        private const int BackgroundCoordinate = -32000;
+        private const int GwlExStyle = -20;
+        private const int WsExNoActivate = 0x08000000;
+
+        /// <summary>
+        /// 后台模式下把 WPF 对话框切成离屏 + 不可激活（与 AppHost 设置控制台同配方）：
+        /// e2e 会真实打开对话框（如程序选择器），不得让它出现在用户屏幕上或抢前台。
+        /// 仅改变窗口呈现/激活；对话框内容与交互语义不变。
+        /// </summary>
+        private T PrepareBackgroundDialog<T>(T window) where T : Window
+        {
+            if (!_backgroundMode) return window;
+
+            window.ShowActivated = false;
+            window.ShowInTaskbar = false;
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            window.Left = BackgroundCoordinate;
+            window.Top = BackgroundCoordinate;
+            window.SourceInitialized += (_, _) =>
+            {
+                IntPtr hwnd = new WindowInteropHelper(window).Handle;
+                if (hwnd == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                int exStyle = GetWindowLong(hwnd, GwlExStyle);
+                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate);
+            };
+            return window;
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }
