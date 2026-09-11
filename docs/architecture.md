@@ -52,13 +52,22 @@
   插件化四集骨架（P1.2/#111）：`StarPie.Sdk`/`StarPie.Host` 为 `net10.0` 零 WPF（SDK 另零第三方
   包）、`StarPie.Sdk.Wpf` 为 WPF 类型契约面、`StarPie.Ui` 为唯一含 XAML 与入口的 WinExe；
   依赖方向与机械断言见 [assemblies.md](architecture/assemblies.md) §3。
-- 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`）承载 Models、共享件
-  （Configuration/Localization/Messages/Navigation 目录与槽位契约；导航运行时主体
+- SDK 集（P1.3/#112 headless 收口）：`StarPie.Sdk/`（net10.0、零 WPF、零第三方包）承载跨集共享的
+  纯托管契约与模型——`Models/`（AppConfig/WheelProfile/ActionItem/CustomColorPreset 与
+  RgbColor/ColorMath/GesturePoint）、`Services/`（AppHostDelegates、Messages 消息与通知载体、
+  Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口）、`ViewModels/`
+  （Pages 预览源接口、Wheel 轮盘只读接口）；迁移期源码镜像旧相对路径、命名空间保持
+  `StarPie.*` 不变，导出面与全仓类型唯一性由 `StarPie.Tests/SdkBoundaryTests.cs` 收口；
+  WPF 契约件（主题/图标/扫描）留 P1.4 入 `StarPie.Sdk.Wpf`。
+- 共享内核（P1.3/#112 收窄）：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`）只余 S2 配置与
+  S3 本地化实现（Configuration/Localization，P1.5 起迁 Host 内核）——Models/Messages/导航
+  目录契约与宿主回调契约 `Services/AppHostDelegates` 已迁 `StarPie.Sdk`，对话框与预览 Profile
+  契约随 SDK 收口一并迁入（旧 `Dialogs.Contracts`/`Gestures.Contracts` 暂留空壳），扫描/SPI
+  契约仍驻 Programs.Contracts（WPF 面，P1.4）；导航运行时主体
   （NavigationStore/NavigationExecutor/MainViewModel/NavigationItemViewModel）归 Host
-  `StarPie.Ui/Services/Navigation/` 与 `StarPie.Ui/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
-  `Services/AppHostDelegates`；**不含任何模块出口契约**——S1 图标资产独立成集、扫描/SPI/
-  对话框契约下沉 Programs.Contracts/Dialogs.Contracts、预览 Profile 契约下沉
-  Gestures.Contracts；共享 UI 基建已去共享化——通用转换器与 `ModernControls.xaml`（全局
+  `StarPie.Ui/Services/Navigation/` 与 `StarPie.Ui/ViewModels/Navigation/`，命名空间不变；
+  S1 图标资产仍独立成集（契约 IIconAssetService 驻 Icons.Contracts，WPF 面）；共享 UI 基建已去共享化——
+  通用转换器与 `ModernControls.xaml`（全局
   控件样式字典）归 Host `StarPie.Ui/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式
   字典）归 `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 已删除（四页 XAML 根直承
   `UserControl`）；命名空间统一为 `StarPie.*`（跨程序集共享命名空间树）。
@@ -81,23 +90,24 @@
   承载 M2 轮盘与渲染（WheelViewModel/RadialWindow/Views/Renderers 样式渲染器与预览、
   Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
   WheelGeometry 视觉几何与 WheelFactory 实现、模块注册器 WheelModuleRegistrar），
-  `StarPie.Wheel.Contracts/`（类库，程序集 `StarPie.Wheel.Contracts`）承载出口契约
-  （IWheelFactory/IWheelViewModel/IWheelAppearanceState，命名空间不变）；runtime → Core +
-  Wheel.Contracts + Theme.Contracts + Gestures.Contracts 等契约单向（runtime 允许边清零）；
+  出口契约（IWheelFactory/IWheelViewModel/IWheelAppearanceState）原驻 `StarPie.Wheel.Contracts`、
+  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`（命名空间不变，工程暂留空壳）；runtime → Sdk +
+  Core + Theme.Contracts + Icons.Contracts 等契约单向（runtime 允许边清零）；
   命名空间统一为 `StarPie.*`。
 - 模块程序集：`StarPie.Gestures/`（WPF 类库，程序集 `StarPie.Gestures`）承载 M1 手势与动作
   （手势管线 Services/Gestures（MouseHook/GestureController/GestureEngine/IWindowContext/
   WindowContext）、动作执行 Services/Actions（IActionExecutorService/ActionExecutorService/
   ActionRouting）、触发+手势设置页（BehaviorSettingsViewModel+TriggerSettingsPage、
   ProfileListViewModel+SlotViewModel+GesturesSettingsPage）与模块注册器
-  GesturesModuleRegistrar），`StarPie.Gestures.Contracts/`（类库，程序集
-  `StarPie.Gestures.Contracts`）承载出口契约 `IProfilePreviewSource`（命名空间不变）；
-  runtime → Core + Gestures.Contracts + Wheel.Contracts 等契约单向（runtime 允许边清零）；
+  GesturesModuleRegistrar），出口契约 `IProfilePreviewSource` 原驻 `StarPie.Gestures.Contracts`、
+  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`（命名空间不变，工程暂留空壳）；
+  runtime → Sdk + Core + Icons.Contracts 等契约单向（runtime 允许边清零）；
   命名空间统一为 `StarPie.*`。
 - 共享基础设施模块的独立落点：`StarPie.Dialogs/`（WPF 类库，程序集 `StarPie.Dialogs`）承载
   S6 对话框实现（DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior 与模块注册器
-  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 驻 `StarPie.Dialogs.Contracts`），
-  runtime → Dialogs.Contracts + Programs.Contracts + Icons.Contracts + Core + Theme.Contracts
+  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 原驻 `StarPie.Dialogs.Contracts`、
+  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`），
+  runtime → Sdk + Programs.Contracts + Icons.Contracts + Core + Theme.Contracts
   单向（runtime 允许边清零）；命名空间统一为 `StarPie.*`。
 - S1 图标服务独立成集：`StarPie.Icons.Contracts/`（WPF 类库，程序集
   `StarPie.Icons.Contracts`）承载契约四件（`IIconAssetService`/`IconCatalog`/`CustomIconItem`/
@@ -130,14 +140,14 @@ StarPie/
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
 ├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML）
 ├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测）
-├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
+├── StarPie.Core/                # 共享内核程序集（只余 S2/S3 运行时件；契约/模型已迁 SDK，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（见 layout.md）
 ├── StarPie.Icons/               # S1 图标实现程序集（见 layout.md）
 ├── StarPie.Programs.Contracts/  # M3 扫描/SPI 契约程序集（见 layout.md）
-├── StarPie.Dialogs.Contracts/   # S6 对话框契约程序集（见 layout.md）
+├── StarPie.Dialogs.Contracts/   # S6 对话框契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
 ├── StarPie.Theme.Contracts/     # M4 界面主题契约程序集（见 layout.md）
-├── StarPie.Wheel.Contracts/     # M2 轮盘契约程序集（见 layout.md）
-├── StarPie.Gestures.Contracts/  # M1 预览 Profile 契约程序集（见 layout.md）
+├── StarPie.Wheel.Contracts/     # M2 轮盘契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
+├── StarPie.Gestures.Contracts/  # M1 预览 Profile 契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（见 layout.md）
 ├── StarPie.Programs/            # M3 程序扫描与目录模块程序集（见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（见 layout.md）

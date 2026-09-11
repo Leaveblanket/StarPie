@@ -43,8 +43,8 @@
      `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Theme；
      `IThemeService` 契约驻 Theme.Contracts，ADR-0023），组合根不直接登记主题服务；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
-     `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 Wheel.Contracts，ADR-0023，
-     M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
+     `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 `StarPie.Sdk`，ADR-0023，
+     P1.3/#112 收口，M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
    - `ProgramsModuleRegistrar.RegisterServices` 在组合根调用——注册
      `IShortcutTargetResolver→ShortcutResolver` 与 `IProgramScanner→ProgramScanner`（契约随
      实现方驻 `StarPie.Programs.Contracts`，ADR-0023；M3 → Programs.Contracts +
@@ -79,26 +79,27 @@
      在 Host `ViewModels/Navigation/`，命名空间不变；页面 VM 的 DI 注册已全部
      下放所属模块注册器，仅 Host 外观聚合页 VM 与导航 VM 留在组合根；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
-     GesturesModuleRegistrar 下放（契约随实现方 M1 驻 Gestures.Contracts，ADR-0023，
+     GesturesModuleRegistrar 下放（契约随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023，
      供轮盘外观设置子 VM 经契约边消费））、`ShellViewModel`（D3：Host 壳窗口壳层 VM——窗口
      标题/退出态/保存，主框架分区 DataContext 的壳区，见 [shell.md](shell.md)）。
-   - `AppHostDelegates` 为 Core 公开契约（`Services/AppHostDelegates.cs`）并以单例注册进容器，
-     `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 Core。
+   - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112
+     自 Core 收口）并以单例注册进容器，
+     `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
     - `ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core + Theme.Contracts
       单向），主题服务/主题设置子 VM 的工厂只解析 Core 契约（`IThemeService` 契约驻
       Theme.Contracts，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
       直接 `new`（StarPie.Theme public，Host 装配面）。
-    - `WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Core +
-      Wheel.Contracts/Theme.Contracts/Gestures.Contracts 等契约），轮盘工厂
+    - `WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Sdk + Core +
+      Theme.Contracts/Icons.Contracts 等契约），轮盘工厂
       `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析契约程序集（`IThemeService`
       经 Theme.Contracts，M2→M4 runtime 允许边清零，ADR-0023）；RadialWindow 不经 Host
       直接 new——由 WheelFactory 在 StarPie.Wheel 内创建。
-    - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Core + Wheel.Contracts
+    - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Sdk + Core + Icons.Contracts
       等契约），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析 Core 契约与
-      Wheel.Contracts 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
-      ADR-0023）；MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（组合根
+      SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
+      ADR-0023；P1.3/#112 收口）；MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（组合根
       装配前已以 DevInstance.IsActive 回填），M1 不反向引用 Host。
-   - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 Core `AppHostDelegates` 转发注册，不直接引用宿主类。
+   - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
      `DialogService` 在 `StarPie.Dialogs` 内显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
@@ -129,7 +130,7 @@
 
 ## 宿主委托包
 
-`AppHostDelegates`（Core 公开契约，`StarPie.Core/Services/AppHostDelegates.cs`）承载页面 VM
+`AppHostDelegates`（SDK 公开契约，`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）承载页面 VM
 注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`。
 组合根把单例实例注册进容器，`ShellModuleRegistrar` 装配 `GeneralSettingsViewModel` 时持稳定转发委托，
 `AppHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication = …`）；VM 不反向依赖宿主类。

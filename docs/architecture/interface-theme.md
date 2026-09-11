@@ -26,7 +26,7 @@ M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现
   `ThemeService`/`IThemeService`（契约驻 Theme.Contracts）/`InterfaceThemeSettingsViewModel`
   的 DI 注册；M4 无导航页，不提供 `RegisterNavigation`）。
 - `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
-  `Services/Messages/Messages.cs`（Core），放行共享面，见 [messages.md](messages.md)）。
+  `StarPie.Sdk/Services/Messages/Messages.cs`（P1.3/#112 自 Core 收口），放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
 DialogService 装配面）显式引用 Theme runtime 与 Theme.Contracts——装配面经 runtime 引用消费

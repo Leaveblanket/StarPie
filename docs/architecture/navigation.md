@@ -8,7 +8,7 @@
 
 ## 组成文件
 
-共享内核（`StarPie.Core/`；仅留目录/槽位契约）：
+SDK（`StarPie.Sdk/`；P1.3/#112 自 Core 收口，仅目录/槽位契约）：
 
 - `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
   `NavigationPageRegistration`（全局槽位表 0–3、`NavPage0..3` 正典与缺失/重复/未知槽位收口测试，
@@ -21,7 +21,7 @@
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
   接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [seams.md](seams.md)；
   第二消费方出现时按 ADR-0023 契约归属判据裁决落点——属全局机制入内核、属某模块出口契约
-  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方入 Dialogs.Contracts））。
+  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、P1.3/#112 收口入 `StarPie.Sdk`））。
 - `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（目录驱动：导航项顺序/
   标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责已拆至
   同目录族的 `ShellViewModel`，见 [shell.md](shell.md)）。
@@ -51,7 +51,7 @@ M1 模块程序集（`StarPie.Gestures/`）：
 1. `Composition` 装配目录：构造时依次调 `GesturesModuleRegistrar`/`ShellModuleRegistrar`/
    `HostModuleRegistrar.RegisterNavigation(catalog)` 并 `catalog.Validate()`（四槽收口），目录单例注册；
    M5/M1 页面 VM 与手势管线的 DI 注册分别由 `ShellModuleRegistrar.RegisterServices`（含宿主回调
-   经 Core `AppHostDelegates` 的接线）与 `GesturesModuleRegistrar.RegisterServices`（含
+   经 `StarPie.Sdk` 的 `AppHostDelegates` 接线，P1.3/#112 收口）与 `GesturesModuleRegistrar.RegisterServices`（含
    `IProfilePreviewSource` 别名下放）下放模块程序集；导航运行时（`NavigationStore`/
    `NavigationExecutor`/`MainViewModel`）与 Host 外观聚合页 VM 由 `Composition.ConfigureServices`
    注册——前者为 Host 内部件，后者为 Host 页。
