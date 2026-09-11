@@ -97,8 +97,12 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 3. **pywinauto e2e（提交级免跑判定）**: feature / bug-fix 提交按下表判定，命中“必跑”时才先 build 再全量跑：
 
    ```bash
-   python -m pytest tests/test_settings.py -v
+   pwsh -File scripts/run-e2e.ps1
    ```
+
+   运行器默认静默形态（被测应用以 `--background` 启动：离屏、不可激活、无托盘/全局钩子，
+   Save 提示框不呈现），全程不抢前台、不移动物理光标；日志与 junitxml 落 `artifacts/e2e/`，
+   `-Status` 查最近一次结果，`-OnScreen` 为调试用可见形态。等价裸命令见 `tests/conftest.py`。
 
    | 改动面（命中任一即全量 e2e） |
    |---|

@@ -25,6 +25,10 @@ namespace StarPie.Services.Dialogs
         private readonly IShortcutTargetResolver _shortcutResolver;
         private readonly IProgramScanner _programScanner;
         private Window? _owner;
+        // 后台模式（--background，e2e 静默跑用）：提示类对话框不呈现、确认类取"是"——
+        // 无人在场时不能把系统 MessageBox 弹到用户屏幕上（它不跟随离屏 owner，按显示器居中）。
+        // 对话框↔VM 的接线由 xUnit 的 TestDialogService 覆盖，e2e 不断言弹框本身。
+        private bool _backgroundMode;
 
         public DialogService(
             IThemeService themeService,
@@ -42,6 +46,9 @@ namespace StarPie.Services.Dialogs
 
         /// <summary>组合根在设置窗口创建完成后回填 Owner；此前调用任何 Show* 都不带 Owner。</summary>
         public void SetOwner(Window owner) => _owner = owner;
+
+        /// <summary>宿主启动时按 <c>--background</c> 回填（后台/静默运行语义）。</summary>
+        public void SetBackgroundMode(bool value) => _backgroundMode = value;
 
         public ProgramPickResult? ShowProgramPicker()
         {
@@ -134,11 +141,23 @@ namespace StarPie.Services.Dialogs
 
         public bool Confirm(string title, string message)
         {
+            // 后台模式无人在场应答：按"是"继续，不呈现窗口。
+            if (_backgroundMode)
+            {
+                return true;
+            }
+
             return MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
         }
 
         public void ShowInfo(string title, string message)
         {
+            // 后台模式不呈现提示框（无人阅读，且会弹到用户屏幕中央并抢前台）。
+            if (_backgroundMode)
+            {
+                return;
+            }
+
             MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }

@@ -2,7 +2,7 @@ import os
 import json
 import time
 import pytest
-from pywinauto import Desktop
+from conftest import dismiss_messagebox
 
 def get_config_path(local_app_data):
     for name in ["StarPie"]:
@@ -37,14 +37,8 @@ def test_modify_slider_and_save(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    # Dismiss the popup dialog if it appears
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    # 关闭 Save 触发的提示框（仅 -OnScreen 调试形态会出现；静默形态零等待）
+    dismiss_messagebox()
         
     time.sleep(0.8)
     
@@ -72,13 +66,13 @@ def test_switch_all_tabs_smoothly(app):
     for i in range(4):
         page_btn = win.child_window(auto_id=f"NavPage{i}", control_type="RadioButton")
         assert page_btn.exists(timeout=5), f"NavPage{i} must exist"
-        page_btn.click_input()  # T19 命令式导航:UIA Select 只置勾选不触发命令,须真实点击
+        page_btn.select()  # 选中态驱动导航：UIA Select 即真导航，无物理输入（静默跑
         time.sleep(0.3)
         assert win.is_visible(), f"Window must remain visible after selecting NavPage{i}"
         
     # Specifically re-verify Page 1 (Appearance & Live Canvas)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     wheel_slider = win.child_window(auto_id="WheelRadiusSlider", control_type="Slider")
@@ -92,14 +86,14 @@ def test_switch_all_tabs_smoothly(app):
     
     # Test Page 2 (Mappings & Profiles)
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
     assert profiles_list.exists(timeout=3), "ProfilesListBox should exist in Mappings tab"
     
     # Test Page 3 (System)
     page3 = win.child_window(auto_id="NavPage3", control_type="RadioButton")
-    page3.click_input()
+    page3.select()
     time.sleep(0.3)
     auto_start_chk = win.child_window(auto_id="AutoStartCheckBox", control_type="CheckBox")
     assert auto_start_chk.exists(timeout=3), "AutoStartCheckBox should exist in System tab"
@@ -115,7 +109,7 @@ def test_appearance_shapes_and_geometry_reset(app):
     win, local_app_data = app
     
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 1. Test Gap & Corner Radius Sliders
@@ -182,7 +176,7 @@ def test_profile_management_ui_and_buttons(app):
     win, local_app_data = app
     
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     add_app_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
@@ -212,7 +206,7 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     win, local_app_data = app
     
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
@@ -222,13 +216,7 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    dismiss_messagebox()
         
     time.sleep(0.5)
     assert win.is_visible()
@@ -246,7 +234,7 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     win, local_app_data = app
     
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 1. Verify AppTheme dropdown (软件界面主题)
@@ -269,13 +257,7 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    dismiss_messagebox()
         
     time.sleep(0.8)
     
@@ -300,7 +282,7 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     win, local_app_data = app
     
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 1. Verify WheelStyle dropdown (轮盘主题风格)
@@ -327,13 +309,7 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    dismiss_messagebox()
         
     time.sleep(0.8)
     
@@ -358,7 +334,7 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     win, local_app_data = app
     
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 1. Verify ShapeComboBox exists and can select new shapes
@@ -393,13 +369,7 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    dismiss_messagebox()
         
     time.sleep(0.8)
     
@@ -425,7 +395,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     
     # 1. Verify streamlined shapes
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
@@ -433,7 +403,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     
     # 2. Switch to Gestures & Actions tab
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.5)
     
     radio4 = win.child_window(auto_id="SectorCount4Radio", control_type="RadioButton")
@@ -452,13 +422,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
     
-    try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=3):
-            ok_btn = dialog.child_window(control_type="Button")
-            ok_btn.invoke()
-    except Exception:
-        pass
+    dismiss_messagebox()
         
     time.sleep(0.8)
     
@@ -486,7 +450,7 @@ def test_v134_memory_autosave_and_theme_persistence(app):
     
     # 1. Navigate to Appearance Page (NavPage1)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 2. Change AppTheme to Light
@@ -521,7 +485,7 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
     
     # 1. Appearance Page
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 2. Check Core Icon controls exist
@@ -551,7 +515,7 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
     
     # 5. Test ProgramPickerWindow in Mappings Page
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
@@ -571,7 +535,7 @@ def test_v136_glow_color_customization_config_memory_and_core_image(app):
     
     # 1. Appearance Page
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 2. Check Highlight Glow controls
@@ -632,7 +596,7 @@ def test_v136_custom_color_preset_deletion_and_management(app):
     
     # 1. Appearance Page
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     # 2. Check WheelPaletteComboBox existence
@@ -663,7 +627,7 @@ def test_v138_i18n_multilanguage_support(app):
     
     # 1. Advanced & System Page
     page3 = win.child_window(auto_id="NavPage3", control_type="RadioButton")
-    page3.click_input()
+    page3.select()
     time.sleep(0.4)
     
     # 2. Check LanguageComboBox existence
@@ -730,7 +694,7 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
     
     # 1. Switch to Page 2
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     # 2. Check title text blocks
@@ -779,7 +743,7 @@ def test_v140_custom_icons_and_appearance_collapsible(app):
     
     # 1. Appearance Page (Page 1)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     ui_style_combo = win.child_window(auto_id="WheelStyleComboBox", control_type="ComboBox")
@@ -792,7 +756,7 @@ def test_v140_custom_icons_and_appearance_collapsible(app):
     
     # 2. Gestures Page (Page 2)
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     action_list_title = win.child_window(auto_id="SectorActionListTitleText", control_type="Text")
@@ -824,7 +788,7 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     
     # 2. Gestures Page (Page 2)
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     
     rename_profile_btn = win.child_window(auto_id="RenameProfileButton", control_type="Button")
@@ -832,7 +796,7 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     
     # 3. Appearance Page (Page 1)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     
     color_expander = win.child_window(auto_id="CustomColorExpander", control_type="Group")
@@ -859,7 +823,7 @@ def test_t28_hardcoded_copy_follows_language(app):
 
     # Advanced & System (NavPage3) -> language combo lives here
     page3 = win.child_window(auto_id="NavPage3", control_type="RadioButton")
-    page3.click_input()
+    page3.select()
     time.sleep(0.4)
     lang_combo = win.child_window(auto_id="LanguageComboBox", control_type="ComboBox")
     assert lang_combo.exists(timeout=3), "LanguageComboBox should exist"
@@ -875,7 +839,7 @@ def test_t28_hardcoded_copy_follows_language(app):
 
     # Gestures & Actions (NavPage2)
     page2 = win.child_window(auto_id="NavPage2", control_type="RadioButton")
-    page2.click_input()
+    page2.select()
     time.sleep(0.4)
     ges_sub = win.child_window(auto_id="GesturesPageSubheader", control_type="Text")
     assert ges_sub.exists(timeout=3), "GesturesPageSubheader should exist"
@@ -884,7 +848,7 @@ def test_t28_hardcoded_copy_follows_language(app):
 
     # Appearance (NavPage1)
     page1 = win.child_window(auto_id="NavPage1", control_type="RadioButton")
-    page1.click_input()
+    page1.select()
     time.sleep(0.4)
     app_sub = win.child_window(auto_id="AppearancePageSubheader", control_type="Text")
     assert app_sub.exists(timeout=3), "AppearancePageSubheader should exist"
@@ -892,7 +856,7 @@ def test_t28_hardcoded_copy_follows_language(app):
         f"Appearance subheader should be en, got {app_sub.window_text()}"
 
     # --- Japanese --- (switch back on Advanced, then re-check in place)
-    page3.click_input()
+    page3.select()
     time.sleep(0.4)
     lang_combo.select(3)  # ja
     time.sleep(0.6)

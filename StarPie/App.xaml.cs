@@ -31,6 +31,9 @@ namespace StarPie
             string cmdLine = Environment.CommandLine;
             bool isTestMode = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
                               cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
+            // 后台/静默模式：窗口离屏且不可激活、不进任务栏、不建托盘、不启全局鼠标钩子，
+            // 供 e2e 在用户同机工作时无打扰驱动（见 docs/architecture/host.md）。
+            bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
 
             if (!isTestMode)
             {
@@ -79,7 +82,7 @@ namespace StarPie
                 // 经注入的配置服务加载配置
                 _composition.Config.Load();
 
-                _appHost = _composition.CreateAppHost();
+                _appHost = _composition.CreateAppHost(isBackground);
                 _appHost.Run();
 
                 // 启动后做一次内存整理

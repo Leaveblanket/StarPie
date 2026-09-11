@@ -197,6 +197,12 @@ public sealed class MainViewModelTests
 
     private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture) Create()
     {
+        var (vm, store, fixture, _) = CreateCore();
+        return (vm, store, fixture);
+    }
+
+    private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture, FakeNavigationExecutor Navigation) CreateCore()
+    {
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
 
@@ -216,7 +222,7 @@ public sealed class MainViewModelTests
             [NavigationSlot.Advanced] = fixture.General
         });
         var vm = new MainViewModel(store, catalog, navigation, Localization);
-        return (vm, store, fixture);
+        return (vm, store, fixture, navigation);
     }
 
     [Fact]
@@ -266,6 +272,31 @@ public sealed class MainViewModelTests
         Assert.Same(fixture.Appearance, vm.CurrentViewModel);
         Assert.False(vm.NavigationItems[0].IsSelected);
         Assert.True(vm.NavigationItems[1].IsSelected);
+    }
+
+    [Fact]
+    public void ItemSelectedExternally_NavigatesToTargetPage()
+    {
+        // UIA SelectionItem.Select（e2e 静默导航路径）只置选中态、不产生鼠标输入；
+        // 导航由选中态驱动，点击命令与选中态两条路径等价。
+        var (vm, store, fixture, navigation) = CreateCore();
+
+        vm.NavigationItems[2].IsSelected = true;
+
+        Assert.Same(fixture.Profiles, store.CurrentViewModel);
+        Assert.Equal(1, navigation.NavigateCalls);
+    }
+
+    [Fact]
+    public void SelectionSyncedFromStore_DoesNotRenavigate()
+    {
+        // SyncSelection 回灌的选中态指向已停驻的页面，不得触发二次导航（防回环）。
+        var (vm, store, fixture, navigation) = CreateCore();
+
+        store.CurrentViewModel = fixture.General;
+
+        Assert.True(vm.NavigationItems[3].IsSelected);
+        Assert.Equal(0, navigation.NavigateCalls);
     }
 
     [Fact]
