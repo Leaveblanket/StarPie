@@ -248,6 +248,21 @@ public sealed class ProfileListViewModelTests
         Assert.Null(vm.SelectedProfile);
     }
 
+    /// <summary>
+    /// 槽位动作类型 ComboBox 的 AutomationId 契约：0 基索引、逐槽唯一（e2e 依赖 Slot0 定位首个槽位）。
+    /// </summary>
+    [Fact]
+    public void RebuildSlots_AssignsStableActionTypeAutomationIds()
+    {
+        var profile = MakeProfile("Global", 4);
+        var vm = new ProfileListViewModel(new List<WheelProfile> { profile }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization, new TestIconAssetService());
+
+        Assert.Equal(4, vm.Slots.Count);
+        Assert.Equal(
+            new[] { "Slot0ActionTypeComboBox", "Slot1ActionTypeComboBox", "Slot2ActionTypeComboBox", "Slot3ActionTypeComboBox" },
+            vm.Slots.Select(s => s.ActionTypeAutomationId));
+    }
+
     // --- 扇区数切换 -------------------------------------------------------------------
 
     [Fact]

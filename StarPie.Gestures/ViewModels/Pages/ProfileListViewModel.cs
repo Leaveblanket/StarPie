@@ -249,7 +249,10 @@ namespace StarPie.ViewModels.Pages
 
                 for (int i = 0; i < count; i++)
                 {
-                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger, _localization, _iconAssets);
+                    var slot = new SlotViewModel(directions[i], profile.Actions[i], _dialogs, _actionExecutor, _messenger, _localization, _iconAssets)
+                    {
+                        SlotIndex = i
+                    };
                     Slots.Add(slot);
                 }
             }

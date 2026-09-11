@@ -106,7 +106,8 @@
                                                 <TextBox Grid.Column="2" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" Height="30" FontSize="12" VerticalContentAlignment="Center"/>
 
                                                 <!-- Col 3: Type Selector (Dynamic I18n) -->
-                                                <ComboBox Grid.Column="3" 
+                                                <ComboBox Grid.Column="3"
+                                                              AutomationProperties.AutomationId="{Binding ActionTypeAutomationId}"
                                                               ItemsSource="{Binding ActionTypes}"
                                                               SelectedValue="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                               SelectedValuePath="Tag" 
