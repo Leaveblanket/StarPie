@@ -36,20 +36,16 @@
          宿主内核运行时件（配置/本地化/图标目录/程序扫描）随 Host 引用直用，
          Core 只余设计期投影字典（HostBoundaryTests 断言其零导出类型） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- P1.3/#112 + P1.4/#113：剩余四个被收口契约工程暂留空壳（内容分别迁 StarPie.Sdk /
-         StarPie.Sdk.Wpf）——测试仍显式引用，以便加载全部应用程序集做「导出类型唯一 /
-         空壳无导出」的机械断言（SdkBoundaryTests）；归并票（P1.6–P1.10）撤销工程时一并
-         移除本组引用。 -->
+    <!-- 剩余三个被收口契约工程暂留空壳（内容迁 StarPie.Sdk）——测试仍显式引用，以便加载
+         全部应用程序集做「导出类型唯一 / 空壳无导出」的机械断言（SdkBoundaryTests）；
+         归并票撤销工程时一并移除本组引用。 -->
     <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
-    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
-    <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->
-    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
     <!-- ADR-0016/B8：#81 M2 轮盘与渲染模块程序集（WheelViewModel/RadialWindow/渲染器/配色/
          WheelFactory/WheelModuleRegistrar/CoreIcon* 转换器等测试直用） -->
     <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />

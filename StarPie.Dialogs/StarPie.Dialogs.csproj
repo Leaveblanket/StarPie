@@ -28,8 +28,7 @@
          record、程序扫描/.lnk 契约与图标条目类型、AppConfig 等消息与模型；Dialogs.Contracts
          暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- P1.4/#113：SDK WPF 契约面（IThemeService 自 Theme.Contracts、IIconAssetService 自
-         Icons.Contracts 随 SDK 收口迁入；对话框链仅经契约边，命名空间不变） -->
+    <!-- SDK 的 WPF 契约面（主题与图标资产服务）：对话框链仅经契约边，命名空间不变 -->
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 宿主内核（S2 配置/S3 本地化接缝 + 图标目录/程序扫描实现） -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />

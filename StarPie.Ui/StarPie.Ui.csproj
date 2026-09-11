@@ -25,14 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- #111 四集骨架：Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
-         （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。
-          P1.3/#112：headless 契约与模型（IDialogService/结果 record、IWheelAppearanceState、
-         IProfilePreviewSource、导航目录与消息等）已随 SDK 收口迁入 StarPie.Sdk；
-         P1.4/#113：WPF 契约件（IThemeService、IIconAssetService）随 WPF 面收口迁入 StarPie.Sdk.Wpf；
-         程序扫描/图标契约（IProgramScanner/ProgramEntry/ProgramCatalog/IShortcutTargetResolver、
-         图标条目）随 #118 归并入 StarPie.Sdk，Icons/Programs 两 runtime 与各自 Contracts
-         工程撤销，剩余四个契约工程暂留空壳、不再被引用。 -->
+    <!-- Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
+         （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk）。
+         headless 契约/模型与 WPF 契约件（IThemeService/IIconAssetService 等）分别收口于
+         StarPie.Sdk 与 StarPie.Sdk.Wpf；剩余三个被收口的契约工程
+         （Dialogs/Gestures/Wheel.Contracts）暂留空壳、不再被引用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
@@ -48,10 +45,6 @@
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
-    <!-- B7/#80：M4 界面主题模块程序集显式引用（ThemeService/ThemePaletteManager/主题字典/
-         主题设置子 VM 随迁；组合根调 ThemeModuleRegistrar 注册服务与主题 VM DI、
-         AppHost 装配 ThemePaletteManager 调色板换入面用） -->
-    <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
     <!-- B8/#81：M2 轮盘与渲染模块程序集显式引用（轮盘 VM/窗口/渲染器/配色/工厂随迁；
          组合根调 WheelModuleRegistrar 注册轮盘工厂与外观设置子 VM DI、外观聚合页经 Wheel
          引用 WheelAppearanceSettingsViewModel/IWheelAppearanceState/预览渲染器，

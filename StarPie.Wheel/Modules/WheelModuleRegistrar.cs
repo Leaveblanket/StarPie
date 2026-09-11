@@ -18,10 +18,9 @@ namespace StarPie.Modules
     /// 本模块无导航页，不提供 RegisterNavigation。轮盘工厂实现（<see cref="WheelFactory"/>）
     /// 与接口 <see cref="IWheelFactory"/> 契约（ADR-0023/#97 起独立成集，#112 收口入
     /// StarPie.Sdk）本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
-    /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 随实现方 M1 下沉、
-    /// #112 收口入 StarPie.Sdk，实现方与消费方经其解耦。工厂/外观子 VM 只依赖共享内核、
-    /// SDK 契约面与 Theme.Contracts 的 <see cref="IThemeService"/>（M2→M4 runtime
-    /// 允许边清零），不反向引用宿主。
+    /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 下沉 SDK 面，实现方与消费方
+    /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与 Sdk.Wpf 的
+    /// <see cref="IThemeService"/>（M2→M4 runtime 允许边清零），不反向引用宿主。
     /// </remarks>
     public static class WheelModuleRegistrar
     {

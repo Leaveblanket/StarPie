@@ -4,19 +4,18 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
 
-namespace StarPie
+namespace StarPie.Adapters
 {
     /// <summary>
-    /// 主题调色板管理器：自包含“加载 Views/Styles/Themes/*.xaml → 缓存/冻结 →
-    /// 整项替换 Application MergedDictionaries 活动主题槽”。
+    /// 主题调色板适配器（实现内核主题应用端口）：自包含"加载 Themes/*.xaml → 缓存/冻结 →
+    /// 整项替换 Application MergedDictionaries 活动主题槽"。
     /// </summary>
     /// <remarks>
-    /// App.xaml 静态合并 Light 仅作设计时/首帧；本管理器把目标主题字典放入合并字典的主题槽
+    /// App.xaml 静态合并 Light 仅作设计时/首帧；本适配器把目标主题字典放入合并字典的主题槽
     /// （含 /Themes/ 的第一项），切 Light 即替换回 Light 字典，直接键零残留。
-    /// 可见性为 public：宿主 AppHost 装配面（AttachPaletteApplier + Apply）跨程序集编排调用；
-    /// 模块内部实现细节（主题文件映射/缓存/冻结）保持私有。
+    /// 内核主题引擎零 WPF，主题呈现只能在此适配；Application 缺席（如无窗口环境）时安全返回。
     /// </remarks>
-    public sealed class AppThemePaletteManager
+    internal sealed class AppThemePaletteManager : IThemeApplier
     {
         // 配置名/遗留别名 → 主题文件规范名（ObsidianDark 等价 Dark）。
         private static readonly Dictionary<string, string> ThemeFileNames = new(StringComparer.OrdinalIgnoreCase)
@@ -32,9 +31,9 @@ namespace StarPie
         private readonly Dictionary<string, ResourceDictionary> _palettes = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>把 effectiveTheme 调色板整项替换进 Application 合并字典的主题槽；未知主题名回落 Light。</summary>
-        public void Apply(string effectiveTheme, Application app)
+        public void ApplyTheme(string effectiveTheme)
         {
-            if (app == null) return;
+            if (Application.Current is not { } app) return;
 
             ResourceDictionary palette = LoadPalette(effectiveTheme);
             var merged = app.Resources.MergedDictionaries;
@@ -68,7 +67,7 @@ namespace StarPie
             string file = ThemeFileNames.TryGetValue(theme, out string? name) ? name : "Light";
             if (_palettes.TryGetValue(file, out ResourceDictionary? cached)) return cached;
 
-            var source = new Uri($"pack://application:,,,/StarPie.Theme;component/Views/Styles/Themes/{file}.xaml", UriKind.Absolute);
+            var source = new Uri($"pack://application:,,,/Themes/{file}.xaml", UriKind.Absolute);
             var palette = new ResourceDictionary { Source = source };
             foreach (DictionaryEntry entry in palette)
             {

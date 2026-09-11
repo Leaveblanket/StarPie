@@ -32,7 +32,6 @@ internal static class FourSetBoundaryProbe
         "StarPie.Dialogs", "StarPie.Dialogs.Contracts",
         "StarPie.Gestures", "StarPie.Gestures.Contracts",
         "StarPie.Shell",
-        "StarPie.Theme", "StarPie.Theme.Contracts",
         "StarPie.Wheel", "StarPie.Wheel.Contracts",
     };
 

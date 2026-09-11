@@ -1,5 +1,6 @@
 global using StarPie.Models;
 global using StarPie.Icons;
+global using StarPie.Ports;
 global using StarPie.Programs;
 global using StarPie.Services.Actions;
 global using StarPie.Kernel.Configuration;
@@ -12,6 +13,7 @@ global using StarPie.Services.Navigation;
 global using StarPie.Services.Programs;
 global using StarPie.Services.Shell;
 global using StarPie.Services.Wheel;
+global using StarPie.Themes;
 global using StarPie.ViewModels.Dialogs;
 global using StarPie.ViewModels.Gestures;
 global using StarPie.ViewModels.Navigation;
