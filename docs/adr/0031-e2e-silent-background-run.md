@@ -26,15 +26,15 @@
 ## Decision
 
 1. **`--background` 后台模式**（`App.OnStartup` 解析 → `Composition.CreateAppHost(background)` → `AppHost`）：窗口 `ShowActivated=false` + `ShowInTaskbar=false` + 离屏 `-32000,-32000` + `SourceInitialized` 时挂 `WS_EX_NOACTIVATE`；不建托盘、不启全局鼠标钩子（否则用户操作鼠标时轮盘会弹到屏幕上）。仅影响窗口呈现/激活与这些副作用，导航、配置与渲染语义不变。
-2. **后台模式的对话框策略**：`DialogService` 回填后台模式后，`ShowInfo` 不呈现、`Confirm` 取"是"（无人应答场景）。对话框↔VM 的接线由 xUnit（`TestDialogService` 断言 `InfoCalls`/`ConfirmCalls`）覆盖，e2e 不断言弹框本身。
+2. **后台模式的对话框策略**：`DialogService` 回填后台模式后，`ShowInfo` 不呈现、`Confirm` 取"是"（无人应答场景）；自定义对话框（程序/图标/颜色选择器、输入框）离屏 `-32000,-32000` + `ShowActivated=false` + `WS_EX_NOACTIVATE`（与主窗口同配方），真实打开但不占可见屏幕、不抢前台。对话框↔VM 的接线由 xUnit（`TestDialogService` 断言 `InfoCalls`/`ConfirmCalls`）覆盖；e2e 以程序选择器打开/关闭用例断言离屏与干净关闭（#135），系统 `MessageBox` 本身仍不在 e2e 覆盖内。
 3. **导航由"选中态置真"驱动**：`MainViewModel` 订阅各导航项 `IsSelected`，置真且目标页不是当前页时执行导航；点击（`RadioButton.Command`）与 UIA `SelectionItem.Select` 成为等价入口（后者是 e2e 静默导航与无障碍客户端的可用路径）。两条路径幂等——同槽位命中同一页面 VM 单例，`NavigationStore` 对同实例不重发变更；`SyncSelection` 回灌的选中态因指向已停驻页面而短路，不产生回环。
 4. **e2e 侧去物理输入 + 运行器**：`tests/conftest.py` 默认以 `--background` 启动被测应用（`STARPIE_E2E_ONSCREEN=1` 时可见，供调试）；27 处导航 `click_input()` 改为 `select()`；新增 `scripts/run-e2e.ps1` 作为唯一入口——命名 Mutex 串行化（防两个 e2e 互抢桌面对话框/沙盒）、日志与 junitxml 落 `artifacts/e2e/`、`-OnScreen`/`-NoWait`/`-Status`。`docs/agents/git-commits.md` 与 `CONTRIBUTING.md` 的 e2e 命令随之改指向脚本。
 
 ## Consequences
 
 - **覆盖代价**：e2e 不再经过"物理鼠标输入 → WPF 命中测试"这一段（改由 UIA 模式调用驱动），键盘注入路径不测。真实鼠标点击路径不再有自动化覆盖，靠人工验收与 `-OnScreen` 调试形态兜。
-- 提示框呈现不在 e2e 覆盖内；`-OnScreen` 模式下仍走真对话框（用例里的对话框关闭分支此时生效）。
-- 失败截图当前实际不可用：e2e venv 未装 PIL，`capture_as_image()` 返回 `None`，`conftest` 的 `try/except` 静默跳过。与后台模式无关（改造前同样不可用），属既有环境缺口，补装 `pillow` 即可恢复。
+- 系统 `MessageBox` 提示框呈现不在 e2e 覆盖内；`-OnScreen` 模式下仍走真对话框（用例里的对话框关闭分支此时生效）。自定义对话框经程序选择器用例覆盖打开/取消路径。
+- 失败截图：#136 起依赖锁定于 `tests/requirements.txt`（含 pillow），恢复落盘；缺件时 `conftest` 告警且运行器 `-Status` 显示 `screenshotAvailable=false`。
 - **已知残留（可接受）**：打开 ComboBox 下拉时，WPF 的 Popup 会被"约束回可见工作区"而出现在屏幕左上角 `(0,0)`（实测：一轮全量 e2e 共 15 次、均为小尺寸弹层；主窗口 19 次全部在 `-32000` 离屏）。不抢焦点、不动物理光标，用户确认为可接受；要消掉需定制弹层定位，列为可选优化。
 - 副产品验证：后台模式实例经 `TB_BUTTONCOUNT` 对照确认不创建托盘图标（后台实例 +0，普通实例 +1）；全局鼠标钩子未启（否则用户操作鼠标会弹出轮盘）。
 - 静默能力对**交互控件选型**提出约束：优先选带 UIA `Invoke`/`Value` 模式的控件；依赖 `OnClick` 的交互会让静默化退步（导航项正因 `RadioButton` 不暴露 `Invoke`、`Select` 又不触发 `Command`，才改成选中态驱动）。
