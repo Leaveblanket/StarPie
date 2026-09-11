@@ -35,8 +35,8 @@
 2. `Composition.ConfigureServices`（全部单例）：
    - 装配前回填跨程序集环境参数缝：`AppDataPaths.IsDevInstance = DevInstance.IsActive`
      （S2 dev 目录分支，`AppDataPaths` 在宿主内核 `StarPie.Host/Kernel/Configuration/`）——
-     内核不反向引用宿主；S1 .lnk 图标提取的解析契约经 DI 注入的
-     `IShortcutTargetResolver`（ProgramsModuleRegistrar 注册 M3 实现），无静态回填。
+     内核不反向引用宿主；.lnk 图标提取的解析契约经 DI 注入的
+     `IShortcutTargetResolver`（组合根登记宿主内核 `ShortcutResolver`），无静态回填。
    - 基础设施：`JsonConfigService`（具体类，配置路径经内核 `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、
      `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体归 Host，
@@ -46,21 +46,19 @@
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
      `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 `StarPie.Sdk`，ADR-0023，
      P1.3/#112 收口，M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
-   - `ProgramsModuleRegistrar.RegisterServices` 在组合根调用——注册
-     `IShortcutTargetResolver→ShortcutResolver` 与 `IProgramScanner→ProgramScanner`（契约面
-     驻 `StarPie.Sdk.Wpf`，P1.4/#113 收口，ADR-0023；M3 → Sdk.Wpf 单向，不再引用 Core；
-     组合根无静态扫描委托行）。
-   - S1 图标资产实例服务由 `IconsModuleRegistrar.RegisterServices`（StarPie.Icons，
-     ADR-0023）注册（`IconAssetService` 构造惰性解析 Sdk.Wpf 的
-     `IShortcutTargetResolver`（P1.4/#113），目录默认宿主内核 `AppDataPaths.GetAppDataFolder`）；组合根
-     不直接登记 `IIconAssetService→IconAssetService`。
+   - 程序扫描由组合根直登记——`IShortcutTargetResolver→ShortcutResolver` 与
+     `IProgramScanner→ProgramScanner`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
+     实现驻宿主内核 `StarPie.Host/Programs/`，ADR-0023；组合根无静态扫描委托行）。
+   - 图标资产由组合根直登记——内核 `CustomIconStore`（`StarPie.Host/Icons/`，目录默认
+     `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
+     （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。
    - `NavigationCatalog` 由 `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、
      `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不硬编码页面类型（运行时
      类型与执行缝的注册见上段基础设施）。
-   - 服务：`DialogService`（构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描契约——
-     扫描/.lnk 与图标经 Sdk.Wpf 契约注入（P1.4/#113），程序扫描候选经
-     `IProgramScanner`（M3 注册器提供实现）注入（ADR-0023）；
+   - 服务：`DialogService`（构造注入图标资产服务、.lnk 解析契约与程序扫描契约——
+     程序扫描/.lnk 契约在 `StarPie.Sdk`、图标资产服务契约在 `StarPie.Sdk.Wpf`，
+     实现均在组合根登记（ADR-0023）；
      `DialogService` 与 `IDialogService` 的注册随 S6 实现由 `DialogsModuleRegistrar.RegisterServices`
      下放（StarPie.Dialogs）；对话框服务另注入共享图标资产实例服务与解析契约，
      供图标/程序选择器使用）、`ISaveDebouncer`（实现 = Ui 适配器 `DispatcherSaveDebouncer`）、

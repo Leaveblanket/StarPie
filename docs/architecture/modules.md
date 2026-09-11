@@ -42,9 +42,8 @@
   ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Theme`，
   M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelModuleRegistrar`（`StarPie.Wheel`，
   M2 无导航页）、M1 手势管线/页面 VM/`IProfilePreviewSource` 别名由
-  `GesturesModuleRegistrar`（`StarPie.Gestures`）、S1 图标资产实例服务由
-  `IconsModuleRegistrar`（`StarPie.Icons`，ADR-0023）、M3 快捷方式解析与扫描契约注册由
-  `ProgramsModuleRegistrar`（`StarPie.Programs`）下放；仅 Host 外观聚合页 VM 仍
+  `GesturesModuleRegistrar`（`StarPie.Gestures`）下放；S1 图标资产与 M3 程序扫描
+  （两模块无注册器、无导航页）由组合根直登记；仅 Host 外观聚合页 VM 仍
   由组合根注册；注册器 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（ADR-0015 决策 7）；
 - 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
@@ -91,17 +90,16 @@
 #### M3 程序扫描与目录
 
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
-- **关键内部**：出口契约 `IProgramScanner`/`ProgramCatalog`/`ProgramEntry`/
-  `IShortcutTargetResolver` 驻 `StarPie.Sdk.Wpf/Services/Programs|Icons/`（P1.4/#113 收口；
-  ADR-0023）；实现 `ProgramScanner`/`ShortcutResolver`/`ProgramsModuleRegistrar` 驻
-  `StarPie.Programs`（`ProgramScanner` 构造注入 Sdk.Wpf 的 `IIconAssetService` 与
-  `IShortcutTargetResolver`）；物理路径见 [layout.md](layout.md) 与 [programs.md](programs.md)。
-- **对外契约**：扫描/过滤数据经 Sdk.Wpf 契约提供给 S6 的程序选择对话框等消费方
-  （Dialogs → Programs 仅经契约边）；.lnk SPI 经 Sdk.Wpf 提供给 S1 图标服务
-  （Icons runtime → Sdk.Wpf 契约边）；消费 S1 契约 `IIconAssetService`。M3 runtime
-  → Sdk.Wpf 单向，不引用宿主内核/其它业务模块 runtime。
-- **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部；新增扫描/跨模块协议 → 扩展
-  `StarPie.Sdk.Wpf/Services/Programs|Icons/` 契约面（消费方驱动）。
+- **关键内部**：出口契约 `IProgramScanner`/`ProgramCatalog`/`ProgramEntry` 与 SPI
+  `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Programs|Icons/`（纯数据、零 WPF）；
+  实现 `ProgramScanner`/`ShortcutResolver` 驻宿主内核 `StarPie.Host/Programs/`
+  （`ProgramScanner` 构造注入 `IShortcutTargetResolver`，返回纯数据条目）；物理路径见
+  [layout.md](layout.md) 与 [programs.md](programs.md)。
+- **对外契约**：扫描/过滤数据经 SDK 契约提供给 S6 的程序选择对话框等消费方
+  （DI 注册在组合根，消费方只认契约）；.lnk SPI 经 SDK 提供给 S1 图标服务与组合根；
+  图标补全不在扫描面——UI 消费方（程序选择器）按路径经 `IIconAssetService` 装配。
+- **扩展局部性**：新增程序来源/目录/过滤规则 → Host `Programs/` 内部；新增扫描/跨模块协议 →
+  扩展 `StarPie.Sdk/Services/Programs|Icons/` 契约面（消费方驱动）。
 
 #### M4 界面主题
 
@@ -129,14 +127,13 @@
 #### S1 图标资产
 
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
-- **关键内部**（契约与实现分居，ADR-0023）：契约四件（静态纯目录
-  `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）驻
-  `StarPie.Sdk.Wpf/Services/Icons/`（P1.4/#113 收口）；实现 `IconAssetService` 与注册器
-  `IconsModuleRegistrar` 驻 `StarPie.Icons`；`.lnk` 解析契约 `IShortcutTargetResolver` 随 M3
-  迁 `StarPie.Sdk.Wpf/Services/Icons/`（Icons runtime 经契约边消费，Icons → Host 仅余 S2
-  AppDataPaths）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。物理路径见
-  [layout.md](layout.md)。
-- **扩展局部性**：新增图标资产/提取能力 → S1 内部。
+- **关键内部**（按 WPF 亲和度三分）：实例服务契约 `IIconAssetService` 驻
+  `StarPie.Sdk.Wpf/Services/Icons/`，条目类型 `CustomIconItem`/`VectorIconItem` 与 `.lnk`
+  解析契约 `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog`
+  与自定义图标目录 `CustomIconStore` 驻宿主内核 `StarPie.Host/Icons/`；WPF 图像构造
+  `IconAssetService` 驻 `StarPie.Ui/Services/Icons/`（组合内核目录与 .lnk 契约）。
+  消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。物理路径见 [layout.md](layout.md)。
+- **扩展局部性**：新增图标资产/提取能力 → S1 内部（静态纯表进 Host，图像构造进 Ui）。
 
 #### S2 配置与保存
 

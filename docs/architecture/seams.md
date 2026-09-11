@@ -19,9 +19,9 @@
 
 | 缝 | 载体（契约/实现） | 裁决/守护 |
 |---|---|---|
-| 契约缝·图标资产 | 契约四件（`IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`）驻 `StarPie.Sdk.Wpf/Services/Icons/`（P1.4/#113 收口）；`IconAssetService` + `IconsModuleRegistrar` 驻 Icons runtime（实现只被 Host/测试引用） | ADR-0023；IconCatalogTests |
-| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk.Wpf/Services/Icons/`（P1.4/#113 收口）← M3 `ShortcutResolver`（ADR-0023 自 Core 迁出；Icons runtime 经契约边消费，命名空间 `StarPie.Services.Icons` 不变） | ADR-0023 |
-| 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 `StarPie.Sdk.Wpf/Services/Programs/`（P1.4/#113 收口）← M3 `ProgramScanner`（实例；Dialogs/Host 经契约边消费，命名空间 `StarPie.Services.Programs` 不变） | ADR-0023 |
+| 契约缝·图标资产 | `IIconAssetService` 驻 `StarPie.Sdk.Wpf/Services/Icons/`（实现 `IconAssetService` 驻 `StarPie.Ui/Services/Icons/`）；条目与 .lnk SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录 `CustomIconStore` 驻 `StarPie.Host/Icons/` | ADR-0023；IconCatalogTests |
+| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`（命名空间 `StarPie.Services.Icons` 不变）← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`（图标服务与程序扫描经契约边消费） | ADR-0023 |
+| 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`（命名空间 `StarPie.Services.Programs` 不变）← 实现 `ProgramScanner` 驻 `StarPie.Host/Programs/`（实例；候选为纯数据，图标由 UI 消费方装配） | ADR-0023 |
 | 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（P1.4/#113 收口；ADR-0023 自 M4 runtime 迁出）← 实现 `ThemeService` 驻 M4；消费方 Host/M2/Dialogs 经契约边（M2→M4、Dialogs→M4 runtime 允许边清零） | ADR-0023 |
 | 契约缝·轮盘工厂 | `IWheelFactory`/`IWheelViewModel` 驻 `StarPie.Sdk`（ADR-0023 自 M2 runtime 迁出，P1.3/#112 随 SDK 收口）← 实现 `WheelFactory`/`WheelViewModel` 驻 M2；消费方 M1 经契约边（M1→M2 runtime 允许边清零） | D5 + ADR-0023 |
 | 契约缝·预览 Profile | `IProfilePreviewSource` 驻 `StarPie.Sdk`（ADR-0023 自 Core 迁出，P1.3/#112 随 SDK 收口，生产方语义 + 破 Wheel↔Gestures 环），别名 = M1 `ProfileListViewModel`，消费 M2 经契约边 | D5 + ADR-0023 |
