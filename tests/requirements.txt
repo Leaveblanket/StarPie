@@ -1,0 +1,12 @@
+# StarPie pywinauto e2e 依赖清单（#136）。
+#
+# 实测解释器：Python 3.14.7（Windows x64）；scripts/run-e2e.ps1 默认使用仓库根 .venv。
+# Bootstrap（仓库根执行）：
+#   python -m venv .venv
+#   .venv\Scripts\python -m pip install -r tests/requirements.txt
+#
+# 以下为直接依赖（pywinauto 会拉取 comtypes 等传递依赖）；升级任一版本前须跑全量 e2e。
+pywinauto==0.6.9
+pytest==9.1.1
+pywin32==312
+pillow==12.3.0
