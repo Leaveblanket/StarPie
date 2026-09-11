@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Versioning;
 
@@ -9,7 +10,8 @@ namespace StarPie.Tests;
 /// <see cref="FourSetBoundaryTests"/>（csproj 级）互补，在编译产物/元数据级收口——
 /// StarPie.Sdk 只含平台程序集引用（零第三方包、零 WPF、非 windows TFM）；
 /// StarPie.Host 零 WPF（无 WPF 程序集、无 windows 平台投影）；StarPie.Sdk.Wpf 带
-/// windows 平台投影但不反向引用 Host/Ui/旧集；四集唯一入口与唯一 XAML 均在 Ui 集。
+/// windows 平台投影、引用面只含 Sdk 与平台/WPF 程序集，且不反向引用 Host/Ui/旧集；
+/// 四集唯一入口与唯一 XAML 均在 Ui 集。
 /// P1.3–P1.10 归并期三集不得引用旧 15 集 runtime（跨集只经 SDK，旧集只被 Ui 组合根引用）。
 /// </summary>
 public sealed class RuntimeNoCrossReferenceTests
@@ -56,6 +58,23 @@ public sealed class RuntimeNoCrossReferenceTests
         Assert.DoesNotContain("StarPie", referenced);        // Ui 集程序集名
         Assert.DoesNotContain("StarPie.Host", referenced);
         Assert.All(FourSetBoundaryProbe.LegacyAssemblyNames, legacy => Assert.DoesNotContain(legacy, referenced));
+    }
+
+    [Fact]
+    public void SdkWpf引用面_只含Sdk与平台WPF程序集()
+    {
+        // P1.4/#113：Sdk.Wpf 是共享契约面（plugins.md §5.1 约束 1/2）——产物级引用闭包只许是
+        // 平台/WPF 程序集与 StarPie.Sdk（Sdk 的 ProjectReference 在 csproj 面由
+        // FourSetBoundaryTests 断言；此处按编译产物实际引用面拦截第三方包）。
+        Assembly sdkWpf = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Sdk.Wpf");
+        string[] referenced = FourSetBoundaryProbe.ReferencedNames(sdkWpf);
+
+        Assert.NotEmpty(referenced);
+        Assert.All(referenced, name => Assert.True(
+            name == "StarPie.Sdk"
+                || FourSetBoundaryProbe.IsPlatformAssemblyName(name)
+                || FourSetBoundaryProbe.WpfAssemblyNames.Contains(name),
+            $"StarPie.Sdk.Wpf 引用了契约面之外的第三方程序集: {name}"));
     }
 
     [Fact]

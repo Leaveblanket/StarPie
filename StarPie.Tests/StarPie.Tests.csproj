@@ -24,39 +24,36 @@
   <ItemGroup>
     <!-- #111 四集骨架：Ui 集（程序集名仍为 StarPie，发布产物 StarPie.exe）。 -->
     <ProjectReference Include="..\StarPie.Ui\StarPie.Ui.csproj" />
-    <!-- #111 四集边界基线 + P1.3/#112 SDK 收口：显式引用三集（不依赖传递引用），
-         以加载程序集断言零 WPF / 零第三方包 / 唯一 XAML 与入口 / 跨集单向；
+    <!-- #111 四集边界基线 + P1.3/#112 SDK 收口 + P1.4/#113 WPF 面收口：显式引用三集
+         （不依赖传递引用），以加载程序集断言零 WPF / 零第三方包 / 唯一 XAML 与入口 / 跨集单向；
          迁入 SDK 的 headless 契约/模型（IDialogService、IWheel*、IProfilePreviewSource 等）
-         亦经本引用直用。 -->
+         与迁入 Sdk.Wpf 的 WPF 契约件（IThemeService、IIconAssetService/IconCatalog、
+         IProgramScanner/ProgramCatalog 等）亦经本引用直用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
     <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- P1.3/#112：三个纯托管契约工程暂留空壳（内容已迁 StarPie.Sdk）——测试仍显式引用，
-         以便加载全部应用程序集做「导出类型唯一 / 空壳无导出」的机械断言（SdkBoundaryTests）；
-         归并票（P1.6/P1.7/P1.10）撤销工程时一并移除本组引用。 -->
+    <!-- P1.3/#112 + P1.4/#113：六个被收口契约工程暂留空壳（内容分别迁 StarPie.Sdk /
+         StarPie.Sdk.Wpf）——测试仍显式引用，以便加载全部应用程序集做「导出类型唯一 /
+         空壳无导出」的机械断言（SdkBoundaryTests）；归并票（P1.6–P1.10）撤销工程时一并
+         移除本组引用。 -->
     <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集（IIconAssetService/IconCatalog/条目类型/
-         IconCatalogTests/TestIconAssetService 直用） -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
+    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- ADR-0023/#95：S1 实现 runtime（IconAssetService/IconsModuleRegistrar 直用） -->
     <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B4：#77 M3 模块程序集（ProgramCatalog/ShortcutResolver/ProgramEntry 等测试直用） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
-    <!-- ADR-0023/#96：M3 扫描契约独立成集（IProgramScanner/ProgramEntry/ProgramCatalog/
-         IShortcutTargetResolver 直用） -->
-    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
     <!-- ADR-0016/B7：#80 M4 界面主题模块程序集（ThemeService/ThemePaletteManager/InterfaceThemeSettingsViewModel/ThemeModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Theme\StarPie.Theme.csproj" />
-    <!-- ADR-0023/#97：M4 主题契约独立成集（IThemeService 直用） -->
-    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- ADR-0016/B8：#81 M2 轮盘与渲染模块程序集（WheelViewModel/RadialWindow/渲染器/配色/
          WheelFactory/WheelModuleRegistrar/CoreIcon* 转换器等测试直用） -->
     <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />
