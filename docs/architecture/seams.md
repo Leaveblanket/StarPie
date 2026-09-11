@@ -36,7 +36,7 @@
 | XAML 资源缝 | App.xaml 资源单点合并/实例化：模板字典（+HotkeyRecorderBox 样式字典）经跨集 pack URI、主题字典（Ui 本地绝对 pack URI）与 ModernControls.xaml 本地合并、转换器 App 级实例 | ADR-0012 |
 | 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`，P1.3/#112 自 Core 收口入 `StarPie.Sdk`），跨模块广播；新消息 = 放行共享面 | messages.md |
 | 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（`ThemeEngine`/`ActionExecutorService`/VM 委托），生产默认值内建 | layering.md「系统调用接缝模式」；单测替身 |
-| 收口测试缝 | 四集基线（P1.2/#111）+ SDK 收口（P1.3/#112 + P1.4/#113）+ Host 内核归并（P1.5/#114）：`FourSetBoundaryTests`（解决方案登记 / csproj 属性 / 跨集依赖方向 / CI 与 e2e 路径）+ `RuntimeNoCrossReferenceTests`（程序集引用面 / 平台投影 / 入口与 XAML）+ `SdkBoundaryTests`/`SdkWpfBoundaryTests`/`HostBoundaryTests`（导出面白名单 / 空壳 / ABI 与默认 ALC 政策 / 内核零 WPF 与 Core 设计期壳）——SDK 零第三方包零 WPF、Host 零 WPF、Sdk.Wpf 契约面、Ui 唯一入口与 XAML、跨集只经 SDK；NavigationCatalog 收口测试 | 测试自身守护 |
+| 收口测试缝 | 四集基线（P1.2/#111）+ SDK 收口（P1.3/#112 + P1.4/#113）+ Host 内核归并（P1.5/#114）：`FourSetBoundaryTests`（解决方案登记 / csproj 属性 / 跨集依赖方向 / CI 与 e2e 路径）+ `RuntimeNoCrossReferenceTests`（程序集引用面 / 平台投影 / 入口与 XAML）+ `SdkBoundaryTests`/`SdkWpfBoundaryTests`/`HostBoundaryTests`（导出面白名单 / ABI 与默认 ALC 政策 / 内核零 WPF 与 Core 设计期壳）——SDK 零第三方包零 WPF、Host 零 WPF、Sdk.Wpf 契约面、Ui 唯一入口与 XAML、跨集只经 SDK；NavigationCatalog 收口测试 | 测试自身守护 |
 
 > **P1.2/#111 收窄**：上表各行原先引用的 9 个 `*AssemblyPlacementTests` 与旧
 > `RuntimeNoCrossReferenceTests` 模块内断言族（runtime 互不引用 / 引用自身契约 / 契约不引用

@@ -28,8 +28,7 @@
     <!-- Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
          （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk）。
          headless 契约/模型与 WPF 契约件（IThemeService/IIconAssetService 等）分别收口于
-         StarPie.Sdk 与 StarPie.Sdk.Wpf；剩余三个被收口的契约工程
-         （Dialogs/Gestures/Wheel.Contracts）暂留空壳、不再被引用。 -->
+         StarPie.Sdk 与 StarPie.Sdk.Wpf。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；

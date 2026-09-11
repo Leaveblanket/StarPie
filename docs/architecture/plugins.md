@@ -339,12 +339,12 @@ public interface IPluginUiContext
 | `StarPie`（App/AppHost/Composition/MainView/导航运行时/外观页/共享 UI 基建） | `StarPie.Ui` |
 | `StarPie.Core`（Models/Messages/NavigationCatalog/AppHostDelegates） | 契约/模型 → `StarPie.Sdk`；运行时 → `StarPie.Host` |
 | `StarPie.Core`（Configuration/Localization 实现） | `StarPie.Host.Kernel` |
-| `StarPie.Gestures` + `StarPie.Gestures.Contracts` | 可 headless 内核（`GestureEngine`/`WindowContext`/`ActionRouting`）→ `StarPie.Host`；WPF 亲和件（`MouseHook`/`GestureController`/`ActionExecutorService`）与 VM/View → `StarPie.Ui` |
-| `StarPie.Wheel` + `StarPie.Wheel.Contracts` | 配色目录与解析（`WheelPalette*`）→ `StarPie.Host`；几何构造（`WheelGeometry`）/`WheelFactory`/VM/Renderer/RadialWindow → `StarPie.Ui` |
+| `StarPie.Gestures` | 可 headless 内核（`GestureEngine`/`WindowContext`/`ActionRouting`）→ `StarPie.Host`；WPF 亲和件（`MouseHook`/`GestureController`/`ActionExecutorService`）与 VM/View → `StarPie.Ui` |
+| `StarPie.Wheel` | 配色目录与解析（`WheelPalette*`）→ `StarPie.Host`；几何构造（`WheelGeometry`）/`WheelFactory`/VM/Renderer/RadialWindow → `StarPie.Ui` |
 | `StarPie.Programs` + `StarPie.Programs.Contracts` | 首个 headless 插件（能力契约入 SDK） |
 | `StarPie.Theme` + `StarPie.Theme.Contracts` | 引擎 → `StarPie.Host`；字典/设置 VM → `StarPie.Ui` |
 | `StarPie.Shell` | 自启/内存整理 → `StarPie.Host.Kernel.ShellIntegration`；托盘（`TrayIconManager`）/高级页 → `StarPie.Ui` |
-| `StarPie.Dialogs` + `StarPie.Dialogs.Contracts` | `StarPie.Ui`（宿主对话框）；端口只在 Ui 内部 |
+| `StarPie.Dialogs` | `StarPie.Ui`（宿主对话框）；端口只在 Ui 内部 |
 | `StarPie.Icons` + `StarPie.Icons.Contracts` | 资产目录/降级服务 → `StarPie.Host`；`IconRef` → SDK；图像构造 → Ui |
 
 > **P1 归并口径（2026-09-11 路线审查）**：上表按 `StarPie.Host` 零 WPF 硬约束细化——直接构造 WPF

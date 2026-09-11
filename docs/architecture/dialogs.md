@@ -8,7 +8,7 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 ## 组成文件
 
-- **S6 契约（`StarPie.Sdk/Services/Dialogs/`，ADR-0023；纯 C#；P1.3/#112 自 Dialogs.Contracts 收口）**：
+- **S6 契约（`StarPie.Sdk/Services/Dialogs/`，纯 C#，ADR-0023）**：
   `IDialogService` + 各 `ShowXxx` 的可空结果 record（`InputDialogResult`/`ColorPickResult`/
   `EyedropResult`/`FilePickResult`/`ProgramPickResult`/`IconPickResult`，命名空间
   `StarPie.Services.Dialogs` 不变）。

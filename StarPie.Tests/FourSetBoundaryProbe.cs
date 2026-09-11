@@ -23,16 +23,16 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 旧 15 集中尚未撤销的业务/契约 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧集 runtime
+    /// 尚未撤销的旧集 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧集 runtime
     /// （跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）；旧集只被 Ui 组合根与测试引用。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =
     {
         "StarPie.Core",
-        "StarPie.Dialogs", "StarPie.Dialogs.Contracts",
-        "StarPie.Gestures", "StarPie.Gestures.Contracts",
+        "StarPie.Dialogs",
+        "StarPie.Gestures",
         "StarPie.Shell",
-        "StarPie.Wheel", "StarPie.Wheel.Contracts",
+        "StarPie.Wheel",
     };
 
     /// <summary>WPF 桌面程序集名（含 System.Xaml 这类 System.* 命名但属 WPF 栈者）。</summary>

@@ -16,7 +16,7 @@ M1 物理落位（独立模块程序集 `StarPie.Gestures/`；模块注册器 `G
   只经 SDK 契约接口引用，M1→M2 runtime 允许边清零，ADR-0023；P1.3/#112 收口，见
   [wheel.md](wheel.md)/[modules.md](modules.md) §5 D5。）
 - `StarPie.Sdk/ViewModels/Pages/IProfilePreviewSource.cs`（M1 出口契约，
-  ADR-0023；命名空间不变；P1.3/#112 随 SDK 收口，原 Gestures.Contracts 工程暂留空壳）。
+  ADR-0023；命名空间不变）。
 - `StarPie.Gestures/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`、`ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）。
 - `Models/ActionItem.cs`、`Models/WheelProfile.cs`（R8：动作项与配置方案 Profile 语义归 M1、
   物理居 `StarPie.Sdk/Models/`（P1.3/#112），见 [modules.md](modules.md) §4 R8）。
@@ -86,7 +86,7 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
    UI 线程 `Dispatcher.Invoke` 中创建 `WheelViewModel` + `RadialWindow`，返回
    `DispatchedWheelViewModel` 包装（所有轮盘交互封送回 UI 线程；窗口字段作 GC 根防未显示即回收；
    轮盘 VM/窗口见 [wheel.md](wheel.md)）；`GestureEngine`/`GestureController` 只依赖
-   Wheel.Contracts 契约接口 `IWheelFactory`（ADR-0023；P1.3/#112 收口入 `StarPie.Sdk`），不反向组装轮盘。
+   SDK 契约接口 `IWheelFactory`（ADR-0023），不反向组装轮盘。
 
 ## 扩展点
 

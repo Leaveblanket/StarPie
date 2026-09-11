@@ -1,6 +1,9 @@
 # 模块契约硬边界与共享内核收窄：模块出口契约入 `*.Contracts`、S1 成集、Core 仅留全局机制/数据
 
-> Status: Active
+> Status: Active（部分被 ADR-0027 修订）
+>
+> 修订：对外契约判据（模块出口契约分散入各 `*.Contracts`）由 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md)
+> 修订为 SDK 单一引用面；内部模块边界判据继续有效。
 >
 > 程序集目标态 = 15：Host/Core + 5 业务 runtime（Programs/Shell/Theme/Wheel/Gestures）+ S6 Dialogs + S1 Icons + 对应 `*.Contracts`。现状正典：`docs/architecture/assemblies.md`（§2/§3）。
 
