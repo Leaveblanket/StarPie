@@ -1,5 +1,8 @@
+import json
 import os
+import re
 import subprocess
+import time
 import pytest
 from pywinauto import Application, Desktop
 
@@ -22,6 +25,64 @@ def dismiss_messagebox(timeout: float = 3.0) -> None:
             dialog.child_window(control_type="Button").invoke()
     except Exception:
         pass
+
+
+# 每个页面的"锚点控件"：页面 View 按导航重建（旧页卸载、新页挂载），锚点出现即证明真的切到了该页。
+PAGE_ANCHORS = {
+    0: ("EnableOuterEscapeCheckBox", "CheckBox"),
+    1: ("AppearancePageSubheader", "Text"),
+    2: ("GesturesPageSubheader", "Text"),
+    3: ("AdvancedPageSubheader", "Text"),
+}
+
+
+def goto(win, slot: int, timeout: float = 5.0):
+    """选中侧边栏导航项并等待目标页锚点出现。
+
+    导航失败在这里显式失败，而不是靠后续 `is_visible()` 之类的弱断言侥幸通过。
+    """
+    radio = win.child_window(auto_id=f"NavPage{slot}", control_type="RadioButton")
+    assert radio.exists(timeout=timeout), f"NavPage{slot} 必须存在"
+    radio.select()
+    anchor_id, anchor_type = PAGE_ANCHORS[slot]
+    anchor = win.child_window(auto_id=anchor_id, control_type=anchor_type)
+    assert anchor.exists(timeout=timeout), f"导航到 NavPage{slot} 后未出现锚点控件 {anchor_id}"
+    return anchor
+
+
+def read_config(local_app_data, predicate=None, timeout: float = 5.0):
+    """轮询读取沙盒 config.json：等文件出现、可选等 predicate 成立；超时抛带诊断信息的断言。
+
+    替代"固定 sleep 后直接 open/json.load"——落盘稍慢时不再读到旧值或抛 FileNotFoundError。
+    """
+    path = os.path.join(str(local_app_data), "StarPie", "config.json")
+    deadline = time.time() + timeout
+    last = None
+    last_err = ""
+    while True:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                last = json.load(f)
+            if predicate is None or predicate(last):
+                return last
+        except FileNotFoundError:
+            last_err = f"config.json 不存在: {path}"
+        except json.JSONDecodeError as ex:
+            last_err = f"config.json 解析失败: {ex}"
+        if time.time() >= deadline:
+            break
+        time.sleep(0.1)
+    raise AssertionError(f"等待 config.json 超时（{timeout}s）。{last_err} 最后内容: {last}")
+
+
+def label_value(win, auto_id: str, timeout: float = 3.0) -> float:
+    """读取数值标签的浮点值（容忍前后缀文案，取第一段数字），替代 `"26" in text` 式包含断言。"""
+    label = win.child_window(auto_id=auto_id, control_type="Text")
+    assert label.exists(timeout=timeout), f"{auto_id} 数值标签必须存在"
+    text = label.window_text()
+    match = re.search(r"-?\d+(?:\.\d+)?", text)
+    assert match, f"{auto_id} 标签不含数值: {text!r}"
+    return float(match.group())
 
 
 @pytest.fixture(scope="function")
@@ -80,6 +141,31 @@ def app(sandbox_env, request):
     
     # Screenshot on failure
     if getattr(getattr(request.node, "rep_call", None), "failed", False):
+        # 诊断：dump 本进程全部顶层窗口（定位 ElementAmbiguousError 之类的"第二个同名窗口"）
+        try:
+            import win32gui
+            import win32process
+
+            rows = []
+
+            def _collect(hwnd, _):
+                try:
+                    if win32process.GetWindowThreadProcessId(hwnd)[1] == proc.pid:
+                        rows.append({
+                            "cls": win32gui.GetClassName(hwnd)[:44],
+                            "title": win32gui.GetWindowText(hwnd)[:40],
+                            "rect": list(win32gui.GetWindowRect(hwnd)),
+                            "visible": bool(win32gui.IsWindowVisible(hwnd)),
+                        })
+                except Exception:
+                    pass
+                return True
+
+            win32gui.EnumWindows(_collect, None)
+            print(f"window dump (pid={proc.pid}): {json.dumps(rows, ensure_ascii=False)}")
+        except Exception as ex:
+            print(f"window dump 失败: {type(ex).__name__}: {ex}")
+
         artifacts_dir = os.path.join(project_root, "artifacts")
         os.makedirs(artifacts_dir, exist_ok=True)
         try:
