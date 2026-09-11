@@ -1,0 +1,18 @@
+<Project>
+
+  <!-- 仓库根统一构建属性：TFM / 可空性 / 隐式 using / 分析器级别 / 根命名空间集中一处，
+       各工程不再各写一遍，避免漂移；工程级差异（UseWPF、OutputType、程序集名、图标、
+       设计期资源锚等）仍留在各自 csproj。 -->
+  <PropertyGroup>
+    <!-- ADR-0013：windows 段 10.0.19041.0 提供 WinRT UISettings(ColorValuesChanged) 投影；
+         .NET 段跟随运行时基线（见 ADR-0026）。 -->
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <!-- B10/#83：命名空间统一为 StarPie.* 前缀（跨程序集共享命名空间树），
+         工程可按需覆盖（StarPie.Tests 用自身命名空间）。 -->
+    <RootNamespace>StarPie</RootNamespace>
+  </PropertyGroup>
+
+</Project>

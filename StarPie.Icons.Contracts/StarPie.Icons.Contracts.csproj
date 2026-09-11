@@ -6,12 +6,8 @@
          只经 Contracts 通信；命名空间维持 StarPie.Services.Icons 不变（B10/#83 共享命名空间树）。
          契约程序集按需引用 WPF：IIconAssetService 签名含 System.Windows.Media 类型（ADR-0023 Q5
          先例：Contracts 形态与类型级分层无关）。无任何 ProjectReference（薄契约）。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Icons.Contracts</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

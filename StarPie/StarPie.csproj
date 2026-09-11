@@ -2,14 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- ADR-0013：windows 段 10.0.19041.0 提供 WinRT UISettings(ColorValuesChanged) 投影；
-         .NET 段跟随运行时基线（见 ADR-0026） -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- B10/#83：Host 源码根命名空间 StarPie，与 AssemblyName 对齐；TFM / 可空性 / 隐式 using /
+         分析器级别 / 根命名空间统一在仓库根 Directory.Build.props -->
     <UseWPF>true</UseWPF>
-    <!-- B10/#83：命名空间统一为 StarPie.* 前缀替换（Host 源码根命名空间 StarPie，与 AssemblyName 对齐） -->
-    <RootNamespace>StarPie</RootNamespace>
     <ApplicationIcon>assets\app_icon.ico</ApplicationIcon>
     <AssemblyName>StarPie</AssemblyName>
     <Title>StarPie</Title>
@@ -24,8 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
 
   <ItemGroup>

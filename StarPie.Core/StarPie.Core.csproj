@@ -2,21 +2,17 @@
 
   <PropertyGroup>
     <!-- B2/#75：共享内核程序集（S1–S6 合并 + Models，ADR-0016 决策 1/12）。
-         B10/#83：命名空间统一为 StarPie.* 前缀替换（跨程序集共享命名空间树），
-         RootNamespace=StarPie 使 resx 强类型生成类（VocaDb.ResXFileCodeGenerator）
-         落在 StarPie.Services.Localization。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+         B10/#83：跨程序集共享 StarPie.* 命名空间树，根命名空间使 resx 强类型生成类
+         （VocaDb.ResXFileCodeGenerator）落在 StarPie.Services.Localization；
+         TFM / 可空性 / 隐式 using 统一在仓库根 Directory.Build.props。 -->
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Core</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
     <!-- ADR-0013/#44：resx 强类型资源生成随资源迁入 Core（原 exe csproj 条目随 B2 移除） -->
-    <PackageReference Include="VocaDb.ResXFileCodeGenerator" Version="3.2.1" PrivateAssets="all" />
+    <PackageReference Include="VocaDb.ResXFileCodeGenerator" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>
