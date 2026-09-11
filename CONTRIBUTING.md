@@ -9,7 +9,12 @@
 1. **操作系统**：Windows 10 / 11 (x64)；
 2. **.NET 10.0 SDK**：[下载并安装 .NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)（仓库根 `global.json` 固定 SDK 基线，`rollForward` 允许更高特性带）；
 3. **IDE / 编辑器**：Visual Studio 2022 (带 .NET 桌面开发工作负载) 或 VS Code / JetBrains Rider；
-4. **Python 3.10+** (可选，用于运行端到端 GUI 自动化测试)：`pip install pytest pywinauto`。
+4. **Python 3.14**（可选，仅用于 pywinauto 端到端 GUI 测试）：依赖栈与实测解释器锁定在 `tests/requirements.txt`，运行器默认使用仓库内隔离 venv（`.venv`）。在仓库根执行：
+   ```powershell
+   python -m venv .venv
+   .venv\Scripts\python -m pip install -r tests/requirements.txt
+   ```
+   `scripts/run-e2e.ps1` 的解释器解析顺序：`-Python` 显式指定 > 仓库 `.venv` > PATH（回退 PATH 时会警告"解释器未锁定"）。
 
 ### 🧩 与正式版并存开发（--dev 模式）
 

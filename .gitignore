@@ -20,6 +20,7 @@ releases/**/StarPie-*-Standalone-*/
 releases/**/StarPie-*-Lightweight/
 
 # Python & Test Artifacts
+.venv/
 .pytest_cache/
 __pycache__/
 *.pyc
@@ -48,4 +49,3 @@ $RECYCLE.BIN/
 
 # Tool Indexes
 .codegraph/
-

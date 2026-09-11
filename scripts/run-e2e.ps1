@@ -15,6 +15,10 @@
   -NoWait     不阻塞：后台启动 pytest 后立即返回（用 -Status 查结果）。
   -Status     只查状态/结果，不跑测试。
 
+  解释器：默认用仓库内隔离 venv（.venv，依赖锁定在 tests/requirements.txt）；
+  解析顺序为 -Python 显式指定 > .venv > PATH 的 python（回退 PATH 时会警告"解释器未锁定"）。
+  失败截图能力（PIL）探测结果写入 status.json 的 screenshotAvailable，-Status 可见。
+
   并发保护：同一时间只允许一个 e2e（命名 Mutex），避免两个运行互抢桌面对话框与沙盒。
   详见 docs/architecture/host.md 与 docs/adr/0031-e2e-silent-background-run.md。
 #>
@@ -40,29 +44,37 @@ $mutexName = 'Global\StarPie_E2E_Runner'
 
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
-# 解释器解析：优先 -Python 显式指定；其次仓库约定的隔离 venv（存在才用）；最后回退 PATH 上的 python。
-$venvPython = 'C:\Users\leave\.workbuddy\binaries\python\envs\default\Scripts\python.exe'
+# 解释器解析：优先 -Python 显式指定；其次仓库内隔离 venv（.venv，依赖见 tests/requirements.txt）；
+# 最后回退 PATH 上的 python——回退时显式警告"解释器未锁定"（静默回退正是 #136 的病根）。
+$venvPython = Join-Path $repoRoot '.venv\Scripts\python.exe'
 if (-not $Python) {
     if (Test-Path $venvPython) {
         $Python = $venvPython
     }
     elseif (Get-Command python -ErrorAction SilentlyContinue) {
+        Write-Warning "未找到仓库 .venv（$venvPython），回退 PATH 的 python（解释器未锁定）。按 CONTRIBUTING 建立：python -m venv .venv; .venv\Scripts\python -m pip install -r tests/requirements.txt"
         $Python = 'python'
     }
     else {
-        Write-Warning '未找到 Python：请用 -Python 指定解释器，或把 python 加入 PATH。'
+        Write-Warning '未找到 Python：请用 -Python 指定解释器，或按 CONTRIBUTING 建立仓库 .venv。'
         exit 2
     }
 }
 
+# 失败截图能力探测：capture_as_image 依赖 PIL；缺件写入 status 并由 -Status 显式汇总（#136）。
+$screenshotAvailable = $true
+& $Python -c "import PIL" 2>$null
+if ($LASTEXITCODE -ne 0) { $screenshotAvailable = $false }
+
 function Write-Status {
-    param([string]$State, [int]$ExitCode = -1, [string]$Note = '')
+    param([string]$State, [int]$ExitCode = -1, [string]$Note = '', [bool]$ScreenshotAvailable = $true)
     $status = [ordered]@{
         state      = $State
         pid        = $script:runnerPid
         exitCode   = $ExitCode
         updatedAt  = (Get-Date).ToString('s')
         onScreen   = [bool]$OnScreen
+        screenshotAvailable = $ScreenshotAvailable
         log        = $logPath
         report     = $xmlPath
         note       = $Note
@@ -78,6 +90,11 @@ if ($Status) {
         $alive = [bool](Get-Process -Id $s.pid -ErrorAction SilentlyContinue)
     }
     Write-Host ("state={0} pid={1} alive={2} exitCode={3} updatedAt={4}" -f $s.state, $s.pid, $alive, $s.exitCode, $s.updatedAt)
+    $shot = $true
+    if ($s.PSObject.Properties['screenshotAvailable']) { $shot = [bool]$s.screenshotAvailable }
+    if (-not $shot) {
+        Write-Host 'screenshot: 不可用（缺 pillow，失败截图不会落盘；pip install -r tests/requirements.txt 恢复）'
+    }
     if ((Test-Path $xmlPath) -and -not $alive) {
         [xml]$x = Get-Content $xmlPath -Raw
         # pytest 的 junit 根为 <testsuites>，嵌套一层 <testsuite>
@@ -123,21 +140,22 @@ try {
         if ($NoBuild) { $innerArgs += '-NoBuild' }
         if ($OnScreen) { $innerArgs += '-OnScreen' }
         $innerArgs += @('-TestPath', $TestPath)
+        $innerArgs += @('-Python', $Python)
         $proc = Start-Process -FilePath 'pwsh' -ArgumentList $innerArgs -PassThru -WindowStyle Hidden
         $script:runnerPid = $proc.Id
-        Write-Status -State 'running' -Note 'detached (-NoWait)'
+        Write-Status -State 'running' -Note 'detached (-NoWait)' -ScreenshotAvailable $screenshotAvailable
         Write-Host ("e2e 已后台启动：pid={0}；日志 {1}；状态用 -Status 查" -f $proc.Id, $logPath)
         exit 0
     }
 
     $script:runnerPid = $PID
-    Write-Status -State 'running' -Note 'foreground'
+    Write-Status -State 'running' -Note 'foreground' -ScreenshotAvailable $screenshotAvailable
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & $Python @pytestArgs 2>&1 | Tee-Object -FilePath $logPath
     $code = $LASTEXITCODE
     $sw.Stop()
 
-    Write-Status -State 'finished' -ExitCode $code -Note ("{0:n0}s" -f $sw.Elapsed.TotalSeconds)
+    Write-Status -State 'finished' -ExitCode $code -Note ("{0:n0}s" -f $sw.Elapsed.TotalSeconds) -ScreenshotAvailable $screenshotAvailable
     Write-Host ("e2e 结束：exit={0} 用时 {1:n0}s；日志 {2}" -f $code, $sw.Elapsed.TotalSeconds, $logPath)
     exit $code
 }

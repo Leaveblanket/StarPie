@@ -3,12 +3,43 @@ import os
 import re
 import subprocess
 import time
+import warnings
 import pytest
 from pywinauto import Application, Desktop
 
 # -OnScreen 调试形态（窗口可见、Save 的系统提示框真实弹出）。
 # 默认（静默后台形态）被测应用离屏且提示框不呈现（ADR-0031），e2e 不应等待任何弹窗。
 ONSCREEN = os.environ.get("STARPIE_E2E_ONSCREEN") == "1"
+
+# 失败截图依赖 PIL：缺件时 pytest header 常显 + warnings.warn（#136），
+# 后台（-NoWait）形态下不再只有无人可见的 stdout。
+try:
+    import PIL  # noqa: F401
+
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+
+_screenshot_warned = False
+
+
+def warn_screenshot_unavailable(reason: str) -> None:
+    """显式暴露失败截图缺口（warning 级；环境缺件不升格为测试失败）。"""
+    global _screenshot_warned
+    if _screenshot_warned:
+        return
+    _screenshot_warned = True
+    warnings.warn(
+        f"失败截图不可用：{reason}（pip install -r tests/requirements.txt 恢复，见 #136）",
+        stacklevel=2,
+    )
+
+
+def pytest_report_header(config):
+    """PIL 缺失时在每次运行的 header 常显缺口（-Status 另经 screenshotAvailable 汇总）。"""
+    if not PIL_AVAILABLE:
+        return "失败截图不可用：PIL 未安装（-Status 会显示 screenshotAvailable=false；见 #136）"
+    return None
 
 
 def dismiss_messagebox(timeout: float = 3.0) -> None:
@@ -108,7 +139,10 @@ def sandbox_env(tmp_path):
 @pytest.fixture(scope="function")
 def app(sandbox_env, request):
     env, local_app_data = sandbox_env
-    
+
+    if not PIL_AVAILABLE:
+        warn_screenshot_unavailable("PIL 未安装")
+
     # Locate the executable
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
@@ -171,14 +205,14 @@ def app(sandbox_env, request):
         try:
             img = win.capture_as_image()
             if img is None:
-                # capture_as_image 需要 PIL；venv 未装时返回 None（既有环境缺口，见 ADR-0031）
-                print("失败截图不可用：capture_as_image 返回 None（e2e venv 未安装 pillow）")
+                # capture_as_image 需要 PIL；venv 未装时返回 None（既有环境缺口，见 ADR-0031/#136）
+                warn_screenshot_unavailable("capture_as_image 返回 None")
             else:
                 path = os.path.join(artifacts_dir, f"FAIL_{request.node.name}.png")
                 img.save(path)
                 print(f"失败截图已保存：{path}")
         except Exception as ex:
-            print(f"失败截图异常：{type(ex).__name__}: {ex}")
+            warn_screenshot_unavailable(f"截图异常：{type(ex).__name__}: {ex}")
             
     # Clean shutdown
     try:
