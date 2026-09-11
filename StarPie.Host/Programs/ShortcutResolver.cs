@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using StarPie.Services.Icons;
 
-namespace StarPie.Services.Programs
+namespace StarPie.Programs
 {
     [ComImport]
     [Guid("00021401-0000-0000-C000-000000000046")]
@@ -54,7 +54,7 @@ namespace StarPie.Services.Programs
 
     /// <summary>
     /// 把 Windows 快捷方式（.lnk）解析为真实目标路径与图标位置，
-    /// 供 <c>ProgramScanner</c> 与程序选择器直接调用。
+    /// 供程序扫描与程序选择器（手动浏览）直接调用。
     /// </summary>
     public sealed class ShortcutResolver : IShortcutTargetResolver
     {

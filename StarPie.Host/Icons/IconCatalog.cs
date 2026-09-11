@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using StarPie.Services.Icons;
 
-namespace StarPie.Services.Icons
+namespace StarPie.Icons
 {
     /// <summary>
-    /// 共享「图标资产」的无状态纯目录：内置矢量图标清单与键目录、SVG 路径数据解析。
-    /// 有状态/IO/Win32 面（自定义图标存储、文件/程序图标提取）见 <see cref="IIconAssetService"/>。
+    /// 「图标资产」的无状态纯目录：内置矢量图标清单与键目录、SVG 路径数据解析。
+    /// 有状态/IO 的自定义图标存储见 <see cref="CustomIconStore"/>；
+    /// 文件/程序图标提取（WPF 图像构造）在 Ui 层的图标资产服务。
     /// </summary>
     public static class IconCatalog
     {

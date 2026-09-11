@@ -34,7 +34,7 @@
          三个纯托管契约工程暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <!-- P1.4/#113：SDK WPF 契约面（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
-         消费 IIconAssetService/条目类型；原 Icons.Contracts 随 SDK 收口迁入，命名空间不变） -->
+         消费 IIconAssetService；原 Icons.Contracts 随 SDK 收口迁入，命名空间不变） -->
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   </ItemGroup>
 

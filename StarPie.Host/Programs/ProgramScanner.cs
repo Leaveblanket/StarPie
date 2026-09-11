@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using Microsoft.Win32;
 using StarPie.Services.Icons;
+using StarPie.Services.Programs;
 
-namespace StarPie.Services.Programs
+namespace StarPie.Programs
 {
     /// <summary>
     /// 已安装程序的扫描编排：聚合八个来源——系统自带工具、开始菜单 / 桌面快捷方式、用户
@@ -15,27 +17,24 @@ namespace StarPie.Services.Programs
     /// <see cref="ProgramCatalog"/> 纯函数。
     /// </summary>
     /// <remarks>
-    /// ADR-0019/#87 起本模块单向依赖契约：图标补全与 .lnk 解析经
-    /// <see cref="IIconAssetService"/>（Icons.Contracts，ADR-0023/#95）与
-    /// <see cref="IShortcutTargetResolver"/>（Programs.Contracts，ADR-0023/#96）注入，
-    /// 不再由组合根传委托。本类保持集成性质，不做单元测试。
+    /// .lnk 解析经注入的 <see cref="IShortcutTargetResolver"/> 完成；返回条目不含图标
+    /// （纯数据，图标由 UI 消费方按路径装配）。本类保持集成性质，不做单元测试。
+    /// 扫描来源依赖注册表/开始菜单等 Windows 设施，运行时仅限 Windows；
+    /// 宿主内核为平台中立 TFM（零 WPF 的编译期保证），故在此标注平台支持范围。
     /// </remarks>
+    [SupportedOSPlatform("windows")]
     public sealed class ProgramScanner : IProgramScanner
     {
-        private readonly IIconAssetService _iconAssets;
         private readonly IShortcutTargetResolver _shortcutResolver;
 
-        /// <summary>构造注入扫描所需契约（图标补全与 .lnk 解析）。</summary>
-        public ProgramScanner(
-            IIconAssetService iconAssets,
-            IShortcutTargetResolver shortcutResolver)
+        /// <summary>构造注入扫描所需的 .lnk 解析契约。</summary>
+        public ProgramScanner(IShortcutTargetResolver shortcutResolver)
         {
-            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
         }
 
         /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
-        /// （图标与 .lnk 解析经构造注入的契约完成）。</summary>
+        /// （.lnk 解析经构造注入的契约完成）。</summary>
         public IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
         {
             var candidates = new List<ProgramEntry>();
@@ -65,10 +64,7 @@ namespace StarPie.Services.Programs
             ScanProgramFilesTopLevel(candidates);
 
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
-            var merged = ProgramCatalog.MergeSources(candidates);
-            var list = merged
-                .Select(e => e with { IconSource = _iconAssets.GetIcon(e.Path) })
-                .ToList();
+            var list = ProgramCatalog.MergeSources(candidates);
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
             return list;
         }
@@ -114,7 +110,7 @@ namespace StarPie.Services.Programs
             if (!IsValidCandidate(displayName, normalizedPath))
                 return;
 
-            candidates.Add(new ProgramEntry(displayName, normalizedPath, normalizedPath, IconSource: null));
+            candidates.Add(new ProgramEntry(displayName, normalizedPath, normalizedPath));
         }
 
         private static void AddSystemApps(List<ProgramEntry> candidates)

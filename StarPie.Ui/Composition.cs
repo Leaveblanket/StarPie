@@ -122,14 +122,16 @@ namespace StarPie
             // 惰性解析；AppHost 构造后回填。
             services.AddSingleton(_hostDelegates);
 
-            // M3 程序扫描与 .lnk 解析契约：IShortcutTargetResolver/IProgramScanner 随实现方
-            // 下沉 Programs.Contracts（ADR-0023/#96），由 ProgramsModuleRegistrar 注册的
-            // M3 实现提供。
-            ProgramsModuleRegistrar.RegisterServices(services);
-            // 共享图标资产实例服务（S1，ADR-0023/#95）：实现与注册器随 S1 成集下放
-            // StarPie.Icons（IconsModuleRegistrar），契约经 StarPie.Icons.Contracts 显式引用；
-            // IconAssetService 构造所需 IShortcutTargetResolver 惰性解析自 M3 注册器。
-            IconsModuleRegistrar.RegisterServices(services);
+            // 程序扫描与 .lnk 解析：实现驻宿主内核（StarPie.Host/Programs），
+            // 契约（IProgramScanner/IShortcutTargetResolver）在 StarPie.Sdk。
+            services.AddSingleton<IShortcutTargetResolver, ShortcutResolver>();
+            services.AddSingleton<IProgramScanner, ProgramScanner>();
+            // 图标资产：自定义图标目录（宿主内核 CustomIconStore）之上由 Ui 侧
+            // IconAssetService 做 WPF 图像构造，实现 Sdk.Wpf 的 IIconAssetService 契约。
+            services.AddSingleton<CustomIconStore>();
+            services.AddSingleton<IIconAssetService>(sp => new IconAssetService(
+                sp.GetRequiredService<CustomIconStore>(),
+                sp.GetRequiredService<IShortcutTargetResolver>()));
 
             // 主题服务与界面主题设置子 VM 由 ThemeModuleRegistrar 注册（组合根仍唯一
             // BuildServiceProvider；调色板换入面由 AppHost 装配）。
@@ -141,9 +143,8 @@ namespace StarPie
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
             // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放 StarPie.Dialogs
-            // （ADR-0020/#88；契约随实现方下沉 Dialogs.Contracts，ADR-0023/#96）：扫描能力经
-            // Programs.Contracts 契约 IProgramScanner 注入（M3 注册器提供实现），组合根不再
-            // 直接装配对话框服务。
+            // （ADR-0020/#88）：扫描能力经 SDK 契约 IProgramScanner 注入（实现由组合根注册），
+            // 组合根不再直接装配对话框服务。
             DialogsModuleRegistrar.RegisterServices(services);
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 

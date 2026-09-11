@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 跨集只经 SDK：Host 只实现/消费 StarPie.Sdk 契约；内核运行时（Kernel/）消费 SDK 模型。 -->
+    <!-- 跨集只经 SDK：Host 只实现/消费 StarPie.Sdk 契约；内核运行时（Kernel/）与
+         图标目录（Icons/）、程序扫描（Programs/）消费 SDK 模型与契约。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
   </ItemGroup>
 

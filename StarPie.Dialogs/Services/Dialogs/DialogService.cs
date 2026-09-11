@@ -54,7 +54,7 @@ namespace StarPie.Services.Dialogs
 
         public ProgramPickResult? ShowProgramPicker()
         {
-            var viewModel = new ProgramPickerViewModel(_programScanner, this, _localization, _shortcutResolver);
+            var viewModel = new ProgramPickerViewModel(_programScanner, this, _localization, _shortcutResolver, _iconAssets);
             var window = PrepareBackgroundDialog(new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner });
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();

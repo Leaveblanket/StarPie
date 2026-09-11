@@ -25,6 +25,10 @@ public sealed class HostBoundaryTests
         typeof(AppDataPaths), typeof(SettingsSaveOrchestrator),
         // Kernel/Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
+        // Icons/（资产目录与自定义图标存储）
+        typeof(IconCatalog), typeof(CustomIconStore),
+        // Programs/（扫描编排与 .lnk 解析）
+        typeof(ProgramScanner), typeof(ShortcutResolver),
     };
 
     /// <summary>设计期字符串字典的唯一来源（Page 编译、签入生成物；pack URI 由 UI 工程资源锚合并）。</summary>
