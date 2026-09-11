@@ -58,9 +58,11 @@ M1 模块程序集（`StarPie.Gestures/`）：
 2. `MainViewModel`（Host，目录驱动；运行时归 Host）按 `catalog.Entries`
    构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType`
    均来自目录注册，导航 `Action` = `INavigationExecutor.Navigate(槽位)`。
-3. 点击导航项 → `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` → 容器解析
+3. 导航项"选中态置真"即导航——点击（RadioButton `Command`）与 UIA `SelectionItem.Select` 是等价入口
+   （后者是 e2e 静默导航与无障碍客户端可用路径，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md)）→
+   `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` → 容器解析
    页面 VM（单例 → 状态常驻）→ 更新 `NavigationStore.CurrentViewModel`。`MainViewModel` 订阅 store
-   变更同步各导航项选中态，并随 I18n 广播刷新标题。
+   变更同步各导航项选中态（回灌的选中态指向已停驻页面，短路不自我导航），并随 I18n 广播刷新标题。
 4. `MainView` 分区 DataContext（D3）：导航区（侧栏 + 页面 ContentControl）绑 `MainViewModel`，壳区
    （窗口标题/底部操作区）绑 `ShellViewModel`（见 [shell.md](shell.md)）；页面 `ContentControl`
    `Content="{Binding CurrentViewModel}"`，页面 View 由 App 级模块模板字典中
