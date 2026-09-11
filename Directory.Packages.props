@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- 中央包管理（CPM）：包版本集中一处，各 csproj 的 PackageReference 不再写 Version。 -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- MVVM 唯一框架（ADR-0001） -->
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+    <!-- 组合根与各模块注册器的 IServiceCollection 注册面 -->
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <!-- resx 强类型资源生成（ADR-0013；仅共享内核消费） -->
+    <PackageVersion Include="VocaDb.ResXFileCodeGenerator" Version="3.2.1" />
+    <!-- xUnit v3 的 mtp-v2 变体（仅测试工程消费） -->
+    <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.0" />
+  </ItemGroup>
+
+</Project>

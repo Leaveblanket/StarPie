@@ -10,17 +10,13 @@
          主题服务与主题设置子 VM 的 DI 注册经 ThemeModuleRegistrar.RegisterServices
          下放本程序集，组合根仍唯一 BuildServiceProvider；
          ThemePaletteManager 裁决为 public（Host AppHost 装配面，B6/#79 TrayIconManager 先例）。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Theme</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
   </ItemGroup>
 
   <ItemGroup>

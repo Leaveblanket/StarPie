@@ -8,6 +8,9 @@
 
 ```text
 StarPie/
+├── StarPie.slnx                   # 解决方案（登记全部工程；构建/测试入口）
+├── Directory.Build.props          # 统一构建属性（TFM/可空性/隐式 using/分析器级别/根命名空间）
+├── Directory.Packages.props       # 中央包管理（包版本唯一集中处；csproj 不写版本）
 ├── StarPie/                # Host 宿主工程（exe，程序集 StarPie）：组合根、宿主壳窗口、导航运行时、S6 对话框与外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
@@ -16,7 +19,7 @@ StarPie/
 │   ├── Modules/                   # Host 外观聚合页：HostModuleRegistrar + HostPageTemplates.xaml
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
-│   ├── StarPie.csproj      # SDK 工程文件（.slnx 同层）
+│   ├── StarPie.csproj             # SDK 工程文件
 │   ├── Properties/
 │   │   ├── DesignTimeResources.xaml  # 设计期资源锚（仅设计期合并，见 design-time-preview.md）
 │   │   └── launchSettings.json    # 工程配置；不放源码
@@ -187,6 +190,14 @@ StarPie/
 | `StarPie.Gestures/Views/Styles/` | M1：`HotkeyRecorderBox.xaml` 热键录制控件样式字典（由 Host `App.xaml` 经 `/StarPie.Gestures;component/Views/Styles/HotkeyRecorderBox.xaml` 单点合并） | 不放全局控件样式（`ModernControls.xaml` 在 Host） |
 
 ## 根级文件规则
+
+仓库根（仓库级构建入口）：
+
+- `StarPie.slnx`：解决方案文件——登记全部工程，构建与测试入口（仓库根 `dotnet build StarPie.slnx`）。
+- `Directory.Build.props`：统一构建属性（TFM / 可空性 / 隐式 using / 分析器级别 / 根命名空间）；工程级差异（`UseWPF`/`OutputType`/`AssemblyName` 等）留在各 csproj。
+- `Directory.Packages.props`：中央包管理（CPM）——包版本唯一集中处，各 csproj 的 `PackageReference` 不写 `Version`。
+
+Host 工程根（`StarPie/`）：
 
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。

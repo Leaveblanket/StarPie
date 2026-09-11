@@ -4,12 +4,9 @@
     <!-- ADR-0023/#96：S6 对话框契约随实现方（StarPie.Dialogs）下沉独立成集——IDialogService
          与 6 个结果 record 自 Core 迁出（命名空间 StarPie.Services.Dialogs 不变，B10/#83 共享
          命名空间树）；M1/M2/M5/Host 消费方改经本契约边。纯 C# 契约（无 WPF 类型），不带
-         UseWPF。无任何 ProjectReference（薄契约）。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+         UseWPF。无任何 ProjectReference（薄契约）；TFM / 可空性 / 隐式 using 统一在仓库根
+         Directory.Build.props。 -->
     <AssemblyName>StarPie.Dialogs.Contracts</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

@@ -47,7 +47,7 @@
 
 ```text
 StarPie/
-├── StarPie.slnx                          # 上移仓库根，登记三集 + 一等插件 + 测试；否则三集无法一条命令 build/测全套
+├── StarPie.slnx                          # 解决方案：登记三集 + 一等插件 + 测试，一条命令 build/测全套
 ├── Directory.Build.props                 # 共享构建属性（TFM/可空性/分析器级别）：四集与插件工程不各写一遍，避免漂移
 ├── Directory.Packages.props              # 中央包管理：让「SDK 零第三方包」「Host 零 WPF」两条约束可由构建机械拦截
 ├── StarPie.Sdk/                          # net10.0；零 WPF / 零第三方包；headless 唯一引用面（ADR-0027 决策 1）

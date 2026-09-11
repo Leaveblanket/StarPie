@@ -7,12 +7,8 @@
          删除，改经本契约边（runtime 互不引用）。契约程序集按需引用 WPF：
          ApplyWindowTheme(FrameworkElement?) 签名含 WPF 类型（ADR-0023 Q5 先例：Contracts
          形态与类型级分层无关）。无任何 ProjectReference（薄契约）。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Theme.Contracts</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
 </Project>

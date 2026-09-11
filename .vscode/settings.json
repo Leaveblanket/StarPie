@@ -1,5 +1,5 @@
 {
-    "dotnet.defaultSolution": "StarPie/StarPie.slnx",
+    "dotnet.defaultSolution": "StarPie.slnx",
     "dotnet.backgroundAnalysis.compilerDiagnosticsScope": "openFiles",
     "dotnet.codeLens.enableReferencesCodeLens": true,
     "dotnet.codeLens.enableTestsCodeLens": true,
@@ -62,7 +62,6 @@
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
         "*.cs": "${capture}.xaml, ${capture}.xaml.cs",
-        "*.xaml": "${capture}.xaml.cs",
-        "*.csproj": "*.slnx"
+        "*.xaml": "${capture}.xaml.cs"
     }
 }

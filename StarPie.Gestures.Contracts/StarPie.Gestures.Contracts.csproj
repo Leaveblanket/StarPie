@@ -7,11 +7,7 @@
          Wheel ↔ Gestures runtime 程序集环（Q4 裁决），Wheel runtime 改经本契约边消费。
          签名依赖共享内核 Models 数据（WheelProfile，config POCO，Core 收窄后仍居共享内核），
          故本薄契约仅引用 Core；无任何业务 runtime 引用。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <AssemblyName>StarPie.Gestures.Contracts</AssemblyName>
-    <RootNamespace>StarPie</RootNamespace>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
