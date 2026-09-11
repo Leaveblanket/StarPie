@@ -181,7 +181,7 @@ def app(sandbox_env, request):
     # Locate the executable
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates = [
-        os.path.join(project_root, "StarPie", "bin", config, tfm, "StarPie.exe")
+        os.path.join(project_root, "StarPie.Ui", "bin", config, tfm, "StarPie.exe")
         for config in ("Release", "Debug")
         for tfm in ("net10.0-windows10.0.19041.0", "net10.0-windows")
     ]

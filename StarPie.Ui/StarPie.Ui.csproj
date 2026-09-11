@@ -2,8 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- B10/#83：Host 源码根命名空间 StarPie，与 AssemblyName 对齐；TFM / 可空性 / 隐式 using /
-         分析器级别 / 根命名空间统一在仓库根 Directory.Build.props -->
+    <!-- B10/#83 起：源码根命名空间 StarPie 与 AssemblyName 对齐；#111 工程目录/文件更名为
+         StarPie.Ui（四集之一的 Ui 集，ADR-0027），程序集名与发布产物名保持 StarPie；
+         TFM / 可空性 / 隐式 using / 分析器级别 / 根命名空间统一在仓库根 Directory.Build.props -->
     <UseWPF>true</UseWPF>
     <ApplicationIcon>assets\app_icon.ico</ApplicationIcon>
     <AssemblyName>StarPie</AssemblyName>
@@ -24,6 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- #111 四集骨架：Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
+         （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。 -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
+    <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
     <!-- B2/#75：共享内核程序集引用（Models/S2/S3/S4/S1/S6 契约/S5 导航内核随迁） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集显式引用（DialogService 实现与五对对话框
