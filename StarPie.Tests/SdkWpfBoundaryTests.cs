@@ -9,26 +9,25 @@ using StarPie.Services.Shell;
 namespace StarPie.Tests;
 
 /// <summary>
-/// SDK 收口·WPF 面基线（P1.4/#113；ADR-0027/0028 / plugins.md §2/§5.1/§11）：StarPie.Sdk.Wpf
-/// 的导出面与「P1.4 迁入清单」双向相等（additive-only 的机械审查点——删除或改名既有导出
-/// 类型即失败，增量新增须同步白名单），ABI/装载政策骨架（UiSdkAbi/DefaultAlcPolicy）与源码树
-/// 形态可断言。与 <see cref="SdkBoundaryTests"/>（headless 面）、<see cref="FourSetBoundaryTests"/>
+/// StarPie.Sdk.Wpf 边界基线：导出面与白名单双向相等（删除或改名既有导出类型即失败，
+/// 增量新增须同步白名单——additive-only 的机械审查点），ABI 兼容判定、默认 ALC 装载政策与
+/// 源码树形态可断言。与 <see cref="SdkBoundaryTests"/>（headless 面）、<see cref="FourSetBoundaryTests"/>
 /// （工程面）、<see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
 public sealed class SdkWpfBoundaryTests
 {
-    /// <summary>P1.4/#113 迁入 StarPie.Sdk.Wpf 的全部导出类型（Sdk.Wpf 导出面 = 恰为该清单）。</summary>
+    /// <summary>StarPie.Sdk.Wpf 的全部导出类型（导出面 = 恰为该清单）。</summary>
     private static readonly Type[] MigratedTypes =
     {
-        // Services/Icons/（原 StarPie.Icons.Contracts）
+        // Services/Icons/
         typeof(IIconAssetService), typeof(IconCatalog), typeof(CustomIconItem), typeof(VectorIconItem),
-        // Services/Icons/IShortcutTargetResolver.cs（原 StarPie.Programs.Contracts 的 SPI）
+        // Services/Icons/IShortcutTargetResolver.cs
         typeof(IShortcutTargetResolver),
-        // Services/Programs/（原 StarPie.Programs.Contracts）
+        // Services/Programs/
         typeof(IProgramScanner), typeof(ProgramEntry), typeof(ProgramCatalog),
-        // Services/Shell/（原 StarPie.Theme.Contracts）
+        // Services/Shell/
         typeof(IThemeService),
-        // Compatibility/（#113 新增 ABI/装载政策骨架）
+        // Compatibility/
         typeof(UiSdkAbi), typeof(DefaultAlcPolicy),
     };
 

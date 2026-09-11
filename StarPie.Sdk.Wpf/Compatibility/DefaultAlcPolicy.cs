@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace StarPie.Compatibility
 {
     /// <summary>
-    /// 共享契约集的装载政策骨架（P1.4/#113；plugins.md §5.1 约束 1/3，ADR-0027 决策 1）：
-    /// `StarPie.Sdk` 与 `StarPie.Sdk.Wpf` 由默认 ALC 统一加载，保证跨插件 ALC 的类型身份唯一；
-    /// 插件包内出现二者副本即拒绝装载。拒绝逻辑在 P2 装载管线落地，本类是判定常量的唯一正典。
+    /// 共享契约集的装载政策：<c>StarPie.Sdk</c> 与 <c>StarPie.Sdk.Wpf</c> 必须由默认 ALC 统一加载，
+    /// 保证跨插件 ALC 的类型身份唯一；插件包内出现二者副本即拒绝装载（拒绝逻辑由装载管线实现，
+    /// 本类是判定常量的唯一正典）。
     /// </summary>
+    /// <remarks>框架程序集的默认 ALC 回退由装载管线按其既有规则处理，不在本类判定范围。</remarks>
     public static class DefaultAlcPolicy
     {
         /// <summary>headless SDK 程序集名。</summary>
@@ -23,7 +25,6 @@ namespace StarPie.Compatibility
 
         /// <summary>判定某程序集名是否必须回退默认 ALC。</summary>
         public static bool MustResolveFromDefaultAlc(string assemblyName)
-            => string.Equals(assemblyName, SdkAssemblyName, StringComparison.Ordinal)
-            || string.Equals(assemblyName, SdkWpfAssemblyName, StringComparison.Ordinal);
+            => SharedContractAssemblyNames.Contains(assemblyName, StringComparer.Ordinal);
     }
 }
