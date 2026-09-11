@@ -17,7 +17,7 @@ public sealed class RuntimeNoCrossReferenceTests
     [Fact]
     public void Sdk引用面_只含平台程序集_零第三方包零WPF()
     {
-        Assembly sdk = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Sdk");
+        Assembly sdk = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Sdk");
         string[] referenced = FourSetBoundaryProbe.ReferencedNames(sdk);
 
         Assert.All(FourSetBoundaryProbe.WpfAssemblyNames, wpf => Assert.DoesNotContain(wpf, referenced));
@@ -32,7 +32,7 @@ public sealed class RuntimeNoCrossReferenceTests
     [Fact]
     public void Host引用面_零WPF_不引用UiSdkWpf与旧集runtime()
     {
-        Assembly host = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Host");
+        Assembly host = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Host");
         string[] referenced = FourSetBoundaryProbe.ReferencedNames(host);
 
         Assert.All(FourSetBoundaryProbe.WpfAssemblyNames, wpf => Assert.DoesNotContain(wpf, referenced));
@@ -47,7 +47,7 @@ public sealed class RuntimeNoCrossReferenceTests
     [Fact]
     public void SdkWpf_带Windows平台投影_不反向引用HostUi与旧集()
     {
-        Assembly sdkWpf = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Sdk.Wpf");
+        Assembly sdkWpf = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Sdk.Wpf");
 
         // WPF 契约面的产物级证据：windows 平台投影（由 net10.0-windows TFM 产生）。
         Assert.NotEmpty(sdkWpf.GetCustomAttributes<TargetPlatformAttribute>());
@@ -67,7 +67,7 @@ public sealed class RuntimeNoCrossReferenceTests
 
         foreach (string set in new[] { "StarPie.Sdk", "StarPie.Sdk.Wpf", "StarPie.Host" })
         {
-            Assembly assembly = FourSetBoundaryProbe.LoadFourSetAssembly(set);
+            Assembly assembly = FourSetBoundaryProbe.LoadAppAssembly(set);
             Assert.Null(assembly.EntryPoint);
             Assert.Empty(FourSetBoundaryProbe.BamlEntries(assembly));
         }
