@@ -55,6 +55,9 @@ public sealed class FourSetBoundaryTests
         Assert.Equal("StarPie", ui.GetName().Name);
         Assert.NotNull(ui.EntryPoint);
         Assert.Equal("StarPie", Path.GetFileNameWithoutExtension(ui.Location));
+        Assert.True(
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "StarPie.exe")),
+            "StarPie.Ui 应产出 apphost StarPie.exe（发布路径见 CI 断言）");
 
         // 其余三集是类库（唯一可执行体是 Ui）。
         foreach (string project in new[] { SdkProject, SdkWpfProject, HostProject })
