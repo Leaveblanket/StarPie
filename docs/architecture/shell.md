@@ -20,8 +20,8 @@ M5 物理落位（独立模块程序集 `StarPie.Shell/`）：
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
 - `StarPie.Shell/Modules/ShellModuleRegistrar.cs` + `ShellPageTemplates.xaml`（正式模块注册器与
   页面模板字典，自报导航项/模板并下放页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
-- 共享内核同时登记宿主回调契约 `StarPie.Core/Services/AppHostDelegates.cs`（托盘气泡/退出，
-  见 [host.md](host.md)）。
+- SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出，
+  P1.3/#112 自 Core 收口；见 [host.md](host.md)）。
 
 M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `StarPie.Theme/Services/Shell/`
 （命名空间 `StarPie.Services.Shell`，见 [interface-theme.md](interface-theme.md)），不在 Host；
@@ -55,7 +55,7 @@ M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `Sta
    操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
    `CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
-   Core 契约 `AppHostDelegates` 转发（模块注册器只依赖 Core，宿主回填实现，
+   SDK 契约 `AppHostDelegates` 转发（模块注册器只依赖 SDK，宿主回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。
 

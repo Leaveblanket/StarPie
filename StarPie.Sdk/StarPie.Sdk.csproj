@@ -3,7 +3,12 @@
   <PropertyGroup>
     <!-- ADR-0027 / plugins.md §2：SDK 是插件的唯一 headless 引用面——net10.0（不进 windows
          段，WPF 引用在编译期即不可表达：零 WPF）、零第三方包（无 PackageReference）。
-         两条边界由 FourSetBoundaryTests 对 csproj 与程序集引用面机械断言。 -->
+         两条边界由 FourSetBoundaryTests 对 csproj 与程序集引用面机械断言。
+         P1.3/#112：headless 契约与模型自旧集迁入（命名空间不变、镜像旧相对路径）——
+         Models/（AppConfig/WheelProfile/ActionItem/CustomColorPreset/ColorMath/GesturePoint）、
+         Services/（AppHostDelegates、Messages、Navigation、Dialogs、Wheel）、
+         ViewModels/（Pages/Wheel）；「只含纯托管契约/模型/DTO + 全仓类型唯一性」由
+         SdkBoundaryTests 机械守护。 -->
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 

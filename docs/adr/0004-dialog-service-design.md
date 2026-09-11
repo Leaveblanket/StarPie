@@ -2,7 +2,7 @@
 
 > Status: Active
 >
-> 实现落点（现状）：`StarPie.Dialogs` 程序集实现、契约 `IDialogService` 与结果 record 驻 `StarPie.Dialogs.Contracts`，见 `docs/architecture/dialogs.md` 与 `assemblies.md`。
+> 实现落点（现状）：`StarPie.Dialogs` 程序集实现、契约 `IDialogService` 与结果 record 驻 `StarPie.Sdk`（P1.3/#112 收口），见 `docs/architecture/dialogs.md` 与 `assemblies.md`。
 
 设置窗口 code-behind 曾散落 12 处模态对话框调用（程序选择器 ×3、输入框 ×4、图标选择 ×2、颜色选择 ×1、屏上取色 ×1、系统文件对话框 ×1）。决定全部收敛到 `IDialogService`，VM 层达成零对话框类型引用。
 

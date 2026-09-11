@@ -3,8 +3,8 @@ using StarPie.Models;
 namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
-    /// 轮盘外观只读状态接口（签名暴露件，随实现方 M2 下沉驻 <c>StarPie.Wheel.Contracts</c>，
-    /// ADR-0023/#97）：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/
+    /// 轮盘外观只读状态接口（签名暴露件，随实现方 M2 下沉，ADR-0023/#97；#112 收口入
+    /// <c>StarPie.Sdk</c>）：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/
     /// 配色方案选中、几何与排版参数、核图标相关、当前运行配置与预览所用 Profile 上下文。
     /// </summary>
     /// <remarks>

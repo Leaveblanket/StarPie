@@ -11,7 +11,7 @@
 
 ## 组成文件
 
-**共享内核（`StarPie.Core/Services/Messages/`）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
+**SDK（`StarPie.Sdk/Services/Messages/`，P1.3/#112 自 Core 迁入）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
 （非 messenger 的跨层载体：`NoticeKind`/`NoticeRequest`）。
 
 ## 关键流程
@@ -26,7 +26,7 @@
 
 ## 扩展点
 
-- 新消息/通知类型：在 `Services/Messages/` hub 文件登记即可（放行共享面，[modules.md](modules.md) §2.3）；
+- 新消息/通知类型：在 `StarPie.Sdk/Services/Messages/` hub 文件登记即可（放行共享面，[modules.md](modules.md) §2.3）；
   消费方与领域语义描述放所属模块叶子。
 - 新语言/新文案键与消息无关，见 [localization.md](localization.md)。
 

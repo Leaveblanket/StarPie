@@ -3,12 +3,13 @@
   <PropertyGroup>
     <!-- B9/#82：M1 手势与动作模块程序集（ADR-0016 决策 1/8/11/12；B10/#83 命名空间统一收尾）。
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
-         ADR-0023/#97：M1 出口契约 IProfilePreviewSource 随实现方下沉
-         StarPie.Gestures.Contracts（自 Core 迁出），M1→M2 runtime 允许边删除——本 runtime
-         只经 StarPie.Wheel.Contracts 契约边消费瞬态轮盘（IWheelFactory/IWheelViewModel），
-         不引用 Wheel runtime/其它业务模块（M2 侧也不反向引用 M1，跨 M 只经 *.Contracts 契约边）。
-         依赖方向：StarPie.Gestures → Core 单向 + Gestures.Contracts（自身契约）+
-         Wheel.Contracts + Dialogs.Contracts + Icons.Contracts（ADR-0023/#96/#95）。
+         ADR-0023/#97：M1 出口契约 IProfilePreviewSource 随实现方下沉，M1→M2 runtime 允许边
+         删除——本 runtime 只经 IWheelFactory/IWheelViewModel 契约接口消费瞬态轮盘，不引用
+         Wheel runtime/其它业务模块（M2 侧也不反向引用 M1，跨 M 只经契约边）。
+         P1.3/#112：IProfilePreviewSource/IWheelFactory/IWheelViewModel/IDialogService 等
+         headless 契约随 SDK 收口迁入 StarPie.Sdk（Gestures/Wheel/Dialogs 三个契约工程暂留空壳）。
+         依赖方向：StarPie.Gestures → StarPie.Sdk（headless 契约/模型）+ Core 单向 +
+         Icons.Contracts（ADR-0023/#95/#96）。
          手势管线/动作执行/触发+手势设置页的 DI 注册与导航自报经
          GesturesModuleRegistrar（RegisterServices + RegisterNavigation）下放本程序集，
          组合根仍唯一 BuildServiceProvider。 -->
@@ -26,18 +27,13 @@
          预览 Profile 只读契约 IProfilePreviewSource 自 ADR-0023/#97 起随实现方下沉
          Gestures.Contracts，不再居 Core） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0023/#97：M1 → Wheel.Contracts（GestureEngine 只经 IWheelFactory/IWheelViewModel
-         接口消费瞬态轮盘，M1→M2 runtime 允许边清零） -->
-    <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
-    <!-- ADR-0023/#97：M1 → Gestures.Contracts（实现自有契约：ProfileListViewModel 实现
-         IProfilePreviewSource、注册器注册别名，自 Core 迁出） -->
-    <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
+    <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IProfilePreviewSource、
+         IWheelFactory/IWheelViewModel、IDialogService、AppConfig/消息/导航目录等；
+         三个纯托管契约工程暂留空壳） -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <!-- ADR-0023/#95：S1 契约独立成集（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
-         消费 IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
+         消费 IIconAssetService/条目类型），不再经 Core 消费 S1 类型 -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
-    <!-- ADR-0023/#96：S6 对话框契约独立成集（SlotViewModel/BehaviorSettingsViewModel/
-         ProfileListViewModel 消费 IDialogService），不再经 Core 消费 S6 类型 -->
-    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

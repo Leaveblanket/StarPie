@@ -52,8 +52,8 @@ namespace StarPie
             services.AddSingleton(navigationCatalog);
 
             // 轮盘与渲染的 DI 注册由 WheelModuleRegistrar 下放 StarPie.Wheel（组合根仍唯一
-            // BuildServiceProvider）：手势侧只经 Wheel.Contracts 的 IWheelFactory 接口消费
-            // 轮盘；预览 Profile 契约 IProfilePreviewSource 随实现方下沉 Gestures.Contracts
+            // BuildServiceProvider）：手势侧只经 SDK 的 IWheelFactory 接口消费轮盘；
+            // 预览 Profile 契约 IProfilePreviewSource 随实现方下沉、#112 收口入 SDK
             //（ADR-0023/#97），别名由 GesturesModuleRegistrar 注册。
             WheelModuleRegistrar.RegisterServices(services);
 

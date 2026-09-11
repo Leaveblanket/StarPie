@@ -22,6 +22,9 @@
   <ItemGroup>
     <!-- B7/#80：M4 → Core 单向依赖（主题设置子 VM 消费 S2/S3/S4 契约与共享 Models） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（AppConfig、AppThemeChangedMessage
+         等消息/模型） -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <!-- ADR-0023/#97：M4 → Theme.Contracts（实现自有契约：ThemeService 实现
          IThemeService，ThemeModuleRegistrar 注册别名，自 StarPie.Theme 迁出） -->
     <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />

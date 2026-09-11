@@ -4,8 +4,8 @@ using StarPie.ViewModels.Wheel;
 namespace StarPie.Services.Wheel
 {
     /// <summary>
-    /// 每次手势创建全新瞬态轮盘（视图模型 + 窗口）的工厂接口（随实现方 M2 下沉驻
-    /// <c>StarPie.Wheel.Contracts</c>，ADR-0023/#97）。
+    /// 每次手势创建全新瞬态轮盘（视图模型 + 窗口）的工厂接口（随实现方 M2 下沉，
+    /// ADR-0023/#97；#112 收口入 <c>StarPie.Sdk</c>）。
     /// </summary>
     /// <remarks>
     /// 实现 <c>WheelFactory</c>（驻 StarPie.Wheel runtime）；实现方负责 UI 线程调度，

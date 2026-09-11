@@ -12,7 +12,7 @@
 `ISaveDebouncer`/`DispatcherSaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`（dev 目录分支
 依赖的 H1 标记经组合根回填 `AppDataPaths.IsDevInstance`，见 [host.md](host.md)；
 自启注册表 `AutostartRegistry` 归 M5，驻 `StarPie.Shell/Services/Shell/`，见 [shell.md](shell.md)）；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
-`ImmediateSaveRequestedMessage` 定义于 S4 hub（Core）`Services/Messages/Messages.cs`（放行共享面，见
+`ImmediateSaveRequestedMessage` 定义于 S4 hub（`StarPie.Sdk/Services/Messages/Messages.cs`，P1.3/#112 自 Core 收口）（放行共享面，见
 [messages.md](messages.md)）。
 
 ## 生命周期与关键流程

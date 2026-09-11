@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- ADR-0023/#96：S6 对话框契约随实现方（StarPie.Dialogs）下沉独立成集——IDialogService
-         与 6 个结果 record 自 Core 迁出（命名空间 StarPie.Services.Dialogs 不变，B10/#83 共享
-         命名空间树）；M1/M2/M5/Host 消费方改经本契约边。纯 C# 契约（无 WPF 类型），不带
-         UseWPF。无任何 ProjectReference（薄契约）；TFM / 可空性 / 隐式 using 统一在仓库根
-         Directory.Build.props。 -->
+    <!-- ADR-0023/#96：S6 对话框契约程序集（IDialogService + 6 结果 record，纯 C# 契约）。
+         P1.3/#112：纯托管契约件已随 SDK 收口迁入 StarPie.Sdk（Services/Dialogs/IDialogService.cs，
+         命名空间 StarPie.Services.Dialogs 不变），本工程暂留为空壳（无源码、无 ProjectReference），
+         待 S6 对话框架并票（P1.10）撤销。
+         TFM / 可空性 / 隐式 using 统一在仓库根 Directory.Build.props。 -->
     <AssemblyName>StarPie.Dialogs.Contracts</AssemblyName>
   </PropertyGroup>
 

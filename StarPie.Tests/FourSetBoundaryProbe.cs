@@ -9,9 +9,10 @@ using System.Xml.Linq;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 四集边界断言（#111）的共享探针：仓库根定位、csproj 读取与程序集元数据读取。
-/// 只服务 <see cref="FourSetBoundaryTests"/> 与 <see cref="RuntimeNoCrossReferenceTests"/>；
-/// 断言本体留在两个测试文件中。
+/// 应用程序集边界断言（#111 四集 / #112 SDK 收口）的共享探针：仓库根定位、csproj 读取与
+/// 程序集元数据读取。服务 <see cref="FourSetBoundaryTests"/>、
+/// <see cref="RuntimeNoCrossReferenceTests"/> 与 <see cref="SdkBoundaryTests"/>；
+/// 断言本体留在各测试文件中。
 /// </summary>
 internal static class FourSetBoundaryProbe
 {
@@ -88,8 +89,8 @@ internal static class FourSetBoundaryProbe
             .Select(element => Path.GetFileNameWithoutExtension(((string)element.Attribute("Include")!).Replace('\\', '/')))
             .ToArray();
 
-    /// <summary>按简单名加载四集程序集（测试工程已显式引用四集，产物随输出目录就位）。</summary>
-    internal static Assembly LoadFourSetAssembly(string simpleName)
+    /// <summary>按简单名加载应用程序集（四集或旧集；测试工程已显式引用，产物随输出目录就位）。</summary>
+    internal static Assembly LoadAppAssembly(string simpleName)
     {
         Assembly? loaded = AppDomain.CurrentDomain.GetAssemblies()
             .FirstOrDefault(assembly => assembly.GetName().Name == simpleName);
@@ -110,6 +111,13 @@ internal static class FourSetBoundaryProbe
     /// <summary>程序集元数据里的直接引用程序集名。</summary>
     internal static string[] ReferencedNames(Assembly assembly)
         => assembly.GetReferencedAssemblies().Select(reference => reference.Name!).ToArray();
+
+    /// <summary>程序集导出（public）类型的全名，按序数序排序（收口/唯一性断言的比较基准）。</summary>
+    internal static string[] ExportedTypeNames(Assembly assembly)
+        => assembly.GetExportedTypes()
+            .Select(type => type.FullName!)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
 
     /// <summary>平台程序集判定：.NET 基类库/运行时自带的系统程序集（第三方包一律不在列）。</summary>
     internal static bool IsPlatformAssemblyName(string name)

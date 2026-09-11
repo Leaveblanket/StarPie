@@ -26,19 +26,19 @@
 
   <ItemGroup>
     <!-- #111 四集骨架：Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
-         （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。 -->
+         （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。
+         P1.3/#112：headless 契约与模型（IDialogService/结果 record、IWheelAppearanceState、
+         IProfilePreviewSource、导航目录与消息等）已随 SDK 收口迁入 StarPie.Sdk，本集经该引用
+         消费；Dialogs/Gestures/Wheel 三个纯托管契约工程暂留空壳、不再被引用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- B2/#75：共享内核程序集引用（Models/S2/S3/S4/S1/S6 契约/S5 导航内核随迁） -->
+    <!-- B2/#75：共享内核程序集引用（S2/S3/S4 共享基建与 S5 导航目录随迁；契约/模型经 SDK） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集显式引用（DialogService 实现与五对对话框
          VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、
          AppHost 建窗后调 DialogService.SetOwner 回填 Owner 装配面） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
-    <!-- ADR-0023/#96：S6 契约独立成集显式引用（NavigationExecutor/ShellViewModel 消费
-         IDialogService/结果 record，不再经 Core 传递） -->
-    <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <!-- B4/#77：M3 模块程序集显式引用（ProgramScanner/ProgramCatalog/ShortcutResolver 随迁；
          ADR-0019/#87 起 M3 单向依赖 Core，组合根调 ProgramsModuleRegistrar 注册
          IShortcutTargetResolver 契约，扫描经 Core 契约注入） -->
@@ -48,12 +48,6 @@
     <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
     <!-- ADR-0023/#97：M4 主题契约独立成集显式引用（MainView/组合根消费 IThemeService 契约面） -->
     <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
-    <!-- ADR-0023/#97：M2 轮盘契约独立成集显式引用（外观页预览 code-behind 消费
-         IWheelAppearanceState 只读状态接口） -->
-    <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />
-    <!-- ADR-0023/#97：M1 预览 Profile 契约独立成集显式引用（组合根/注释面消费
-         IProfilePreviewSource，别名由 GesturesModuleRegistrar 注册） -->
-    <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />

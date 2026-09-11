@@ -8,11 +8,11 @@
 
 ## 组成文件
 
-M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约随实现方独立成集
-`StarPie.Wheel.Contracts/`，ADR-0023）：
+M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约原独立成集 `StarPie.Wheel.Contracts/`，
+ADR-0023，P1.3/#112 随 SDK 收口迁 `StarPie.Sdk/`，原工程暂留空壳）：
 
-- `StarPie.Wheel.Contracts/`（M2 出口契约集，ADR-0023；命名空间不变；签名依赖共享内核
-  Models 数据，仅引用 Core，不引用业务 runtime）：`Services/Wheel/IWheelFactory.cs`（轮盘工厂
+- `StarPie.Sdk/`（M2 出口契约，ADR-0023；命名空间不变；签名依赖 SDK Models 数据，仅零 WPF 零
+  第三方包，不引用业务 runtime）：`Services/Wheel/IWheelFactory.cs`（轮盘工厂
   契约）、`ViewModels/Wheel/IWheelViewModel.cs`、`ViewModels/Wheel/IWheelAppearanceState.cs`
   （签名暴露件）。
 - `StarPie.Wheel/Services/Wheel/`：`WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标
@@ -25,7 +25,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约随实现
   （`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、
   `CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）。
 - 轮盘配色解析（本集 `StarPie.Wheel/Models/`，R8 语义+物理归 M2；`CustomColorPreset` 因
-  `AppConfig` 引用仍居 Core `Models/`，语义归 M2，见 [modules.md](modules.md) §4 R8）：
+  `AppConfig` 引用居 `StarPie.Sdk/Models/`，语义归 M2，见 [modules.md](modules.md) §4 R8）：
   `WheelPalette.cs`（色值组）、`WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/
   系统预设/紧急回落）、`WheelPaletteParser.cs`（方案名→色值组解析）。
 - `StarPie.Wheel/Views/Converters/CoreIconGeometryConverter.cs`/`CoreIconNameConverter.cs`
@@ -43,12 +43,12 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约随实现
 > RadialWindow 经 WheelFactory 注入、WheelPreviewRenderer 经外观页预览桥装配，见
 > [layout.md](layout.md)/[layering.md](layering.md)）。
 > R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义与物理均归 M2（驻
-> `StarPie.Wheel/Models/`）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理仍居 Core
-> `Models/`（`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
+> `StarPie.Wheel/Models/`）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理居
+> `StarPie.Sdk/Models/`（P1.3/#112；`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
 > `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)。
 
 > `IWheelAppearanceState` 是轮盘模块的预览只读状态接口（ADR-0014 决策 8；驻
-> `StarPie.Wheel.Contracts`，ADR-0023；外观页 code-behind 经 Wheel.Contracts 显式引用
+> `StarPie.Sdk`，ADR-0023；P1.3/#112 收口；外观页 code-behind 经 SDK 显式引用
 > 消费）：`WheelPreviewRenderer` 只依赖它读取外观状态。实现方为轮盘外观设置子 VM
 > `WheelAppearanceSettingsViewModel`（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观
 > 聚合 VM 不实现该接口。接口的预览 Profile 上下文成员转发自 M1 只读 `IProfilePreviewSource`
@@ -64,7 +64,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约随实现
   实现 `IWheelAppearanceState`；构造注入 M1 只读 `IProfilePreviewSource`（预览 Profile 来源，
   静态已知依赖走接口，不引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/
   `IMessenger`/`ILocalizationService`；DI 注册由 `WheelModuleRegistrar.RegisterServices` 下放
-  模块（`IProfilePreviewSource` 随实现方 M1 驻 `StarPie.Gestures.Contracts`（ADR-0023，
+  模块（`IProfilePreviewSource` 随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`（ADR-0023，
   D5——实现方 `ProfileListViewModel` 别名由 GesturesModuleRegistrar 下放），消费方本子 VM
   只依赖契约程序集）；全部状态写穿运行态配置（立即生效），落盘经防抖/立即消息上报；配色下拉
   选项（`PaletteOptions`）随语言切换重建并补发选中通知，`Dispose` 成对退订。
@@ -86,7 +86,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约随实现
 5. 外观页 Canvas 预览走 `WheelPreviewRenderer`（与实轮盘同一渲染契约），保证所见即所得；渲染器输入
    为 `IWheelAppearanceState`（主题风格与配色、几何/排版、核图标、运行态配置与预览 Profile 上下文），
    不依赖具体聚合 VM 类型；预览 Profile 上下文由外观设置子 VM 经 M1 的 `IProfilePreviewSource`
-   转发取值（契约随实现方 M1 驻 `StarPie.Gestures.Contracts`，ADR-0023），选中/首项回落
+   转发取值（契约随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023），选中/首项回落
    语义由该来源实现方维护。深浅色探测不以 Host `MainView` 作参数（模块不反向依赖宿主）：
    `WheelPreviewRenderer` 的 `Render` 收 `bool windowsInDarkMode`，由外观页（Host）经壳层
    `MainView.IsWindowsInDarkTheme()` 取值传入。渲染器经**已批准预览桥**取得 `IIconAssetService`
