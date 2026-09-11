@@ -4,10 +4,11 @@
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
 > 目标程序集划分、程序集级依赖规则、导航槽位表与注册/可见性契约。
 
-> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)；P1 落地前本文仍是 as-built 正典，P1 后按目标态回填。
+> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 已建四集骨架，并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；四集基线依赖规则见 §3。P1.3–P1.10 分批归并期间，旧 15 集仍是未搬迁代码的 as-built 主体，P1.11 按目标态回填全文。
 >
-> **15 程序集现状**：Host/Core + 5 业务 runtime + `StarPie.Dialogs` + `StarPie.Icons` +
-> 各 `*.Contracts`（划分见 §2）。代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
+> **程序集现状**：四集骨架（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
+> + 旧 15 集（Host/Core + 5 业务 runtime + `StarPie.Dialogs` + `StarPie.Icons` + 各 `*.Contracts`，
+> 划分见 §2）。代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
 > 为准，冲突时叶子优先。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
 
 ## 1. 何时读本文
@@ -21,11 +22,14 @@
 | 程序集化落地历史与现状 | ADR-0016、ADR-0023 与 git 历史；现状以本文 §2–§7 为准 |
 | 为什么这样定 | [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) |
 
-## 2. 程序集地图（15 程序集，as-built）
+## 2. 程序集地图（as-built：旧 15 集 + 四集骨架）
 
 | 程序集 | 形态 | 承载 |
 |---|---|---|
-| `StarPie`（项目 `StarPie`） | WinExe | H1 宿主与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel，命名空间不变；Appearance 聚合页；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`（App.xaml 本地单点实例化/合并、资源 key 不变）；仅保留 DialogService.SetOwner 回填等宿主装配面 |
+| `StarPie`（项目 `StarPie.Ui`） | WinExe | Ui 集与组合根（App/AppHost/Composition/DevInstance）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel，命名空间不变；Appearance 聚合页；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`（App.xaml 本地单点实例化/合并、资源 key 不变）；仅保留 DialogService.SetOwner 回填等宿主装配面 |
+| `StarPie.Sdk` | 类库（net10.0） | SDK 集骨架（P1.2/#111）：零 WPF、零第三方包、零 ProjectReference；P1.3 起迁入纯托管契约/模型/DTO（目标树见 plugins.md §2） |
+| `StarPie.Sdk.Wpf` | WPF 类库 | SDK 的 WPF 类型契约面骨架（P1.2/#111）：唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；P1.4 起迁入 WPF 契约件 |
+| `StarPie.Host` | 类库（net10.0） | 宿主内核骨架（P1.2/#111）：零 WPF（不引用 `StarPie.Sdk.Wpf`），ProjectReference 只许 `StarPie.Sdk`；P1.5 起迁入内核运行时 |
 | `StarPie.Core` | WPF 类库 | 共享内核（S2/S3/S4/S5 共享件 + Models）：Models（CustomColorPreset 居此——配置 POCO 引用；轮盘配色 WheelPalette* 属 M2，驻 `StarPie.Wheel/Models/`）；S2 Configuration；S3 Localization（含 `Strings*.resx` 与生成器）；S4 Messages；S5 导航目录/槽位契约（`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——纯契约共享模块，运行时主体不居 Core）；宿主回调契约 `Services/AppHostDelegates`。**不含共享 UI 基建**（已去共享化）、**S1 图标资产**（ADR-0023 独立成集）与**任何模块出口契约**（扫描/对话框/.lnk SPI 与主题/轮盘/预览 Profile 契约分别驻对应 Contracts 程序集；`Services/{Programs,Dialogs,Icons}` 与 `ViewModels/Pages/` 目录清空，ADR-0023） |
 | `StarPie.Icons.Contracts` | WPF 类库 | S1 图标契约：`IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`（命名空间 `StarPie.Services.Icons` 不变；零 ProjectReference——薄契约，按需 WPF） |
 | `StarPie.Icons` | WPF 类库 | S1 图标实现：`IconAssetService` + `IconsModuleRegistrar`；Icons → Icons.Contracts + Programs.Contracts（SPI 契约边，ADR-0023）+ Core（S2 AppDataPaths 共享基建）单向；实现 runtime 只被 Host/注册器/测试引用 |
@@ -42,6 +46,27 @@
 | `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General 设置页（`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host） |
 
 ## 3. 程序集级依赖规则
+
+### 四集基线（P1.2/#111 起；机械断言在 `StarPie.Tests/FourSetBoundaryTests.cs` 与 `RuntimeNoCrossReferenceTests.cs`）
+
+```text
+StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
+     ├──→ StarPie.Host ──→ StarPie.Sdk
+     ├──→ StarPie.Sdk
+     └──→ StarPie.Sdk.Wpf ──→ StarPie.Sdk
+```
+
+- Ui 是唯一组合根：必须显式引用 `StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host`，且是归并期
+  唯一可直接引用旧 15 集 runtime 的工程；其余工程不得引用 Ui。
+- `StarPie.Sdk` 零 WPF、零第三方包（csproj 无 `PackageReference`，程序集引用面只含平台程序集，
+  TFM 为 `net10.0` 无 windows 平台投影）、零 ProjectReference。
+- `StarPie.Host` 零 WPF：TFM `net10.0`，不引用 `StarPie.Sdk.Wpf`（plugins.md §5.1 约束 7），
+  ProjectReference 只许 `StarPie.Sdk`。
+- `StarPie.Sdk.Wpf` 是 WPF 类型契约面（`UseWPF`、windows TFM、带 Windows 平台投影），不产出
+  XAML；ProjectReference 只许 `StarPie.Sdk`。
+- 归并期（P1.3–P1.10）三集不得引用旧 15 集 runtime（跨集只经 SDK）；旧集只被 Ui 组合根引用。
+
+### 旧 15 集 as-built（P1.3–P1.10 归并期口径）
 
 ```text
 StarPie (Host/exe) ──→ StarPie.Core
