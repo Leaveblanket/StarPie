@@ -117,6 +117,15 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 
 4. **合入门（merge 到 main 前）**: 主干同步后至少一次全量 xUnit + 一次全量 pywinauto e2e（agent 本地执行）；CI 只强制 xUnit。
 
+### e2e 用例命名（行为名，不用版本号）
+
+用例名表达**测什么行为**，不表达**哪版加的**：
+
+- ✅ `test_drag_threshold_persists_after_save`
+- ❌ `test_v135_program_picker_clean_icons_and_core_customization`
+
+理由是版本号命名会随功能演进迅速失真（一个用例常覆盖多版改动，而一个版本也常被多例拆开），且会让"哪个行为有覆盖"无法从名字读出。存量 `tests/test_settings.py` 中的 `test_v13x_…` / `test_v14x_…` 属历史遗留，**不强制重命名**；但**新增与改动**的用例一律用行为名。
+
 ## 不要改写已发布的历史
 
 - 已推送到 `origin/main`、或推送到他人正在使用的开放任务分支的提交，禁止 `amend`、`rebase` 或 `reset`。
