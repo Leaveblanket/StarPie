@@ -3,7 +3,7 @@ using System.Windows;
 namespace StarPie.Services.Shell
 {
     /// <summary>
-    /// 界面主题服务接缝（随实现方 M4 下沉驻 <c>StarPie.Theme.Contracts</c>，ADR-0023/#97）：
+    /// 界面主题服务接缝（驻 <c>StarPie.Sdk.Wpf</c>）：
     /// 拥有当前有效主题；主题变更经单一入口 <see cref="SetTheme"/> 应用，并负责窗口 DWM
     /// 标题栏的深浅色切换（<see cref="ApplyWindowTheme"/>）。
     /// </summary>

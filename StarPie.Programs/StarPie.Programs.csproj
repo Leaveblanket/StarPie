@@ -5,9 +5,10 @@
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          ADR-0019/#87：M3 边界收口——单向依赖 Core（IShortcutTargetResolver 契约驻共享内核，
          扫描经 Core 契约注入），不再引用 Host/其它业务模块（依赖方向见 assemblies.md §3）。
-         ADR-0023/#96：M3 扫描/SPI 契约随实现方下沉 Programs.Contracts（IProgramScanner/
-         ProgramEntry/ProgramCatalog/IShortcutTargetResolver 迁出 Core），本 runtime 只引用
-         自身契约程序集与 Icons.Contracts，不再引用共享内核 Core/其它业务模块。 -->
+         ADR-0023/#96：M3 扫描/SPI 契约随实现方下沉（IProgramScanner/ProgramEntry/
+         ProgramCatalog/IShortcutTargetResolver 迁出 Core），P1.4/#113 随 SDK 的 WPF 面收口
+         迁入 StarPie.Sdk.Wpf（原 Programs.Contracts/Icons.Contracts 暂留空壳）；
+         本 runtime 只引用 Sdk/Sdk.Wpf，不再引用共享内核 Core/其它业务模块。 -->
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Programs</AssemblyName>
   </PropertyGroup>
@@ -19,12 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ADR-0023/#96：M3 → Programs.Contracts（实现自有契约：IProgramScanner/
-         ProgramEntry/ProgramCatalog/IShortcutTargetResolver，自 Core 迁出） -->
-    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集（ProgramScanner 消费 IIconAssetService 契约），
-         不再经 Core 消费 S1 类型 -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- P1.4/#113：SDK WPF 契约面（原 Programs.Contracts 的扫描三件 + SPI 与
+         Icons.Contracts 的 IIconAssetService 随 SDK 收口迁入 StarPie.Sdk.Wpf，命名空间不变） -->
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   </ItemGroup>
 
 </Project>

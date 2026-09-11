@@ -7,10 +7,10 @@ using System.Reflection;
 namespace StarPie.Tests;
 
 /// <summary>
-/// SDK 收口·headless 面基线（#112；ADR-0027 / plugins.md §2）：StarPie.Sdk 只含纯托管
-/// 契约/模型/DTO——SDK 导出面与「P1.3 迁入清单」双向相等（少一个或多一个都失败），
-/// 全仓程序集导出类型唯一（不出现同类型双份定义），被掏空的三个纯托管契约工程暂留为空壳，
-/// 源码树保持「镜像旧相对路径」的过渡形态。与 <see cref="FourSetBoundaryTests"/>（工程面）、
+/// StarPie.Sdk 的导出面白名单基线：SDK 只含纯托管契约/模型/DTO——导出面与白名单双向相等
+/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），被掏空的六个
+/// 契约工程暂留为空壳，源码树保持「镜像旧相对路径」的过渡形态。与
+/// <see cref="SdkWpfBoundaryTests"/>（WPF 面）、<see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
 public sealed class SdkBoundaryTests
@@ -87,11 +87,14 @@ public sealed class SdkBoundaryTests
     }
 
     [Fact]
-    public void 三个纯托管契约工程_暂留为空壳()
+    public void 六个契约工程_暂留为空壳()
     {
         string[] shells =
         {
+            // 契约内容在 StarPie.Sdk
             "StarPie.Dialogs.Contracts", "StarPie.Gestures.Contracts", "StarPie.Wheel.Contracts",
+            // 契约内容在 StarPie.Sdk.Wpf
+            "StarPie.Icons.Contracts", "StarPie.Programs.Contracts", "StarPie.Theme.Contracts",
         };
 
         foreach (string name in shells)

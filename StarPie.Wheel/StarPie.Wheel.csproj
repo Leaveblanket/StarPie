@@ -4,8 +4,8 @@
     <!-- B8/#81：M2 轮盘与渲染模块程序集（ADR-0016 决策 1/8/11/12）。
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          依赖方向：StarPie.Wheel → StarPie.Sdk（headless 契约/模型）+ StarPie.Core 单向
-         （共享基建）+ Theme.Contracts（M2→M4 runtime 允许边删除，IThemeService 经契约边）
-         + Icons.Contracts（ADR-0023/#95）；不引用 Host/任何其它业务模块 runtime（M1 手势侧驻
+         （共享基建）+ StarPie.Sdk.Wpf（P1.4/#113 契约面：M2→M4 经 IThemeService、
+         S1 经 IIconAssetService）；不引用 Host/任何其它业务模块 runtime（M1 手势侧驻
          StarPie.Gestures，只经 SDK 的轮盘接口消费，runtime 互引清零）。
          工厂接口/轮盘 VM 接口/签名暴露件原随 M2 收编 Wheel.Contracts（D5，ADR-0016 决策 11），
          P1.3/#112 随 SDK 收口迁入 StarPie.Sdk（Wheel/Gestures/Dialogs 三个契约工程暂留空壳）；
@@ -28,12 +28,10 @@
          IWheelAppearanceState、IProfilePreviewSource、IDialogService、AppConfig/GesturePoint/
          WheelProfile 等；三个纯托管契约工程暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- ADR-0023/#97：M2 → Theme.Contracts（RadialWindow/WheelFactory 消费 IThemeService，
-         M2→M4 runtime 允许边清零） -->
-    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集（RadialWindow/WheelFactory/WheelPreviewRenderer/
-         WheelGeometry 消费 IIconAssetService/条目类型），不再经 Core 消费 S1 类型 -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- P1.4/#113：SDK WPF 契约面（IThemeService 自 Theme.Contracts、IIconAssetService/条目类型
+         自 Icons.Contracts 随 SDK 收口迁入 StarPie.Sdk.Wpf；M2→M4 runtime 允许边与 S1 契约边
+         统一经本引用，命名空间不变） -->
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,9 +8,10 @@
          解析经 Programs 契约边注入，不再经 Core）；P1.3/#112：IDialogService 与结果 record
          随 SDK 收口迁入 StarPie.Sdk（Dialogs.Contracts 暂留空壳）。
          依赖方向：StarPie.Dialogs → StarPie.Sdk（headless 契约/模型）+ Core 单向（S2/S3/S4
-         共享基建）+ Programs.Contracts + Icons.Contracts + Theme.Contracts（ADR-0023/#97：
-         Dialogs→M4 runtime 允许边清零，窗口主题应用消费 IThemeService 改经契约边）；不引用
-         Programs runtime/Host/其它业务模块（Dialogs→Programs 仅经 Programs.Contracts）。
+         共享基建）+ StarPie.Sdk.Wpf（P1.4/#113 契约面：程序扫描/SPI、S1 图标与 M4
+         IThemeService 自旧三集随收口迁入——Dialogs→M4 runtime 允许边清零，窗口主题应用
+         消费 IThemeService 经契约边）；不引用 Programs runtime/Host/其它业务模块
+         （Dialogs→Programs 仅经契约面）。
          DI 注册经 DialogsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider；DialogService 裁决 public（宿主 SetOwner 装配面）。 -->
     <UseWPF>true</UseWPF>
@@ -26,17 +27,12 @@
     <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IDialogService/结果 record、
          IconCatalog/条目类型、AppConfig 等消息与模型；Dialogs.Contracts 暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- ADR-0023/#96：程序扫描/.lnk 契约（IProgramScanner/ProgramEntry/ProgramCatalog/
-         IShortcutTargetResolver）随 M3 下沉 Programs.Contracts，对话框链仅经契约边 -->
-    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
+    <!-- P1.4/#113：SDK WPF 契约面（程序扫描/SPI 自 Programs.Contracts、IThemeService 自
+         Theme.Contracts、IIconAssetService/IconCatalog 自 Icons.Contracts 随 SDK 收口迁入；
+         对话框链仅经契约边，命名空间不变） -->
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 共享内核（S2 配置/S3 本地化/S4 消息/Models 等共享基建） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0023/#97：对话框窗口主题应用消费 M4 IThemeService（Dialogs→M4 runtime 允许边
-         清零，改经 Theme.Contracts 契约边） -->
-    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集（DialogService/IconPickerWindow 等消费
-         IIconAssetService/IconCatalog/条目类型），不再经 Core 消费 S1 类型 -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

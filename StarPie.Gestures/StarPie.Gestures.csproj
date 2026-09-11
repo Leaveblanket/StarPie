@@ -9,7 +9,7 @@
          P1.3/#112：IProfilePreviewSource/IWheelFactory/IWheelViewModel/IDialogService 等
          headless 契约随 SDK 收口迁入 StarPie.Sdk（Gestures/Wheel/Dialogs 三个契约工程暂留空壳）。
          依赖方向：StarPie.Gestures → StarPie.Sdk（headless 契约/模型）+ Core 单向 +
-         Icons.Contracts（ADR-0023/#95/#96）。
+         StarPie.Sdk.Wpf（P1.4/#113 契约面：S1 图标契约四件与条目类型）。
          手势管线/动作执行/触发+手势设置页的 DI 注册与导航自报经
          GesturesModuleRegistrar（RegisterServices + RegisterNavigation）下放本程序集，
          组合根仍唯一 BuildServiceProvider。 -->
@@ -31,9 +31,9 @@
          IWheelFactory/IWheelViewModel、IDialogService、AppConfig/消息/导航目录等；
          三个纯托管契约工程暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
-         消费 IIconAssetService/条目类型），不再经 Core 消费 S1 类型 -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- P1.4/#113：SDK WPF 契约面（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
+         消费 IIconAssetService/条目类型；原 Icons.Contracts 随 SDK 收口迁入，命名空间不变） -->
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   </ItemGroup>
 
   <ItemGroup>
