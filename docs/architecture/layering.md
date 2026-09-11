@@ -59,12 +59,12 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`AppHost`、
   `Composition`）在 `StarPie`。
 - **命名空间统一为 `StarPie.*`**（ADR-0016 决策 12）：命名空间根是产品名 `StarPie` 而非
-  程序集名，故 `StarPie.Core/` 内文件仍声明 `StarPie.Services.*`（不是
-  `StarPie.Core.Services.*`）；跨程序集共享同一棵命名空间树。
+  程序集名，故 `StarPie.Host/Kernel/Configuration/` 内文件声明 `StarPie.Kernel.Configuration`
+  （不是 `StarPie.Host.Kernel.Configuration`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
-  - 需要被 Host 组合根跨程序集装配/消费的共享件显式 `public`（先例：`AppDataPaths`——
-    原 internal，迁 Core 后因 Host 构造配置路径与回填 dev 分支而公开）。
+  - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
+    组合根构造配置路径与回填 dev 分支用；内核导出面由 `HostBoundaryTests` 白名单收口）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：`StarPie.Shell` 的
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
     `AutostartRegistry` 只被同集注册器接线，保持 internal；`StarPie.Theme` 的

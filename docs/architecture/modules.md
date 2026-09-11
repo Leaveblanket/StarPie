@@ -25,11 +25,11 @@
 2. **模块 = 领域能力**：一个模块拥有它的运行态/服务、配置面（设置子 VM/卡片）与领域数据语义；页面是聚合壳（§5 D6），不强行归单一模块。
 3. **契约归属（ADR-0023 修订）**：模块出口契约（接口 + 跨模块 DTO/纯数据）随**实现方模块**
    下沉其 `*.Contracts` 程序集（取代「第二消费方族 → 上提 Core」的旧执行口径，历史见 ADR-0023 与 git）；共享件出现第二个消费方族时——若属全局
-   机制/数据入共享内核，若属某模块出口契约下沉该模块 Contracts（单一消费方的能力留在消费
+   机制/数据入 `StarPie.Sdk` 契约与模型面（跨集共享）或宿主内核（运行时设施），若属某模块出口契约下沉该模块 Contracts（单一消费方的能力留在消费
    模块内部，ADR-0014 消费方判据的推广）。
 4. **无“文档分组惯性”**：没有共享领域上下文、没有耦合、只因“都小/都横切”而并在一起的概念，不得并成一个模块（历史反例：本地化与消息，已拆）。
 
-### 2.3 共享内核放行清单（不算“其它业务模块内部”）
+### 2.3 放行共享面清单（不算“其它业务模块内部”）
 
 下列改动按设计是共享面，扩展功能时允许触碰，不视为跨模块违规：
 
@@ -47,7 +47,7 @@
   `ProgramsModuleRegistrar`（`StarPie.Programs`）下放；仅 Host 外观聚合页 VM 仍
   由组合根注册；注册器 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（ADR-0015 决策 7）；
-- 共享视图基础设施（**已去共享化**，共享内核不再持有 UI 实现件）：通用共享转换器与
+- 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
   实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
   `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 `StarPie.Gestures`（模块内部）；
@@ -99,7 +99,7 @@
 - **对外契约**：扫描/过滤数据经 Sdk.Wpf 契约提供给 S6 的程序选择对话框等消费方
   （Dialogs → Programs 仅经契约边）；.lnk SPI 经 Sdk.Wpf 提供给 S1 图标服务
   （Icons runtime → Sdk.Wpf 契约边）；消费 S1 契约 `IIconAssetService`。M3 runtime
-  → Sdk.Wpf 单向，不引用共享内核 Core/其它业务模块 runtime。
+  → Sdk.Wpf 单向，不引用宿主内核/其它业务模块 runtime。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部；新增扫描/跨模块协议 → 扩展
   `StarPie.Sdk.Wpf/Services/Programs|Icons/` 契约面（消费方驱动）。
 
@@ -133,7 +133,7 @@
   `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）驻
   `StarPie.Sdk.Wpf/Services/Icons/`（P1.4/#113 收口）；实现 `IconAssetService` 与注册器
   `IconsModuleRegistrar` 驻 `StarPie.Icons`；`.lnk` 解析契约 `IShortcutTargetResolver` 随 M3
-  迁 `StarPie.Sdk.Wpf/Services/Icons/`（Icons runtime 经契约边消费，Icons → Core 仅余 S2
+  迁 `StarPie.Sdk.Wpf/Services/Icons/`（Icons runtime 经契约边消费，Icons → Host 仅余 S2
   AppDataPaths）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。物理路径见
   [layout.md](layout.md)。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
@@ -142,14 +142,15 @@
 
 - **职责**：`config.json` 读写/宽松解析/默认播种/向后兼容、运行态配置、防抖与立即保存编排、导入/导出、`AppDataPaths`。
 - **关键内部**：配置服务与保存编排（`IConfigService`/`JsonConfigService`/`ISaveDebouncer`/
-  `SettingsSaveOrchestrator`/`AppDataPaths`；不含 `AutostartRegistry`——归 M5，见 §4）；
-  `Models/` 配置 POCO（语义归属见 R8）。
+  `SettingsSaveOrchestrator`/`AppDataPaths`，物理居宿主内核 `StarPie.Host/Kernel/Configuration/`；
+  不含 `AutostartRegistry`——归 M5，见 §4）；WPF 亲和的 `DispatcherSaveDebouncer` 是
+  Ui 适配器（`StarPie.Ui/Adapters/`）；配置 POCO 在 `StarPie.Sdk/Models/`（语义归属见 R8）。
 - **扩展局部性**：加配置字段（原型 A 模型步）→ S2 + 所属模块 VM（放行共享面）。
 
 #### S3 本地化
 
 - **职责**：四语言键表与取词、语言状态/切换/回退链、运行时语言字典投影桥、文案分类语义。
-- **关键内部**：`Services/Localization/*`、`Strings*.resx`；`AppHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
+- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Core/Services/Localization/`；`AppHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
 - **扩展局部性**：新语言/新文案键/改回退链 → S3 内部。
 
 #### S4 消息与通知
@@ -247,7 +248,7 @@ ADR-0016 决策 11：`WheelFactory` 随 M2 收编
 `StarPie.Wheel/Services/Wheel/`，工厂/轮盘 VM/外观只读状态契约为薄契约程序集（M1→M2 runtime
 允许边清零，M1 手势侧只经契约接口消费），P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk/`；
 `IProfilePreviewSource` 随实现方 M1 下沉
-（自共享内核迁出；实现方 M1 ProfileListViewModel 与消费方 M2
+（契约随实现方下沉；实现方 M1 ProfileListViewModel 与消费方 M2
 WheelAppearanceSettingsViewModel 均只依赖契约程序集），同样 P1.3/#112 收口入 `StarPie.Sdk/`。
 M2 构造契约变更不再波及 Host/M1
 装配点；M1 手势侧随 `StarPie.Gestures` 成集，仍只经 SDK 契约引用 M2。
