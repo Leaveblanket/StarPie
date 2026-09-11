@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- ADR-0027/0028 / plugins.md §2/§5.1：SDK 的 WPF 类型契约面（插件可同时引用
-         StarPie.Sdk 与 StarPie.Sdk.Wpf；ABI 政策独立编号、additive-only）。
+         StarPie.Sdk 与 StarPie.Sdk.Wpf；ABI 政策独立编号、additive-only，见 §5.1 约束 8）。
          本集是契约面，不产出 XAML（四集中仅 Ui 含 XAML 与入口）。 -->
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
