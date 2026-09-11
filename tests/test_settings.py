@@ -592,17 +592,9 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
     assert action_list_title.exists(timeout=3), "SectorActionListTitleText should exist"
 
     # 3. Locate the first slot's Action Type ComboBox
-    #    （该控件暂无稳定 AutomationId，只能按"目录 Hotkey/Launch/Folder/System → 4 项"启发式查找；
-    #      找不到必须显式失败——本用例的核心断言不允许被静默跳过。补 id 后可去掉此启发式。）
-    type_combo = None
-    for c in win.descendants(control_type="ComboBox"):
-        try:
-            if c.item_count() == 4:
-                type_combo = c
-                break
-        except Exception:
-            pass
-    assert type_combo is not None, "未找到动作类型 ComboBox（item_count==4）——用例不得静默跳过"
+    #    （产品侧已补稳定 AutomationId：Slot{索引}ActionTypeComboBox，见 #137；Slot0 即首个槽位。）
+    type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
+    assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
 
     # Select index 2: Folder
     type_combo.select(2)
