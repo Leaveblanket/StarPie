@@ -11,11 +11,12 @@
 
 ## 组成文件
 
-M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现方独立成集
-`StarPie.Theme.Contracts/`，ADR-0023）：
+M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现方下沉，P1.4/#113 收口入
+`StarPie.Sdk.Wpf/Services/Shell/`，ADR-0023）：
 
-- `StarPie.Theme.Contracts/Services/Shell/IThemeService.cs`（M4 出口契约 `IThemeService`，
-  ADR-0023；命名空间 `StarPie.Services.Shell` 不变）。
+- `StarPie.Sdk.Wpf/Services/Shell/IThemeService.cs`（M4 出口契约 `IThemeService`，
+  ADR-0023；命名空间 `StarPie.Services.Shell` 不变；原 `StarPie.Theme.Contracts` 暂留空壳，
+  待 P1.8/#117 撤销）。
 - `StarPie.Theme/Services/Shell/ThemeService.cs`（`IThemeService` 实现，命名空间
   `StarPie.Services.Shell`；Host 侧无此目录）。
 - `StarPie.Theme/AppThemePaletteManager.cs`（模块根，主题调色板整项替换；裁决 public——Host
@@ -23,18 +24,18 @@ M4 物理落位（独立模块程序集 `StarPie.Theme/`；出口契约随实现
 - `StarPie.Theme/Views/Styles/Themes/*.xaml`（五套同 key 集）。
 - `StarPie.Theme/ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，ADR-0014 决策 6/7）。
 - `StarPie.Theme/Modules/ThemeModuleRegistrar.cs`（M4 模块注册器：`RegisterServices` 下放
-  `ThemeService`/`IThemeService`（契约驻 Theme.Contracts）/`InterfaceThemeSettingsViewModel`
+  `ThemeService`/`IThemeService`（契约驻 StarPie.Sdk.Wpf）/`InterfaceThemeSettingsViewModel`
   的 DI 注册；M4 无导航页，不提供 `RegisterNavigation`）。
 - `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
   `StarPie.Sdk/Services/Messages/Messages.cs`（P1.3/#112 自 Core 收口），放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
-DialogService 装配面）显式引用 Theme runtime 与 Theme.Contracts——装配面经 runtime 引用消费
+DialogService 装配面）显式引用 Theme runtime 与 `StarPie.Sdk.Wpf`——装配面经 runtime 引用消费
 `ThemeService`/`AppThemePaletteManager`，窗口主题应用消费 `IThemeService` 契约；M2 轮盘侧
-（StarPie.Wheel）与 S6 对话框侧（StarPie.Dialogs）只经 `StarPie.Theme.Contracts` 契约边消费
+（StarPie.Wheel）与 S6 对话框侧（StarPie.Dialogs）只经 `StarPie.Sdk.Wpf` 契约边消费
 `IThemeService`（M2→M4、Dialogs→M4 两条 runtime 允许边清零，ADR-0023）；M5 托盘深色
 探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Theme runtime → Core +
-Theme.Contracts 单向，不反向引用 Host/其它业务模块 runtime。
+Sdk.Wpf 单向，不反向引用 Host/其它业务模块 runtime。
 
 ## 关键流程
 

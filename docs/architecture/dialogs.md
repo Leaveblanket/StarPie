@@ -15,10 +15,10 @@ VM 层零对话框类型引用的统一模态对话框入口。
 - **实现与界面（独立模块程序集 `StarPie.Dialogs/`）**：
   `Services/Dialogs/DialogService.cs`、`ViewModels/Dialogs/`、`Views/Dialogs/` 与
   `Views/Controls/SpectrumCanvasBehavior.cs`（契约与实现跨程序集，接口稳定）。依赖方向：
-  Dialogs → Sdk（自身契约 IDialogService，P1.3/#112 收口）+ Programs.Contracts（程序扫描候选经 `IProgramScanner`
-  注入，M3 注册器提供实现——不引用 `StarPie.Programs` runtime）+ Icons.Contracts（图标资产/
-  .lnk SPI 消费）+ Core（S2/S3/S4 共享基建）+ Theme.Contracts（ADR-0023：Dialogs→M4
-  runtime 允许边清零，窗口主题应用消费 M4 `IThemeService` 经契约边，不引用 Theme runtime）。
+  Dialogs → Sdk（自身契约 IDialogService，P1.3/#112 收口）+ Sdk.Wpf（程序扫描候选经 `IProgramScanner`
+  注入，M3 注册器提供实现——不引用 `StarPie.Programs` runtime；图标资产/.lnk SPI 与 M4
+  `IThemeService` 契约面随 P1.4/#113 收口，ADR-0023：Dialogs→M4 runtime 允许边清零，
+  不引用 Theme runtime）+ Core（S2/S3/S4 共享基建）。
 
 ## 唯一形态（正典）
 
@@ -27,9 +27,9 @@ VM 层零对话框类型引用的统一模态对话框入口。
 ## 关键流程
 
 1. `DialogService` 构造注入 `IThemeService`、`ILocalizationService`、共享图标资产实例服务
-   `IIconAssetService`（Icons.Contracts）、.lnk 解析契约 `IShortcutTargetResolver` 与程序扫描
-   契约 `IProgramScanner`（后两者驻 Programs.Contracts，实现与注册由 M3 `ProgramsModuleRegistrar`
-   下放——契约随实现方驻契约程序集（ADR-0023），组合根不再直调 M3 静态扫描，
+   `IIconAssetService`（StarPie.Sdk.Wpf）、.lnk 解析契约 `IShortcutTargetResolver` 与程序扫描
+   契约 `IProgramScanner`（后两者驻 StarPie.Sdk.Wpf，实现与注册由 M3 `ProgramsModuleRegistrar`
+   下放——契约面随 P1.4/#113 收口（ADR-0023），组合根不再直调 M3 静态扫描，
    Dialogs→Programs 仅经契约边）；`_owner` 由 Host 在设置
    窗口创建后 `DialogService.SetOwner(MainView)` 惰性回填（[ADR-0004](../adr/0004-dialog-service-design.md)，
    化解服务↔窗口循环；SetOwner 为 public 装配面，不泄露进 `IDialogService`）。
@@ -46,4 +46,5 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 [0004](../adr/0004-dialog-service-design.md)、[0009](../adr/0009-view-code-behind-whitelist.md)、
 [0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（契约随实现方
-下沉独立成集、P1.3/#112 收口入 `StarPie.Sdk`；Dialogs→Theme runtime 允许边清零，改经 Theme.Contracts 契约边）。
+下沉独立成集、P1.3/#112 收口入 `StarPie.Sdk`、WPF 契约件 P1.4/#113 收口入 `StarPie.Sdk.Wpf`；
+Dialogs→Theme runtime 允许边清零，改经 Sdk.Wpf 契约边）。

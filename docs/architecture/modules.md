@@ -84,7 +84,7 @@
   [wheel.md](wheel.md)。
 - **对外契约**：由 M1 经 SDK 契约 `IWheelFactory`/`IWheelViewModel` 装配
   （ADR-0023）；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`
-  （M2→M4 runtime 允许边经 Theme.Contracts 契约边清零）；预览 Profile 上下文经 M1 只读
+  （M2→M4 runtime 允许边经 Sdk.Wpf 契约边清零，P1.4/#113）；预览 Profile 上下文经 M1 只读
   `IProfilePreviewSource`（驻 `StarPie.Sdk`）转发。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
@@ -92,26 +92,26 @@
 
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
 - **关键内部**：出口契约 `IProgramScanner`/`ProgramCatalog`/`ProgramEntry`/
-  `IShortcutTargetResolver` 驻 `StarPie.Programs.Contracts`（ADR-0023）；实现
-  `ProgramScanner`/`ShortcutResolver`/`ProgramsModuleRegistrar` 驻 `StarPie.Programs`
-  （`ProgramScanner` 构造注入 Icons.Contracts 的 `IIconAssetService` 与 Programs.Contracts 的
+  `IShortcutTargetResolver` 驻 `StarPie.Sdk.Wpf/Services/Programs|Icons/`（P1.4/#113 收口；
+  ADR-0023）；实现 `ProgramScanner`/`ShortcutResolver`/`ProgramsModuleRegistrar` 驻
+  `StarPie.Programs`（`ProgramScanner` 构造注入 Sdk.Wpf 的 `IIconAssetService` 与
   `IShortcutTargetResolver`）；物理路径见 [layout.md](layout.md) 与 [programs.md](programs.md)。
-- **对外契约**：扫描/过滤数据经 Programs.Contracts 契约提供给 S6 的程序选择对话框等消费方
-  （Dialogs → Programs 仅经契约边）；.lnk SPI 经 Programs.Contracts 提供给 S1 图标服务
-  （Icons runtime → Programs.Contracts 契约边）；消费 S1 契约 `IIconAssetService`。M3 runtime
-  → Programs.Contracts + Icons.Contracts 单向，不引用共享内核 Core/其它业务模块 runtime。
+- **对外契约**：扫描/过滤数据经 Sdk.Wpf 契约提供给 S6 的程序选择对话框等消费方
+  （Dialogs → Programs 仅经契约边）；.lnk SPI 经 Sdk.Wpf 提供给 S1 图标服务
+  （Icons runtime → Sdk.Wpf 契约边）；消费 S1 契约 `IIconAssetService`。M3 runtime
+  → Sdk.Wpf 单向，不引用共享内核 Core/其它业务模块 runtime。
 - **扩展局部性**：新增程序来源/目录/过滤规则 → M3 内部；新增扫描/跨模块协议 → 扩展
-  `StarPie.Programs.Contracts`（消费方驱动）。
+  `StarPie.Sdk.Wpf/Services/Programs|Icons/` 契约面（消费方驱动）。
 
 #### M4 界面主题
 
 - **职责**：窗口 UI 主题体系（AppTheme）——配置与解析、状态/切换/系统跟随、XAML 令牌集与整项替换、界面主题设置面、主题应用消息。
 - **关键内部**：`ThemeService`（实现 `IThemeService`）、根 `AppThemePaletteManager`、五套主题
   画刷令牌字典、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；出口契约
-  `IThemeService` 驻 `StarPie.Theme.Contracts`（ADR-0023）；物理路径见 [layout.md](layout.md)
-  与 [interface-theme.md](interface-theme.md)。各窗口（MainView/对话框/RadialWindow）仅按
-  ADR-0009 白名单注入应用——M2/S6 消费方经 Theme.Contracts 契约边（M2→M4、Dialogs→M4
-  runtime 允许边清零）。
+  `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（P1.4/#113 收口；ADR-0023）；物理路径见
+  [layout.md](layout.md) 与 [interface-theme.md](interface-theme.md)。各窗口（MainView/对话框/
+  RadialWindow）仅按 ADR-0009 白名单注入应用——M2/S6 消费方经 Sdk.Wpf 契约边（M2→M4、
+  Dialogs→M4 runtime 允许边清零）。
 - **扩展局部性**：新增主题方案/令牌/跟随策略 → M4 内部 + S3 文案。
 
 #### M5 壳层与系统集成
@@ -131,9 +131,9 @@
 - **职责**：动作图标资产与文件图标提取——矢量图标清单、SVG 键目录/取值、自定义图标存储（列表/导入/删除/图像源）、文件/程序图标提取（`GetIcon`）。
 - **关键内部**（契约与实现分居，ADR-0023）：契约四件（静态纯目录
   `IconCatalog`、实例服务契约 `IIconAssetService`、`CustomIconItem`/`VectorIconItem`）驻
-  `StarPie.Icons.Contracts`；实现 `IconAssetService` 与注册器 `IconsModuleRegistrar` 驻
-  `StarPie.Icons`；`.lnk` 解析契约 `IShortcutTargetResolver` 随 M3 驻
-  `StarPie.Programs.Contracts`（Icons runtime 经契约边消费，Icons → Core 仅余 S2
+  `StarPie.Sdk.Wpf/Services/Icons/`（P1.4/#113 收口）；实现 `IconAssetService` 与注册器
+  `IconsModuleRegistrar` 驻 `StarPie.Icons`；`.lnk` 解析契约 `IShortcutTargetResolver` 随 M3
+  迁 `StarPie.Sdk.Wpf/Services/Icons/`（Icons runtime 经契约边消费，Icons → Core 仅余 S2
   AppDataPaths）；消费方：M1 动作编辑、M2 轮盘渲染、S6 图标选择器。物理路径见
   [layout.md](layout.md)。
 - **扩展局部性**：新增图标资产/提取能力 → S1 内部。
@@ -181,9 +181,9 @@
 - **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Sdk/Services/Dialogs/`
   （纯 C#，命名空间不变，ADR-0023；P1.3/#112 自 Dialogs.Contracts 收口）；实现与界面
   （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻 `StarPie.Dialogs`。
-- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Programs.Contracts 契约
-  `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Icons.Contracts /
-  Programs.Contracts 出口接线；窗口主题应用消费 M4 `IThemeService`（经 Theme.Contracts 契约边，
+- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Sdk.Wpf 契约
+  `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
+  窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，P1.4/#113：
   Dialogs→M4 runtime 允许边清零，ADR-0023）；不直穿 M3/S1/M4 runtime 内部；消费方
   （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`（P1.3/#112）。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →

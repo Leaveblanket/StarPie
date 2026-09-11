@@ -41,24 +41,24 @@
      `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体归 Host，
      目录执行缝为 Host 内部件）。M4 的 `ThemeService`（具体类）+
      `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Theme；
-     `IThemeService` 契约驻 Theme.Contracts，ADR-0023），组合根不直接登记主题服务；M2 的
+     `IThemeService` 契约驻 StarPie.Sdk.Wpf，P1.4/#113 收口，ADR-0023），组合根不直接登记主题服务；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
      `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 `StarPie.Sdk`，ADR-0023，
      P1.3/#112 收口，M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
    - `ProgramsModuleRegistrar.RegisterServices` 在组合根调用——注册
-     `IShortcutTargetResolver→ShortcutResolver` 与 `IProgramScanner→ProgramScanner`（契约随
-     实现方驻 `StarPie.Programs.Contracts`，ADR-0023；M3 → Programs.Contracts +
-     Icons.Contracts 单向，不再引用 Core；组合根无静态扫描委托行）。
+     `IShortcutTargetResolver→ShortcutResolver` 与 `IProgramScanner→ProgramScanner`（契约面
+     驻 `StarPie.Sdk.Wpf`，P1.4/#113 收口，ADR-0023；M3 → Sdk.Wpf 单向，不再引用 Core；
+     组合根无静态扫描委托行）。
    - S1 图标资产实例服务由 `IconsModuleRegistrar.RegisterServices`（StarPie.Icons，
-     ADR-0023）注册（`IconAssetService` 构造惰性解析 Programs.Contracts 的
-     `IShortcutTargetResolver`（ADR-0023），目录默认 Core `AppDataPaths.GetAppDataFolder`）；组合根
+     ADR-0023）注册（`IconAssetService` 构造惰性解析 Sdk.Wpf 的
+     `IShortcutTargetResolver`（P1.4/#113），目录默认 Core `AppDataPaths.GetAppDataFolder`）；组合根
      不直接登记 `IIconAssetService→IconAssetService`。
    - `NavigationCatalog` 由 `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、
      `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不硬编码页面类型（运行时
      类型与执行缝的注册见上段基础设施）。
    - 服务：`DialogService`（构造注入共享图标资产实例服务、.lnk 解析契约与程序扫描契约——
-     扫描/.lnk 经 Programs.Contracts、图标经 Icons.Contracts 契约注入，程序扫描候选经
+     扫描/.lnk 与图标经 Sdk.Wpf 契约注入（P1.4/#113），程序扫描候选经
      `IProgramScanner`（M3 注册器提供实现）注入（ADR-0023）；
      `DialogService` 与 `IDialogService` 的注册随 S6 实现由 `DialogsModuleRegistrar.RegisterServices`
      下放（StarPie.Dialogs）；对话框服务另注入共享图标资产实例服务与解析契约，
@@ -85,17 +85,17 @@
    - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112
      自 Core 收口）并以单例注册进容器，
      `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
-    - `ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core + Theme.Contracts
+    - `ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Core + Sdk.Wpf
       单向），主题服务/主题设置子 VM 的工厂只解析 Core 契约（`IThemeService` 契约驻
-      Theme.Contracts，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
+      StarPie.Sdk.Wpf，P1.4/#113，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
       直接 `new`（StarPie.Theme public，Host 装配面）。
     - `WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Sdk + Core +
-      Theme.Contracts/Icons.Contracts 等契约），轮盘工厂
+      Sdk.Wpf 契约面），轮盘工厂
       `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析契约程序集（`IThemeService`
-      经 Theme.Contracts，M2→M4 runtime 允许边清零，ADR-0023）；RadialWindow 不经 Host
+      经 Sdk.Wpf，M2→M4 runtime 允许边清零，ADR-0023）；RadialWindow 不经 Host
       直接 new——由 WheelFactory 在 StarPie.Wheel 内创建。
-    - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Sdk + Core + Icons.Contracts
-      等契约），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析 Core 契约与
+    - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Sdk + Core + Sdk.Wpf
+      契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析 Core 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
       ADR-0023；P1.3/#112 收口）；MouseHook dev 分支读 Core `AppDataPaths.IsDevInstance` 回填缝（组合根
       装配前已以 DevInstance.IsActive 回填），M1 不反向引用 Host。
