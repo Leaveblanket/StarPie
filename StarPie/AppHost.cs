@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Services;
@@ -39,6 +41,9 @@ namespace StarPie
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
+        // 后台/静默模式（--background，e2e 用）：窗口离屏 + 不可激活 + 无任务栏项，
+        // 且不建托盘、不启全局鼠标钩子——用户同机工作时无可见/可感知打扰。
+        private readonly bool _background;
         // 主题调色板整项换入由 AppThemePaletteManager（public 装配面）执行；
         // 宿主只负责编排回调，不再做直接键覆盖。
         private readonly AppThemePaletteManager _paletteManager = new();
@@ -57,7 +62,8 @@ namespace StarPie
             GeneralSettingsViewModel general,
             MainViewModel mainViewModel,
             ShellViewModel shellViewModel,
-            AppHostDelegates hostDelegates)
+            AppHostDelegates hostDelegates,
+            bool background = false)
         {
             _messenger = messenger;
             _mouseHook = mouseHook;
@@ -71,6 +77,7 @@ namespace StarPie
             _mainViewModel = mainViewModel;
             _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
+            _background = background;
 
             // 主题画刷换入经 AppThemePaletteManager 的 public 装配面：整项替换合并字典的
             // 活动主题槽；主题服务不接触视图资源，只经回调触发换入。
@@ -80,12 +87,20 @@ namespace StarPie
             // 退出动作指向本宿主实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
+
+            // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
+            _dialogService.SetBackgroundMode(background);
         }
 
         /// <summary>启动鼠标钩子、换入语言字典、创建托盘与主框架并显示——顺序显式可控。</summary>
         public void Run()
         {
-            _mouseHook.Start();
+            // 后台模式不启全局鼠标钩子：钩子属产品交互，e2e 不覆盖它，
+            // 却可能在用户操作鼠标时把轮盘弹到屏幕上。
+            if (!_background)
+            {
+                _mouseHook.Start();
+            }
 
             // 语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。
             // 订阅与首次应用先于任何页面创建（语言切换经服务事件同步重建，换入不累积）。
@@ -102,6 +117,10 @@ namespace StarPie
             _navigation.Navigate(NavigationSlot.Trigger);
 
             _mainView = new MainView(_mainViewModel, _shellViewModel, _themeService);
+            if (_background)
+            {
+                ConfigureBackgroundWindow(_mainView);
+            }
             _mainView.IsVisibleChanged += (_, _) =>
             {
                 if (_mainView is { IsVisible: false } && !_shellViewModel.IsExiting)
@@ -118,11 +137,15 @@ namespace StarPie
             _dialogService.SetOwner(_mainView);
 
             // 托盘深色配色由宿主以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
-            _trayIcon = new TrayIconManager(
-                windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
-                onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
-                menuProvider: BuildTrayMenuEntries);
-            _trayIcon.SetTooltip(CurrentTooltip());
+            // 后台模式不建托盘：通知区图标对同机用户可见，属"打扰"。
+            if (!_background)
+            {
+                _trayIcon = new TrayIconManager(
+                    windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
+                    onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
+                    menuProvider: BuildTrayMenuEntries);
+                _trayIcon.SetTooltip(CurrentTooltip());
+            }
 
             _mainView.Show();
         }
@@ -240,5 +263,44 @@ namespace StarPie
             _shellViewModel.IsExiting = true;
             Application.Current.Shutdown();
         }
+
+        // ==== 后台/静默模式（--background，e2e 用）====
+
+        /// <summary>离屏定位坐标：远离所有显示器的固定点（窗口仍真实存在、仍可被 UIA 驱动）。</summary>
+        private const int BackgroundCoordinate = -32000;
+        private const int GwlExStyle = -20;
+        private const int WsExNoActivate = 0x08000000;
+
+        /// <summary>
+        /// 把设置控制台窗口切成"后台形态"：不可激活（WS_EX_NOACTIVATE）、不进任务栏、
+        /// 离屏定位。语义只影响窗口呈现与激活，不影响导航/配置/渲染，UIA 仍可完整驱动。
+        /// </summary>
+        private static void ConfigureBackgroundWindow(MainView view)
+        {
+            view.ShowActivated = false;
+            view.ShowInTaskbar = false;
+            view.WindowStartupLocation = WindowStartupLocation.Manual;
+            view.Left = BackgroundCoordinate;
+            view.Top = BackgroundCoordinate;
+
+            // HWND 在 Show 时创建：SourceInitialized 早于窗口出现在屏幕上，此刻挂扩展样式最稳。
+            view.SourceInitialized += (_, _) =>
+            {
+                IntPtr hwnd = new WindowInteropHelper(view).Handle;
+                if (hwnd == IntPtr.Zero)
+                {
+                    return;
+                }
+
+                int exStyle = GetWindowLong(hwnd, GwlExStyle);
+                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate);
+            };
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }

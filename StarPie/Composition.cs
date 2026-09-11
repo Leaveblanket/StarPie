@@ -64,7 +64,7 @@ namespace StarPie
         }
 
         /// <summary>解析全部宿主依赖并创建 <see cref="AppHost"/>；解析点仍集中在本组合根。</summary>
-        internal AppHost CreateAppHost()
+        internal AppHost CreateAppHost(bool background = false)
         {
             var messenger = _provider.GetRequiredService<IMessenger>();
             var mouseHook = _provider.GetRequiredService<MouseHook>();
@@ -109,7 +109,8 @@ namespace StarPie
                 general,
                 mainViewModel,
                 shellViewModel,
-                _hostDelegates);
+                _hostDelegates,
+                background);
         }
 
         /// <summary>容器注册表：全部单例。需要宿主能力的委托（托盘气泡、退出）经共享内核的
