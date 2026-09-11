@@ -1,86 +1,75 @@
-using System.Linq;
+using System;
+using System.Reflection;
+using System.Runtime.Versioning;
 
 namespace StarPie.Tests;
 
 /// <summary>
-/// 模块 runtime 互不引用收口（ADR-0023/#97）：模块 runtime（M1 Gestures/M2 Wheel/
-/// M3 Programs/M4 Theme/M5 Shell/S6 Dialogs/S1 Icons）之间零 ProjectReference——跨模块
-/// 只经各 *.Contracts 契约程序集与共享内核 Core 通信；Host（StarPie）作为组合根是唯一
-/// 引用全部 runtime 的例外。本文件以反射引用面逐 runtime 断言「不引用其它 runtime」、
-/// 「引用自身契约」，并反向断言契约程序集不引用所属 runtime/Host。
+/// 四集运行期引用面基线（#111；ADR-0027 / plugins.md）：与
+/// <see cref="FourSetBoundaryTests"/>（csproj 级）互补，在编译产物/元数据级收口——
+/// StarPie.Sdk 只含平台程序集引用（零第三方包、零 WPF、非 windows TFM）；
+/// StarPie.Host 零 WPF（无 WPF 程序集、无 windows 平台投影）；StarPie.Sdk.Wpf 带
+/// windows 平台投影但不反向引用 Host/Ui/旧集；四集唯一入口与唯一 XAML 均在 Ui 集。
+/// P1.3–P1.10 归并期三集不得引用旧 15 集 runtime（跨集只经 SDK，旧集只被 Ui 组合根引用）。
 /// </summary>
 public sealed class RuntimeNoCrossReferenceTests
 {
-    /// <summary>各模块 runtime 的锚点类型、程序集名与自身契约程序集名（M5 Shell 暂无出口契约集）。</summary>
-    private static readonly (System.Type Anchor, string Runtime, string? Contract)[] Modules =
-    {
-        (typeof(GestureEngine), "StarPie.Gestures", "StarPie.Gestures.Contracts"),
-        (typeof(WheelViewModel), "StarPie.Wheel", "StarPie.Wheel.Contracts"),
-        (typeof(ProgramScanner), "StarPie.Programs", "StarPie.Programs.Contracts"),
-        (typeof(ThemeService), "StarPie.Theme", "StarPie.Theme.Contracts"),
-        (typeof(GeneralSettingsViewModel), "StarPie.Shell", null),
-        (typeof(DialogService), "StarPie.Dialogs", "StarPie.Dialogs.Contracts"),
-        (typeof(IconAssetService), "StarPie.Icons", "StarPie.Icons.Contracts"),
-    };
-
-    /// <summary>各契约程序集的锚点类型与其所属 runtime（契约不引用 runtime 的依赖级收口）。</summary>
-    private static readonly (System.Type Anchor, string Runtime)[] Contracts =
-    {
-        (typeof(IProfilePreviewSource), "StarPie.Gestures"),
-        (typeof(IWheelFactory), "StarPie.Wheel"),
-        (typeof(IThemeService), "StarPie.Theme"),
-        (typeof(IProgramScanner), "StarPie.Programs"),
-        (typeof(IDialogService), "StarPie.Dialogs"),
-        (typeof(IIconAssetService), "StarPie.Icons"),
-    };
-
-    private static readonly string[] RuntimeNames = Modules.Select(m => m.Runtime).ToArray();
-
     [Fact]
-    public void 模块runtime之间_零互相引用_仅Host组合根引用全部runtime()
+    public void Sdk引用面_只含平台程序集_零第三方包零WPF()
     {
-        foreach (var (anchor, runtime, _) in Modules)
-        {
-            string[] referenced = GetReferences(anchor);
-            foreach (string other in RuntimeNames)
-            {
-                if (other == runtime) continue;
-                Assert.DoesNotContain(other, referenced);
-            }
-        }
+        Assembly sdk = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Sdk");
+        string[] referenced = FourSetBoundaryProbe.ReferencedNames(sdk);
 
-        // Host（StarPie）作为组合根显式引用全部模块 runtime（注册器调用/装配面编排）。
-        string[] hostReferences = GetReferences(typeof(AppearanceSettingsViewModel));
-        foreach (string runtime in RuntimeNames)
-        {
-            Assert.Contains(runtime, hostReferences);
-        }
+        Assert.All(FourSetBoundaryProbe.WpfAssemblyNames, wpf => Assert.DoesNotContain(wpf, referenced));
+        Assert.All(referenced, name => Assert.True(
+            FourSetBoundaryProbe.IsPlatformAssemblyName(name),
+            $"StarPie.Sdk 引用了非平台（第三方）程序集: {name}"));
+
+        // net10.0 非 windows TFM：无 TargetPlatform 投影（故意把 TFM 改回 windows 即被测出）。
+        Assert.Empty(sdk.GetCustomAttributes<TargetPlatformAttribute>());
     }
 
     [Fact]
-    public void 各模块runtime_引用自身契约程序集()
+    public void Host引用面_零WPF_不引用UiSdkWpf与旧集runtime()
     {
-        foreach (var (anchor, _, contract) in Modules)
-        {
-            if (contract == null) continue; // M5 Shell 暂无出口契约集（ADR-0023 未列）
-            Assert.Contains(contract, GetReferences(anchor));
-        }
+        Assembly host = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Host");
+        string[] referenced = FourSetBoundaryProbe.ReferencedNames(host);
+
+        Assert.All(FourSetBoundaryProbe.WpfAssemblyNames, wpf => Assert.DoesNotContain(wpf, referenced));
+        Assert.DoesNotContain("StarPie", referenced);          // Ui 集程序集名（Host ↛ Ui）
+        Assert.DoesNotContain("StarPie.Sdk.Wpf", referenced);  // plugins.md §5.1 约束 7
+        Assert.All(FourSetBoundaryProbe.LegacyAssemblyNames, legacy => Assert.DoesNotContain(legacy, referenced));
+
+        // Host 零 WPF 的产物级证据：无 windows 平台投影。
+        Assert.Empty(host.GetCustomAttributes<TargetPlatformAttribute>());
     }
 
     [Fact]
-    public void 契约程序集_不引用所属runtime与其他模块runtime及Host()
+    public void SdkWpf_带Windows平台投影_不反向引用HostUi与旧集()
     {
-        foreach (var (anchor, _) in Contracts)
-        {
-            string[] referenced = GetReferences(anchor);
-            foreach (string runtime in RuntimeNames)
-            {
-                Assert.DoesNotContain(runtime, referenced);
-            }
-            Assert.DoesNotContain("StarPie", referenced); // Host 程序集名（组合根例外不适用于契约）
-        }
+        Assembly sdkWpf = FourSetBoundaryProbe.LoadFourSetAssembly("StarPie.Sdk.Wpf");
+
+        // WPF 契约面的产物级证据：windows 平台投影（由 net10.0-windows TFM 产生）。
+        Assert.NotEmpty(sdkWpf.GetCustomAttributes<TargetPlatformAttribute>());
+
+        string[] referenced = FourSetBoundaryProbe.ReferencedNames(sdkWpf);
+        Assert.DoesNotContain("StarPie", referenced);        // Ui 集程序集名
+        Assert.DoesNotContain("StarPie.Host", referenced);
+        Assert.All(FourSetBoundaryProbe.LegacyAssemblyNames, legacy => Assert.DoesNotContain(legacy, referenced));
     }
 
-    private static string[] GetReferences(System.Type anchor)
-        => anchor.Assembly.GetReferencedAssemblies().Select(a => a.Name!).ToArray();
+    [Fact]
+    public void 四集中仅Ui是入口_且仅Ui含XAML()
+    {
+        Assembly ui = typeof(App).Assembly;
+        Assert.NotNull(ui.EntryPoint);
+        Assert.NotEmpty(FourSetBoundaryProbe.BamlEntries(ui));
+
+        foreach (string set in new[] { "StarPie.Sdk", "StarPie.Sdk.Wpf", "StarPie.Host" })
+        {
+            Assembly assembly = FourSetBoundaryProbe.LoadFourSetAssembly(set);
+            Assert.Null(assembly.EntryPoint);
+            Assert.Empty(FourSetBoundaryProbe.BamlEntries(assembly));
+        }
+    }
 }

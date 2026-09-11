@@ -47,16 +47,19 @@
 
 ## 3. 技术栈
 
-- .NET 10 / WPF（`net10.0-windows10.0.19041.0`、`UseWPF`，程序集名 `StarPie`）；运行时段与
+- .NET 10 / WPF（`net10.0-windows10.0.19041.0`、`UseWPF`，Ui 集程序集名 `StarPie`）；运行时段与
   windows 投影段的演进政策见 [ADR-0026](adr/0026-runtime-baseline-and-windows-sdk-projection.md)。
+  插件化四集骨架（P1.2/#111）：`StarPie.Sdk`/`StarPie.Host` 为 `net10.0` 零 WPF（SDK 另零第三方
+  包）、`StarPie.Sdk.Wpf` 为 WPF 类型契约面、`StarPie.Ui` 为唯一含 XAML 与入口的 WinExe；
+  依赖方向与机械断言见 [assemblies.md](architecture/assemblies.md) §3。
 - 共享内核：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`）承载 Models、共享件
   （Configuration/Localization/Messages/Navigation 目录与槽位契约；导航运行时主体
   （NavigationStore/NavigationExecutor/MainViewModel/NavigationItemViewModel）归 Host
-  `StarPie/Services/Navigation/` 与 `StarPie/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
+  `StarPie.Ui/Services/Navigation/` 与 `StarPie.Ui/ViewModels/Navigation/`，命名空间不变）与宿主回调契约
   `Services/AppHostDelegates`；**不含任何模块出口契约**——S1 图标资产独立成集、扫描/SPI/
   对话框契约下沉 Programs.Contracts/Dialogs.Contracts、预览 Profile 契约下沉
   Gestures.Contracts；共享 UI 基建已去共享化——通用转换器与 `ModernControls.xaml`（全局
-  控件样式字典）归 Host `StarPie/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式
+  控件样式字典）归 Host `StarPie.Ui/Views/Converters|Styles/`、`HotkeyRecorderBox`（控件+样式
   字典）归 `StarPie.Gestures`、共享页面基类 `SettingsPageBase` 已删除（四页 XAML 根直承
   `UserControl`）；命名空间统一为 `StarPie.*`（跨程序集共享命名空间树）。
 - 模块程序集：`StarPie.Programs/`（WPF 类库，程序集 `StarPie.Programs`）承载 M3 程序扫描
@@ -123,7 +126,10 @@ StarPie/
 │   ├── architecture/            # 架构叶子文档
 │   ├── adr/                     # 决策记录（ADR-0001 ~ 0029，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
-├── StarPie/              # 主程序（规范对象；含共享 UI 基建，见 layout.md）
+├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口）
+├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
+├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML）
+├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测）
 ├── StarPie.Core/                # 共享内核程序集（不再含共享 UI 基建与模块出口契约，见 layout.md）
 ├── StarPie.Icons.Contracts/     # S1 图标契约程序集（见 layout.md）
 ├── StarPie.Icons/               # S1 图标实现程序集（见 layout.md）
@@ -142,9 +148,9 @@ StarPie/
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-> 插件化目标态（三集：`StarPie.Sdk` / `StarPie.Sdk.Wpf` / `StarPie.Host` / `StarPie.Ui` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1 落地时本树按目标态回填。
+> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地，`plugins/` 自 P2 起加入。
 
-测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` Host、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 

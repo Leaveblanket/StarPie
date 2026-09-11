@@ -21,8 +21,8 @@
 本机已安装并正在运行正式版 StarPie 时，开发实例可通过 `--dev` 参数与之并存，互不干扰：
 
 ```bash
-dotnet run --project StarPie        # launchSettings 已默认附加 --dev
-# 或显式指定：dotnet run --project StarPie -- --dev
+dotnet run --project StarPie.Ui        # launchSettings 已默认附加 --dev
+# 或显式指定：dotnet run --project StarPie.Ui -- --dev
 ```
 
 `--dev` 开发实例与正式版的行为差异：

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0027 / plugins.md §2：宿主内核零 WPF 引用、零 XAML，可 headless 单测——
+         net10.0（不进 windows 段，WPF 引用在编译期即不可表达）；Host 不引用 StarPie.Sdk.Wpf
+         （plugins.md §5.1 约束 7）。边界由 FourSetBoundaryTests 机械断言。 -->
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 跨集只经 SDK：Host 只实现/消费 StarPie.Sdk 契约（P1.5 起迁入内核运行时）。 -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
+  </ItemGroup>
+
+</Project>

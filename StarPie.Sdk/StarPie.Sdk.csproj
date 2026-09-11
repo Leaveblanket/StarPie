@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- ADR-0027 / plugins.md §2：SDK 是插件的唯一 headless 引用面——net10.0（不进 windows
+         段，WPF 引用在编译期即不可表达：零 WPF）、零第三方包（无 PackageReference）。
+         两条边界由 FourSetBoundaryTests 对 csproj 与程序集引用面机械断言。 -->
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+</Project>

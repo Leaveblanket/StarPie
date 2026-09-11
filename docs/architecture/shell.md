@@ -31,7 +31,7 @@ M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `Sta
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
 - `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml`
   为纯壳——页面 DataTemplate 在 App 级模块页面模板字典（M5 在 `StarPie.Shell`、M1 在
-  `StarPie.Gestures`、Host 外观聚合页在 `StarPie/Modules/`，见 [navigation.md](navigation.md)），
+   `StarPie.Gestures`、Host 外观聚合页在 `StarPie.Ui/Modules/`，见 [navigation.md](navigation.md)），
   分区 DataContext 接线见下关键流程 4）。
 
 ## 关键流程

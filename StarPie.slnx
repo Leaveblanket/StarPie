@@ -1,5 +1,8 @@
 <Solution>
-  <Project Path="StarPie\StarPie.csproj" />
+  <Project Path="StarPie.Ui\StarPie.Ui.csproj" />
+  <Project Path="StarPie.Sdk\StarPie.Sdk.csproj" />
+  <Project Path="StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
+  <Project Path="StarPie.Host\StarPie.Host.csproj" />
   <Project Path="StarPie.Core\StarPie.Core.csproj" />
   <Project Path="StarPie.Dialogs\StarPie.Dialogs.csproj" />
   <Project Path="StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />

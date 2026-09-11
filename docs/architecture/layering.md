@@ -137,7 +137,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
 - 页面经 App 级模块页面模板字典（M5 在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在
   `StarPie.Gestures/Modules/GesturesPageTemplates.xaml`，均经跨程序集 pack URI 合并；Host 外观
-  聚合页在 exe `StarPie/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
+  聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
   （共享页面基类 `SettingsPageBase` 已删除——Trigger/Advanced/Appearance 三页
   code-behind 以 `Loaded`/`Unloaded` 成对自订阅取代原基类 virtual 钩子）；
