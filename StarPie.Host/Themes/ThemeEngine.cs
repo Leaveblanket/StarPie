@@ -24,10 +24,7 @@ namespace StarPie.Themes
         private IThemeApplier? _applier;
         private bool _hasApplied;
 
-        public ThemeEngine() : this(null)
-        {
-        }
-
+        /// <summary>注入 Windows 深浅色探针；传 null 使用生产默认值（实时读注册表键）。</summary>
         public ThemeEngine(Func<bool>? windowsInDarkModeProbe)
         {
             _windowsInDarkModeProbe = windowsInDarkModeProbe ?? ProbeWindowsDarkMode;

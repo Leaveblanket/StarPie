@@ -68,7 +68,8 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   - 需要被 Host 装配的模块公开件显式 `public`（先例：`StarPie.Shell` 的
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
     `AutostartRegistry` 只被同集注册器接线，保持 internal；M4 并入 Ui 集后
-    `AppThemePaletteManager` 与主题服务的装配面回落 internal（装配方 `AppHost` 与实现同集）；
+    `AppThemePaletteManager` 回落 internal（装配方 `AppHost` 与实现同集），
+    `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
     `StarPie.Wheel` 的轮盘工厂与外观设置子 VM 只经同集注册器接线/容器解析，维持 public
     （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
     不经 Host 直接 new）。

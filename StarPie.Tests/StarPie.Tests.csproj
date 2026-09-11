@@ -38,7 +38,7 @@
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- 剩余三个被收口契约工程暂留空壳（内容迁 StarPie.Sdk）——测试仍显式引用，以便加载
          全部应用程序集做「导出类型唯一 / 空壳无导出」的机械断言（SdkBoundaryTests）；
-         归并票撤销工程时一并移除本组引用。 -->
+         各工程撤销时一并移除本组引用。 -->
     <ProjectReference Include="..\StarPie.Dialogs.Contracts\StarPie.Dialogs.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Gestures.Contracts\StarPie.Gestures.Contracts.csproj" />
     <ProjectReference Include="..\StarPie.Wheel.Contracts\StarPie.Wheel.Contracts.csproj" />

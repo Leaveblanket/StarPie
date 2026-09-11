@@ -54,7 +54,7 @@ public sealed class ThemeEngineTests
     public void ResolveEffectiveTheme_WithoutProbe_ResolvesToKnownTheme()
     {
         // 生产默认探针实时读 Windows 设置：无论深浅，解析结果只可能是两个固定名之一。
-        var engine = new ThemeEngine();
+        var engine = new ThemeEngine(null);
 
         Assert.Contains(engine.ResolveEffectiveTheme("System"), new[] { "Dark", "Light" });
     }
