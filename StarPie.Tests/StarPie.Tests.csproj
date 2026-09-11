@@ -32,7 +32,9 @@
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用 -->
+    <!-- ADR-0016/B2：测试工程显式引用各程序集，不依赖传递引用；
+         宿主内核运行时件（配置/本地化）随 Host 引用直用，Core 只余设计期投影字典
+         （HostBoundaryTests 断言其零导出类型） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- P1.3/#112 + P1.4/#113：六个被收口契约工程暂留空壳（内容分别迁 StarPie.Sdk /
          StarPie.Sdk.Wpf）——测试仍显式引用，以便加载全部应用程序集做「导出类型唯一 /

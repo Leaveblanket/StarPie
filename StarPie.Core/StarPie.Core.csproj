@@ -1,39 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- B2/#75：共享内核程序集（ADR-0016 决策 1/12）。
-         P1.3/#112：契约与模型（Models/Messages/NavigationCatalog/AppHostDelegates）迁
-         StarPie.Sdk，本集只余 Configuration/Localization 运行时件（P1.5 起迁 StarPie.Host），
-         经 StarPie.Sdk 单向引用取契约/模型。
-         B10/#83：跨程序集共享 StarPie.* 命名空间树，根命名空间使 resx 强类型生成类
-         （VocaDb.ResXFileCodeGenerator）落在 StarPie.Services.Localization；
-         TFM / 可空性 / 隐式 using 统一在仓库根 Directory.Build.props。 -->
+    <!-- 设计期投影壳：运行时件（S2 Configuration/S3 Localization）已迁 StarPie.Host 内核，
+         本集只余设计期字符串字典（Page 编译的惰性 BAML，仅供各 UI 工程
+         Properties/DesignTimeResources.xaml 以 pack URI 设计期合并，运行时永不自动合并；
+         见 design-time-preview.md）。保留 WPF 类库形态是 Page 编译的前提；
+         归并期含 UI 工程以本集引用解析该 pack URI。 -->
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Core</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Mvvm" />
-    <!-- ADR-0013/#44：resx 强类型资源生成随资源迁入 Core（原 exe csproj 条目随 B2 移除） -->
-    <PackageReference Include="VocaDb.ResXFileCodeGenerator" PrivateAssets="all" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- P1.3/#112：契约/模型（AppConfig/WheelProfile/ActionItem/消息/导航目录/AppHostDelegates）
-         随 SDK 收口迁入 StarPie.Sdk，本集经旧集 → SDK 单向引用取用。 -->
-    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Services\Localization\Strings*.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- ADR-0025/#101：设计期字符串字典（签入生成物，由同目录生成脚本从 Strings.resx 派生）
-         Page 编译为惰性 BAML，仅供各 UI 工程 Properties/DesignTimeResources.xaml 资源锚
-         以 pack URI 设计期合并；运行时永不自动合并。 -->
+    <!-- 设计期字符串字典（签入生成物，由同目录生成脚本从 Host 内核的 Strings.resx 派生）。 -->
     <Page Update="Services\Localization\DesignTimeStrings.xaml" />
   </ItemGroup>
 

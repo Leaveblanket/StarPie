@@ -7,7 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Services;
-using StarPie.Services.Localization;
+using StarPie.Kernel.Localization;
 
 namespace StarPie
 {

@@ -34,7 +34,7 @@ DialogService 装配面）显式引用 Theme runtime 与 `StarPie.Sdk.Wpf`——
 `ThemeService`/`AppThemePaletteManager`，窗口主题应用消费 `IThemeService` 契约；M2 轮盘侧
 （StarPie.Wheel）与 S6 对话框侧（StarPie.Dialogs）只经 `StarPie.Sdk.Wpf` 契约边消费
 `IThemeService`（M2→M4、Dialogs→M4 两条 runtime 允许边清零，ADR-0023）；M5 托盘深色
-探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Theme runtime → Core +
+探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Theme runtime → 宿主内核（S2/S3）+
 Sdk.Wpf 单向，不反向引用 Host/其它业务模块 runtime。
 
 ## 关键流程

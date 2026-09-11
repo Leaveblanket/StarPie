@@ -13,7 +13,7 @@ SDK（`StarPie.Sdk/`；P1.3/#112 自 Core 收口，仅目录/槽位契约）：
 - `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
   `NavigationPageRegistration`（全局槽位表 0–3、`NavPage0..3` 正典与缺失/重复/未知槽位收口测试，
   见 [assemblies.md](assemblies.md) §5.2）——跨模块注册契约（模块注册器写、控制台读），
-  属共享内核"全局机制"，不受运行时归属影响。
+  属共享契约面的"全局机制"，不受运行时归属影响。
 
 宿主 Ui 集（`StarPie.Ui/`，导航运行时主体）：
 

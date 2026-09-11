@@ -9,11 +9,13 @@
 
 ## 组成文件
 
-**共享内核（`StarPie.Core/Services/Localization/`）**：
+**宿主内核（`StarPie.Host/Kernel/Localization/`，命名空间 `StarPie.Kernel.Localization`）**：
 `ILocalizationService.cs`、`LocalizationService.cs`、`Strings.resx`（中性 = zh-CN）与
 `Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
-`EmbeddedResource` 条目配置于 `StarPie.Core.csproj`；`RootNamespace=StarPie`
-使强类型类落在 `StarPie.Services.Localization`）。
+`EmbeddedResource` 条目配置于 `StarPie.Host.csproj`；`RootNamespace=StarPie`
+使强类型类落在 `StarPie.Kernel.Localization`）。
+设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本留在 `StarPie.Core/Services/Localization/`
+（源 resx 在上面的内核目录；见 [design-time-preview.md](design-time-preview.md)）。
 
 > 宿主消费边界（[modules.md](modules.md) §5 D4）：运行时语言字典投影与壳外文案刷新由宿主侧（H1，
 > 见 [host.md](host.md)）维护，属 H1 对 S3 的消费，不是本模块组成文件。

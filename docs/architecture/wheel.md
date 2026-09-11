@@ -99,7 +99,7 @@ ADR-0023，P1.3/#112 随 SDK 收口迁 `StarPie.Sdk/`，原工程暂留空壳）
 新增样式 = 新 `XxxRenderer : BaseStyleRenderer` + 在 `WheelPaletteCatalog`（驻
 `StarPie.Wheel/Models/`）登记风格键/默认深浅观感/标准浅色回落行为 +
 `StyleRendererFactory` 分支 + 配置/UI 选项 + i18n（清单见 [extending.md](extending.md) 原型 E；
-只动 M2 内部 + S3 文案，不碰 Core/Host）。
+只动 M2 内部 + S3 文案，不碰宿主内核/其它模块）。
 
 ## 参见 ADR
 

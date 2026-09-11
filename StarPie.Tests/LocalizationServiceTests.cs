@@ -1,4 +1,4 @@
-using StarPie.Services.Localization;
+using StarPie.Kernel.Localization;
 
 namespace StarPie.Tests;
 

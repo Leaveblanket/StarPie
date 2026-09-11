@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services.Configuration;
-using StarPie.Services.Localization;
+using StarPie.Kernel.Configuration;
+using StarPie.Kernel.Localization;
 using StarPie.Services.Shell;
 using StarPie.ViewModels.Pages;
 

@@ -27,10 +27,12 @@ StarPie.Dialogs / StarPie.Wheel。
 ## 设计期字符串字典
 
 - **单源文件**：`StarPie.Core/Services/Localization/DesignTimeStrings.xaml`（Core 内、Page
-  编译、zh-CN 值，**签入仓库**），由同目录 `Strings.resx` 经生成脚本
-  `StarPie.Core/Services/Localization/GenerateDesignTimeStrings.ps1` 派生；各工程资源锚以
-  pack URI 合并
+  编译、zh-CN 值，**签入仓库**），由同目录生成脚本
+  `StarPie.Core/Services/Localization/GenerateDesignTimeStrings.ps1` 从运行时 resx
+  `StarPie.Host/Kernel/Localization/Strings.resx` 派生；各工程资源锚以 pack URI 合并
   （`pack://application:,,,/StarPie.Core;component/Services/Localization/DesignTimeStrings.xaml`）。
+  字典是 Core 唯一余留内容（零导出类型、零运行时件）：归并期含 UI 工程保留 Core 引用只为解析
+  该 pack URI，运行时依赖一律经 `StarPie.Host`/`StarPie.Sdk`。
 - **选型说明**：原 (c) 方案（仓库根 `design/DesignTimeStrings.xaml` 松散单源 + 跨工程相对路径
   合并）spike 无法验证——本机无 VS 设计器、且无官方文档支撑跨工程父目录松散合并行为，按
   ADR-0025 契约回退本路径；字典是**设计期投影**而非运行时第二数据源：Page 编译为惰性 BAML，
@@ -38,7 +40,8 @@ StarPie.Dialogs / StarPie.Wheel。
   [ADR-0025](../adr/0025-design-time-preview.md)）。
 - **同步护栏**：新增/修改文案键后必须重跑生成脚本
   （`powershell -ExecutionPolicy Bypass -File StarPie.Core/Services/Localization/GenerateDesignTimeStrings.ps1`）；
-  xUnit 一致性测试锁“键集一致 + zh-CN 值与 resx 一致”。
+  xUnit 一致性测试锁“键集一致 + zh-CN 值与 resx 一致”（resx 在内核、字典在 Core，测试两侧
+  都断言文件在位）。
 
 ## 设计视口
 

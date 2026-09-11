@@ -5,7 +5,7 @@
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
          ADR-0023/#97：M4 出口契约 IThemeService 随实现方下沉，P1.4/#113 随 SDK 的 WPF 面
          收口迁入 StarPie.Sdk.Wpf（原 Theme.Contracts 暂留空壳），本 runtime 只引用
-         Sdk/Sdk.Wpf 与 Core（S2/S3/S4 共享基建），不引用 Host/其它业务模块 runtime
+         Sdk/Sdk.Wpf 与 StarPie.Host（宿主内核：S2 配置 / S3 本地化），不引用其它业务模块 runtime
          （Wheel/Dialogs 消费方改经 Sdk.Wpf 契约边，本 runtime 只被 Host/测试引用）。
          主题服务与主题设置子 VM 的 DI 注册经 ThemeModuleRegistrar.RegisterServices
          下放本程序集，组合根仍唯一 BuildServiceProvider；
@@ -20,8 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- B7/#80：M4 → Core 单向依赖（主题设置子 VM 消费 S2/S3/S4 契约与共享 Models） -->
-    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- M4 → 宿主内核单向依赖（主题设置子 VM 消费 S2 配置/S3 本地化接缝） -->
+    <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
     <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（AppConfig、AppThemeChangedMessage
          等消息/模型） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />

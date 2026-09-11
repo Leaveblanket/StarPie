@@ -1,7 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.Services.Configuration
+namespace StarPie.Kernel.Configuration
 {
     /// <summary>
     /// 落盘编排订阅者：驻组合根，经 <see cref="IMessenger"/> 汇聚各页面 VM 的落盘请求。

@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Services.Actions;
-using StarPie.Services.Configuration;
+using StarPie.Kernel.Configuration;
 using StarPie.Services.Dialogs;
 using StarPie.Services.Gestures;
-using StarPie.Services.Localization;
+using StarPie.Kernel.Localization;
 using StarPie.Services.Navigation;
 using StarPie.ViewModels.Pages;
 

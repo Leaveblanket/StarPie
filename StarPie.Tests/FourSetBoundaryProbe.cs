@@ -23,8 +23,8 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 旧 15 集中的业务/契约 runtime 程序集名：P1 归并期（P1.3–P1.10）只许 Ui 组合根引用，
-    /// Sdk/Sdk.Wpf/Host 三集不得引用（跨集只经 SDK）。
+    /// 旧 15 集中的业务/契约 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧 15 集 runtime
+    /// （跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）；旧集只被 Ui 组合根与测试引用。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =
     {

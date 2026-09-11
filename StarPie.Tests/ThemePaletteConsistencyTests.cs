@@ -31,8 +31,8 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            // 四语言 resx 位于共享内核程序集（StarPie.Core）。
-            return Path.Combine(dir.FullName, "StarPie.Core", "Services", "Localization", "Strings.resx");
+            // 四语言 resx 位于宿主内核（StarPie.Host/Kernel/Localization）。
+            return Path.Combine(dir.FullName, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
         }
     }
 
