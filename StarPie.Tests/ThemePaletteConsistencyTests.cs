@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 主题令牌键集一致性测试：Views/Styles/Themes 五套 XAML 必须持有同一 key 集——
+/// 主题令牌键集一致性测试：<c>StarPie.Ui/Themes</c> 五套 XAML 必须持有同一 key 集——
 /// 缺键即失败，防止换入后 DynamicResource 悬空；四语言 resx 键集必须一致，
 /// 并与主题令牌键零交集。纯文件级断言，不经容器。
 /// </summary>
@@ -20,8 +20,8 @@ public sealed class ThemePaletteConsistencyTests
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            // 主题字典位于 StarPie.Theme/Views/Styles/Themes。
-            return Path.Combine(dir.FullName, "StarPie.Theme", "Views", "Styles", "Themes");
+            // 主题字典位于 StarPie.Ui/Themes。
+            return Path.Combine(dir.FullName, "StarPie.Ui", "Themes");
         }
     }
 

@@ -23,9 +23,9 @@ M5 物理落位（独立模块程序集 `StarPie.Shell/`）：
 - SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出，
   P1.3/#112 自 Core 收口；见 [host.md](host.md)）。
 
-M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `StarPie.Theme/Services/Shell/`
-（命名空间 `StarPie.Services.Shell`，见 [interface-theme.md](interface-theme.md)），不在 Host；
-各业务目录不跨模块登记。
+M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie.Ui/Services/Shell/`
+（命名空间 `StarPie.Services.Shell`；主题引擎 `ThemeEngine` 在宿主内核，见
+[interface-theme.md](interface-theme.md)），不在 M5；各业务目录不跨模块登记。
 
 - `ViewModels/Navigation/ShellViewModel.cs`（D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
   归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
@@ -42,7 +42,7 @@ M4 的主题件（`IThemeService`/`ThemeService`）在独立模块程序集 `Sta
    气泡通知、`Dispose`；tooltip 在语言切换时由宿主 `AppHost.RefreshTrayTooltip` 按暂停态刷新
    （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
    不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针
-   （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Theme`，Host 显式引用）。
+   （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
 2. **内存**：`MemoryOptimizer.TrimMemory()` 在 `App` 启动兜底与 `AppHost` 主框架隐藏时直调
    （不进业务层，调用点见 [host.md](host.md)）；“立即清理”由 `GeneralSettingsViewModel` 直调
    （VM 与工具同驻 `StarPie.Shell`，行为不变）。

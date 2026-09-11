@@ -29,6 +29,8 @@ public sealed class HostBoundaryTests
         typeof(IconCatalog), typeof(CustomIconStore),
         // Programs/（扫描编排与 .lnk 解析）
         typeof(ProgramScanner), typeof(ShortcutResolver),
+        // Themes/（界面主题引擎）与 Ports/（宿主→Ui 端口：主题应用）
+        typeof(ThemeEngine), typeof(IThemeApplier),
     };
 
     /// <summary>设计期字符串字典的唯一来源（Page 编译、签入生成物；pack URI 由 UI 工程资源锚合并）。</summary>
@@ -92,6 +94,14 @@ public sealed class HostBoundaryTests
 
             localization.SetLanguage("en");
             Assert.Equal("Confirm", localization.GetString("BtnConfirm"));
+
+            // 主题引擎零 WPF 可 headless 直接构造：注入探针 → 解析 → 经端口换肤。
+            var themeEngine = new ThemeEngine(() => true);
+            var themeApplier = new TestThemeApplier();
+            themeEngine.AttachApplier(themeApplier);
+            themeEngine.SetTheme("System");
+            Assert.Equal("Dark", themeEngine.CurrentEffectiveTheme);
+            Assert.Equal(new[] { "Dark" }, themeApplier.Themes);
         }
         finally
         {

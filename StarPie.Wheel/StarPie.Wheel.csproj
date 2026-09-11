@@ -32,9 +32,8 @@
          IWheelAppearanceState、IProfilePreviewSource、IDialogService、AppConfig/GesturePoint/
          WheelProfile 等；三个纯托管契约工程暂留空壳） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- P1.4/#113：SDK WPF 契约面（IThemeService 自 Theme.Contracts、IIconAssetService 自
-         Icons.Contracts 随 SDK 收口迁入 StarPie.Sdk.Wpf；M2→M4 runtime 允许边与 S1 契约边
-         统一经本引用，命名空间不变） -->
+    <!-- SDK 的 WPF 契约面（主题与图标资产服务）：M2→M4 runtime 允许边与 S1 契约边
+         统一经本引用，命名空间不变 -->
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   </ItemGroup>
 

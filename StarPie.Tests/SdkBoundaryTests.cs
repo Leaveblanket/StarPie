@@ -8,8 +8,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// StarPie.Sdk 的导出面白名单基线：SDK 只含纯托管契约/模型/DTO——导出面与白名单双向相等
-/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），被掏空的四个
-/// 契约工程暂留为空壳，源码树保持「镜像旧相对路径」的过渡形态。与
+/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），已收口契约的
+/// 空壳工程暂留至各归并票撤销，源码树保持「镜像旧相对路径」的过渡形态。与
 /// <see cref="SdkWpfBoundaryTests"/>（WPF 面）、<see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
@@ -95,12 +95,10 @@ public sealed class SdkBoundaryTests
     [Fact]
     public void 剩余契约工程_暂留为空壳()
     {
+        // 尚未撤销的收口契约工程（契约内容已收口于 StarPie.Sdk）——撤销时同步本表。
         string[] shells =
         {
-            // 契约内容在 StarPie.Sdk
             "StarPie.Dialogs.Contracts", "StarPie.Gestures.Contracts", "StarPie.Wheel.Contracts",
-            // 契约内容在 StarPie.Sdk.Wpf
-            "StarPie.Theme.Contracts",
         };
 
         foreach (string name in shells)

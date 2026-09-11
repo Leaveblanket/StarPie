@@ -39,7 +39,7 @@
   [naming.md](naming.md) 映射表（M5：`StarPie.Shell` 的 `ShellModuleRegistrar`；M1：
   `StarPie.Gestures` 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
   `HostModuleRegistrar`）；页面 VM DI 注册由所属注册器下放——M5 页面 VM 由
-  ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Theme`，
+  ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Ui`，
   M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelModuleRegistrar`（`StarPie.Wheel`，
   M2 无导航页）、M1 手势管线/页面 VM/`IProfilePreviewSource` 别名由
   `GesturesModuleRegistrar`（`StarPie.Gestures`）下放；S1 图标资产与 M3 程序扫描
@@ -83,7 +83,7 @@
   [wheel.md](wheel.md)。
 - **对外契约**：由 M1 经 SDK 契约 `IWheelFactory`/`IWheelViewModel` 装配
   （ADR-0023）；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`
-  （M2→M4 runtime 允许边经 Sdk.Wpf 契约边清零，P1.4/#113）；预览 Profile 上下文经 M1 只读
+  （经 Sdk.Wpf 契约边）；预览 Profile 上下文经 M1 只读
   `IProfilePreviewSource`（驻 `StarPie.Sdk`）转发。
 - **扩展局部性**：新增轮盘样式（原型 E）、改几何/配色/排版/预览 → M2 内部。
 
@@ -104,12 +104,13 @@
 #### M4 界面主题
 
 - **职责**：窗口 UI 主题体系（AppTheme）——配置与解析、状态/切换/系统跟随、XAML 令牌集与整项替换、界面主题设置面、主题应用消息。
-- **关键内部**：`ThemeService`（实现 `IThemeService`）、根 `AppThemePaletteManager`、五套主题
-  画刷令牌字典、`InterfaceThemeSettingsViewModel`、`AppThemeChangedMessage`；出口契约
-  `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（P1.4/#113 收口；ADR-0023）；物理路径见
-  [layout.md](layout.md) 与 [interface-theme.md](interface-theme.md)。各窗口（MainView/对话框/
-  RadialWindow）仅按 ADR-0009 白名单注入应用——M2/S6 消费方经 Sdk.Wpf 契约边（M2→M4、
-  Dialogs→M4 runtime 允许边清零）。
+- **关键内部**：主题引擎 `ThemeEngine`（零 WPF，宿主内核）与端口 `IThemeApplier`、
+  `IThemeService` 实现 `ThemeService`（窗口 DWM 应用与系统深浅色监听）、调色板适配器
+  `AppThemePaletteManager`、五套主题画刷令牌字典、`InterfaceThemeSettingsViewModel`、
+  `AppThemeChangedMessage`；出口契约 `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`
+  （ADR-0023）；物理路径见 [layout.md](layout.md) 与 [interface-theme.md](interface-theme.md)。
+  各窗口（MainView/对话框/RadialWindow）仅按 ADR-0009 白名单注入应用——M2/S6 消费方经
+  Sdk.Wpf 契约边。
 - **扩展局部性**：新增主题方案/令牌/跟随策略 → M4 内部 + S3 文案。
 
 #### M5 壳层与系统集成
@@ -181,8 +182,7 @@
   （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻 `StarPie.Dialogs`。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Sdk.Wpf 契约
   `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
-  窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，P1.4/#113：
-  Dialogs→M4 runtime 允许边清零，ADR-0023）；不直穿 M3/S1/M4 runtime 内部；消费方
+  窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，ADR-0023）；不直穿 M3/S1 与 M4 实现内部；消费方
   （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`（P1.3/#112）。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
   扩展 `StarPie.Sdk` 的 Dialogs 契约（P1.3/#112 收口）。

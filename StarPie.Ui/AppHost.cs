@@ -44,8 +44,8 @@ namespace StarPie
         // 后台/静默模式（--background，e2e 用）：窗口离屏 + 不可激活 + 无任务栏项，
         // 且不建托盘、不启全局鼠标钩子——用户同机工作时无可见/可感知打扰。
         private readonly bool _background;
-        // 主题调色板整项换入由 AppThemePaletteManager（public 装配面）执行；
-        // 宿主只负责编排回调，不再做直接键覆盖。
+        // 主题调色板换入经 Ui 侧适配器（实现内核主题应用端口）执行；
+        // 宿主只负责装配，不做直接键覆盖。
         private readonly AppThemePaletteManager _paletteManager = new();
         private TrayIconManager? _trayIcon;
         private MainView? _mainView;
@@ -79,9 +79,9 @@ namespace StarPie
             _hostDelegates = hostDelegates;
             _background = background;
 
-            // 主题画刷换入经 AppThemePaletteManager 的 public 装配面：整项替换合并字典的
-            // 活动主题槽；主题服务不接触视图资源，只经回调触发换入。
-            themeService.AttachPaletteApplier(effectiveTheme => _paletteManager.Apply(effectiveTheme, Application.Current!));
+            // 主题画刷换入经端口回填：整项替换合并字典的活动主题槽；
+            // 主题服务不接触视图资源，只经端口触发换入。
+            themeService.AttachApplier(_paletteManager);
 
             // 回填宿主回调：模块注册器装配页面 VM 时持转发委托，此刻起托盘气泡与
             // 退出动作指向本宿主实例。
