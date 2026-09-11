@@ -37,8 +37,8 @@
     <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
          WPF 适配件（DispatcherSaveDebouncer）驻本集 Adapters/，实现内核防抖接缝 -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core，ADR-0025）；
-         运行时内核（S2 配置 / S3 本地化）已随宿主内核归并入 StarPie.Host -->
+    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core）；
+         运行时内核（S2 配置 / S3 本地化）在 StarPie.Host -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集显式引用（DialogService 实现与五对对话框
          VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、

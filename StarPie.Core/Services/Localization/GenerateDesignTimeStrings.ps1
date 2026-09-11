@@ -3,7 +3,7 @@
     从内核 Strings.resx（zh-CN 中性）再生成设计期字符串字典 DesignTimeStrings.xaml。
 
 .DESCRIPTION
-    ADR-0025：设计期字符串字典是签入生成物，定位为设计期投影（非运行时第二数据源）。
+    设计期字符串字典是签入生成物，定位为设计期投影（非运行时第二数据源）。
     新增/修改文案键后必须重跑本脚本并提交生成的 XAML；一致性由
     StarPie.Tests/DesignTimeStringsConsistencyTests.cs 锁“键集一致 + zh-CN 值与 resx 一致”。
 

@@ -11,7 +11,7 @@
          （宿主内核：S2 配置 / S3 本地化）单向 + StarPie.Sdk.Wpf（P1.4/#113 契约面：程序扫描/
          SPI、S1 图标与 M4 IThemeService 自旧三集随收口迁入——Dialogs→M4 runtime 允许边清零，
          窗口主题应用消费 IThemeService 经契约边）；StarPie.Core 引用只为设计期资源锚解析
-         设计期字符串字典的 pack URI（ADR-0025，非运行时依赖）；不引用 Programs
+         设计期字符串字典的 pack URI（非运行时依赖）；不引用 Programs
          runtime/其它业务模块（Dialogs→Programs 仅经契约面）。
          DI 注册经 DialogsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider；DialogService 裁决 public（宿主 SetOwner 装配面）。 -->
@@ -34,7 +34,7 @@
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 宿主内核（S2 配置/S3 本地化接缝） -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core，ADR-0025） -->
+    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>
 

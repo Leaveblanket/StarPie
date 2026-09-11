@@ -100,10 +100,10 @@ public sealed class HostBoundaryTests
     {
         Assembly core = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Core");
 
-        // 运行时件已迁 Host：遗留集不再导出任何类型（无双份定义、无运行时 WPF 类型泄漏）。
+        // 遗留集不再导出任何类型（无双份定义、无运行时 WPF 类型泄漏）。
         Assert.Empty(FourSetBoundaryProbe.ExportedTypeNames(core));
 
-        // 唯一 XAML = 设计期字符串字典（惰性 BAML，仅设计期合并；ADR-0025 的唯一 XAML 例外）。
+        // 唯一 XAML = 设计期字符串字典（惰性 BAML，仅设计期合并、运行时永不合并）。
         Assert.Equal(
             new[] { "services/localization/designtimestrings.baml" },
             FourSetBoundaryProbe.BamlEntries(core));
