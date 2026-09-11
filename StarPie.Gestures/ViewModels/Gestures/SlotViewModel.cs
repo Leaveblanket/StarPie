@@ -91,6 +91,12 @@ namespace StarPie.ViewModels.Gestures
         public string DirectionLabel { get; }
         public ActionItem Action { get; }
 
+        /// <summary>槽位在 Slots 集合中的 0 基序号；用于生成稳定 AutomationId（见 #137）。</summary>
+        public int SlotIndex { get; init; }
+
+        /// <summary>动作类型 ComboBox 的稳定 AutomationId；e2e/无障碍客户端据此定位（见 #137）。</summary>
+        public string ActionTypeAutomationId => $"Slot{SlotIndex}ActionTypeComboBox";
+
         public string Name
         {
             get => Action.Name ?? "";
