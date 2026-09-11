@@ -8,8 +8,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// StarPie.Sdk 的导出面白名单基线：SDK 只含纯托管契约/模型/DTO——导出面与白名单双向相等
-/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），已收口契约的
-/// 空壳工程暂留至各归并票撤销，源码树保持「镜像旧相对路径」的过渡形态。与
+/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），被收口的契约
+/// 工程以空壳形态暂留，源码树保持「镜像旧相对路径」的过渡形态。与
 /// <see cref="SdkWpfBoundaryTests"/>（WPF 面）、<see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
