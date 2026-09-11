@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using StarPie.Services.Localization;
+using StarPie.Kernel.Localization;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;

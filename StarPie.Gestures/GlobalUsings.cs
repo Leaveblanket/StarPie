@@ -1,10 +1,10 @@
 global using StarPie.Models;
 global using StarPie.Services.Actions;
-global using StarPie.Services.Configuration;
+global using StarPie.Kernel.Configuration;
 global using StarPie.Services.Dialogs;
 global using StarPie.Services.Gestures;
 global using StarPie.Services.Icons;
-global using StarPie.Services.Localization;
+global using StarPie.Kernel.Localization;
 global using StarPie.Services.Messages;
 global using StarPie.Services.Navigation;
 global using StarPie.Services.Wheel;

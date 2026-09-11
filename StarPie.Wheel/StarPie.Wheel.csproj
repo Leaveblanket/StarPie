@@ -3,9 +3,11 @@
   <PropertyGroup>
     <!-- B8/#81：M2 轮盘与渲染模块程序集（ADR-0016 决策 1/8/11/12）。
          B10/#83：命名空间统一为 StarPie.* 前缀替换，RootNamespace=StarPie。
-         依赖方向：StarPie.Wheel → StarPie.Sdk（headless 契约/模型）+ StarPie.Core 单向
-         （共享基建）+ StarPie.Sdk.Wpf（P1.4/#113 契约面：M2→M4 经 IThemeService、
-         S1 经 IIconAssetService）；不引用 Host/任何其它业务模块 runtime（M1 手势侧驻
+         依赖方向：StarPie.Wheel → StarPie.Sdk（headless 契约/模型）+ StarPie.Host
+         （宿主内核：S2 配置 / S3 本地化）单向 + StarPie.Sdk.Wpf（P1.4/#113 契约面：
+         M2→M4 经 IThemeService、S1 经 IIconAssetService）；StarPie.Core 引用只为设计期
+         资源锚解析设计期字符串字典的 pack URI（ADR-0025，非运行时依赖）；不引用任何
+         其它业务模块 runtime（M1 手势侧驻
          StarPie.Gestures，只经 SDK 的轮盘接口消费，runtime 互引清零）。
          工厂接口/轮盘 VM 接口/签名暴露件原随 M2 收编 Wheel.Contracts（D5，ADR-0016 决策 11），
          P1.3/#112 随 SDK 收口迁入 StarPie.Sdk（Wheel/Gestures/Dialogs 三个契约工程暂留空壳）；
@@ -21,8 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- B8/#81：M2 → Core 单向依赖（轮盘 VM/渲染器消费 S1/S2/S3/S4 契约与共享 Models；
-         配色 WPF-free 值类型随 M2 物理收编于本集 Models，CustomColorPreset 仍居 Core Models） -->
+    <!-- M2 → 宿主内核单向依赖（轮盘 VM/渲染器消费 S2 配置/S3 本地化接缝；
+         配色 WPF-free 值类型物理收编于本集 Models） -->
+    <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
+    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core，ADR-0025） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IWheelFactory/IWheelViewModel/
          IWheelAppearanceState、IProfilePreviewSource、IDialogService、AppConfig/GesturePoint/

@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Modules;
 using StarPie.Services;
-using StarPie.Services.Localization;
+using StarPie.Kernel.Localization;
 
 namespace StarPie
 {

@@ -3,13 +3,27 @@
   <PropertyGroup>
     <!-- ADR-0027 / plugins.md §2：宿主内核零 WPF 引用、零 XAML，可 headless 单测——
          net10.0（不进 windows 段，WPF 引用在编译期即不可表达）；Host 不引用 StarPie.Sdk.Wpf
-         （plugins.md §5.1 约束 7）。边界由 FourSetBoundaryTests 机械断言。 -->
+         （plugins.md §5.1 约束 7）。边界由 FourSetBoundaryTests/RuntimeNoCrossReferenceTests/
+         HostBoundaryTests 机械断言。 -->
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 跨集只经 SDK：Host 只实现/消费 StarPie.Sdk 契约（P1.5 起迁入内核运行时）。 -->
+    <!-- 跨集只经 SDK：Host 只实现/消费 StarPie.Sdk 契约；内核运行时（Kernel/）消费 SDK 模型。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 防抖落盘编排订阅 IMessenger（内核服务，与页面 VM 的解耦经消息总线）。 -->
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <!-- 本地化 resx 强类型资源生成（四语言：中性 zh-CN + 卫星 zh-TW/en/ja）。 -->
+    <PackageReference Include="VocaDb.ResXFileCodeGenerator" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Kernel\Localization\Strings*.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Services.Configuration
+namespace StarPie.Kernel.Configuration
 {
     /// <summary>
     /// 落盘防抖器：把连续的自动保存请求折叠为一次延迟执行——每次 <see cref="Schedule"/>

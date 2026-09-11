@@ -1,17 +1,19 @@
 using System;
 using System.Windows.Threading;
+using StarPie.Kernel.Configuration;
 
-namespace StarPie.Services.Configuration
+namespace StarPie.Adapters
 {
     /// <summary>
-    /// <see cref="ISaveDebouncer"/> 的 WPF 实现：用 DispatcherTimer 承载计时。
+    /// <see cref="ISaveDebouncer"/> 的 WPF 适配实现：用 DispatcherTimer 承载计时。
     /// </summary>
     /// <remarks>
-    /// Tick 落在 UI 线程；自动保存的请求方（页面 ViewModel 管线）与落盘点
-    /// （组合根的 <see cref="SettingsSaveOrchestrator"/>）都在 UI 线程，无需跨线程封送，
+    /// 零 WPF 的宿主内核只定义防抖接缝，UI 线程亲和性由本适配器提供：Tick 落在 UI 线程，
+    /// 自动保存的请求方（页面 ViewModel 管线）与落盘点（组合根的
+    /// <see cref="SettingsSaveOrchestrator"/>）都在 UI 线程，无需跨线程封送，
     /// 本实现仅限 UI 线程使用。
     /// </remarks>
-    public sealed class DispatcherSaveDebouncer : ISaveDebouncer
+    internal sealed class DispatcherSaveDebouncer : ISaveDebouncer
     {
         private DispatcherTimer? _timer;
         private Action? _pending;

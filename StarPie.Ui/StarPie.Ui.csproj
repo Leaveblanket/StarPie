@@ -34,8 +34,11 @@
          Dialogs/Gestures/Wheel/Icons/Programs/Theme 六个契约工程暂留空壳、不再被引用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
+    <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
+         WPF 适配件（DispatcherSaveDebouncer）驻本集 Adapters/，实现内核防抖接缝 -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- B2/#75：共享内核程序集引用（S2/S3/S4 共享基建与 S5 导航目录随迁；契约/模型经 SDK） -->
+    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core，ADR-0025）；
+         运行时内核（S2 配置 / S3 本地化）已随宿主内核归并入 StarPie.Host -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- ADR-0020/#88：S6 对话框实现程序集显式引用（DialogService 实现与五对对话框
          VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、

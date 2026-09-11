@@ -1,12 +1,14 @@
 <#
 .SYNOPSIS
-    从 Strings.resx（zh-CN 中性）再生成设计期字符串字典 DesignTimeStrings.xaml。
+    从内核 Strings.resx（zh-CN 中性）再生成设计期字符串字典 DesignTimeStrings.xaml。
 
 .DESCRIPTION
-    ADR-0025/#101：设计期字符串字典是签入生成物，定位为设计期投影（非运行时第二数据源）。
+    ADR-0025：设计期字符串字典是签入生成物，定位为设计期投影（非运行时第二数据源）。
     新增/修改文案键后必须重跑本脚本并提交生成的 XAML；一致性由
     StarPie.Tests/DesignTimeStringsConsistencyTests.cs 锁“键集一致 + zh-CN 值与 resx 一致”。
 
+    源 resx：StarPie.Host/Kernel/Localization/Strings.resx（本脚本所在目录由设计期投影
+    与生成物共用，运行时本地化实现与四语言 resx 在宿主内核）。
     输出文件：本目录 DesignTimeStrings.xaml（Page 编译进 StarPie.Core 的惰性 BAML，
     各 UI 工程 Properties/DesignTimeResources.xaml 以 pack URI 在设计期合并）。
 
@@ -19,7 +21,8 @@ param()
 $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$resxPath = Join-Path $scriptDir 'Strings.resx'
+$repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
+$resxPath = Join-Path $repoRoot 'StarPie.Host\Kernel\Localization\Strings.resx'
 $xamlPath = Join-Path $scriptDir 'DesignTimeStrings.xaml'
 
 if (-not (Test-Path -LiteralPath $resxPath)) {

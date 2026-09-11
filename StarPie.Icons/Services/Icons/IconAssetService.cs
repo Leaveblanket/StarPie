@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using StarPie.Services.Configuration;
+using StarPie.Kernel.Configuration;
 
 namespace StarPie.Services.Icons
 {

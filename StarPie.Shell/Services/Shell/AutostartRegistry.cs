@@ -1,5 +1,5 @@
 using System;
-using StarPie.Services.Configuration;
+using StarPie.Kernel.Configuration;
 
 namespace StarPie.Services.Shell
 {

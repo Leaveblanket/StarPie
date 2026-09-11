@@ -14,19 +14,27 @@ public sealed class DesignTimeStringsConsistencyTests
 {
     private const string XamlKeyNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
 
-    private static string LocalizationDirectory
+    private static string RepoRoot
     {
         get
         {
             var dir = new DirectoryInfo(AppContext.BaseDirectory);
             for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            return Path.Combine(dir.FullName, "StarPie.Core", "Services", "Localization");
+            return dir.FullName;
         }
     }
 
+    /// <summary>运行时本地化源 resx（宿主内核）。</summary>
+    private static string ResxDirectory
+        => Path.Combine(RepoRoot, "StarPie.Host", "Kernel", "Localization");
+
+    /// <summary>设计期投影字典（Page 编译签入生成物）。</summary>
+    private static string DesignTimeDictionaryDirectory
+        => Path.Combine(RepoRoot, "StarPie.Core", "Services", "Localization");
+
     private static XmlDocument LoadResx()
     {
-        string path = Path.Combine(LocalizationDirectory, "Strings.resx");
+        string path = Path.Combine(ResxDirectory, "Strings.resx");
         Assert.True(File.Exists(path), $"language resource missing: {path}");
 
         var doc = new XmlDocument();
@@ -36,7 +44,7 @@ public sealed class DesignTimeStringsConsistencyTests
 
     private static XmlDocument LoadDesignTimeStrings()
     {
-        string path = Path.Combine(LocalizationDirectory, "DesignTimeStrings.xaml");
+        string path = Path.Combine(DesignTimeDictionaryDirectory, "DesignTimeStrings.xaml");
         Assert.True(File.Exists(path), $"design-time dictionary missing: {path}");
 
         var doc = new XmlDocument();

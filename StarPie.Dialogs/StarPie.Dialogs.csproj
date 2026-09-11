@@ -7,11 +7,12 @@
          IProgramScanner/IShortcutTargetResolver 迁 StarPie.Programs.Contracts（程序扫描/.lnk
          解析经 Programs 契约边注入，不再经 Core）；P1.3/#112：IDialogService 与结果 record
          随 SDK 收口迁入 StarPie.Sdk（Dialogs.Contracts 暂留空壳）。
-         依赖方向：StarPie.Dialogs → StarPie.Sdk（headless 契约/模型）+ Core 单向（S2/S3/S4
-         共享基建）+ StarPie.Sdk.Wpf（P1.4/#113 契约面：程序扫描/SPI、S1 图标与 M4
-         IThemeService 自旧三集随收口迁入——Dialogs→M4 runtime 允许边清零，窗口主题应用
-         消费 IThemeService 经契约边）；不引用 Programs runtime/Host/其它业务模块
-         （Dialogs→Programs 仅经契约面）。
+         依赖方向：StarPie.Dialogs → StarPie.Sdk（headless 契约/模型）+ StarPie.Host
+         （宿主内核：S2 配置 / S3 本地化）单向 + StarPie.Sdk.Wpf（P1.4/#113 契约面：程序扫描/
+         SPI、S1 图标与 M4 IThemeService 自旧三集随收口迁入——Dialogs→M4 runtime 允许边清零，
+         窗口主题应用消费 IThemeService 经契约边）；StarPie.Core 引用只为设计期资源锚解析
+         设计期字符串字典的 pack URI（ADR-0025，非运行时依赖）；不引用 Programs
+         runtime/其它业务模块（Dialogs→Programs 仅经契约面）。
          DI 注册经 DialogsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider；DialogService 裁决 public（宿主 SetOwner 装配面）。 -->
     <UseWPF>true</UseWPF>
@@ -31,7 +32,9 @@
          Theme.Contracts、IIconAssetService/IconCatalog 自 Icons.Contracts 随 SDK 收口迁入；
          对话框链仅经契约边，命名空间不变） -->
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
-    <!-- 共享内核（S2 配置/S3 本地化/S4 消息/Models 等共享基建） -->
+    <!-- 宿主内核（S2 配置/S3 本地化接缝） -->
+    <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
+    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core，ADR-0025） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>
 

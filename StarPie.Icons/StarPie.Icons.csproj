@@ -6,8 +6,8 @@
          Programs.Contracts 迁出（#96 已落地）。P1.4/#113：契约面随 SDK 收口——IIconAssetService
          契约四件（原 Icons.Contracts）与 SPI IShortcutTargetResolver（原 Programs.Contracts）
          统一迁入 StarPie.Sdk.Wpf。依赖方向：StarPie.Icons → StarPie.Sdk.Wpf（契约面）
-         + StarPie.Core（S2 AppDataPaths 默认数据目录提供，共享基建例外）；无 Core → Icons
-         反向。实现 runtime 只被 Host/注册器/测试引用，业务模块零引用（模块 runtime 互引
+         + StarPie.Host（宿主内核：S2 AppDataPaths 默认数据目录提供）；无反向引用。
+         实现 runtime 只被 Host/注册器/测试引用，业务模块零引用（模块 runtime 互引
          清零仍成立）。
          DI 注册经 IconsModuleRegistrar（RegisterServices）下放本程序集，组合根仍唯一
          BuildServiceProvider。 -->
@@ -28,9 +28,8 @@
          自 Icons.Contracts、SPI IShortcutTargetResolver 自 Programs.Contracts 随收口迁入；
          命名空间 StarPie.Services.Icons 不变） -->
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
-    <!-- 共享内核 S2 AppDataPaths（IconAssetService 默认数据目录提供）——共享基建例外，
-         与 SPI 无关，本引用不随 #96 删除 -->
-    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
+    <!-- 宿主内核（IconAssetService 默认数据目录经 S2 AppDataPaths 提供） -->
+    <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
   </ItemGroup>
 
 </Project>

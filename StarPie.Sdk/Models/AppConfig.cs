@@ -4,9 +4,8 @@ namespace StarPie.Models
 {
     /// <summary>
     /// 应用运行配置模型：与 config.json 一一对应的持久化数据（语言、手势行为、轮盘外观与
-    /// 几何、自定义配色/背景纹理、配置方案与场景隔离等）。读写由
-    /// <see cref="StarPie.Services.Configuration.JsonConfigService"/> 负责；反序列化采用宽松模式
-    /// （大小写不敏感、允许注释与尾随逗号），便于手工编辑。
+    /// 几何、自定义配色/背景纹理、配置方案与场景隔离等）。文件读写由宿主内核的配置服务负责；
+    /// 反序列化采用宽松模式（大小写不敏感、允许注释与尾随逗号），便于手工编辑。
     /// </summary>
     public class AppConfig
     {
