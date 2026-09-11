@@ -2,7 +2,7 @@
 
 > Status: Active
 >
-> 现状正典：各 `.csproj` 的 `TargetFramework` 与根 `global.json`；程序集/技术栈表述见 `docs/architecture.md` §3。
+> 现状正典：根 `Directory.Build.props` 的 `TargetFramework` 与根 `global.json`；程序集/技术栈表述见 `docs/architecture.md` §3。
 
 ## 动机
 

@@ -115,6 +115,9 @@
 StarPie/
 ├── CONTEXT.md
 ├── AGENTS.md
+├── StarPie.slnx                 # 解决方案（登记全部工程；构建/测试入口，见 layout.md）
+├── Directory.Build.props        # 统一构建属性（TFM/可空性/隐式 using/分析器级别/根命名空间）
+├── Directory.Packages.props     # 中央包管理（包版本唯一集中处，csproj 不写版本）
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档

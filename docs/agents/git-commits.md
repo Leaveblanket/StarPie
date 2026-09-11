@@ -80,8 +80,10 @@ fix: 修复启动崩溃与页面导航失效(四处根因) (#21)
 1. **Build must pass**（每个提交前）:
 
    ```bash
-   dotnet build StarPie/StarPie.slnx
+   dotnet build StarPie.slnx
    ```
+
+   （仓库根执行，构建全解决方案；构建/测试入口与 CI 一致。）
 
 2. **xUnit 全量**（每个代码提交，含 refactor）:
 
