@@ -1,4 +1,6 @@
 global using StarPie.Models;
+global using StarPie.Icons;
+global using StarPie.Programs;
 global using StarPie.Services.Actions;
 global using StarPie.Kernel.Configuration;
 global using StarPie.Services.Dialogs;

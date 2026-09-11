@@ -7,10 +7,9 @@ namespace StarPie.Services.Programs
 {
     /// <summary>
     /// 程序目录的纯规则函数：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。
-    /// 刻意不带 IO（文件存在性、注册表检查）——此类扫描 IO 由 <see cref="ProgramScanner"/>
-    /// 编排并保持集成性质不单测；这里的规则全部是无副作用的字符串/路径判定，可直接单测。
-    /// 消费方（M3 扫描编排与 Dialogs 程序选择器过滤）经契约边调用；契约面驻 <c>StarPie.Sdk.Wpf</c>，
-    /// 命名空间保持 StarPie.Services.Programs。
+    /// 刻意不带 IO（文件存在性、注册表检查）——此类扫描 IO 由 <see cref="IProgramScanner"/>
+    /// 的实现编排并保持集成性质不单测；这里的规则全部是无副作用的字符串/路径判定，可直接单测。
+    /// 消费方（程序扫描编排与程序选择器过滤）直接调用。
     /// </summary>
     public static class ProgramCatalog
     {
@@ -125,6 +124,23 @@ namespace StarPie.Services.Programs
         }
 
         /// <summary>
+        /// 条目命中过滤判定（纯函数）：按显示名、友好路径或 exe 文件名的忽略大小写包含匹配；
+        /// 空过滤条件恒命中。
+        /// </summary>
+        public static bool MatchesFilter(ProgramEntry entry, string? filter)
+        {
+            if (string.IsNullOrEmpty(filter))
+            {
+                return true;
+            }
+
+            string lowerFilter = filter.Trim().ToLowerInvariant();
+            return entry.Name.ToLowerInvariant().Contains(lowerFilter) ||
+                   entry.FriendlyPath.ToLowerInvariant().Contains(lowerFilter) ||
+                   System.IO.Path.GetFileName(entry.Path).ToLowerInvariant().Contains(lowerFilter);
+        }
+
+        /// <summary>
         /// 搜索过滤（纯函数）：按显示名、友好路径或 exe 文件名的忽略大小写包含匹配；
         /// 空过滤条件返回全部（保持原顺序）。
         /// </summary>
@@ -135,12 +151,7 @@ namespace StarPie.Services.Programs
                 return programs.ToList();
             }
 
-            string lowerFilter = filter.Trim().ToLowerInvariant();
-            return programs.Where(p =>
-                p.Name.ToLowerInvariant().Contains(lowerFilter) ||
-                p.FriendlyPath.ToLowerInvariant().Contains(lowerFilter) ||
-                System.IO.Path.GetFileName(p.Path).ToLowerInvariant().Contains(lowerFilter))
-                .ToList();
+            return programs.Where(p => MatchesFilter(p, filter)).ToList();
         }
     }
 }

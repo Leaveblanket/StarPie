@@ -9,7 +9,7 @@ namespace StarPie.Tests;
 public sealed class ProgramCatalogTests
 {
     private static ProgramEntry Entry(string name, string path, string? friendly = null)
-        => new(name, path, friendly ?? path, IconSource: null);
+        => new(name, path, friendly ?? path);
 
     // --- 垃圾可执行过滤 ---------------------------------------------------------
 

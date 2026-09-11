@@ -23,7 +23,7 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 旧 15 集中的业务/契约 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧 15 集 runtime
+    /// 旧 15 集中尚未撤销的业务/契约 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧集 runtime
     /// （跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）；旧集只被 Ui 组合根与测试引用。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =
@@ -31,8 +31,6 @@ internal static class FourSetBoundaryProbe
         "StarPie.Core",
         "StarPie.Dialogs", "StarPie.Dialogs.Contracts",
         "StarPie.Gestures", "StarPie.Gestures.Contracts",
-        "StarPie.Icons", "StarPie.Icons.Contracts",
-        "StarPie.Programs", "StarPie.Programs.Contracts",
         "StarPie.Shell",
         "StarPie.Theme", "StarPie.Theme.Contracts",
         "StarPie.Wheel", "StarPie.Wheel.Contracts",

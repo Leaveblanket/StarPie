@@ -27,11 +27,12 @@
   <ItemGroup>
     <!-- #111 四集骨架：Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
          （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。
-         P1.3/#112：headless 契约与模型（IDialogService/结果 record、IWheelAppearanceState、
+          P1.3/#112：headless 契约与模型（IDialogService/结果 record、IWheelAppearanceState、
          IProfilePreviewSource、导航目录与消息等）已随 SDK 收口迁入 StarPie.Sdk；
-         P1.4/#113：WPF 契约件（IThemeService、IIconAssetService/条目类型、IProgramScanner/
-         ProgramEntry/ProgramCatalog/IShortcutTargetResolver）随 WPF 面收口迁入 StarPie.Sdk.Wpf；
-         Dialogs/Gestures/Wheel/Icons/Programs/Theme 六个契约工程暂留空壳、不再被引用。 -->
+         P1.4/#113：WPF 契约件（IThemeService、IIconAssetService）随 WPF 面收口迁入 StarPie.Sdk.Wpf；
+         程序扫描/图标契约（IProgramScanner/ProgramEntry/ProgramCatalog/IShortcutTargetResolver、
+         图标条目）随 #118 归并入 StarPie.Sdk，Icons/Programs 两 runtime 与各自 Contracts
+         工程撤销，剩余四个契约工程暂留空壳、不再被引用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
@@ -44,10 +45,6 @@
          VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、
          AppHost 建窗后调 DialogService.SetOwner 回填 Owner 装配面） -->
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
-    <!-- B4/#77：M3 模块程序集显式引用（ProgramScanner/ProgramCatalog/ShortcutResolver 随迁；
-         ADR-0019/#87 起 M3 单向依赖 Core，组合根调 ProgramsModuleRegistrar 注册
-         IShortcutTargetResolver 契约，扫描经 Core 契约注入） -->
-    <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
@@ -64,9 +61,6 @@
          组合根调 GesturesModuleRegistrar 装配导航与 M1 DI、AppHost 持有 MouseHook，
          手势侧只经 M2 IWheelFactory/IWheelViewModel 接口消费轮盘） -->
     <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
-    <!-- ADR-0023/#95：S1 实现 runtime 显式引用（组合根调 IconsModuleRegistrar 注册
-         IIconAssetService；契约面经 StarPie.Sdk.Wpf，P1.4/#113） -->
-    <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
   </ItemGroup>
 
   <ItemGroup>

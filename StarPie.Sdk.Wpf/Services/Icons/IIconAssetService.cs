@@ -6,8 +6,8 @@ namespace StarPie.Services.Icons
 {
     /// <summary>
     /// 「图标资产」实例服务契约：自定义图标存储（目录/列表缓存/导入/删除/图像源）与
-    /// 文件/程序图标提取（<see cref="GetIcon"/>）。内置矢量图标清单与 SVG 键目录等
-    /// 无状态纯目录见 <see cref="IconCatalog"/>（静态）。
+    /// 文件/程序图标提取（<see cref="GetIcon"/>）。实现驻 Ui 层（图像构造为 WPF 面）；
+    /// 内置矢量图标清单与 SVG 键目录等无状态纯目录在宿主内核（静态）。
     /// </summary>
     public interface IIconAssetService
     {

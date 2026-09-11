@@ -26,7 +26,7 @@ public sealed class ProgramPickerViewModelTests
     }
 
     private static ProgramEntry Entry(string name, string path)
-        => new(name, path, path, IconSource: null);
+        => new(name, path, path);
 
     private static ProgramPickerViewModel Create(
         Func<IReadOnlyList<ProgramEntry>>? scan = null,
@@ -35,7 +35,8 @@ public sealed class ProgramPickerViewModelTests
             new FakeProgramScanner(scan ?? (() => new List<ProgramEntry>())),
             dialogs ?? new TestDialogService(),
             Localization,
-            new ShortcutResolver());
+            new ShortcutResolver(),
+            new TestIconAssetService());
 
     // --- 扫描编排 ---------------------------------------------------------------
 

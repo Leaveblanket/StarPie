@@ -2,15 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
 namespace StarPie.ViewModels.Dialogs
 {
+    /// <summary>程序选择器列表条目：扫描候选（纯数据 <see cref="ProgramEntry"/>）与按路径装配的图标。</summary>
+    public sealed record ProgramPickerItem(ProgramEntry Program, ImageSource? IconSource)
+    {
+        public string Name => Program.Name;
+        public string Path => Program.Path;
+        public string FriendlyPath => Program.FriendlyPath;
+    }
+
     /// <summary>
     /// 程序选择器 ViewModel：完整接管扫描编排（注入 <see cref="IProgramScanner"/>，
-    /// 测试可换假实现）、
+    /// 测试可换假实现）、图标装配（注入 <see cref="IIconAssetService"/>）、
     /// 搜索过滤与选择结果。窗口 code-behind 只剩布局、本地化文案与把
     /// <see cref="IsCompleted"/> 落成 DialogResult。
     /// </summary>
@@ -25,16 +35,17 @@ namespace StarPie.ViewModels.Dialogs
         private readonly IDialogService _dialogs;
         private readonly ILocalizationService _localization;
         private readonly IShortcutTargetResolver _shortcutResolver;
-        private readonly List<ProgramEntry> _allPrograms = new();
+        private readonly IIconAssetService _iconAssets;
+        private readonly List<ProgramPickerItem> _allPrograms = new();
 
         /// <summary>当前过滤条件下的展示列表。</summary>
-        public ObservableCollection<ProgramEntry> DisplayedPrograms { get; } = new();
+        public ObservableCollection<ProgramPickerItem> DisplayedPrograms { get; } = new();
 
         [ObservableProperty]
         private string _searchText = "";
 
         [ObservableProperty]
-        private ProgramEntry? _selectedProgram;
+        private ProgramPickerItem? _selectedProgram;
 
         [ObservableProperty]
         private string _statusText;
@@ -58,12 +69,14 @@ namespace StarPie.ViewModels.Dialogs
             IProgramScanner programScanner,
             IDialogService dialogs,
             ILocalizationService localization,
-            IShortcutTargetResolver shortcutResolver)
+            IShortcutTargetResolver shortcutResolver,
+            IIconAssetService iconAssets)
         {
             _programScanner = programScanner ?? throw new ArgumentNullException(nameof(programScanner));
             _dialogs = dialogs;
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
+            _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             _statusText = _localization.GetString("ProgramPickerScanning");
             _ = LoadAsync();
         }
@@ -82,9 +95,13 @@ namespace StarPie.ViewModels.Dialogs
 
             try
             {
-                var programs = await Task.Run(() => _programScanner.ScanInstalledPrograms());
+                // 扫描与图标装配同处后台线程（图标提取为 Win32/图像构造，不阻塞 UI）。
+                var items = await Task.Run(() => _programScanner.ScanInstalledPrograms()
+                    .Select(entry => new ProgramPickerItem(entry, _iconAssets.GetIcon(entry.Path)))
+                    .ToList());
+
                 _allPrograms.Clear();
-                _allPrograms.AddRange(programs);
+                _allPrograms.AddRange(items);
                 ApplySearch(SearchText);
                 IsStatusVisible = false;
             }
@@ -95,13 +112,17 @@ namespace StarPie.ViewModels.Dialogs
             }
         }
 
-        /// <summary>搜索过滤：委托 <see cref="ProgramCatalog.FilterPrograms"/> 纯函数重建展示列表。</summary>
+        /// <summary>搜索过滤：委托 <see cref="ProgramCatalog.MatchesFilter"/> 纯函数重建展示列表
+        /// （保留同一 <see cref="ProgramPickerItem"/> 实例，选中项引用不随过滤抖动）。</summary>
         public void ApplySearch(string? filter)
         {
             DisplayedPrograms.Clear();
-            foreach (var entry in ProgramCatalog.FilterPrograms(_allPrograms, filter))
+            foreach (var item in _allPrograms)
             {
-                DisplayedPrograms.Add(entry);
+                if (ProgramCatalog.MatchesFilter(item.Program, filter))
+                {
+                    DisplayedPrograms.Add(item);
+                }
             }
         }
 

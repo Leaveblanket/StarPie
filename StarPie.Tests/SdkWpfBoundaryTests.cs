@@ -20,11 +20,7 @@ public sealed class SdkWpfBoundaryTests
     private static readonly Type[] MigratedTypes =
     {
         // Services/Icons/
-        typeof(IIconAssetService), typeof(IconCatalog), typeof(CustomIconItem), typeof(VectorIconItem),
-        // Services/Icons/IShortcutTargetResolver.cs
-        typeof(IShortcutTargetResolver),
-        // Services/Programs/
-        typeof(IProgramScanner), typeof(ProgramEntry), typeof(ProgramCatalog),
+        typeof(IIconAssetService),
         // Services/Shell/
         typeof(IThemeService),
         // Compatibility/
