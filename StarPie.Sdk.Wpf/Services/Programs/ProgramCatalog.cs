@@ -9,9 +9,9 @@ namespace StarPie.Services.Programs
     /// 程序目录的纯规则函数：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。
     /// 刻意不带 IO（文件存在性、注册表检查）——此类扫描 IO 由 <see cref="ProgramScanner"/>
     /// 编排并保持集成性质不单测；这里的规则全部是无副作用的字符串/路径判定，可直接单测。
-    /// ADR-0020/#88 契约化上提共享内核；ADR-0023/#96 契约随实现方 M3 下沉
-    /// <c>StarPie.Programs.Contracts</c>（消费方：M3 扫描编排 + Dialogs 程序选择器过滤经契约边），
-    /// 命名空间保持 StarPie.Services.Programs。
+    /// ADR-0020/#88 契约化上提共享内核；ADR-0023/#96 契约随实现方 M3 下沉，
+    /// P1.4/#113 随 SDK 的 WPF 面收口迁入 <c>StarPie.Sdk.Wpf</c>
+    /// （消费方：M3 扫描编排 + Dialogs 程序选择器过滤经契约边），命名空间保持 StarPie.Services.Programs。
     /// </summary>
     public static class ProgramCatalog
     {

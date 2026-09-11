@@ -28,8 +28,10 @@
     <!-- #111 四集骨架：Ui 集引用宿主内核、headless SDK 与 SDK 的 WPF 契约面
          （跨集单向：Ui → Host → Sdk，Ui → Sdk.Wpf → Sdk；各集内容随 P1.3–P1.10 迁入）。
          P1.3/#112：headless 契约与模型（IDialogService/结果 record、IWheelAppearanceState、
-         IProfilePreviewSource、导航目录与消息等）已随 SDK 收口迁入 StarPie.Sdk，本集经该引用
-         消费；Dialogs/Gestures/Wheel 三个纯托管契约工程暂留空壳、不再被引用。 -->
+         IProfilePreviewSource、导航目录与消息等）已随 SDK 收口迁入 StarPie.Sdk；
+         P1.4/#113：WPF 契约件（IThemeService、IIconAssetService/条目类型、IProgramScanner/
+         ProgramEntry/ProgramCatalog/IShortcutTargetResolver）随 WPF 面收口迁入 StarPie.Sdk.Wpf；
+         Dialogs/Gestures/Wheel/Icons/Programs/Theme 六个契约工程暂留空壳、不再被引用。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
@@ -43,11 +45,6 @@
          ADR-0019/#87 起 M3 单向依赖 Core，组合根调 ProgramsModuleRegistrar 注册
          IShortcutTargetResolver 契约，扫描经 Core 契约注入） -->
     <ProjectReference Include="..\StarPie.Programs\StarPie.Programs.csproj" />
-    <!-- ADR-0023/#96：M3 扫描契约独立成集显式引用（Composition 直用 IShortcutTargetResolver/
-         IProgramScanner 契约面，不再经 Core 传递） -->
-    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
-    <!-- ADR-0023/#97：M4 主题契约独立成集显式引用（MainView/组合根消费 IThemeService 契约面） -->
-    <ProjectReference Include="..\StarPie.Theme.Contracts\StarPie.Theme.Contracts.csproj" />
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
@@ -64,9 +61,8 @@
          组合根调 GesturesModuleRegistrar 装配导航与 M1 DI、AppHost 持有 MouseHook，
          手势侧只经 M2 IWheelFactory/IWheelViewModel 接口消费轮盘） -->
     <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
-    <!-- ADR-0023/#95：S1 契约独立成集——契约程序集显式引用（IIconAssetService 等类型面）；
-         实现 runtime 显式引用（组合根调 IconsModuleRegistrar 注册 IIconAssetService） -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
+    <!-- ADR-0023/#95：S1 实现 runtime 显式引用（组合根调 IconsModuleRegistrar 注册
+         IIconAssetService；契约面经 StarPie.Sdk.Wpf，P1.4/#113） -->
     <ProjectReference Include="..\StarPie.Icons\StarPie.Icons.csproj" />
   </ItemGroup>
 

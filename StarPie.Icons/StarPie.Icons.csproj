@@ -3,8 +3,9 @@
   <PropertyGroup>
     <!-- ADR-0023/#95：S1 图标实现独立成集（IconAssetService + IconsModuleRegistrar）——
          解 IShortcutTargetResolver（SPI）归属死结：消费方随 S1 离开 Core，SPI #96 随
-         Programs.Contracts 迁出（#96 已落地）。依赖方向：StarPie.Icons → StarPie.Icons.Contracts
-         （契约）+ StarPie.Programs.Contracts（SPI 消费，.lnk 解析经 M3 契约边）
+         Programs.Contracts 迁出（#96 已落地）。P1.4/#113：契约面随 SDK 收口——IIconAssetService
+         契约四件（原 Icons.Contracts）与 SPI IShortcutTargetResolver（原 Programs.Contracts）
+         统一迁入 StarPie.Sdk.Wpf。依赖方向：StarPie.Icons → StarPie.Sdk.Wpf（契约面）
          + StarPie.Core（S2 AppDataPaths 默认数据目录提供，共享基建例外）；无 Core → Icons
          反向。实现 runtime 只被 Host/注册器/测试引用，业务模块零引用（模块 runtime 互引
          清零仍成立）。
@@ -21,14 +22,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IconCatalog/CustomIconItem/
-         VectorIconItem；IIconAssetService 仍驻 Icons.Contracts，WPF 契约件留 P1.4） -->
+    <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（S2/S3 之外的共享面） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
-    <!-- ADR-0023/#95：S1 契约（IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem） -->
-    <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
-    <!-- ADR-0023/#96：IconAssetService .lnk 解析依赖的 SPI IShortcutTargetResolver 已随
-         M3 契约下沉 Programs.Contracts（命名空间 StarPie.Services.Icons 不变） -->
-    <ProjectReference Include="..\StarPie.Programs.Contracts\StarPie.Programs.Contracts.csproj" />
+    <!-- P1.4/#113：SDK WPF 契约面（IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem
+         自 Icons.Contracts、SPI IShortcutTargetResolver 自 Programs.Contracts 随收口迁入；
+         命名空间 StarPie.Services.Icons 不变） -->
+    <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
     <!-- 共享内核 S2 AppDataPaths（IconAssetService 默认数据目录提供）——共享基建例外，
          与 SPI 无关，本引用不随 #96 删除 -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
