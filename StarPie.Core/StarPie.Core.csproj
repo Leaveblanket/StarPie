@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- B2/#75：共享内核程序集（S1–S6 合并 + Models，ADR-0016 决策 1/12）。
+    <!-- B2/#75：共享内核程序集（ADR-0016 决策 1/12）。
+         P1.3/#112：契约与模型（Models/Messages/NavigationCatalog/AppHostDelegates）迁
+         StarPie.Sdk，本集只余 Configuration/Localization 运行时件（P1.5 起迁 StarPie.Host），
+         经 StarPie.Sdk 单向引用取契约/模型。
          B10/#83：跨程序集共享 StarPie.* 命名空间树，根命名空间使 resx 强类型生成类
          （VocaDb.ResXFileCodeGenerator）落在 StarPie.Services.Localization；
          TFM / 可空性 / 隐式 using 统一在仓库根 Directory.Build.props。 -->
@@ -13,6 +16,12 @@
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <!-- ADR-0013/#44：resx 强类型资源生成随资源迁入 Core（原 exe csproj 条目随 B2 移除） -->
     <PackageReference Include="VocaDb.ResXFileCodeGenerator" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- P1.3/#112：契约/模型（AppConfig/WheelProfile/ActionItem/消息/导航目录/AppHostDelegates）
+         随 SDK 收口迁入 StarPie.Sdk，本集经旧集 → SDK 单向引用取用。 -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -21,6 +21,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IconCatalog/CustomIconItem/
+         VectorIconItem；IIconAssetService 仍驻 Icons.Contracts，WPF 契约件留 P1.4） -->
+    <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <!-- ADR-0023/#95：S1 契约（IIconAssetService/IconCatalog/CustomIconItem/VectorIconItem） -->
     <ProjectReference Include="..\StarPie.Icons.Contracts\StarPie.Icons.Contracts.csproj" />
     <!-- ADR-0023/#96：IconAssetService .lnk 解析依赖的 SPI IShortcutTargetResolver 已随

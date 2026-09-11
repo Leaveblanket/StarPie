@@ -1,3 +1,5 @@
+using StarPie.Models;
+
 namespace StarPie.Services.Messages
 {
     /// <summary>
