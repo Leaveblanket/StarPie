@@ -17,8 +17,7 @@ VM 层零对话框类型引用的统一模态对话框入口。
   `Views/Controls/SpectrumCanvasBehavior.cs`（契约与实现跨程序集，接口稳定）。依赖方向：
   Dialogs → Sdk（自身契约 IDialogService、程序扫描/.lnk 契约与图标条目——不引用 Icons/Programs
   runtime；实现与注册在组合根）+ Sdk.Wpf（图标资产服务 `IIconAssetService` 与 M4
-  `IThemeService` 契约面，ADR-0023：Dialogs→M4 runtime 允许边清零，
-  不引用 Theme runtime）+ Host（S2/S3 与图标目录/程序扫描实现）+ Core（S2/S3/S4 共享基建）。
+  `IThemeService` 契约面，ADR-0023）+ Host（S2/S3 与图标目录/程序扫描实现）+ Core（S2/S3/S4 共享基建）。
 
 ## 唯一形态（正典）
 

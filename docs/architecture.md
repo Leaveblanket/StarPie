@@ -81,8 +81,7 @@
   [design-time-preview.md](architecture/design-time-preview.md)）。
 - 契约与模型已迁 `StarPie.Sdk`（P1.3/#112：Models/Messages/导航目录与槽位/`AppHostDelegates`、
   对话框与预览 Profile 契约；旧 `Dialogs.Contracts`/`Gestures.Contracts` 暂留空壳）与
-  `StarPie.Sdk.Wpf`（P1.4/#113：主题与图标资产服务契约件；旧 Theme.Contracts
-  暂留空壳）；导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
+  `StarPie.Sdk.Wpf`（P1.4/#113：主题与图标资产服务契约件）；导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
   NavigationItemViewModel）归 Ui 集 `StarPie.Ui/Services/Navigation/` 与
   `StarPie.Ui/ViewModels/Navigation/`，命名空间不变；共享 UI 基建已去共享化——通用转换器与
   `ModernControls.xaml`（全局控件样式字典）归 `StarPie.Ui/Views/Converters|Styles/`、
@@ -97,11 +96,11 @@
   承载 M5 壳层服务与系统设置面（TrayIconManager/AutostartRegistry/MemoryOptimizer/
   GeneralSettingsViewModel+AdvancedSettingsPage 与正式模块注册器 ShellModuleRegistrar），
   单向依赖 `StarPie.Sdk` 与宿主内核（S2/S3）；命名空间统一为 `StarPie.*`。
-- 模块程序集（出口契约随实现方下沉）：`StarPie.Theme/`（WPF 类库，程序集 `StarPie.Theme`）
-  承载 M4 界面主题实现（ThemeService、AppThemePaletteManager（public，Host AppHost 装配面）、
-  五套主题字典 Views/Styles/Themes、InterfaceThemeSettingsViewModel 与模块注册器
-  ThemeModuleRegistrar），出口契约 `IThemeService` 随 P1.4/#113 收口入 `StarPie.Sdk.Wpf`
-  （命名空间不变；旧 Theme.Contracts 暂留空壳）；Theme runtime → Sdk/Sdk.Wpf + Host（内核）单向；
+- M4 界面主题（P1.8/#117 归并，不再独立成集）：主题引擎 `ThemeEngine`（状态/解析/切换与系统
+  跟随重解析，零 WPF）与宿主→Ui 端口 `IThemeApplier` 驻 `StarPie.Host/Themes|Ports/`；
+  `IThemeService` 实现 `ThemeService`（窗口 DWM 应用与系统深浅色监听）、调色板适配器
+  `AppThemePaletteManager`、五套主题字典 `Themes/`、主题设置子 VM 与模块注册器
+  `ThemeModuleRegistrar` 驻 `StarPie.Ui/`；出口契约 `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`；
   命名空间统一为 `StarPie.*`。
 - 模块程序集（出口契约随实现方下沉）：`StarPie.Wheel/`（WPF 类库，程序集 `StarPie.Wheel`）
   承载 M2 轮盘与渲染（WheelViewModel/RadialWindow/Views/Renderers 样式渲染器与预览、
@@ -159,19 +158,17 @@ StarPie/
 ├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测；内核运行时在 Kernel/，图标目录/程序扫描在 Icons|Programs/）
 ├── StarPie.Core/                # 设计期投影壳（只余设计期字符串字典；运行时已迁 Host，见 layout.md）
 ├── StarPie.Dialogs.Contracts/   # S6 对话框契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
-├── StarPie.Theme.Contracts/     # M4 界面主题契约工程（P1.4/#113 迁 Sdk.Wpf 后暂留空壳，见 layout.md）
 ├── StarPie.Wheel.Contracts/     # M2 轮盘契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
 ├── StarPie.Gestures.Contracts/  # M1 预览 Profile 契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（见 layout.md）
-├── StarPie.Theme/               # M4 界面主题模块程序集（见 layout.md）
 ├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（见 layout.md）
 ├── StarPie.Gestures/            # M1 手势与动作模块程序集（见 layout.md）
 ├── StarPie.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地（Icons/Programs 已归并撤销），`plugins/` 自 P2 起加入。
+> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地（Icons/Programs、Host 内核与 M4 主题已归并撤销），`plugins/` 自 P2 起加入。
 
 测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 

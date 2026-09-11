@@ -67,11 +67,11 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
     组合根构造配置路径与回填 dev 分支用；内核导出面由 `HostBoundaryTests` 白名单收口）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：`StarPie.Shell` 的
     `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
-    `AutostartRegistry` 只被同集注册器接线，保持 internal；`StarPie.Theme` 的
-    `AppThemePaletteManager` 与 `ThemeService.AttachPaletteApplier`——`AppHost` 构造时
-    `new` 调色板管理器并 Attach 换入回调；`StarPie.Wheel` 的轮盘工厂与外观设置子 VM 只经同集
-    注册器接线/容器解析，维持 public（被测类型），无新增 Host 装配面 public 裁决——
-    RadialWindow 由 WheelFactory 在同集内创建，不经 Host 直接 new）。
+    `AutostartRegistry` 只被同集注册器接线，保持 internal；M4 并入 Ui 集后
+    `AppThemePaletteManager` 与主题服务的装配面回落 internal（装配方 `AppHost` 与实现同集）；
+    `StarPie.Wheel` 的轮盘工厂与外观设置子 VM 只经同集注册器接线/容器解析，维持 public
+    （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
+    不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
@@ -92,7 +92,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - **只由组合根注册（可经模块注册器 RegisterServices 下放）**；View/ViewModel 不自行 `new` 服务、
   不使用服务定位器（导航执行入口 `NavigationExecutor` 例外见上——Host 内部解析缝）。
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
-- **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeService` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
+- **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
 - Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具后**经组合根委托注入**给 VM。
 - **S1 图标资产双形先例**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序

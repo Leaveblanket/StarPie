@@ -41,8 +41,8 @@
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、
      `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体归 Host，
      目录执行缝为 Host 内部件）。M4 的 `ThemeService`（具体类）+
-     `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Theme；
-     `IThemeService` 契约驻 StarPie.Sdk.Wpf，P1.4/#113 收口，ADR-0023），组合根不直接登记主题服务；M2 的
+     `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Ui；
+     `IThemeService` 契约驻 StarPie.Sdk.Wpf，ADR-0023），组合根不直接登记主题服务；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
      `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 `StarPie.Sdk`，ADR-0023，
      P1.3/#112 收口，M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
@@ -67,7 +67,7 @@
      的注册由 `GesturesModuleRegistrar.RegisterServices` 下放 `StarPie.Gestures`；`IWheelFactory`
      的注册见 WheelModuleRegistrar 注。）
    - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
-     `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Theme`（模块无导航页，只下放 DI
+     `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Ui`（模块无导航页，只下放 DI
      注册）；M5 页面（`GeneralSettingsViewModel`）由
      `ShellModuleRegistrar.RegisterServices` 下放模块程序集（ADR-0016 决策 8，见
      [assemblies.md](assemblies.md) §6）；M1 两页（`BehaviorSettingsViewModel`/
@@ -87,12 +87,12 @@
      `AppHost` 构造后回填；`ShellModuleRegistrar` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
     - `ThemeModuleRegistrar.RegisterServices` 在组合根先行调用（M4 → Host 内核 + Sdk.Wpf
       单向），主题服务/主题设置子 VM 的工厂只解析内核/SDK 契约（`IThemeService` 契约驻
-      StarPie.Sdk.Wpf，P1.4/#113，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
-      直接 `new`（StarPie.Theme public，Host 装配面）。
+      StarPie.Sdk.Wpf，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
+      直接 `new` 并经内核端口 `IThemeApplier` 接到主题服务（同集适配器，装配面在 Ui 内）。
     - `WheelModuleRegistrar.RegisterServices` 在组合根调用（M2 → Sdk + Host 内核 +
       Sdk.Wpf 契约面），轮盘工厂
       `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析契约程序集（`IThemeService`
-      经 Sdk.Wpf，M2→M4 runtime 允许边清零，ADR-0023）；RadialWindow 不经 Host
+      经 Sdk.Wpf，ADR-0023）；RadialWindow 不经 Host
       直接 new——由 WheelFactory 在 StarPie.Wheel 内创建。
     - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Sdk + Host 内核 + Sdk.Wpf
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
