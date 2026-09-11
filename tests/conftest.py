@@ -4,6 +4,7 @@ import re
 import subprocess
 import time
 import warnings
+import win32gui
 import pytest
 from pywinauto import Application, Desktop
 
@@ -114,6 +115,40 @@ def label_value(win, auto_id: str, timeout: float = 3.0) -> float:
     match = re.search(r"-?\d+(?:\.\d+)?", text)
     assert match, f"{auto_id} 标签不含数值: {text!r}"
     return float(match.group())
+
+
+def wait_dialog(title: str, timeout: float = 10.0):
+    """等待并返回指定标题的顶层对话框（win32 按 HWND 查找 + UIA 包装为 WindowSpecification）。
+
+    后台形态下对话框离屏且为 owned 窗口，pywinauto 的进程/桌面枚举不一定包含它，
+    但 win32 枚举可见；拿到 HWND 后经 handle 绑定，child_window/invoke 与常规 WindowSpecification 一致。
+    """
+    deadline = time.time() + timeout
+    while True:
+        hwnd = win32gui.FindWindow(None, title)
+        if hwnd:
+            return Desktop(backend="uia").window(handle=hwnd)
+        if time.time() >= deadline:
+            raise AssertionError(f"等待对话框超时（{timeout}s）：{title!r}")
+        time.sleep(0.1)
+
+
+def wait_dialog_closed(dialog, timeout: float = 5.0) -> None:
+    """等待对话框关闭；句柄失效（销毁后 UIA 解析抛 COMError）等价于已关闭。
+
+    pywinauto 的 exists() 命中即返回、不等待关闭；窗口销毁瞬间句柄查询会抛
+    COMError，故此轮询同时处理"仍存在"与"已不可解析"两种状态。
+    """
+    deadline = time.time() + timeout
+    while True:
+        try:
+            if not dialog.exists(timeout=0.2):
+                return
+        except Exception:
+            return
+        if time.time() >= deadline:
+            raise AssertionError(f"等待对话框关闭超时（{timeout}s）")
+        time.sleep(0.1)
 
 
 @pytest.fixture(scope="function")
