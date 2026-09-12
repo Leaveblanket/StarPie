@@ -198,14 +198,12 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     assert win.is_visible()
 
 
-def test_v124_app_interface_themes_and_clean_appearance(app):
+def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
     """
-    Test v1.2.4 features:
-    1. Navigation to Appearance Page (NavPage1).
-    2. Verification that 'AppThemeComboBox' (软件控制台界面主题) exists and functions.
-    3. Verification that 'WheelPaletteComboBox' (轮盘配色方案) with 7+ presets exists.
-    4. Verification that Wheel Background images card is removed.
-    5. AppTheme selection, saving, and JSON persistence validation.
+    外观页（NavPage1）界面主题与轮盘配色控件 + 背景图片控件下线 + AppTheme 落盘：
+    1. AppThemeComboBox（软件界面主题）与 WheelPaletteComboBox（轮盘配色方案）存在；
+    2. 全量枚举证明 WheelBg* 家族已下线（否定断言可证否）；
+    3. 选中 Dark → Save → config.json 落盘 AppTheme=Dark。
     """
     win, local_app_data = app
 
@@ -287,7 +285,7 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     assert config.get("WheelStyle") == "CleanSectors", f"WheelStyle ({config.get('WheelStyle')}) should be 'CleanSectors'"
 
 
-def test_v132_shapes_fontsize_and_iconsize_control(app):
+def test_shape_selection_and_icon_font_size_persistence(app):
     """
     扇区形状切换与图标/文字尺寸滑块的取值与落盘：
     1. Navigation to Appearance Page (NavPage1).
@@ -304,10 +302,15 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
     assert shape_combo.item_count() == 4, f"ShapeComboBox 应为 4 项，got {shape_combo.item_count()}"
 
-    # 选 RoundedCapsule（目录固定 4 项，index 2）；切换生效以选中项为准，
-    # 落盘值在 Save 后另行断言——不再"点过即算"或靠固定 sleep 兜底（#135 P0-1/P0-2）。
+    # 选 RoundedCapsule（目录固定 4 项，index 2）；模板内 ComboBox 的 UIA 选中态刷新可能滞后，
+    # 故轮询确认选中项；落盘值在 Save 后另行断言——不再"点过即算"或靠固定 sleep 兜底（#135 P0-1/P0-2）。
     shape_combo.select(2)
-    assert shape_combo.selected_index() == 2, "ShapeComboBox 未切到 index 2（RoundedCapsule）"
+    deadline = time.time() + 3.0
+    selected = shape_combo.selected_index()
+    while selected != 2 and time.time() < deadline:
+        time.sleep(0.1)
+        selected = shape_combo.selected_index()
+    assert selected == 2, f"ShapeComboBox 未切到 index 2（RoundedCapsule），实为 {selected}"
 
     # 2. Verify SectorIconSizeSlider exists and functions
     icon_slider = win.child_window(auto_id="SectorIconSizeSlider", control_type="Slider")
