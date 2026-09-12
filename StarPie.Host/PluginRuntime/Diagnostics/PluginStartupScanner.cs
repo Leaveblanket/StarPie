@@ -132,6 +132,7 @@ namespace StarPie.PluginRuntime.Diagnostics
                 PluginId = pluginId,
                 Name = manifest?.Name,
                 Version = stateEntry.Version,
+                HasUi = manifest?.Ui is not null,
                 Admission = decision.Status,
                 AdmissionReason = decision.Reason,
                 Enabled = stateEntry.Enabled,

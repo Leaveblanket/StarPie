@@ -32,6 +32,7 @@ public sealed class PluginManagerViewModelTests : IDisposable
     private readonly PluginRuntimeHost _host;
     private readonly NavigationStore _navigation = new();
     private readonly LocalizationService _localization = new();
+    private readonly TestDialogService _dialogs = new();
 
     public PluginManagerViewModelTests()
     {
@@ -40,15 +41,23 @@ public sealed class PluginManagerViewModelTests : IDisposable
         _stateStore = new PluginStateStore(Path.Combine(_tempRoot, "plugin-state.json"));
         var registry = new CapabilityRegistry();
         registry.DeclareBuiltin(ProgramSourceCapability.Contract, new BuiltInStubScanner());
+        // 插件包写进临时目录：彻底移除会真删包目录，绝不能指向测试输出目录里的随包插件。
+        PluginTestPackage.CreateLoadable(_tempRoot, PluginId);
         _host = new PluginRuntimeHost(
             new PluginStartupScanner(
-                new PluginDiscovery(PluginPaths.InstallDirectory, Path.Combine(_tempRoot, "user-plugins")),
+                new PluginDiscovery(_tempRoot, Path.Combine(_tempRoot, "user-plugins")),
                 new PluginAdmissionPolicy(PluginAdmissionPolicy.DefaultBuiltInPluginIds),
                 _stateStore,
                 new PluginStartupReportWriter(Path.Combine(_tempRoot, "plugin-startup-report.json"))),
             _stateStore,
             new PluginLoadPipeline(registry),
-            new PluginUnloadPipeline(() => { }));
+            new PluginUnloadPipeline(() => { }),
+            new PluginUninstallOptions
+            {
+                RemoveConfigSection = _ => { },
+                PluginDataRoot = Path.Combine(_tempRoot, "plugin-data"),
+                FlushPendingSaves = () => { },
+            });
     }
 
     public void Dispose()
@@ -126,6 +135,18 @@ public sealed class PluginManagerViewModelTests : IDisposable
     }
 
     [Fact]
+    public async Task 诊断面板_呈现本进程生效版本()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+
+        Assert.Single(viewModel.Plugins).DiagnosticsCommand.Execute(null);
+
+        Assert.Contains("本进程生效版本", viewModel.DiagnosticsText);
+        Assert.Contains("1.0.0", viewModel.DiagnosticsText);
+    }
+
+    [Fact]
     public async Task 隔离态停用命令_落停用意图且隔离原因保持可见()
     {
         _stateStore.Current.GetOrCreate(PluginId).Quarantine = new PluginQuarantineState(
@@ -156,8 +177,141 @@ public sealed class PluginManagerViewModelTests : IDisposable
         Assert.Equal("已停用", Assert.Single(viewModel.Plugins).StatusText);
     }
 
+    [Fact]
+    public async Task 页面_常显当前准入模式()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+
+        // 默认（开发者模式关闭）：准入只认内置与审核清单。
+        Assert.False(viewModel.IsDeveloperModeEnabled);
+        Assert.Equal("仅内置与审核清单", viewModel.AdmissionModeText);
+
+        _stateStore.Current.DeveloperModeEnabled = true;
+        _stateStore.Save();
+        viewModel.Refresh();
+
+        Assert.True(viewModel.IsDeveloperModeEnabled);
+        Assert.Equal("开发者模式", viewModel.AdmissionModeText);
+    }
+
+    [Fact]
+    public async Task 列表_区分停用重载更新三态()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+
+        PluginManagerItemViewModel active = Assert.Single(viewModel.Plugins);
+
+        // 活动态：停用/重载/更新三个动作都可发起，互不等价。
+        Assert.True(active.CanToggle);
+        Assert.True(active.CanReload);
+        Assert.True(active.CanUpdate);
+        Assert.True(active.CanUninstall);
+        Assert.Equal("停用", active.ToggleText);
+        Assert.Equal("重载", active.ReloadText);
+        Assert.Equal("更新", active.UpdateText);
+        Assert.False(active.HasPendingRestart);
+
+        // 已停用：可再启用，没有可重载/可更新的运行实例。
+        await active.ToggleCommand.ExecuteAsync(null);
+        PluginManagerItemViewModel disabled = Assert.Single(viewModel.Plugins);
+        Assert.Equal("已停用", disabled.StatusText);
+        Assert.False(disabled.CanReload);
+        Assert.False(disabled.CanUpdate);
+        Assert.True(disabled.CanUninstall);
+    }
+
+    [Fact]
+    public async Task 界面插件更新后_条目表达下次启动生效()
+    {
+        // 界面插件：程序集留在进程内不可回收，更新只能隔离旧版本并等下次启动。
+        const string UiPluginId = "com.example.manager-ui";
+        const string UiSection = """
+            "sdk": "1.0", "entryType": "StarPie.Tests.ProgramSourceTestPlugin"
+            """;
+        string packageRoot = Path.Combine(_tempRoot, "ui-plugins");
+        PluginTestPackage.CreateLoadable(
+            packageRoot, UiPluginId, version: "1.0.0", uiSection: UiSection);
+        var uiState = new PluginStateStore(Path.Combine(_tempRoot, "ui-state.json"));
+        var uiRegistry = new CapabilityRegistry();
+        uiRegistry.DeclareContract(ProgramSourceCapability.Contract);
+        var uiHost = new PluginRuntimeHost(
+            new PluginStartupScanner(
+                new PluginDiscovery(packageRoot, Path.Combine(_tempRoot, "ui-user")),
+                new PluginAdmissionPolicy(new[] { UiPluginId }),
+                uiState,
+                new PluginStartupReportWriter(Path.Combine(_tempRoot, "ui-report.json"))),
+            uiState,
+            new PluginLoadPipeline(uiRegistry),
+            new PluginUnloadPipeline(() => { }),
+            new PluginUninstallOptions
+            {
+                RemoveConfigSection = _ => { },
+                PluginDataRoot = Path.Combine(_tempRoot, "ui-plugin-data"),
+                FlushPendingSaves = () => { },
+            });
+        await uiHost.StartAsync(CancellationToken.None);
+        Assert.Equal("活动", new PluginManagerViewModel(uiHost, new NavigationStore(), _localization)
+            .Plugins.Single().StatusText);
+
+        PluginTestPackage.CreateLoadable(
+            packageRoot, UiPluginId, version: "2.0.0", uiSection: UiSection);
+        var viewModel = new PluginManagerViewModel(uiHost, new NavigationStore(), _localization, dialogs: _dialogs);
+
+        await viewModel.Plugins.Single().UpdateCommand.ExecuteAsync(null);
+
+        PluginManagerItemViewModel item = Assert.Single(viewModel.Plugins);
+        Assert.Equal("待重启", item.StatusText);
+        Assert.True(item.HasPendingRestart);
+        Assert.Contains("2.0.0", item.PendingRestartText);
+        Assert.Contains("下次启动", item.PendingRestartText);
+        Assert.Equal("停用", item.ToggleText);
+        Assert.False(item.CanReload);
+        Assert.False(item.CanUpdate);
+        Assert.True(item.CanUninstall);
+    }
+
+    [Fact]
+    public async Task 重载命令_走安全点卸载后重新装载()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+
+        await Assert.Single(viewModel.Plugins).ReloadCommand.ExecuteAsync(null);
+
+        Assert.Equal("活动", Assert.Single(viewModel.Plugins).StatusText);
+        Assert.Equal(new[] { PluginId }, _host.ActivePluginIds);
+    }
+
+    [Fact]
+    public async Task 彻底移除命令_确认后清空条目()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+        _dialogs.ConfirmResult = true;
+
+        await Assert.Single(viewModel.Plugins).UninstallCommand.ExecuteAsync(null);
+
+        Assert.Single(_dialogs.ConfirmCalls);
+        Assert.Empty(viewModel.Plugins);
+    }
+
+    [Fact]
+    public async Task 彻底移除命令_取消确认时不动作()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        PluginManagerViewModel viewModel = CreateViewModel();
+        _dialogs.ConfirmResult = false;
+
+        await Assert.Single(viewModel.Plugins).UninstallCommand.ExecuteAsync(null);
+
+        Assert.Single(viewModel.Plugins);
+        Assert.Equal(new[] { PluginId }, _host.ActivePluginIds);
+    }
+
     private PluginManagerViewModel CreateViewModel()
-        => new(_host, _navigation, _localization);
+        => new(_host, _navigation, _localization, dialogs: _dialogs);
 
     /// <summary>内置来源替身：让能力契约成立，不参与页面断言。</summary>
     private sealed class BuiltInStubScanner : IProgramScanner

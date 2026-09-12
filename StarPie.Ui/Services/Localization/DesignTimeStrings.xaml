@@ -186,24 +186,36 @@
     <sys:String x:Key="PluginDevModeDisclosureTitle" xml:space="preserve">开发者模式：进程内全信任风险披露</sys:String>
     <sys:String x:Key="PluginDevModeDisclosureUnload" xml:space="preserve">卸载可能失败；失败的插件会被隔离，需重启处理</sys:String>
     <sys:String x:Key="PluginManagerAdmissionLabel" xml:space="preserve">准入</sys:String>
+    <sys:String x:Key="PluginManagerAdmissionMode" xml:space="preserve">准入模式</sys:String>
+    <sys:String x:Key="PluginManagerAdmissionModeDefault" xml:space="preserve">仅内置与审核清单</sys:String>
+    <sys:String x:Key="PluginManagerAdmissionModeDev" xml:space="preserve">开发者模式</sys:String>
     <sys:String x:Key="PluginManagerDiagnostics" xml:space="preserve">诊断</sys:String>
     <sys:String x:Key="PluginManagerDiagnosticsTitle" xml:space="preserve">诊断报告</sys:String>
     <sys:String x:Key="PluginManagerDisable" xml:space="preserve">停用</sys:String>
     <sys:String x:Key="PluginManagerEnable" xml:space="preserve">启用</sys:String>
+    <sys:String x:Key="PluginManagerLoadedVersionLabel" xml:space="preserve">本进程生效版本</sys:String>
     <sys:String x:Key="PluginManagerNoPluginSelected" xml:space="preserve">选择一个插件查看诊断报告。</sys:String>
     <sys:String x:Key="PluginManagerNoResiduals" xml:space="preserve">无残留：失败现场已收口。</sys:String>
     <sys:String x:Key="PluginManagerPackagePathLabel" xml:space="preserve">包目录</sys:String>
+    <sys:String x:Key="PluginManagerPendingRestart" xml:space="preserve">新版本 {0} 已就位：下次启动生效</sys:String>
     <sys:String x:Key="PluginManagerPluginIdLabel" xml:space="preserve">插件</sys:String>
     <sys:String x:Key="PluginManagerQuarantineLabel" xml:space="preserve">隔离原因</sys:String>
+    <sys:String x:Key="PluginManagerReload" xml:space="preserve">重载</sys:String>
     <sys:String x:Key="PluginManagerResiduals" xml:space="preserve">残留清单</sys:String>
     <sys:String x:Key="PluginManagerRetry" xml:space="preserve">重试</sys:String>
     <sys:String x:Key="PluginManagerStatusLabel" xml:space="preserve">状态</sys:String>
-    <sys:String x:Key="PluginManagerSubheader" xml:space="preserve">查看宿主扫描到的插件与状态，执行启用、停用、重试与诊断。</sys:String>
+    <sys:String x:Key="PluginManagerSubheader" xml:space="preserve">查看宿主扫描到的插件与状态，执行启用、停用、重载、更新、重试、诊断与彻底移除。</sys:String>
+    <sys:String x:Key="PluginManagerUninstall" xml:space="preserve">彻底移除</sys:String>
+    <sys:String x:Key="PluginManagerUninstallConfirmMessage" xml:space="preserve">确定彻底移除「{0}」吗？插件的包、配置、数据与宿主状态都会一并清除，且无法撤销。</sys:String>
+    <sys:String x:Key="PluginManagerUninstallConfirmTitle" xml:space="preserve">彻底移除插件</sys:String>
+    <sys:String x:Key="PluginManagerUninstallFailedTitle" xml:space="preserve">彻底移除未完成</sys:String>
+    <sys:String x:Key="PluginManagerUpdate" xml:space="preserve">更新</sys:String>
     <sys:String x:Key="PluginManagerVersionLabel" xml:space="preserve">版本</sys:String>
     <sys:String x:Key="PluginSettingsSectionsTitle" xml:space="preserve">插件设置</sys:String>
     <sys:String x:Key="PluginStatusActive" xml:space="preserve">活动</sys:String>
     <sys:String x:Key="PluginStatusDisabled" xml:space="preserve">已停用</sys:String>
     <sys:String x:Key="PluginStatusInactive" xml:space="preserve">未活动</sys:String>
+    <sys:String x:Key="PluginStatusPendingRestart" xml:space="preserve">待重启</sys:String>
     <sys:String x:Key="PluginStatusQuarantined" xml:space="preserve">已隔离</sys:String>
     <sys:String x:Key="PluginStatusRejected" xml:space="preserve">已拒绝</sys:String>
     <sys:String x:Key="ProfileCardDesc" xml:space="preserve">选择或新建针对特定程序（如 Chrome、VS Code）或特定工作流的轮盘配置方案（支持双击重命名）。</sys:String>

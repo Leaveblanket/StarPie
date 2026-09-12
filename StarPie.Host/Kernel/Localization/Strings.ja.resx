@@ -268,9 +268,10 @@
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>プラグインは StarPie をクラッシュさせたり固まらせたりする可能性があります</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>アンインストールに失敗する可能性があり、失敗したプラグインは隔離され再起動が必要です</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 プラグイン</value></data>
-  <data name="PluginManagerSubheader" xml:space="preserve"><value>検出されたプラグインと状態を確認し、有効化・無効化・再試行・診断を行います。</value></data>
+    <data name="PluginManagerSubheader" xml:space="preserve"><value>検出されたプラグインと状態を確認し、有効化・無効化・再読み込み・更新・再試行・診断・完全削除を行います。</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>プラグイン</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>バージョン</value></data>
+  <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>このプロセスで有効なバージョン</value></data>
   <data name="PluginManagerStatusLabel" xml:space="preserve"><value>状態</value></data>
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>承認</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>パッケージフォルダー</value></data>
@@ -283,6 +284,17 @@
   <data name="PluginManagerEnable" xml:space="preserve"><value>有効化</value></data>
   <data name="PluginManagerDisable" xml:space="preserve"><value>無効化</value></data>
   <data name="PluginManagerRetry" xml:space="preserve"><value>再試行</value></data>
+  <data name="PluginManagerReload" xml:space="preserve"><value>再読み込み</value></data>
+  <data name="PluginManagerUpdate" xml:space="preserve"><value>更新</value></data>
+  <data name="PluginManagerUninstall" xml:space="preserve"><value>完全に削除</value></data>
+  <data name="PluginManagerUninstallConfirmTitle" xml:space="preserve"><value>プラグインの完全削除</value></data>
+  <data name="PluginManagerUninstallConfirmMessage" xml:space="preserve"><value>「{0}」を完全に削除しますか？パッケージ・設定・データ・ホスト状態がすべて削除され、元に戻せません。</value></data>
+  <data name="PluginManagerUninstallFailedTitle" xml:space="preserve"><value>完全削除が未完了</value></data>
+  <data name="PluginManagerPendingRestart" xml:space="preserve"><value>新バージョン {0} を配置済み：次回起動時に有効</value></data>
+  <data name="PluginManagerAdmissionMode" xml:space="preserve"><value>受け入れモード</value></data>
+  <data name="PluginManagerAdmissionModeDefault" xml:space="preserve"><value>内蔵と審査済みのみ</value></data>
+  <data name="PluginManagerAdmissionModeDev" xml:space="preserve"><value>開発者モード</value></data>
+  <data name="PluginStatusPendingRestart" xml:space="preserve"><value>再起動待ち</value></data>
   <data name="PluginManagerDiagnostics" xml:space="preserve"><value>診断</value></data>
   <data name="PluginStatusActive" xml:space="preserve"><value>稼働中</value></data>
   <data name="PluginStatusDisabled" xml:space="preserve"><value>無効</value></data>

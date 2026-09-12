@@ -27,6 +27,9 @@ namespace StarPie.ViewModels.Pages
 
             ToggleCommand = new AsyncRelayCommand(() => owner.ToggleAsync(this));
             RetryCommand = new AsyncRelayCommand(() => owner.RetryAsync(this));
+            ReloadCommand = new AsyncRelayCommand(() => owner.ReloadAsync(this));
+            UpdateCommand = new AsyncRelayCommand(() => owner.UpdateAsync(this));
+            UninstallCommand = new AsyncRelayCommand(() => owner.UninstallAsync(this));
             DiagnosticsCommand = new RelayCommand(() => owner.ShowDiagnostics(this));
         }
 
@@ -50,18 +53,48 @@ namespace StarPie.ViewModels.Pages
 
         /// <summary>启用/停用按钮文案：活动与隔离态是"停用"，已停用态是"启用"。</summary>
         public string ToggleText => _localization.GetString(
-            Report.Status is PluginRuntimeStatus.Active or PluginRuntimeStatus.Quarantined
+            Report.Status is PluginRuntimeStatus.Active
+                or PluginRuntimeStatus.Quarantined
+                or PluginRuntimeStatus.PendingRestart
                 ? "PluginManagerDisable"
                 : "PluginManagerEnable");
 
         /// <summary>
         /// 活动与已停用两态可切换；隔离态额外提供"停用"（显式放弃隔离：落停用意图并续做资源回收），
-        /// 重试是另一条独立入口；拒绝走准入流程。
+        /// 重试是另一条独立入口；待重启态只提供"停用"（撤销挂起更新）；拒绝走准入流程。
         /// </summary>
         public bool CanToggle
             => Report.Status is PluginRuntimeStatus.Active
                 or PluginRuntimeStatus.Disabled
+                or PluginRuntimeStatus.PendingRestart
                 or PluginRuntimeStatus.Quarantined;
+
+        /// <summary>重载按钮文案。</summary>
+        public string ReloadText => _localization.GetString("PluginManagerReload");
+
+        /// <summary>更新按钮文案。</summary>
+        public string UpdateText => _localization.GetString("PluginManagerUpdate");
+
+        /// <summary>
+        /// 重载只在有活动实例时可用：停用态没有可卸载的实例，隔离态要先走重试。
+        /// </summary>
+        public bool CanReload => Report.Status == PluginRuntimeStatus.Active;
+
+        /// <summary>更新同样只在有活动实例时可用：先停用再启用是新装而非更新。</summary>
+        public bool CanUpdate => Report.Status == PluginRuntimeStatus.Active;
+
+        /// <summary>拒绝的包没有可移除的宿主痕迹；其余状态都可彻底移除。</summary>
+        public bool CanUninstall => Report.Status != PluginRuntimeStatus.Rejected;
+
+        /// <summary>是否有挂起的新版本要等下次启动生效。</summary>
+        public bool HasPendingRestart => !string.IsNullOrWhiteSpace(Report.PendingRestartVersion);
+
+        /// <summary>挂起更新的说明文案（含待装载版本与"下次启动生效"）。</summary>
+        public string PendingRestartText => HasPendingRestart
+            ? string.Format(
+                _localization.GetString("PluginManagerPendingRestart"),
+                Report.PendingRestartVersion)
+            : string.Empty;
 
         /// <summary>仅隔离态显示重试入口。</summary>
         public bool CanRetry => Report.Status == PluginRuntimeStatus.Quarantined;
@@ -78,6 +111,15 @@ namespace StarPie.ViewModels.Pages
         /// <summary>隔离后的显式重试命令。</summary>
         public IAsyncRelayCommand RetryCommand { get; }
 
+        /// <summary>安全点卸载后按当前包重新装载。</summary>
+        public IAsyncRelayCommand ReloadCommand { get; }
+
+        /// <summary>应用新版本（界面插件留待下次启动生效）。</summary>
+        public IAsyncRelayCommand UpdateCommand { get; }
+
+        /// <summary>彻底移除（确认后清包/配置段/数据/宿主状态）。</summary>
+        public IAsyncRelayCommand UninstallCommand { get; }
+
         /// <summary>诊断入口：把本条目送进诊断面板。</summary>
         public IRelayCommand DiagnosticsCommand { get; }
 
@@ -93,6 +135,18 @@ namespace StarPie.ViewModels.Pages
         /// <summary>重试按钮 AutomationId。</summary>
         public string RetryAutomationId => $"PluginManagerRetry_{Report.PluginId}";
 
+        /// <summary>重载按钮 AutomationId。</summary>
+        public string ReloadAutomationId => $"PluginManagerReload_{Report.PluginId}";
+
+        /// <summary>更新按钮 AutomationId。</summary>
+        public string UpdateAutomationId => $"PluginManagerUpdate_{Report.PluginId}";
+
+        /// <summary>彻底移除按钮 AutomationId。</summary>
+        public string UninstallAutomationId => $"PluginManagerUninstall_{Report.PluginId}";
+
+        /// <summary>待重启说明文本的 AutomationId。</summary>
+        public string PendingRestartAutomationId => $"PluginManagerPendingRestart_{Report.PluginId}";
+
         /// <summary>诊断按钮 AutomationId。</summary>
         public string DiagnosticsAutomationId => $"PluginManagerDiagnostics_{Report.PluginId}";
 
@@ -101,6 +155,7 @@ namespace StarPie.ViewModels.Pages
         {
             PluginRuntimeStatus.Active => "PluginStatusActive",
             PluginRuntimeStatus.Disabled => "PluginStatusDisabled",
+            PluginRuntimeStatus.PendingRestart => "PluginStatusPendingRestart",
             PluginRuntimeStatus.Quarantined => "PluginStatusQuarantined",
             PluginRuntimeStatus.Rejected => "PluginStatusRejected",
             _ => "PluginStatusInactive",

@@ -87,6 +87,148 @@ public sealed class PluginRuntimeHostTests : IDisposable
     }
 
     [Fact]
+    public async Task 重载_安全点卸载后按当前包重新装载()
+    {
+        await _host.StartAsync(CancellationToken.None);
+        Assert.Equal(new[] { PluginId }, _host.ActivePluginIds);
+
+        PluginLoadResult reloaded = await _host.ReloadAsync(PluginId, CancellationToken.None);
+
+        // 重载不换版本：卸载旧实例后按同一个包重建，插件立刻回到活动态且能力可用。
+        Assert.Equal(PluginLoadStatus.Active, reloaded.Status);
+        Assert.Equal(new[] { PluginId }, _host.ActivePluginIds);
+        Assert.Equal(2, _registry.GetAll<IProgramScanner>().Count);
+        Assert.NotNull(_registry.GetAll<IProgramScanner>()[1].ScanInstalledPrograms());
+        Assert.True(_stateStore.Current.Plugins[PluginId].Enabled);
+
+        // 旧一代 ALC 已回收：同名上下文不随重载累积。
+        Assert.Single(
+            AssemblyLoadContext.All,
+            context => context.Name == $"StarPie.Plugin.{PluginId}");
+    }
+
+    [Fact]
+    public async Task 更新_无界面插件_立即卸载旧包并按新版本装载()
+    {
+        const string UpdatePluginId = "com.example.update-headless";
+        string packageRoot = Path.Combine(_tempRoot, "update-headless");
+        WriteLoadablePackage(packageRoot, UpdatePluginId, version: "1.0.0", uiSection: null);
+        (PluginRuntimeHost host, _) = CreatePackageHost(UpdatePluginId, packageRoot);
+        await host.StartAsync(CancellationToken.None);
+        Assert.Equal("1.0.0", host.GetDiagnostics(UpdatePluginId).LoadedVersion);
+
+        WriteLoadablePackage(packageRoot, UpdatePluginId, version: "2.0.0", uiSection: null);
+
+        PluginLoadResult result = await host.UpdateAsync(UpdatePluginId, CancellationToken.None);
+
+        // 无界面插件的新版本立即生效：旧包在安全点卸载，随后按磁盘上的新包装载。
+        PluginDiagnosticsReport report = host.GetDiagnostics(UpdatePluginId);
+        Assert.Equal(PluginLoadStatus.Active, result.Status);
+        Assert.Equal(PluginRuntimeStatus.Active, report.Status);
+        Assert.Equal("2.0.0", report.Version);
+        Assert.Equal("2.0.0", report.LoadedVersion);
+        Assert.Null(report.PendingRestartVersion);
+        Assert.Equal(new[] { UpdatePluginId }, host.ActivePluginIds);
+    }
+
+    [Fact]
+    public async Task 更新_界面插件_隔离旧版本且新版本下次启动生效()
+    {
+        const string UiPluginId = "com.example.update-ui";
+        const string UiSection = """
+            "sdk": "1.0", "entryType": "StarPie.Tests.ProgramSourceTestPlugin"
+            """;
+        string packageRoot = Path.Combine(_tempRoot, "update-ui");
+        WriteLoadablePackage(packageRoot, UiPluginId, version: "1.0.0", uiSection: UiSection);
+        (PluginRuntimeHost host, _) = CreatePackageHost(UiPluginId, packageRoot);
+        await host.StartAsync(CancellationToken.None);
+        Assert.Equal(new[] { UiPluginId }, host.ActivePluginIds);
+
+        WriteLoadablePackage(packageRoot, UiPluginId, version: "2.0.0", uiSection: UiSection);
+
+        PluginLoadResult result = await host.UpdateAsync(UiPluginId, CancellationToken.None);
+
+        // 界面插件的程序集在进程内不可回收：旧版本就地隔离，新版本留给下次启动装载。
+        PluginDiagnosticsReport report = host.GetDiagnostics(UiPluginId);
+        Assert.Equal(PluginRuntimeStatus.PendingRestart, report.Status);
+        Assert.Equal("2.0.0", report.Version);
+        Assert.Equal("2.0.0", report.PendingRestartVersion);
+        Assert.Null(report.LoadedVersion);
+        Assert.Empty(host.ActivePluginIds);
+        Assert.True(report.Enabled);
+        Assert.NotEqual(PluginLoadStatus.Rejected, result.Status);
+
+        // 下次启动：挂起版本被装载，挂起标记随之消失。
+        await host.StartAsync(CancellationToken.None);
+
+        PluginDiagnosticsReport afterRestart = host.GetDiagnostics(UiPluginId);
+        Assert.Equal(PluginRuntimeStatus.Active, afterRestart.Status);
+        Assert.Equal("2.0.0", afterRestart.LoadedVersion);
+        Assert.Null(afterRestart.PendingRestartVersion);
+    }
+
+    [Fact]
+    public async Task 挂起版本期间启用界面插件_不在本进程就地装载()
+    {
+        const string UiPluginId = "com.example.update-ui-enable";
+        const string UiSection = """
+            "sdk": "1.0", "entryType": "StarPie.Tests.ProgramSourceTestPlugin"
+            """;
+        string packageRoot = Path.Combine(_tempRoot, "update-ui-enable");
+        WriteLoadablePackage(packageRoot, UiPluginId, version: "1.0.0", uiSection: UiSection);
+        (PluginRuntimeHost host, PluginStateStore state) = CreatePackageHost(UiPluginId, packageRoot);
+        await host.StartAsync(CancellationToken.None);
+        WriteLoadablePackage(packageRoot, UiPluginId, version: "2.0.0", uiSection: UiSection);
+        await host.UpdateAsync(UiPluginId, CancellationToken.None);
+        Assert.Equal("2.0.0", state.Current.Plugins[UiPluginId].PendingVersion);
+
+        PluginLoadResult enabled = await host.EnableAsync(UiPluginId, CancellationToken.None);
+
+        // 旧一代程序集仍在进程内：挂起期间启用只落意图，绝不就地装载新版本。
+        Assert.Equal(PluginLoadStatus.PendingRestart, enabled.Status);
+        Assert.Empty(host.ActivePluginIds);
+        Assert.Equal("2.0.0", state.Current.Plugins[UiPluginId].PendingVersion);
+        Assert.Equal(PluginRuntimeStatus.PendingRestart, host.GetDiagnostics(UiPluginId).Status);
+    }
+
+    [Fact]
+    public async Task 彻底移除_包配置段插件数据与宿主状态全部离场()
+    {
+        const string RemovePluginId = "com.example.removable";
+        string packageRoot = Path.Combine(_tempRoot, "removable-plugins");
+        WriteLoadablePackage(packageRoot, RemovePluginId, version: "1.0.0", uiSection: null);
+        string dataRoot = Path.Combine(_tempRoot, "plugin-data");
+        Directory.CreateDirectory(Path.Combine(dataRoot, RemovePluginId));
+        File.WriteAllText(Path.Combine(dataRoot, RemovePluginId, "settings.json"), "{}");
+        var sections = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            [RemovePluginId] = """{ "answer": 42 }""",
+            ["com.example.other"] = """{ "answer": 7 }""",
+        };
+        (PluginRuntimeHost host, PluginStateStore state) = CreatePackageHost(
+            RemovePluginId,
+            packageRoot,
+            removeConfigSection: id => sections.Remove(id),
+            pluginDataDirectory: dataRoot);
+        await host.StartAsync(CancellationToken.None);
+        Assert.Equal(new[] { RemovePluginId }, host.ActivePluginIds);
+
+        PluginUninstallResult result = await host.UninstallAsync(RemovePluginId, CancellationToken.None);
+
+        // 四类产物都离场：包目录、配置段、插件数据、宿主状态条目。
+        Assert.True(result.Succeeded, result.FailureReason);
+        Assert.False(Directory.Exists(Path.Combine(packageRoot, RemovePluginId)));
+        Assert.False(sections.ContainsKey(RemovePluginId));
+        Assert.True(sections.ContainsKey("com.example.other"), "彻底移除只清理目标插件的配置段");
+        Assert.False(Directory.Exists(Path.Combine(dataRoot, RemovePluginId)));
+        Assert.False(state.Current.Plugins.ContainsKey(RemovePluginId));
+        Assert.Empty(host.ActivePluginIds);
+        Assert.DoesNotContain(
+            host.DescribePlugins(),
+            item => item.PluginId == RemovePluginId);
+    }
+
+    [Fact]
     public async Task 状态为停用_启动不装载_程序来源只剩内置()
     {
         await File.WriteAllTextAsync(
@@ -383,6 +525,46 @@ public sealed class PluginRuntimeHostTests : IDisposable
             new PluginAdmissionPolicy(PluginAdmissionPolicy.DefaultBuiltInPluginIds),
             _stateStore,
             new PluginStartupReportWriter(Path.Combine(_tempRoot, "plugin-startup-report.json")));
+
+    /// <summary>
+    /// 在给定插件根写出一个可装载的真实插件包（入口程序集取自测试集）。
+    /// 入口程序集按版本取名：装载中的 DLL 被进程占用，就地覆盖同一文件在 Windows 上不可行，
+    /// 新版本因此以新文件名落进同一个包目录（真实更新同样由安装器在重启前替换包内容）。
+    /// </summary>
+    private static void WriteLoadablePackage(
+        string pluginsRoot,
+        string pluginId,
+        string version,
+        string? uiSection)
+        => PluginTestPackage.CreateLoadable(pluginsRoot, pluginId, version, uiSection: uiSection);
+
+    /// <summary>构造独立宿主：指定插件根，插件 id 视为内置（绕过准入拒绝）。</summary>
+    private (PluginRuntimeHost Host, PluginStateStore State) CreatePackageHost(
+        string pluginId,
+        string pluginsRoot,
+        Action<string>? removeConfigSection = null,
+        string? pluginDataDirectory = null)
+    {
+        var state = new PluginStateStore(Path.Combine(_tempRoot, pluginId + "-state.json"));
+        var registry = new CapabilityRegistry();
+        registry.DeclareContract(ProgramSourceCapability.Contract);
+        var host = new PluginRuntimeHost(
+            new PluginStartupScanner(
+                new PluginDiscovery(pluginsRoot, Path.Combine(_tempRoot, pluginId + "-user")),
+                new PluginAdmissionPolicy(new[] { pluginId }),
+                state,
+                new PluginStartupReportWriter(Path.Combine(_tempRoot, pluginId + "-report.json"))),
+            state,
+            new PluginLoadPipeline(registry),
+            new PluginUnloadPipeline(() => { }),
+            new PluginUninstallOptions
+            {
+                RemoveConfigSection = removeConfigSection,
+                PluginDataRoot = pluginDataDirectory,
+                FlushPendingSaves = () => { },
+            });
+        return (host, state);
+    }
 
     /// <summary>构造独立宿主：临时目录里放入口程序集不可用的包，id 视为内置（装载必然隔离）。</summary>
     private (PluginRuntimeHost Host, PluginStateStore State) CreateIsolatedPackageHost(string pluginId)

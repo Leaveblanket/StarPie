@@ -268,9 +268,10 @@ This cannot be undone.</value></data>
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>Plugins can crash or hang StarPie</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>Uninstall may fail; a failing plugin is quarantined and needs a restart</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 Plugins</value></data>
-  <data name="PluginManagerSubheader" xml:space="preserve"><value>Inspect discovered plugins and their state, then enable, disable, retry, or diagnose them.</value></data>
+    <data name="PluginManagerSubheader" xml:space="preserve"><value>Inspect discovered plugins and their state, then enable, disable, reload, update, retry, diagnose, or remove them.</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>Plugin</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>Version</value></data>
+  <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>Effective in this process</value></data>
   <data name="PluginManagerStatusLabel" xml:space="preserve"><value>Status</value></data>
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>Admission</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>Package folder</value></data>
@@ -283,6 +284,17 @@ This cannot be undone.</value></data>
   <data name="PluginManagerEnable" xml:space="preserve"><value>Enable</value></data>
   <data name="PluginManagerDisable" xml:space="preserve"><value>Disable</value></data>
   <data name="PluginManagerRetry" xml:space="preserve"><value>Retry</value></data>
+  <data name="PluginManagerReload" xml:space="preserve"><value>Reload</value></data>
+  <data name="PluginManagerUpdate" xml:space="preserve"><value>Update</value></data>
+  <data name="PluginManagerUninstall" xml:space="preserve"><value>Remove permanently</value></data>
+  <data name="PluginManagerUninstallConfirmTitle" xml:space="preserve"><value>Remove plugin permanently</value></data>
+  <data name="PluginManagerUninstallConfirmMessage" xml:space="preserve"><value>Permanently remove "{0}"? Its package, settings, data and host state are all deleted, and this cannot be undone.</value></data>
+  <data name="PluginManagerUninstallFailedTitle" xml:space="preserve"><value>Removal incomplete</value></data>
+  <data name="PluginManagerPendingRestart" xml:space="preserve"><value>Version {0} is staged: takes effect on next start</value></data>
+  <data name="PluginManagerAdmissionMode" xml:space="preserve"><value>Admission mode</value></data>
+  <data name="PluginManagerAdmissionModeDefault" xml:space="preserve"><value>Built-in and reviewed only</value></data>
+  <data name="PluginManagerAdmissionModeDev" xml:space="preserve"><value>Developer mode</value></data>
+  <data name="PluginStatusPendingRestart" xml:space="preserve"><value>Restart pending</value></data>
   <data name="PluginManagerDiagnostics" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="PluginStatusActive" xml:space="preserve"><value>Active</value></data>
   <data name="PluginStatusDisabled" xml:space="preserve"><value>Disabled</value></data>

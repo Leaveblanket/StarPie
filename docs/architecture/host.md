@@ -59,6 +59,9 @@
      （开发者模式开关与风险披露）、`PluginDiscovery`（安装目录 + 用户目录）与
      `PluginStartupScanner`（发现 → 清单校验 → 准入 → 状态与报告落盘）；路径经
      `PluginPaths` 单一来源推导（见 [plugins.md](plugins.md) §2/§3）。
+     宿主侧运行时 `PluginRuntimeHost` 的「彻底移除」另接三条接缝：配置段删除走
+     `IConfigService`、插件数据目录走 `PluginPaths.DataDirectory`、删除后立即
+     `FlushPendingSave()` 冲刷（见 [config.md](config.md)）。
    - 图标资产由 `HostCoreContributor` 登记——内核 `CustomIconStore`（`StarPie.Host/Icons/`，目录默认
      `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
      （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。

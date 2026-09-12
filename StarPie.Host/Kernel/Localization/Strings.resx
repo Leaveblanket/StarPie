@@ -268,9 +268,10 @@
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>插件可能使 StarPie 崩溃或卡死</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸载可能失败；失败的插件会被隔离，需重启处理</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 插件</value></data>
-  <data name="PluginManagerSubheader" xml:space="preserve"><value>查看宿主扫描到的插件与状态，执行启用、停用、重试与诊断。</value></data>
+    <data name="PluginManagerSubheader" xml:space="preserve"><value>查看宿主扫描到的插件与状态，执行启用、停用、重载、更新、重试、诊断与彻底移除。</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>插件</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>版本</value></data>
+  <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>本进程生效版本</value></data>
   <data name="PluginManagerStatusLabel" xml:space="preserve"><value>状态</value></data>
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>准入</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>包目录</value></data>
@@ -283,6 +284,17 @@
   <data name="PluginManagerEnable" xml:space="preserve"><value>启用</value></data>
   <data name="PluginManagerDisable" xml:space="preserve"><value>停用</value></data>
   <data name="PluginManagerRetry" xml:space="preserve"><value>重试</value></data>
+  <data name="PluginManagerReload" xml:space="preserve"><value>重载</value></data>
+  <data name="PluginManagerUpdate" xml:space="preserve"><value>更新</value></data>
+  <data name="PluginManagerUninstall" xml:space="preserve"><value>彻底移除</value></data>
+  <data name="PluginManagerUninstallConfirmTitle" xml:space="preserve"><value>彻底移除插件</value></data>
+  <data name="PluginManagerUninstallConfirmMessage" xml:space="preserve"><value>确定彻底移除「{0}」吗？插件的包、配置、数据与宿主状态都会一并清除，且无法撤销。</value></data>
+  <data name="PluginManagerUninstallFailedTitle" xml:space="preserve"><value>彻底移除未完成</value></data>
+  <data name="PluginManagerPendingRestart" xml:space="preserve"><value>新版本 {0} 已就位：下次启动生效</value></data>
+  <data name="PluginManagerAdmissionMode" xml:space="preserve"><value>准入模式</value></data>
+  <data name="PluginManagerAdmissionModeDefault" xml:space="preserve"><value>仅内置与审核清单</value></data>
+  <data name="PluginManagerAdmissionModeDev" xml:space="preserve"><value>开发者模式</value></data>
+  <data name="PluginStatusPendingRestart" xml:space="preserve"><value>待重启</value></data>
   <data name="PluginManagerDiagnostics" xml:space="preserve"><value>诊断</value></data>
   <data name="PluginStatusActive" xml:space="preserve"><value>活动</value></data>
   <data name="PluginStatusDisabled" xml:space="preserve"><value>已停用</value></data>

@@ -16,6 +16,9 @@ namespace StarPie.PluginRuntime.Diagnostics
         /// <summary>已隔离：不再调用、不自动重试，等待显式重试或停用。</summary>
         Quarantined,
 
+        /// <summary>新版本已就位但本进程不能生效（界面插件的程序集留在进程内）：重启后装载。</summary>
+        PendingRestart,
+
         /// <summary>准入拒绝：包不装载。</summary>
         Rejected,
 
@@ -48,6 +51,12 @@ namespace StarPie.PluginRuntime.Diagnostics
 
         /// <summary>生效包目录。</summary>
         public string? PackagePath { get; set; }
+
+        /// <summary>本进程内正在生效的版本；未装载（停用/待重启/隔离）时为 null。</summary>
+        public string? LoadedVersion { get; set; }
+
+        /// <summary>已就位、等下次启动装载的新版本；无挂起更新时为 null。</summary>
+        public string? PendingRestartVersion { get; set; }
 
         /// <summary>用户的启用/停用意图。</summary>
         public bool Enabled { get; set; }
