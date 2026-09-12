@@ -5,6 +5,7 @@ using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Manifest;
 using StarPie.PluginRuntime.Registry;
+using StarPie.PluginRuntime.Ui;
 
 namespace StarPie.PluginRuntime.Loading
 {
@@ -17,26 +18,36 @@ namespace StarPie.PluginRuntime.Loading
     /// 启动前建立该插件的服务作用域（宿主服务、能力注册与句柄账本），插件只经
     /// <see cref="IPluginContext"/> 取用宿主面；活动态结果携带作用域，由卸载管线按
     /// "先释放作用域、再 Unload ALC"的顺序回收。
+    /// 清单声明 ui 段时，启动成功后经 <see cref="IPluginUiCoordinator"/> 在宿主 UI 线程调用一次
+    /// <c>IPluginUiModule.RegisterUi</c>：UI 注册失败与启动失败同路——先经同一端口回收半注册的
+    /// 资产，再进入隔离，不把半成品留给运行期。
     /// </remarks>
     public sealed class PluginLoadPipeline
     {
         private readonly CapabilityRegistry _capabilityRegistry;
         private readonly IPluginLogSink _logSink;
         private readonly CapabilityGuardOptions _guardOptions;
+        private readonly IPluginUiCoordinator? _uiCoordinator;
 
         /// <summary>构造装载管线。</summary>
         /// <param name="capabilityRegistry">宿主能力表（插件在 StartAsync 内经上下文注册能力）。</param>
         /// <param name="logSink">插件日志落点；缺省写 Debug。</param>
         /// <param name="guardOptions">能力守卫阈值；缺省 5 秒超时、连续 3 次失败熔断。</param>
+        /// <param name="uiCoordinator">
+        /// UI 托管端口（UI 插件装载期注册资产）；null 表示本宿主不托管插件 UI——此时清单声明
+        /// ui 段的插件按装载失败隔离，不静默降级成"无界面插件"。
+        /// </param>
         public PluginLoadPipeline(
             CapabilityRegistry capabilityRegistry,
             IPluginLogSink? logSink = null,
-            CapabilityGuardOptions? guardOptions = null)
+            CapabilityGuardOptions? guardOptions = null,
+            IPluginUiCoordinator? uiCoordinator = null)
         {
             ArgumentNullException.ThrowIfNull(capabilityRegistry);
             _capabilityRegistry = capabilityRegistry;
             _logSink = logSink ?? DebugPluginLogSink.Instance;
             _guardOptions = guardOptions ?? CapabilityGuardOptions.Default;
+            _uiCoordinator = uiCoordinator;
         }
 
         /// <summary>执行一次装载尝试。</summary>
@@ -95,16 +106,33 @@ namespace StarPie.PluginRuntime.Loading
                 // 启动期也可能已被守卫熔断隔离（能力调用失败达到阈值）。
                 if (lifecycle.Current == PluginLifecycleState.Quarantined)
                 {
-                    string reason = lifecycle.QuarantineReason ?? "启动期进入隔离";
                     DisposeScopeQuietly(scope);
-                    return new PluginLoadResult(
+                    return Quarantined(
                         pluginId,
-                        PluginLoadStatus.Quarantined,
-                        reason,
-                        null,
+                        lifecycle.QuarantineReason ?? "启动期进入隔离",
                         loadContext,
                         lifecycle,
-                        null);
+                        hasUi: request.Manifest.Ui is not null);
+                }
+
+                // UI 注册在启动成功后、活动态之前：注册期抛异常即装载失败（入口契约），
+                // 半注册资产经同一端口回收，避免下一次装载叠在残留上。
+                string? uiFailure = await AttachUiAsync(
+                    request, pluginId, entryAssembly, lifecycle, cancellationToken).ConfigureAwait(false);
+                if (uiFailure is not null)
+                {
+                    if (!lifecycle.IsTerminal)
+                    {
+                        lifecycle.Quarantine(uiFailure);
+                    }
+
+                    DisposeScopeQuietly(scope);
+                    return Quarantined(
+                        pluginId,
+                        lifecycle.QuarantineReason ?? uiFailure,
+                        loadContext,
+                        lifecycle,
+                        hasUi: true);
                 }
 
                 lifecycle.Transition(PluginLifecycleState.Active);
@@ -115,7 +143,10 @@ namespace StarPie.PluginRuntime.Loading
                     plugin,
                     loadContext,
                     lifecycle,
-                    scope);
+                    scope)
+                {
+                    HasUi = request.Manifest.Ui is not null,
+                };
             }
             catch (Exception ex)
             {
@@ -123,20 +154,98 @@ namespace StarPie.PluginRuntime.Loading
                 string reason = ex is OperationCanceledException
                     ? $"装载/启动被取消：{ex.Message}"
                     : $"装载/启动失败：{ex.GetType().Name}：{ex.Message}";
+                string? uiReleaseFailure = await ReleaseUiQuietlyAsync(pluginId, cancellationToken)
+                    .ConfigureAwait(false);
+                if (uiReleaseFailure is not null)
+                {
+                    reason += $"；半注册 UI 资产回收失败（{uiReleaseFailure}）";
+                }
+
                 DisposeScopeQuietly(scope);
                 if (!lifecycle.IsTerminal)
                 {
                     lifecycle.Quarantine(reason);
                 }
 
-                return new PluginLoadResult(
+                return Quarantined(
                     pluginId,
-                    PluginLoadStatus.Quarantined,
                     lifecycle.QuarantineReason ?? reason,
-                    null,
                     loadContext,
                     lifecycle,
-                    null);
+                    hasUi: request.Manifest.Ui is not null);
+            }
+        }
+
+        /// <summary>
+        /// 装载期 UI 注册：清单无 ui 段时直接成功；声明了 ui 段而宿主不托管插件 UI 时按装载失败处理。
+        /// </summary>
+        /// <returns>成功返回 null，失败返回可读原因（此时已尽力回收半注册资产）。</returns>
+        private async Task<string?> AttachUiAsync(
+            PluginLoadRequest request,
+            string pluginId,
+            Assembly entryAssembly,
+            PluginLifecycleStateMachine lifecycle,
+            CancellationToken cancellationToken)
+        {
+            if (request.Manifest.Ui is not { } ui)
+            {
+                return null;
+            }
+
+            if (_uiCoordinator is null)
+            {
+                return $"宿主未托管插件 UI，无法装载界面插件（ui.entryType：{ui.EntryType}）";
+            }
+
+            PluginUiAttachResult attach;
+            try
+            {
+                attach = await _uiCoordinator
+                    .AttachAsync(
+                        new PluginUiAttachRequest(pluginId, entryAssembly, ui.Sdk, ui.EntryType!),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                attach = PluginUiAttachResult.Failed(
+                    $"UI 注册失败：{exception.GetType().Name}：{exception.Message}");
+            }
+
+            if (attach.Succeeded)
+            {
+                return null;
+            }
+
+            string reason = $"UI 注册失败：{attach.FailureReason}";
+            string? releaseFailure = await ReleaseUiQuietlyAsync(pluginId, cancellationToken)
+                .ConfigureAwait(false);
+            if (releaseFailure is not null)
+            {
+                reason += $"；半注册 UI 资产回收失败（{releaseFailure}）";
+            }
+
+            return reason;
+        }
+
+        /// <summary>半注册资产的回收：失败只降为可读文本附进装载失败原因，不掩盖原始失败。</summary>
+        private async Task<string?> ReleaseUiQuietlyAsync(string pluginId, CancellationToken cancellationToken)
+        {
+            if (_uiCoordinator is null)
+            {
+                return null;
+            }
+
+            try
+            {
+                PluginUiReleaseResult release = await _uiCoordinator
+                    .ReleaseAsync(pluginId, cancellationToken)
+                    .ConfigureAwait(false);
+                return release.Succeeded ? null : string.Join("；", release.Residuals);
+            }
+            catch (Exception exception)
+            {
+                return $"{exception.GetType().Name}：{exception.Message}";
             }
         }
 
@@ -181,6 +290,18 @@ namespace StarPie.PluginRuntime.Loading
             return Activator.CreateInstance(entryType) as IPlugin
                 ?? throw new InvalidOperationException($"入口类型无法实例化（需要公开无参构造函数）：{entryTypeName}");
         }
+
+        /// <summary>隔离态装载结果：无插件对象与作用域流出（入口对象只在活动态结果携带）。</summary>
+        private static PluginLoadResult Quarantined(
+            string pluginId,
+            string reason,
+            PluginLoadContext loadContext,
+            PluginLifecycleStateMachine lifecycle,
+            bool hasUi)
+            => new(pluginId, PluginLoadStatus.Quarantined, reason, null, loadContext, lifecycle, null)
+            {
+                HasUi = hasUi,
+            };
 
         private static string ResolvePluginId(PluginLoadRequest request)
             => string.IsNullOrWhiteSpace(request.Manifest.Id)

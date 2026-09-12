@@ -5,4 +5,5 @@
   <Project Path="StarPie.Host\StarPie.Host.csproj" />
   <Project Path="StarPie.Tests\StarPie.Tests.csproj" />
   <Project Path="plugins\src\StarPie.Plugin.Programs\StarPie.Plugin.Programs.csproj" />
+  <Project Path="plugins\src\StarPie.Plugin.SampleUi\StarPie.Plugin.SampleUi.csproj" />
 </Solution>

@@ -236,28 +236,30 @@ public sealed class PluginManagerViewModelTests : IDisposable
         var uiState = new PluginStateStore(Path.Combine(_tempRoot, "ui-state.json"));
         var uiRegistry = new CapabilityRegistry();
         uiRegistry.DeclareContract(ProgramSourceCapability.Contract);
-        var uiHost = new PluginRuntimeHost(
+        // UI 托管替身：界面插件按"宿主托管 UI"装载（本测试只关心管理面状态语义）。
+        var uiCoordinator = new StubPluginUiCoordinator();
+        var uiHostWithUi = new PluginRuntimeHost(
             new PluginStartupScanner(
                 new PluginDiscovery(packageRoot, Path.Combine(_tempRoot, "ui-user")),
                 new PluginAdmissionPolicy(new[] { UiPluginId }),
                 uiState,
                 new PluginStartupReportWriter(Path.Combine(_tempRoot, "ui-report.json"))),
             uiState,
-            new PluginLoadPipeline(uiRegistry),
-            new PluginUnloadPipeline(() => { }),
+            new PluginLoadPipeline(uiRegistry, uiCoordinator: uiCoordinator),
+            new PluginUnloadPipeline(() => { }, uiCoordinator: uiCoordinator),
             new PluginUninstallOptions
             {
                 RemoveConfigSection = _ => { },
                 PluginDataRoot = Path.Combine(_tempRoot, "ui-plugin-data"),
                 FlushPendingSaves = () => { },
             });
-        await uiHost.StartAsync(CancellationToken.None);
-        Assert.Equal("活动", new PluginManagerViewModel(uiHost, new NavigationStore(), _localization)
+        await uiHostWithUi.StartAsync(CancellationToken.None);
+        Assert.Equal("活动", new PluginManagerViewModel(uiHostWithUi, new NavigationStore(), _localization)
             .Plugins.Single().StatusText);
 
         PluginTestPackage.CreateLoadable(
             packageRoot, UiPluginId, version: "2.0.0", uiSection: UiSection);
-        var viewModel = new PluginManagerViewModel(uiHost, new NavigationStore(), _localization, dialogs: _dialogs);
+        var viewModel = new PluginManagerViewModel(uiHostWithUi, new NavigationStore(), _localization, dialogs: _dialogs);
 
         await viewModel.Plugins.Single().UpdateCommand.ExecuteAsync(null);
 

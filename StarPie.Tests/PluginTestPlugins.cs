@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using StarPie.Abstractions;
+using StarPie.PluginRuntime.Ui;
 using StarPie.Services.Messages;
 using StarPie.Services.Programs;
 
@@ -175,5 +176,33 @@ public sealed class MarkerStopTestPlugin : IPlugin
         }
 
         return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// UI 托管端口替身：Attach/Release 恒成功——更新/挂起/停用流程只关心链路联通，
+/// 不引入真实 WPF 资产（真实清理与泄漏验证由 STA 卸载矩阵覆盖）。
+/// </summary>
+public sealed class StubPluginUiCoordinator : IPluginUiCoordinator
+{
+    /// <summary>Attach 被调用的次数。</summary>
+    public int AttachCount { get; private set; }
+
+    /// <summary>Release 被调用的次数。</summary>
+    public int ReleaseCount { get; private set; }
+
+    /// <inheritdoc/>
+    public Task<PluginUiAttachResult> AttachAsync(
+        PluginUiAttachRequest request, CancellationToken cancellationToken)
+    {
+        AttachCount++;
+        return Task.FromResult(PluginUiAttachResult.Success);
+    }
+
+    /// <inheritdoc/>
+    public Task<PluginUiReleaseResult> ReleaseAsync(string pluginId, CancellationToken cancellationToken)
+    {
+        ReleaseCount++;
+        return Task.FromResult(PluginUiReleaseResult.Success);
     }
 }

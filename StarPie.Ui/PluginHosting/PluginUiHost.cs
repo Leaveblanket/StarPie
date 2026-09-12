@@ -120,6 +120,15 @@ namespace StarPie.PluginHosting
             return _windows.Create(descriptor);
         }
 
+        /// <summary>按已注册的窗口键创建并显示窗口：宿主托管入口，插件不得自行创建或显示窗口（UI 线程）。</summary>
+        /// <param name="windowKey">已注册的窗口键。</param>
+        /// <returns>关闭句柄；窗口实例的登记项随卸载链统一出账。</returns>
+        public IDisposable ShowWindow(string windowKey)
+        {
+            EnsureUiThread();
+            return _windows.Show(windowKey);
+        }
+
         /// <summary>
         /// 执行本插件的资产摘除编排（UI 线程）；返回未能摘除的资产。调用方据此判定隔离，
         /// 调用后仍应经泄漏验证器做全局根扫描。
@@ -149,6 +158,13 @@ namespace StarPie.PluginHosting
         {
             EnsureUiThread();
             return _windows.Register(descriptor);
+        }
+
+        /// <inheritdoc/>
+        IDisposable IPluginUiContext.ShowWindow(string windowKey)
+        {
+            EnsureUiThread();
+            return _windows.Show(windowKey);
         }
 
         /// <inheritdoc/>

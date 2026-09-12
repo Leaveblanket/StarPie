@@ -22,12 +22,15 @@ public sealed class FourSetBoundaryTests
     private const string TestsProject = @"StarPie.Tests\StarPie.Tests.csproj";
     private const string PluginProject =
         @"plugins\src\StarPie.Plugin.Programs\StarPie.Plugin.Programs.csproj";
+    private const string SampleUiPluginProject =
+        @"plugins\src\StarPie.Plugin.SampleUi\StarPie.Plugin.SampleUi.csproj";
     private const string RootTfm = "net10.0-windows10.0.19041.0";
 
     /// <summary>仓库全部工程（四集 + 测试工程 + 随包插件工程）——解决方案登记与引用面断言的扫描基准。</summary>
     private static readonly string[] AllProjects =
     {
         UiProject, SdkProject, SdkWpfProject, HostProject, TestsProject, PluginProject,
+        SampleUiPluginProject,
     };
 
     [Fact]
@@ -67,8 +70,8 @@ public sealed class FourSetBoundaryTests
         Assert.Equal("latest", FourSetBoundaryProbe.GetProperty(rootProps, "AnalysisLevel"));
         Assert.Equal("StarPie", FourSetBoundaryProbe.GetProperty(rootProps, "RootNamespace"));
 
-        // TFM：Ui / Sdk.Wpf / 测试工程继承根 props；Sdk / Host / 随包插件显式收窄为 net10.0（零 WPF 面）。
-        foreach (string project in new[] { UiProject, SdkWpfProject, TestsProject })
+        // TFM：Ui / Sdk.Wpf / 测试工程 / 随包界面插件继承根 props；Sdk / Host / headless 插件显式收窄为 net10.0（零 WPF 面）。
+        foreach (string project in new[] { UiProject, SdkWpfProject, TestsProject, SampleUiPluginProject })
         {
             Assert.Null(FourSetBoundaryProbe.GetProperty(FourSetBoundaryProbe.LoadProject(project), "TargetFramework"));
             Assert.Equal(RootTfm, FourSetBoundaryProbe.GetEffectiveProperty(project, "TargetFramework"));
@@ -167,6 +170,26 @@ public sealed class FourSetBoundaryTests
         XDocument slnx = XDocument.Load(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx"));
         Assert.Contains(
             PluginProject,
+            slnx.Descendants("Project").Select(element => (string)element.Attribute("Path")!));
+    }
+
+    [Fact]
+    public void 随包界面插件工程_只引SDK与SdkWpf_零第三方包_零Host引用()
+    {
+        // UI 插件的引用面比 headless 插件多一个 WPF 契约面（plugins.md §5.1）：SDK + Sdk.Wpf，
+        // Host/Ui 依旧不可出现；SDK 契约不随包分发（Private=false 只进编译期引用）。
+        XDocument csproj = FourSetBoundaryProbe.LoadProject(SampleUiPluginProject);
+        Assert.True(FourSetBoundaryProbe.GetEffectiveBoolProperty(SampleUiPluginProject, "UseWPF"));
+        Assert.Equal(RootTfm, FourSetBoundaryProbe.GetEffectiveProperty(SampleUiPluginProject, "TargetFramework"));
+        Assert.Empty(csproj.Descendants("PackageReference"));
+
+        Assert.Equal(
+            new[] { "StarPie.Sdk", "StarPie.Sdk.Wpf" },
+            FourSetBoundaryProbe.ProjectReferences(SampleUiPluginProject).OrderBy(name => name, StringComparer.Ordinal).ToArray());
+
+        XDocument slnx = XDocument.Load(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx"));
+        Assert.Contains(
+            SampleUiPluginProject,
             slnx.Descendants("Project").Select(element => (string)element.Attribute("Path")!));
     }
 

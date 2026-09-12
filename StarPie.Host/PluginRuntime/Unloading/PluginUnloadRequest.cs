@@ -26,7 +26,8 @@ namespace StarPie.PluginRuntime.Unloading
             IPlugin? plugin,
             PluginLoadContext loadContext,
             PluginServiceScope? scope,
-            PluginLifecycleStateMachine lifecycle)
+            PluginLifecycleStateMachine lifecycle,
+            bool hasUi)
         {
             PluginId = pluginId;
             _plugin = plugin;
@@ -34,6 +35,7 @@ namespace StarPie.PluginRuntime.Unloading
             _scope = scope;
             Lifecycle = lifecycle;
             HasScope = scope is not null;
+            HasUi = hasUi;
             PluginProbe = new WeakReference(plugin);
             LoadContextProbe = new WeakReference(loadContext);
             // 未启动成功的隔离结果没有入口实例，回落到 ALC 内已加载的入口程序集；
@@ -54,6 +56,12 @@ namespace StarPie.PluginRuntime.Unloading
         /// 回收判定时被 GC 当作 root（headless 硬判据要求插件对象全部死亡）。
         /// </summary>
         internal bool HasScope { get; }
+
+        /// <summary>
+        /// 清单是否声明 ui 段：为真时卸载链必须在释放作用域与 ALC 之前先经 UI 端口清理资产。
+        /// 与 <see cref="HasScope"/> 同样在构造期算成布尔值，判定时不读实例字段。
+        /// </summary>
+        internal bool HasUi { get; }
 
         /// <summary>入口实例（交接期间有效；仅活动态装载结果的请求可用）。</summary>
         internal IPlugin Plugin => _plugin
@@ -93,7 +101,8 @@ namespace StarPie.PluginRuntime.Unloading
                 loaded.Plugin,
                 loaded.LoadContext,
                 loaded.Scope,
-                loaded.Lifecycle);
+                loaded.Lifecycle,
+                loaded.HasUi);
             loaded.ReleaseForUnload();
             return request;
         }
@@ -119,7 +128,8 @@ namespace StarPie.PluginRuntime.Unloading
                 loaded.Plugin,
                 loaded.LoadContext,
                 loaded.Scope,
-                loaded.Lifecycle);
+                loaded.Lifecycle,
+                loaded.HasUi);
             loaded.ReleaseForUnload();
             return request;
         }

@@ -5,10 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
+using StarPie.Abstractions.Ui;
+using StarPie.Compatibility;
 using StarPie.Events;
 using StarPie.PluginHosting.Cleanup;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginHosting.Verification;
+using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Ui;
 using StarPie.Services.Navigation;
 
@@ -20,12 +23,17 @@ namespace StarPie.PluginHosting
     /// </summary>
     /// <remarks>
     /// 实现 <see cref="IPluginUiCoordinator"/>（Host 的 WPF-free 端口）：调用方可以从任意线程发起，
-    /// 清理本身在 UI 线程内完成且不因取消中断。清理未收敛时保留托管上下文与残留，等下一次安全点
-    /// 再收，不谎报成功；未注册过 UI 资产的插件直接返回成功。装配层提供导航目录时，插件注册的
-    /// 导航页进该目录；插件缺席（无宿主上下文）时全部扩展点为空，不产生空壳。
+    /// 封送与实做都在 UI 线程（调用方已在 UI 线程时就地执行，避免"阻塞 UI 线程等待 UI 线程"）。
+    /// 装载期在 UI 线程调用一次插件的 <see cref="IPluginUiModule.RegisterUi"/> 并把资源根并入宿主
+    /// 资源树；清理未收敛时保留托管上下文与残留，等下一次安全点再收，不谎报成功；未注册过 UI 资产的
+    /// 插件释放直接成功。装配层提供导航目录时，插件注册的导航页进该目录；插件缺席（无宿主上下文）时
+    /// 全部扩展点为空，不产生空壳。
     /// </remarks>
     public sealed class PluginUiCoordinator : IPluginUiCoordinator
     {
+        /// <summary>公开无参构造：插件 UI 入口类型的唯一合法形态（<c>ui.entryType</c> 契约）。</summary>
+        private static readonly Type[] UiEntryConstructorSignature = Type.EmptyTypes;
+
         private readonly Application _application;
         private readonly WpfUiDispatcher _dispatcher;
         private readonly IPluginEvents? _events;
@@ -113,6 +121,21 @@ namespace StarPie.PluginHosting
         public bool HasHost(string pluginId) => _hosts.ContainsKey(pluginId);
 
         /// <inheritdoc/>
+        public async Task<PluginUiAttachResult> AttachAsync(
+            PluginUiAttachRequest request,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // 已在 UI 线程时就地执行：宿主启动期可能在工作线程上等待装载结果，
+            // 而 UI 线程正在等这条路走完（阻塞式等待），排队封送会直接死等。
+            return _dispatcher.IsOnUiThread
+                ? AttachCore(request)
+                : await _dispatcher.InvokeAsync(() => AttachCore(request)).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
         public async Task<PluginUiReleaseResult> ReleaseAsync(
             string pluginId,
             CancellationToken cancellationToken)
@@ -120,9 +143,90 @@ namespace StarPie.PluginHosting
             ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await _dispatcher
-                .InvokeAsync(() => ReleaseCore(pluginId))
-                .ConfigureAwait(false);
+            return _dispatcher.IsOnUiThread
+                ? ReleaseCore(pluginId)
+                : await _dispatcher.InvokeAsync(() => ReleaseCore(pluginId)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// UI 注册编排（UI 线程）：校验 UI 侧 ABI → 解析入口类型 → 调 <c>RegisterUi</c> → 并入资源根。
+        /// </summary>
+        /// <remarks>
+        /// 注册前要求本插件没有未收口的托管上下文：残留没清干净就再注册会把两代资产叠在同一张登记表上，
+        /// 回收判定随之失真；此时报失败让装载进隔离，由管理面走重试/停用出口。
+        /// </remarks>
+        private PluginUiAttachResult AttachCore(PluginUiAttachRequest request)
+        {
+            if (HasHost(request.PluginId) && Assets.CountFor(request.PluginId) > 0)
+            {
+                return PluginUiAttachResult.Failed(
+                    $"上一次卸载未收敛：仍有 {Assets.CountFor(request.PluginId)} 项未摘净的 UI 资产");
+            }
+
+            if (!TryParseUiAbi(request.UiSdk, out string abiFailure))
+            {
+                return PluginUiAttachResult.Failed(abiFailure);
+            }
+
+            Type? entryType = request.EntryAssembly.GetType(
+                request.UiEntryType,
+                throwOnError: false,
+                ignoreCase: false);
+            if (entryType is null)
+            {
+                return PluginUiAttachResult.Failed($"ui.entryType 未找到：{request.UiEntryType}");
+            }
+
+            if (!typeof(IPluginUiModule).IsAssignableFrom(entryType))
+            {
+                return PluginUiAttachResult.Failed(
+                    $"ui.entryType 未实现 IPluginUiModule：{request.UiEntryType}");
+            }
+
+            if (entryType.GetConstructor(UiEntryConstructorSignature) is null)
+            {
+                return PluginUiAttachResult.Failed(
+                    $"ui.entryType 需要公开无参构造函数：{request.UiEntryType}");
+            }
+
+            PluginUiHost host = GetOrCreateHost(request.PluginId);
+            try
+            {
+                var module = (IPluginUiModule)Activator.CreateInstance(entryType)!;
+                module.RegisterUi(host);
+            }
+            catch (Exception exception)
+            {
+                // 注册失败即装载失败：半注册资产由上层的回收路径经同一端口清理。
+                return PluginUiAttachResult.Failed(
+                    $"{exception.GetType().Name}：{exception.Message}");
+            }
+
+            // 注册完成才并入资源根：插件注册的资源字典与页面/窗口模板从此可被宿主资源查找命中。
+            host.Attach();
+            return PluginUiAttachResult.Success;
+        }
+
+        /// <summary>
+        /// UI 侧 ABI 兼容判定：清单 <c>ui.sdk</c> 按"主.次"解析后须与宿主同主、次不高于宿主。
+        /// 兼容判定归 UI 托管层——宿主内核不引用 WPF 契约面，读不懂 ui 段的版本政策。
+        /// </summary>
+        private static bool TryParseUiAbi(string? uiSdk, out string failure)
+        {
+            if (!UiSdkAbi.TryParseVersion(uiSdk, out int major, out int minor))
+            {
+                failure = $"ui.sdk 必须是「主.次」版本号：{uiSdk}";
+                return false;
+            }
+
+            if (!UiSdkAbi.IsCompatibleWithCurrentHost(major, minor))
+            {
+                failure = $"UI SDK ABI 不兼容：清单声明 {uiSdk}，宿主为 {UiSdkAbi.Version}";
+                return false;
+            }
+
+            failure = string.Empty;
+            return true;
         }
 
         private PluginUiReleaseResult ReleaseCore(string pluginId)

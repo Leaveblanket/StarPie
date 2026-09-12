@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "starpie.builtin.sample-ui",
+  "name": "StarPie UI 示例",
+  "version": "1.0.0",
+  "sdk": "1.0",
+  "ui": { "sdk": "1.2", "entryType": "StarPie.Plugin.SampleUi.SampleUiUiModule" },
+  "entryAssembly": "StarPie.Plugin.SampleUi.dll",
+  "entryType": "StarPie.Plugin.SampleUi.SampleUiPlugin"
+}

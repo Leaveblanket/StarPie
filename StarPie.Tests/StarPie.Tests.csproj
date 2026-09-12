@@ -40,5 +40,6 @@
   <!-- 插件装载夹具：把随包插件复制到测试输出目录的 plugins/<清单 id>/，
        使 xUnit 能按生产路径（AppContext.BaseDirectory/plugins）装载真实插件包。 -->
   <Import Project="..\plugins\src\StarPie.Plugin.Programs\Package.targets" />
+  <Import Project="..\plugins\src\StarPie.Plugin.SampleUi\Package.targets" />
 
 </Project>

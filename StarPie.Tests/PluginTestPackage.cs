@@ -64,7 +64,8 @@ internal static class PluginTestPackage
         Type entryType,
         string? entryTypeName = null,
         string? capabilitiesJson = null,
-        int priority = 0)
+        int priority = 0,
+        string? uiSection = null)
     {
         string entryAssemblyName = Path.GetFileName(entryType.Assembly.Location);
         string packageDirectory = Create(
@@ -75,7 +76,8 @@ internal static class PluginTestPackage
                 entryAssembly: entryAssemblyName,
                 entryType: entryTypeName ?? entryType.FullName!,
                 priority: priority,
-                capabilitiesJson: capabilitiesJson));
+                capabilitiesJson: capabilitiesJson,
+                uiSection: uiSection));
         File.Copy(
             entryType.Assembly.Location,
             Path.Combine(packageDirectory, entryAssemblyName),

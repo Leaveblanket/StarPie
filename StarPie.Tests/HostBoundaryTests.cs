@@ -83,8 +83,10 @@ public sealed class HostBoundaryTests
         typeof(PluginUnloadPipeline), typeof(PluginReclaimPolicy),
         // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用/重载/更新/彻底移除）
         typeof(PluginRuntimeHost), typeof(PluginUninstallResult), typeof(PluginUninstallOptions),
-        // PluginRuntime/Ui/（UI 释放端口：Host 零 WPF，实现封送在 Ui 层）
-        typeof(IPluginUiCoordinator), typeof(PluginUiReleaseResult),
+        // PluginRuntime/Ui/（UI 托管端口：装载期 RegisterUi 调度与卸载期释放编排的纯数据面；
+        // Host 零 WPF，实做封送在 Ui 层）
+        typeof(IPluginUiCoordinator), typeof(PluginUiAttachRequest),
+        typeof(PluginUiAttachResult), typeof(PluginUiReleaseResult),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

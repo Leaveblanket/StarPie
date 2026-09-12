@@ -20,6 +20,9 @@ namespace StarPie.PluginRuntime.Diagnostics
 
         /// <summary>能力调用仍在途。</summary>
         InFlightCall,
+
+        /// <summary>UI 资产残留（视图/窗口/资源字典/注册项/定时器/动画/订阅未摘净）。</summary>
+        UiAsset,
     }
 
     /// <summary>

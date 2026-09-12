@@ -68,6 +68,12 @@ namespace StarPie.PluginRuntime.Loading
         public PluginServiceScope? Scope { get; private set; }
 
         /// <summary>
+        /// 清单是否声明了 ui 段（界面插件）。卸载链按此分档：界面插件在释放作用域与 ALC 之前
+        /// 必须先经 UI 端口执行资产清理——即使本次装载只走到一半（UI 注册失败）也要清残留。
+        /// </summary>
+        public bool HasUi { get; init; }
+
+        /// <summary>
         /// 交出插件对象的所有权后清空本结果的三条强引用；由 <c>PluginUnloadRequest.FromLoaded</c> 调用——
         /// 这是"装载结果 → 卸载请求"交接的机械保障，调用方不应自行调用。
         /// </summary>

@@ -36,6 +36,13 @@ namespace StarPie.Abstractions.Ui
         /// <returns>注销句柄。</returns>
         IDisposable RegisterWindow(PluginWindowDescriptor descriptor);
 
+        /// <summary>
+        /// 打开本插件注册过的窗口：宿主调用工厂创建实例、显示并记账，插件不得自行创建或显示窗口。
+        /// </summary>
+        /// <param name="windowKey">已注册的窗口稳定键（未注册时抛 <see cref="System.ArgumentException"/>）。</param>
+        /// <returns>关闭句柄；Dispose 即卸载该窗口实例并从登记表摘除（幂等）。</returns>
+        IDisposable ShowWindow(string windowKey);
+
         /// <summary>注册托盘/菜单项（纯数据，宿主渲染入口）。</summary>
         /// <param name="descriptor">菜单项描述符（非 null）。</param>
         /// <returns>注销句柄。</returns>

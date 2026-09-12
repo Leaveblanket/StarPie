@@ -106,23 +106,54 @@ namespace StarPie
             _dialogService.SetBackgroundMode(background);
         }
 
-        /// <summary>启动鼠标钩子、换入语言字典、创建托盘与主框架并显示——顺序显式可控。</summary>
+        /// <summary>
+        /// 启动编排：先在工作线程上完成插件装载（界面插件的 UI 注册要回到 UI 线程），
+        /// 再启动鼠标钩子、换入语言字典、创建托盘与主框架并显示——顺序显式可控。
+        /// </summary>
+        /// <remarks>
+        /// 装载不能阻塞 UI 线程：界面插件经 <c>IPluginUiModule.RegisterUi</c> 在 UI 线程注册资产，
+        /// 阻塞式等待会让注册永远排不上队。因此窗口在插件就位之后创建，依赖插件来源的消费方
+        ///（程序选择器）不必与装载抢时序。
+        /// </remarks>
         public void Run()
+            => _ = RunAfterPluginStartupAsync();
+
+        /// <summary>装载插件，随后在本线程（UI 线程）完成其余启动编排。</summary>
+        private async Task RunAfterPluginStartupAsync()
         {
-            // 插件运行时先于窗口与钩子：扫描刷新宿主状态（启用/停用/版本/路径/准入来源/隔离）并落盘
-            // 启动报告（准入四态可见），随后按宿主状态装载启用插件。装载在工作线程上同步完成——
-            // 插件代码不得在 UI 线程的同步上下文里跑，启动期也不该留下半装载状态
-            //（程序选择器依赖插件已就位的程序来源）。扫描与装载失败都不阻断启动——
-            // 插件缺席、插件出错与插件停用都是可运行态。
             try
             {
-                Task.Run(() => _pluginRuntime.StartAsync(CancellationToken.None)).GetAwaiter().GetResult();
+                await RunCoreAsync();
+            }
+            catch (Exception ex)
+            {
+                // 启动编排为 fire-and-forget：异常不能无人观察（会进 TaskScheduler.UnobservedTaskException），
+                // 与插件启动失败同路记入调试日志后按可运行态收场。
+                Debug.WriteLine($"Startup failed: {ex.Message}");
+            }
+        }
+
+        private async Task RunCoreAsync()
+        {
+            // 插件运行时先于窗口与钩子：扫描刷新宿主状态（启用/停用/版本/路径/准入来源/隔离）并落盘
+            // 启动报告（准入四态可见），随后按宿主状态装载启用插件。插件代码跑在工作线程上
+            //（不进 UI 线程的同步上下文），UI 注册与清理由宿主调度器回到本线程执行。
+            // 扫描与装载失败都不阻断启动——插件缺席、插件出错与插件停用都是可运行态。
+            try
+            {
+                await Task.Run(() => _pluginRuntime.StartAsync(CancellationToken.None));
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Plugin startup failed: {ex.Message}");
             }
 
+            StartCore();
+        }
+
+        /// <summary>UI 线程上的启动编排：钩子、语言字典、托盘、主框架与初始导航。</summary>
+        private void StartCore()
+        {
             // 后台模式不启全局鼠标钩子：钩子属产品交互，e2e 不覆盖它，
             // 却可能在用户操作鼠标时把轮盘弹到屏幕上。
             if (!_background)

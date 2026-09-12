@@ -7,7 +7,7 @@
 > **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 建四集骨架并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；P1.3/#112 把 headless 契约/模型收口入 `StarPie.Sdk`，P1.4/#113 把 WPF 契约件收口入 `StarPie.Sdk.Wpf`；P1.3–P1.11 分批归并把旧 15 集**全部撤销**（含设计期投影壳 `StarPie.Core`：设计期字典随 Ui 集承载），注册管线统一为内置贡献者有序清单（§6），插件面自 P2 起建设。
 >
 > **程序集现状**：四集（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
-> + 测试工程 + 随包插件工程 `plugins/src/StarPie.Plugin.Programs`（只引 SDK），无旧集残留（划分见 §2）。
+> + 测试工程 + 随包插件工程 `plugins/src/StarPie.Plugin.Programs`（只引 SDK）与 `plugins/src/StarPie.Plugin.SampleUi`（引 SDK + Sdk.Wpf），无旧集残留（划分见 §2）。
 > 代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
 > 为准，冲突时叶子优先。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
 
