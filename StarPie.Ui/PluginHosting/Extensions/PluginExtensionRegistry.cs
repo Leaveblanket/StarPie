@@ -70,6 +70,10 @@ namespace StarPie.PluginHosting.Extensions
             }
 
             string automationId = AutomationIdFor(_pluginId);
+            // 目录条目要携页面 VM 类型（导航项识别用），故这里让宿主按自己的时机取一次工厂的
+            // 产物类型；导航时的实例仍由工厂现取，注册产物不做缓存。类型取值先于任何记账，
+            // 插件工厂抛异常时目录与资产登记表都保持原样。
+            Type viewModelType = descriptor.ViewModelFactory().GetType();
             var page = new PluginPage(
                 _pluginId,
                 automationId,
@@ -78,15 +82,14 @@ namespace StarPie.PluginHosting.Extensions
                 descriptor.ViewModelFactory);
 
             // 宿主未提供导航目录时只记账：注册不失败，也不产生无处可挂的空壳导航项。
-            // 目录条目要携页面 VM 类型（导航项识别用），故这里让宿主按自己的时机取一次工厂的
-            // 产物类型；导航时的实例仍由工厂现取，注册产物不做缓存。
+            // 目录注册先于本类记账：目录注册失败（重复标识）时不留下半登记状态。
             _navigationCatalog?.RegisterPluginPage(
                 _pluginId,
                 automationId,
                 automationId,
                 descriptor.TitleKey,
                 descriptor.IconData,
-                descriptor.ViewModelFactory().GetType(),
+                viewModelType,
                 descriptor.ViewModelFactory);
             _pages.Add(page);
 

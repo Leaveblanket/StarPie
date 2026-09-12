@@ -97,6 +97,24 @@ public sealed class PluginExtensionPointsTests
     }
 
     [Fact]
+    public async Task 重复注册同一插件页_第二次失败且不重复记账()
+    {
+        await StaTestHarness.RunAsync(async () =>
+        {
+            var (coordinator, catalog) = Create();
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+            host.RegisterPage(Page());
+
+            Exception? second = Record.Exception(() => host.RegisterPage(Page()));
+
+            Assert.IsType<InvalidOperationException>(second);
+            Assert.Single(host.Pages);
+            Assert.Equal(1, host.Assets.CountFor(PluginId));
+            Assert.Single(catalog.Entries, entry => entry.AutomationId == AutomationId);
+        });
+    }
+
+    [Fact]
     public async Task 无插件时_扩展点为空且无宿主上下文()
     {
         await StaTestHarness.RunAsync(async () =>
