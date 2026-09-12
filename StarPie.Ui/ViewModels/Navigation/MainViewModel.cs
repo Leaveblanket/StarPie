@@ -29,7 +29,7 @@ namespace StarPie.ViewModels.Navigation
         private readonly NavigationCatalog _catalog;
         private Action? _onCatalogChanged;
 
-        /// <summary>导航项（按 NavigationCatalog 槽位 0–3 注册顺序，即侧边栏顺序）。</summary>
+        /// <summary>导航项（固定槽位升序在前、插件页按注册顺序在后，即侧边栏顺序）。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
 
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>

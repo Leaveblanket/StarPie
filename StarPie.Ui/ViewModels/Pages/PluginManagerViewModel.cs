@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Kernel.Localization;
 using StarPie.PluginHosting;
+using StarPie.PluginHosting.Extensions;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
-using StarPie.PluginHosting.Extensions;
 using StarPie.Services.Navigation;
 
 namespace StarPie.ViewModels.Pages
