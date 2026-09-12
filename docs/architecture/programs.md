@@ -32,7 +32,7 @@
    App Paths 与 Uninstall、Program Files 顶层）→ 文件存在性/扩展名/大小检查与垃圾过滤 →
    `ProgramCatalog.MergeSources` 纯函数跨源去重与显示名升级 → 按显示名自然排序，返回纯数据
    `ProgramEntry` 列表（.lnk 解析经注入的 `IShortcutTargetResolver`）。
-2. `ProgramPickerViewModel`（`StarPie.Dialogs`）构造注入 `IProgramScanner`、
+2. `ProgramPickerViewModel`（`StarPie.Ui/ViewModels/Dialogs/`）构造注入 `IProgramScanner`、
    `IShortcutTargetResolver` 与 `IIconAssetService`：扫描与图标装配同处后台线程
    （`ProgramPickerItem` = 候选 + `IIconAssetService.GetIcon(路径)`），搜索过滤经
    `ProgramCatalog.MatchesFilter` 纯函数；手动浏览的 .lnk 解析走注入的解析契约实例。

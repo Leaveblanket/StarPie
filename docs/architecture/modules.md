@@ -36,7 +36,7 @@
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
 - `Composition.cs` / 导航登记一次：模块注册器 `RegisterNavigation` + 模块页面模板字典 +
-  [naming.md](naming.md) 映射表（M5：`StarPie.Shell` 的 `ShellModuleRegistrar`；M1：
+  [naming.md](naming.md) 映射表（M5：`StarPie.Ui` 的 `ShellModuleRegistrar`；M1：
   Ui 集内 M1 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
   `HostModuleRegistrar`）；页面 VM DI 注册由所属注册器下放——M5 页面 VM 由
   ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Ui`，
@@ -118,7 +118,7 @@
 - **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
 - **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、
   `GeneralSettingsViewModel`+`AdvancedSettingsPage` 与模块注册器/页面模板字典
-  （物理居 `StarPie.Shell/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
+  （物理随 M5 归并入 `StarPie.Ui/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
   不归 M5——R4/ADR-0016 归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
@@ -170,7 +170,7 @@
   `NavigationItemViewModel`）在 Host（命名空间不变，见
   [host.md](host.md)/[navigation.md](navigation.md)）；`SidebarView` 属 Host。
 - **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
-  （M5 只动 `StarPie.Shell`、M1 只动 Ui 集内 M1 部件，页面 VM DI 注册随各自
+  （M5/M1 只动 Ui 集内各自部件，页面 VM DI 注册随各自
   ShellModuleRegistrar/GesturesModuleRegistrar 下放；Host 外观聚合页经 exe 内
   HostModuleRegistrar/HostPageTemplates），不碰其它模块（见 [assemblies.md](assemblies.md) §5）。
 
@@ -179,7 +179,8 @@
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
 - **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Sdk/Services/Dialogs/`
   （纯 C#，命名空间不变，ADR-0023）；实现与界面
-  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻 `StarPie.Dialogs`。
+  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）随 P1.10/#119 驻
+  `StarPie.Ui`（`Services|ViewModels|Views/Dialogs|Controls/`）。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Sdk.Wpf 契约
   `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
   窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，ADR-0023）；不直穿 M3/S1 与 M4 实现内部；消费方
@@ -208,7 +209,7 @@
 | R4 | `MainView.xaml` / `MainView.xaml.cs`                                                                                                 | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已迁出 MainView，模块模板字典随所属模块程序集（见 [assemblies.md](assemblies.md) §5.1）                                                                                                                  | `Views/Navigation/`；exe 仅余 Host 外观页模板                                                                                                                                                                                                                                                                                                                              |
 | R5 | `GesturePoint`                                                                                                                         | 共享值类型（SDK）                                                                                                                                                                                                                                                                             | `StarPie.Sdk/Models/`（P1.3/#112）                                                                                                                                                                                                                                                                                                                                        |
 | R6 | `IconHelper`                                                                                                                           | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3                                                                                                                                            | 原 `IconAssets.cs` 已拆：S1 契约与资产表（`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`，双形拆为静态目录 + 实例服务，见 §3 S1）、M2 `StarPie.Ui/Services/Wheel/WheelGeometry.cs`、M3 `StarPie.Programs` 的 `Services/Programs/ShortcutResolver.cs` |
-| R7 | `ProgramPicker`/`IconPicker`                                                                                                         | S6 对话框（通用选择器）                                                                                                                                                                                                                                                                    | `StarPie.Dialogs/ViewModels` 与 `Views/Dialogs/`                                                                                                                                                                                                                                                                                                                          |
+| R7 | `ProgramPicker`/`IconPicker`                                                                                                         | S6 对话框（通用选择器）                                                                                                                                                                                                                                                                    | `StarPie.Ui/ViewModels/Dialogs` 与 `Views/Dialogs/`                                                                                                                                                                                                                                                                                                                       |
 | R8 | `Models` 语义归属与物理落位                                                                                                            | `WheelProfile`/`ActionItem` → M1（物理 `StarPie.Sdk/Models/`，配置 POCO）；`WheelPalette*` → M2（语义归 M2；物理随归并驻 `StarPie.Host/Wheel/`，WPF-free）；`CustomColorPreset` → M2（语义；物理 `StarPie.Sdk/Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `StarPie.Sdk/Models/` + `StarPie.Host/Wheel/`                                                                                                                                                                                                                                                                                                                            |
 | R9 | 导航运行时主体（`NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）/`MainViewModel`/`NavigationItemViewModel`） | H1 宿主壳（与 R4/D3 同判据——运行时消费者全部在 Host，模块程序集零引用）                                                                                                                                                                                                                  | `StarPie.Ui/Services/Navigation/` + `StarPie.Ui/ViewModels/Navigation/`（命名空间不变，共享命名空间树）                                                                                                                                                                                                                                                                    |
 
@@ -255,7 +256,7 @@ M2 构造契约变更不再波及 Host/M1
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随归并入 `StarPie.Ui`：
   VM+View+注册器+模板字典均在模块程序集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳；
-- Advanced 设置页 = M5 的设置面（随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
+- Advanced 设置页 = M5 的设置面（随归并入 `StarPie.Ui`：VM+View+注册器+模板字典
   均在模块程序集内，新增页面不碰 Host）；
 - 新增设置页按原型 B 走导航登记，不预设归属模块。
 
@@ -264,7 +265,7 @@ M2 构造契约变更不再波及 Host/M1
 | 原型/场景             | 示例                              | 只动                                                                        | 放行共享面                                                                                                                                                                                                                                                                                                                             |
 | --------------------- | --------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A 新增设置项          | 现有页加开关                      | 所属模块 VM                                                                 | S2 模型字段、S3 文案键                                                                                                                                                                                                                                                                                                                 |
-| B 新增设置页面        | 新导航页                          | 新域/所属模块（注册器 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5 只动`StarPie.Shell` 模块内部；M1 只动 Ui 集内 M1 部件（GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面        | 新导航页                          | 新域/所属模块（注册器 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5/M1 只动 Ui 集内各自部件（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框          | 新模态                            | S6 内部                                                                     | 调用方模块一行（经`IDialogService`）                                                                                                                                                                                                                                                                                                 |
 | D 新增动作类型        | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射）                               | 新图标资产 → S1；S3 文案；config 兼容                                                                                                                                                                                                                                                                                                 |
 | E 新增轮盘样式        | 新 Renderer                       | M2 内部（渲染器/工厂/配色目录/外观选项）                                    | S3 文案                                                                                                                                                                                                                                                                                                                                |

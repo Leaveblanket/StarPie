@@ -33,7 +33,7 @@ SDK（`StarPie.Sdk/`；P1.3/#112 自 Core 收口，仅目录/槽位契约）：
   DataTemplate 映射**——纯壳；分区 DataContext 与 `MainView.xaml.cs` 壳层 code-behind 见
   [shell.md](shell.md)）。
 
-M5 模块程序集（`StarPie.Shell/`）：
+M5（P1.10/#119 起驻 `StarPie.Ui/`）：
 
 - `Modules/ShellModuleRegistrar.cs`（正式模块注册器：`RegisterNavigation(NavigationCatalog)` +
   `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册随 M5 下放）与 `Modules/ShellPageTemplates.xaml`
@@ -77,7 +77,7 @@ M1（P1.6/#115 起驻 `StarPie.Ui/`）：
 未完成。完整清单见 [extending.md](extending.md)（原型 B）。
 
 as-built：
-- M5（`StarPie.Shell`）/M1（`StarPie.Ui`）：新增页面只动模块内部——所属
+- M5（`StarPie.Ui`）/M1（`StarPie.Ui`）：新增页面只动模块内部——所属
   Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml
   + 页面 VM/View 文件，**不碰 Host**（跨程序集形态成立）；
 - Host（外观聚合页，留 Host）：由 exe 内 HostModuleRegistrar + HostPageTemplates.xaml

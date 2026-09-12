@@ -53,14 +53,14 @@
      `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
      （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。
     - `NavigationCatalog` 由 Ui 集内 M1 的 `GesturesModuleRegistrar.RegisterNavigation`、
-     `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
+     Ui 集内 M5 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不硬编码页面类型（运行时
      类型与执行缝的注册见上段基础设施）。
    - 服务：`DialogService`（构造注入图标资产服务、.lnk 解析契约与程序扫描契约——
      程序扫描/.lnk 契约在 `StarPie.Sdk`、图标资产服务契约在 `StarPie.Sdk.Wpf`，
      实现均在组合根登记（ADR-0023）；
      `DialogService` 与 `IDialogService` 的注册随 S6 实现由 `DialogsModuleRegistrar.RegisterServices`
-     下放（StarPie.Dialogs）；对话框服务另注入共享图标资产实例服务与解析契约，
+     下放（Ui 集 `Services/Dialogs/`）；对话框服务另注入共享图标资产实例服务与解析契约，
      供图标/程序选择器使用）、`ISaveDebouncer`（实现 = Ui 适配器 `DispatcherSaveDebouncer`）、
      `SettingsSaveOrchestrator`（宿主内核）。（M1 手势管线
      `MouseHook`/`IActionExecutorService`/`IWindowContext`/`GestureEngine`/`GestureController`
@@ -101,7 +101,7 @@
       装配前已以 DevInstance.IsActive 回填），M1 不反向引用宿主。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
-     `DialogService` 在 `StarPie.Dialogs` 内显式 `new`）。
+     `DialogService` 在 Ui 集内显式 `new`）。
 3. `Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`；
@@ -118,7 +118,7 @@
      `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
      `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
-      `_dialogService.SetOwner(_mainView)`（StarPie.Dialogs public 装配面）
+      `_dialogService.SetOwner(_mainView)`（Ui 集 public 装配面）
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
 5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
    → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
