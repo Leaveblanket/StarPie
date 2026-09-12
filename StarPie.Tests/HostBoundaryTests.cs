@@ -8,6 +8,8 @@ using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Discovery;
+using StarPie.PluginRuntime.Lifecycle;
+using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Manifest;
 using StarPie.PluginRuntime.State;
 
@@ -57,6 +59,11 @@ public sealed class HostBoundaryTests
         typeof(PluginQuarantineState), typeof(PluginStateEntry), typeof(PluginStateDocument), typeof(PluginStateStore),
         typeof(PluginStartupReportEntry), typeof(PluginStartupReport),
         typeof(PluginStartupReportWriter), typeof(PluginStartupScanner),
+        // PluginRuntime/Loading/（collectible ALC 与装载管线）与 Lifecycle/（生命周期状态机）
+        typeof(PluginSharedAssemblyPolicy), typeof(PluginLoadContext), typeof(PluginLoadRequest),
+        typeof(PluginLoadStatus), typeof(PluginLoadResult), typeof(PluginLoadPipeline),
+        typeof(PluginLifecycleState), typeof(PluginLifecycleTransition),
+        typeof(PluginLifecycleStateMachine),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

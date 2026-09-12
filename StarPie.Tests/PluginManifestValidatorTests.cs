@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using StarPie.Compatibility;
 using StarPie.PluginRuntime.Manifest;
 using StarPie.PluginRuntime.Discovery;
 
@@ -85,9 +86,7 @@ public sealed class PluginManifestValidatorTests : IDisposable
     }
 
     [Theory]
-    [InlineData("2.0")]
-    [InlineData("1.1")]
-    [InlineData("abc")]
+    [MemberData(nameof(AbiViolationDeclarations))]
     public void Validate_SDK声明超出宿主ABI_报错(string sdk)
     {
         string package = PluginTestPackage.Create(
@@ -96,6 +95,14 @@ public sealed class PluginManifestValidatorTests : IDisposable
         IReadOnlyList<string> errors = Validate(package);
 
         Assert.Contains(errors, error => error.Contains("sdk", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>超出宿主 ABI 的声明：主版本更高、次版本更高与格式非法三类。</summary>
+    public static IEnumerable<object[]> AbiViolationDeclarations()
+    {
+        yield return new object[] { $"{SdkAbi.MajorVersion + 1}.0" };
+        yield return new object[] { $"{SdkAbi.MajorVersion}.{SdkAbi.MinorVersion + 1}" };
+        yield return new object[] { "abc" };
     }
 
     [Fact]

@@ -57,7 +57,8 @@
   RgbColor/ColorMath/GesturePoint）、`Services/`（AppHostDelegates、Messages 消息与通知载体、
   Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口、Icons 图标条目与
   .lnk 解析 SPI、Programs 扫描契约与纯规则）、`ViewModels/`
-  （Pages 预览源接口、Wheel 轮盘只读接口）；迁移期源码镜像旧相对路径、命名空间保持
+  （Pages 预览源接口、Wheel 轮盘只读接口）、`Plugins/`（`IPlugin` 入口与 `IPluginContext`
+  宿主服务面）；迁移期源码镜像旧相对路径、命名空间保持
   `StarPie.*` 不变，导出面与全仓类型唯一性由 `StarPie.Tests/SdkBoundaryTests.cs` 收口；
   WPF 契约件（主题、图标资产服务）已随 P1.4/#113 迁入 `StarPie.Sdk.Wpf`，导出面与 ABI/装载政策
   由 `StarPie.Tests/SdkWpfBoundaryTests.cs` 收口。
@@ -68,9 +69,11 @@
   `LocalizationService` + `Strings*.resx` 四语言，命名空间 `StarPie.Kernel.Localization`）；
   S1/M3 的 WPF-free 逻辑同驻本集——`Icons/`（`IconCatalog` 静态纯目录 + `CustomIconStore`
   自定义图标目录，命名空间 `StarPie.Icons`）与 `Programs/`（`ProgramScanner` 八源扫描 +
-  `ShortcutResolver` .lnk 解析，命名空间 `StarPie.Programs`）；插件运行时首层驻
+  `ShortcutResolver` .lnk 解析，命名空间 `StarPie.Programs`）；插件运行时驻
   `PluginRuntime/`——`Discovery/`（安装目录 + 用户目录发现与包内容违规）、`Manifest/`（清单解析与
   校验）、`Admission/`（准入四态与开发者模式开关）、`State/`（宿主状态 `plugin-state.json`）、
+  `Loading/`（collectible ALC 与装载管线：共享契约/框架回退默认 ALC、包内私有解析、
+  入口类型不缓存）、`Lifecycle/`（生命周期状态机：装载链、headless/UI 两条卸载链与隔离终态）、
   `Diagnostics/`（启动扫描与 `plugin-startup-report.json`），命名空间 `StarPie.PluginRuntime.*`。
   内核件可 headless 直接构造，导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
   WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer` 作为 Ui 侧适配器驻 `StarPie.Ui/Adapters/`
