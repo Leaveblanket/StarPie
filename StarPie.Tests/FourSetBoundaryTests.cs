@@ -24,13 +24,17 @@ public sealed class FourSetBoundaryTests
         @"plugins\src\StarPie.Plugin.Programs\StarPie.Plugin.Programs.csproj";
     private const string SampleUiPluginProject =
         @"plugins\src\StarPie.Plugin.SampleUi\StarPie.Plugin.SampleUi.csproj";
+    private const string MinimalHeadlessSampleProject =
+        @"plugins\samples\MinimalHeadless\StarPie.Plugin.MinimalHeadless.csproj";
+    private const string MinimalUiSampleProject =
+        @"plugins\samples\MinimalUi\StarPie.Plugin.MinimalUi.csproj";
     private const string RootTfm = "net10.0-windows10.0.19041.0";
 
-    /// <summary>仓库全部工程（四集 + 测试工程 + 随包插件工程）——解决方案登记与引用面断言的扫描基准。</summary>
+    /// <summary>仓库全部工程（四集 + 测试工程 + 随包插件工程 + 示例工程）——解决方案登记与引用面断言的扫描基准。</summary>
     private static readonly string[] AllProjects =
     {
         UiProject, SdkProject, SdkWpfProject, HostProject, TestsProject, PluginProject,
-        SampleUiPluginProject,
+        SampleUiPluginProject, MinimalHeadlessSampleProject, MinimalUiSampleProject,
     };
 
     [Fact]

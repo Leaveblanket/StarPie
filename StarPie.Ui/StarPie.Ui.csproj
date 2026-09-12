@@ -53,4 +53,11 @@
   <Import Project="..\plugins\src\StarPie.Plugin.Programs\Package.targets" />
   <Import Project="..\plugins\src\StarPie.Plugin.SampleUi\Package.targets" />
 
+  <!-- 签名审核清单随宿主分发（PluginPaths.InstallDirectory 的落点）：
+       清单文件对由 scripts/sign-review-catalog.ps1 用首方私钥签发，私钥不入仓库。 -->
+  <ItemGroup>
+    <None Include="..\plugins\review-catalog.json" CopyToOutputDirectory="PreserveNewest" Link="plugins\review-catalog.json" />
+    <None Include="..\plugins\review-catalog.json.sig" CopyToOutputDirectory="PreserveNewest" Link="plugins\review-catalog.json.sig" />
+  </ItemGroup>
+
 </Project>

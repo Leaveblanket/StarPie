@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:StarPie.Plugin.MinimalUi"
+                    xmlns:views="clr-namespace:StarPie.Plugin.MinimalUi.Views">
+    <!-- 最小 UI 插件的资源字典：经 IPluginUiContext.MergeResourceDictionary 并入插件资源根，
+         卸载时随根容器整根摘除。同程序集类型引用不带 assembly= 令牌：类型解析落在装载上下文内。 -->
+
+    <!-- 页面 VM → 页面视图：插件页的视图映射（宿主壳层 ContentControl 隐式模板命中）。 -->
+    <DataTemplate DataType="{x:Type ui:MinimalPageViewModel}">
+        <views:MinimalPageView />
+    </DataTemplate>
+</ResourceDictionary>

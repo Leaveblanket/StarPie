@@ -42,6 +42,7 @@
 | 程序集地图 / 程序集依赖方向 / 导航槽位 | [assemblies.md](architecture/assemblies.md) |
 | 模块间接合缝编目 / 缝裁决 / 程序集依赖基线 | [seams.md](architecture/seams.md) |
 | 插件体系（目标态）：SDK/SDK.Wpf、装载/卸载、能力、插件 UI 托管、文件架构 | [plugins.md](architecture/plugins.md) |
+| 插件开发（开发者视角：示例/白名单/不支持列表/准入） | [plugin-dev-handbook.md](plugin-dev-handbook.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 

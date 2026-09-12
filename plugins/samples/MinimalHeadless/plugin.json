@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "id": "sample.minimal.headless",
+  "name": "最小 headless 示例",
+  "version": "1.0.0",
+  "sdk": "1.0",
+  "entryAssembly": "StarPie.Plugin.MinimalHeadless.dll",
+  "entryType": "StarPie.Plugin.MinimalHeadless.MinimalHeadlessPlugin"
+}

@@ -38,8 +38,22 @@ namespace StarPie.PluginRuntime.Admission
     /// </remarks>
     public sealed class SignedPluginReviewCatalog : IPluginReviewCatalog
     {
-        /// <summary>首方发布公钥 pin（PEM，SPKI）。发布密钥尚未建立时为空：空 pin 不采信任何清单。</summary>
-        public const string FirstPartyPublicKeyPem = "";
+        /// <summary>
+        /// 首方发布公钥 pin（PEM）。宿主只认本钥匙签发的清单：更新通道 = 用配对私钥重签清单文件对，
+        /// 私钥不入仓库（维护者本机 <c>~/.starpie-keys/review-catalog-private.pem</c>，
+        /// 签名工具 <c>scripts/sign-review-catalog.ps1</c>）。随仓库清单自带 selfcheck 条目，
+        /// 由 xUnit 验证 pin 与清单未漂移。
+        /// </summary>
+        public const string FirstPartyPublicKeyPem = """
+            -----BEGIN RSA PUBLIC KEY-----
+            MIIBCgKCAQEA2LFbSFLuwym/BR5Gr1eU+ozFJZGx0l/qJeSDOzB9o5vZ26X9EeYc
+            BH5oFwJwXJE0NilIKU03Kg2m99Balbtv7ZQoswE45jEyVTpI4OSvLbw+49+0oA0k
+            O5vm1OZX2mr4Chtj36HsaMHjCxRfCikaM1Z9cABIgdrLlw9m9sKI8uU0ciueJPWA
+            zSocFtVL4ZqxptiVPz/izkPWzmzvqRUWBShzHALkRjEGTsOO+BeyiXVTwS5lzeVr
+            J7WKTGiaKyabFgJ23GJ/T3FPEL0qcSxbgG9QX7eT8bOzJMrjfGOFGWG72nEFf9hl
+            Fi68yesEhkIvWrBEDZCcaIaolJA0D8mgeQIDAQAB
+            -----END RSA PUBLIC KEY-----
+            """;
 
         private static readonly JsonSerializerOptions DocumentOptions = new()
         {
