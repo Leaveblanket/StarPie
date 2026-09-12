@@ -179,9 +179,10 @@ Ui 集工程根（`StarPie.Ui/`）：
   P1.2/#111 建骨架，P1.3/#112 迁入纯托管契约/模型/DTO）；`StarPie.Sdk/` 源码根目录**只允许**
   `Models/`、`Services/`、`ViewModels/`（迁移期镜像旧相对路径、命名空间保持 `StarPie.*` 不变，
   避免 API 抖动；`Services/Icons|Programs/` 分别承载 S1/M3 契约件；导出面与全仓类型唯一性由
-  `StarPie.Tests/SdkBoundaryTests.cs` 收口）与插件面已有落点 `Manifest/`（plugin.json 纯数据模型）、
-  `Compatibility/`（`AbiVersion` 版本串解析与 headless `SdkAbi`）。目标树
-  `Abstractions/`、`Capabilities/`、`Settings/`、`Events/`（见 [plugins.md](plugins.md) §2）
+   `StarPie.Tests/SdkBoundaryTests.cs` 收口）与插件面落点 `Manifest/`（plugin.json 纯数据模型）、
+   `Abstractions/`（`IPlugin` 入口与 `IPluginContext` 宿主服务面）、
+   `Compatibility/`（`AbiVersion` 版本串解析与 headless `SdkAbi`）。目标树
+   `Capabilities/`、`Settings/`、`Events/`（见 [plugins.md](plugins.md) §2）
   随插件面其余能力落地启用。
 - `StarPie.Sdk.Wpf.csproj`：SDK 的 WPF 类型契约面工程入口（UseWPF；P1.2/#111 骨架，P1.4/#113
   起承载 WPF 契约件）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；
@@ -195,10 +196,11 @@ Ui 集工程根（`StarPie.Ui/`）：
   `CustomIconStore`）、`Programs/`（`ProgramScanner`/`ShortcutResolver`）、`Themes/`（`ThemeEngine`
   主题引擎）、`Ports/`（`IThemeApplier` 等宿主→Ui 端口）、`Wheel/`（`WheelPalette*` 配色目录与
   解析）、`Gestures/`（手势内核）与 `Actions/`（动作路由纯函数）以及工程级
-  `GlobalUsings.cs`；插件面已有落点 `PluginRuntime/`（`Discovery/`、`Manifest/`、`Admission/`、
-  `State/`、`Diagnostics/`——插件发现/清单校验/准入/宿主状态/启动报告，可 headless 直接构造）——
-  目标树其余目录（`HostServices/` 与 `PluginRuntime/` 的装载/生命周期/能力表）随插件面后续落地，
-  目标树见 [plugins.md](plugins.md) §2；
+   `GlobalUsings.cs`；插件面落点 `PluginRuntime/`（`Discovery/`、`Manifest/`、`Admission/`、
+   `State/`、`Loading/`、`Lifecycle/`、`Diagnostics/`——插件发现/清单校验/准入/宿主状态/
+   collectible ALC 装载管线与生命周期状态机/启动报告，可 headless 直接构造）——
+   目标树其余目录（`HostServices/` 与 `PluginRuntime/` 的能力表/配置/隔离）随插件面后续落地，
+   目标树见 [plugins.md](plugins.md) §2；
   导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
   `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Tests/`
