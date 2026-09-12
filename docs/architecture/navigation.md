@@ -39,7 +39,7 @@ M5 模块程序集（`StarPie.Shell/`）：
   `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册随 M5 下放）与 `Modules/ShellPageTemplates.xaml`
   （页面模板字典；Host App.xaml 经跨程序集 pack URI 单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
 
-M1 模块程序集（`StarPie.Gestures/`）：
+M1（P1.6/#115 起驻 `StarPie.Ui/`）：
 
 - `Modules/GesturesModuleRegistrar.cs`（正式模块注册器：`RegisterNavigation(NavigationCatalog)` +
   `RegisterServices(IServiceCollection)`，手势管线与页面 VM 的 DI 注册随 M1 下放，含
@@ -77,7 +77,7 @@ M1 模块程序集（`StarPie.Gestures/`）：
 未完成。完整清单见 [extending.md](extending.md)（原型 B）。
 
 as-built：
-- M5（`StarPie.Shell`）/M1（`StarPie.Gestures`）：新增页面只动模块内部——所属
+- M5（`StarPie.Shell`）/M1（`StarPie.Ui`）：新增页面只动模块内部——所属
   Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml
   + 页面 VM/View 文件，**不碰 Host**（跨程序集形态成立）；
 - Host（外观聚合页，留 Host）：由 exe 内 HostModuleRegistrar + HostPageTemplates.xaml
