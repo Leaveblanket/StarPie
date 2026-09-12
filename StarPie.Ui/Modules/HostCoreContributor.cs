@@ -145,6 +145,9 @@ namespace StarPie.Modules
 
             // 插件 UI 托管门面：宿主应用实例与 UI 调度器取自进程内唯一 Application（组合根在
             // Application 启动后解析），导航目录经构造注入——插件注册的导航页直接进目录。
+            // UI 插件事件中介桥接宿主消息总线：订阅句柄进资产登记表，卸载编排 Dispose 即断。
+            services.AddSingleton<PluginUiEvents>();
+            services.AddSingleton<IPluginEvents>(sp => sp.GetRequiredService<PluginUiEvents>());
             services.AddSingleton(sp => new PluginUiCoordinator(
                 Application.Current,
                 Application.Current.Dispatcher,
