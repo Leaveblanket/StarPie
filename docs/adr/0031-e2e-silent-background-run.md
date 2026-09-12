@@ -34,7 +34,7 @@
 
 - **覆盖代价**：e2e 不再经过"物理鼠标输入 → WPF 命中测试"这一段（改由 UIA 模式调用驱动），键盘注入路径不测。真实鼠标点击路径不再有自动化覆盖，靠人工验收与 `-OnScreen` 调试形态兜。
 - 系统 `MessageBox` 提示框呈现不在 e2e 覆盖内；`-OnScreen` 模式下仍走真对话框（用例里的对话框关闭分支此时生效）。自定义对话框经程序选择器用例覆盖打开/取消路径。
-- 失败截图：#136 起依赖锁定于 `tests/requirements.txt`（含 pillow），恢复落盘；缺件时 `conftest` 告警且运行器 `-Status` 显示 `screenshotAvailable=false`。
+- 失败截图只覆盖 `-OnScreen` 形态：后台离屏窗口不被 DWM 合成客户区，系统级截图（含 `PrintWindow`）只能得到黑图/标题栏空壳，故后台形态由 `status.json` 的 `screenshotAvailable=false` + `screenshotNote` 显式标注不可用，失败取证由 `conftest` 的窗口 dump 承担；`-OnScreen` 形态用 `PrintWindow(PW_RENDERFULLCONTENT)` 抓真实内容（依赖 `tests/requirements.txt` 的 pillow，缺件时 `conftest` 告警）。
 - **已知残留（可接受）**：打开 ComboBox 下拉时，WPF 的 Popup 会被"约束回可见工作区"而出现在屏幕左上角 `(0,0)`（实测：一轮全量 e2e 共 15 次、均为小尺寸弹层；主窗口 19 次全部在 `-32000` 离屏）。不抢焦点、不动物理光标，用户确认为可接受；要消掉需定制弹层定位，列为可选优化。
 - 副产品验证：后台模式实例经 `TB_BUTTONCOUNT` 对照确认不创建托盘图标（后台实例 +0，普通实例 +1）；全局鼠标钩子未启（否则用户操作鼠标会弹出轮盘）。
 - 静默能力对**交互控件选型**提出约束：优先选带 UIA `Invoke`/`Value` 模式的控件；依赖 `OnClick` 的交互会让静默化退步（导航项正因 `RadioButton` 不暴露 `Invoke`、`Select` 又不触发 `Command`，才改成选中态驱动）。
