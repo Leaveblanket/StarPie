@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 最小 headless 示例（plugins/samples/README.md）：TFM 收窄 net10.0 与既有 headless
+         插件形态一致（零 WPF）；其余继承仓库根 Directory.Build.props。
+         部署目录名必须等于清单 id：sample.minimal.headless（plugins.md §3）。 -->
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>StarPie.Plugin.MinimalHeadless</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 只引 headless 契约面；Private=false：SDK 不随包分发（包内出现 StarPie.Sdk.dll 即拒绝）。 -->
+    <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
+  </ItemGroup>
+
+</Project>

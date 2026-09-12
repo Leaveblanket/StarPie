@@ -1,0 +1,14 @@
+<UserControl x:Class="StarPie.Plugin.MinimalUi.Views.MinimalPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 插件页视图：随插件资源字典里的 DataTemplate（DataType = MinimalPageViewModel）实例化。 -->
+    <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="8" Padding="20">
+        <StackPanel>
+            <TextBlock Text="最小 UI 示例" FontSize="20" FontWeight="SemiBold"/>
+            <TextBox Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,10,0,0"/>
+            <TextBlock Text="{Binding Message, Mode=OneWay, StringFormat=回显：{0}}"
+                       Margin="0,10,0,0" Foreground="#888888"/>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -6,4 +6,6 @@
   <Project Path="StarPie.Tests\StarPie.Tests.csproj" />
   <Project Path="plugins\src\StarPie.Plugin.Programs\StarPie.Plugin.Programs.csproj" />
   <Project Path="plugins\src\StarPie.Plugin.SampleUi\StarPie.Plugin.SampleUi.csproj" />
+  <Project Path="plugins\samples\MinimalHeadless\StarPie.Plugin.MinimalHeadless.csproj" />
+  <Project Path="plugins\samples\MinimalUi\StarPie.Plugin.MinimalUi.csproj" />
 </Solution>

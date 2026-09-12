@@ -15,9 +15,9 @@
 > 托盘菜单示例）及其 STA 卸载矩阵（StarPie.Tests：视图/窗口/资源字典/DataTemplate/定时器/
 > 动画/事件/绑定逐项断言探针回收 + 登记表清零 + 全局根扫描无残留，负对照按隔离流程处理，
 > ALC 存活只作诊断不上判）亦已落地；生态化（§11）的信任机制——签名校验（WinVerifyTrust）、
-> 可离线校验的签名审核清单与版本级撤销、启动重判——亦已落地（发布公钥 pin 与第三方准入开启随
-> P4 收尾落地）；其余未落地条款在落地前 as-built 以 [assemblies.md](assemblies.md) 与
-> [modules.md](modules.md) 为准。
+> 可离线校验的签名审核清单与版本级撤销、启动重判——亦已落地，首方发布公钥已 pin，
+> 第三方准入按审核清单开启；其余未落地条款在落地前 as-built 以
+> [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
@@ -374,7 +374,7 @@ public interface IPluginUiContext
 - **ABI**：`StarPie.Sdk` 与 `StarPie.Sdk.Wpf` 同政策：主.次版本；宿主接受同主版本且次版本不高于宿主的插件；接口 additive-only，破坏性变更 = 新接口 + 新能力 id/新描述符。
 - **准入（ADR-0029）**：目标态 = 签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验），未命中即 `Rejected`；首期 = 仅第一方随包插件与**开发者模式**插件（默认关闭的显式开关 + 全信任风险披露）；不做默认侧载放行。
   as-built：`WinTrustSignatureVerifier`（WinVerifyTrust）对生效候选包的**入口程序集**做校验——可信链 → 可信；有签名但链不可信 → 提取签名主体与发布者指纹（证书 SHA-256），供「受 pin 的发布者证书」路径判定；无签名/不可解析 → Unsigned；**内容摘要与签名不符（篡改）一律不可信，pin 不救**。WinVerifyTrust 的证书级吊销检查（CRL）按 WTD_REVOKE_NONE 关闭——证书吊销不在撤销通道内，撤销走清单（下条）。内置插件不走签名闸（开发构建无签名）。
-- **审核清单（as-built）**：安装目录 `plugins/` 子目录下 `review-catalog.json` + 分离 RSA-SHA256 签名（`review-catalog.json.sig`，base64），公钥 pin 在宿主侧（`SignedPluginReviewCatalog`），文件可离线校验。白名单按 **(pluginId, version) 精确命中**——清单未列入的新版本不因旧版本已审核而放行。清单缺失、被篡改、验签失败或公钥 pin 为空（发布密钥尚未建立）一律**降级为空清单**：保守拒绝，宁可拒绝不误放行（ADR-0029 降级决策）。更新通道 = 替换文件对后重启。
+- **审核清单（as-built）**：安装目录 `plugins/` 子目录下 `review-catalog.json` + 分离 RSA-SHA256 签名（`review-catalog.json.sig`，base64），公钥 pin 在宿主侧（`SignedPluginReviewCatalog`），文件可离线校验。白名单按 **(pluginId, version) 精确命中**——清单未列入的新版本不因旧版本已审核而放行。清单被篡改、验签失败、文件对缺失或公钥 pin 为空一律**降级为空清单**：保守拒绝，宁可拒绝不误放行（ADR-0029 降级决策）。更新通道 = 首方私钥重签（`scripts/sign-review-catalog.ps1`，私钥不入仓库）后替换文件对并重启；随仓库清单自带 selfcheck 条目由 xUnit 防漂移。**第三方准入已按此清单开启**；开发者示例与部署路径见 `docs/plugin-dev-handbook.md` 与 `plugins/samples/`。
 - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即拒绝装载（管理面显示 `Rejected` 与撤销原因）。用户启停意图不被翻转——撤销解除后插件自动回到可装载；显式「停用」是用户另做的独立决策。
 - **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。「内置」= 命中宿主内置 id 清单的第一方随包插件，见 §3。签名主体随扫描进宿主状态与启动报告（`SignatureSubject`），供诊断与撤销取证。
 - **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 WPF 宿主内任何插件的卸载边界**：宿主框架缓存使程序集留在进程内不可回收，卸载语义见 ADR-0030、ADR-0035 与 §5.2。

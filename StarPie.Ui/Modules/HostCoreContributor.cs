@@ -102,8 +102,8 @@ namespace StarPie.Modules
             // 启动扫描只做发现/准入与启动报告落盘，不装载插件代码；路径经 PluginPaths 单一来源，
             // 用户侧目录随 dev 实例落沙箱。
             services.AddSingleton(_ => new PluginStateStore(PluginPaths.StateFilePath));
-            // 审核清单：安装目录旁签名清单 + 宿主侧公钥 pin，可离线校验；文件缺失/验签失败降级空清单
-            // （保守拒绝）。发布公钥建立前（FirstPartyPublicKeyPem 为空）任何清单都不予采信。
+            // 审核清单：安装目录 plugins/ 下签名清单 + 宿主侧公钥 pin（FirstPartyPublicKeyPem），
+            // 可离线校验；篡改/验签失败/文件对缺失降级空清单（保守拒绝）。
             services.AddSingleton<IPluginReviewCatalog>(_ => new SignedPluginReviewCatalog(
                 Path.Combine(PluginPaths.InstallDirectory, "review-catalog.json"),
                 SignedPluginReviewCatalog.FirstPartyPublicKeyPem));

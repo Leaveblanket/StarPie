@@ -1,0 +1,8 @@
+{
+  "Entries": [
+    {
+      "PluginId": "starpie.catalog.selfcheck",
+      "Versions": ["1.0.0"]
+    }
+  ]
+}

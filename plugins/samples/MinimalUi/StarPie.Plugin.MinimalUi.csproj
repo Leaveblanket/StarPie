@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 最小 UI 示例（plugins/samples/README.md）：同时引 headless 入口契约与 UI 入口契约。
+         含 XAML 视图与资源字典（编译期 BAML，pack URI 随程序集装载）。 -->
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Plugin.MinimalUi</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
+    <ProjectReference Include="..\..\..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" Private="false" />
+  </ItemGroup>
+
+  <!-- 清单随包部署（不作为编译项）。 -->
+  <ItemGroup>
+    <None Remove="plugin.json" />
+  </ItemGroup>
+
+</Project>
