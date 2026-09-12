@@ -204,9 +204,14 @@ def test_v124_app_interface_themes_and_clean_appearance(app):
     assert wheel_theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
 
     # 3. Verify Wheel Background images controls are removed
-    #    （goto 已确认外观页挂载：否定断言不会因 auto_id 拼错而侥幸通过——同页正向控件已在校验）
-    wheel_bg_box = win.child_window(auto_id="WheelBgImageTextBox", control_type="Edit")
-    assert not wheel_bg_box.exists(timeout=1), "WheelBgImageTextBox should NOT exist (feature canceled)"
+    #    否定断言可证否：同一次全量枚举既证明枚举面有效（清单里含已知在页控件），
+    #    又证明已下线功能的 auto_id 家族整体缺席——单点 child_window(...).exists() 为 False
+    #    无法区分"控件真的不在"与"auto_id 写错/枚举失效"（#135 P0-7）。
+    auto_ids = {element.element_info.automation_id for element in win.descendants()}
+    assert "WheelPaletteComboBox" in auto_ids, \
+        f"外观页控件枚举异常，否定断言不可证否: {sorted(auto_ids)}"
+    stale_bg_ids = sorted(auto_id for auto_id in auto_ids if auto_id.startswith("WheelBg"))
+    assert not stale_bg_ids, f"已下线的轮盘背景图片控件仍存在: {stale_bg_ids}"
 
     # 4. Select App Theme by index（目录固定 System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray，index 2 = Dark）
     app_theme_combo.select(2)
@@ -268,11 +273,11 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
 
 def test_v132_shapes_fontsize_and_iconsize_control(app):
     """
-    Test v1.3.2 features:
+    扇区形状切换与图标/文字尺寸滑块的取值与落盘：
     1. Navigation to Appearance Page (NavPage1).
-    2. Verification of new shapes in ShapeComboBox (OrganicPetals, ArcTracker, RoundedCapsule).
+    2. ShapeComboBox 四项目录（Original/Circle/RoundedCapsule/HexagonHive）选中 RoundedCapsule。
     3. Verification of SectorIconSizeSlider and SectorFontSizeSlider updating.
-    4. Save settings and verify config persistence for SectorIconSize and SectorFontSize.
+    4. Save settings and verify config persistence for Shape, SectorIconSize and SectorFontSize.
     """
     win, local_app_data = app
 
@@ -281,10 +286,12 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     # 1. Verify ShapeComboBox exists and can select new shapes
     shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
     assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
+    assert shape_combo.item_count() == 4, f"ShapeComboBox 应为 4 项，got {shape_combo.item_count()}"
 
-    # Select Capsule or HexagonHive
+    # 选 RoundedCapsule（目录固定 4 项，index 2）；切换生效以选中项为准，
+    # 落盘值在 Save 后另行断言——不再"点过即算"或靠固定 sleep 兜底（#135 P0-1/P0-2）。
     shape_combo.select(2)
-    time.sleep(0.3)
+    assert shape_combo.selected_index() == 2, "ShapeComboBox 未切到 index 2（RoundedCapsule）"
 
     # 2. Verify SectorIconSizeSlider exists and functions
     icon_slider = win.child_window(auto_id="SectorIconSizeSlider", control_type="Slider")
@@ -311,10 +318,12 @@ def test_v132_shapes_fontsize_and_iconsize_control(app):
     config = read_config(
         local_app_data,
         predicate=lambda c: abs(c.get("SectorIconSize", 0) - 26) < 1.0
-        and abs(c.get("SectorFontSize", 0) - 13.5) < 0.1,
+        and abs(c.get("SectorFontSize", 0) - 13.5) < 0.1
+        and c.get("Shape") == "RoundedCapsule",
     )
     assert abs(config.get("SectorIconSize", 0) - 26) < 1.0, f"Saved SectorIconSize should be 26, got {config.get('SectorIconSize')}"
     assert abs(config.get("SectorFontSize", 0) - 13.5) < 0.1, f"Saved SectorFontSize should be 13.5, got {config.get('SectorFontSize')}"
+    assert config.get("Shape") == "RoundedCapsule", f"Saved Shape should be 'RoundedCapsule', got {config.get('Shape')}"
 
 
 def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
