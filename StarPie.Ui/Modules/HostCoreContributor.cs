@@ -102,17 +102,24 @@ namespace StarPie.Modules
             // 启动扫描只做发现/准入与启动报告落盘，不装载插件代码；路径经 PluginPaths 单一来源，
             // 用户侧目录随 dev 实例落沙箱。
             services.AddSingleton(_ => new PluginStateStore(PluginPaths.StateFilePath));
-            services.AddSingleton<IPluginReviewCatalog, EmptyPluginReviewCatalog>();
+            // 审核清单：安装目录旁签名清单 + 宿主侧公钥 pin，可离线校验；文件缺失/验签失败降级空清单
+            // （保守拒绝）。发布公钥建立前（FirstPartyPublicKeyPem 为空）任何清单都不予采信。
+            services.AddSingleton<IPluginReviewCatalog>(_ => new SignedPluginReviewCatalog(
+                Path.Combine(PluginPaths.InstallDirectory, "review-catalog.json"),
+                SignedPluginReviewCatalog.FirstPartyPublicKeyPem));
             services.AddSingleton(sp => new PluginAdmissionPolicy(
                 PluginAdmissionPolicy.DefaultBuiltInPluginIds,
                 sp.GetRequiredService<IPluginReviewCatalog>()));
             services.AddSingleton<PluginDeveloperModeService>();
             services.AddSingleton(_ => new PluginDiscovery(PluginPaths.InstallDirectory, PluginPaths.UserDirectory));
+            // 包签名校验：Authenticode（WinVerifyTrust）；链不可信时附发布者指纹，供 pin 路径判定。
+            services.AddSingleton<IPluginSignatureVerifier, WinTrustSignatureVerifier>();
             services.AddSingleton(sp => new PluginStartupScanner(
                 sp.GetRequiredService<PluginDiscovery>(),
                 sp.GetRequiredService<PluginAdmissionPolicy>(),
                 sp.GetRequiredService<PluginStateStore>(),
-                new PluginStartupReportWriter(PluginPaths.StartupReportFilePath)));
+                new PluginStartupReportWriter(PluginPaths.StartupReportFilePath),
+                sp.GetService<IPluginSignatureVerifier>()));
 
             // 插件装载/卸载与宿主侧运行时：两条管线只在组合根装配一次，
             // 卸载管线的配置落盘接缝直接接共享内核的防抖落盘编排（安全点第一步）。
