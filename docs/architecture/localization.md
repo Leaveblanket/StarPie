@@ -14,7 +14,7 @@
 `Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
 `EmbeddedResource` 条目配置于 `StarPie.Host.csproj`；`RootNamespace=StarPie`
 使强类型类落在 `StarPie.Kernel.Localization`）。
-设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本留在 `StarPie.Core/Services/Localization/`
+设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`
 （源 resx 在上面的内核目录；见 [design-time-preview.md](design-time-preview.md)）。
 
 > 宿主消费边界（[modules.md](modules.md) §5 D4）：运行时语言字典投影与壳外文案刷新由宿主侧（H1，

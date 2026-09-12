@@ -74,11 +74,10 @@
   （实现内核防抖接缝，命名空间 `StarPie.Adapters`）；S1 的 WPF 图像构造由
   `StarPie.Ui/Services/Icons/IconAssetService.cs` 承载（实现 Sdk.Wpf 的 `IIconAssetService`，
   组合内核自定义图标目录与 .lnk 契约）。
-- 设计期投影壳：`StarPie.Core/`（WPF 类库，程序集 `StarPie.Core`）只余
-  `Services/Localization/DesignTimeStrings.xaml`（Page 编译的惰性 BAML，仅设计期合并，
-  ADR-0025 的唯一 XAML 例外）与同目录生成脚本——零导出类型、零运行时件；归并期含 UI 工程
-  保留本集引用以解析该字典的 pack URI（非运行时依赖，见
-  [design-time-preview.md](architecture/design-time-preview.md)）。
+- 设计期投影字典（ADR-0025）：`StarPie.Ui/Services/Localization/DesignTimeStrings.xaml`
+  （Page 编译的惰性 BAML，只被 `Properties/DesignTimeResources.xaml` 资源锚在设计期合并，
+  运行时永不合并）与同目录生成脚本——设计期投影壳 `StarPie.Core` 已删除，字典随 Ui 集承载
+  （见 [design-time-preview.md](architecture/design-time-preview.md)）。
 - 契约与模型已迁 `StarPie.Sdk`（P1.3/#112：Models/Messages/导航目录与槽位/`AppHostDelegates`、
   对话框与预览 Profile 契约）与
   `StarPie.Sdk.Wpf`（P1.4/#113：主题与图标资产服务契约件）；导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
@@ -92,19 +91,19 @@
   驻宿主内核（`StarPie.Host/Icons|Programs/`），图像构造驻 Ui
   （`StarPie.Ui/Services/Icons/`），契约（图标条目与 .lnk SPI、扫描三件与纯规则）在
   `StarPie.Sdk`、`IIconAssetService` 在 `StarPie.Sdk.Wpf`；旧 `StarPie.Icons`/
-  `StarPie.Programs` 与各自 Contracts 工程已撤销，DI 注册回到组合根直登记。
+  `StarPie.Programs` 与各自 Contracts 工程已撤销，DI 注册回到组合根（`HostCoreContributor`）登记。
 - M5 壳层与系统设置面（P1.10/#119 归并，不再独立成集）：开机自启注册表 `AutostartRegistry`
   （`[SupportedOSPlatform("windows")]`）与内存整理 `MemoryOptimizer` 落
   `StarPie.Host/Kernel/ShellIntegration/`（零 WPF、纯托管 + P/Invoke）；托盘
   `TrayIconManager`/`TrayMenuEntry` 驻 `StarPie.Ui/Services/Shell/`，高级页
   `GeneralSettingsViewModel`+`AdvancedSettingsPage` 驻 Ui 的 `ViewModels/Pages|Views/Pages/`，
-  模块注册器 `ShellModuleRegistrar`+`ShellPageTemplates.xaml` 驻 `StarPie.Ui/Modules/`；
+  贡献者 `ShellContributor`+`ShellPageTemplates.xaml` 驻 `StarPie.Ui/Modules/`；
   壳窗口 `MainView`/`ShellViewModel` 仍属 Host 壳（见前）——命名空间统一为 `StarPie.*`。
 - M4 界面主题（P1.8/#117 归并，不再独立成集）：主题引擎 `ThemeEngine`（状态/解析/切换与系统
   跟随重解析，零 WPF）与宿主→Ui 端口 `IThemeApplier` 驻 `StarPie.Host/Themes|Ports/`；
   `IThemeService` 实现 `ThemeService`（窗口 DWM 应用与系统深浅色监听）、调色板适配器
-  `AppThemePaletteManager`、五套主题字典 `Themes/`、主题设置子 VM 与模块注册器
-  `ThemeModuleRegistrar` 驻 `StarPie.Ui/`；出口契约 `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`；
+  `AppThemePaletteManager`、五套主题字典 `Themes/`、主题设置子 VM 与贡献者
+  `ThemeContributor` 驻 `StarPie.Ui/`；出口契约 `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`；
   命名空间统一为 `StarPie.*`。
 - M2 轮盘与渲染（P1.7/#116 归并，不再独立成集）：配色目录与色值解析
   `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free）驻 `StarPie.Host/Wheel/`
@@ -112,7 +111,7 @@
   `WheelFactory` 驻 `StarPie.Ui/Services/Wheel/`，`WheelViewModel` 与外观设置子 VM 驻
   `StarPie.Ui/ViewModels/{Wheel,Pages}/`，`RadialWindow`、样式渲染器/预览与核图标预览转换器分驻
   `StarPie.Ui/Views/{Wheel,Renderers,Converters}/`，DI 注册由 `StarPie.Ui/Modules/`
-  的 `WheelModuleRegistrar` 下放（无导航页）；出口契约
+  的 `WheelContributor` 登记（无导航页）；出口契约
   （IWheelFactory/IWheelViewModel/IWheelAppearanceState）驻 `StarPie.Sdk`（命名空间不变）；
   命名空间统一为 `StarPie.*`。
 - M1 手势与动作（P1.6/#115 归并，不再独立成集）：可 headless 的手势内核
@@ -122,13 +121,13 @@
   可 headless 直接构造）；WPF 亲和件——`MouseHook`、`GestureController`（Dispatcher 封送）与
   `ActionExecutorService`/`IActionExecutorService`（默认 MessageBox 错误上报）驻
   `StarPie.Ui/Services/{Gestures,Actions}/`，触发/手势两页 VM 与 View、热键录制控件
-  （`Views/Controls|Styles/`）、设计期样例与模块注册器 `GesturesModuleRegistrar` 驻 Ui 集
+  （`Views/Controls|Styles/`）、设计期样例与贡献者 `GesturesContributor` 驻 Ui 集
   对应目录；出口契约 `IProfilePreviewSource` 驻 `StarPie.Sdk`（命名空间不变）；
   命名空间统一为 `StarPie.*`。
 - S6 对话框实现（P1.10/#119 归并，不再独立成集）：`DialogService` 驻
   `StarPie.Ui/Services/Dialogs/`，五对对话框 VM/Window 与 `SpectrumCanvasBehavior` 分驻
-  `StarPie.Ui/ViewModels/Dialogs|Views/Dialogs|Views/Controls/`，注册器
-  `DialogsModuleRegistrar` 驻 `StarPie.Ui/Modules/`（端口只在 Ui 内部）；契约
+  `StarPie.Ui/ViewModels/Dialogs|Views/Dialogs|Views/Controls/`，贡献者
+  `DialogsContributor` 驻 `StarPie.Ui/Modules/`（端口只在 Ui 内部）；契约
   `IDialogService` 与结果 record 驻 `StarPie.Sdk`（命名空间不变）。
 - S1 图标资产三分解（契约/目录/图像构造）：`IIconAssetService` 契约驻 `StarPie.Sdk.Wpf`；
   条目类型 `CustomIconItem`/`VectorIconItem` 与 .lnk SPI `IShortcutTargetResolver` 驻
@@ -161,14 +160,13 @@ StarPie/
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
 ├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML；承载主题/图标资产服务契约与 ABI 政策）
 ├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测；内核运行时在 Kernel/，图标目录/程序扫描在 Icons|Programs/）
-├── StarPie.Core/                # 设计期投影壳（只余设计期字符串字典；运行时已迁 Host，见 layout.md）
-├── StarPie.Tests/        # xUnit 单元测试
+├── StarPie.Tests/               # xUnit 单元测试（显式引用四集，不依赖传递引用）
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，旧 15 集归并已在 P1.3–P1.10 落地（Icons/Programs、Host 内核、M4 主题、M2 轮盘、M1 手势与 M5 壳层/S6 对话框均已归并撤销，只剩设计期投影壳 `StarPie.Core`），`plugins/` 自 P2 起加入。
+> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1 已完成三集物理形态（15 集全部撤销、设计期字典随 Ui 承载、内置与未来插件贡献者共用注册管线），`plugins/` 自 P2 起加入。
 
-测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
 ## 5. 分层速览
 
@@ -214,7 +212,7 @@ Services ---> Models
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行 | Active（目标态被 0023 演进） |
 | 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active（部分被 0027 修订） |
 | 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
-| 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active |
+| 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active（字典落点被 0027 修订） |
 | 0026 | `docs/adr/0026-runtime-baseline-and-windows-sdk-projection.md` | 运行时基线与 Windows SDK 投影版本政策 | Active |
 | 0027 | `docs/adr/0027-plugin-architecture-and-host-sdk-ui-split.md` | 插件体系与三集物理形态（第三方能力插件 / ALC 真卸载 / 宿主独占呈现） | Active（部分被 0028 修订） |
 | 0028 | `docs/adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md` | 插件 UI 宿主化（允许 XAML/Window/资源字典；宿主托管登记、清理与验证） | Active（决策 4/6 被 0030 修订） |

@@ -9,7 +9,7 @@
 ## 组成文件
 
 M1 物理落位（P1.6/#115 归并：手势内核与动作路由入宿主内核，WPF 亲和件与全部 VM/View 入 Ui 集；
-模块注册器 `GesturesModuleRegistrar` 与页面模板字典 `GesturesPageTemplates.xaml` 驻 Ui，
+M1 贡献者 `GesturesContributor` 与页面模板字典 `GesturesPageTemplates.xaml` 驻 Ui，
 见 [assemblies.md](assemblies.md) §2/§3）：
 
 - `StarPie.Host/Gestures/`（零 WPF、可 headless 直接构造，命名空间 `StarPie.Gestures`）：
@@ -30,7 +30,7 @@ M1 物理落位（P1.6/#115 归并：手势内核与动作路由入宿主内核�
 - `Models/GesturePoint.cs`（R5：手势坐标点归 `StarPie.Sdk/Models/`（P1.3/#112），见 [modules.md](modules.md) §4 R5）。
 - M1 动作编辑的图标取值（`SlotViewModel.VectorIconPathData` 等）消费 S1 共享图标资产
   （双形：静态纯目录 `IconCatalog` 取矢量 SVG，注入的 `IIconAssetService` 取
-  自定义图标存储——`ProfileListViewModel`/`SlotViewModel` 构造注入链由 GesturesModuleRegistrar
+自定义图标存储——`ProfileListViewModel`/`SlotViewModel` 构造注入链由 GesturesContributor
   接线；R6 三分，见 [modules.md](modules.md) §4 R6）。
 
 ## 配置方案设置面的对外只读契约

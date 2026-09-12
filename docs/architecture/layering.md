@@ -49,7 +49,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
      [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023；P1.3/#112 收口）暴露，
-     由 WheelModuleRegistrar/组合根注册。
+     由 WheelContributor 登记。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
 5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0009）。
 
@@ -68,10 +68,10 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
     `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `AppHost.Run` 负责 `new` 托盘并注入
     菜单 provider；`AutostartRegistry` 住 `StarPie.Host/Kernel/ShellIntegration/`，由 Ui 侧
-    注册器跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
+    贡献者跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
     `AppThemePaletteManager` 回落 internal（装配方 `AppHost` 与实现同集），
     `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
-    M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集注册器接线/容器解析，维持 public
+    M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集贡献者接线/容器解析，维持 public
     （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
     不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
@@ -91,7 +91,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 ## Services
 
 - **接口与实现同目录**：`IXxxService` / `XxxService`。
-- **只由组合根注册（可经模块注册器 RegisterServices 下放）**；View/ViewModel 不自行 `new` 服务、
+- **只由组合根注册（经内置贡献者 RegisterServices 登记）**；View/ViewModel 不自行 `new` 服务、
   不使用服务定位器（导航执行入口 `NavigationExecutor` 例外见上——Host 内部解析缝）。
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
@@ -115,9 +115,9 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或**组合根/模块注册器注入的委托**编排（托盘气泡、退出、自启、导入导出：
-  `GeneralSettingsViewModel` 模式，M5 页面 VM 由 ShellModuleRegistrar
-  注册、M1 页面 VM 由 GesturesModuleRegistrar 注册）；
+- 副作用经注入服务或**贡献者注入的委托**编排（托盘气泡、退出、自启、导入导出：
+  `GeneralSettingsViewModel` 模式，M5 页面 VM 由 ShellContributor
+  登记、M1 页面 VM 由 GesturesContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM（壳层与驻留文案持有者）必须成对退订（`MainViewModel.Dispose`/
