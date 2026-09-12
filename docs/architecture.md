@@ -166,7 +166,7 @@ StarPie/
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地（Icons/Programs、Host 内核、M4 主题、M2 轮盘、M1 手势与 M5 壳层/S6 对话框已归并撤销），`plugins/` 自 P2 起加入。
+> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，旧 15 集归并已在 P1.3–P1.10 落地（Icons/Programs、Host 内核、M4 主题、M2 轮盘、M1 手势与 M5 壳层/S6 对话框均已归并撤销，只剩设计期投影壳 `StarPie.Core`），`plugins/` 自 P2 起加入。
 
 测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 

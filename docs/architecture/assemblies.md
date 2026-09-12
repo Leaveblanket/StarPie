@@ -4,7 +4,7 @@
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
 > 目标程序集划分、程序集级依赖规则、导航槽位表与注册/可见性契约。
 
-> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 已建四集骨架，并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；P1.3/#112 已把 headless 契约/模型收口入 `StarPie.Sdk`，P1.4/#113 已把 WPF 契约件收口入 `StarPie.Sdk.Wpf`（见 §2 与 §3）。P1.3–P1.10 分批归并期间，未搬迁的旧集仍是 as-built 主体，P1.11 按目标态回填全文。
+> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 已建四集骨架，并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；P1.3/#112 已把 headless 契约/模型收口入 `StarPie.Sdk`，P1.4/#113 已把 WPF 契约件收口入 `StarPie.Sdk.Wpf`（见 §2 与 §3）。P1.3–P1.10 分批归并已完成（见 §3「旧集 as-built」），旧集只剩设计期投影壳 `StarPie.Core`，P1.11 按目标态回填全文。
 >
 > **程序集现状**：四集骨架（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
 > + 尚未归并的旧集（只余设计期投影壳 `StarPie.Core`，划分见 §2）。
@@ -43,8 +43,9 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
      └──→ StarPie.Sdk.Wpf ──→ StarPie.Sdk
 ```
 
-- Ui 是唯一组合根：必须显式引用 `StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host`，且是归并期
-  唯一可直接引用旧 15 集 runtime 的工程；其余工程不得引用 Ui。
+- Ui 是唯一组合根：必须显式引用 `StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host`，且是唯一
+  可直接引用设计期投影壳 `StarPie.Core` 的运行工程（仅设计期资源锚，非运行时依赖；测试工程另
+  有引用以做边界断言）；其余工程不得引用 Ui。
 - `StarPie.Sdk` 零 WPF、零第三方包（csproj 无 `PackageReference`，程序集引用面只含平台程序集，
   TFM 为 `net10.0` 无 windows 平台投影）、零 ProjectReference。
 - `StarPie.Host` 零 WPF：TFM `net10.0`，不引用 `StarPie.Sdk.Wpf`（plugins.md §5.1 约束 7），
@@ -53,11 +54,11 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   XAML；ProjectReference 只许 `StarPie.Sdk`；承载主题/图标/扫描 WPF 契约件与 ABI/装载政策
   （`Compatibility/`：UiSdkAbi 主次版本兼容判定、DefaultAlcPolicy 默认 ALC 统一加载），引用面
   只含平台/WPF 程序集（`SdkWpfBoundaryTests`/`RuntimeNoCrossReferenceTests` 机械断言）。
-- 归并期（P1.3–P1.10）三集不得引用旧 15 集 runtime（跨集只经 SDK）；旧集只被 Ui 组合根与测试
-  引用，并可经 SDK/Sdk.Wpf 契约面与 Host 内核取已收口/已归并件（旧集 → SDK/Sdk.Wpf/Host 单向；
-  无反向引用）。
+- 三集不得引用旧集（跨集只经 SDK）；现存的旧集只剩设计期投影壳 `StarPie.Core`（零导出类型），
+  只被 Ui 组合根与测试引用，并可经 SDK/Sdk.Wpf 契约面与 Host 内核取已归并件（旧集 →
+  SDK/Sdk.Wpf/Host 单向；无反向引用）。
 
-### 旧 15 集 as-built（P1.3–P1.10 归并期口径）
+### 旧集 as-built（归并完成后：仅余设计期投影壳）
 
 ```text
 StarPie (Ui/exe) ──→ StarPie.Sdk + StarPie.Sdk.Wpf + StarPie.Host + StarPie.Core（仅设计期资源锚）
@@ -73,8 +74,8 @@ StarPie (Ui/exe) ──→ StarPie.Sdk + StarPie.Sdk.Wpf + StarPie.Host + StarPi
 - 模块 runtime 对内核/契约**单向**：M*/S* runtime 只引用自身契约与经 `StarPie.Sdk`/
   `StarPie.Sdk.Wpf` 消费的契约面能力（扫描/.lnk 与图标条目经 SDK，主题与图标资产服务经
   Sdk.Wpf；对话框/轮盘工厂与 VM 接口/预览源契约统一经 `StarPie.Sdk`），不反向引用
-  其它模块 runtime；P1.5/#114 起内核运行时（S2/S3）在 `StarPie.Host`，旧集 → Host 是归并期
-  过渡边（模块 runtime 尚未拆入 Ui）；托底深色探针、dev 分支等宿主能力经组合根注入委托或
+  其它模块 runtime；内核运行时（S2/S3）在 `StarPie.Host`，模块 runtime 已归并入 Ui/Host，
+  旧集 → Host 的过渡边清零；托底深色探针、dev 分支等宿主能力经组合根注入委托或
   `AppDataPaths` 回填缝提供；`Ui → 全部`（仅调用各模块注册器与装配宿主对象，不引用模块内部）。
 - **S1/M3 归并（不再独立成集）**：`IIconAssetService` 驻 `StarPie.Sdk.Wpf`；图标条目类型与
   `.lnk` SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录

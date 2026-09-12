@@ -6,7 +6,7 @@
 >
 > 本文按 as-built 现状撰写；代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。
 >
-> 程序集化现状（15 程序集）与程序集级依赖方向见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
+> 程序集化现状（as-built 程序集地图）与程序集级依赖方向见 [assemblies.md](assemblies.md)（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md)、
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）。
 
 ## 1. 何时读本文

@@ -13,7 +13,7 @@
 
 ## 1. 程序集依赖基线
 
-程序集依赖基线（as-built，15 程序集）见 [assemblies.md](assemblies.md) §3，本文不重复。
+程序集依赖基线（as-built）见 [assemblies.md](assemblies.md) §2/§3，本文不重复。
 
 ## 2. 规范内缝（approved，改动受 ADR/收口测试守护）
 
