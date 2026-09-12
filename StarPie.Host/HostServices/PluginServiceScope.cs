@@ -219,6 +219,9 @@ namespace StarPie.HostServices
             _capabilityRegistry.RegisterPluginCapability(this, contract);
         }
 
+        /// <summary>摘除本插件的能力条目（卸载管线在停用前调用；幂等，释放时兜底再摘一次）。</summary>
+        internal void DetachCapabilities() => _capabilityRegistry.RemovePlugin(this);
+
         /// <summary>按契约取本作用域内的能力实例（能力表在消费者取用时调用；找不到即条目已摘除）。</summary>
         internal object? ResolveCapability(CapabilityContract contract)
         {

@@ -23,6 +23,8 @@
 
 **安全点 (Safe Point)**：无在途插件调用、配置已落盘、宿主侧引用可清的卸载时机。
 
+**危险区 (Danger Zone)**：卸载链上"插件代码不得再运行"的一侧——服务作用域释放起，经 `ALC.Unload()`；进入后没有回头路。在途调用未归零一律中止于危险区之前（只摘能力条目，不释放作用域、不卸载 ALC）。
+
 **泄漏隔离 (Leak Quarantine)**：清理或卸载验证失败后插件被停用、不再调用、提示重启的状态。
 
 **宿主门面 (Host Facade)**：`IPluginContext`（headless 服务）与 `IPluginUiContext`（UI 资产注册）；插件可触达的全部宿主能力集合。
@@ -74,7 +76,7 @@ StarPie/
 │   ├── Ports/                            # Host→Ui 端口：IUiDispatcher/IThemeApplier/IWheelPresenter/IIconImageFactory/IPluginUiCoordinator
 │   │                                     # 存在理由：零 WPF 的 Host 要「做 WPF 事」只能回抛接口，这是两集间唯一的反向缝（9 个污染点收口）
 │   ├── HostServices/                     # 插件可见宿主服务实现：IPluginLog/IPluginConfig/IPluginEvents/…；每插件一个 PluginServiceScope（§6.1）
-│   └── PluginRuntime/{Discovery,Manifest,Admission,State,Loading,Lifecycle,Registry,Config,Isolation,Diagnostics}
+│   └── PluginRuntime/{Discovery,Manifest,Admission,State,Loading,Unloading,Lifecycle,Registry,Config,Isolation,Diagnostics}
 │                                         # 发现/清单校验/准入判定/宿主状态/collectible ALC/状态机/能力表/配置命名空间/隔离决策/诊断报告
 ├── StarPie.Ui/                           # WinExe，AssemblyName=StarPie；唯一含 XAML（ADR-0027 决策 1）
 │   ├── App.xaml(.cs)  AppHost/  Composition/   # 应用资源树、启动退出编排、组合根（内置与插件贡献者共用一条注册管线）
@@ -237,7 +239,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 | 4 | 服务按插件作用域隔离 | 每插件一个 `PluginServiceScope`（自持宿主服务实例 + 能力实例 + 句柄账本，不引入 MS.DI 容器，见 [ADR-0033](../adr/0033-plugin-service-scope-without-di-container.md)）；宿主根容器不含任何插件类型 |
 | 5 | 订阅/回调/动作可按 plugin id 注销 | 每次注册返回 `IDisposable` 并登记进该插件的 scope 账本；卸载按 id 强制枚举清理，不依赖插件自觉 Dispose |
 | 6 | 审计与日志不持有插件对象 | 只记 plugin id + 字符串/值类型字段；插件异常入日志前先转成"类型全名 + message + stack 字符串"的宿主 DTO——**`Exception` 实例与任何插件对象不得存进长生命周期结构（含日志 sink、诊断快照）** |
-| 7 | 卸载前必须释放该插件的作用域 | `PluginServiceScope.Dispose()`（幂等）是 `ALC.Unload()` 的前置；scope 未释放或释放后仍有句柄残留 → `Quarantined` |
+| 7 | 卸载前必须释放该插件的作用域 | `PluginServiceScope.Dispose()`（幂等）是 `ALC.Unload()` 的前置；scope 未释放或释放后仍有句柄残留 → `Quarantined`（残留是防御性检查：`Dispose` 先清账本再释放句柄，账本必为零；不为零即说明清账语义被改动） |
 
 ## 7. 插件 UI 宿主化（宿主托管）
 
@@ -305,8 +307,11 @@ public interface IPluginUiContext
  7. `WeakReference` 判定（可判定项）：资产对象与插件委托必须全部死亡
  8. ALC.Unload()
  9. 再 GC + 二次判定：ALC/程序集存活只记诊断——UI 插件不回收是预期（ADR-0030），headless 插件才判回收
-失败（资产未清零 / 全局根有残留） → Quarantined + 诊断（残留资产/类型清单）+ 重启提示；不得谎报成功
+任一步失败（配置未落盘 / 能力摘除失败 / 在途未归零 / 停用失败 / 作用域未释放或句柄残留 / 回收判定未过 /
+资产未清零 / 全局根有残留） → Quarantined + 诊断（含残留清单）+ 重启提示；不得谎报成功
 ```
+
+**卸载输入是交接对象**：装载结果的入口实例、ALC 与服务作用域经 `PluginUnloadRequest.FromLoaded` 交接给卸载管线，交接即清空装载结果持有的三条强引用——调用方无从再经装载结果持有插件对象；回收判定在请求清空强引用、且 `ALC.Unload()` 的调用帧退出后再做。在途调用未归零时中止于危险区之前：不释放作用域、不卸载 ALC，直接按隔离收口，要收口只能等重启或显式重载时再走一次安全点。已隔离的插件可经同一管线回收资源：结论仍是隔离、不改写既有隔离原因，也不谎报已卸载。这三条款只对 headless 插件成立：P2 的管线硬判 ALC 与程序集回收，P3 的 UI 插件按 [ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md) 降级为诊断——规范判决见 [ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)。
 
 **泄漏扫描**（`PluginUiLeakVerifier`，生产诊断 + 测试共用）至少覆盖：
 

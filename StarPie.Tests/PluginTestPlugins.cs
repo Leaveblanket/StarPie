@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using StarPie.Abstractions;
@@ -139,4 +140,40 @@ public sealed class CustomExceptionProgramSourceTestPlugin : IPlugin, IProgramSc
 
     /// <inheritdoc/>
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+/// <summary>停止即抛异常的夹具：验证卸载失败路径进入隔离而非静默成功。</summary>
+public sealed class ThrowingStopTestPlugin : IPlugin
+{
+    /// <inheritdoc/>
+    public Task StartAsync(IPluginContext context, CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken cancellationToken)
+        => throw new InvalidOperationException("夹具停止爆炸");
+}
+
+/// <summary>StopAsync 写标记文件的夹具：宿主侧据此观察"配置落盘先于停用"。</summary>
+public sealed class MarkerStopTestPlugin : IPlugin
+{
+    private string? _markerPath;
+
+    /// <inheritdoc/>
+    public Task StartAsync(IPluginContext context, CancellationToken cancellationToken)
+    {
+        _markerPath = PluginUnloadPipelineTests.StopMarkerPath(context.PluginId);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        if (_markerPath is not null)
+        {
+            File.WriteAllText(_markerPath, "stopped");
+        }
+
+        return Task.CompletedTask;
+    }
 }
