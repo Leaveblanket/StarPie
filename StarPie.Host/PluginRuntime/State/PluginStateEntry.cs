@@ -28,6 +28,9 @@ namespace StarPie.PluginRuntime.State
         /// <summary>准入结果原因（拒绝时含具体违规）。</summary>
         public string? AdmissionReason { get; set; }
 
+        /// <summary>最近一次扫描所见签名主体（入口程序集无签名或未配置校验器时为 null；撤销与诊断取证用）。</summary>
+        public string? SignatureSubject { get; set; }
+
         /// <summary>隔离状态；非空表示该插件被隔离（停用 + 不再调用 + 重启不自动重试）。</summary>
         public PluginQuarantineState? Quarantine { get; set; }
     }

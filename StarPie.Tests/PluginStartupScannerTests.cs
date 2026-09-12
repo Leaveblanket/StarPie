@@ -192,12 +192,84 @@ public sealed class PluginStartupScannerTests : IDisposable
 
     private PluginStartupScanner CreateScanner(
         IEnumerable<string>? builtInIds = null,
-        IPluginReviewCatalog? reviewCatalog = null)
+        IPluginReviewCatalog? reviewCatalog = null,
+        IPluginSignatureVerifier? signatureVerifier = null)
         => new(
             new PluginDiscovery(_installRoot, _userRoot),
             new PluginAdmissionPolicy(builtInIds ?? Array.Empty<string>(), reviewCatalog),
             new PluginStateStore(_statePath),
-            new PluginStartupReportWriter(_reportPath));
+            new PluginStartupReportWriter(_reportPath),
+            signatureVerifier ?? new TestSignatureVerifier());
+
+    [Fact]
+    public void 启动重判_命中版本级撤销_拒绝且状态更新()
+    {
+        string catalogPath = Path.Combine(_tempRoot, "review-catalog.json");
+        PluginTestPackage.Create(
+            _installRoot, "com.example.a", PluginTestPackage.Manifest("com.example.a", version: "1.0.0"));
+        using var signedCatalog = new TestSignedCatalog();
+        string publicKeyPem = signedCatalog.Write(
+            catalogPath,
+            """{ "Entries": [ { "PluginId": "com.example.a", "Versions": ["1.0.0"] } ] }""");
+
+        // 第一次扫描：版本命中审核清单，准予装载。
+        PluginStartupReport first = CreateScanner(
+            reviewCatalog: new SignedPluginReviewCatalog(catalogPath, publicKeyPem)).Scan();
+        Assert.Equal(PluginAdmission.Reviewed, Find(first, "com.example.a").Admission);
+
+        // 清单更新把该版本列入黑名单：下一次启动按当前清单重新判定，命中即停。
+        signedCatalog.Write(
+            catalogPath,
+            """{ "Entries": [ { "PluginId": "com.example.a", "Versions": ["1.0.0"], "RevokedVersions": ["1.0.0"] } ] }""");
+        PluginStartupReport second = CreateScanner(
+            reviewCatalog: new SignedPluginReviewCatalog(catalogPath, publicKeyPem)).Scan();
+
+        PluginStartupReportEntry entry = Find(second, "com.example.a");
+        Assert.Equal(PluginAdmission.Rejected, entry.Admission);
+        Assert.Contains("已撤销", entry.AdmissionReason);
+        PluginStateEntry state = LoadState("com.example.a");
+        Assert.Equal(PluginAdmission.Rejected, state.Admission);
+        Assert.Contains("已撤销", state.AdmissionReason);
+        // 重判只影响装载资格，不翻转用户启停意图：撤销解除后插件自动回到可装载。
+        Assert.True(state.Enabled);
+
+        signedCatalog.Write(
+            catalogPath,
+            """{ "Entries": [ { "PluginId": "com.example.a", "Versions": ["1.0.0"] } ] }""");
+        PluginStartupReport third = CreateScanner(
+            reviewCatalog: new SignedPluginReviewCatalog(catalogPath, publicKeyPem)).Scan();
+
+        Assert.Equal(PluginAdmission.Reviewed, Find(third, "com.example.a").Admission);
+        Assert.True(LoadState("com.example.a").Enabled);
+    }
+
+    [Fact]
+    public void 审核清单命中但无签名_拒绝()
+    {
+        PluginTestPackage.Create(_installRoot, "com.example.a");
+
+        PluginStartupReport report = CreateScanner(
+            reviewCatalog: new TestReviewCatalog("com.example.a"),
+            signatureVerifier: new TestSignatureVerifier(
+                status: PluginSignatureStatus.Unsigned, subject: null, publisherHash: null)).Scan();
+
+        PluginStartupReportEntry entry = Assert.Single(report.Plugins);
+        Assert.Equal(PluginAdmission.Rejected, entry.Admission);
+        Assert.Contains("签名不可信", entry.AdmissionReason);
+    }
+
+    [Fact]
+    public void 签名主体进报告与宿主状态()
+    {
+        PluginTestPackage.Create(_installRoot, "com.example.builtin");
+
+        PluginStartupReport report = CreateScanner(
+            builtInIds: new[] { "com.example.builtin" },
+            signatureVerifier: new TestSignatureVerifier(subject: "CN=Test Publisher")).Scan();
+
+        Assert.Equal("CN=Test Publisher", Find(report, "com.example.builtin").SignatureSubject);
+        Assert.Equal("CN=Test Publisher", LoadState("com.example.builtin").SignatureSubject);
+    }
 
     private void EnableDeveloperMode()
     {

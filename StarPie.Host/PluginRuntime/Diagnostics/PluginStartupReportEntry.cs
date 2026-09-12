@@ -29,6 +29,9 @@ namespace StarPie.PluginRuntime.Diagnostics
         /// <summary>准入结果原因；拒绝时即拒绝理由（含全部违规）。</summary>
         public string AdmissionReason { get; set; } = string.Empty;
 
+        /// <summary>签名主体（入口程序集签名校验所得；无签名或未配置校验器时为 null）。</summary>
+        public string? SignatureSubject { get; set; }
+
         /// <summary>用户的启用/停用意图（宿主状态）。</summary>
         public bool Enabled { get; set; }
 
