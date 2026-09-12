@@ -177,13 +177,18 @@ public sealed class MainViewModelTests
     {
         private readonly NavigationStore _store;
         private readonly IReadOnlyDictionary<NavigationSlot, ObservableObject> _targets;
+        private readonly IReadOnlyDictionary<string, ObservableObject> _targetsByIdentifier;
 
         public FakeNavigationExecutor(
             NavigationStore store,
-            IReadOnlyDictionary<NavigationSlot, ObservableObject> targets)
+            IReadOnlyDictionary<NavigationSlot, ObservableObject> targets,
+            IReadOnlyDictionary<string, ObservableObject>? targetsByIdentifier = null)
         {
             _store = store;
             _targets = targets;
+            _targetsByIdentifier = targetsByIdentifier ?? targets.ToDictionary(
+                pair => NavigationSlots.GetAutomationId(pair.Key),
+                pair => pair.Value);
         }
 
         public int NavigateCalls { get; private set; }
@@ -192,6 +197,12 @@ public sealed class MainViewModelTests
         {
             NavigateCalls++;
             _store.CurrentViewModel = _targets[slot];
+        }
+
+        public void Navigate(string identifier)
+        {
+            NavigateCalls++;
+            _store.CurrentViewModel = _targetsByIdentifier[identifier];
         }
     }
 

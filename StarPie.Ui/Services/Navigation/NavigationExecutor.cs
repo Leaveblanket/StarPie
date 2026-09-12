@@ -19,6 +19,10 @@ namespace StarPie.Services.Navigation
         /// <summary>按目录槽位导航到注册的目标页面 VM（未注册槽位抛
         /// <see cref="InvalidOperationException"/>；完整目录由装配时 Validate 收口）。</summary>
         void Navigate(NavigationSlot slot);
+
+        /// <summary>按目录标识导航（插件页经此入口；未注册标识抛
+        /// <see cref="InvalidOperationException"/>）。</summary>
+        void Navigate(string identifier);
     }
 
     /// <summary><see cref="INavigationExecutor"/> 默认实现：经 <see cref="NavigationCatalog"/>
@@ -41,8 +45,24 @@ namespace StarPie.Services.Navigation
 
         public void Navigate(NavigationSlot slot)
         {
-            NavigationPageRegistration entry = _catalog.GetEntry(slot);
-            _store.CurrentViewModel = (ObservableObject)_services.GetRequiredService(entry.ViewModelType);
+            Show(_catalog.GetEntry(slot));
+        }
+
+        public void Navigate(string identifier)
+        {
+            Show(_catalog.GetEntry(identifier));
+        }
+
+        /// <summary>固定页经容器解析单例；插件页经注册工厂创建（工厂返回值须是页面 VM）。</summary>
+        private void Show(NavigationPageRegistration entry)
+        {
+            object viewModel = entry.ViewModelFactory is { } factory
+                ? factory()
+                : _services.GetRequiredService(entry.ViewModelType);
+
+            _store.CurrentViewModel = viewModel as ObservableObject
+                ?? throw new InvalidOperationException(
+                    $"导航目标不是页面 VM：{entry.Identifier}");
         }
     }
 }

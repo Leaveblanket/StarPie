@@ -58,7 +58,7 @@ public sealed class BuiltInContributorsTests
 
         Assert.Equal(
             new[] { 0, 1, 2, 3, 4 },
-            catalog.Entries.Select(entry => (int)entry.Slot));
+            catalog.Entries.Select(entry => (int)entry.Slot!.Value));
         Assert.Equal(
             new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             catalog.Entries.Select(entry => entry.AutomationId));

@@ -45,14 +45,8 @@ namespace StarPie.ViewModels.Navigation
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _store = store;
 
-            NavigationItems = new ObservableCollection<NavigationItemViewModel>(
-                catalog.Entries.Select(entry => new NavigationItemViewModel(
-                    entry.AutomationId,
-                    entry.TitleKey,
-                    entry.IconData,
-                    entry.ViewModelType,
-                    () => navigation.Navigate(entry.Slot),
-                    _localization)));
+            NavigationItems = new ObservableCollection<NavigationItemViewModel>();
+            FillNavigationItems(catalog, navigation);
 
             store.PropertyChanged += (_, e) =>
             {
@@ -75,6 +69,34 @@ namespace StarPie.ViewModels.Navigation
             _localization.LanguageChanged += RefreshTitles;
 
             SyncSelection();
+        }
+
+        /// <summary>
+        /// 按目录当前内容重建导航项：固定页在前、插件页按注册顺序在后；重建后按当前页回灌选中态。
+        /// </summary>
+        private void FillNavigationItems(NavigationCatalog catalog, INavigationExecutor navigation)
+        {
+            foreach (NavigationItemViewModel item in NavigationItems)
+            {
+                item.PropertyChanged -= OnNavigationItemPropertyChanged;
+            }
+
+            NavigationItems.Clear();
+            foreach (NavigationPageRegistration entry in catalog.Entries)
+            {
+                NavigationItems.Add(new NavigationItemViewModel(
+                    entry.AutomationId,
+                    entry.TitleKey,
+                    entry.IconData,
+                    entry.ViewModelType,
+                    () => navigation.Navigate(entry.Identifier),
+                    _localization));
+            }
+
+            foreach (NavigationItemViewModel item in NavigationItems)
+            {
+                item.PropertyChanged += OnNavigationItemPropertyChanged;
+            }
         }
 
         /// <summary>
