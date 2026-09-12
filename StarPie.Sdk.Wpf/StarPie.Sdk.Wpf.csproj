@@ -4,11 +4,12 @@
     <!-- ADR-0027/0028 / plugins.md §2/§5.1：SDK 的 WPF 类型契约面（插件可同时引用
          StarPie.Sdk 与 StarPie.Sdk.Wpf；ABI 政策独立编号、additive-only，见 §5.1 约束 8）。
          本集是契约面，不产出 XAML（四集中仅 Ui 含 XAML 与入口）。
+         TFM 取仓库根 Directory.Build.props 的 windows 段（ADR-0026 运行时基线，单一来源）；
+         只有收窄为 net10.0（零 WPF）的 Sdk/Host 才在工程级显式覆盖。
          P1.4/#113：WPF 契约件自旧三集迁入（Services/Icons 图标资产服务契约、
          Services/Shell 主题服务；扫描三件与图标条目/.lnk SPI 随 #118 归并 headless 面），
          命名空间保持 StarPie.* 不变；ABI/装载政策骨架在 Compatibility/
          （UiSdkAbi + DefaultAlcPolicy），迁移期镜像旧相对路径。 -->
-    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
