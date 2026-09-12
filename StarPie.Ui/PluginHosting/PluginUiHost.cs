@@ -7,11 +7,11 @@ using StarPie.Abstractions.Ui;
 using StarPie.Events;
 using StarPie.PluginHosting.Commands;
 using StarPie.PluginHosting.Extensions;
-using StarPie.PluginHosting.Menus;
 using StarPie.PluginHosting.Resources;
 using StarPie.PluginHosting.Timers;
 using StarPie.PluginHosting.Views;
 using StarPie.PluginHosting.Windows;
+using StarPie.Services.Navigation;
 
 namespace StarPie.PluginHosting
 {
@@ -32,7 +32,6 @@ namespace StarPie.PluginHosting
         private readonly PluginViewHost _views;
         private readonly PluginWindowRegistry _windows;
         private readonly PluginCommandRegistry _commands;
-        private readonly PluginMenuRegistry _menus;
         private readonly PluginTimerRegistry _timers;
         private readonly PluginExtensionRegistry _extensions;
         private IDisposable? _resourceRootHandle;
@@ -42,7 +41,8 @@ namespace StarPie.PluginHosting
             ResourceDictionary hostResources,
             PluginUiAssetRegistry assets,
             IUiDispatcher dispatcher,
-            IPluginEvents? events)
+            IPluginEvents? events,
+            NavigationCatalog? navigationCatalog = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
             PluginId = pluginId;
@@ -55,9 +55,8 @@ namespace StarPie.PluginHosting
             _views = new PluginViewHost(assets, pluginId);
             _windows = new PluginWindowRegistry(assets, pluginId);
             _commands = new PluginCommandRegistry(assets, pluginId);
-            _menus = new PluginMenuRegistry(assets, pluginId);
             _timers = new PluginTimerRegistry(assets, pluginId, dispatcher);
-            _extensions = new PluginExtensionRegistry(assets, pluginId);
+            _extensions = new PluginExtensionRegistry(assets, pluginId, navigationCatalog);
         }
 
         /// <inheritdoc/>
@@ -71,6 +70,23 @@ namespace StarPie.PluginHosting
 
         /// <summary>本插件资源根容器。</summary>
         public PluginResourceRoot ResourceRoot { get; }
+
+        /// <summary>本插件注册的导航页（按注册顺序）。</summary>
+        public IReadOnlyList<PluginPage> Pages => _extensions.Pages;
+
+        /// <summary>本插件注册的设置区块（按注册顺序）。</summary>
+        public IReadOnlyList<PluginSettingsSection> SettingsSections => _extensions.SettingsSections;
+
+        /// <summary>本插件注册的托盘菜单项（按注册顺序）。</summary>
+        public IReadOnlyList<PluginMenuItem> MenuItems => _extensions.MenuItems;
+
+        /// <summary>执行本插件登记的指定命令；命令未登记时不动作。</summary>
+        /// <param name="commandId">命令 id。</param>
+        public void ExecuteCommand(string commandId)
+        {
+            EnsureUiThread();
+            _commands.Find(commandId)?.Execute();
+        }
 
         /// <summary>把插件资源根并入宿主资源合并表并登记；宿主在挂载插件 UI 时调用（UI 线程）。</summary>
         public void Attach()
@@ -139,7 +155,7 @@ namespace StarPie.PluginHosting
         public IDisposable RegisterMenuItem(PluginMenuItemDescriptor descriptor)
         {
             EnsureUiThread();
-            return _menus.Register(descriptor);
+            return _extensions.RegisterMenuItem(descriptor);
         }
 
         /// <inheritdoc/>

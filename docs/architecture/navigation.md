@@ -85,11 +85,17 @@ as-built：
 - Host（外观聚合页，留 Host）：由 `HostPageContributor` + HostPageTemplates.xaml
   登记，页面 VM 的 DI 注册在同一贡献者内。
 
-**槽位容量**：槽位表 = SDK `NavigationSlot` 固定 0–4（`NavigationSlots.All` + e2e
-`NavPage0..4`），是产品侧边栏顺序的唯一正典；**产品页面数封顶 5**（五个槽位全部注册，含
-插件管理页）。新增第 6 页起需改 SDK 枚举与收口测试（可能波及 e2e AutomationId），属放行
-共享面而非纯模块内部——此约束被有意接受；若未来出现新模块页面需求，再议槽位表可扩展化
-（字符串槽位/目录驱动注册，会破坏 `NavPageN` 稳定性，需先写 ADR）。
+**固定槽位与插件页**：槽位表 = SDK `NavigationSlot` 固定 0–4（`NavigationSlots.All` + e2e
+`NavPage0..4`），是内置页顺序的唯一正典，**新增内置页仍需改 SDK 枚举与收口测试**（属放行
+共享面而非纯模块内部）。插件页不经枚举，由 `NavigationCatalog.RegisterPluginPage` 在运行期
+追加：目录条目按「固定槽位升序在前 → 插件页注册顺序在后」返回，插件页带
+`Identifier`/`PluginId`/`ViewModelFactory` 且 `Slot` 为 null；AutomationId 由宿主按
+`NavPlugin_<插件 id>` 签发，摘除经 `RemovePluginPage`，固定页 AutomationId 不受影响。
+目录内容变化经 `NavigationCatalog.Changed` 通知消费方；`MainViewModel` 据此重建导航项，
+导航执行按条目 `Identifier` 走同一入口（固定页经容器解析、插件页经注册工厂创建）。
+
+**扩展点降级**：插件缺席或未注册导航页时目录只剩固定页，侧边栏不出现空壳项；
+插件页注册发生在 UI 线程的 `IPluginUiContext.RegisterPage`，随插件卸载的资产清理摘除。
 
 ## 参见 ADR
 

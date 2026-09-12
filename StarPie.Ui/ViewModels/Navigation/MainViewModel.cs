@@ -26,8 +26,10 @@ namespace StarPie.ViewModels.Navigation
     {
         private readonly NavigationStore _store;
         private readonly ILocalizationService _localization;
+        private readonly NavigationCatalog _catalog;
+        private Action? _onCatalogChanged;
 
-        /// <summary>导航项（按 NavigationCatalog 槽位 0–3 注册顺序，即侧边栏顺序）。</summary>
+        /// <summary>导航项（固定槽位升序在前、插件页按注册顺序在后，即侧边栏顺序）。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
 
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>
@@ -44,15 +46,10 @@ namespace StarPie.ViewModels.Navigation
             if (navigation == null) throw new ArgumentNullException(nameof(navigation));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _store = store;
+            _catalog = catalog;
 
-            NavigationItems = new ObservableCollection<NavigationItemViewModel>(
-                catalog.Entries.Select(entry => new NavigationItemViewModel(
-                    entry.AutomationId,
-                    entry.TitleKey,
-                    entry.IconData,
-                    entry.ViewModelType,
-                    () => navigation.Navigate(entry.Slot),
-                    _localization)));
+            NavigationItems = new ObservableCollection<NavigationItemViewModel>();
+            FillNavigationItems(catalog, navigation);
 
             store.PropertyChanged += (_, e) =>
             {
@@ -74,7 +71,46 @@ namespace StarPie.ViewModels.Navigation
             // 导航项标题属驻留文案：语言切换时即时重取，不随页面重建刷新。
             _localization.LanguageChanged += RefreshTitles;
 
+            // 插件页可在运行期增删（插件装载/卸载的安全点）：目录变更即重建导航项，
+            // 固定页仍在原位、插件页追加在后。
+            _onCatalogChanged = () =>
+            {
+                FillNavigationItems(catalog, navigation);
+                RefreshTitles();
+                SyncSelection();
+                LeaveRemovedPage(navigation);
+            };
+            catalog.Changed += _onCatalogChanged;
+
             SyncSelection();
+        }
+
+        /// <summary>
+        /// 按目录当前内容重建导航项：固定页在前、插件页按注册顺序在后；重建后按当前页回灌选中态。
+        /// </summary>
+        private void FillNavigationItems(NavigationCatalog catalog, INavigationExecutor navigation)
+        {
+            foreach (NavigationItemViewModel item in NavigationItems)
+            {
+                item.PropertyChanged -= OnNavigationItemPropertyChanged;
+            }
+
+            NavigationItems.Clear();
+            foreach (NavigationPageRegistration entry in catalog.Entries)
+            {
+                NavigationItems.Add(new NavigationItemViewModel(
+                    entry.AutomationId,
+                    entry.TitleKey,
+                    entry.IconData,
+                    entry.ViewModelType,
+                    () => navigation.Navigate(entry.Identifier),
+                    _localization));
+            }
+
+            foreach (NavigationItemViewModel item in NavigationItems)
+            {
+                item.PropertyChanged += OnNavigationItemPropertyChanged;
+            }
         }
 
         /// <summary>
@@ -113,10 +149,30 @@ namespace StarPie.ViewModels.Navigation
             }
         }
 
+        /// <summary>
+        /// 停驻页面被移出目录（插件页随插件卸载摘除）时回落到固定首页：
+        /// 导航状态不得滞留已出账页面的 VM，否则卸载现场仍被宿主状态强引用。
+        /// </summary>
+        private void LeaveRemovedPage(INavigationExecutor navigation)
+        {
+            Type? current = _store.CurrentViewModel?.GetType();
+            if (current is null || NavigationItems.Any(item => item.TargetViewModelType == current))
+            {
+                return;
+            }
+
+            navigation.Navigate(NavigationSlot.Trigger);
+        }
+
         /// <summary>退订本地化事件（容器单例成对退订；由 AppHost.Dispose 调用）。</summary>
         public void Dispose()
         {
             _localization.LanguageChanged -= RefreshTitles;
+            if (_onCatalogChanged is not null)
+            {
+                _catalog.Changed -= _onCatalogChanged;
+                _onCatalogChanged = null;
+            }
         }
     }
 }

@@ -7,9 +7,14 @@ namespace StarPie.Abstractions.Ui
     /// <param name="TitleKey">菜单项标题的文案键。</param>
     /// <param name="CommandId">点击时触发的命令 id（须已注册）。</param>
     /// <param name="IconData">可选图标数据（几何路径串）。</param>
+    /// <param name="Order">菜单项在宿主菜单内的排序权重（小的在前；插件之间按注入顺序稳定）。</param>
     public sealed record PluginMenuItemDescriptor(
         string ItemKey,
         string TitleKey,
         string CommandId,
-        string? IconData = null);
+        string? IconData = null)
+    {
+        /// <summary>排序权重；未指定为 0。</summary>
+        public int Order { get; init; }
+    }
 }

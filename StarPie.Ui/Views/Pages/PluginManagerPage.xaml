@@ -1,4 +1,4 @@
-<UserControl x:Class="StarPie.Views.Pages.PluginManagerPage"
+﻿<UserControl x:Class="StarPie.Views.Pages.PluginManagerPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -33,68 +33,96 @@
             <ScrollViewer Grid.Column="0" Margin="0,0,12,0"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
+                <StackPanel>
                 <ItemsControl AutomationProperties.AutomationId="PluginManagerList"
-                              ItemsSource="{Binding Plugins}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,0,0,12" Padding="16"
-                                    Background="{DynamicResource CardBackgroundBrush}"
-                                    BorderBrush="{DynamicResource CardBorderBrush}"
-                                    BorderThickness="1" CornerRadius="12">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-
-                                    <StackPanel Grid.Column="0">
-                                        <TextBlock AutomationProperties.AutomationId="{Binding NameAutomationId}"
-                                                   FontSize="14" FontWeight="SemiBold"
-                                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                                   Text="{Binding DisplayName}" />
-                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
-                                            <TextBlock AutomationProperties.AutomationId="{Binding StatusAutomationId}"
-                                                       Margin="0,0,10,0" FontSize="12"
+                                  ItemsSource="{Binding Plugins}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,12" Padding="16"
+                                        Background="{DynamicResource CardBackgroundBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1" CornerRadius="12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+    
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock AutomationProperties.AutomationId="{Binding NameAutomationId}"
+                                                       FontSize="14" FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       Text="{Binding DisplayName}" />
+                                            <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                                <TextBlock AutomationProperties.AutomationId="{Binding StatusAutomationId}"
+                                                           Margin="0,0,10,0" FontSize="12"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding StatusText}" />
+                                                <TextBlock Margin="0,0,10,0" FontSize="12"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding AdmissionText}" />
+                                                <TextBlock FontSize="12"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                                           Text="{Binding VersionText}" />
+                                            </StackPanel>
+                                            <TextBlock Margin="0,4,0,0" FontSize="12"
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       Text="{Binding StatusText}" />
-                                            <TextBlock Margin="0,0,10,0" FontSize="12"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       Text="{Binding AdmissionText}" />
-                                            <TextBlock FontSize="12"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}"
-                                                       Text="{Binding VersionText}" />
+                                                       Text="{Binding QuarantineText}"
+                                                       Visibility="{Binding HasQuarantine, Converter={StaticResource BoolToVis}}" />
                                         </StackPanel>
-                                        <TextBlock Margin="0,4,0,0" FontSize="12"
-                                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   Text="{Binding QuarantineText}"
-                                                   Visibility="{Binding HasQuarantine, Converter={StaticResource BoolToVis}}" />
-                                    </StackPanel>
+    
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0"
+                                                    Orientation="Horizontal" VerticalAlignment="Top">
+                                            <Button Margin="0,0,8,0" Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding ToggleAutomationId}"
+                                                    Command="{Binding ToggleCommand}"
+                                                    Content="{Binding ToggleText}"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Visibility="{Binding CanToggle, Converter={StaticResource BoolToVis}}" />
+                                            <Button Margin="0,0,8,0" Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding RetryAutomationId}"
+                                                    Command="{Binding RetryCommand}"
+                                                    Content="{DynamicResource PluginManagerRetry}"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Visibility="{Binding CanRetry, Converter={StaticResource BoolToVis}}" />
+                                            <Button Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding DiagnosticsAutomationId}"
+                                                    Command="{Binding DiagnosticsCommand}"
+                                                    Content="{DynamicResource PluginManagerDiagnostics}"
+                                                    Style="{StaticResource ModernButtonStyle}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
 
-                                    <StackPanel Grid.Column="1" Margin="12,0,0,0"
-                                                Orientation="Horizontal" VerticalAlignment="Top">
-                                        <Button Margin="0,0,8,0" Padding="12,4"
-                                                AutomationProperties.AutomationId="{Binding ToggleAutomationId}"
-                                                Command="{Binding ToggleCommand}"
-                                                Content="{Binding ToggleText}"
-                                                Style="{StaticResource ModernButtonStyle}"
-                                                Visibility="{Binding CanToggle, Converter={StaticResource BoolToVis}}" />
-                                        <Button Margin="0,0,8,0" Padding="12,4"
-                                                AutomationProperties.AutomationId="{Binding RetryAutomationId}"
-                                                Command="{Binding RetryCommand}"
-                                                Content="{DynamicResource PluginManagerRetry}"
-                                                Style="{StaticResource ModernButtonStyle}"
-                                                Visibility="{Binding CanRetry, Converter={StaticResource BoolToVis}}" />
-                                        <Button Padding="12,4"
-                                                AutomationProperties.AutomationId="{Binding DiagnosticsAutomationId}"
-                                                Command="{Binding DiagnosticsCommand}"
-                                                Content="{DynamicResource PluginManagerDiagnostics}"
-                                                Style="{StaticResource ModernButtonStyle}" />
+                <!--  插件贡献的设置区：无插件区块时该区一并消失（扩展点降级不留空壳）。  -->
+                <StackPanel AutomationProperties.AutomationId="PluginSettingsSections"
+                            Margin="0,8,0,0"
+                            Visibility="{Binding HasPluginSettingsSections, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Margin="0,0,0,8" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               Text="{DynamicResource PluginSettingsSectionsTitle}" />
+                    <ItemsControl ItemsSource="{Binding PluginSettingsSections}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,12" Padding="16"
+                                        Background="{DynamicResource CardBackgroundBrush}"
+                                        BorderBrush="{DynamicResource CardBorderBrush}"
+                                        BorderThickness="1" CornerRadius="12">
+                                    <StackPanel>
+                                        <TextBlock FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   Text="{Binding Title}" />
+                                        <ContentControl Margin="0,8,0,0" Content="{Binding ViewModel}" />
                                     </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+                </StackPanel>
             </ScrollViewer>
 
             <Border Grid.Column="1" Padding="16"

@@ -200,6 +200,7 @@
     <sys:String x:Key="PluginManagerStatusLabel" xml:space="preserve">状态</sys:String>
     <sys:String x:Key="PluginManagerSubheader" xml:space="preserve">查看宿主扫描到的插件与状态，执行启用、停用、重试与诊断。</sys:String>
     <sys:String x:Key="PluginManagerVersionLabel" xml:space="preserve">版本</sys:String>
+    <sys:String x:Key="PluginSettingsSectionsTitle" xml:space="preserve">插件设置</sys:String>
     <sys:String x:Key="PluginStatusActive" xml:space="preserve">活动</sys:String>
     <sys:String x:Key="PluginStatusDisabled" xml:space="preserve">已停用</sys:String>
     <sys:String x:Key="PluginStatusInactive" xml:space="preserve">未活动</sys:String>

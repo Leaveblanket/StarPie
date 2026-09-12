@@ -275,6 +275,7 @@
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>准入</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>套件目錄</value></data>
   <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>隔離原因</value></data>
+  <data name="PluginSettingsSectionsTitle" xml:space="preserve"><value>外掛設定</value></data>
   <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>診斷報告</value></data>
   <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>選擇一個外掛檢視診斷報告。</value></data>
   <data name="PluginManagerNoResiduals" xml:space="preserve"><value>無殘留：失敗現場已收口。</value></data>

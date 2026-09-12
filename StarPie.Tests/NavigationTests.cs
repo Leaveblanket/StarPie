@@ -177,13 +177,18 @@ public sealed class MainViewModelTests
     {
         private readonly NavigationStore _store;
         private readonly IReadOnlyDictionary<NavigationSlot, ObservableObject> _targets;
+        private readonly IReadOnlyDictionary<string, ObservableObject> _targetsByIdentifier;
 
         public FakeNavigationExecutor(
             NavigationStore store,
-            IReadOnlyDictionary<NavigationSlot, ObservableObject> targets)
+            IReadOnlyDictionary<NavigationSlot, ObservableObject> targets,
+            IReadOnlyDictionary<string, ObservableObject>? targetsByIdentifier = null)
         {
             _store = store;
             _targets = targets;
+            _targetsByIdentifier = targetsByIdentifier ?? targets.ToDictionary(
+                pair => NavigationSlots.GetAutomationId(pair.Key),
+                pair => pair.Value);
         }
 
         public int NavigateCalls { get; private set; }
@@ -192,6 +197,12 @@ public sealed class MainViewModelTests
         {
             NavigateCalls++;
             _store.CurrentViewModel = _targets[slot];
+        }
+
+        public void Navigate(string identifier)
+        {
+            NavigateCalls++;
+            _store.CurrentViewModel = _targetsByIdentifier[identifier];
         }
     }
 
@@ -340,5 +351,114 @@ public sealed class MainViewModelTests
 
         Assert.Same(fixture.General, store.CurrentViewModel);
         Assert.True(vm.NavigationItems[3].IsSelected);
+    }
+}
+
+/// <summary>
+/// 插件页在控制台导航区的动态呈现：目录增页即出现在固定页之后，目录摘页即消失，
+/// 选中态与当前页保持同步；插件页导航经注册工厂创建页面 VM。
+/// </summary>
+public sealed class MainViewModelPluginPageTests
+{
+    private static readonly LocalizationService Localization = new();
+
+    private sealed class PluginPageViewModel : ObservableObject { }
+    private sealed class TriggerPageViewModel : ObservableObject { }
+    private sealed class AppearancePageViewModel : ObservableObject { }
+    private sealed class GesturesPageViewModel : ObservableObject { }
+    private sealed class AdvancedPageViewModel : ObservableObject { }
+    private sealed class PluginsPageViewModel : ObservableObject { }
+
+    private static NavigationCatalog CreateCatalog()
+    {
+        var catalog = new NavigationCatalog();
+        catalog.RegisterPage<TriggerPageViewModel>(
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
+        catalog.RegisterPage<AppearancePageViewModel>(
+            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
+        catalog.RegisterPage<GesturesPageViewModel>(
+            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "PageGestures", "");
+        catalog.RegisterPage<AdvancedPageViewModel>(
+            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "");
+        catalog.RegisterPage<PluginsPageViewModel>(
+            NavigationSlot.Plugins, NavigationSlots.GetAutomationId(NavigationSlot.Plugins), "PagePlugins", "");
+        return catalog;
+    }
+
+    private static (MainViewModel Vm, NavigationCatalog Catalog, NavigationStore Store) Create()
+    {
+        var catalog = CreateCatalog();
+        var store = new NavigationStore();
+            var provider = new ServiceCollection()
+                .AddSingleton(store)
+                .AddSingleton(catalog)
+                // 固定页 VM：与生产容器同形的可解析目标，供插件页摘除后的回落导航使用。
+                .AddSingleton<TriggerPageViewModel>()
+                .AddSingleton<AppearancePageViewModel>()
+                .AddSingleton<GesturesPageViewModel>()
+            .AddSingleton<AdvancedPageViewModel>()
+            .AddSingleton<PluginsPageViewModel>()
+            .BuildServiceProvider();
+        var executor = new NavigationExecutor(store, catalog, provider);
+        return (new MainViewModel(store, catalog, executor, Localization), catalog, store);
+    }
+
+    [Fact]
+    public void 目录注册插件页_导航项追加在固定页之后()
+    {
+        var (vm, catalog, _) = Create();
+
+        catalog.RegisterPluginPage(
+            "com.example.ui", "NavPlugin_com.example.ui", "NavPlugin_com.example.ui", "PluginPage", "",
+            typeof(PluginPageViewModel), () => new PluginPageViewModel());
+
+        Assert.Equal(6, vm.NavigationItems.Count);
+        Assert.Equal("NavPlugin_com.example.ui", vm.NavigationItems[5].AutomationId);
+    }
+
+    [Fact]
+    public void 目录摘除插件页_导航项随之移除且固定页不动()
+    {
+        var (vm, catalog, _) = Create();
+        catalog.RegisterPluginPage(
+            "com.example.ui", "NavPlugin_com.example.ui", "NavPlugin_com.example.ui", "PluginPage", "",
+            typeof(PluginPageViewModel), () => new PluginPageViewModel());
+
+        catalog.RemovePluginPage("NavPlugin_com.example.ui");
+
+        Assert.Equal(5, vm.NavigationItems.Count);
+        Assert.Equal(
+            new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
+            vm.NavigationItems.Select(item => item.AutomationId));
+    }
+
+    [Fact]
+    public void 插件页导航_经目录工厂创建页面并选中对应项()
+    {
+        var (vm, catalog, store) = Create();
+        catalog.RegisterPluginPage(
+            "com.example.ui", "NavPlugin_com.example.ui", "NavPlugin_com.example.ui", "PluginPage", "",
+            typeof(PluginPageViewModel), () => new PluginPageViewModel());
+
+        vm.NavigationItems[5].NavigateCommand.Execute(null);
+
+        Assert.IsType<PluginPageViewModel>(store.CurrentViewModel);
+        Assert.True(vm.NavigationItems[5].IsSelected);
+    }
+
+    [Fact]
+    public void 插件页被摘除时_当前页回落到固定页而不滞留已卸载页面()
+    {
+        var (vm, catalog, store) = Create();
+        catalog.RegisterPluginPage(
+            "com.example.ui", "NavPlugin_com.example.ui", "NavPlugin_com.example.ui", "PluginPage", "",
+            typeof(PluginPageViewModel), () => new PluginPageViewModel());
+        vm.NavigationItems[5].NavigateCommand.Execute(null);
+        Assert.IsType<PluginPageViewModel>(store.CurrentViewModel);
+
+        catalog.RemovePluginPage("NavPlugin_com.example.ui");
+
+        Assert.IsType<TriggerPageViewModel>(store.CurrentViewModel);
+        Assert.True(vm.NavigationItems[0].IsSelected);
     }
 }

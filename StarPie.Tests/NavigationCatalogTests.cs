@@ -53,7 +53,7 @@ public sealed class NavigationCatalogTests
         {
             NavigationSlot.Trigger, NavigationSlot.Appearance, NavigationSlot.Gestures,
             NavigationSlot.Advanced, NavigationSlot.Plugins
-        }, catalog.Entries.Select(e => e.Slot));
+        }, catalog.Entries.Select(e => e.Slot!.Value));
         Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             catalog.Entries.Select(e => e.AutomationId));
         Assert.Equal(new[]
