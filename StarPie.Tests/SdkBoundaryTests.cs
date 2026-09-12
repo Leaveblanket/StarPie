@@ -84,12 +84,12 @@ public sealed class SdkBoundaryTests
             }
         }
 
-        // 四集与旧集都被真实扫描过（避免筛选写错导致空扫描假绿）；StarPie.Core 零导出类型
+        // 四集都被真实扫描过（避免筛选写错导致空扫描假绿）；StarPie.Core 零导出类型
         // （只余设计期投影字典，断言见 HostBoundaryTests）。
         Assert.Contains("StarPie.Sdk", owners.Values);
         Assert.Contains("StarPie", owners.Values);
         Assert.Contains("StarPie.Host", owners.Values);
-        Assert.Contains("StarPie.Shell", owners.Values);
+        Assert.Contains("StarPie.Sdk.Wpf", owners.Values);
     }
 
     [Fact]

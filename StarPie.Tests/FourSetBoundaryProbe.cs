@@ -29,8 +29,6 @@ internal static class FourSetBoundaryProbe
     internal static readonly string[] LegacyAssemblyNames =
     {
         "StarPie.Core",
-        "StarPie.Dialogs",
-        "StarPie.Shell",
     };
 
     /// <summary>WPF 桌面程序集名（含 System.Xaml 这类 System.* 命名但属 WPF 栈者）。</summary>

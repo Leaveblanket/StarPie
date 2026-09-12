@@ -1,7 +1,8 @@
 using System;
+using System.Runtime.Versioning;
 using StarPie.Kernel.Configuration;
 
-namespace StarPie.Services.Shell
+namespace StarPie.Kernel.ShellIntegration
 {
     /// <summary>
     /// 开机自启注册表读写：维护 HKCU Run 键的 StarPie 值（含旧 WinPieGestures 键清理）。
@@ -10,10 +11,11 @@ namespace StarPie.Services.Shell
     /// 与 <c>MemoryOptimizer</c> 同属无状态系统调用静态工具，经委托由组合根接线进
     /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表本身）。
     /// </summary>
-    internal static class AutostartRegistry
+    [SupportedOSPlatform("windows")]
+    public static class AutostartRegistry
     {
         /// <summary>当前是否已注册开机自启（StarPie 或 legacy WinPieGestures 任一存在即是）。</summary>
-        internal static bool IsAutoStartEnabled()
+        public static bool IsAutoStartEnabled()
         {
             try
             {
@@ -27,7 +29,7 @@ namespace StarPie.Services.Shell
         }
 
         /// <summary>注册/注销开机自启；失败静默（Debug 输出），不抛出。</summary>
-        internal static void SetAutoStart(bool enable)
+        public static void SetAutoStart(bool enable)
         {
             // dev 实例不得把正式自启项指向 dev 可执行文件
             if (AppDataPaths.IsDevInstance) return;

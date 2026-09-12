@@ -142,7 +142,7 @@ namespace StarPie
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放 StarPie.Dialogs
+            // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放本集
             // （ADR-0020/#88）：扫描能力经 SDK 契约 IProgramScanner 注入（实现由组合根注册），
             // 组合根不再直接装配对话框服务。
             DialogsModuleRegistrar.RegisterServices(services);
@@ -158,7 +158,7 @@ namespace StarPie
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM：容器单例，状态跨导航常驻；解析时机在配置加载后（CreateAppHost）。
-            // 高级页的注册已由 ShellModuleRegistrar 下放 StarPie.Shell。
+            // 高级页的注册已由 ShellModuleRegistrar 下放本集。
             ShellModuleRegistrar.RegisterServices(services);
 
             // 手势与动作的 DI 注册（鼠标钩子/动作执行/窗口上下文/手势引擎与控制器、
