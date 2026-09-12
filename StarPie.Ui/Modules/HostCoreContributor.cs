@@ -1,7 +1,10 @@
 using System.IO;
+using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using StarPie.Events;
 using StarPie.Kernel.Localization;
+using StarPie.PluginHosting;
 using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
@@ -121,6 +124,14 @@ namespace StarPie.Modules
                 reclaimPolicy: PluginReclaimPolicy.Diagnostic));
             services.AddSingleton<PluginRuntimeHost>();
 
+            // 插件 UI 托管门面：宿主应用实例与 UI 调度器取自进程内唯一 Application（组合根在
+            // Application 启动后解析），导航目录经构造注入——插件注册的导航页直接进目录。
+            services.AddSingleton(sp => new PluginUiCoordinator(
+                Application.Current,
+                Application.Current.Dispatcher,
+                sp.GetService<IPluginEvents>(),
+                sp.GetRequiredService<NavigationCatalog>()));
+
             // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<ShellViewModel>();
@@ -129,7 +140,8 @@ namespace StarPie.Modules
             services.AddSingleton(sp => new PluginManagerViewModel(
                 sp.GetRequiredService<PluginRuntimeHost>(),
                 sp.GetRequiredService<NavigationStore>(),
-                sp.GetRequiredService<ILocalizationService>()));
+                sp.GetRequiredService<ILocalizationService>(),
+                sp.GetRequiredService<PluginUiCoordinator>()));
         }
 
         // 插件槽位导航图标 Path Data（拼图）

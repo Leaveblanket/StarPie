@@ -7,10 +7,12 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using StarPie.Kernel.Localization;
+using StarPie.PluginHosting;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
 using StarPie.Services;
-using StarPie.Kernel.Localization;
+using StarPie.Services.Shell;
 
 namespace StarPie
 {
@@ -44,6 +46,8 @@ namespace StarPie
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
+        // 插件 UI 托管：托盘/设置面的插件条目由它提供（无插件时为空，菜单与设置面不出现空壳）。
+        private readonly PluginUiCoordinator _pluginUi;
         // 插件运行时：启动扫描（发现/校验/准入 + 启动报告落盘）后按宿主状态装载启用插件，
         // 并持有停用/再启用入口。
         private readonly PluginRuntimeHost _pluginRuntime;
@@ -70,6 +74,7 @@ namespace StarPie
             ShellViewModel shellViewModel,
             AppHostDelegates hostDelegates,
             PluginRuntimeHost pluginRuntime,
+            PluginUiCoordinator pluginUi,
             bool background = false)
         {
             _messenger = messenger;
@@ -85,6 +90,7 @@ namespace StarPie
             _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
             _pluginRuntime = pluginRuntime;
+            _pluginUi = pluginUi;
             _background = background;
 
             // 主题画刷换入经端口回填：整项替换合并字典的活动主题槽；
@@ -233,7 +239,8 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
-            return entries;
+            // 插件菜单项追加在内置条目之后；无插件菜单项时不追加分隔线（降级不留空壳）。
+            return TrayMenuComposer.Compose(entries, _pluginUi, _localization).ToList();
         }
 
         private void ShowTrayBalloonTip(string title, string text)

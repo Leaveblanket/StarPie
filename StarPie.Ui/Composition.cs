@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Modules;
+using StarPie.PluginHosting;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
 using StarPie.Services;
@@ -118,6 +119,8 @@ namespace StarPie
             var shellViewModel = _provider.GetRequiredService<ShellViewModel>();
             // 插件运行时（扫描 + 装载/停用/再启用）：由 AppHost 在启动序列里驱动。
             var pluginRuntime = _provider.GetRequiredService<PluginRuntimeHost>();
+            // 插件 UI 托管门面：AppHost 用它合成托盘菜单的插件条目、插件管理页用它呈现设置区块。
+            var pluginUi = _provider.GetRequiredService<PluginUiCoordinator>();
 
             return new AppHost(
                 messenger,
@@ -133,6 +136,7 @@ namespace StarPie
                 shellViewModel,
                 _hostDelegates,
                 pluginRuntime,
+                pluginUi,
                 background);
         }
 

@@ -26,6 +26,8 @@ namespace StarPie.ViewModels.Navigation
     {
         private readonly NavigationStore _store;
         private readonly ILocalizationService _localization;
+        private readonly NavigationCatalog _catalog;
+        private Action? _onCatalogChanged;
 
         /// <summary>导航项（按 NavigationCatalog 槽位 0–3 注册顺序，即侧边栏顺序）。</summary>
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
@@ -44,6 +46,7 @@ namespace StarPie.ViewModels.Navigation
             if (navigation == null) throw new ArgumentNullException(nameof(navigation));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _store = store;
+            _catalog = catalog;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>();
             FillNavigationItems(catalog, navigation);
@@ -67,6 +70,16 @@ namespace StarPie.ViewModels.Navigation
 
             // 导航项标题属驻留文案：语言切换时即时重取，不随页面重建刷新。
             _localization.LanguageChanged += RefreshTitles;
+
+            // 插件页可在运行期增删（插件装载/卸载的安全点）：目录变更即重建导航项，
+            // 固定页仍在原位、插件页追加在后。
+            _onCatalogChanged = () =>
+            {
+                FillNavigationItems(catalog, navigation);
+                RefreshTitles();
+                SyncSelection();
+            };
+            catalog.Changed += _onCatalogChanged;
 
             SyncSelection();
         }
@@ -139,6 +152,11 @@ namespace StarPie.ViewModels.Navigation
         public void Dispose()
         {
             _localization.LanguageChanged -= RefreshTitles;
+            if (_onCatalogChanged is not null)
+            {
+                _catalog.Changed -= _onCatalogChanged;
+                _onCatalogChanged = null;
+            }
         }
     }
 }

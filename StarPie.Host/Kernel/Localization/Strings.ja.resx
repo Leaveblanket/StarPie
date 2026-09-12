@@ -275,6 +275,7 @@
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>承認</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>パッケージフォルダー</value></data>
   <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>隔離理由</value></data>
+  <data name="PluginSettingsSectionsTitle" xml:space="preserve"><value>プラグイン設定</value></data>
   <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>診断レポート</value></data>
   <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>プラグインを選択すると診断レポートを表示します。</value></data>
   <data name="PluginManagerNoResiduals" xml:space="preserve"><value>残留なし：失敗現場は収束済みです。</value></data>

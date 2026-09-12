@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Kernel.Localization;
+using StarPie.PluginHosting;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
+using StarPie.PluginHosting.Extensions;
 using StarPie.Services.Navigation;
 
 namespace StarPie.ViewModels.Pages
@@ -23,11 +25,15 @@ namespace StarPie.ViewModels.Pages
     public partial class PluginManagerViewModel : ObservableObject, IDisposable
     {
         private readonly PluginRuntimeHost _runtime;
+        private readonly PluginUiCoordinator? _pluginUi;
         private readonly NavigationStore _navigation;
         private readonly ILocalizationService _localization;
 
         /// <summary>插件条目（按宿主报告的稳定序）。</summary>
         public ObservableCollection<PluginManagerItemViewModel> Plugins { get; } = new();
+
+        /// <summary>插件贡献的设置区块（无插件时为空——扩展点降级不出现空壳）。</summary>
+        public ObservableCollection<PluginSettingsSectionViewModel> PluginSettingsSections { get; } = new();
 
         /// <summary>诊断面板当前展示的插件；为 null 时显示占位文案。</summary>
         [ObservableProperty]
@@ -41,11 +47,13 @@ namespace StarPie.ViewModels.Pages
         public PluginManagerViewModel(
             PluginRuntimeHost runtime,
             NavigationStore navigation,
-            ILocalizationService localization)
+            ILocalizationService localization,
+            PluginUiCoordinator? pluginUi = null)
         {
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
             _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+            _pluginUi = pluginUi;
 
             _navigation.PropertyChanged += OnNavigationChanged;
             Refresh();
@@ -64,6 +72,24 @@ namespace StarPie.ViewModels.Pages
             SelectedPlugin = Plugins.FirstOrDefault(item => item.PluginId == selectedId)
                 ?? Plugins.FirstOrDefault();
             UpdateDiagnostics();
+            RefreshPluginSettingsSections();
+        }
+
+        /// <summary>重建插件设置区块：标题按当前语言取词，区块 VM 由插件描述符工厂创建。</summary>
+        private void RefreshPluginSettingsSections()
+        {
+            PluginSettingsSections.Clear();
+            if (_pluginUi is null)
+            {
+                return;
+            }
+
+            foreach (PluginSettingsSection section in _pluginUi.SettingsSections)
+            {
+                PluginSettingsSections.Add(PluginSettingsSectionViewModel.From(
+                    section,
+                    _localization.GetString(section.Descriptor.TitleKey)));
+            }
         }
 
         /// <summary>选中条目并刷新诊断面板。</summary>

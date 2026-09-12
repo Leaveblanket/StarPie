@@ -275,6 +275,7 @@ This cannot be undone.</value></data>
   <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>Admission</value></data>
   <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>Package folder</value></data>
   <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>Quarantine reason</value></data>
+  <data name="PluginSettingsSectionsTitle" xml:space="preserve"><value>Plugin settings</value></data>
   <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>Diagnostics report</value></data>
   <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>Select a plugin to view its diagnostics report.</value></data>
   <data name="PluginManagerNoResiduals" xml:space="preserve"><value>No residuals: the failure site is cleaned up.</value></data>
