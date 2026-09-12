@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using StarPie.Abstractions.Ui;
 using StarPie.Compatibility;
 using StarPie.Services.Icons;
 using StarPie.Services.Programs;
@@ -25,6 +26,10 @@ public sealed class SdkWpfBoundaryTests
         typeof(IThemeService),
         // Compatibility/
         typeof(UiSdkAbi), typeof(DefaultAlcPolicy),
+        // Abstractions/Ui/（插件 UI 契约：入口、上下文、调度器与注册描述符）
+        typeof(IPluginUiModule), typeof(IUiDispatcher), typeof(IPluginUiContext),
+        typeof(PluginPageDescriptor), typeof(PluginSettingsSectionDescriptor),
+        typeof(PluginWindowDescriptor), typeof(PluginMenuItemDescriptor), typeof(PluginCommandDescriptor),
     };
 
     [Fact]
@@ -48,7 +53,10 @@ public sealed class SdkWpfBoundaryTests
     public void SdkWpf源码树_镜像旧相对路径_无清单外落点()
     {
         string sdkWpfRoot = Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Sdk.Wpf");
-        string[] allowed = { "bin", "obj", "StarPie.Sdk.Wpf.csproj", "Services", "Compatibility" };
+        string[] allowed =
+        {
+            "bin", "obj", "StarPie.Sdk.Wpf.csproj", "Services", "Compatibility", "Abstractions",
+        };
 
         string[] unexpected = Directory.EnumerateFileSystemEntries(sdkWpfRoot)
             .Select(path => Path.GetFileName(path)!)

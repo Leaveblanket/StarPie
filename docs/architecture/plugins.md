@@ -5,7 +5,8 @@
 > （collectible ALC 装载、能力注册与调用守卫、安全点卸载与回收判定）、§2 的首个随包 headless 插件
 > 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
 > 最小插件管理面与诊断报告（§10 的列表/状态/启停/重试/诊断入口，含可定位残留清单）亦已落地；
-> UI 托管（§7）、管理面剩余动作（重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
+> 插件 UI 托管基础层（§7 的资产登记表、每插件资源根、UI 线程释放编排与泄漏验证器）亦已落地；
+> 插件 UI 装载接线（页面挂载与示例插件）、管理面剩余动作（重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
 > [assemblies.md](assemblies.md) 与
 > [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
@@ -260,6 +261,8 @@ public interface IPluginUiContext
 {
     string PluginId { get; }
 
+    IUiDispatcher Dispatcher { get; }                                // 后台线程触碰 UI 的唯一入口（§7.5）
+
     IDisposable RegisterPage(PluginPageDescriptor descriptor);       // 导航页（纯数据 + 模板与 VM 工厂；宿主调用工厂创建）
     IDisposable RegisterSettingsSection(PluginSettingsSectionDescriptor descriptor);
     IDisposable RegisterWindow(PluginWindowDescriptor descriptor);   // 工厂，宿主创建并跟踪实例
@@ -267,7 +270,8 @@ public interface IPluginUiContext
     IDisposable RegisterCommand(PluginCommandDescriptor descriptor);
     IDisposable MergeResourceDictionary(Uri packUri);                // 宿主并入插件资源根
     IDisposable CreateTimer(TimeSpan interval, Action tick);         // 宿主签发，可整体停止
-    IDisposable Subscribe<TEvent>(Action<TEvent> handler);           // 宿主中介，卸载即断
+    IDisposable CreateAnimation(FrameworkElement target, Storyboard storyboard); // 宿主中介；摘除用 Remove 而非 Stop
+    IDisposable Subscribe<TEvent>(Action<TEvent> handler) where TEvent : class;  // 宿主中介，卸载即断
 }
 ```
 

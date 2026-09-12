@@ -30,6 +30,10 @@ namespace StarPie.PluginRuntime.Loading
         /// <summary>本上下文服务的插件 id。</summary>
         public string PluginId { get; }
 
+        /// <summary>插件 ALC 的命名规则；宿主 UI 层据此判定类型/资源是否归属某插件。</summary>
+        /// <param name="pluginId">插件 id。</param>
+        public static string ContextNameFor(string pluginId) => BuildContextName(pluginId);
+
         /// <inheritdoc/>
         protected override Assembly? Load(AssemblyName assemblyName)
         {

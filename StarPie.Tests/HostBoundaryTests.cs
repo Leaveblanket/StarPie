@@ -16,6 +16,7 @@ using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
 using StarPie.PluginRuntime.Unloading;
 using StarPie.PluginRuntime.Hosting;
+using StarPie.PluginRuntime.Ui;
 
 namespace StarPie.Tests;
 
@@ -82,6 +83,8 @@ public sealed class HostBoundaryTests
         typeof(PluginUnloadPipeline), typeof(PluginReclaimPolicy),
         // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用）
         typeof(PluginRuntimeHost),
+        // PluginRuntime/Ui/（UI 释放端口：Host 零 WPF，实现封送在 Ui 层）
+        typeof(IPluginUiCoordinator), typeof(PluginUiReleaseResult),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>
