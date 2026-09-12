@@ -311,12 +311,21 @@ def assert_catalog(combo, catalog, timeout: float = 3.0) -> None:
     )
 
 
-def select_option(combo, catalog, name: str, timeout: float = 3.0, verify_selection: bool = True) -> int:
+def select_option(
+    combo,
+    catalog,
+    name: str,
+    timeout: float = 3.0,
+    verify_selection: bool = True,
+    attempts: int = 3,
+) -> int:
     """按产品目录（Tag 固定顺序）选择下拉项，并等待选中态回读一致后返回 index。
 
     UIA 不暴露选项文本（item_texts 不可用）、SelectedValuePath 取 Tag，故用目录常量定名：
     catalog 即产品侧下拉项顺序，item_count 不符会显式失败（目录变更须同步测试常量）；
     选中态回读保证点击 Save 前 UI 已真的切换，替代 `select(int)` + 固定等待。
+    UIA `select(index)` 偶发静默空选（选中态停在 null），回读不通过时重试 select，
+    连试 attempts 次仍不收敛才失败。
     verify_selection=False 用于 UIA 不暴露选中态的 ComboBox（selected_index 恒为 None，
     如 Slot*ActionTypeComboBox）：此时以用例的落盘值断言为门。
     """
@@ -324,14 +333,26 @@ def select_option(combo, catalog, name: str, timeout: float = 3.0, verify_select
     if name not in catalog:
         raise AssertionError(f"产品目录 {list(catalog)} 中不存在选项 {name!r}")
     index = catalog.index(name)
-    combo.select(index)
-    if verify_selection:
-        wait_until(
-            lambda: combo.selected_index() == index,
-            timeout=timeout,
-            description=f"{name}（index {index}）选中态回读",
-        )
-    return index
+    if not verify_selection:
+        combo.select(index)
+        return index
+
+    per_attempt = max(0.5, timeout / attempts)
+    last_error = None
+    for attempt in range(attempts):
+        combo.select(index)
+        try:
+            wait_until(
+                lambda: combo.selected_index() == index,
+                timeout=per_attempt,
+                description=f"{name}（index {index}）选中态回读",
+            )
+            return index
+        except AssertionError as ex:
+            last_error = ex
+    raise AssertionError(
+        f"选择 {name!r}（index {index}）后选中态未回读，重试 {attempts} 次仍失败：{last_error}"
+    ) from None
 
 
 def wait_dialog(title: str, timeout: float = 10.0):
