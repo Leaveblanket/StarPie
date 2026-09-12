@@ -48,7 +48,7 @@
 | 缝 | 位置 | 压力 | 裁决/触发条件 |
 |---|---|---|---|
 | Host 装配面 | Composition/CreateAppHost 直取 Host 侧可见具体类型（MouseHook/主题服务/两子 VM 等）；AppHost 把 Ui 侧调色板适配器接到主题服务（内核端口 `IThemeApplier`）/编排托盘菜单/MouseHook 暂停态；Host 聚合页拼装 M2/M4 子 VM | Host 对"哪些装配件可见"有编译期认知；模块不能脱离 Host 决定宿主装配 | ADR-0016 决策 13（组合根集中）；留 Host；不引入子容器/Prism |
-| 导航槽位容量 | `NavigationSlot` 固定 0–3 + Validate + e2e `NavPage0..3` | 新增第 5 页需改 SDK 槽位枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶 4，改动属放行共享面；navigation.md 登记 |
+| 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 SDK 槽位枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶 5，改动属放行共享面；navigation.md 登记 |
 | 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`；模块 VM 构造抓引用，导入后消息自挂 | 任何模块可读写任何配置区；模块间经"同一对象 + 广播"隐式协作 | 放行共享面（modules.md §2.3）；config.json 向后兼容 Hard Constraint |
 | Models 物理残留（R8） | `WheelProfile`/`ActionItem` 语义归 M1、物理 `StarPie.Sdk/Models/`；`CustomColorPreset` 语义归 M2、物理 `StarPie.Sdk/Models/`（AppConfig 引用） | 业务领域形状渗入 SDK 模型面 | R8 已登记；迁移触发条件 = 配置模型与模块语义解耦时再议 |
 

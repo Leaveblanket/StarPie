@@ -17,7 +17,8 @@
                 <!--  模块页面模板字典：本地合并；宿主外观聚合页模板在 Modules/HostPageTemplates.xaml  -->
                 <ResourceDictionary Source="Modules/GesturesPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/ShellPageTemplates.xaml" />
-                <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
+<ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
+<ResourceDictionary Source="Modules/HostCorePageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />
             <!--  通用共享转换器（宿主本地，自 Core 迁入）：实例由 App 级资源单点持有  -->

@@ -1,0 +1,166 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using StarPie.Kernel.Localization;
+using StarPie.PluginRuntime.Diagnostics;
+using StarPie.PluginRuntime.Hosting;
+using StarPie.Services.Navigation;
+
+namespace StarPie.ViewModels.Pages
+{
+    /// <summary>
+    /// 插件管理页 ViewModel：列出宿主扫描到的插件与状态，提供启用/停用、重试与诊断入口。
+    /// </summary>
+    /// <remarks>
+    /// 数据源是宿主报告快照（<see cref="PluginRuntimeHost.DescribePlugins"/>）：页面每次被导航到时刷新，
+    /// 启停/重试完成后立即刷新。页面不直接读写宿主状态文件——状态权威始终在 Host，页面只呈现与发命令。
+    /// </remarks>
+    public partial class PluginManagerViewModel : ObservableObject, IDisposable
+    {
+        private readonly PluginRuntimeHost _runtime;
+        private readonly NavigationStore _navigation;
+        private readonly ILocalizationService _localization;
+
+        /// <summary>插件条目（按宿主报告的稳定序）。</summary>
+        public ObservableCollection<PluginManagerItemViewModel> Plugins { get; } = new();
+
+        /// <summary>诊断面板当前展示的插件；为 null 时显示占位文案。</summary>
+        [ObservableProperty]
+        private PluginManagerItemViewModel? _selectedPlugin;
+
+        /// <summary>诊断面板文本（状态、准入、隔离原因与可定位的残留清单）。</summary>
+        [ObservableProperty]
+        private string _diagnosticsText = string.Empty;
+
+        /// <summary>构造页面 VM：宿主运行时、导航状态与本地化服务均为显式依赖。</summary>
+        public PluginManagerViewModel(
+            PluginRuntimeHost runtime,
+            NavigationStore navigation,
+            ILocalizationService localization)
+        {
+            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+            _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
+            _localization = localization ?? throw new ArgumentNullException(nameof(localization));
+
+            _navigation.PropertyChanged += OnNavigationChanged;
+            Refresh();
+        }
+
+        /// <summary>重新读取宿主报告并重建列表；刷新后保持原来选中的插件。</summary>
+        public void Refresh()
+        {
+            string? selectedId = SelectedPlugin?.PluginId;
+            Plugins.Clear();
+            foreach (PluginDiagnosticsReport report in _runtime.DescribePlugins())
+            {
+                Plugins.Add(new PluginManagerItemViewModel(report, this, _localization));
+            }
+
+            SelectedPlugin = Plugins.FirstOrDefault(item => item.PluginId == selectedId)
+                ?? Plugins.FirstOrDefault();
+            UpdateDiagnostics();
+        }
+
+        /// <summary>选中条目并刷新诊断面板。</summary>
+        /// <param name="item">要查看的插件条目。</param>
+        public void ShowDiagnostics(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            SelectedPlugin = item;
+            UpdateDiagnostics();
+        }
+
+        /// <summary>按当前状态启用或停用条目；操作完成后刷新列表。</summary>
+        /// <param name="item">目标条目。</param>
+        internal async Task ToggleAsync(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            if (item.Report.Status is PluginRuntimeStatus.Active or PluginRuntimeStatus.Quarantined)
+            {
+                await _runtime.DisableAsync(item.PluginId, CancellationToken.None).ConfigureAwait(true);
+            }
+            else if (item.Report.Status == PluginRuntimeStatus.Disabled)
+            {
+                await _runtime.EnableAsync(item.PluginId, CancellationToken.None).ConfigureAwait(true);
+            }
+
+            Refresh();
+        }
+
+        /// <summary>显式重试隔离插件；失败时宿主保持隔离，列表仍如实刷新。</summary>
+        /// <param name="item">目标条目。</param>
+        internal async Task RetryAsync(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            await _runtime.RetryAsync(item.PluginId, CancellationToken.None).ConfigureAwait(true);
+            Refresh();
+        }
+
+        /// <summary>退订导航状态（容器单例，随组合根释放）。</summary>
+        public void Dispose()
+        {
+            _navigation.PropertyChanged -= OnNavigationChanged;
+        }
+
+        /// <summary>导航到本页时重读宿主报告：状态可能已被宿主内部流程改变（例如熔断隔离）。</summary>
+        private void OnNavigationChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(NavigationStore.CurrentViewModel)
+                && ReferenceEquals(_navigation.CurrentViewModel, this))
+            {
+                Refresh();
+            }
+        }
+
+        private void UpdateDiagnostics()
+            => DiagnosticsText = SelectedPlugin is null
+                ? _localization.GetString("PluginManagerNoPluginSelected")
+                : ComposeDiagnostics(SelectedPlugin.Report, _localization);
+
+        /// <summary>诊断文本：状态、准入、路径、隔离原因、回收说明与可定位残留清单。</summary>
+        private static string ComposeDiagnostics(
+            PluginDiagnosticsReport report,
+            ILocalizationService localization)
+        {
+            var lines = new List<string>
+            {
+                $"{localization.GetString("PluginManagerPluginIdLabel")}：{report.PluginId}",
+                $"{localization.GetString("PluginManagerVersionLabel")}：{(string.IsNullOrWhiteSpace(report.Version) ? "-" : report.Version)}",
+                $"{localization.GetString("PluginManagerStatusLabel")}：{localization.GetString(PluginManagerItemViewModel.ToStatusKey(report.Status))}",
+                $"{localization.GetString("PluginManagerAdmissionLabel")}：{localization.GetString(PluginManagerItemViewModel.ToAdmissionKey(report.Admission))}",
+                $"{localization.GetString("PluginManagerPackagePathLabel")}：{report.PackagePath ?? "-"}",
+            };
+
+            if (!string.IsNullOrWhiteSpace(report.QuarantineReason))
+            {
+                lines.Add(
+                    $"{localization.GetString("PluginManagerQuarantineLabel")}：{report.QuarantineReason}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(report.ReclaimNote))
+            {
+                lines.Add(report.ReclaimNote);
+            }
+
+            if (report.Residuals.Count == 0)
+            {
+                lines.Add(localization.GetString("PluginManagerNoResiduals"));
+            }
+            else
+            {
+                lines.Add($"{localization.GetString("PluginManagerResiduals")}（{report.Residuals.Count}）：");
+                foreach (PluginResidual residual in report.Residuals)
+                {
+                    lines.Add("  • " + residual.Detail);
+                }
+            }
+
+            return string.Join(Environment.NewLine, lines);
+        }
+    }
+}

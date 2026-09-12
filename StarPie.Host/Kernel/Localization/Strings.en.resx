@@ -267,4 +267,29 @@ This cannot be undone.</value></data>
   <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>Plugins can run arbitrary code with your account's permissions</value></data>
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>Plugins can crash or hang StarPie</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>Uninstall may fail; a failing plugin is quarantined and needs a restart</value></data>
+  <data name="PagePlugins" xml:space="preserve"><value>🧩 Plugins</value></data>
+  <data name="PluginManagerSubheader" xml:space="preserve"><value>Inspect discovered plugins and their state, then enable, disable, retry, or diagnose them.</value></data>
+  <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>Plugin</value></data>
+  <data name="PluginManagerVersionLabel" xml:space="preserve"><value>Version</value></data>
+  <data name="PluginManagerStatusLabel" xml:space="preserve"><value>Status</value></data>
+  <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>Admission</value></data>
+  <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>Package folder</value></data>
+  <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>Quarantine reason</value></data>
+  <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>Diagnostics report</value></data>
+  <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>Select a plugin to view its diagnostics report.</value></data>
+  <data name="PluginManagerNoResiduals" xml:space="preserve"><value>No residuals: the failure site is cleaned up.</value></data>
+  <data name="PluginManagerResiduals" xml:space="preserve"><value>Residuals</value></data>
+  <data name="PluginManagerEnable" xml:space="preserve"><value>Enable</value></data>
+  <data name="PluginManagerDisable" xml:space="preserve"><value>Disable</value></data>
+  <data name="PluginManagerRetry" xml:space="preserve"><value>Retry</value></data>
+  <data name="PluginManagerDiagnostics" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="PluginStatusActive" xml:space="preserve"><value>Active</value></data>
+  <data name="PluginStatusDisabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="PluginStatusQuarantined" xml:space="preserve"><value>Quarantined</value></data>
+  <data name="PluginStatusRejected" xml:space="preserve"><value>Rejected</value></data>
+  <data name="PluginStatusInactive" xml:space="preserve"><value>Inactive</value></data>
+  <data name="PluginAdmissionBuiltIn" xml:space="preserve"><value>Built-in</value></data>
+  <data name="PluginAdmissionReviewed" xml:space="preserve"><value>Reviewed</value></data>
+  <data name="PluginAdmissionDeveloperMode" xml:space="preserve"><value>Developer mode</value></data>
+  <data name="PluginAdmissionRejected" xml:space="preserve"><value>Rejected</value></data>
 </root>

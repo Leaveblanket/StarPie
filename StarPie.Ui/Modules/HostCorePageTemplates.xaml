@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:StarPie.ViewModels.Pages"
+                    xmlns:pages="clr-namespace:StarPie.Views.Pages">
+
+    <!--  HostCoreContributor 页面模板字典：宿主直持页（插件管理）。页面 View 无参构造、
+          按导航重建、不经容器；模板归属与导航登记同属一个贡献者。  -->
+    <DataTemplate DataType="{x:Type vm:PluginManagerViewModel}">
+        <pages:PluginManagerPage/>
+    </DataTemplate>
+</ResourceDictionary>

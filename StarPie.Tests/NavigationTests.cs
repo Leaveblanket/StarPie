@@ -227,17 +227,17 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public void Items_AreFourInNavigationOrder()
+    public void Items_AreFiveInNavigationOrder()
     {
         var (vm, _, _) = Create();
 
-        Assert.Equal(4, vm.NavigationItems.Count);
+        Assert.Equal(5, vm.NavigationItems.Count);
         Assert.Equal(new[]
         {
             typeof(BehaviorSettingsViewModel), typeof(AppearanceSettingsViewModel), typeof(ProfileListViewModel),
-            typeof(GeneralSettingsViewModel)
+            typeof(GeneralSettingsViewModel), typeof(PluginManagerViewModel)
         }, vm.NavigationItems.Select(i => i.TargetViewModelType));
-        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             vm.NavigationItems.Select(i => i.AutomationId));
     }
 
@@ -250,6 +250,7 @@ public sealed class MainViewModelTests
         Assert.Equal(Localization.GetString("PageAppearance"), vm.NavigationItems[1].Title);
         Assert.Equal(Localization.GetString("PageGestures"), vm.NavigationItems[2].Title);
         Assert.Equal(Localization.GetString("PageAdvanced"), vm.NavigationItems[3].Title);
+        Assert.Equal(Localization.GetString("PagePlugins"), vm.NavigationItems[4].Title);
     }
 
     [Fact]

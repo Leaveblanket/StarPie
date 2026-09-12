@@ -9,6 +9,7 @@ using StarPie.Abstractions;
 using StarPie.HostServices;
 using StarPie.Manifest;
 using StarPie.PluginRuntime.Admission;
+using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Manifest;
@@ -25,6 +26,10 @@ namespace StarPie.Tests;
 public sealed class PluginUnloadPipelineTests : IDisposable
 {
     private const string PluginId = "com.example.unload";
+
+    private static IPlugin? _leakHolder;
+
+    private static Type? _leakTypeHolder;
 
     private readonly string _tempRoot;
     private readonly string _pluginsRoot;
@@ -239,9 +244,12 @@ public sealed class PluginUnloadPipelineTests : IDisposable
             .UnloadAsync(request, CancellationToken.None);
 
         Assert.Equal(PluginUnloadStatus.Quarantined, result.Status);
+        Assert.False(result.Reclaimed);
         Assert.Contains("在途", result.FailureReason);
         Assert.Equal(PluginLifecycleState.Quarantined, lifecycle.Current);
         Assert.Contains(result.Diagnostics, line => line.Contains("未归零"));
+        Assert.Contains(result.Residuals, item =>
+            item.Kind == PluginResidualKind.InFlightCall && item.Detail.Contains("在途"));
 
         // 未归零即不进入危险区：作用域未释放、能力条目已摘除（不再对外可见）。
         Assert.False(scope.IsDisposed);
@@ -252,6 +260,126 @@ public sealed class PluginUnloadPipelineTests : IDisposable
         Assert.True(await scope.Guard.WaitForInFlightAsync(
             TimeSpan.FromSeconds(5),
             CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task 回收判定失败_残留清单可定位到类型与程序集()
+    {
+        string pluginId = $"com.example.leak.{Guid.NewGuid():N}";
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadResult loaded = await LoadRawAsync(
+            pluginId,
+            typeof(ProgramSourceTestPlugin),
+            registry,
+            PluginTestPackage.ProgramSourceCapabilitiesJson);
+        _leakHolder = loaded.Plugin;
+
+        try
+        {
+            PluginUnloadRequest request = PluginUnloadRequest.FromLoaded(loaded);
+
+            PluginUnloadResult result = await new PluginUnloadPipeline(() => { })
+                .UnloadAsync(request, CancellationToken.None);
+
+            // 泄漏现场必须可定位：类别 + 具体类型/程序集全名，而不是一句"泄漏了"。
+            Assert.Equal(PluginUnloadStatus.Quarantined, result.Status);
+            Assert.False(result.Reclaimed);
+            Assert.Contains(result.Residuals, item =>
+                item.Kind == PluginResidualKind.PluginObject
+                && item.Detail.Contains("ProgramSourceTestPlugin"));
+            Assert.Contains(result.Residuals, item => item.Kind == PluginResidualKind.LoadContext);
+            Assert.Contains(result.Residuals, item =>
+                item.Kind == PluginResidualKind.Assembly && item.Detail.Contains("StarPie.Tests"));
+            Assert.Contains(result.Residuals, item =>
+                item.Kind == PluginResidualKind.Type
+                && item.Detail.Contains("ProgramSourceTestPlugin"));
+        }
+        finally
+        {
+            // 泄漏是刻意构造的：收尾清引用并回收，避免影响同进程后续用例的 ALC 断言。
+            _leakHolder = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+    }
+
+    [Fact]
+    public async Task 降级判定_程序集残留只记诊断不隔离()
+    {
+        string pluginId = $"com.example.leak.downgrade.{Guid.NewGuid():N}";
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadResult loaded = await LoadRawAsync(
+            pluginId,
+            typeof(ProgramSourceTestPlugin),
+            registry,
+            PluginTestPackage.ProgramSourceCapabilitiesJson);
+        // 只钉住插件程序集里的类型：入口实例可回收，ALC 与程序集不能——这是 WPF 宿主框架
+        // 缓存程序集的等价现场（宿主经 AppDomain 程序集加载事件强引用插件程序集）。
+        // 取类型走独立帧：调用帧残留的插件实例栈槽会 root 入口实例，判定会误报。
+        _leakTypeHolder = CapturePluginType(loaded);
+        PluginUnloadRequest request = PluginUnloadRequest.FromLoaded(loaded);
+
+        try
+        {
+            PluginUnloadResult result = await new PluginUnloadPipeline(
+                () => { },
+                reclaimPolicy: PluginReclaimPolicy.Diagnostic)
+                .UnloadAsync(request, CancellationToken.None);
+
+            // 宿主降级：ALC 与程序集残留不阻断停用；但插件自有对象（入口实例）仍硬判。
+            Assert.True(
+                result.Status == PluginUnloadStatus.Unloaded,
+                $"诊断：{string.Join(" | ", result.Diagnostics)}；原因：{result.FailureReason}");
+            Assert.Null(result.FailureReason);
+            Assert.True(result.Reclaimed, $"降级判定应视同请求耗尽：{result.FailureReason}");
+            Assert.Contains(result.Diagnostics, line => line.Contains("插件对象") && line.Contains("已回收"));
+            Assert.Contains(result.Diagnostics, line => line.Contains("宿主降级") && line.Contains("重启"));
+            Assert.DoesNotContain(result.Residuals, item => item.Kind == PluginResidualKind.PluginObject);
+            Assert.Contains(result.Residuals, item => item.Kind == PluginResidualKind.LoadContext);
+            Assert.Contains(result.Residuals, item => item.Kind == PluginResidualKind.Assembly);
+        }
+        finally
+        {
+            // 刻意构造的程序集残留：收尾清引用并回收，避免影响同进程后续用例的 ALC 断言。
+            _leakTypeHolder = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+    }
+
+    [Fact]
+    public async Task 硬判判定_程序集残留仍隔离()
+    {
+        string pluginId = $"com.example.leak.hard.{Guid.NewGuid():N}";
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadResult loaded = await LoadRawAsync(
+            pluginId,
+            typeof(ProgramSourceTestPlugin),
+            registry,
+            PluginTestPackage.ProgramSourceCapabilitiesJson);
+        _leakTypeHolder = CapturePluginType(loaded);
+        PluginUnloadRequest request = PluginUnloadRequest.FromLoaded(loaded);
+
+        try
+        {
+            // 同一现场在硬判档（缺省）下必须隔离：判据随宿主环境分级，不随现场放宽。
+            PluginUnloadResult result = await new PluginUnloadPipeline(() => { })
+                .UnloadAsync(request, CancellationToken.None);
+
+            Assert.Equal(PluginUnloadStatus.Quarantined, result.Status);
+            Assert.False(result.Reclaimed);
+            Assert.Contains("回收判定未通过", result.FailureReason);
+            Assert.Contains(result.Residuals, item => item.Kind == PluginResidualKind.LoadContext);
+        }
+        finally
+        {
+            _leakTypeHolder = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
     }
 
     [Fact]
@@ -310,6 +438,10 @@ public sealed class PluginUnloadPipelineTests : IDisposable
     /// <summary>夹具 StopAsync 落点（插件 ALC 内的实现写同路径文件，用于跨 ALC 观察顺序）。</summary>
     internal static string StopMarkerPath(string pluginId)
         => Path.Combine(Path.GetTempPath(), $"starpie-stop-{pluginId}.marker");
+
+    /// <summary>独立帧取插件 ALC 内的类型：调用帧不留插件实例栈槽，入口实例仍可回收。</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static Type CapturePluginType(PluginLoadResult loaded) => loaded.Plugin!.GetType();
 
     /// <summary>夹具装载缝：装载结果只在本帧存在（需要断言交接契约的用例直接取用）。</summary>
     [MethodImpl(MethodImplOptions.NoInlining)]

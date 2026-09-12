@@ -45,7 +45,7 @@ public sealed class BuiltInContributorsTests
     }
 
     [Fact]
-    public void 内置清单_导航贡献合并为四槽正典()
+    public void 内置清单_导航贡献合并为五槽正典()
     {
         var catalog = new NavigationCatalog();
         foreach (ICompositionContributor contributor in CreateAll())
@@ -57,19 +57,20 @@ public sealed class BuiltInContributorsTests
         catalog.Validate();
 
         Assert.Equal(
-            new[] { 0, 1, 2, 3 },
+            new[] { 0, 1, 2, 3, 4 },
             catalog.Entries.Select(entry => (int)entry.Slot));
         Assert.Equal(
-            new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3" },
+            new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             catalog.Entries.Select(entry => entry.AutomationId));
         Assert.Equal(
-            new[] { "PageTrigger", "PageAppearance", "PageGestures", "PageAdvanced" },
+            new[] { "PageTrigger", "PageAppearance", "PageGestures", "PageAdvanced", "PagePlugins" },
             catalog.Entries.Select(entry => entry.TitleKey));
         Assert.Equal(
             new[]
             {
                 typeof(BehaviorSettingsViewModel), typeof(AppearanceSettingsViewModel),
                 typeof(ProfileListViewModel), typeof(GeneralSettingsViewModel),
+                typeof(PluginManagerViewModel),
             },
             catalog.Entries.Select(entry => entry.ViewModelType));
     }

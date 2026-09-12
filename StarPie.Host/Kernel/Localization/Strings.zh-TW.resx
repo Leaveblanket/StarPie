@@ -267,4 +267,29 @@
   <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>外掛可在你的帳戶權限內執行任意程式碼</value></data>
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>外掛可能使 StarPie 當機或卡住</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸載可能失敗；失敗的外掛會被隔離，需重新啟動處理</value></data>
+  <data name="PagePlugins" xml:space="preserve"><value>🧩 外掛</value></data>
+  <data name="PluginManagerSubheader" xml:space="preserve"><value>檢視宿主掃描到的外掛與狀態，執行啟用、停用、重試與診斷。</value></data>
+  <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>外掛</value></data>
+  <data name="PluginManagerVersionLabel" xml:space="preserve"><value>版本</value></data>
+  <data name="PluginManagerStatusLabel" xml:space="preserve"><value>狀態</value></data>
+  <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>准入</value></data>
+  <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>套件目錄</value></data>
+  <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>隔離原因</value></data>
+  <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>診斷報告</value></data>
+  <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>選擇一個外掛檢視診斷報告。</value></data>
+  <data name="PluginManagerNoResiduals" xml:space="preserve"><value>無殘留：失敗現場已收口。</value></data>
+  <data name="PluginManagerResiduals" xml:space="preserve"><value>殘留清單</value></data>
+  <data name="PluginManagerEnable" xml:space="preserve"><value>啟用</value></data>
+  <data name="PluginManagerDisable" xml:space="preserve"><value>停用</value></data>
+  <data name="PluginManagerRetry" xml:space="preserve"><value>重試</value></data>
+  <data name="PluginManagerDiagnostics" xml:space="preserve"><value>診斷</value></data>
+  <data name="PluginStatusActive" xml:space="preserve"><value>活動</value></data>
+  <data name="PluginStatusDisabled" xml:space="preserve"><value>已停用</value></data>
+  <data name="PluginStatusQuarantined" xml:space="preserve"><value>已隔離</value></data>
+  <data name="PluginStatusRejected" xml:space="preserve"><value>已拒絕</value></data>
+  <data name="PluginStatusInactive" xml:space="preserve"><value>未活動</value></data>
+  <data name="PluginAdmissionBuiltIn" xml:space="preserve"><value>內建</value></data>
+  <data name="PluginAdmissionReviewed" xml:space="preserve"><value>已審核</value></data>
+  <data name="PluginAdmissionDeveloperMode" xml:space="preserve"><value>開發者模式</value></data>
+  <data name="PluginAdmissionRejected" xml:space="preserve"><value>拒絕</value></data>
 </root>

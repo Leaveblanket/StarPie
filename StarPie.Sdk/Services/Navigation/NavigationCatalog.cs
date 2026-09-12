@@ -6,27 +6,28 @@ using System.Linq;
 namespace StarPie.Services.Navigation
 {
     /// <summary>
-    /// 导航槽位：全局槽位表 0–3，枚举顺序即侧边栏顺序正典（触发/外观/手势/高级）。
+    /// 导航槽位：全局槽位表 0–4，枚举顺序即侧边栏顺序正典（触发/外观/手势/高级/插件）。
     /// </summary>
     /// <remarks>
-    /// AutomationId 由 <see cref="NavigationSlots.GetAutomationId"/> 固定为 NavPage{槽位}，
-    /// e2e（pywinauto）依赖该标识；缺失/重复/未知槽位由共享内核收口测试拦截。
+    /// AutomationId 由 <see cref="NavigationSlots.GetAutomationId"/> 固定为 NavPage{槽位}，0–3 是既有四页、
+    /// e2e（pywinauto）依赖该标识；插件管理页是宿主追加的第五页。缺失/重复/未知槽位由共享内核收口测试拦截。
     /// </remarks>
     public enum NavigationSlot
     {
         Trigger = 0,
         Appearance = 1,
         Gestures = 2,
-        Advanced = 3
+        Advanced = 3,
+        Plugins = 4,
     }
 
-    /// <summary>槽位表正典工具：全部槽位与 AutomationId 映射（NavPage0..3）。</summary>
+    /// <summary>槽位表正典工具：全部槽位与 AutomationId 映射（NavPage{槽位}）。</summary>
     public static class NavigationSlots
     {
-        /// <summary>全部槽位（0–3，按槽位升序）。</summary>
+        /// <summary>全部槽位（按槽位升序）。</summary>
         public static IReadOnlyList<NavigationSlot> All { get; } = Enum.GetValues<NavigationSlot>();
 
-        /// <summary>槽位对应的正典 UIA AutomationId（NavPage0..3；e2e 依赖）。</summary>
+        /// <summary>槽位对应的正典 UIA AutomationId（NavPage{槽位}；0–3 由 e2e 依赖）。</summary>
         public static string GetAutomationId(NavigationSlot slot)
             => "NavPage" + ((int)slot).ToString(CultureInfo.InvariantCulture);
     }
@@ -112,7 +113,7 @@ namespace StarPie.Services.Navigation
             throw new InvalidOperationException($"导航目录未注册槽位: {slot}");
         }
 
-        /// <summary>完整性收口：0–3 四个槽位必须全部注册，缺失即抛 <see cref="InvalidOperationException"/>。</summary>
+        /// <summary>完整性收口：全部槽位必须注册，缺失即抛 <see cref="InvalidOperationException"/>。</summary>
         public void Validate()
         {
             var missing = NavigationSlots.All.Where(s => !_bySlot.ContainsKey(s)).ToList();
