@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using StarPie.Abstractions;
+using StarPie.HostServices;
 using StarPie.Manifest;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Manifest;
+using StarPie.PluginRuntime.Registry;
+using StarPie.Services.Messages;
+using StarPie.Services.Programs;
 
 namespace StarPie.Tests;
 
@@ -97,7 +102,7 @@ public sealed class PluginLoadPipelineTests : IDisposable
     public async Task 装载期不缓存入口Type_两次装载各自解析()
     {
         PluginLoadRequest request = CreateRequest(PluginId, typeof(RecordingTestPlugin));
-        var pipeline = new PluginLoadPipeline();
+        var pipeline = new PluginLoadPipeline(new CapabilityRegistry());
 
         PluginLoadResult first = await pipeline.LoadAsync(request, CancellationToken.None);
         PluginLoadResult second = await pipeline.LoadAsync(request, CancellationToken.None);
@@ -217,7 +222,8 @@ public sealed class PluginLoadPipelineTests : IDisposable
         using var cancellation = new CancellationTokenSource();
         cancellation.Cancel();
 
-        PluginLoadResult result = await new PluginLoadPipeline().LoadAsync(request, cancellation.Token);
+        PluginLoadResult result = await new PluginLoadPipeline(new CapabilityRegistry())
+            .LoadAsync(request, cancellation.Token);
 
         Assert.Equal(PluginLoadStatus.Quarantined, result.Status);
         Assert.Contains("被取消", result.FailureReason);
@@ -226,14 +232,187 @@ public sealed class PluginLoadPipelineTests : IDisposable
         Assert.Equal(PluginLifecycleState.Starting, result.Lifecycle.Transitions[^1].From);
     }
 
+    [Fact]
+    public async Task 插件启动期注册能力_活动态后消费者经守卫取用()
+    {
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadRequest request = CreateRequest(
+            PluginId,
+            typeof(ProgramSourceTestPlugin),
+            capabilitiesJson: """[{ "id": "program-source", "abi": 1 }]""");
+
+        PluginLoadResult result = await new PluginLoadPipeline(registry)
+            .LoadAsync(request, CancellationToken.None);
+
+        Assert.Equal(PluginLoadStatus.Active, result.Status);
+        Assert.NotNull(result.Scope);
+        Assert.Equal(PluginId, result.Scope!.PluginId);
+        Assert.Equal(0, result.Scope.HandleCount);
+
+        // 消费者短租用：每次取用都是新的守卫适配器，实例留在插件作用域内。
+        IProgramScanner scanner = Assert.Single(registry.GetAll<IProgramScanner>());
+        ProgramEntry entry = Assert.Single(scanner.ScanInstalledPrograms());
+        Assert.Equal(PluginId, entry.Name);
+        Assert.Equal(0, result.Scope.Guard.InFlightCount);
+    }
+
+    [Fact]
+    public async Task 清单priority_决定插件能力在表中的顺序()
+    {
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        var pipeline = new PluginLoadPipeline(registry);
+        const string capabilities = """[{ "id": "program-source", "abi": 1 }]""";
+
+        // 注册顺序与最终顺序相反：priority 小者靠前（内置为空时即插件之间排序）。
+        PluginLoadResult late = await pipeline.LoadAsync(
+            CreateRequest(
+                "com.example.late",
+                typeof(ProgramSourceTestPlugin),
+                capabilitiesJson: capabilities,
+                priority: 5),
+            CancellationToken.None);
+        PluginLoadResult early = await pipeline.LoadAsync(
+            CreateRequest(
+                "com.example.early",
+                typeof(ProgramSourceTestPlugin),
+                capabilitiesJson: capabilities,
+                priority: -1),
+            CancellationToken.None);
+
+        Assert.Equal(PluginLoadStatus.Active, late.Status);
+        Assert.Equal(PluginLoadStatus.Active, early.Status);
+        string[] order = registry.GetAll<IProgramScanner>()
+            .Select(scanner => Assert.Single(scanner.ScanInstalledPrograms()).Name)
+            .ToArray();
+        Assert.Equal(new[] { "com.example.early", "com.example.late" }, order);
+    }
+
+    [Fact]
+    public async Task 插件自定义异常经日志后不root插件集()
+    {
+        var sink = new RecordingPluginLogSink();
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadRequest request = CreateRequest(
+            PluginId,
+            typeof(CustomExceptionProgramSourceTestPlugin),
+            capabilitiesJson: """[{ "id": "program-source", "abi": 1 }]""");
+        PluginLoadResult result = await new PluginLoadPipeline(registry, sink)
+            .LoadAsync(request, CancellationToken.None);
+        IProgramScanner scanner = Assert.Single(registry.GetAll<IProgramScanner>());
+
+        WeakReference probe = CapturePluginExceptionWeakReference(scanner);
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Assert.False(probe.IsAlive, "插件自定义异常实例不得被日志/守卫 root");
+        PluginLogEntry entry = Assert.Single(sink.Entries);
+        Assert.Contains(nameof(PluginCustomException), entry.ExceptionType);
+        Assert.Equal("插件自定义异常", entry.ExceptionMessage);
+    }
+
+    /// <summary>
+    /// 在独立方法内调用并留存异常弱引用：异常类型来自插件 ALC 的 StarPie.Tests 副本，
+    /// 断言宿主日志与守卫没有把该实例留成长生命周期引用。
+    /// </summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CapturePluginExceptionWeakReference(IProgramScanner scanner)
+    {
+        Exception thrown = Record.Exception(() => scanner.ScanInstalledPrograms())!;
+        Assert.NotNull(thrown);
+        Assert.Equal(nameof(PluginCustomException), thrown.GetType().Name);
+        Assert.NotSame(typeof(PluginCustomException).Assembly, thrown.GetType().Assembly);
+        return new WeakReference(thrown);
+    }
+
+    [Fact]
+    public async Task 插件能力连续失败_熔断隔离_能力表条目隐藏()
+    {
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadRequest request = CreateRequest(
+            PluginId,
+            typeof(ThrowingProgramSourceTestPlugin),
+            capabilitiesJson: """[{ "id": "program-source", "abi": 1 }]""");
+        PluginLoadResult result = await new PluginLoadPipeline(registry)
+            .LoadAsync(request, CancellationToken.None);
+        IProgramScanner scanner = Assert.Single(registry.GetAll<IProgramScanner>());
+
+        // 默认阈值：连续 3 次失败熔断。
+        Assert.Throws<InvalidOperationException>(() => scanner.ScanInstalledPrograms());
+        Assert.Throws<InvalidOperationException>(() => scanner.ScanInstalledPrograms());
+        Assert.Throws<InvalidOperationException>(() => scanner.ScanInstalledPrograms());
+
+        Assert.Equal(PluginLifecycleState.Quarantined, result.Lifecycle.Current);
+        Assert.True(result.Scope!.Guard.IsCircuitOpen);
+        Assert.Empty(registry.GetAll<IProgramScanner>());
+    }
+
+    [Fact]
+    public async Task 事件订阅_作用域记账_释放后强制断订阅()
+    {
+        var registry = new CapabilityRegistry();
+        PluginLoadRequest request = CreateRequest(PluginId, typeof(EventSubscriberTestPlugin));
+        PluginLoadResult result = await new PluginLoadPipeline(registry)
+            .LoadAsync(request, CancellationToken.None);
+
+        Assert.Equal(PluginLoadStatus.Active, result.Status);
+        Assert.Equal(1, result.Scope!.HandleCount);
+        Assert.Equal(0, ReadPluginStaticInt(result, "EventSubscriberTestPlugin", "ReceivedCount"));
+
+        result.Scope.Publish(MinimizedToTrayMessage.Instance);
+        Assert.Equal(1, ReadPluginStaticInt(result, "EventSubscriberTestPlugin", "ReceivedCount"));
+
+        // 释放作用域 = 强制枚举清理订阅：账本清零，之后不再投递。
+        result.Scope.Dispose();
+        Assert.True(result.Scope.IsDisposed);
+        Assert.Equal(0, result.Scope.HandleCount);
+        result.Scope.Publish(MinimizedToTrayMessage.Instance);
+        Assert.Equal(1, ReadPluginStaticInt(result, "EventSubscriberTestPlugin", "ReceivedCount"));
+    }
+
+    [Fact]
+    public async Task 启动失败_作用域不流出_能力表无残留()
+    {
+        CapabilityRegistry registry = PluginCapabilityTestDoubles.CreateProgramSourceRegistry();
+        PluginLoadRequest request = CreateRequest(
+            PluginId,
+            typeof(ThrowingTestPlugin),
+            capabilitiesJson: """[{ "id": "program-source", "abi": 1 }]""");
+
+        PluginLoadResult result = await new PluginLoadPipeline(registry)
+            .LoadAsync(request, CancellationToken.None);
+
+        Assert.Equal(PluginLoadStatus.Quarantined, result.Status);
+        Assert.Null(result.Scope);
+        Assert.Empty(registry.GetAll<IProgramScanner>());
+    }
+
+    /// <summary>读取插件 ALC 内程序集类型的静态计数（宿主与插件各持一份 StarPie.Tests 副本）。</summary>
+    private static int ReadPluginStaticInt(
+        PluginLoadResult result,
+        string typeName,
+        string fieldName)
+    {
+        Assembly entryAssembly = result.LoadContext!.Assemblies
+            .Single(assembly => assembly.GetName().Name == "StarPie.Tests");
+        Type entryType = entryAssembly.GetType($"StarPie.Tests.{typeName}", throwOnError: true)!;
+        FieldInfo counter = entryType.GetField(
+            fieldName,
+            BindingFlags.Public | BindingFlags.Static)!;
+        return (int)counter.GetValue(null)!;
+    }
+
     private static Task<PluginLoadResult> LoadAsync(PluginLoadRequest request)
-        => new PluginLoadPipeline().LoadAsync(request, CancellationToken.None);
+        => new PluginLoadPipeline(new CapabilityRegistry()).LoadAsync(request, CancellationToken.None);
 
     private PluginLoadRequest CreateRequest(
         string pluginId,
         Type entryType,
         string? entryTypeName = null,
-        bool copyPrivateDependency = false)
+        bool copyPrivateDependency = false,
+        string? capabilitiesJson = null,
+        int priority = 0)
     {
         string packageDirectory = Path.Combine(_pluginsRoot, pluginId);
         Directory.CreateDirectory(packageDirectory);
@@ -242,7 +421,9 @@ public sealed class PluginLoadPipelineTests : IDisposable
         string manifestJson = PluginTestPackage.Manifest(
             pluginId,
             entryAssembly: entryAssemblyName,
-            entryType: entryTypeName ?? entryType.FullName!);
+            entryType: entryTypeName ?? entryType.FullName!,
+            priority: priority,
+            capabilitiesJson: capabilitiesJson);
         File.WriteAllText(Path.Combine(packageDirectory, "plugin.json"), manifestJson);
         File.Copy(
             typeof(RecordingTestPlugin).Assembly.Location,

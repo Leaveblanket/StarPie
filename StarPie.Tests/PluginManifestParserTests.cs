@@ -21,6 +21,7 @@ public sealed class PluginManifestParserTests
               "ui": { "sdk": "1.0", "entryType": "Example.UiModule" },
               "entryAssembly": "StarPie.Plugin.Example.dll",
               "entryType": "Example.Plugin",
+              "priority": -5,
               "capabilities": [ { "id": "program-source", "abi": 1 }, { "id": "icon-source", "abi": 2 } ],
               "settingsSchema": "settings.schema.json"
             }
@@ -37,6 +38,7 @@ public sealed class PluginManifestParserTests
         Assert.Equal("1.0", result.Manifest.Sdk);
         Assert.Equal("StarPie.Plugin.Example.dll", result.Manifest.EntryAssembly);
         Assert.Equal("Example.Plugin", result.Manifest.EntryType);
+        Assert.Equal(-5, result.Manifest.Priority);
         Assert.Equal("settings.schema.json", result.Manifest.SettingsSchema);
         Assert.Equal("Example.UiModule", result.Manifest.Ui!.EntryType);
         Assert.Equal(new[] { "program-source", "icon-source" }, result.Manifest.Capabilities!.Select(c => c.Id));
@@ -87,5 +89,6 @@ public sealed class PluginManifestParserTests
         Assert.Empty(result.Errors);
         Assert.Null(result.Manifest!.Id);
         Assert.Null(result.Manifest.EntryAssembly);
+        Assert.Equal(0, result.Manifest.Priority);
     }
 }

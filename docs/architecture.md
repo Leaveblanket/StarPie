@@ -58,7 +58,8 @@
   Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口、Icons 图标条目与
   .lnk 解析 SPI、Programs 扫描契约与纯规则）、`ViewModels/`
   （Pages 预览源接口、Wheel 轮盘只读接口）、`Abstractions/`（`IPlugin` 入口与 `IPluginContext`
-  宿主服务面）；迁移期源码镜像旧相对路径、命名空间保持
+  宿主服务面、`IPluginLog` 日志面）、`Events/`（`IPluginEvents` 宿主中介事件面，订阅返回
+  `IDisposable`）；迁移期源码镜像旧相对路径、命名空间保持
   `StarPie.*` 不变，导出面与全仓类型唯一性由 `StarPie.Tests/SdkBoundaryTests.cs` 收口；
   WPF 契约件（主题、图标资产服务）已随 P1.4/#113 迁入 `StarPie.Sdk.Wpf`，导出面与 ABI/装载政策
   由 `StarPie.Tests/SdkWpfBoundaryTests.cs` 收口。
@@ -74,7 +75,11 @@
   校验）、`Admission/`（准入四态与开发者模式开关）、`State/`（宿主状态 `plugin-state.json`）、
   `Loading/`（collectible ALC 与装载管线：共享契约/框架回退默认 ALC、包内私有解析、
   入口类型不缓存）、`Lifecycle/`（生命周期状态机：装载链、headless/UI 两条卸载链与隔离终态）、
-  `Diagnostics/`（启动扫描与 `plugin-startup-report.json`），命名空间 `StarPie.PluginRuntime.*`。
+  `Registry/`（`CapabilityRegistry` 能力表 + `CapabilityGuard` 调用守卫：状态检查、在途计数、
+  超时、异常捕获、连续失败熔断与隔离，命名空间 `StarPie.PluginRuntime.Registry`）、
+  `Diagnostics/`（启动扫描与 `plugin-startup-report.json`），命名空间 `StarPie.PluginRuntime.*`；
+  插件可见宿主服务与每插件一个的 `PluginServiceScope`（服务实例边界 + 句柄账本 + 能力实例归属）
+  驻 `HostServices/`（命名空间 `StarPie.HostServices`，实现类型 internal、插件只拿 SDK 接口）。
   内核件可 headless 直接构造，导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
   WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer` 作为 Ui 侧适配器驻 `StarPie.Ui/Adapters/`
   （实现内核防抖接缝，命名空间 `StarPie.Adapters`）；S1 的 WPF 图像构造由
@@ -226,5 +231,6 @@ Services ---> Models
 | 0030 | `docs/adr/0030-ui-plugin-unload-semantics-downgrade.md` | UI 插件不承诺 ALC 真卸载（卸载语义降级为托管清理 + 可验证 + 泄漏隔离 + 重启生效） | Active |
 | 0031 | `docs/adr/0031-e2e-silent-background-run.md` | e2e 静默后台化（`--background` 窗口形态 + 选中态驱动导航 + 运行器脚本） | Active（窗口形态/托盘/截图被 0032 修订） |
 | 0032 | `docs/adr/0032-e2e-silent-visible-window.md` | e2e 静默形态改屏内左上角（点击穿透 + 托盘可见 + 失败截图可用） | Active |
+| 0033 | `docs/adr/0033-plugin-service-scope-without-di-container.md` | 插件服务作用域自持实例与账本（不引入 MS.DI 子容器） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

@@ -33,6 +33,12 @@ namespace StarPie.Manifest
         /// <summary>headless 入口类型全名。</summary>
         public string? EntryType { get; set; }
 
+        /// <summary>
+        /// 能力列表排序优先级（默认 0，数值小者靠前）。
+        /// </summary>
+        /// <remarks>只影响插件之间的顺序：内置条目永远最前，其后按 priority、plugin id 稳定序排列。</remarks>
+        public int Priority { get; set; }
+
         /// <summary>能力声明：一个插件可声明多个能力，每条各自带 ABI。</summary>
         public List<PluginCapabilityReference>? Capabilities { get; set; }
 

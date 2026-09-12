@@ -33,16 +33,22 @@ internal static class PluginTestPackage
         return packageDirectory;
     }
 
-    /// <summary>生成一份字段齐全的清单（可选覆写版本与 SDK ABI 声明）。</summary>
+    /// <summary>生成一份字段齐全的清单（可选覆写版本、SDK ABI、priority 与 capabilities 声明）。</summary>
     internal static string Manifest(
         string pluginId,
         string version = "1.0.0",
         string sdk = "1.0",
         string entryAssembly = DefaultEntryAssembly,
         string entryType = "Example.Plugin",
-        string? uiSection = null)
+        string? uiSection = null,
+        int priority = 0,
+        string? capabilitiesJson = null)
     {
         string ui = uiSection is null ? string.Empty : ", \"ui\": { " + uiSection + " }";
+        string priorityJson = priority == 0 ? string.Empty : $", \"priority\": {priority}";
+        string capabilities = capabilitiesJson is null
+            ? string.Empty
+            : ", \"capabilities\": " + capabilitiesJson;
         return $$"""
             {
               "schemaVersion": 1,
@@ -51,7 +57,7 @@ internal static class PluginTestPackage
               "version": "{{version}}",
               "sdk": "{{sdk}}",
               "entryAssembly": "{{entryAssembly}}",
-              "entryType": "{{entryType}}"{{ui}}
+              "entryType": "{{entryType}}"{{priorityJson}}{{capabilities}}{{ui}}
             }
             """;
     }

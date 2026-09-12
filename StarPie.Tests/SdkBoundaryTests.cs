@@ -48,6 +48,9 @@ public sealed class SdkBoundaryTests
         typeof(StarPie.Manifest.PluginCapabilityReference),
         // Abstractions/（插件入口与运行上下文契约）
         typeof(StarPie.Abstractions.IPlugin), typeof(StarPie.Abstractions.IPluginContext),
+        typeof(StarPie.Abstractions.IPluginLog), typeof(StarPie.Abstractions.PluginLogLevel),
+        // Events/（宿主中介事件契约：订阅返回 IDisposable）
+        typeof(StarPie.Events.IPluginEvents),
         // ViewModels/Wheel/
         typeof(IWheelViewModel), typeof(IWheelAppearanceState),
         // ViewModels/Pages/
@@ -104,7 +107,7 @@ public sealed class SdkBoundaryTests
         {
             "bin", "obj", "StarPie.Sdk.csproj",
             "Models", "Services", "ViewModels",
-            "Manifest", "Compatibility", "Abstractions",
+            "Manifest", "Compatibility", "Abstractions", "Events",
         };
 
         string[] unexpected = Directory.EnumerateFileSystemEntries(sdkRoot)
