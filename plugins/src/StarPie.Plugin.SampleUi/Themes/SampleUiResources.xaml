@@ -20,7 +20,8 @@
     <!-- 设置区块 VM → 区块视图：宿主设置区按区块呈现时经隐式模板命中。 -->
     <DataTemplate DataType="{x:Type ui:SampleUiSettingsViewModel}">
         <Border Style="{StaticResource SampleUiSectionStyle}" BorderBrush="#33808080" BorderThickness="1">
-            <TextBlock Text="{Binding Greeting}"/>
+            <!-- AutomationId 供 e2e 断言设置区块扩展点的出现与降级离场。 -->
+            <TextBlock AutomationProperties.AutomationId="SampleUiSettingsGreeting" Text="{Binding Greeting}"/>
         </Border>
     </DataTemplate>
 </ResourceDictionary>
