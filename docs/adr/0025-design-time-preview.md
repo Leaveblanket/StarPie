@@ -47,8 +47,8 @@
 
 ## Decision
 
-1. 每个含 UI 工程（StarPie / StarPie.Shell / StarPie.Gestures / StarPie.Dialogs /
-   StarPie.Wheel）建 `Properties/DesignTimeResources.xaml` 资源锚，仅设计期合并单源设计期字符串
+1. 每个含 UI 工程（StarPie / StarPie.Shell / StarPie.Gestures / StarPie.Dialogs）建
+   `Properties/DesignTimeResources.xaml` 资源锚，仅设计期合并单源设计期字符串
    字典（zh-CN，派生自 `Strings.resx`）。
 2. 字典单源 = Core 编译惰性字典 + pack URI 合并：`StarPie.Core/Services/Localization/
    DesignTimeStrings.xaml`（Page 编译、签入生成物，生成脚本同目录）；(c) 仓库根松散相对合并

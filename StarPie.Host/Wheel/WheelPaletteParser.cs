@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Models
+namespace StarPie.Wheel
 {
     /// <summary>
     /// 轮盘配色解析器：输入配色方案名（System/Dark/Light/

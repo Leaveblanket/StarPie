@@ -8,29 +8,31 @@
 
 ## 组成文件
 
-M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `StarPie.Sdk/`，ADR-0023）：
+M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核，其余入 Ui 集；出口契约驻
+`StarPie.Sdk/`，ADR-0023）：
 
 - `StarPie.Sdk/`（M2 出口契约，ADR-0023；命名空间不变；签名依赖 SDK Models 数据，仅零 WPF 零
   第三方包，不引用业务 runtime）：`Services/Wheel/IWheelFactory.cs`（轮盘工厂
   契约）、`ViewModels/Wheel/IWheelViewModel.cs`、`ViewModels/Wheel/IWheelAppearanceState.cs`
   （签名暴露件）。
-- `StarPie.Wheel/Services/Wheel/`：`WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标
-  几何，R6 三分）、`WheelFactory.cs`（`IWheelFactory` 实现，D5；命名空间
-  `StarPie.Services.Wheel` 与物理目录一致，见 [gestures.md](gestures.md)/[modules.md](modules.md) §5 D5）。
-- `StarPie.Wheel/ViewModels/Wheel/WheelViewModel.cs`（`IWheelViewModel` 实现）、
-  `StarPie.Wheel/ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，
+- `StarPie.Host/Wheel/`（WPF-free，命名空间 `StarPie.Wheel`，可 headless 直接构造）：
+  `WheelPalette.cs`（色值组）、`WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/
+  系统预设/紧急回落）、`WheelPaletteParser.cs`（方案名→色值组解析）。`CustomColorPreset` 因
+  `AppConfig` 引用居 `StarPie.Sdk/Models/`，语义归 M2，见 [modules.md](modules.md) §4 R8。
+- `StarPie.Ui/Services/Wheel/`：`WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标
+  几何，R6 三分；直接构造 WPF `Geometry`，故留 Ui）、`WheelFactory.cs`（`IWheelFactory`
+  实现，D5；命名空间 `StarPie.Services.Wheel` 与物理目录一致，见
+  [gestures.md](gestures.md)/[modules.md](modules.md) §5 D5）。
+- `StarPie.Ui/ViewModels/Wheel/WheelViewModel.cs`（`IWheelViewModel` 实现）、
+  `StarPie.Ui/ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，
   实现 `IWheelAppearanceState`，单例落位页面 VM 目录，ADR-0014 决策 6）。
-- `StarPie.Wheel/Views/Wheel/RadialWindow.xaml(.cs)`、`StarPie.Wheel/Views/Renderers/`
+- `StarPie.Ui/Views/Wheel/RadialWindow.xaml(.cs)`、`StarPie.Ui/Views/Renderers/`
   （`IRadialStyleRenderer`、`StyleRendererFactory`、`BaseStyleRenderer`、`ClassicRingRenderer`、
   `CleanSectorsRenderer`、`GlassmorphismRenderer`、`CatPawRenderer`、`WheelPreviewRenderer`）。
-- 轮盘配色解析（本集 `StarPie.Wheel/Models/`，R8 语义+物理归 M2；`CustomColorPreset` 因
-  `AppConfig` 引用居 `StarPie.Sdk/Models/`，语义归 M2，见 [modules.md](modules.md) §4 R8）：
-  `WheelPalette.cs`（色值组）、`WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/
-  系统预设/紧急回落）、`WheelPaletteParser.cs`（方案名→色值组解析）。
-- `StarPie.Wheel/Views/Converters/CoreIconGeometryConverter.cs`/`CoreIconNameConverter.cs`
+- `StarPie.Ui/Views/Converters/CoreIconGeometryConverter.cs`/`CoreIconNameConverter.cs`
   （核图标预览转换器，随 M2：Appearance 聚合页的核圆预览配套，Geometry 转换器直连本模块
-  几何出口，Host App.xaml 经 `assembly=StarPie.Wheel` 实例化）。
-- `StarPie.Wheel/Modules/WheelModuleRegistrar.cs`（M2 模块注册器：`RegisterServices` 下放
+  几何出口，App.xaml 本地实例化）。
+- `StarPie.Ui/Modules/WheelModuleRegistrar.cs`（M2 模块注册器：`RegisterServices` 下放
   轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的 DI 注册；M2 无导航页，
   不提供 `RegisterNavigation`）。
 
@@ -41,8 +43,8 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `Star
 > `IconCatalog` 取矢量 SVG；实例服务 `IIconAssetService` 取自定义图标存储/位图源/文件图标——
 > RadialWindow 经 WheelFactory 注入、WheelPreviewRenderer 经外观页预览桥装配，见
 > [layout.md](layout.md)/[layering.md](layering.md)）。
-> R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义与物理均归 M2（驻
-> `StarPie.Wheel/Models/`）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理居
+> R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义归 M2、物理随归并驻
+> `StarPie.Host/Wheel/`（WPF-free 配色解析）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理居
 > `StarPie.Sdk/Models/`（P1.3/#112；`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
 > `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)。
 
@@ -59,7 +61,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `Star
   预设（含预设 CRUD 与下拉选项重建）、高亮光晕、几何/尺寸、排版与文字显示、中心核图标（透传 +
   选取编排）与一键重置；界面主题（AppTheme）由 `InterfaceThemeSettingsViewModel` 独占（见
   [interface-theme.md](interface-theme.md)）。
-- **承载**：`WheelAppearanceSettingsViewModel`（`StarPie.Wheel/ViewModels/Pages/`，DI 单例）
+- **承载**：`WheelAppearanceSettingsViewModel`（`StarPie.Ui/ViewModels/Pages/`，DI 单例）
   实现 `IWheelAppearanceState`；构造注入 M1 只读 `IProfilePreviewSource`（预览 Profile 来源，
   静态已知依赖走接口，不引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/
   `IMessenger`/`ILocalizationService`；DI 注册由 `WheelModuleRegistrar.RegisterServices` 下放
@@ -75,7 +77,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `Star
 
 ## 关键流程
 
-1. `WheelFactory`（驻 `StarPie.Wheel/Services/Wheel/`，DI 注册经 WheelModuleRegistrar
+1. `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，DI 注册经 WheelModuleRegistrar
    下放；见 [gestures.md](gestures.md) 关键流程 5）按手势创建 `WheelViewModel(center, profile, config.Current)`：
    从配置/Profile 快照扇区、几何尺寸、主题、样式；`IWheelViewModel` 暴露
    `Show`/`HighlightSector`/`SetOuterEscapeState`/`Close`（经 Dispatcher 包装）。
@@ -96,7 +98,7 @@ M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `Star
 ## 扩展点
 
 新增样式 = 新 `XxxRenderer : BaseStyleRenderer` + 在 `WheelPaletteCatalog`（驻
-`StarPie.Wheel/Models/`）登记风格键/默认深浅观感/标准浅色回落行为 +
+`StarPie.Host/Wheel/`）登记风格键/默认深浅观感/标准浅色回落行为 +
 `StyleRendererFactory` 分支 + 配置/UI 选项 + i18n（清单见 [extending.md](extending.md) 原型 E；
 只动 M2 内部 + S3 文案，不碰宿主内核/其它模块）。
 

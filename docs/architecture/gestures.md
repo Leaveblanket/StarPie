@@ -82,7 +82,7 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
    - `OnTriggerUp`：`WaitingThreshold` → `ReplayClick`（补发被吞的右键）；`Active` → 取选中扇区动作 `Execute(action)` 或 `Cancel`；其余 `PassThrough`。
 3. `GestureController`（App 侧适配器，负责副作用且必须在 UI 线程）：按 `GestureReleaseResult` 分发——补发点击用 `Dispatcher.BeginInvoke`，执行动作用 `Dispatcher.Invoke` 调 `IActionExecutorService.Execute`。
 4. `ActionExecutorService`（系统调用层，全部经构造注入接缝）：`ActionRouting.ResolveRoute`（大小写敏感：`Launch`/`Folder`/`Hotkey`/`System`）→ 进程启动、文件夹打开（环境变量展开、文件/目录探测）、`SendInput` 键序注入、`LockWorkStation`、系统命令映射（`ActionRouting.ResolveSystemCommand`：窗口管理/工具类发键序或启动，失败可降级发热键；未知静默）。错误提示经注入的 `MessageBox` 委托。
-5. `WheelFactory`（驻 `StarPie.Wheel/Services/Wheel/`，D5）：`Create` 在
+5. `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5；P1.7/#116 随 M2 归并入 Ui）：`Create` 在
    UI 线程 `Dispatcher.Invoke` 中创建 `WheelViewModel` + `RadialWindow`，返回
    `DispatchedWheelViewModel` 包装（所有轮盘交互封送回 UI 线程；窗口字段作 GC 根防未显示即回收；
    轮盘 VM/窗口见 [wheel.md](wheel.md)）；`GestureEngine`/`GestureController` 只依赖

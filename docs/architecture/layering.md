@@ -46,7 +46,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
    - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
      运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
      [seams.md](seams.md)；开放泛型 `NavigationService<T>` 例外已删除）；
-   - `WheelFactory`（驻 `StarPie.Wheel/Services/Wheel/`，D5）在服务内组合
+    - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
      [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023；P1.3/#112 收口）暴露，
      由 WheelModuleRegistrar/组合根注册。
@@ -70,7 +70,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
     `AutostartRegistry` 只被同集注册器接线，保持 internal；M4 并入 Ui 集后
     `AppThemePaletteManager` 回落 internal（装配方 `AppHost` 与实现同集），
     `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
-    `StarPie.Wheel` 的轮盘工厂与外观设置子 VM 只经同集注册器接线/容器解析，维持 public
+    M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集注册器接线/容器解析，维持 public
     （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
     不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。

@@ -40,9 +40,6 @@
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
-    <!-- ADR-0016/B8：#81 M2 轮盘与渲染模块程序集（WheelViewModel/RadialWindow/渲染器/配色/
-         WheelFactory/WheelModuleRegistrar/CoreIcon* 转换器等测试直用） -->
-    <ProjectReference Include="..\StarPie.Wheel\StarPie.Wheel.csproj" />
     <!-- ADR-0016/B9：#82 M1 手势与动作模块程序集（MouseHook/GestureEngine/ActionExecutor/
          BehaviorSettingsViewModel/ProfileListViewModel/SlotViewModel/Trigger+Gestures 页/
          GesturesModuleRegistrar 等测试直用） -->

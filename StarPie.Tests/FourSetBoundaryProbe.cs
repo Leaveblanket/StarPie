@@ -32,7 +32,6 @@ internal static class FourSetBoundaryProbe
         "StarPie.Dialogs",
         "StarPie.Gestures",
         "StarPie.Shell",
-        "StarPie.Wheel",
     };
 
     /// <summary>WPF 桌面程序集名（含 System.Xaml 这类 System.* 命名但属 WPF 栈者）。</summary>
@@ -42,7 +41,7 @@ internal static class FourSetBoundaryProbe
         "System.Windows.Forms", "System.Windows.Extensions", "System.Drawing.Common", "ReachFramework",
     };
 
-    /// <summary>Ui 集允许直接引用的全部工程名 = 旧 14 集 + 四集自身。测试工程与旧集反向引用不在其列。</summary>
+    /// <summary>Ui 集允许直接引用的全部工程名 = 尚未撤销的旧集 + 四集自身。测试工程与旧集反向引用不在其列。</summary>
     internal static readonly string[] KnownProjectNames =
         LegacyAssemblyNames.Concat(new[] { "StarPie.Sdk", "StarPie.Sdk.Wpf", "StarPie.Host" }).ToArray();
 

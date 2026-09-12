@@ -33,7 +33,7 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
   `StarPie.Sdk/Services/Messages/Messages.cs`，放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
-DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（StarPie.Wheel）与 S6 对话框侧
+DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui）与 S6 对话框侧
 （StarPie.Dialogs）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；M5 托盘深色
 探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Ui → 宿主内核 + Sdk.Wpf 单向，
 内核不反向引用 Ui。
