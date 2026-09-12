@@ -2,7 +2,7 @@
 
 > Status: Active（部分被 ADR-0028 修订）
 >
-> 修订：决策 2「插件 = 能力插件（headless）」与决策 8 中「不承诺插件提供 WPF 视图/XAML/资源字典」由 [ADR-0028](0028-plugin-ui-hosting-and-host-managed-lifecycle.md) 修订；三集形态、collectible ALC 真卸载、SDK 单一引用面、依赖自治继续有效。
+> 修订：决策 2「插件 = 能力插件（headless）」与决策 8 中「不承诺插件提供 WPF 视图/XAML/资源字典」由 [ADR-0028](0028-plugin-ui-hosting-and-host-managed-lifecycle.md) 修订；决策 3 中「每插件子 `ServiceProvider`」改由自持作用域承载（隔离语义不变，见 [ADR-0033](0033-plugin-service-scope-without-di-container.md)）；三集形态、collectible ALC 真卸载、SDK 单一引用面、依赖自治继续有效。
 >
 > 目标态程序集与文件架构见 `docs/architecture/plugins.md`；P1 落地后 `docs/architecture/assemblies.md` 与 `modules.md` 按本决策回填。本 ADR 部分推翻 ADR-0023 的**对外**契约判据（内部模块边界判据保留）。
 

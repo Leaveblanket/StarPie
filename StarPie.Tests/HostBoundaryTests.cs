@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using StarPie.Kernel.Configuration;
 using StarPie.Kernel.Localization;
+using StarPie.HostServices;
 using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
@@ -11,6 +12,7 @@ using StarPie.PluginRuntime.Discovery;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Manifest;
+using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
 
 namespace StarPie.Tests;
@@ -64,6 +66,11 @@ public sealed class HostBoundaryTests
         typeof(PluginLoadStatus), typeof(PluginLoadResult), typeof(PluginLoadPipeline),
         typeof(PluginLifecycleState), typeof(PluginLifecycleTransition),
         typeof(PluginLifecycleStateMachine),
+        // PluginRuntime/Registry/（能力表与调用守卫）与 HostServices/（插件可见服务作用域）
+        typeof(CapabilityContract), typeof(CapabilityRegistry), typeof(CapabilityGuard),
+        typeof(CapabilityGuardOptions), typeof(CapabilityUnavailableException),
+        typeof(CapabilityCircuitOpenException), typeof(CapabilityCallTimeoutException),
+        typeof(PluginServiceScope), typeof(IPluginLogSink), typeof(PluginLogEntry),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

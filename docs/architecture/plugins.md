@@ -120,6 +120,7 @@ StarPie/
   "ui": { "sdk": "1.0", "entryType": "Example.UiModule" },
   "entryAssembly": "StarPie.Plugin.Example.dll",
   "entryType": "Example.Plugin",
+  "priority": 0,
   "capabilities": [{ "id": "program-source", "abi": 1 }],
   "settingsSchema": "settings.schema.json"
 }
@@ -135,6 +136,7 @@ StarPie/
 - 内置认定以宿主内置 id 清单为准：随包第一方插件登记 id，安装目录位置本身不是信任依据；未登记的包按未审核处理。
 - 包内**不得**出现 `StarPie.Sdk.dll`/`StarPie.Sdk.Wpf.dll`（共享契约不做随包分发）；命中即 `Rejected`（§5.1 约束 3）。
 - `capabilities` 是数组：一个插件可声明多个能力，每条各自带 ABI；**卸载粒度仍是整个插件**，不能单摘一个能力（Q8）。
+- `priority` 可选（默认 0）：只影响插件之间的能力列表顺序（数值小者靠前），内置条目永远最前；插件未声明 `priority` 时按 plugin id 稳定序。
 - 首期**禁止插件间依赖**：插件只依赖 SDK 与框架程序集，包内私有依赖由该插件独占，不跨插件共享（Q8）。
 - 宿主状态与插件配置分离：宿主状态存 `%LOCALAPPDATA%\StarPie\plugin-state.json`；插件经 `IPluginConfig` 只能读写 `config.json` 的 `plugins.<id>`（Q9b、ADR-0029）。
 
@@ -232,7 +234,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 | 1 | 接口在 `StarPie.Sdk` | 插件编译期只认 SDK 面；新增插件可见类型必须先进 SDK，Host 内部类型不得出现在签名里 |
 | 2 | 实现在 `StarPie.Host/HostServices` | 实现类型 `internal`；插件拿到的永远是 SDK 接口，拿不到实现类型 |
 | 3 | 插件只经 `IPluginContext` 取用 | 无静态单例、无服务定位器；`IPluginContext` 的属性即插件的全部可达面 |
-| 4 | 服务按插件作用域隔离 | 每插件一个 `PluginServiceScope`（子 `ServiceProvider`）；宿主根容器不含任何插件类型 |
+| 4 | 服务按插件作用域隔离 | 每插件一个 `PluginServiceScope`（自持宿主服务实例 + 能力实例 + 句柄账本，不引入 MS.DI 容器，见 [ADR-0033](../adr/0033-plugin-service-scope-without-di-container.md)）；宿主根容器不含任何插件类型 |
 | 5 | 订阅/回调/动作可按 plugin id 注销 | 每次注册返回 `IDisposable` 并登记进该插件的 scope 账本；卸载按 id 强制枚举清理，不依赖插件自觉 Dispose |
 | 6 | 审计与日志不持有插件对象 | 只记 plugin id + 字符串/值类型字段；插件异常入日志前先转成"类型全名 + message + stack 字符串"的宿主 DTO——**`Exception` 实例与任何插件对象不得存进长生命周期结构（含日志 sink、诊断快照）** |
 | 7 | 卸载前必须释放该插件的作用域 | `PluginServiceScope.Dispose()`（幂等）是 `ALC.Unload()` 的前置；scope 未释放或释放后仍有句柄残留 → `Quarantined` |

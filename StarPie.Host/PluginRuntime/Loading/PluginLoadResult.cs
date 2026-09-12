@@ -1,4 +1,5 @@
 using StarPie.Abstractions;
+using StarPie.HostServices;
 using StarPie.PluginRuntime.Lifecycle;
 
 namespace StarPie.PluginRuntime.Loading
@@ -12,9 +13,12 @@ namespace StarPie.PluginRuntime.Loading
     /// <param name="Plugin">入口实例；仅活动态非 null（失败与拒绝都不保留插件对象）。</param>
     /// <param name="LoadContext">本次装载创建的 ALC；拒绝路径为 null，隔离时非 null 以便卸载回收。</param>
     /// <param name="Lifecycle">本次装载的状态机，保留已完成的转移与隔离原因。</param>
+    /// <param name="Scope">
+    /// 本次装载的服务作用域；仅活动态非 null。卸载管线按"先释放作用域、再 Unload ALC"的顺序收口。
+    /// </param>
     /// <remarks>
     /// 装载期解析出的入口 <see cref="Type"/> 不进入宿主长生命周期结构：结果只持有
-    /// <see cref="IPlugin"/> 实例与 ALC，入口类型每次装载都从新 ALC 重新解析。
+    /// <see cref="IPlugin"/> 实例、ALC 与作用域，入口类型每次装载都从新 ALC 重新解析。
     /// </remarks>
     public sealed record PluginLoadResult(
         string PluginId,
@@ -22,5 +26,6 @@ namespace StarPie.PluginRuntime.Loading
         string? FailureReason,
         IPlugin? Plugin,
         PluginLoadContext? LoadContext,
-        PluginLifecycleStateMachine Lifecycle);
+        PluginLifecycleStateMachine Lifecycle,
+        PluginServiceScope? Scope);
 }
