@@ -4,22 +4,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
-using Microsoft.Win32;
 using StarPie.Services.Icons;
 using StarPie.Services.Programs;
 
 namespace StarPie.Programs
 {
     /// <summary>
-    /// 已安装程序的扫描编排：聚合八个来源——系统自带工具、开始菜单 / 桌面快捷方式、用户
-    /// AppData、WindowsApps、注册表 App Paths 与 Uninstall、Program Files 顶层。文件存在性 /
-    /// 扩展名 / 大小检查在此进行（IO 性质），垃圾过滤、跨源去重与显示名升级委托
-    /// <see cref="ProgramCatalog"/> 纯函数。
+    /// 内置程序来源：系统自带工具与开始菜单 / 桌面快捷方式。文件存在性 / 扩展名 / 大小检查在此
+    /// 进行（IO 性质），垃圾过滤、跨源去重与显示名升级委托 <see cref="ProgramCatalog"/> 纯函数。
     /// </summary>
     /// <remarks>
+    /// 更深的来源（用户 AppData、WindowsApps、注册表 App Paths 与 Uninstall、Program Files 顶层）
+    /// 由随包插件提供，与内置来源同走「程序来源」能力契约（见 <see cref="ProgramSourceCapability"/>）；
+    /// 插件缺席或停用时本来源仍在，程序选择器不会空转——这是该扩展点的降级行为。
     /// .lnk 解析经注入的 <see cref="IShortcutTargetResolver"/> 完成；返回条目不含图标
     /// （纯数据，图标由 UI 消费方按路径装配）。本类保持集成性质，不做单元测试。
-    /// 扫描来源依赖注册表/开始菜单等 Windows 设施，运行时仅限 Windows；
+    /// 扫描来源依赖开始菜单等 Windows 设施，运行时仅限 Windows；
     /// 宿主内核为平台中立 TFM（零 WPF 的编译期保证），故在此标注平台支持范围。
     /// </remarks>
     [SupportedOSPlatform("windows")]
@@ -33,7 +33,7 @@ namespace StarPie.Programs
             _shortcutResolver = shortcutResolver ?? throw new ArgumentNullException(nameof(shortcutResolver));
         }
 
-        /// <summary>扫描全部来源，按显示名排序返回去重后的候选程序
+        /// <summary>扫描内置来源，按显示名排序返回去重后的候选程序
         /// （.lnk 解析经构造注入的契约完成）。</summary>
         public IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
         {
@@ -47,21 +47,6 @@ namespace StarPie.Programs
 
             // 3. 桌面快捷方式（公共与用户）
             ScanDesktopShortcuts(candidates, _shortcutResolver);
-
-            // 4. 用户 AppData\Local\Programs（VS Code、Discord、Spotify、Xmind 等）
-            ScanUserAppDataPrograms(candidates);
-
-            // 5. WindowsApps（Windows 10/11 UWP / 商店工具）
-            ScanWindowsApps(candidates);
-
-            // 6. 注册表 App Paths（64/32 位 HKLM、HKCU）
-            ScanRegistryAppPaths(candidates);
-
-            // 7. 注册表 Uninstall 项（64/32 位 HKLM、HKCU）
-            ScanRegistryUninstall(candidates);
-
-            // 8. Program Files 顶层目录（应用套件）
-            ScanProgramFilesTopLevel(candidates);
 
             // 跨源去重 + 显示名升级（纯函数），再按显示名做自然排序
             var list = ProgramCatalog.MergeSources(candidates);
@@ -196,208 +181,6 @@ namespace StarPie.Programs
                                 AddCandidate(candidates, name, targetPath);
                             }
                         }
-                    }
-                }
-                catch { }
-            }
-        }
-
-        private static void ScanUserAppDataPrograms(List<ProgramEntry> candidates)
-        {
-            try
-            {
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string localPrograms = Path.Combine(localAppData, "Programs");
-                if (Directory.Exists(localPrograms))
-                {
-                    foreach (string appDir in Directory.GetDirectories(localPrograms))
-                    {
-                        string appName = Path.GetFileName(appDir);
-                        try
-                        {
-                            // 只搜应用目录顶层
-                            foreach (string exe in Directory.GetFiles(appDir, "*.exe", SearchOption.TopDirectoryOnly))
-                            {
-                                string displayName = string.Equals(Path.GetFileNameWithoutExtension(exe), appName, StringComparison.OrdinalIgnoreCase)
-                                    ? appName
-                                    : $"{appName} ({Path.GetFileNameWithoutExtension(exe)})";
-
-                                AddCandidate(candidates, displayName, exe);
-                            }
-                        }
-                        catch { }
-                    }
-                }
-            }
-            catch { }
-        }
-
-        private static void ScanWindowsApps(List<ProgramEntry> candidates)
-        {
-            try
-            {
-                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                string winApps = Path.Combine(localAppData, @"Microsoft\WindowsApps");
-                if (Directory.Exists(winApps))
-                {
-                    foreach (string exe in Directory.GetFiles(winApps, "*.exe", SearchOption.TopDirectoryOnly))
-                    {
-                        string name = Path.GetFileNameWithoutExtension(exe);
-                        AddCandidate(candidates, name, exe);
-                    }
-                }
-            }
-            catch { }
-        }
-
-        private static void ScanRegistryAppPaths(List<ProgramEntry> candidates)
-        {
-            var hives = new[]
-            {
-                (RegistryHive.LocalMachine, RegistryView.Registry64),
-                (RegistryHive.LocalMachine, RegistryView.Registry32),
-                (RegistryHive.CurrentUser, RegistryView.Default)
-            };
-
-            foreach (var (hive, view) in hives)
-            {
-                try
-                {
-                    using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-                    using var appPaths = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths");
-                    if (appPaths == null) continue;
-
-                    foreach (string subKeyName in appPaths.GetSubKeyNames())
-                    {
-                        try
-                        {
-                            using var key = appPaths.OpenSubKey(subKeyName);
-                            string? defaultVal = key?.GetValue("")?.ToString();
-                            if (string.IsNullOrEmpty(defaultVal)) continue;
-
-                            string exePath = Environment.ExpandEnvironmentVariables(defaultVal.Trim().Trim('"'));
-                            if (!File.Exists(exePath)) continue;
-
-                            string name = Path.GetFileNameWithoutExtension(subKeyName);
-                            AddCandidate(candidates, name, exePath);
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-            }
-        }
-
-        private static void ScanRegistryUninstall(List<ProgramEntry> candidates)
-        {
-            var hives = new[]
-            {
-                (RegistryHive.LocalMachine, RegistryView.Registry64),
-                (RegistryHive.LocalMachine, RegistryView.Registry32),
-                (RegistryHive.CurrentUser, RegistryView.Default)
-            };
-
-            foreach (var (hive, view) in hives)
-            {
-                try
-                {
-                    using var baseKey = RegistryKey.OpenBaseKey(hive, view);
-                    using var uninstall = baseKey.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
-                    if (uninstall == null) continue;
-
-                    foreach (string subKeyName in uninstall.GetSubKeyNames())
-                    {
-                        try
-                        {
-                            using var key = uninstall.OpenSubKey(subKeyName);
-                            if (key == null) continue;
-
-                            // 跳过系统组件与更新
-                            object? sysComponent = key.GetValue("SystemComponent");
-                            if (sysComponent is int sc && sc == 1) continue;
-                            if (key.GetValue("ParentKeyName") != null) continue;
-
-                            string? displayName = key.GetValue("DisplayName")?.ToString()?.Trim();
-                            if (string.IsNullOrEmpty(displayName)) continue;
-
-                            // 跳过 Windows 安全更新与运行库
-                            if (displayName.StartsWith("KB", StringComparison.OrdinalIgnoreCase) ||
-                                displayName.StartsWith("Security Update", StringComparison.OrdinalIgnoreCase) ||
-                                displayName.StartsWith("Microsoft Visual C++", StringComparison.OrdinalIgnoreCase) ||
-                                displayName.StartsWith("Windows Software Development Kit", StringComparison.OrdinalIgnoreCase))
-                                continue;
-
-                            string? displayIcon = key.GetValue("DisplayIcon")?.ToString();
-                            string? installLocation = key.GetValue("InstallLocation")?.ToString();
-
-                            string exePath = "";
-                            if (!string.IsNullOrEmpty(displayIcon))
-                            {
-                                string raw = displayIcon.Split(',')[0].Trim().Trim('"');
-                                string expanded = Environment.ExpandEnvironmentVariables(raw);
-                                if (File.Exists(expanded) && expanded.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    exePath = expanded;
-                                }
-                            }
-
-                            if (string.IsNullOrEmpty(exePath) && !string.IsNullOrEmpty(installLocation) && Directory.Exists(installLocation))
-                            {
-                                try
-                                {
-                                    var exes = Directory.GetFiles(installLocation, "*.exe", SearchOption.TopDirectoryOnly);
-                                    var mainExe = exes.FirstOrDefault(e => IsValidCandidate(displayName, e));
-                                    if (mainExe != null) exePath = mainExe;
-                                }
-                                catch { }
-                            }
-
-                            if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
-                            {
-                                AddCandidate(candidates, displayName, exePath);
-                            }
-                        }
-                        catch { }
-                    }
-                }
-                catch { }
-            }
-        }
-
-        private static void ScanProgramFilesTopLevel(List<ProgramEntry> candidates)
-        {
-            var programFilesDirs = new List<string>();
-            string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-            string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-
-            if (Directory.Exists(pf)) programFilesDirs.Add(pf);
-            if (Directory.Exists(pf86) && !string.Equals(pf, pf86, StringComparison.OrdinalIgnoreCase)) programFilesDirs.Add(pf86);
-
-            foreach (var rootPf in programFilesDirs)
-            {
-                try
-                {
-                    foreach (var vendorDir in Directory.GetDirectories(rootPf))
-                    {
-                        string vendorName = Path.GetFileName(vendorDir);
-                        if (vendorName.Equals("Common Files", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("Windows Defender", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("Windows Mail", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("Windows Media Player", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("Windows NT", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("Windows Photo Viewer", StringComparison.OrdinalIgnoreCase) ||
-                            vendorName.Equals("WindowsPowerShell", StringComparison.OrdinalIgnoreCase))
-                            continue;
-
-                        // 只看顶层
-                        try
-                        {
-                            foreach (var exe in Directory.GetFiles(vendorDir, "*.exe", SearchOption.TopDirectoryOnly))
-                            {
-                                AddCandidate(candidates, $"{vendorName} ({Path.GetFileNameWithoutExtension(exe)})", exe);
-                            }
-                        }
-                        catch { }
                     }
                 }
                 catch { }

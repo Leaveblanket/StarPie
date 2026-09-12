@@ -20,16 +20,18 @@ public sealed class FourSetBoundaryTests
     private const string SdkWpfProject = @"StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj";
     private const string HostProject = @"StarPie.Host\StarPie.Host.csproj";
     private const string TestsProject = @"StarPie.Tests\StarPie.Tests.csproj";
+    private const string PluginProject =
+        @"plugins\src\StarPie.Plugin.Programs\StarPie.Plugin.Programs.csproj";
     private const string RootTfm = "net10.0-windows10.0.19041.0";
 
-    /// <summary>仓库全部工程（四集 + 测试工程）——解决方案登记与引用面断言的扫描基准。</summary>
+    /// <summary>仓库全部工程（四集 + 测试工程 + 随包插件工程）——解决方案登记与引用面断言的扫描基准。</summary>
     private static readonly string[] AllProjects =
     {
-        UiProject, SdkProject, SdkWpfProject, HostProject, TestsProject,
+        UiProject, SdkProject, SdkWpfProject, HostProject, TestsProject, PluginProject,
     };
 
     [Fact]
-    public void 解决方案_只登记四集与测试工程_旧工程路径已移除()
+    public void 解决方案_只登记四集测试工程与随包插件_旧工程路径已移除()
     {
         XDocument slnx = XDocument.Load(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx"));
         string[] paths = slnx.Descendants("Project")
@@ -65,13 +67,13 @@ public sealed class FourSetBoundaryTests
         Assert.Equal("latest", FourSetBoundaryProbe.GetProperty(rootProps, "AnalysisLevel"));
         Assert.Equal("StarPie", FourSetBoundaryProbe.GetProperty(rootProps, "RootNamespace"));
 
-        // TFM：Ui / Sdk.Wpf / 测试工程继承根 props；Sdk / Host 显式收窄为 net10.0（零 WPF 面）。
+        // TFM：Ui / Sdk.Wpf / 测试工程继承根 props；Sdk / Host / 随包插件显式收窄为 net10.0（零 WPF 面）。
         foreach (string project in new[] { UiProject, SdkWpfProject, TestsProject })
         {
             Assert.Null(FourSetBoundaryProbe.GetProperty(FourSetBoundaryProbe.LoadProject(project), "TargetFramework"));
             Assert.Equal(RootTfm, FourSetBoundaryProbe.GetEffectiveProperty(project, "TargetFramework"));
         }
-        foreach (string project in new[] { SdkProject, HostProject })
+        foreach (string project in new[] { SdkProject, HostProject, PluginProject })
         {
             Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(project, "TargetFramework"));
         }
@@ -146,6 +148,26 @@ public sealed class FourSetBoundaryTests
     {
         Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(HostProject, "TargetFramework"));
         Assert.False(FourSetBoundaryProbe.GetEffectiveBoolProperty(HostProject, "UseWPF"));
+    }
+
+    [Fact]
+    public void 随包插件工程_只引SDK_零WPF零第三方包_零Host引用()
+    {
+        // 插件只经 SDK 与宿主交互：Host/Ui/Sdk.Wpf 都不许出现在引用面，
+        // 否则插件产物会带上宿主实现或 WPF 栈，既破坏跨集单向也让插件包不再可移植。
+        XDocument csproj = FourSetBoundaryProbe.LoadProject(PluginProject);
+        Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(PluginProject, "TargetFramework"));
+        Assert.False(FourSetBoundaryProbe.GetEffectiveBoolProperty(PluginProject, "UseWPF"));
+        Assert.Empty(csproj.Descendants("PackageReference"));
+
+        string[] references = FourSetBoundaryProbe.ProjectReferences(PluginProject);
+        Assert.All(references, name => Assert.Equal("StarPie.Sdk", name));
+
+        // 但插件工程必须被解决方案登记（单一构建入口）——随包插件也是仓库的一等工程。
+        XDocument slnx = XDocument.Load(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx"));
+        Assert.Contains(
+            PluginProject,
+            slnx.Descendants("Project").Select(element => (string)element.Attribute("Path")!));
     }
 
     [Fact]

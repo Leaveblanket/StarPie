@@ -13,7 +13,11 @@ namespace StarPie.PluginRuntime.Admission
         /// 随包第一方插件的内置 id 清单：随宿主分发并在此登记 id 的插件视为内置。
         /// 未登记的包（即便落在安装目录）按未审核处理，不做位置信任。
         /// </summary>
-        public static readonly IReadOnlyList<string> DefaultBuiltInPluginIds = Array.Empty<string>();
+        public static readonly IReadOnlyList<string> DefaultBuiltInPluginIds = new[]
+        {
+            // 首个随包 headless 插件：程序来源（plugins/src/StarPie.Plugin.Programs）。
+            "starpie.builtin.program-source",
+        };
 
         private readonly IReadOnlyCollection<string> _builtInPluginIds;
         private readonly IPluginReviewCatalog _reviewCatalog;

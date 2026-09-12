@@ -15,6 +15,7 @@ using StarPie.PluginRuntime.Manifest;
 using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
 using StarPie.PluginRuntime.Unloading;
+using StarPie.PluginRuntime.Hosting;
 
 namespace StarPie.Tests;
 
@@ -40,8 +41,9 @@ public sealed class HostBoundaryTests
         typeof(AutostartRegistry), typeof(MemoryOptimizer),
         // Icons/（资产目录与自定义图标存储）
         typeof(IconCatalog), typeof(CustomIconStore),
-        // Programs/（扫描编排与 .lnk 解析）
-        typeof(ProgramScanner), typeof(ShortcutResolver),
+        // Programs/（内置程序来源、程序来源能力契约/聚合与 .lnk 解析）
+        typeof(ProgramScanner), typeof(ShortcutResolver), typeof(ProgramSourceCapability),
+        typeof(ProgramSourceAggregator),
         // Themes/（界面主题引擎）与 Ports/（宿主→Ui 端口：主题应用）
         typeof(ThemeEngine), typeof(IThemeApplier),
         // Wheel/（轮盘配色目录与色值解析，WPF-free）
@@ -75,6 +77,8 @@ public sealed class HostBoundaryTests
         // PluginRuntime/Unloading/（安全点卸载管线与回收判定）
         typeof(PluginUnloadStatus), typeof(PluginUnloadRequest), typeof(PluginUnloadResult),
         typeof(PluginUnloadPipeline),
+        // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用）
+        typeof(PluginRuntimeHost),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

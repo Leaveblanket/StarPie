@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 首个随包 headless 插件（plugins.md §2/§3）：只引 StarPie.Sdk，零 WPF、零第三方包；
+         平台中立 TFM + 平台标注由插件自己声明（宿主不代插件做运行时假设）。 -->
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>StarPie.Plugin.Programs</AssemblyName>
+    <!-- 插件包目录名 = 清单 id（plugins.md §3）；包目录名与打包复制由 Package.targets 提供。 -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 跨集只经 SDK：插件不引 Host/Ui，也不随包分发 SDK——Private=false 让 SDK 只进编译期
+         引用面（plugins.md §5.1 约束 3：包内出现 StarPie.Sdk.dll 即 Rejected），运行期由宿主
+         默认 ALC 统一提供共享契约。 -->
+    <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 生成即拒绝：SDK 程序集绝不随包分发（plugins.md §5.1 约束 3），复制时排除引用项。 -->
+    <None Remove="plugin.json" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,7 @@
 import base64
+import os
+import shutil
+import winreg
 
 import pytest
 from conftest import (
@@ -29,6 +32,67 @@ APP_THEME_CATALOG = ("System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "
 WHEEL_STYLE_CATALOG = ("ClassicRing", "CleanSectors", "Glassmorphism")  # AppearanceSettingsPage.xaml
 WHEEL_PALETTE_CATALOG = ("System", "Dark", "Light", "MatchaForest", "GlacialIce", "MorandiMuted")  # 固定项；自定义预设追加在后
 ICON_LAYOUT_CATALOG = ("IconAndText", "IconOnly", "TextOnly")  # AppearanceSettingsPage.xaml
+
+# 随包程序来源插件（plugins/src/StarPie.Plugin.Programs/plugin.json）与探针程序：
+# 探针经 HKCU App Paths 指向仓库 artifacts 下的一个 exe，只有插件的深扫来源（注册表 App Paths）
+# 会发现它——启用/停用两态由此可观察。探针不落沙箱临时目录：产品侧垃圾过滤会排除 temp/tmp 路径，
+# 放临时目录里根本扫不到（过滤器行为本身正确）。
+PROGRAM_SOURCE_PLUGIN_ID = "starpie.builtin.program-source"
+PROBE_PROGRAM_NAME = "starpie-e2e-probe"
+APP_PATHS_KEY = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"
+PROBE_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def plant_probe_program() -> str:
+    """注册一个只由插件深扫来源（App Paths）发现的程序，返回探针 exe 路径。"""
+    probe_dir = os.path.join(PROBE_PROJECT_ROOT, "artifacts", "e2e", "probe")
+    os.makedirs(probe_dir, exist_ok=True)
+    probe_exe = os.path.join(probe_dir, f"{PROBE_PROGRAM_NAME}.exe")
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+    shutil.copyfile(
+        os.path.join(system_root, "System32", "notepad.exe"),
+        probe_exe,
+    )
+    with winreg.CreateKey(
+        winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe"
+    ) as key:
+        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, probe_exe)
+    return probe_exe
+
+
+def remove_probe_program() -> None:
+    """撤销探针注册（用例结束必调，避免污染真实用户注册表）。"""
+    try:
+        winreg.DeleteKey(winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe")
+    except FileNotFoundError:
+        pass
+
+
+def open_program_picker(win):
+    """从触发与场景页打开程序选择器对话框（真实模态对话框）。"""
+    goto(win, 2)
+    add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
+    assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
+    add_btn.invoke()
+    return wait_dialog("选择程序 - StarPie")
+
+
+def filter_program_picker(picker, text: str):
+    """在程序选择器搜索框里输入过滤词（ListView 虚拟化，只有过滤后目标项才被实例化）。"""
+    search = picker.child_window(auto_id="SearchTextBox", control_type="Edit")
+    assert search.exists(timeout=5), "程序选择器搜索框必须存在"
+    search.set_edit_text(text)
+
+
+def wait_program_picker_listed(picker, timeout: float = 30.0):
+    """等选择器列表首次出现条目（扫描 + 逐条图标提取完成后才填充）。"""
+    programs = picker.child_window(auto_id="ProgramsListView", control_type="List")
+    wait_until(
+        lambda: list_item_texts(programs) != [],
+        timeout=timeout,
+        description="程序选择器列表填充出条目",
+    )
+    return programs
 SHAPE_CATALOG = ("Original", "Circle", "RoundedCapsule", "HexagonHive")  # AppearanceSettingsPage.xaml
 CORE_ICON_CATALOG = ("Exit", "Crosshair", "Windows", "Dot", "Home", "Power", "Compass", "CatPaw", "Custom", "Image")  # AppearanceSettingsPage.xaml
 GLOW_PRESET_CATALOG = ("Auto", "Lilac", "Blue", "Emerald", "Rose", "Amber", "Red", "White", "Custom")  # AppearanceSettingsPage.xaml
@@ -502,6 +566,62 @@ def test_program_picker_opens_and_cancels_cleanly(app):
 
     profiles_after = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
     assert profiles_after == profiles_before, f"取消选择不应新增方案: {profiles_before} -> {profiles_after}"
+
+
+def test_program_picker_lists_plugin_program_source(app):
+    """
+    程序来源插件（内置、默认启用）：插件深扫的沙箱程序进入程序选择器列表。
+
+    探针只登记在 HKCU App Paths，宿主内置来源（系统工具 + 快捷方式）扫不到它——
+    因此本用例是"插件确实在跑"的行为证据，而不是配置或日志断言。
+    """
+    win, _local_app_data = app
+    plant_probe_program()
+    try:
+        picker = open_program_picker(win)
+        try:
+            programs = wait_program_picker_listed(picker)
+            filter_program_picker(picker, PROBE_PROGRAM_NAME)
+            wait_until(
+                lambda: any(PROBE_PROGRAM_NAME in text for text in list_item_texts(programs)),
+                description=f"插件来源的程序出现在选择器列表（{PROBE_PROGRAM_NAME}）",
+            )
+        finally:
+            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
+            wait_dialog_closed(picker)
+    finally:
+        remove_probe_program()
+
+@pytest.mark.parametrize("sandbox_seed", ["disabled-program-source"], indirect=True)
+def test_program_picker_degrades_to_builtin_when_plugin_disabled(app):
+    """
+    停用内置程序来源插件：程序选择器降级为只剩内置来源（plugins.md §1 第 4 条）。
+
+    同一探针在停用态不可见，而内置来源条目仍在——降级不是"选择器坏了"。
+    """
+    win, _local_app_data = app
+    plant_probe_program()
+    try:
+        picker = open_program_picker(win)
+        try:
+            programs = wait_program_picker_listed(picker)
+            # 内置来源仍在：按内置条目过滤后列表非空（降级不是"选择器坏了"）。
+            filter_program_picker(picker, "Notepad")
+            wait_until(
+                lambda: list_item_texts(programs) != [],
+                description="内置来源条目（记事本）在选择器里可见",
+            )
+            # 插件来源缺席：按探针名过滤后列表为空（只剩内置来源）。
+            filter_program_picker(picker, PROBE_PROGRAM_NAME)
+            wait_until(
+                lambda: list_item_texts(programs) == [],
+                description="停用后插件来源缺席（过滤探针名后列表为空，只剩内置来源）",
+            )
+        finally:
+            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
+            wait_dialog_closed(picker)
+    finally:
+        remove_probe_program()
 
 
 def test_v136_glow_color_customization_config_memory_and_core_image(app, tmp_path):

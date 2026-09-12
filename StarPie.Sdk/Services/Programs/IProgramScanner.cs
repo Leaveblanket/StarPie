@@ -4,12 +4,13 @@ using StarPie.Services.Icons;
 namespace StarPie.Services.Programs
 {
     /// <summary>
-    /// 已安装程序扫描契约：聚合八个来源——系统自带工具、开始菜单/桌面快捷方式、
-    /// 用户 AppData、WindowsApps、注册表 App Paths 与 Uninstall、Program Files 顶层——
-    /// 返回去重排序后的候选程序列表。
+    /// 已安装程序扫描契约（能力 <c>program-source@1</c>）：返回一份可用程序来源的候选列表，
+    /// 多来源的合并由宿主侧的来源聚合完成。
     /// </summary>
     /// <remarks>
-    /// 实现驻 <c>StarPie.Host</c> 的程序扫描件；图标补全不在此面（返回纯数据条目，
+    /// 实现分两类：宿主内置来源（<c>StarPie.Host</c> 的程序扫描件，随宿主分发）与插件来源
+    /// （随包插件的程序扫描实现，停用插件即整体退出）。消费者拿到的条目不分来源、只按路径去重，
+    /// 内置来源永远在前；插件缺席或停用是正常降级。图标补全不在此面（返回纯数据条目，
     /// 由 UI 消费方按路径装配图标）。
     /// </remarks>
     public interface IProgramScanner

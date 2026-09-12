@@ -92,13 +92,16 @@
 - **职责**：已安装程序扫描、目录合并/过滤、快捷方式目标解析（.lnk → 真实路径）。
 - **关键内部**：出口契约 `IProgramScanner`/`ProgramCatalog`/`ProgramEntry` 与 SPI
   `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Programs|Icons/`（纯数据、零 WPF）；
-  实现 `ProgramScanner`/`ShortcutResolver` 驻宿主内核 `StarPie.Host/Programs/`
-  （`ProgramScanner` 构造注入 `IShortcutTargetResolver`，返回纯数据条目）；物理路径见
+  实现分两层：内置来源 `ProgramScanner`、能力契约/聚合 `ProgramSourceCapability`/`ProgramSourceAggregator`
+  与 `ShortcutResolver` 驻宿主内核 `StarPie.Host/Programs/`（构造注入 `IShortcutTargetResolver`，
+  返回纯数据条目）；深扫来源 `InstalledProgramScanner` 驻随包插件
+  `plugins/src/StarPie.Plugin.Programs/`（经 `program-source@1` 能力注册）；物理路径见
   [layout.md](layout.md) 与 [programs.md](programs.md)。
 - **对外契约**：扫描/过滤数据经 SDK 契约提供给 S6 的程序选择对话框等消费方
   （DI 注册在组合根，消费方只认契约）；.lnk SPI 经 SDK 提供给 S1 图标服务与组合根；
   图标补全不在扫描面——UI 消费方（程序选择器）按路径经 `IIconAssetService` 装配。
-- **扩展局部性**：新增程序来源/目录/过滤规则 → Host `Programs/` 内部；新增扫描/跨模块协议 →
+- **扩展局部性**：新增程序来源/目录/过滤规则 → 随包插件 `StarPie.Plugin.Programs`（内置来源只留
+  插件缺席时也必须可用的系统工具与快捷方式）；新增扫描/跨模块协议 →
   扩展 `StarPie.Sdk/Services/Programs|Icons/` 契约面（消费方驱动）。
 
 #### M4 界面主题
@@ -182,7 +185,8 @@
   （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）随 P1.10/#119 驻
   `StarPie.Ui`（`Services|ViewModels|Views/Dialogs|Controls/`）。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 SDK 契约
-  `IProgramScanner`（M3 实现由 `HostCoreContributor` 登记），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
+  `IProgramScanner`（组合出口 `ProgramSourceAggregator` 由 `HostCoreContributor` 登记，内含内置来源与插件来源），
+  图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
   窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，ADR-0023）；不直穿 M3/S1 与 M4 实现内部；消费方
   （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`（P1.3/#112）。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
