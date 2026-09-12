@@ -14,12 +14,11 @@ from pywinauto import Application, Desktop
 from pywinauto.findwindows import ElementNotFoundError
 
 # -OnScreen 调试形态（窗口可见、Save 的系统提示框真实弹出）。
-# 默认（静默后台形态）被测应用离屏且提示框不呈现（ADR-0031），e2e 不应等待任何弹窗。
+# 默认（静默形态）被测应用在屏幕左上角且提示框不呈现（ADR-0031/0032），e2e 不应等待任何弹窗。
 ONSCREEN = os.environ.get("STARPIE_E2E_ONSCREEN") == "1"
 
-# 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。另有一条窗口形态限制：离屏窗口
-# 不被 DWM 合成客户区，系统级截图只能得到黑图或标题栏空壳（PrintWindow 实测亦然），
-# 故后台形态显式标注"不可用"，取证交给 window dump；-OnScreen 形态才抓真实截图。
+# 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。静默形态窗口固定在屏幕左上角、
+# 被 DWM 合成，PrintWindow 能抓到真实内容；缺 PIL 时显式告警并把原因写进运行 header。
 try:
     import PIL  # noqa: F401
 
@@ -34,8 +33,6 @@ def screenshot_unavailable_reason():
     """失败截图不可用的原因；可用时返回 None（header/告警/运行器口径共用一份判断）。"""
     if not PIL_AVAILABLE:
         return "PIL 未安装（pip install -r tests/requirements.txt 恢复）"
-    if not ONSCREEN:
-        return "后台形态窗口离屏、DWM 不合成客户区（-OnScreen 复跑可截图；window dump 仍落日志）"
     return None
 
 
@@ -145,8 +142,7 @@ def find_main_window(pid: int, timeout: float = 15.0) -> int:
 def capture_window_image(hwnd: int):
     """PrintWindow(PW_RENDERFULLCONTENT) 抓窗口位图，返回 PIL Image；取不到内容时返回 None。
 
-    只应在 screenshot_unavailable_reason() 为 None（-OnScreen 形态）时调用：后台离屏窗口
-    不被 DWM 合成客户区，本函数只能得到标题栏空壳。
+    静默形态窗口在屏幕内，本函数抓到的即当前真实画面。
     """
     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     width, height = right - left, bottom - top
@@ -180,7 +176,7 @@ def capture_window_image(hwnd: int):
 
 
 def is_blank_image(img) -> bool:
-    """客户区单色（后台离屏与未合成空壳的实际表现）视为无内容，不落盘以免误导。"""
+    """客户区单色（未渲染/未合成空壳的实际表现）视为无内容，不落盘以免误导。"""
     client = img.crop((0, min(40, img.height // 4), img.width, img.height))
     colors = client.getcolors(maxcolors=2)
     return colors is not None and len(colors) == 1
@@ -429,7 +425,7 @@ def app(sandbox_env, request):
         pytest.fail(f"Executable not found in {candidates}. Please build the project first.")
         
     # Start the process with sandboxed environment variables.
-    # 默认静默后台形态（--background：离屏 + 不可激活 + 不进任务栏/托盘，不打扰同机用户）；
+    # 默认静默形态（--background：屏幕左上角 + 不可激活 + 点击穿透 + 不进任务栏，键鼠不被打扰）；
     # ONSCREEN（STARPIE_E2E_ONSCREEN=1，scripts/run-e2e.ps1 -OnScreen）时窗口正常显示，供调试。
     flags = ["--allow-multiple"]
     if not ONSCREEN:
@@ -454,7 +450,7 @@ def app(sandbox_env, request):
         
     yield win, local_app_data
     
-    # 失败取证：窗口 dump 覆盖 setup/call 两个阶段；截图仅 -OnScreen 形态可用。
+    # 失败取证：窗口 dump 覆盖 setup/call 两个阶段；截图在静默形态下即可用（窗口屏内被合成）。
     failed_phase = next(
         (
             phase

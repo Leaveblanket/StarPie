@@ -4,8 +4,8 @@
   StarPie pywinauto e2e 运行器（默认静默后台形态）。
 
 .DESCRIPTION
-  默认：被测应用以 --background 启动（离屏、不可激活、不进任务栏、无托盘/全局钩子），
-  整套 e2e 对同机用户不可见、不移动物理光标、不抢前台；pytest 输出落
+  默认：被测应用以 --background 启动（屏幕左上角、不可激活、点击穿透、不进任务栏、不启全局钩子，
+  托盘可见），键鼠不被打扰、不移动物理光标、不抢前台；pytest 输出落
   artifacts/e2e/last-run.log，junitxml 落 artifacts/e2e/last-run.xml，
   运行状态落 artifacts/e2e/status.json。
 
@@ -18,8 +18,8 @@
 
   解释器：默认用仓库内隔离 venv（.venv，依赖锁定在 tests/requirements.txt）；
   解析顺序为 -Python 显式指定 > .venv > PATH 的 python（回退 PATH 时会警告"解释器未锁定"）。
-  失败截图：仅 -OnScreen 形态可用（后台离屏窗口不被 DWM 合成，系统截图只会得到黑图/空壳）；
-  status.json 的 screenshotAvailable/screenshotNote 写明口径，-Status 可见。
+  失败截图：静默形态窗口在屏内被 DWM 合成，失败时用 PrintWindow 抓真实内容；
+  缺 pillow 时 status.json 的 screenshotAvailable=false + screenshotNote 说明，-Status 可见。
 
   并发保护：同一时间只允许一个 e2e（命名 Mutex），避免两个运行互抢桌面对话框与沙盒。
   详见 docs/architecture/host.md 与 docs/adr/0031-e2e-silent-background-run.md。
@@ -67,18 +67,13 @@ if (-not $Python) {
     }
 }
 
-# 失败截图口径：后台形态窗口离屏、DWM 不合成客户区（系统截图只有黑图/空壳），
-# 故仅 -OnScreen 形态标记可用；PIL 缺件同样不可用。两者都写进 status.json（-Status 可见）。
+# 失败截图口径：静默形态窗口在屏内，截图可用；仅 PIL 缺件时标记不可用并写明原因。
 $screenshotAvailable = $true
 $screenshotNote = ''
 & $Python -c "import PIL" 2>$null
 if ($LASTEXITCODE -ne 0) {
     $screenshotAvailable = $false
     $screenshotNote = '缺 pillow（pip install -r tests/requirements.txt 恢复）'
-}
-elseif (-not $OnScreen) {
-    $screenshotAvailable = $false
-    $screenshotNote = '后台形态窗口离屏，系统截图不可用（-OnScreen 复跑取证；window dump 仍落日志）'
 }
 
 function Write-Status {

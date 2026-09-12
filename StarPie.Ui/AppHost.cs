@@ -41,8 +41,8 @@ namespace StarPie
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
-        // 后台/静默模式（--background，e2e 用）：窗口离屏 + 不可激活 + 无任务栏项，
-        // 且不建托盘、不启全局鼠标钩子——用户同机工作时无可见/可感知打扰。
+        // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
+        // 无任务栏项，且不启全局鼠标钩子——用户同机工作时键鼠不受打扰，窗口仍真实可见可截图。
         private readonly bool _background;
         // 主题调色板换入经 Ui 侧适配器（实现内核主题应用端口）执行；
         // 宿主只负责装配，不做直接键覆盖。
@@ -137,15 +137,12 @@ namespace StarPie
             _dialogService.SetOwner(_mainView);
 
             // 托盘深色配色由宿主以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
-            // 后台模式不建托盘：通知区图标对同机用户可见，属"打扰"。
-            if (!_background)
-            {
-                _trayIcon = new TrayIconManager(
-                    windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
-                    onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
-                    menuProvider: BuildTrayMenuEntries);
-                _trayIcon.SetTooltip(CurrentTooltip());
-            }
+            // 静默形态也建托盘：通知区入口保留（人工观察/退出），不影响测试侧驱动。
+            _trayIcon = new TrayIconManager(
+                windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
+                onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
+                menuProvider: BuildTrayMenuEntries);
+            _trayIcon.SetTooltip(CurrentTooltip());
 
             _mainView.Show();
         }
@@ -266,22 +263,27 @@ namespace StarPie
 
         // ==== 后台/静默模式（--background，e2e 用）====
 
-        /// <summary>离屏定位坐标：远离所有显示器的固定点（窗口仍真实存在、仍可被 UIA 驱动）。</summary>
-        private const int BackgroundCoordinate = -32000;
+        /// <summary>静默形态主窗口定位：屏幕左上角（窗口真实可见、被 DWM 合成，失败截图可抓真实内容）。</summary>
+        private const int SilentWindowLeft = 0;
+        private const int SilentWindowTop = 0;
         private const int GwlExStyle = -20;
         private const int WsExNoActivate = 0x08000000;
+        private const int WsExTransparent = 0x00000020;
+        private const int WmNcHitTest = 0x0084;
+        private const int HtTransparent = -1;
 
         /// <summary>
-        /// 把设置控制台窗口切成"后台形态"：不可激活（WS_EX_NOACTIVATE）、不进任务栏、
-        /// 离屏定位。语义只影响窗口呈现与激活，不影响导航/配置/渲染，UIA 仍可完整驱动。
+        /// 把设置控制台窗口切成"静默形态"：屏幕左上角定位、不可激活（WS_EX_NOACTIVATE）、
+        /// 点击穿透（WS_EX_TRANSPARENT + WM_NCHITTEST→HTTRANSPARENT，用户点击落到下层窗口）、
+        /// 不进任务栏。语义只影响窗口呈现/激活/命中测试，不影响导航/配置/渲染，UIA 仍可完整驱动。
         /// </summary>
         private static void ConfigureBackgroundWindow(MainView view)
         {
             view.ShowActivated = false;
             view.ShowInTaskbar = false;
             view.WindowStartupLocation = WindowStartupLocation.Manual;
-            view.Left = BackgroundCoordinate;
-            view.Top = BackgroundCoordinate;
+            view.Left = SilentWindowLeft;
+            view.Top = SilentWindowTop;
 
             // HWND 在 Show 时创建：SourceInitialized 早于窗口出现在屏幕上，此刻挂扩展样式最稳。
             view.SourceInitialized += (_, _) =>
@@ -293,7 +295,20 @@ namespace StarPie
                 }
 
                 int exStyle = GetWindowLong(hwnd, GwlExStyle);
-                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate);
+                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate | WsExTransparent);
+
+                // 命中测试一律 HTTRANSPARENT：鼠标点击穿透到下层窗口（跨进程亦生效），
+                // 配合 WS_EX_NOACTIVATE 让静默形态对用户键鼠完全无感。
+                HwndSource.FromHwnd(hwnd)?.AddHook((IntPtr h, int msg, IntPtr w, IntPtr l, ref bool handled) =>
+                {
+                    if (msg == WmNcHitTest)
+                    {
+                        handled = true;
+                        return new IntPtr(HtTransparent);
+                    }
+
+                    return IntPtr.Zero;
+                });
             };
         }
 
