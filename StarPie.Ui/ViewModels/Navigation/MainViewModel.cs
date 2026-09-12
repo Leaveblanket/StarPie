@@ -78,6 +78,7 @@ namespace StarPie.ViewModels.Navigation
                 FillNavigationItems(catalog, navigation);
                 RefreshTitles();
                 SyncSelection();
+                LeaveRemovedPage(navigation);
             };
             catalog.Changed += _onCatalogChanged;
 
@@ -146,6 +147,21 @@ namespace StarPie.ViewModels.Navigation
             {
                 item.Title = _localization.GetString(item.TitleKey);
             }
+        }
+
+        /// <summary>
+        /// 停驻页面被移出目录（插件页随插件卸载摘除）时回落到固定首页：
+        /// 导航状态不得滞留已出账页面的 VM，否则卸载现场仍被宿主状态强引用。
+        /// </summary>
+        private void LeaveRemovedPage(INavigationExecutor navigation)
+        {
+            Type? current = _store.CurrentViewModel?.GetType();
+            if (current is null || NavigationItems.Any(item => item.TargetViewModelType == current))
+            {
+                return;
+            }
+
+            navigation.Navigate(NavigationSlot.Trigger);
         }
 
         /// <summary>退订本地化事件（容器单例成对退订；由 AppHost.Dispose 调用）。</summary>

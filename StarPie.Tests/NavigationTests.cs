@@ -363,15 +363,25 @@ public sealed class MainViewModelPluginPageTests
     private static readonly LocalizationService Localization = new();
 
     private sealed class PluginPageViewModel : ObservableObject { }
+    private sealed class TriggerPageViewModel : ObservableObject { }
+    private sealed class AppearancePageViewModel : ObservableObject { }
+    private sealed class GesturesPageViewModel : ObservableObject { }
+    private sealed class AdvancedPageViewModel : ObservableObject { }
+    private sealed class PluginsPageViewModel : ObservableObject { }
 
     private static NavigationCatalog CreateCatalog()
     {
         var catalog = new NavigationCatalog();
-        foreach (ICompositionContributor contributor in BuiltInContributors.CreateAll(new AppHostDelegates()))
-        {
-            contributor.RegisterNavigation(catalog);
-        }
-
+        catalog.RegisterPage<TriggerPageViewModel>(
+            NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
+        catalog.RegisterPage<AppearancePageViewModel>(
+            NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
+        catalog.RegisterPage<GesturesPageViewModel>(
+            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "PageGestures", "");
+        catalog.RegisterPage<AdvancedPageViewModel>(
+            NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "");
+        catalog.RegisterPage<PluginsPageViewModel>(
+            NavigationSlot.Plugins, NavigationSlots.GetAutomationId(NavigationSlot.Plugins), "PagePlugins", "");
         return catalog;
     }
 
@@ -379,10 +389,15 @@ public sealed class MainViewModelPluginPageTests
     {
         var catalog = CreateCatalog();
         var store = new NavigationStore();
-        var provider = new ServiceCollection()
-            .AddSingleton(store)
-            .AddSingleton(catalog)
-            .AddSingleton<PluginManagerViewModel>()
+            var provider = new ServiceCollection()
+                .AddSingleton(store)
+                .AddSingleton(catalog)
+                // 固定页 VM：与生产容器同形的可解析目标，供插件页摘除后的回落导航使用。
+                .AddSingleton<TriggerPageViewModel>()
+                .AddSingleton<AppearancePageViewModel>()
+                .AddSingleton<GesturesPageViewModel>()
+            .AddSingleton<AdvancedPageViewModel>()
+            .AddSingleton<PluginsPageViewModel>()
             .BuildServiceProvider();
         var executor = new NavigationExecutor(store, catalog, provider);
         return (new MainViewModel(store, catalog, executor, Localization), catalog, store);
@@ -429,5 +444,21 @@ public sealed class MainViewModelPluginPageTests
 
         Assert.IsType<PluginPageViewModel>(store.CurrentViewModel);
         Assert.True(vm.NavigationItems[5].IsSelected);
+    }
+
+    [Fact]
+    public void 插件页被摘除时_当前页回落到固定页而不滞留已卸载页面()
+    {
+        var (vm, catalog, store) = Create();
+        catalog.RegisterPluginPage(
+            "com.example.ui", "NavPlugin_com.example.ui", "NavPlugin_com.example.ui", "PluginPage", "",
+            typeof(PluginPageViewModel), () => new PluginPageViewModel());
+        vm.NavigationItems[5].NavigateCommand.Execute(null);
+        Assert.IsType<PluginPageViewModel>(store.CurrentViewModel);
+
+        catalog.RemovePluginPage("NavPlugin_com.example.ui");
+
+        Assert.IsType<TriggerPageViewModel>(store.CurrentViewModel);
+        Assert.True(vm.NavigationItems[0].IsSelected);
     }
 }

@@ -35,6 +35,10 @@ namespace StarPie.ViewModels.Pages
         /// <summary>插件贡献的设置区块（无插件时为空——扩展点降级不出现空壳）。</summary>
         public ObservableCollection<PluginSettingsSectionViewModel> PluginSettingsSections { get; } = new();
 
+        /// <summary>是否存在插件设置区块：XAML 用它在区块为空时整块隐藏设置区。</summary>
+        [ObservableProperty]
+        private bool _hasPluginSettingsSections;
+
         /// <summary>诊断面板当前展示的插件；为 null 时显示占位文案。</summary>
         [ObservableProperty]
         private PluginManagerItemViewModel? _selectedPlugin;
@@ -90,6 +94,8 @@ namespace StarPie.ViewModels.Pages
                     section,
                     _localization.GetString(section.Descriptor.TitleKey)));
             }
+
+            HasPluginSettingsSections = PluginSettingsSections.Count > 0;
         }
 
         /// <summary>选中条目并刷新诊断面板。</summary>

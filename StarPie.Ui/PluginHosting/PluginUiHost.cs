@@ -7,7 +7,6 @@ using StarPie.Abstractions.Ui;
 using StarPie.Events;
 using StarPie.PluginHosting.Commands;
 using StarPie.PluginHosting.Extensions;
-using StarPie.PluginHosting.Menus;
 using StarPie.PluginHosting.Resources;
 using StarPie.PluginHosting.Timers;
 using StarPie.PluginHosting.Views;
