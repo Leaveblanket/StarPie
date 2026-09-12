@@ -10,8 +10,8 @@ namespace StarPie.Tests;
 /// <summary>
 /// 宿主内核边界基线：内核运行时（配置读写/防抖落盘接缝/本地化实现）归 <see cref="StarPie.Host"/>——
 /// 导出面 = 恰为内核清单（新增 public 类型须同步本表），导出面签名不触碰 WPF 与旧集 runtime，
-/// 核心件在无 WPF 依赖的程序集里可直接构造；遗留的 <c>StarPie.Core</c> 只余设计期投影字典
-/// （零导出类型、零运行时件）。与 <see cref="FourSetBoundaryTests"/>（工程面）、
+/// 核心件在无 WPF 依赖的程序集里可直接构造；设计期投影字典随 Ui 集编译（唯一的资源锚指向它），
+/// 独立的设计期投影壳 <c>StarPie.Core</c> 已删除。与 <see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）、<see cref="SdkBoundaryTests"/>（SDK 导出面）
 /// 互补。
 /// </summary>
@@ -44,9 +44,12 @@ public sealed class HostBoundaryTests
         typeof(ActionRouting.SystemCommand.LockWorkstation), typeof(ActionRouting.SystemCommand.StartProcess),
     };
 
-    /// <summary>设计期字符串字典的唯一来源（Page 编译、签入生成物；pack URI 由 UI 工程资源锚合并）。</summary>
+    /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>
     private const string DesignTimeDictionaryPackUri =
-        "pack://application:,,,/StarPie.Core;component/Services/Localization/DesignTimeStrings.xaml";
+        "pack://application:,,,/StarPie;component/Services/Localization/DesignTimeStrings.xaml";
+
+    /// <summary>设计期字符串字典在 Ui 集内的编译落点（Page 项与惰性 BAML）。</summary>
+    private const string DesignTimeDictionaryItem = @"Services\Localization\DesignTimeStrings.xaml";
 
     [Fact]
     public void 迁入类型_全部由StarPieHost定义()
@@ -121,28 +124,39 @@ public sealed class HostBoundaryTests
     }
 
     [Fact]
-    public void Core_只余设计期投影_无导出类型且仅一份惰性字典()
+    public void 设计期投影字典_随Ui集Page编译_壳工程已删除()
     {
-        Assembly core = FourSetBoundaryProbe.LoadAppAssembly("StarPie.Core");
+        // 字典 = Ui 集（程序集名 StarPie）内的惰性 BAML：只此一份，运行时永不自动合并。
+        Assert.Contains(
+            "services/localization/designtimestrings.baml",
+            FourSetBoundaryProbe.BamlEntries(typeof(App).Assembly));
+        Assert.Contains(
+            DesignTimeDictionaryItem,
+            File.ReadAllText(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "StarPie.Ui.csproj")));
 
-        // 遗留集不再导出任何类型（无双份定义、无运行时 WPF 类型泄漏）。
-        Assert.Empty(FourSetBoundaryProbe.ExportedTypeNames(core));
-
-        // 唯一 XAML = 设计期字符串字典（惰性 BAML，仅设计期合并、运行时永不合并）。
-        Assert.Equal(
-            new[] { "services/localization/designtimestrings.baml" },
-            FourSetBoundaryProbe.BamlEntries(core));
+        // 旧设计期投影壳 StarPie.Core 已删除：仓库、解决方案与产物三处都不再存在。
+        Assert.Contains("StarPie.Core", FourSetBoundaryProbe.LegacyAssemblyNames);
+        Assert.DoesNotContain("StarPie.Core", FourSetBoundaryProbe.AppAssembliesOnDisk());
+        Assert.False(File.Exists(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Core", "StarPie.Core.csproj")));
+        Assert.DoesNotContain(
+            "StarPie.Core",
+            File.ReadAllText(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx")));
     }
 
     [Fact]
-    public void 设计期资源锚_Ui工程指向Core投影字典()
+    public void 设计期资源锚_仅Ui工程一份_指向Ui内字典()
     {
-        foreach (string project in new[] { "StarPie.Ui" })
-        {
-            string path = Path.Combine(FourSetBoundaryProbe.RepoRoot, project, "Properties", "DesignTimeResources.xaml");
-            Assert.True(File.Exists(path), $"设计期资源锚缺失: {project}");
-            Assert.Contains(DesignTimeDictionaryPackUri, File.ReadAllText(path));
-        }
+        string[] projects = { "StarPie.Ui", "StarPie.Sdk", "StarPie.Sdk.Wpf", "StarPie.Host", "StarPie.Tests" };
+        string[] anchors = projects
+            .Where(project => File.Exists(Path.Combine(
+                FourSetBoundaryProbe.RepoRoot, project, "Properties", "DesignTimeResources.xaml")))
+            .ToArray();
+
+        // 五份旧资源锚随归并收敛为一份：只有 Ui 集持有锚，其余工程不得再起第二份。
+        Assert.Equal(new[] { "StarPie.Ui" }, anchors);
+        Assert.Contains(
+            DesignTimeDictionaryPackUri,
+            File.ReadAllText(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "Properties", "DesignTimeResources.xaml")));
     }
 
     /// <summary>导出类型声明面（字段/属性/事件/方法与构造的参数与返回值）出现的全部类型。</summary>

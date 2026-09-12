@@ -11,7 +11,7 @@ using StarPie.ViewModels.Pages;
 namespace StarPie.Modules
 {
     /// <summary>
-    /// 手势与动作模块注册器：模块侧注册自治。
+    /// M1 手势与动作贡献者：模块侧注册自治。
     /// </summary>
     /// <remarks>
     /// <see cref="RegisterNavigation"/> 把本模块页面（触发与场景 / 手势与动作）写入
@@ -19,16 +19,20 @@ namespace StarPie.Modules
     /// GesturesPageTemplates.xaml（宿主 App.xaml 经跨程序集 pack URI 每模块一次静态合并）。
     /// <see cref="RegisterServices"/> 把本模块手势管线服务、页面 VM 与只读预览契约
     /// <see cref="IProfilePreviewSource"/> 别名的 DI 注册下放本程序集（组合根仍唯一
-    /// BuildServiceProvider，本注册器只注册不解析）。新增页面/动作/触发规则只动本模块内部。
+    /// BuildServiceProvider，本贡献者只注册不解析）。新增页面/动作/触发规则只动本模块内部。
     /// 依赖方向：本模块依赖共享内核契约，仅经 SDK（#112 收口）的
     /// <c>IWheelFactory</c>/<c>IWheelViewModel</c> 契约接口消费瞬态轮盘（M1→M2 runtime
     /// 允许边清零，ADR-0023/#97），不反向引用宿主；MouseHook 的 dev 分支读共享内核
     /// <see cref="AppDataPaths.IsDevInstance"/> 回填缝（组合根装配前以 DevInstance.IsActive 回填）。
     /// </remarks>
-    public static class GesturesModuleRegistrar
+    internal sealed class GesturesContributor : ICompositionContributor
     {
+        public string Id => "gestures";
+
+        public int Order => 40;
+
         /// <summary>向导航目录注册本模块页面（槽位 0 触发与场景 / 2 手势与动作）。</summary>
-        public static void RegisterNavigation(NavigationCatalog catalog)
+        public void RegisterNavigation(NavigationCatalog catalog)
         {
             catalog.RegisterPage<BehaviorSettingsViewModel>(
                 NavigationSlot.Trigger,
@@ -44,12 +48,12 @@ namespace StarPie.Modules
 
         /// <summary>
         /// 注册本模块手势管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
-        /// 引擎/控制器与触发+手势两页 VM 全部在本注册器接线；工厂经 ServiceProvider
+        /// 引擎/控制器与触发+手势两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
         /// 惰性解析 SDK 契约。<see cref="ProfileListViewModel"/> 另以只读契约
         /// <see cref="IProfilePreviewSource"/>（ADR-0023/#97；#112 收口入 StarPie.Sdk）
         /// 注册别名——消费方轮盘外观设置子 VM 只依赖契约程序集，不引用本集具体 VM。
         /// </summary>
-        public static void RegisterServices(IServiceCollection services)
+        public void RegisterServices(IServiceCollection services)
         {
             // 手势管线：MouseHook 为无参单例（构造即选 dev/正式触发键，dev 分支读共享内核
             // AppDataPaths.IsDevInstance 回填缝）；GestureController 构造即订阅钩子事件，由

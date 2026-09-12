@@ -8,8 +8,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// StarPie.Sdk 的导出面白名单基线：SDK 只含纯托管契约/模型/DTO——导出面与白名单双向相等
-/// （少一个或多一个都失败），全仓程序集导出类型唯一（不出现同类型双份定义），源码树保持
-/// 「镜像旧相对路径」的过渡形态。与
+/// （少一个或多一个都失败），四集导出类型唯一（不出现同类型双份定义），源码树保持
+/// 「镜像旧相对路径」的过渡形态（旧集已全部撤销，其产物不存在由 RuntimeNoCrossReferenceTests 收口）。与
 /// <see cref="SdkWpfBoundaryTests"/>（WPF 面）、<see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
@@ -68,11 +68,8 @@ public sealed class SdkBoundaryTests
     public void 全仓程序集_导出类型唯一_无同类型双份定义()
     {
         var owners = new Dictionary<string, string>(StringComparer.Ordinal);
-        string[] assemblies = FourSetBoundaryProbe.FourSetAssemblyNames
-            .Concat(FourSetBoundaryProbe.LegacyAssemblyNames)
-            .ToArray();
 
-        foreach (string name in assemblies)
+        foreach (string name in FourSetBoundaryProbe.FourSetAssemblyNames)
         {
             Assembly assembly = FourSetBoundaryProbe.LoadAppAssembly(name);
             foreach (string typeName in FourSetBoundaryProbe.ExportedTypeNames(assembly))
@@ -84,8 +81,8 @@ public sealed class SdkBoundaryTests
             }
         }
 
-        // 四集都被真实扫描过（避免筛选写错导致空扫描假绿）；StarPie.Core 零导出类型
-        // （只余设计期投影字典，断言见 HostBoundaryTests）。
+        // 四集都被真实扫描过（避免筛选写错导致空扫描假绿）；旧集程序集已不在产物中
+        // （断言见 RuntimeNoCrossReferenceTests 与 HostBoundaryTests）。
         Assert.Contains("StarPie.Sdk", owners.Values);
         Assert.Contains("StarPie", owners.Values);
         Assert.Contains("StarPie.Host", owners.Values);

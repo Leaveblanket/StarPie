@@ -19,26 +19,80 @@ public sealed class FourSetBoundaryTests
     private const string SdkProject = @"StarPie.Sdk\StarPie.Sdk.csproj";
     private const string SdkWpfProject = @"StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj";
     private const string HostProject = @"StarPie.Host\StarPie.Host.csproj";
+    private const string TestsProject = @"StarPie.Tests\StarPie.Tests.csproj";
+    private const string RootTfm = "net10.0-windows10.0.19041.0";
+
+    /// <summary>仓库全部工程（四集 + 测试工程）——解决方案登记与引用面断言的扫描基准。</summary>
+    private static readonly string[] AllProjects =
+    {
+        UiProject, SdkProject, SdkWpfProject, HostProject, TestsProject,
+    };
 
     [Fact]
-    public void 四集工程_登记于解决方案_且旧工程路径已移除()
+    public void 解决方案_只登记四集与测试工程_旧工程路径已移除()
     {
         XDocument slnx = XDocument.Load(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.slnx"));
         string[] paths = slnx.Descendants("Project")
             .Select(element => (string)element.Attribute("Path")!)
+            .OrderBy(path => path, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Contains(UiProject, paths);
-        Assert.Contains(SdkProject, paths);
-        Assert.Contains(SdkWpfProject, paths);
-        Assert.Contains(HostProject, paths);
+        Assert.Equal(
+            AllProjects.OrderBy(path => path, StringComparer.Ordinal).ToArray(),
+            paths);
+        Assert.All(
+            FourSetBoundaryProbe.LegacyProjectPaths,
+            legacy => Assert.DoesNotContain(legacy, paths));
         Assert.DoesNotContain(@"StarPie\StarPie.csproj", paths);
 
-        foreach (string project in new[] { UiProject, SdkProject, SdkWpfProject, HostProject })
+        foreach (string project in AllProjects)
         {
             Assert.True(
                 File.Exists(Path.Combine(FourSetBoundaryProbe.RepoRoot, project)),
                 $"解决方案登记的工程文件不存在: {project}");
+        }
+    }
+
+    [Fact]
+    public void 根构建属性_四集共享面集中一处_工程级只留差异()
+    {
+        // 根 props 是四集共享面（TFM/可空性/隐式 using/分析器级别/根命名空间）的唯一来源；
+        // 断言读“生效值”而非 csproj 字面量：属性留在根 props 或下移工程都不改变结论。
+        XDocument rootProps = FourSetBoundaryProbe.LoadRootBuildProps();
+        Assert.Equal(RootTfm, FourSetBoundaryProbe.GetProperty(rootProps, "TargetFramework"));
+        Assert.Equal("enable", FourSetBoundaryProbe.GetProperty(rootProps, "Nullable"));
+        Assert.Equal("enable", FourSetBoundaryProbe.GetProperty(rootProps, "ImplicitUsings"));
+        Assert.Equal("latest", FourSetBoundaryProbe.GetProperty(rootProps, "AnalysisLevel"));
+        Assert.Equal("StarPie", FourSetBoundaryProbe.GetProperty(rootProps, "RootNamespace"));
+
+        // TFM：Ui / Sdk.Wpf / 测试工程继承根 props；Sdk / Host 显式收窄为 net10.0（零 WPF 面）。
+        foreach (string project in new[] { UiProject, SdkWpfProject, TestsProject })
+        {
+            Assert.Null(FourSetBoundaryProbe.GetProperty(FourSetBoundaryProbe.LoadProject(project), "TargetFramework"));
+            Assert.Equal(RootTfm, FourSetBoundaryProbe.GetEffectiveProperty(project, "TargetFramework"));
+        }
+        foreach (string project in new[] { SdkProject, HostProject })
+        {
+            Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(project, "TargetFramework"));
+        }
+
+        foreach (string project in AllProjects)
+        {
+            // 共享属性禁止在工程级重复声明（防漂移）；测试工程的 RootNamespace 是登记在案的差异。
+            XDocument csproj = FourSetBoundaryProbe.LoadProject(project);
+            foreach (string shared in new[] { "Nullable", "ImplicitUsings", "AnalysisLevel" })
+            {
+                Assert.Null(FourSetBoundaryProbe.GetProperty(csproj, shared));
+            }
+            if (project != TestsProject)
+            {
+                Assert.Null(FourSetBoundaryProbe.GetProperty(csproj, "RootNamespace"));
+            }
+
+            // 中央包管理：csproj 的 PackageReference 不写版本。
+            Assert.All(
+                csproj.Descendants("PackageReference"),
+                reference => Assert.Null(reference.Attribute("Version")));
         }
     }
 
@@ -71,8 +125,8 @@ public sealed class FourSetBoundaryTests
     public void Sdk_net10非WindowsTFM_零WPF零第三方包零工程引用()
     {
         XDocument csproj = FourSetBoundaryProbe.LoadProject(SdkProject);
-        Assert.Equal("net10.0", FourSetBoundaryProbe.GetProperty(csproj, "TargetFramework"));
-        Assert.False(FourSetBoundaryProbe.GetBoolProperty(csproj, "UseWPF"));
+        Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(SdkProject, "TargetFramework"));
+        Assert.False(FourSetBoundaryProbe.GetEffectiveBoolProperty(SdkProject, "UseWPF"));
 
         // 零第三方包：csproj 不允许任何包/框架引用；零 WPF 与零依赖：非 windows TFM + 无工程引用。
         Assert.Empty(csproj.Descendants("PackageReference"));
@@ -83,17 +137,15 @@ public sealed class FourSetBoundaryTests
     [Fact]
     public void SdkWpf_是WPF契约面_UseWPF与windowsTFM()
     {
-        XDocument csproj = FourSetBoundaryProbe.LoadProject(SdkWpfProject);
-        Assert.True(FourSetBoundaryProbe.GetBoolProperty(csproj, "UseWPF"));
-        Assert.StartsWith("net10.0-windows", FourSetBoundaryProbe.GetProperty(csproj, "TargetFramework"));
+        Assert.True(FourSetBoundaryProbe.GetEffectiveBoolProperty(SdkWpfProject, "UseWPF"));
+        Assert.StartsWith("net10.0-windows", FourSetBoundaryProbe.GetEffectiveProperty(SdkWpfProject, "TargetFramework"));
     }
 
     [Fact]
     public void Host_net10非WindowsTFM_零WPF()
     {
-        XDocument csproj = FourSetBoundaryProbe.LoadProject(HostProject);
-        Assert.Equal("net10.0", FourSetBoundaryProbe.GetProperty(csproj, "TargetFramework"));
-        Assert.False(FourSetBoundaryProbe.GetBoolProperty(csproj, "UseWPF"));
+        Assert.Equal("net10.0", FourSetBoundaryProbe.GetEffectiveProperty(HostProject, "TargetFramework"));
+        Assert.False(FourSetBoundaryProbe.GetEffectiveBoolProperty(HostProject, "UseWPF"));
     }
 
     [Fact]
@@ -106,6 +158,7 @@ public sealed class FourSetBoundaryTests
         Assert.Contains("StarPie.Host", uiReferences);
         Assert.DoesNotContain("StarPie.Ui", uiReferences);
         Assert.All(uiReferences, name => Assert.Contains(name, FourSetBoundaryProbe.KnownProjectNames));
+        Assert.All(uiReferences, name => Assert.DoesNotContain(name, FourSetBoundaryProbe.LegacyAssemblyNames));
 
         // Sdk 零依赖；Sdk.Wpf/Host 只可引用 Sdk；三集都不得反向引用 Ui。
         Assert.Empty(FourSetBoundaryProbe.ProjectReferences(SdkProject));
@@ -114,6 +167,14 @@ public sealed class FourSetBoundaryTests
             string[] references = FourSetBoundaryProbe.ProjectReferences(project);
             Assert.All(references, name => Assert.Equal("StarPie.Sdk", name));
             Assert.DoesNotContain("StarPie.Ui", references);
+        }
+
+        // 已撤销旧集不在任何工程的引用面（测试工程同样只引用四集）。
+        foreach (string project in AllProjects)
+        {
+            Assert.All(
+                FourSetBoundaryProbe.ProjectReferences(project),
+                name => Assert.DoesNotContain(name, FourSetBoundaryProbe.LegacyAssemblyNames));
         }
     }
 

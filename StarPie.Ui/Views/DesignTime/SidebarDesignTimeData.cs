@@ -5,7 +5,7 @@ namespace StarPie.Views.DesignTime;
 /// <summary>
 /// 设计期样例数据（ADR-0025/#101，仅被 SidebarView 根节点 <c>d:DataContext</c> 消费，
 /// 无条件编译、惰性；运行时代码不得引用）：侧边栏导航 4 项。
-/// 顺序/AutomationId/图标 Path Data 与运行时导航注册器一致（NavPage0..3），标题取 zh-CN 值。
+/// 顺序/AutomationId/图标 Path Data 与运行时导航贡献者一致（NavPage0..3），标题取 zh-CN 值。
 /// </summary>
 public sealed class SidebarDesignTimeData
 {
@@ -17,7 +17,7 @@ public sealed class SidebarDesignTimeData
         new() { AutomationId = "NavPage3", Title = "⚙️ 高级与系统", IconData = IconAdvanced },
     };
 
-    // 图标 Path Data 与 HostModuleRegistrar/ShellModuleRegistrar/GesturesModuleRegistrar 一致。
+    // 图标 Path Data 与 HostPageContributor/ShellContributor/GesturesContributor 一致。
     private const string IconTrigger =
         "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z";
 

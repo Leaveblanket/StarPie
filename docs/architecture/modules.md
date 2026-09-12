@@ -35,16 +35,16 @@
 
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
-- `Composition.cs` / 导航登记一次：模块注册器 `RegisterNavigation` + 模块页面模板字典 +
-  [naming.md](naming.md) 映射表（M5：`StarPie.Ui` 的 `ShellModuleRegistrar`；M1：
-  Ui 集内 M1 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
-  `HostModuleRegistrar`）；页面 VM DI 注册由所属注册器下放——M5 页面 VM 由
-  ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Ui`，
-  M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelModuleRegistrar`（`StarPie.Ui`，
+- `BuiltInContributors` 清单一行 / 导航登记一次：所属贡献者 `RegisterNavigation` + 模块页面模板字典 +
+  [naming.md](naming.md) 映射表（M5：`StarPie.Ui` 的 `ShellContributor`；M1：
+  `StarPie.Ui` 的 `GesturesContributor`；Host 外观聚合页：
+  `HostPageContributor`）；页面 VM DI 注册由所属贡献者登记——M5 页面 VM 由
+  ShellContributor、M4 主题服务与主题设置子 VM 由 `ThemeContributor`（`StarPie.Ui`，
+  M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelContributor`（`StarPie.Ui`，
   M2 无导航页）、M1 手势管线/页面 VM/`IProfilePreviewSource` 别名由
-  `GesturesModuleRegistrar`（M1，驻 `StarPie.Ui`）下放；S1 图标资产与 M3 程序扫描
-  （两模块无注册器、无导航页）由组合根直登记；仅 Host 外观聚合页 VM 仍
-  由组合根注册；注册器 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
+  `GesturesContributor`（M1，驻 `StarPie.Ui`）登记；S1 图标资产与 M3 程序扫描
+  （两模块无导航页）由 `HostCoreContributor` 登记；Host 外观聚合页 VM 由
+  `HostPageContributor` 登记；贡献者清单 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（ADR-0015 决策 7）；
 - 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
@@ -117,7 +117,7 @@
 
 - **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
 - **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、
-  `GeneralSettingsViewModel`+`AdvancedSettingsPage` 与模块注册器/页面模板字典
+  `GeneralSettingsViewModel`+`AdvancedSettingsPage` 与贡献者/页面模板字典
   （物理随 M5 归并入 `StarPie.Ui/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
   不归 M5——R4/ADR-0016 归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
@@ -148,7 +148,7 @@
 #### S3 本地化
 
 - **职责**：四语言键表与取词、语言状态/切换/回退链、运行时语言字典投影桥、文案分类语义。
-- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Core/Services/Localization/`；`AppHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
+- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`；`AppHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
 - **扩展局部性**：新语言/新文案键/改回退链 → S3 内部。
 
 #### S4 消息与通知
@@ -164,15 +164,15 @@
   导航运行时主体（当前页状态/执行入口/导航项 VM/主框架 VM）归 H1 宿主壳件
   （与 R4/D3 同判据——单一消费方在 Host，模块对运行时类型零引用）。
 - **关键内部**：`StarPie.Sdk` 含目录/槽位契约 `NavigationCatalog`（`NavigationCatalog`/
-  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——模块注册器写、控制台读；
-  P1.3/#112 自 Core 收口）；
+  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——贡献者写、控制台读；
+  P1.3/#112 收口）；
   运行时主体（`NavigationStore`/`NavigationExecutor` 含 `INavigationExecutor`/`MainViewModel`/
   `NavigationItemViewModel`）在 Host（命名空间不变，见
   [host.md](host.md)/[navigation.md](navigation.md)）；`SidebarView` 属 Host。
-- **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
+- **扩展局部性**：新增页面（原型 B）→ 所属贡献者 `RegisterNavigation` + 页面模板字典
   （M5/M1 只动 Ui 集内各自部件，页面 VM DI 注册随各自
-  ShellModuleRegistrar/GesturesModuleRegistrar 下放；Host 外观聚合页经 exe 内
-  HostModuleRegistrar/HostPageTemplates），不碰其它模块（见 [assemblies.md](assemblies.md) §5）。
+  ShellContributor/GesturesContributor 登记；Host 外观聚合页经
+  HostPageContributor/HostPageTemplates），不碰其它模块（见 [assemblies.md](assemblies.md) §5）。
 
 #### S6 对话框
 
@@ -181,8 +181,8 @@
   （纯 C#，命名空间不变，ADR-0023）；实现与界面
   （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）随 P1.10/#119 驻
   `StarPie.Ui`（`Services|ViewModels|Views/Dialogs|Controls/`）。
-- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Sdk.Wpf 契约
-  `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
+- **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 SDK 契约
+  `IProgramScanner`（M3 实现由 `HostCoreContributor` 登记），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
   窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，ADR-0023）；不直穿 M3/S1 与 M4 实现内部；消费方
   （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`（P1.3/#112）。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
@@ -254,10 +254,10 @@ M2 构造契约变更不再波及 Host/M1
 ### D6 页面壳
 
 - Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随归并入 `StarPie.Ui`：
-  VM+View+注册器+模板字典均在模块程序集内，新增页面不碰 Host）；
+  VM+View+贡献者+模板字典均在 Ui 集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳；
-- Advanced 设置页 = M5 的设置面（随归并入 `StarPie.Ui`：VM+View+注册器+模板字典
-  均在模块程序集内，新增页面不碰 Host）；
+- Advanced 设置页 = M5 的设置面（随归并入 `StarPie.Ui`：VM+View+贡献者+模板字典
+  均在 Ui 集内，新增页面不碰 Host）；
 - 新增设置页按原型 B 走导航登记，不预设归属模块。
 
 ## 6. 扩展点验收表（“只动相关内部”）
@@ -265,11 +265,11 @@ M2 构造契约变更不再波及 Host/M1
 | 原型/场景             | 示例                              | 只动                                                                        | 放行共享面                                                                                                                                                                                                                                                                                                                             |
 | --------------------- | --------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A 新增设置项          | 现有页加开关                      | 所属模块 VM                                                                 | S2 模型字段、S3 文案键                                                                                                                                                                                                                                                                                                                 |
-| B 新增设置页面        | 新导航页                          | 新域/所属模块（注册器 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5/M1 只动 Ui 集内各自部件（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面        | 新导航页                          | 新域/所属模块（贡献者 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5/M1 只动 Ui 集内各自部件（Shell/GesturesContributor 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 HostPageContributor + 模板字典与 VM 登记；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框          | 新模态                            | S6 内部                                                                     | 调用方模块一行（经`IDialogService`）                                                                                                                                                                                                                                                                                                 |
 | D 新增动作类型        | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射）                               | 新图标资产 → S1；S3 文案；config 兼容                                                                                                                                                                                                                                                                                                 |
 | E 新增轮盘样式        | 新 Renderer                       | M2 内部（渲染器/工厂/配色目录/外观选项）                                    | S3 文案                                                                                                                                                                                                                                                                                                                                |
-| F 新增后台服务/监听器 | 新 Hook/Service                   | 所属模块内部                                                                | 所属模块注册器一行、新增模块才 H1                                                                                                                                                                                                                                                                                                      |
+| F 新增后台服务/监听器 | 新 Hook/Service                   | 所属模块内部                                                                | 所属贡献者一行、新增模块才 H1                                                                                                                                                                                                                                                                                                          |
 | 附加：新语言          | —                                | S3                                                                          | —                                                                                                                                                                                                                                                                                                                                     |
 | 附加：新消息/通知类型 | —                                | S4                                                                          | 放行共享面                                                                                                                                                                                                                                                                                                                             |
 | 附加：新图标资产      | —                                | S1                                                                          | 放行共享面                                                                                                                                                                                                                                                                                                                             |

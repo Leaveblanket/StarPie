@@ -26,9 +26,9 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
   `IThemeApplier`：加载/缓存/冻结主题字典，整项替换 Application 合并字典的活动主题槽）。
 - `StarPie.Ui/Themes/*.xaml`（五套同 key 集主题画刷令牌；App.xaml 静态合并 Light 作设计时/首帧默认）。
 - `StarPie.Ui/ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，ADR-0014 决策 6/7）。
-- `StarPie.Ui/Modules/ThemeModuleRegistrar.cs`（M4 模块注册器：`RegisterServices` 下放
+- `StarPie.Ui/Modules/ThemeContributor.cs`（M4 贡献者：`RegisterServices` 登记
   `ThemeService`/`IThemeService`（契约驻 StarPie.Sdk.Wpf）/`InterfaceThemeSettingsViewModel`
-  的 DI 注册；M4 无导航页，不提供 `RegisterNavigation`）。
+  的 DI 注册；M4 无导航页，走 `RegisterNavigation` 默认空实现）。
 - `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
   `StarPie.Sdk/Services/Messages/Messages.cs`，放行共享面，见 [messages.md](messages.md)）。
 
@@ -53,7 +53,7 @@ DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui
    `MainView.ApplyAppTheme(_interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），`Run()` 末尾
    `EnableSystemThemeTracking()` 启动系统跟随。
 4. **界面主题设置面（ADR-0014 决策 6/7）**：`InterfaceThemeSettingsViewModel`
-   （`StarPie.Ui/ViewModels/Pages`，DI 单例，由 `ThemeModuleRegistrar.RegisterServices`
+   （`StarPie.Ui/ViewModels/Pages`，DI 单例，由 `ThemeContributor.RegisterServices`
    注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；写穿配置后发布
    `AppThemeChangedMessage`，由 `MainView` 壳层 code-behind（文件归属见 [shell.md](shell.md)）订阅执行
    `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径

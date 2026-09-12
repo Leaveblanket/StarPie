@@ -1,6 +1,8 @@
 # 插件体系（目标态）
 
-> **状态**：P1 起的目标态规范；在 P1 落地前，as-built 以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
+> **状态**：P1（三集物理形态 + 统一注册管线 + 静态加载）已落地，其条款即 as-built；
+> 插件装载/卸载、能力、UI 托管与生态化为 P2–P4 目标态规范，落地前插件子系统 as-built 以
+> [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 

@@ -8,11 +8,11 @@ using StarPie.ViewModels.Pages;
 namespace StarPie.Modules
 {
     /// <summary>
-    /// 壳层与系统集成模块注册器：模块侧注册自治。<see cref="RegisterNavigation"/> 自报本模块
+    /// M5 壳层与系统集成贡献者：模块侧注册自治。<see cref="RegisterNavigation"/> 自报本模块
     /// 页面（高级与系统）写入 <see cref="NavigationCatalog"/>（槽位/标题键/图标/
     /// 目标类型），页面 DataTemplate 收进 ShellPageTemplates.xaml（宿主 App.xaml 经跨程序集
     /// pack URI 每模块一次静态合并）；<see cref="RegisterServices"/> 把本模块页面 VM 的 DI 注册
-    /// 下放本程序集（组合根仍唯一 BuildServiceProvider，本注册器只注册不解析）。
+    /// 下放本程序集（组合根仍唯一 BuildServiceProvider，本贡献者只注册不解析）。
     /// </summary>
     /// <remarks>
     /// 新增页面 = 本注册器 + 模板字典，不碰宿主。宿主回调（托盘气泡/退出）经共享内核的
@@ -20,10 +20,14 @@ namespace StarPie.Modules
     /// 自启注册表经本集 AutostartRegistry 静态委托接线；配置导入/导出用共享内核的
     /// <see cref="JsonConfigService"/> 具体服务——模块只依赖共享内核契约，不反向引用宿主。
     /// </remarks>
-    public static class ShellModuleRegistrar
+    internal sealed class ShellContributor : ICompositionContributor
     {
+        public string Id => "shell";
+
+        public int Order => 50;
+
         /// <summary>向导航目录注册本模块页面（槽位：3 高级与系统）。</summary>
-        public static void RegisterNavigation(NavigationCatalog catalog)
+        public void RegisterNavigation(NavigationCatalog catalog)
         {
             catalog.RegisterPage<GeneralSettingsViewModel>(
                 NavigationSlot.Advanced,
@@ -37,7 +41,7 @@ namespace StarPie.Modules
         /// 惰性解析共享内核件（配置/对话框/本地化/消息与 AppHostDelegates）；开机自启/提权探测
         /// 等本模块内静态行为在此接线，VM 保持委托注入可测。
         /// </summary>
-        public static void RegisterServices(IServiceCollection services)
+        public void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton(sp => new GeneralSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,

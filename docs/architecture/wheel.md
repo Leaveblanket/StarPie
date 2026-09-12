@@ -32,9 +32,9 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 - `StarPie.Ui/Views/Converters/CoreIconGeometryConverter.cs`/`CoreIconNameConverter.cs`
   （核图标预览转换器，随 M2：Appearance 聚合页的核圆预览配套，Geometry 转换器直连本模块
   几何出口，App.xaml 本地实例化）。
-- `StarPie.Ui/Modules/WheelModuleRegistrar.cs`（M2 模块注册器：`RegisterServices` 下放
+- `StarPie.Ui/Modules/WheelContributor.cs`（M2 贡献者：`RegisterServices` 登记
   轮盘工厂 `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的 DI 注册；M2 无导航页，
-  不提供 `RegisterNavigation`）。
+  走 `RegisterNavigation` 默认空实现）。
 
 > 图标/几何三分收口（R6/ADR-0015）：轮盘侧 RadialWindow/
 > WheelPreviewRenderer/CoreIconGeometryConverter 直连本模块几何出口 `WheelGeometry`
@@ -64,9 +64,9 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 - **承载**：`WheelAppearanceSettingsViewModel`（`StarPie.Ui/ViewModels/Pages/`，DI 单例）
   实现 `IWheelAppearanceState`；构造注入 M1 只读 `IProfilePreviewSource`（预览 Profile 来源，
   静态已知依赖走接口，不引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/
-  `IMessenger`/`ILocalizationService`；DI 注册由 `WheelModuleRegistrar.RegisterServices` 下放
+  `IMessenger`/`ILocalizationService`；DI 注册由 `WheelContributor.RegisterServices` 登记
   模块（`IProfilePreviewSource` 随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`（ADR-0023，
-  D5——实现方 `ProfileListViewModel` 别名由 GesturesModuleRegistrar 下放），消费方本子 VM
+  D5——实现方 `ProfileListViewModel` 别名由 GesturesContributor 登记），消费方本子 VM
   只依赖契约程序集）；全部状态写穿运行态配置（立即生效），落盘经防抖/立即消息上报；配色下拉
   选项（`PaletteOptions`）随语言切换重建并补发选中通知，`Dispose` 成对退订。
 - **页面接线**：外观聚合 VM `AppearanceSettingsViewModel` 收薄为页壳，只暴露
@@ -77,7 +77,7 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 
 ## 关键流程
 
-1. `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，DI 注册经 WheelModuleRegistrar
+1. `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，DI 注册经 WheelContributor
    下放；见 [gestures.md](gestures.md) 关键流程 5）按手势创建 `WheelViewModel(center, profile, config.Current)`：
    从配置/Profile 快照扇区、几何尺寸、主题、样式；`IWheelViewModel` 暴露
    `Show`/`HighlightSector`/`SetOuterEscapeState`/`Close`（经 Dispatcher 包装）。

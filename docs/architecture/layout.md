@@ -4,7 +4,7 @@
 
 ## Canonical 目录树
 
-以下为**应然结构**（正典）；当前代码与正典一致（exe `Modules/` 仅余 Host 外观聚合页，见文末“当前登记”）。
+以下为**应然结构**（正典）；当前代码与正典一致（四集 + 测试工程，无旧集与壳工程；见文末“当前登记”）。
 
 ```text
 StarPie/
@@ -14,10 +14,10 @@ StarPie/
 ├── StarPie.Ui/             # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口）：组合根、宿主壳窗口、导航运行时、外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
 │   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
-│   ├── Composition.cs             # DI 组合根（唯一）：注册与解析（含跨程序集回填缝，见 layering.md）
+│   ├── Composition.cs             # DI 组合根（唯一）：四阶段（早期回填 → 贡献者有序清单注册 → BuildServiceProvider → eager 解析）
 │   ├── DevInstance.cs             # 开发实例标记（H1）：--dev 互斥/触发键/自启保护
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
-│   ├── Modules/                   # Host 外观聚合页：HostModuleRegistrar + HostPageTemplates.xaml；M4：ThemeModuleRegistrar；M2：WheelModuleRegistrar；M1：GesturesModuleRegistrar + GesturesPageTemplates.xaml；M5：ShellModuleRegistrar + ShellPageTemplates.xaml；S6：DialogsModuleRegistrar
+│   ├── Modules/                   # 统一注册管线：ICompositionContributor + BuiltInContributors（内置有序清单）+ HostCore/HostPage 贡献者；M4：ThemeContributor；M2：WheelContributor；M1：GesturesContributor + GesturesPageTemplates.xaml；M5：ShellContributor + ShellPageTemplates.xaml；S6：DialogsContributor
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
 │   ├── StarPie.Ui.csproj          # Ui 集工程文件（#111 起目录/文件名 StarPie.Ui，程序集名仍为 StarPie）
@@ -28,6 +28,7 @@ StarPie/
 │   │   ├── app_icon.ico           # 应用图标（csproj ApplicationIcon 引用）
 │   │   └── logo.png
 │   ├── Services/
+│   │   ├── Localization/          # 设计期投影字典 DesignTimeStrings.xaml（签入生成物、Page 编译惰性 BAML）与生成脚本（源 resx 在 Host 内核；见 design-time-preview.md）
 │   │   ├── Icons/                 # 图标资产 WPF 图像构造：IconAssetService（实现 Sdk.Wpf 的 IIconAssetService；委托内核自定义图标目录）
 │   │   ├── Shell/                 # M4：ThemeService.cs（实现 Sdk.Wpf 的 IThemeService；窗口 DWM 应用与系统深浅色监听）；M5：TrayIconManager(+TrayMenuEntry)
 │   │   ├── Navigation/            # 导航运行时：NavigationStore、NavigationExecutor（含 INavigationExecutor）
@@ -90,10 +91,7 @@ StarPie/
 │       ├── Configuration/         # S2：IConfigService/JsonConfigService、ISaveDebouncer/AppDataPaths、SettingsSaveOrchestrator
 │       ├── Localization/          # S3：ILocalizationService/LocalizationService + Strings*.resx（四语言）
 │       └── ShellIntegration/      # M5：AutostartRegistry（HKCU Run 注册表，[SupportedOSPlatform("windows")]）+ MemoryOptimizer（工作集裁剪），命名空间 StarPie.Kernel.ShellIntegration
-├── StarPie.Core/                  # 设计期投影壳（WPF 类库，程序集 StarPie.Core；零导出类型、零运行时件）
-│   ├── StarPie.Core.csproj        # 零 ProjectReference；Page 编译设计期字符串字典（保留 WPF 类库形态的前提）
-│   └── Services/Localization/     # 设计期投影字典 DesignTimeStrings.xaml（签入生成物、惰性 BAML）与生成脚本（源 resx 在 Host 内核；见 design-time-preview.md）
-└── StarPie.Tests/          # xUnit 单测（显式引用四集与 Core（设计期投影壳））
+└── StarPie.Tests/          # xUnit 单测（显式引用四集，不依赖传递引用）
 ```
 > 程序集归属：目录名在所属工程内各自保持“命名空间 = 物理目录”（跨程序集共享同一棵
 > `StarPie.*` 命名空间树）；各程序集的承载与依赖方向见 [assemblies.md](assemblies.md) §2/§3，
@@ -104,7 +102,7 @@ StarPie/
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
 |---|---|---|
 | `Adapters/` | `StarPie.Ui/Adapters/`：实现 Host 内核接缝/端口的 WPF 适配器——`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`、`AppThemePaletteManager` 实现 `IThemeApplier`（主题字典整项替换） | 不放业务逻辑/VM/View；内核零 WPF，UI 线程亲和只能在本层提供 |
-| `Models/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：配置 POCO（`AppConfig`/`WheelProfile`/`ActionItem`/`CustomColorPreset`——AppConfig 引用）与 WPF-free 值类型/纯函数（`RgbColor`/`ColorMath`/`GesturePoint`）；`StarPie.Host/Wheel/`：轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free、命名空间 `StarPie.Wheel`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
+| `Models/` | `StarPie.Sdk/`（P1.3/#112 迁入）：配置 POCO（`AppConfig`/`WheelProfile`/`ActionItem`/`CustomColorPreset`——AppConfig 引用）与 WPF-free 值类型/纯函数（`RgbColor`/`ColorMath`/`GesturePoint`）；`StarPie.Host/Wheel/`：轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free、命名空间 `StarPie.Wheel`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
 | `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；静态工具需符合 [layering.md](layering.md)（Services） |
 | `Services/Actions/` | 路由纯函数 `ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）驻 `StarPie.Host/Actions/`（WPF-free）；`StarPie.Ui/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`（系统调用层，默认 MessageBox 上报） | 路由决策不得散落 VM/View；实现见 [gestures.md](gestures.md) |
 | `Kernel/Configuration/` | `StarPie.Host/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`AppDataPaths`、`SettingsSaveOrchestrator`（dev 分支经组合根回填）；`DispatcherSaveDebouncer` 在 `StarPie.Ui/Adapters/` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；内核不得出现 WPF 类型；实现见 [config.md](config.md) |
@@ -113,7 +111,7 @@ StarPie/
 | `Services/Icons/` | 契约分层：`IIconAssetService` 在 `StarPie.Sdk.Wpf/Services/Icons/`；条目类型 `CustomIconItem`/`VectorIconItem` 与 .lnk SPI 在 `StarPie.Sdk/Services/Icons/`；WPF 图像构造 `IconAssetService` 在 `StarPie.Ui/Services/Icons/` | 几何/程序解析类入口不在此（归属见 [modules.md](modules.md) §3 S1）；有状态/IO/Win32 面只经实例服务注入 |
 | `Icons/` · `Programs/`（Host） | 宿主内核的 WPF-free 模块逻辑：`IconCatalog`（矢量清单/SVG 键目录/路径解析纯表）与 `CustomIconStore`（自定义图标目录，命名空间 `StarPie.Icons`）；`ProgramScanner`（八源扫描编排）与 `ShortcutResolver`（.lnk 解析，命名空间 `StarPie.Programs`） | 不放 WPF 类型/XAML；程序扫描件只经 `StarPie.Sdk` 契约对外 |
 | `Themes/` · `Ports/`（Host） | 宿主内核的 WPF-free 主题引擎 `ThemeEngine`（请求/有效主题状态、解析、切换与系统跟随重解析，命名空间 `StarPie.Themes`）与宿主→Ui 端口 `IThemeApplier`（命名空间 `StarPie.Ports`，Ui 侧适配器实现） | 不放 XAML/主题字典（在 `StarPie.Ui/Themes/`）；引擎不引用 WPF，效果一律经端口回抛 |
-| `Kernel/Localization/` | `StarPie.Host/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx`（四语言）；`StarPie.Core/Services/Localization/` 只余设计期投影 `DesignTimeStrings.xaml`（Page 编译签入生成物）与生成脚本（ADR-0025 例外，源 resx 在内核） | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
+| `Kernel/Localization/` | `StarPie.Host/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx`（四语言）；`StarPie.Ui/Services/Localization/` 只余设计期投影 `DesignTimeStrings.xaml`（Page 编译签入生成物）与生成脚本（ADR-0025 例外，源 resx 在内核） | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
 | `Services/Messages/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：`Messages.cs`（IMessenger 消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest`） | 同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Wheel/` | `StarPie.Ui/Services/Wheel/`：`WheelGeometry`（直构造 WPF `Geometry`）、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Sdk`，P1.3/#112 收口） | 工厂只经 SDK 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
@@ -130,14 +128,14 @@ StarPie/
 | `Views/Converters/` | Host：通用共享转换器（`HexToBrush`/`StringToGeometry`/`IntEquals`/`FilePathToImage`，App.xaml App 级单点持有）；`StarPie.Ui/Views/Converters/`：M2 随归并的 `CoreIconGeometryConverter`/`CoreIconNameConverter` | 转换器保持无状态、可静态复用 |
 | `Views/DesignTime/` | `StarPie.Ui/`（含 M1/S6 样例）：设计期样例类型（命名空间 `StarPie.Views.DesignTime`，仅被根节点 `d:DataContext` 消费，见 design-time-preview.md） | 不放运行时 VM/服务；运行时代码不得引用 |
 | `Views/Renderers/` | `StarPie.Ui/Views/Renderers/`：`IRadialStyleRenderer`/`StyleRendererFactory`/`BaseStyleRenderer`/各风格渲染器/`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；深浅色探测由调用方以 bool 传入（见 [wheel.md](wheel.md)） |
-| `Modules/` | Ui 集内全部注册器：Host 外观聚合页 `HostModuleRegistrar`（RegisterNavigation）+ `HostPageTemplates.xaml`、M4 `ThemeModuleRegistrar`、M2 `WheelModuleRegistrar`、S6 `DialogsModuleRegistrar`（RegisterServices，均无导航页）、M1 `GesturesModuleRegistrar` 与 M5 `ShellModuleRegistrar`（RegisterServices + RegisterNavigation，各带页面模板字典） | 不承载业务；注册器只注册不解析 |
+| `Modules/` | Ui 集内统一注册管线与全部贡献者：`ICompositionContributor`（Id/Order/RegisterServices + 可选 RegisterNavigation）+ `BuiltInContributors` 有序清单、宿主编排 `HostCoreContributor`、Host 外观聚合页 `HostPageContributor` + `HostPageTemplates.xaml`、M4 `ThemeContributor`、M2 `WheelContributor`、S6 `DialogsContributor`（无导航页）、M1 `GesturesContributor` 与 M5 `ShellContributor`（含导航登记，各带页面模板字典） | 不承载业务；贡献者只登记不解析；Id/Order 唯一、清单按 Order 升序 |
 
 
 
 ### 共享 UI 基建落点（已去共享化）
 
-> 共享 UI 基建（原 `StarPie.Core/Views/`：Converters/Controls/Pages/Styles）已随去共享化**整体
-> 清空移除**（Core 现只余设计期投影字典）；资源键集不变——模块 XAML 消费方
+> 共享 UI 基建（原设计期投影壳内的 `Views/`：Converters/Controls/Pages/Styles）已随去共享化**整体
+> 清空移除**；资源键集不变——模块 XAML 消费方
 > （`{StaticResource}` 运行期解析）零改动。
 
 | 目录 | 存放什么 | 不放什么 / 常见违规 |
@@ -157,7 +155,7 @@ StarPie/
 Ui 集工程根（`StarPie.Ui/`）：
 
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
-- `Composition.cs`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、`CreateAppHost()` 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
+- `Composition.cs`：唯一 DI 组合根——四阶段：早期回填 → 内置贡献者有序清单注册（导航目录 + 容器描述符）→ `BuildServiceProvider` → `CreateAppHost()` eager 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
 - `DevInstance.cs`：开发实例标记（H1）——`--dev` 隔离互斥/配置目录/触发键并保护正式自启项（见 [host.md](host.md)）。
 - `Adapters/`：Ui 侧 WPF 适配器——实现 Host 内核接缝/端口（`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`，把防抖计时绑到 UI 线程，见 [config.md](config.md)；`AppThemePaletteManager` 实现 `IThemeApplier`，整项替换主题调色板，见 [interface-theme.md](interface-theme.md)）。
@@ -165,12 +163,18 @@ Ui 集工程根（`StarPie.Ui/`）：
   （图标资产的 WPF 图像构造 `IconAssetService`，实现 `StarPie.Sdk.Wpf` 的 `IIconAssetService`
   并委托宿主内核 `CustomIconStore`，见 [programs.md](programs.md)）；`Services/Shell/`
   （M4 的 `IThemeService` 实现 `ThemeService`，透传内核 `ThemeEngine` 状态并做窗口 DWM 应用与
-  系统深浅色监听，见 [interface-theme.md](interface-theme.md)）。
+  系统深浅色监听，见 [interface-theme.md](interface-theme.md)）；`Services/Localization/`
+  （设计期投影字典 `DesignTimeStrings.xaml` + 生成脚本，只被 `Properties/DesignTimeResources.xaml`
+  设计期合并，见 [design-time-preview.md](design-time-preview.md)）。
+  `Modules/`：统一注册管线——`ICompositionContributor`（Id/Order/RegisterServices + 可选
+  RegisterNavigation）与 `BuiltInContributors` 有序清单，及七个内置贡献者（宿主编排/外观页/
+  Theme/Wheel/Gestures/Shell/Dialogs）。
 - `Themes/`：M4 主题画刷令牌字典（五套同 key 集 XAML；`App.xaml` 静态合并 Light 作设计时/首帧
   默认，运行时由 `Adapters/AppThemePaletteManager` 整项替换，见 [interface-theme.md](interface-theme.md)）。
 - `Properties/`、`assets/`：工程配置与二进制资源；**不放 C#/XAML 源码**（唯一例外：
   `Properties/DesignTimeResources.xaml` 设计期资源锚，仅设计期合并，见
-  [design-time-preview.md](design-time-preview.md)）。
+  [design-time-preview.md](design-time-preview.md)；设计期字符串字典本体在
+  `Services/Localization/`）。
 - `StarPie.Sdk.csproj`：SDK 集工程入口（net10.0，零 WPF 零第三方包、零 ProjectReference；
   P1.2/#111 建骨架，P1.3/#112 迁入纯托管契约/模型/DTO）；`StarPie.Sdk/` 源码根目录**只允许**
   `Models/`、`Services/`、`ViewModels/`（迁移期镜像旧相对路径、命名空间保持 `StarPie.*` 不变，
@@ -193,28 +197,23 @@ Ui 集工程根（`StarPie.Ui/`）：
   `GlobalUsings.cs`——目标树其余目录（`HostServices/`、`PluginRuntime/`）随各归并票落地，
   目标树见 [plugins.md](plugins.md) §2；
   导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
-- `StarPie.Core.csproj`：设计期投影壳工程入口（零 ProjectReference；`UseWPF` 是 Page 编译前提）；
-  `StarPie.Core/` 源码根目录**只允许** `Services/Localization/`——`DesignTimeStrings.xaml`
-  （设计期投影字典，Page 编译签入生成物）与生成脚本 `GenerateDesignTimeStrings.ps1`
-  （源 resx 在 `StarPie.Host/Kernel/Localization/`；见
-  [design-time-preview.md](design-time-preview.md)）。本集零导出类型、零运行时件；归并期含 UI 工程
-  保留本集引用只为解析该字典的 pack URI（非运行时依赖）。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
-  `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Core/`、
-  四集目录下。
+  `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Tests/`
+  目录下。
 
 ## 现状偏差与待清理项
 
-当前代码与正典目录结构一致；exe `Modules/` 只承载 Host 外观聚合页注册器/模板字典与 M4 主题注册器（见下）。
+当前代码与正典目录结构一致；四集之外的旧集（含设计期投影壳 `StarPie.Core`）已全部撤销，
+exe `Modules/` 承载统一注册管线与全部内置贡献者（见下）。
 
-### 当前登记（Host 外观聚合页与 M4）
+### 当前登记（统一注册管线）
 
-- `StarPie.Ui/Modules/`：Host 外观聚合页注册器 `HostModuleRegistrar` 与页面模板字典
-  `HostPageTemplates.xaml`（App 级每模块一次静态合并），以及 M4 `ThemeModuleRegistrar`、
-  M2 `WheelModuleRegistrar`、S6 `DialogsModuleRegistrar`（均仅 RegisterServices）与
-  M1 `GesturesModuleRegistrar`、M5 `ShellModuleRegistrar`（RegisterServices + RegisterNavigation，
-  各带页面模板字典）。外观聚合页留 Host（[assemblies.md](assemblies.md) §5.2 槽位 1），
-  属正典形态而非待迁出偏差。
+- `StarPie.Ui/Modules/`：注册管线 `ICompositionContributor` + `BuiltInContributors`（`CreateAll`
+  返回按 `Order` 升序的有序清单，Id/Order 唯一）；贡献者 `HostCoreContributor`（宿主编排与内核
+  接入）、`HostPageContributor`（外观聚合页 VM 与槽位 1 + `HostPageTemplates.xaml`）、
+  `ThemeContributor`、`WheelContributor`、`DialogsContributor`（均无导航页）与
+  `GesturesContributor`、`ShellContributor`（含导航登记，各带页面模板字典）。外观聚合页留 Host
+  （[assemblies.md](assemblies.md) §5.2 槽位 1），属正典形态而非待迁出偏差。
 
 长期接受的例外（新代码不得新增同类）：
 

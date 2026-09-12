@@ -1,6 +1,11 @@
 # 设计时预览协议：设计期资源注入与运行视口锚定
 
-> Status: Active
+> Status: Active（字典落点被 0027 修订）
+>
+> 修订指针：[ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 的三集形态收口后，设计期投影壳
+> `StarPie.Core` 撤销，字典与其生成脚本随 Ui 集承载（`StarPie.Ui/Services/Localization/`，pack URI
+> 指向程序集 `StarPie`）；机制不变（Page 编译惰性 BAML + 资源锚设计期合并）。现状见
+> [design-time-preview.md](../architecture/design-time-preview.md)。
 
 ## 动机
 
@@ -50,9 +55,11 @@
 1. 每个含 UI 工程（现仅 Ui 集 StarPie；归并期含 UI 旧集随撤销退出清单）建
    `Properties/DesignTimeResources.xaml` 资源锚，仅设计期合并单源设计期字符串
    字典（zh-CN，派生自 `Strings.resx`）。
-2. 字典单源 = Core 编译惰性字典 + pack URI 合并：`StarPie.Core/Services/Localization/
-   DesignTimeStrings.xaml`（Page 编译、签入生成物，生成脚本同目录）；(c) 仓库根松散相对合并
-   因 spike 无法验证（无 VS 设计器、无官方文档支撑跨工程父目录松散合并行为）按契约回退。
+2. 字典单源 = 编译惰性字典 + pack URI 合并：字典随承载 UI 的工程编译（本决策落库时为
+   `StarPie.Core/Services/Localization/DesignTimeStrings.xaml`；三集形态收口后随
+   `StarPie.Ui/Services/Localization/DesignTimeStrings.xaml`，见修订指针）——Page 编译、签入生成物，
+   生成脚本同目录；(c) 仓库根松散相对合并因 spike 无法验证（无 VS 设计器、无官方文档支撑
+   跨工程父目录松散合并行为）按契约回退。
 3. 字典为签入生成物：生成脚本从 resx 派生，新增 xUnit 一致性测试锁键集与值；新增文案键后必须
    再生成。
 4. 设计期尺寸 = 运行时真实视口锚点的登记值；不伪造内容全高；清理既有 `d:Height`/`d:Background`
@@ -65,10 +72,11 @@
 ## Consequences
 
 - 各 UI 工程新增 `Properties/DesignTimeResources.xaml`（含 csproj `Page` 元数据）；Host/
-  Gestures/Dialogs 新增 `Views/DesignTime/`；Core 新增
+  Gestures/Dialogs 新增 `Views/DesignTime/`；承载 UI 的工程新增
   `Services/Localization/DesignTimeStrings.xaml`（Page 编译签入生成物）与同目录生成脚本——
   目录与文件在 `layout.md` 登记，协议细则在 `docs/architecture/design-time-preview.md`。
-- Core 含惰性 XAML 字典（回退路径的唯一 XAML 例外登记：设计期投影、非运行时第二数据源）。
+- 惰性 XAML 字典是本项目唯一的编译期 XAML 例外登记（设计期投影、非运行时第二数据源）：
+  收口后随 Ui 集承载（见修订指针）。
 - 设计期文本与视口可还原；对非 100% 缩放 / 自定义标题栏为近似；若 VS 不再借用 Host 上下文，
   视觉会退化（不预建副本）。
 - 全仓 XAML 批量改动属 feature 变更，按提交纪律走任务分支与验证门。

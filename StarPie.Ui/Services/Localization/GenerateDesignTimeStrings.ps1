@@ -9,11 +9,11 @@
 
     源 resx：StarPie.Host/Kernel/Localization/Strings.resx（本脚本所在目录由设计期投影
     与生成物共用，运行时本地化实现与四语言 resx 在宿主内核）。
-    输出文件：本目录 DesignTimeStrings.xaml（Page 编译进 StarPie.Core 的惰性 BAML，
-    各 UI 工程 Properties/DesignTimeResources.xaml 以 pack URI 在设计期合并）。
+    输出文件：本目录 DesignTimeStrings.xaml（Page 编译进 Ui 集 StarPie 的惰性 BAML，
+    Ui 工程 Properties/DesignTimeResources.xaml 以 pack URI 在设计期合并）。
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File StarPie.Core/Services/Localization/GenerateDesignTimeStrings.ps1
+    powershell -ExecutionPolicy Bypass -File StarPie.Ui/Services/Localization/GenerateDesignTimeStrings.ps1
 #>
 [CmdletBinding()]
 param()

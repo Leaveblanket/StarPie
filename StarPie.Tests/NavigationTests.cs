@@ -206,12 +206,13 @@ public sealed class MainViewModelTests
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
 
-        // 目录由生产模块注册器装配（Gestures/Shell/Host 三注册器）——测试同时锁定真实
-        // 槽位表（顺序/标识/标题键/图标/目标类型）；替身只代目录执行缝。
+        // 目录由生产内置贡献者清单装配（内置清单 + 注册管线，与组合根同一入口）——测试同时
+        // 锁定真实槽位表（顺序/标识/标题键/图标/目标类型）；替身只代目录执行缝。
         var catalog = new NavigationCatalog();
-        GesturesModuleRegistrar.RegisterNavigation(catalog);
-        ShellModuleRegistrar.RegisterNavigation(catalog);
-        HostModuleRegistrar.RegisterNavigation(catalog);
+        foreach (ICompositionContributor contributor in BuiltInContributors.CreateAll(new AppHostDelegates()))
+        {
+            contributor.RegisterNavigation(catalog);
+        }
         catalog.Validate();
 
         var navigation = new FakeNavigationExecutor(store, new Dictionary<NavigationSlot, ObservableObject>

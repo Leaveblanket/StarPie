@@ -78,7 +78,20 @@ public sealed class RuntimeNoCrossReferenceTests
     }
 
     [Fact]
-    public void 四集中仅Ui是入口_且仅Ui含XAML()
+    public void 产物中_恰为四集_旧集程序集文件不存在()
+    {
+        string[] onDisk = FourSetBoundaryProbe.AppAssembliesOnDisk();
+
+        Assert.Equal(
+            FourSetBoundaryProbe.FourSetAssemblyNames.OrderBy(name => name, StringComparer.Ordinal),
+            onDisk);
+        Assert.All(
+            FourSetBoundaryProbe.LegacyAssemblyNames,
+            legacy => Assert.DoesNotContain(legacy, onDisk));
+    }
+
+    [Fact]
+    public void 仅Ui含入口与XAML_其余集零入口零BAML()
     {
         Assembly ui = typeof(App).Assembly;
         Assert.NotNull(ui.EntryPoint);
@@ -89,6 +102,32 @@ public sealed class RuntimeNoCrossReferenceTests
             Assembly assembly = FourSetBoundaryProbe.LoadAppAssembly(set);
             Assert.Null(assembly.EntryPoint);
             Assert.Empty(FourSetBoundaryProbe.BamlEntries(assembly));
+        }
+
+        // 产物级补强：入口与 XAML 只在 Ui 一处出现——磁盘上的四集逐个核对，
+        // 而不是只核对代码里点名的那几个（旧集复活、新壳工程夹带入口/BAML 都会被拦下）。
+        foreach (string name in FourSetBoundaryProbe.AppAssembliesOnDisk())
+        {
+            Assembly assembly = FourSetBoundaryProbe.LoadAppAssembly(name);
+            bool isUi = name == "StarPie";
+            Assert.Equal(isUi, assembly.EntryPoint is not null);
+            Assert.Equal(isUi, FourSetBoundaryProbe.BamlEntries(assembly).Length > 0);
+        }
+    }
+
+    [Fact]
+    public void 四集产物_非空壳_全部类型连同非导出类型可枚举()
+    {
+        foreach (string name in FourSetBoundaryProbe.AppAssembliesOnDisk())
+        {
+            Assembly assembly = FourSetBoundaryProbe.LoadAppAssembly(name);
+
+            // 空壳检查覆盖全部类型（含 internal/嵌套）：只看 public 面会把只塞内部类型的
+            // 空壳工程放行；四集每一集都必须由真实类型承载。
+            Assert.NotEmpty(FourSetBoundaryProbe.AllTypeNames(assembly));
+            Assert.All(
+                assembly.GetTypes(),
+                type => Assert.Equal(name, type.Assembly.GetName().Name));
         }
     }
 }

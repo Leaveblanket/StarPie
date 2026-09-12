@@ -21,10 +21,10 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
-- `StarPie.Ui/Modules/ShellModuleRegistrar.cs` + `ShellPageTemplates.xaml`（正式模块注册器与
-  页面模板字典，自报导航项/模板并下放页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
+- `StarPie.Ui/Modules/ShellContributor.cs` + `ShellPageTemplates.xaml`（M5 贡献者与
+  页面模板字典，自报导航项/模板并登记页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
 - SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出，
-  P1.3/#112 自 Core 收口；见 [host.md](host.md)）。
+  P1.3/#112 收口；见 [host.md](host.md)）。
 
 M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie.Ui/Services/Shell/`
 （命名空间 `StarPie.Services.Shell`；主题引擎 `ThemeEngine` 在宿主内核，见
@@ -50,8 +50,8 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    （不进业务层，调用点见 [host.md](host.md)）；“立即清理”由 `GeneralSettingsViewModel` 直调
    （VM 在 Ui、工具在宿主内核，行为不变）。
 3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
-   `StarPie.Host/Kernel/ShellIntegration/`），经同集模块注册器
-   `ShellModuleRegistrar.RegisterServices` 委托注入
+   `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
+   `ShellContributor.RegisterServices` 委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`setAutoStart`），不进 VM/View。
 4. **关窗驻留**：`MainView` 壳层 code-behind（`Window_Closing` 隐藏到托盘 + 淡出，退出态读
    `ShellViewModel.IsExiting`）属 ADR-0009 白名单；壳层成员（`WindowTitle`/`IsExiting`/`Save()`）在
@@ -59,7 +59,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
    `CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
-   SDK 契约 `AppHostDelegates` 转发（模块注册器只依赖 SDK，宿主回填实现，
+   SDK 契约 `AppHostDelegates` 转发（贡献者只依赖 SDK，宿主回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。
 
@@ -67,7 +67,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 
 - 新壳层行为（如开机自启策略变化）：改 M5 内部（`StarPie.Ui` 的 `TrayIconManager`、
   `StarPie.Host/Kernel/ShellIntegration/` 的 `AutostartRegistry` 等）并保持委托注入边界；
-  新增 M5 设置页只动 Ui 内部（注册器 + 模板字典 +
+  新增 M5 设置页只动 Ui 内部（贡献者 + 模板字典 +
    VM 注册，见 [navigation.md](navigation.md)），不碰 Host。
 - 新托盘菜单项：在 `AppHost.BuildTrayMenuEntries` 登记（宿主接线见 [host.md](host.md)）。
 - 新 OS 集成功能按 D2 护栏先对号入座（[modules.md](modules.md) §5 D2）。
