@@ -4,11 +4,12 @@
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
 > 目标程序集划分、程序集级依赖规则、导航槽位表与注册/可见性契约。
 
-> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 已建四集骨架，并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；P1.3/#112 已把 headless 契约/模型收口入 `StarPie.Sdk`，P1.4/#113 已把 WPF 契约件收口入 `StarPie.Sdk.Wpf`（见 §2 与 §3）。P1.3–P1.10 分批归并期间，旧 15 集仍是未搬迁代码的 as-built 主体，P1.11 按目标态回填全文。
+> **目标态变更（P1 起）**：15 集并入三集（StarPie.Sdk/StarPie.Host/StarPie.Ui）+ `StarPie.Sdk.Wpf` + 能力插件，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。P1.2/#111 已建四集骨架，并把 exe 工程目录/文件改名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；P1.3/#112 已把 headless 契约/模型收口入 `StarPie.Sdk`，P1.4/#113 已把 WPF 契约件收口入 `StarPie.Sdk.Wpf`（见 §2 与 §3）。P1.3–P1.10 分批归并期间，未搬迁的旧集仍是 as-built 主体，P1.11 按目标态回填全文。
 >
 > **程序集现状**：四集骨架（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
-> + 旧 15 集（Host/Core + 5 业务 runtime + `StarPie.Dialogs` + `StarPie.Icons` + 各 `*.Contracts`，
-> 划分见 §2）。代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
+> + 尚未归并的旧集（设计期投影壳 `StarPie.Core` 与四个模块 runtime
+> `StarPie.Dialogs`/`StarPie.Shell`/`StarPie.Wheel`/`StarPie.Gestures`，划分见 §2）。
+> 代码现状以 §2–§7/§9 与各叶子（`docs/architecture/*.md`）
 > 为准，冲突时叶子优先。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
 
 ## 1. 何时读本文
@@ -22,7 +23,7 @@
 | 程序集化落地历史与现状 | ADR-0016、ADR-0023 与 git 历史；现状以本文 §2–§7 为准 |
 | 为什么这样定 | [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) |
 
-## 2. 程序集地图（as-built：旧 15 集 + 四集骨架）
+## 2. 程序集地图（as-built）
 
 | 程序集 | 形态 | 承载 |
 |---|---|---|
@@ -31,11 +32,8 @@
 | `StarPie.Sdk.Wpf` | WPF 类库 | SDK 的 WPF 类型契约面（P1.2/#111 骨架，P1.4/#113 收口）：承载跨集共享的 WPF 契约件——`Services/Icons/`（IIconAssetService）、`Services/Shell/`（IThemeService）、`Compatibility/`（UiSdkAbi 主次版本/兼容判定 + DefaultAlcPolicy 默认 ALC 统一加载政策）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；导出面与 ABI 政策由 `SdkWpfBoundaryTests` 收口 |
 | `StarPie.Host` | 类库（net10.0） | 宿主内核：零 WPF、零 XAML（不引用 `StarPie.Sdk.Wpf`），ProjectReference 只许 `StarPie.Sdk`；承载 `Kernel/Configuration`（S2 配置读写/防抖落盘接缝/AppDataPaths）与 `Kernel/Localization`（S3 本地化实现 + `Strings*.resx` 四语言，命名空间 `StarPie.Kernel.*`），S1/M3 的 WPF-free 逻辑——`Icons/`（`IconCatalog` 静态纯目录 + `CustomIconStore` 自定义图标目录，命名空间 `StarPie.Icons`）与 `Programs/`（`ProgramScanner` 八源扫描 + `ShortcutResolver` .lnk 解析，命名空间 `StarPie.Programs`），以及 M4 的主题引擎 `Themes/`（`ThemeEngine`，命名空间 `StarPie.Themes`）与宿主→Ui 端口 `Ports/`（`IThemeApplier`，命名空间 `StarPie.Ports`）；件件可 headless 直接构造；导出面与零 WPF 泄漏由 `HostBoundaryTests` 收口 |
 | `StarPie.Core` | WPF 类库 | 设计期投影壳（P1.5/#114）：零导出类型、零运行时件，只余设计期字符串字典 `Services/Localization/DesignTimeStrings.xaml`（Page 编译惰性 BAML，仅设计期合并，ADR-0025 的唯一 XAML 例外）与生成脚本；归并期含 UI 工程保留本集引用只为解析该字典的 pack URI（非运行时依赖）。契约/模型已迁 `StarPie.Sdk`（P1.3/#112）、WPF 契约件迁 `StarPie.Sdk.Wpf`（P1.4/#113），运行时迁 `StarPie.Host` |
-| `StarPie.Dialogs.Contracts` | 类库（纯 C#） | S6 对话框契约工程（ADR-0023）：`IDialogService` + 6 结果 record 已随 P1.3/#112 迁 `StarPie.Sdk/Services/Dialogs/`（命名空间 `StarPie.Services.Dialogs` 不变）；本工程暂留空壳（无源码、无 ProjectReference），待 P1.10 撤销 |
-| `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（契约随实现方独立成集、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023；Dialogs → Sdk（对话契约与程序扫描/.lnk 契约）+ Sdk.Wpf（图标资产与主题契约面）+ `StarPie.Host`（S2/S3 与图标目录/程序扫描实现）单向，不引用任何其它模块 runtime；`StarPie.Core` 引用仅设计期资源锚 pack URI，非运行时依赖） |
-| `StarPie.Gestures.Contracts` | 类库 | M1 预览 Profile 契约工程（ADR-0023）：`IProfilePreviewSource` 已随 P1.3/#112 迁 `StarPie.Sdk/ViewModels/Pages/`（命名空间 `StarPie.ViewModels.Pages` 不变）；本工程暂留空壳（无源码、无 ProjectReference），待 P1.6 撤销 |
+| `StarPie.Dialogs` | 类库 | S6 对话框实现：DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior（契约 `IDialogService` + 结果 record 驻 `StarPie.Sdk`，ADR-0023；Dialogs → Sdk（对话契约与程序扫描/.lnk 契约）+ Sdk.Wpf（图标资产与主题契约面）+ `StarPie.Host`（S2/S3 与图标目录/程序扫描实现）单向，不引用任何其它模块 runtime；`StarPie.Core` 引用仅设计期资源锚 pack URI，非运行时依赖） |
 | `StarPie.Gestures` | 类库 | M1 手势与动作：Services/Gestures、Services/Actions、Trigger/Gestures 设置页、热键录制控件 HotkeyRecorderBox（控件 + 样式字典 `Views/Styles/HotkeyRecorderBox.xaml`）；Gestures → `StarPie.Host`（S2/S3）单向 + `StarPie.Sdk`（预览源/轮盘/对话框契约与模型，P1.3/#112）+ `StarPie.Sdk.Wpf`（S1 图标契约面，P1.4/#113；M1→M2 runtime 允许边经 SDK 清零，ADR-0023）+ Core（仅设计期资源锚） |
-| `StarPie.Wheel.Contracts` | 类库 | M2 轮盘契约工程（ADR-0023）：`IWheelFactory`/`IWheelViewModel`/`IWheelAppearanceState` 已随 P1.3/#112 迁 `StarPie.Sdk/Services|ViewModels/Wheel/`（命名空间不变）；本工程暂留空壳（无源码、无 ProjectReference），待 P1.7 撤销 |
 | `StarPie.Wheel` | 类库 | M2 轮盘与渲染：WheelViewModel/RadialWindow/Renderers/WheelPalette*/WheelGeometry/WheelFactory（含 D5 工厂收编；Wheel → `StarPie.Host`（S2/S3）+ `StarPie.Sdk`（轮盘/预览/对话框契约与模型，P1.3/#112）+ `StarPie.Sdk.Wpf`（IThemeService 与 S1 图标契约面）单向，ADR-0023；Core 引用仅设计期资源锚） |
 | `StarPie.Shell` | 类库 | M5 壳层服务与设置面：TrayIconManager/AutostartRegistry/MemoryOptimizer/General 设置页（`MainView` 壳窗口与 `ShellViewModel` **不**随 M5，留 Host）；Shell → `StarPie.Host`（S2/S3）+ `StarPie.Sdk`（对话框契约/导航目录/模型，P1.3/#112）单向（`StarPie.Core` 引用仅设计期资源锚 pack URI） |
 
@@ -74,16 +72,13 @@ StarPie (Ui/exe) ──→ StarPie.Sdk + StarPie.Sdk.Wpf + StarPie.Host + StarPi
      │──→ StarPie.Shell ──→ StarPie.Sdk + StarPie.Host（+ Core 仅设计期资源锚）
      └────────────────────────────────────────→ StarPie.Sdk + StarPie.Sdk.Wpf + StarPie.Host + StarPie.Core（仅设计期资源锚）
 
-     StarPie.Dialogs/Gestures/Wheel.Contracts：契约迁 SDK 后暂留空壳（无源码、无消费方引用；
-     测试显式加载以断言空壳与全仓类型唯一），分别待 P1.6/P1.7/P1.10 撤销；
      StarPie.Icons/Programs 与 StarPie.Theme/Theme.Contracts 已撤销（M4 引擎归 Host、
      字典/VM 归 Ui；S1/M3 的 WPF-free 逻辑归 Host、图像构造归 Ui；契约归 SDK/Sdk.Wpf）。
 ```
 
 - 模块 runtime 对内核/契约**单向**：M*/S* runtime 只引用自身契约与经 `StarPie.Sdk`/
   `StarPie.Sdk.Wpf` 消费的契约面能力（扫描/.lnk 与图标条目经 SDK，主题与图标资产服务经
-  Sdk.Wpf；对话框/轮盘工厂与 VM 接口/预览源契约统一经 `StarPie.Sdk`，原
-  Dialogs/Gestures/Wheel.Contracts 工程暂留空壳），不反向引用
+  Sdk.Wpf；对话框/轮盘工厂与 VM 接口/预览源契约统一经 `StarPie.Sdk`），不反向引用
   其它模块 runtime；P1.5/#114 起内核运行时（S2/S3）在 `StarPie.Host`，旧集 → Host 是归并期
   过渡边（模块 runtime 尚未拆入 Ui）；托底深色探针、dev 分支等宿主能力经组合根注入委托或
   `AppDataPaths` 回填缝提供；`Ui → 全部`（仅调用各模块注册器与装配宿主对象，不引用模块内部）。
@@ -102,8 +97,8 @@ StarPie (Ui/exe) ──→ StarPie.Sdk + StarPie.Sdk.Wpf + StarPie.Host + StarPi
   `StarPie.Sdk.Wpf` 契约边（对话框链的程序扫描/.lnk 与图标条目经 SDK、主题与图标资产
   服务经 Sdk.Wpf；M1/M2/M5→S6 与 M2→M1 预览源、M1→M2 经 StarPie.Sdk）；仅 Host（组合根）
   引用全部 runtime。
-- S6 对话框契约（`IDialogService` + 结果 record，纯 C#，ADR-0023）原驻 `StarPie.Dialogs.Contracts`、
-  P1.3/#112 随 SDK 收口迁 `StarPie.Sdk`，实现（DialogService/五对对话框 VM/Window/
+- S6 对话框契约（`IDialogService` + 结果 record，纯 C#，ADR-0023）驻 `StarPie.Sdk`，
+  实现（DialogService/五对对话框 VM/Window/
   SpectrumCanvasBehavior）驻 `StarPie.Dialogs`；M 页面经 SDK 的 `IDialogService`
   调用（Gestures/Shell/Wheel/Host csproj 显式引用 SDK），实现由 DialogsModuleRegistrar 注册，
   Host 组合根仅保留 `SetOwner(MainView)` 装配面。
@@ -204,7 +199,7 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 
 ## 9. 现状对照与差异登记
 
-15 程序集现状以 §2 程序集地图、§3 依赖规则、§5 导航槽位（NavPage0..3）与 §7 可见性为正典；
+程序集现状以 §2 程序集地图、§3 依赖规则、§5 导航槽位（NavPage0..3）与 §7 可见性为正典；
 概念模块归属见 [modules.md](modules.md)。程序集化落地历史见 ADR-0016、ADR-0023 与 git 历史，
 本文不逐批登记。
 

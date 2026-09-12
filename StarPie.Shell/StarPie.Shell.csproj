@@ -23,7 +23,7 @@
     <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IDialogService、导航目录、
-         AppHostDelegates、AppConfig/消息等；Dialogs.Contracts 暂留空壳） -->
+         AppHostDelegates、AppConfig/消息等） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
   </ItemGroup>
 

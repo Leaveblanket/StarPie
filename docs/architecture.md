@@ -13,7 +13,7 @@
 | `docs/architecture.md`（本文） | 架构文档入口与任务路由 | 任何架构问题先读这里 |
 | `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
 | `docs/architecture/modules.md` | 模块划分地图（12 模块 + 修整单元判据） | 归属争议、扩展点验收时 |
-| `docs/architecture/assemblies.md` | 程序集地图与依赖方向（15 程序集现状） | 程序集归属、依赖方向、导航槽位时 |
+| `docs/architecture/assemblies.md` | 程序集地图与依赖方向（as-built） | 程序集归属、依赖方向、导航槽位时 |
 | `docs/architecture/design-time-preview.md` | 设计时预览协议（设计期资源注入/视口登记/样例数据） | XAML 设计器预览、DesignTimeResources、设计视口时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
@@ -80,7 +80,7 @@
   保留本集引用以解析该字典的 pack URI（非运行时依赖，见
   [design-time-preview.md](architecture/design-time-preview.md)）。
 - 契约与模型已迁 `StarPie.Sdk`（P1.3/#112：Models/Messages/导航目录与槽位/`AppHostDelegates`、
-  对话框与预览 Profile 契约；旧 `Dialogs.Contracts`/`Gestures.Contracts` 暂留空壳）与
+  对话框与预览 Profile 契约）与
   `StarPie.Sdk.Wpf`（P1.4/#113：主题与图标资产服务契约件）；导航运行时主体（NavigationStore/NavigationExecutor/MainViewModel/
   NavigationItemViewModel）归 Ui 集 `StarPie.Ui/Services/Navigation/` 与
   `StarPie.Ui/ViewModels/Navigation/`，命名空间不变；共享 UI 基建已去共享化——通用转换器与
@@ -106,8 +106,8 @@
   承载 M2 轮盘与渲染（WheelViewModel/RadialWindow/Views/Renderers 样式渲染器与预览、
   Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
   WheelGeometry 视觉几何与 WheelFactory 实现、模块注册器 WheelModuleRegistrar），
-  出口契约（IWheelFactory/IWheelViewModel/IWheelAppearanceState）原驻 `StarPie.Wheel.Contracts`、
-  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`（命名空间不变，工程暂留空壳）；runtime → Sdk +
+  出口契约（IWheelFactory/IWheelViewModel/IWheelAppearanceState）驻 `StarPie.Sdk`
+  （命名空间不变）；runtime → Sdk +
   Sdk.Wpf（IThemeService/IIconAssetService 契约面）+ Host（内核）单向（runtime 允许边清零）；
   命名空间统一为 `StarPie.*`。
 - 模块程序集：`StarPie.Gestures/`（WPF 类库，程序集 `StarPie.Gestures`）承载 M1 手势与动作
@@ -115,14 +115,12 @@
   WindowContext）、动作执行 Services/Actions（IActionExecutorService/ActionExecutorService/
   ActionRouting）、触发+手势设置页（BehaviorSettingsViewModel+TriggerSettingsPage、
   ProfileListViewModel+SlotViewModel+GesturesSettingsPage）与模块注册器
-  GesturesModuleRegistrar），出口契约 `IProfilePreviewSource` 原驻 `StarPie.Gestures.Contracts`、
-  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`（命名空间不变，工程暂留空壳）；
+  GesturesModuleRegistrar），出口契约 `IProfilePreviewSource` 驻 `StarPie.Sdk`（命名空间不变）；
   runtime → Sdk + Sdk.Wpf（S1 图标契约面）+ Host（内核）单向（runtime 允许边清零）；
   命名空间统一为 `StarPie.*`。
 - 共享基础设施模块的独立落点：`StarPie.Dialogs/`（WPF 类库，程序集 `StarPie.Dialogs`）承载
   S6 对话框实现（DialogService、五对对话框 VM/Window、SpectrumCanvasBehavior 与模块注册器
-  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 原驻 `StarPie.Dialogs.Contracts`、
-  P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk`），
+  DialogsModuleRegistrar；契约 `IDialogService` 与结果 record 驻 `StarPie.Sdk`），
   runtime → Sdk + Sdk.Wpf（程序扫描/SPI、图标与主题契约面）+ Host（内核）单向（runtime 允许边清零）；
   命名空间统一为 `StarPie.*`。
 - S1 图标资产三分解（契约/目录/图像构造）：`IIconAssetService` 契约驻 `StarPie.Sdk.Wpf`；
@@ -157,9 +155,6 @@ StarPie/
 ├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML；承载主题/图标资产服务契约与 ABI 政策）
 ├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测；内核运行时在 Kernel/，图标目录/程序扫描在 Icons|Programs/）
 ├── StarPie.Core/                # 设计期投影壳（只余设计期字符串字典；运行时已迁 Host，见 layout.md）
-├── StarPie.Dialogs.Contracts/   # S6 对话框契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
-├── StarPie.Wheel.Contracts/     # M2 轮盘契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
-├── StarPie.Gestures.Contracts/  # M1 预览 Profile 契约工程（P1.3/#112 迁 SDK 后暂留空壳，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（见 layout.md）
 ├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（见 layout.md）
@@ -214,7 +209,7 @@ Services ---> Models
 | 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分 | Active |
 | 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） | Active（决策 3 被 0016、判据被 0023 修订） |
 | 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行 | Active（目标态被 0023 演进） |
-| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active |
+| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active（部分被 0027 修订） |
 | 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
 | 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active |
 | 0026 | `docs/adr/0026-runtime-baseline-and-windows-sdk-projection.md` | 运行时基线与 Windows SDK 投影版本政策 | Active |

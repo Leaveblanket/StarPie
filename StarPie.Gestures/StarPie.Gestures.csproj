@@ -7,7 +7,7 @@
          删除——本 runtime 只经 IWheelFactory/IWheelViewModel 契约接口消费瞬态轮盘，不引用
          Wheel runtime/其它业务模块（M2 侧也不反向引用 M1，跨 M 只经契约边）。
          P1.3/#112：IProfilePreviewSource/IWheelFactory/IWheelViewModel/IDialogService 等
-         headless 契约随 SDK 收口迁入 StarPie.Sdk（Gestures/Wheel/Dialogs 三个契约工程暂留空壳）。
+         headless 契约随 SDK 收口迁入 StarPie.Sdk。
          依赖方向：StarPie.Gestures → StarPie.Sdk（headless 契约/模型）+
          StarPie.Host（宿主内核：S2 配置 / S3 本地化）单向 +
          StarPie.Sdk.Wpf（P1.4/#113 契约面：S1 图标契约四件与条目类型）；
@@ -30,8 +30,7 @@
     <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
     <!-- P1.3/#112：headless 契约/模型随 SDK 收口迁入 StarPie.Sdk（IProfilePreviewSource、
-         IWheelFactory/IWheelViewModel、IDialogService、AppConfig/消息/导航目录等；
-         三个纯托管契约工程暂留空壳） -->
+         IWheelFactory/IWheelViewModel、IDialogService、AppConfig/消息/导航目录等） -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <!-- P1.4/#113：SDK WPF 契约面（SlotViewModel/ProfileListViewModel/GesturesModuleRegistrar
          消费 IIconAssetService；原 Icons.Contracts 随 SDK 收口迁入，命名空间不变） -->

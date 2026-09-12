@@ -8,8 +8,7 @@
 
 ## 组成文件
 
-M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约原独立成集 `StarPie.Wheel.Contracts/`，
-ADR-0023，P1.3/#112 随 SDK 收口迁 `StarPie.Sdk/`，原工程暂留空壳）：
+M2 物理落位（独立模块程序集 `StarPie.Wheel/`；出口契约驻 `StarPie.Sdk/`，ADR-0023）：
 
 - `StarPie.Sdk/`（M2 出口契约，ADR-0023；命名空间不变；签名依赖 SDK Models 数据，仅零 WPF 零
   第三方包，不引用业务 runtime）：`Services/Wheel/IWheelFactory.cs`（轮盘工厂

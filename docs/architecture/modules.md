@@ -178,7 +178,7 @@
 
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
 - **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Sdk/Services/Dialogs/`
-  （纯 C#，命名空间不变，ADR-0023；P1.3/#112 自 Dialogs.Contracts 收口）；实现与界面
+  （纯 C#，命名空间不变，ADR-0023）；实现与界面
   （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻 `StarPie.Dialogs`。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 Sdk.Wpf 契约
   `IProgramScanner`（M3 注册器提供实现），图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
