@@ -1,0 +1,45 @@
+<Project>
+
+  <!-- 随包 UI 示例插件打包：插件产物 + plugin.json 复制到引用方输出目录的 plugins/<id>/。
+       引用方（Ui = 宿主产物、Tests = xUnit 的卸载矩阵夹具）各自 Import 本文件；
+       包目录名必须等于清单 id（plugins.md §3）。构建与发布输出各挂一次。 -->
+  <PropertyGroup>
+    <BuiltInSampleUiPluginId Condition="'$(BuiltInSampleUiPluginId)' == ''">starpie.builtin.sample-ui</BuiltInSampleUiPluginId>
+    <BuiltInSampleUiPluginSourceDir>$(MSBuildThisFileDirectory)</BuiltInSampleUiPluginSourceDir>
+    <BuiltInSampleUiPluginProjectPath>$(MSBuildThisFileDirectory)StarPie.Plugin.SampleUi.csproj</BuiltInSampleUiPluginProjectPath>
+  </PropertyGroup>
+
+  <Target Name="ResolveBuiltInSampleUiPluginPackage">
+    <MSBuild
+      Projects="$(BuiltInSampleUiPluginProjectPath)"
+      Targets="Build"
+      Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_BuiltInSampleUiPluginOutputs" />
+    </MSBuild>
+  </Target>
+
+  <Target
+    Name="PackBuiltInSampleUiPluginIntoBuildOutput"
+    AfterTargets="Build"
+    DependsOnTargets="ResolveBuiltInSampleUiPluginPackage">
+    <Copy
+      SourceFiles="@(_BuiltInSampleUiPluginOutputs)"
+      DestinationFolder="$(OutDir)plugins\$(BuiltInSampleUiPluginId)\" />
+    <Copy
+      SourceFiles="$(BuiltInSampleUiPluginSourceDir)plugin.json"
+      DestinationFolder="$(OutDir)plugins\$(BuiltInSampleUiPluginId)\" />
+  </Target>
+
+  <Target
+    Name="PackBuiltInSampleUiPluginIntoPublishOutput"
+    AfterTargets="Publish"
+    DependsOnTargets="ResolveBuiltInSampleUiPluginPackage">
+    <Copy
+      SourceFiles="@(_BuiltInSampleUiPluginOutputs)"
+      DestinationFolder="$(PublishDir)plugins\$(BuiltInSampleUiPluginId)\" />
+    <Copy
+      SourceFiles="$(BuiltInSampleUiPluginSourceDir)plugin.json"
+      DestinationFolder="$(PublishDir)plugins\$(BuiltInSampleUiPluginId)\" />
+  </Target>
+
+</Project>

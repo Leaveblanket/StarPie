@@ -17,6 +17,8 @@ namespace StarPie.PluginRuntime.Admission
         {
             // 首个随包 headless 插件：程序来源（plugins/src/StarPie.Plugin.Programs）。
             "starpie.builtin.program-source",
+            // 首个随包 UI 示例插件（plugins/src/StarPie.Plugin.SampleUi）。
+            "starpie.builtin.sample-ui",
         };
 
         private readonly IReadOnlyCollection<string> _builtInPluginIds;

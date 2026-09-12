@@ -1,0 +1,21 @@
+<UserControl x:Class="StarPie.Plugin.SampleUi.SampleUiPageView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 插件页视图：随插件资源字典里的 DataTemplate（DataType = SampleUiPageViewModel）实例化。
+         绑定全部落在插件 VM 上；卸载时宿主清 DataContext/断绑定后整棵可回收。 -->
+    <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="8" Padding="20">
+        <StackPanel>
+            <TextBlock Text="首个 UI 示例插件" FontSize="20" FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding Heartbeat.Ticks, Mode=OneWay, StringFormat=宿主定时器心跳：{0} 次}"
+                       Margin="0,10,0,0"/>
+            <TextBox x:Name="MessageInput"
+                     Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                     Margin="0,10,0,0"/>
+            <TextBlock Text="{Binding Message, Mode=OneWay, StringFormat=回显：{0}}"
+                       Margin="0,10,0,0" Foreground="#888888"/>
+            <Button x:Name="OpenWindowButton" Content="打开示例窗口"
+                    Command="{Binding OpenWindowCommand}" Margin="0,10,0,0"
+                    HorizontalAlignment="Left" Padding="16,6"/>
+        </StackPanel>
+    </Border>
+</UserControl>

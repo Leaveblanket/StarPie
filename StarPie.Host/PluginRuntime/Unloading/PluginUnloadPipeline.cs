@@ -11,6 +11,7 @@ using StarPie.HostServices;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
+using StarPie.PluginRuntime.Ui;
 
 namespace StarPie.PluginRuntime.Unloading
 {
@@ -37,6 +38,7 @@ namespace StarPie.PluginRuntime.Unloading
         private readonly TimeSpan _drainTimeout;
         private readonly IPluginLogSink _logSink;
         private readonly PluginReclaimPolicy _reclaimPolicy;
+        private readonly IPluginUiCoordinator? _uiCoordinator;
 
         /// <summary>构造卸载管线。</summary>
         /// <param name="flushPendingSaves">
@@ -48,17 +50,23 @@ namespace StarPie.PluginRuntime.Unloading
         /// 回收判定策略；缺省硬判（纯 headless 宿主）。WPF 宿主传
         /// <see cref="PluginReclaimPolicy.Diagnostic"/>：宿主框架缓存插件程序集，ALC 与程序集存活只记诊断。
         /// </param>
+        /// <param name="uiCoordinator">
+        /// UI 托管端口：清单声明 ui 段的插件在停用之后、释放作用域之前经本端口清理 UI 资产；
+        /// null 表示本宿主不托管插件 UI（此时界面插件的装载本就失败，无 UI 资产可清）。
+        /// </param>
         public PluginUnloadPipeline(
             Action flushPendingSaves,
             TimeSpan? drainTimeout = null,
             IPluginLogSink? logSink = null,
-            PluginReclaimPolicy reclaimPolicy = PluginReclaimPolicy.Hard)
+            PluginReclaimPolicy reclaimPolicy = PluginReclaimPolicy.Hard,
+            IPluginUiCoordinator? uiCoordinator = null)
         {
             ArgumentNullException.ThrowIfNull(flushPendingSaves);
             _flushPendingSaves = flushPendingSaves;
             _drainTimeout = drainTimeout ?? DefaultDrainTimeout;
             _logSink = logSink ?? DebugPluginLogSink.Instance;
             _reclaimPolicy = reclaimPolicy;
+            _uiCoordinator = uiCoordinator;
         }
 
         /// <summary>执行一次安全点卸载。</summary>
@@ -103,7 +111,8 @@ namespace StarPie.PluginRuntime.Unloading
             // 回收判定时被 GC 当作 root（headless 硬判据要求插件对象全部死亡）。
             if (!request.HasScope)
             {
-                return UnloadIsolatedLoadAsync(request, lifecycle, diagnostics, failures);
+                return await UnloadIsolatedLoadAsync(request, lifecycle, diagnostics, failures, cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             // 2. 拒绝新调用 + 能力摘除 + 在途归零（危险区之前的三道门）。
@@ -154,6 +163,16 @@ namespace StarPie.PluginRuntime.Unloading
                 failures.Add($"停用失败：{stopFailure}");
             }
 
+            // 3b. UI 资产清理（界面插件专用）：在 UI 线程摘视图/关窗/摘资源根/注销注册项/停定时器
+            //     与动画/断订阅，并跑泄漏验证。失败按资产未清零记账——插件代码自 Stopping 起已停，
+            //     残留的宿主侧资产仍要回收（释放作用域与 ALC 照做），收口结论是隔离。
+            List<PluginResidual> uiResiduals = await ReleaseUiAsync(request, diagnostics, cancellationToken)
+                .ConfigureAwait(false);
+            if (uiResiduals.Count > 0)
+            {
+                failures.Add($"UI 资产未清零（{uiResiduals.Count} 项残留）");
+            }
+
             // 4. 服务作用域释放（ALC 卸载的前置）。账本残留是防御性断言：Dispose 先清账本再释放句柄，
             //    结构上必为零；不为零说明 Dispose 的清账语义被改动，按失败记账而不是放过。
             int handlesBefore = request.Scope.HandleCount;
@@ -189,6 +208,9 @@ namespace StarPie.PluginRuntime.Unloading
                 residuals.Insert(0, scopeResidual);
             }
 
+            // UI 残留与回收残留合并成一份可定位清单（管理面按同一列表展示）。
+            residuals.InsertRange(0, uiResiduals);
+
             List<PluginResidual> blocking = SplitResiduals(residuals, diagnostics, out string? reclaimNote);
 
             string? residual = DescribeResidual(blocking);
@@ -199,7 +221,10 @@ namespace StarPie.PluginRuntime.Unloading
 
             // 资源回收成功与否独立于隔离结论：作用域释放、账本清零与阻断残留清零才算回收成功。
             // 降级策略下 ALC 与程序集残留不算阻断（宿主框架缓存程序集），请求已交出全部强引用。
-            bool reclaimed = scopeReclaimed && blocking.Count == 0;
+            // UI 残留不阻断"资源已回收"结论：请求已交出全部强引用，残留的是宿主侧未摘净的 UI 资产
+            // （结论仍是隔离，下一次安全点经同一端口续收）；插件自有对象残留照常阻断。
+            bool reclaimed = scopeReclaimed
+                && blocking.All(item => item.Kind == PluginResidualKind.UiAsset);
 
             if (failures.Count > 0)
             {
@@ -247,21 +272,32 @@ namespace StarPie.PluginRuntime.Unloading
         /// 启动失败的隔离装载结果回收：没有实例、服务作用域与在途调用可清，
         /// 交出 ALC 并做回收判定；结论仍是隔离，不改写既有隔离原因。
         /// </summary>
-        private PluginUnloadResult UnloadIsolatedLoadAsync(
+        private async Task<PluginUnloadResult> UnloadIsolatedLoadAsync(
             PluginUnloadRequest request,
             PluginLifecycleStateMachine lifecycle,
             List<string> diagnostics,
-            List<string> failures)
+            List<string> failures,
+            CancellationToken cancellationToken)
         {
             // 配置落盘是安全点第一步，已由 UnloadAsync 统一执行并记账，本路径不重复落盘。
             diagnostics.Add("能力与在途：未启动成功，无作用域（跳过）");
             diagnostics.Add("StopAsync：未启动成功（跳过）");
             diagnostics.Add("作用域：未创建（跳过）");
 
+            // 启动失败的界面插件可能已在装载期注册过部分 UI 资产（UI 注册本身失败的那一类）：
+            // 回收续做时一并重试清理，避免残留的托管上下文卡住下一次装载。
+            List<PluginResidual> uiResiduals = await ReleaseUiAsync(
+                request, diagnostics, cancellationToken).ConfigureAwait(false);
+            if (uiResiduals.Count > 0)
+            {
+                failures.Add($"UI 资产未清零（{uiResiduals.Count} 项残留）");
+            }
+
             TransitionOrSkip(lifecycle, PluginLifecycleState.Unloading, diagnostics);
 
             ReclaimAndJudge(request, diagnostics);
             List<PluginResidual> residuals = CollectResiduals(request);
+            residuals.InsertRange(0, uiResiduals);
             List<PluginResidual> blocking = SplitResiduals(residuals, diagnostics, out string? reclaimNote);
             string? residual = DescribeResidual(blocking);
             if (residual is not null)
@@ -290,6 +326,60 @@ namespace StarPie.PluginRuntime.Unloading
                 reclaimed,
                 residuals,
                 reclaimNote);
+        }
+
+        /// <summary>
+        /// UI 资产清理：界面插件转移一步 <see cref="PluginLifecycleState.ReleasingUi"/> 后经 UI 端口清理，
+        /// 返回逐条可定位的 UI 残留；headless 插件与未托管 UI 的宿主都直接返回空清单。
+        /// </summary>
+        private async Task<List<PluginResidual>> ReleaseUiAsync(
+            PluginUnloadRequest request,
+            List<string> diagnostics,
+            CancellationToken cancellationToken)
+        {
+            var residuals = new List<PluginResidual>();
+            if (!request.HasUi)
+            {
+                diagnostics.Add("UI 资产：非界面插件（跳过）");
+                return residuals;
+            }
+
+            if (_uiCoordinator is null)
+            {
+                diagnostics.Add("UI 资产：宿主未托管插件 UI（跳过）");
+                return residuals;
+            }
+
+            TransitionOrSkip(request.Lifecycle, PluginLifecycleState.ReleasingUi, diagnostics);
+
+            PluginUiReleaseResult release;
+            try
+            {
+                release = await _uiCoordinator
+                    .ReleaseAsync(request.PluginId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception exception)
+            {
+                string reason = $"UI 清理抛出异常：{DescribeException(exception)}";
+                diagnostics.Add($"UI 资产：失败（{reason}）");
+                residuals.Add(new PluginResidual { Kind = PluginResidualKind.UiAsset, Detail = reason });
+                return residuals;
+            }
+
+            if (release.Succeeded)
+            {
+                diagnostics.Add("UI 资产：已清零（登记表清零且全局根无残留）");
+                return residuals;
+            }
+
+            diagnostics.Add($"UI 资产：未清零（{release.Residuals.Count} 项残留）");
+            foreach (string line in release.Residuals)
+            {
+                residuals.Add(new PluginResidual { Kind = PluginResidualKind.UiAsset, Detail = line });
+            }
+
+            return residuals;
         }
 
         /// <summary>
@@ -467,7 +557,8 @@ namespace StarPie.PluginRuntime.Unloading
         private static bool IsPluginOwned(PluginResidualKind kind)
             => kind is PluginResidualKind.PluginObject
                 or PluginResidualKind.ScopeHandle
-                or PluginResidualKind.InFlightCall;
+                or PluginResidualKind.InFlightCall
+                or PluginResidualKind.UiAsset;
 
         /// <summary>残留清单的可读摘要；无残留时返回 null。</summary>
         private static string? DescribeResidual(IReadOnlyList<PluginResidual> residuals)
@@ -492,6 +583,7 @@ namespace StarPie.PluginRuntime.Unloading
                     PluginResidualKind.Type => "类型",
                     PluginResidualKind.ScopeHandle => "作用域句柄",
                     PluginResidualKind.InFlightCall => "在途调用",
+                    PluginResidualKind.UiAsset => "UI 资产",
                     _ => item.Kind.ToString(),
                 }).Distinct());
 

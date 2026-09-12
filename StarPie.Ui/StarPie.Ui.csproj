@@ -51,5 +51,6 @@
   <!-- 随包 headless 插件打包：把 plugins/src 下的第一方插件连同 plugin.json 复制到
        输出目录的 plugins/<清单 id>/（PluginPaths.InstallDirectory 的落点）。 -->
   <Import Project="..\plugins\src\StarPie.Plugin.Programs\Package.targets" />
+  <Import Project="..\plugins\src\StarPie.Plugin.SampleUi\Package.targets" />
 
 </Project>

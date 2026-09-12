@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -53,14 +54,20 @@ namespace StarPie.Services.Navigation
             Show(_catalog.GetEntry(identifier));
         }
 
-        /// <summary>固定页经容器解析单例；插件页经注册工厂创建（工厂返回值须是页面 VM）。</summary>
+        /// <summary>
+        /// 固定页经容器解析单例；插件页经注册工厂创建（工厂返回值须是页面 VM）。
+        /// </summary>
+        /// <remarks>
+        /// 页面 VM 只要求实现 <see cref="INotifyPropertyChanged"/>：绑定要的通知面是框架契约，
+        /// MVVM 基类是宿主内部选择，插件页 VM 不随宿主框架走。
+        /// </remarks>
         private void Show(NavigationPageRegistration entry)
         {
             object viewModel = entry.ViewModelFactory is { } factory
                 ? factory()
                 : _services.GetRequiredService(entry.ViewModelType);
 
-            _store.CurrentViewModel = viewModel as ObservableObject
+            _store.CurrentViewModel = viewModel as INotifyPropertyChanged
                 ?? throw new InvalidOperationException(
                     $"导航目标不是页面 VM：{entry.Identifier}");
         }

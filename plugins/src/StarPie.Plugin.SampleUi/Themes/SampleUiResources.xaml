@@ -1,0 +1,26 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ui="clr-namespace:StarPie.Plugin.SampleUi">
+    <!-- UI 示例插件的资源字典：经 IPluginUiContext.MergeResourceDictionary 并入插件资源根，
+         卸载时随根容器整根摘除（DataTemplate/样式一次摘净，不散落宿主资源）。
+         同程序集类型引用不带 assembly= 令牌：BAML 随本程序集装载，类型解析落在装载上下文内。 -->
+
+    <!-- 示例样式资产：登记在字典里的具名样式随根摘除。 -->
+    <Style x:Key="SampleUiSectionStyle" TargetType="{x:Type Border}">
+        <Setter Property="Padding" Value="12"/>
+        <Setter Property="CornerRadius" Value="6"/>
+        <Setter Property="Background" Value="#11FFFFFF"/>
+    </Style>
+
+    <!-- 页面 VM → 页面视图：插件页的视图映射（宿主壳层 ContentControl 隐式模板命中）。 -->
+    <DataTemplate DataType="{x:Type ui:SampleUiPageViewModel}">
+        <ui:SampleUiPageView />
+    </DataTemplate>
+
+    <!-- 设置区块 VM → 区块视图：宿主设置区按区块呈现时经隐式模板命中。 -->
+    <DataTemplate DataType="{x:Type ui:SampleUiSettingsViewModel}">
+        <Border Style="{StaticResource SampleUiSectionStyle}" BorderBrush="#33808080" BorderThickness="1">
+            <TextBlock Text="{Binding Greeting}"/>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>

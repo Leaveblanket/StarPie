@@ -33,7 +33,7 @@ namespace StarPie.ViewModels.Navigation
         public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }
 
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>
-        public ObservableObject? CurrentViewModel => _store.CurrentViewModel;
+        public System.ComponentModel.INotifyPropertyChanged? CurrentViewModel => _store.CurrentViewModel;
 
         public MainViewModel(
             NavigationStore store,

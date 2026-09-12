@@ -14,6 +14,7 @@ using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
 using StarPie.PluginRuntime.Unloading;
+using StarPie.PluginRuntime.Ui;
 using StarPie.Programs;
 using StarPie.Services;
 using StarPie.Services.Navigation;
@@ -118,10 +119,15 @@ namespace StarPie.Modules
             // 回收判定走降级档：本进程是 WPF 宿主，System.Xaml 的 BAML 架构上下文会经
             // AppDomain 程序集加载事件收拢全部程序集并强引用，插件程序集不可能在本进程内回收；
             // 入口实例仍硬判，ALC 与程序集存活只记诊断，重启后释放。
-            services.AddSingleton(sp => new PluginLoadPipeline(sp.GetRequiredService<CapabilityRegistry>()));
+            // 两条管线都接 UI 托管端口：装载期调 IPluginUiModule.RegisterUi，卸载期先清 UI 资产
+            // 再释放作用域与 ALC（界面插件在安全点的固定顺序）。
+            services.AddSingleton(sp => new PluginLoadPipeline(
+                sp.GetRequiredService<CapabilityRegistry>(),
+                uiCoordinator: sp.GetService<IPluginUiCoordinator>()));
             services.AddSingleton(sp => new PluginUnloadPipeline(
                 sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave,
-                reclaimPolicy: PluginReclaimPolicy.Diagnostic));
+                reclaimPolicy: PluginReclaimPolicy.Diagnostic,
+                uiCoordinator: sp.GetService<IPluginUiCoordinator>()));
             // 「彻底移除」的三条宿主侧接缝：配置段删除走配置服务、插件数据目录走 PluginPaths、
             // 删除后立即冲刷配置落盘（挂起的防抖落盘会把旧段写回磁盘）。
             services.AddSingleton(sp => new PluginRuntimeHost(
@@ -144,6 +150,8 @@ namespace StarPie.Modules
                 Application.Current.Dispatcher,
                 sp.GetService<IPluginEvents>(),
                 sp.GetRequiredService<NavigationCatalog>()));
+            services.AddSingleton<IPluginUiCoordinator>(sp =>
+                sp.GetRequiredService<PluginUiCoordinator>());
 
             // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
             services.AddSingleton<MainViewModel>();

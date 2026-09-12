@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 首个随包界面插件（plugins.md §2/§3）：同时引 StarPie.Sdk（headless 入口）与
+         StarPie.Sdk.Wpf（UI 入口契约），是「引 SDK + Sdk.Wpf」这条引用面的样板工程。
+         含 XAML 视图/窗口与资源字典（编译期 BAML），插件包目录名 = 清单 id（由 Package.targets 复制）。 -->
+    <UseWPF>true</UseWPF>
+    <AssemblyName>StarPie.Plugin.SampleUi</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 跨集只经两个 SDK 面：不引 Host/Ui，也不随包分发 SDK——Private=false 让契约只进编译期
+         引用面（plugins.md §5.1 约束 3：包内出现 StarPie.Sdk.dll/StarPie.Sdk.Wpf.dll 即 Rejected），
+         运行期由宿主默认 ALC 统一提供共享契约（跨 ALC 类型身份唯一）。 -->
+    <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
+    <ProjectReference Include="..\..\..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 清单随包复制（由 Package.targets 负责），不作为编译项。 -->
+    <None Remove="plugin.json" />
+  </ItemGroup>
+
+</Project>

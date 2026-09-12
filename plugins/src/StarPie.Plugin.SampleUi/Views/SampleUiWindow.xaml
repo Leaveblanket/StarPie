@@ -1,0 +1,12 @@
+<Window x:Class="StarPie.Plugin.SampleUi.SampleUiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UI 示例窗口" Width="320" Height="200"
+        WindowStartupLocation="CenterScreen">
+    <!-- 插件窗口：工厂由宿主调用创建实例；Opacity 动画经宿主中介附着在 AnimationTarget 上，
+         摘除必须 Storyboard.Remove（矩阵对动画一项的专门断言）。 -->
+    <Border x:Name="AnimationTarget" Background="#2288AAFF" CornerRadius="8" Margin="16">
+        <TextBlock Text="示例窗口：宿主托管创建与关闭"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Border>
+</Window>

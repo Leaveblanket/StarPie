@@ -140,7 +140,8 @@ public sealed class PluginRuntimeHostTests : IDisposable
             """;
         string packageRoot = Path.Combine(_tempRoot, "update-ui");
         WriteLoadablePackage(packageRoot, UiPluginId, version: "1.0.0", uiSection: UiSection);
-        (PluginRuntimeHost host, _) = CreatePackageHost(UiPluginId, packageRoot);
+        var uiCoordinator = new StubPluginUiCoordinator();
+        (PluginRuntimeHost host, _) = CreatePackageHost(UiPluginId, packageRoot, uiCoordinator: uiCoordinator);
         await host.StartAsync(CancellationToken.None);
         Assert.Equal(new[] { UiPluginId }, host.ActivePluginIds);
 
@@ -149,6 +150,9 @@ public sealed class PluginRuntimeHostTests : IDisposable
         PluginLoadResult result = await host.UpdateAsync(UiPluginId, CancellationToken.None);
 
         // 界面插件的程序集在进程内不可回收：旧版本就地隔离，新版本留给下次启动装载。
+        // 旧版本在安全点卸载时经 UI 端口完成资产清理（替身记账）。
+        Assert.Equal(1, uiCoordinator.ReleaseCount);
+
         PluginDiagnosticsReport report = host.GetDiagnostics(UiPluginId);
         Assert.Equal(PluginRuntimeStatus.PendingRestart, report.Status);
         Assert.Equal("2.0.0", report.Version);
@@ -543,11 +547,14 @@ public sealed class PluginRuntimeHostTests : IDisposable
         string pluginId,
         string pluginsRoot,
         Action<string>? removeConfigSection = null,
-        string? pluginDataDirectory = null)
+        string? pluginDataDirectory = null,
+        StubPluginUiCoordinator? uiCoordinator = null)
     {
         var state = new PluginStateStore(Path.Combine(_tempRoot, pluginId + "-state.json"));
         var registry = new CapabilityRegistry();
         registry.DeclareContract(ProgramSourceCapability.Contract);
+        // UI 托管替身：清单带 ui 段的夹具（更新/挂起流程）按"宿主托管 UI"装载。
+        uiCoordinator ??= new StubPluginUiCoordinator();
         var host = new PluginRuntimeHost(
             new PluginStartupScanner(
                 new PluginDiscovery(pluginsRoot, Path.Combine(_tempRoot, pluginId + "-user")),
@@ -555,8 +562,8 @@ public sealed class PluginRuntimeHostTests : IDisposable
                 state,
                 new PluginStartupReportWriter(Path.Combine(_tempRoot, pluginId + "-report.json"))),
             state,
-            new PluginLoadPipeline(registry),
-            new PluginUnloadPipeline(() => { }),
+            new PluginLoadPipeline(registry, uiCoordinator: uiCoordinator),
+            new PluginUnloadPipeline(() => { }, uiCoordinator: uiCoordinator),
             new PluginUninstallOptions
             {
                 RemoveConfigSection = removeConfigSection,
