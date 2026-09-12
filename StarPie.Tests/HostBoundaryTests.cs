@@ -25,6 +25,8 @@ public sealed class HostBoundaryTests
         typeof(AppDataPaths), typeof(SettingsSaveOrchestrator),
         // Kernel/Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
+        // Kernel/ShellIntegration/（开机自启注册表与内存整理，纯托管 + P/Invoke）
+        typeof(AutostartRegistry), typeof(MemoryOptimizer),
         // Icons/（资产目录与自定义图标存储）
         typeof(IconCatalog), typeof(CustomIconStore),
         // Programs/（扫描编排与 .lnk 解析）
@@ -133,9 +135,9 @@ public sealed class HostBoundaryTests
     }
 
     [Fact]
-    public void 设计期资源锚_三个UI工程指向Core投影字典()
+    public void 设计期资源锚_Ui工程指向Core投影字典()
     {
-        foreach (string project in new[] { "StarPie.Ui", "StarPie.Shell", "StarPie.Dialogs" })
+        foreach (string project in new[] { "StarPie.Ui" })
         {
             string path = Path.Combine(FourSetBoundaryProbe.RepoRoot, project, "Properties", "DesignTimeResources.xaml");
             Assert.True(File.Exists(path), $"设计期资源锚缺失: {project}");

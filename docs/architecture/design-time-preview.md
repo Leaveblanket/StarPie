@@ -21,7 +21,7 @@
 
 每个含 UI 工程在 `Properties/DesignTimeResources.xaml` 放 VS 设计期资源锚（固定路径 +
 csproj `Page Update` 的 `ContainsDesignTimeResources` 元数据），内容为合并设计期字符串字典；
-**仅设计期生效，运行时不会自动合并**。覆盖工程：StarPie / StarPie.Shell / StarPie.Dialogs。
+**仅设计期生效，运行时不会自动合并**。覆盖工程：StarPie（Ui 集；M1–M5/S6 归并后其余旧集不再持有资源锚）。
 
 ## 设计期字符串字典
 

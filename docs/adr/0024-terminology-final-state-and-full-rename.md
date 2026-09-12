@@ -37,7 +37,7 @@
 
 「壳层 (Shell)」是应用外壳职责的伞形术语，下分两个子词条（CONTEXT.md 已收录）：
 - **壳窗口 (Shell Window)**：设置控制台主窗口的窗口职责（H1：MainView/ShellViewModel/关窗驻留/界面主题应用）；
-- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面；程序集名 `StarPie.Shell` 在伞形语义下自洽，不改名）。
+- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面）；P1.10/#119 归并后不再独立成集（自启/内存整理驻 `StarPie.Host/Kernel/ShellIntegration`，托盘/高级页驻 `StarPie.Ui`），伞形语义保留在 `StarPie.Services.Shell`/`StarPie.Kernel.ShellIntegration` 命名空间中。
 
 ## Decision
 

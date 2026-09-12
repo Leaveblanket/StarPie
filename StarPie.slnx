@@ -4,7 +4,5 @@
   <Project Path="StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
   <Project Path="StarPie.Host\StarPie.Host.csproj" />
   <Project Path="StarPie.Core\StarPie.Core.csproj" />
-  <Project Path="StarPie.Dialogs\StarPie.Dialogs.csproj" />
-  <Project Path="StarPie.Shell\StarPie.Shell.csproj" />
   <Project Path="StarPie.Tests\StarPie.Tests.csproj" />
 </Solution>

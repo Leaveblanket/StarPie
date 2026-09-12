@@ -34,7 +34,7 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
 DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui）与 S6 对话框侧
-（StarPie.Dialogs）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；M5 托盘深色
+（驻 StarPie.Ui）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；M5 托盘深色
 探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Ui → 宿主内核 + Sdk.Wpf 单向，
 内核不反向引用 Ui。
 
@@ -68,7 +68,7 @@ DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui
    WPF/WinRT 侧效果：`EnableSystemThemeTracking`（`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher
    封送 → 仅 System/空模式重解析）与 `ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20）。
 6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView`（Host）与对话框窗口
-   （`StarPie.Dialogs`）构造注入做白名单应用
+   （驻 `StarPie.Ui`）构造注入做白名单应用
    （[ADR-0009](../adr/0009-view-code-behind-whitelist.md)）。
 
 ## 扩展点

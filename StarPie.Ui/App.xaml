@@ -15,10 +15,10 @@
                 <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
                 <!--  热键录制控件样式字典（M1，随归并入 Ui）：本地合并  -->
                 <ResourceDictionary Source="Views/Styles/HotkeyRecorderBox.xaml" />
-                <!--  模块页面模板字典：Gestures 本地合并、Shell 经跨程序集 pack URI 合并，
+                <!--  模块页面模板字典：M1/M5 随归并入 Ui 后本地合并，
                       宿主外观聚合页模板由本地 Modules/HostPageTemplates.xaml 提供  -->
                 <ResourceDictionary Source="Modules/GesturesPageTemplates.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
+                <ResourceDictionary Source="Modules/ShellPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BoolToVis" />

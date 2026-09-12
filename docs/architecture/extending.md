@@ -7,11 +7,11 @@
 1. 先确认功能域、模型与 `config.json` 兼容性（新字段带默认值，不改旧字段语义）。
 2. 纯逻辑放 Services 纯函数/引擎；副作用放可注入服务或组合根注入的委托。
 3. VM 只含状态、命令、消息；View 只含布局与纯 UI 效果；引用遵守 [layering.md](layering.md)（依赖矩阵）。
-4. 服务/页面 VM 注册：M5 在 `StarPie.Shell` 的 `ShellModuleRegistrar`、M1 在 `StarPie.Ui`
+4. 服务/页面 VM 注册：M5 在 `StarPie.Ui` 的 `ShellModuleRegistrar`、M1 在 `StarPie.Ui`
    的 `GesturesModuleRegistrar` 内注册（RegisterServices），Host 外观聚合页仍在 `Composition.cs`
    注册（见 [host.md](host.md)）；导航项经所属模块注册器
    `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（M5 在
-   `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在 `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，
+   `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在 `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，
    见 [navigation.md](navigation.md)），映射表（[naming.md](naming.md)）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本一律用 i18n 文案键 + 四语言值（新增/修改流程见 [localization.md](localization.md)）。
@@ -31,16 +31,16 @@
 
 ## 原型 B：新增设置页面
 
-1. **VM**：M5 页面在 `StarPie.Shell/ViewModels/Pages/`、M1 页面在 `StarPie.Ui/ViewModels/Pages/`、
+1. **VM**：M5 页面在 `StarPie.Ui/ViewModels/Pages/`、M1 页面在 `StarPie.Ui/ViewModels/Pages/`、
    Host 页面在 exe `ViewModels/Pages/`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger`
    或组合根/模块注册器委托；单例注册）。
-2. **View**：M5 页面在 `StarPie.Shell/Views/Pages/`、M1 页面在 `StarPie.Ui/Views/Pages/`、
+2. **View**：M5 页面在 `StarPie.Ui/Views/Pages/`、M1 页面在 `StarPie.Ui/Views/Pages/`、
    Host 页面在 exe `Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（页面 XAML 根直承 `UserControl`）。
 3. **注册与接线（目录驱动；M5/M1 均已跨程序集自治）**：页面 VM 注册——M5 由
    `ShellModuleRegistrar.RegisterServices`、M1 由 `GesturesModuleRegistrar.RegisterServices` 下放
    模块程序集，Host 页仍在 `Composition.ConfigureServices` → 所属模块注册器
    `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/TitleKey/IconData；M5 为
-   `StarPie.Shell` 的 ShellModuleRegistrar、M1 为 `StarPie.Ui` 的 GesturesModuleRegistrar、
+   `StarPie.Ui` 的 ShellModuleRegistrar、M1 为 `StarPie.Ui` 的 GesturesModuleRegistrar、
    Host 为 exe 内 HostModuleRegistrar）→ 所属模块页面模板字典加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
    eager 启动解析与侧栏导航项由目录自动纳入，无需再改组合根清单。
 4. **i18n**：导航标题/壳层文案键 + 四语言（见 [localization.md](localization.md)）。
@@ -48,7 +48,7 @@
 
 ## 原型 C：新增对话框
 
-1. **VM**（在 `StarPie.Dialogs/ViewModels/Dialogs/`）：`{Dialog}ViewModel.cs`：构造注入所需服务/契约；完成语义 = `IsCompleted` + `BuildResult()` 返回可空结果；取消/无效 = `null`；不引用 WPF 类型。
+1. **VM**（在 `StarPie.Ui/ViewModels/Dialogs/`）：`{Dialog}ViewModel.cs`：构造注入所需服务/契约；完成语义 = `IsCompleted` + `BuildResult()` 返回可空结果；取消/无效 = `null`；不引用 WPF 类型。
 2. **结果 record**：`{Dialog}Result` 定义在 `IDialogService.cs`（可空返回）。
 3. **View**：`Views/Dialogs/{Dialog}Window.xaml(.cs)`，构造 `(IThemeService, {Dialog}ViewModel)`；code-behind 仅 ADR-0009 白名单（`IsCompleted→DialogResult=true`、取消、主题、标题拼接例外）。
 4. **服务**：`IDialogService` 加 `Show{Dialog}(...)` 具名方法（同步、返回可空结果）；`DialogService` 实现 = new VM → new Window → `ShowDialog` → `BuildResult`。

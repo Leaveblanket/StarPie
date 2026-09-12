@@ -65,9 +65,10 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
     组合根构造配置路径与回填 dev 分支用；内核导出面由 `HostBoundaryTests` 白名单收口）。
-  - 需要被 Host 装配的模块公开件显式 `public`（先例：`StarPie.Shell` 的
-    `TrayIconManager`/`TrayMenuEntry`——`AppHost.Run` 负责 `new` 托盘并注入菜单 provider；
-    `AutostartRegistry` 只被同集注册器接线，保持 internal；M4 并入 Ui 集后
+  - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
+    `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `AppHost.Run` 负责 `new` 托盘并注入
+    菜单 provider；`AutostartRegistry` 住 `StarPie.Host/Kernel/ShellIntegration/`，由 Ui 侧
+    注册器跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
     `AppThemePaletteManager` 回落 internal（装配方 `AppHost` 与实现同集），
     `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
     M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集注册器接线/容器解析，维持 public
@@ -136,8 +137,8 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
-- 页面经 App 级模块页面模板字典（M5 在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在
-  `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1 归并后本地合并；Host 外观
+- 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
+  `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 归并后本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
   （共享页面基类 `SettingsPageBase` 已删除——Trigger/Advanced/Appearance 三页

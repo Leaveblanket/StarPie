@@ -37,13 +37,6 @@
     <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core）；
          运行时内核（S2 配置 / S3 本地化）在 StarPie.Host -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0020/#88：S6 对话框实现程序集显式引用（DialogService 实现与五对对话框
-         VM/Window 随迁；组合根调 DialogsModuleRegistrar 注册 IDialogService DI、
-         AppHost 建窗后调 DialogService.SetOwner 回填 Owner 装配面） -->
-    <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
-    <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
-         组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
-    <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
   </ItemGroup>
 
   <ItemGroup>

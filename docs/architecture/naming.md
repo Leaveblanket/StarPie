@@ -27,9 +27,9 @@
 | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | 高级与系统 |
 
 规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属模块注册器
-`RegisterNavigation`（M5 为 `StarPie.Shell` 的 `ShellModuleRegistrar`、M1 为
+`RegisterNavigation`（M5 为 `StarPie.Ui` 的 `ShellModuleRegistrar`、M1 为
 Ui 集内 M1 的 `GesturesModuleRegistrar`，Host 外观聚合页为 exe 内 `HostModuleRegistrar`）
-+ 所属模块页面模板字典 DataTemplate（M5 在 `StarPie.Shell/Modules/ShellPageTemplates.xaml`、M1 在
++ 所属模块页面模板字典 DataTemplate（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
 `StarPie.Ui/Modules/GesturesPageTemplates.xaml`）+ 本表各登记一行**；映射表是唯一事实来源
 （接线流程见 [navigation.md](navigation.md)）。
 

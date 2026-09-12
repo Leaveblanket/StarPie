@@ -36,10 +36,6 @@
          宿主内核运行时件（配置/本地化/图标目录/程序扫描）随 Host 引用直用，
          Core 只余设计期投影字典（HostBoundaryTests 断言其零导出类型） -->
     <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
-    <!-- ADR-0020/#88：S6 对话框实现程序集（DialogService/对话框 VM/Window 等测试直用） -->
-    <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
-    <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
-    <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
   </ItemGroup>
 
 </Project>
