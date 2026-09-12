@@ -5,15 +5,22 @@
          绑定全部落在插件 VM 上；卸载时宿主清 DataContext/断绑定后整棵可回收。 -->
     <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="8" Padding="20">
         <StackPanel>
-            <TextBlock Text="首个 UI 示例插件" FontSize="20" FontWeight="SemiBold"/>
-            <TextBlock Text="{Binding Heartbeat.Ticks, Mode=OneWay, StringFormat=宿主定时器心跳：{0} 次}"
+            <!-- AutomationId 供 e2e 以行为名定位：插件页是动态注册面，锚点即导航与降级的判定证据。 -->
+            <TextBlock AutomationProperties.AutomationId="SampleUiPageHeader"
+                       Text="首个 UI 示例插件" FontSize="20" FontWeight="SemiBold"/>
+            <TextBlock AutomationProperties.AutomationId="SampleUiHeartbeatTicks"
+                       Text="{Binding Heartbeat.Ticks, Mode=OneWay, StringFormat=宿主定时器心跳：{0} 次}"
                        Margin="0,10,0,0"/>
             <TextBox x:Name="MessageInput"
+                     AutomationProperties.AutomationId="SampleUiMessageInput"
                      Text="{Binding Message, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      Margin="0,10,0,0"/>
-            <TextBlock Text="{Binding Message, Mode=OneWay, StringFormat=回显：{0}}"
+            <TextBlock AutomationProperties.AutomationId="SampleUiEchoText"
+                       Text="{Binding Message, Mode=OneWay, StringFormat=回显：{0}}"
                        Margin="0,10,0,0" Foreground="#888888"/>
-            <Button x:Name="OpenWindowButton" Content="打开示例窗口"
+            <Button x:Name="OpenWindowButton"
+                    AutomationProperties.AutomationId="SampleUiOpenWindowButton"
+                    Content="打开示例窗口"
                     Command="{Binding OpenWindowCommand}" Margin="0,10,0,0"
                     HorizontalAlignment="Left" Padding="16,6"/>
         </StackPanel>

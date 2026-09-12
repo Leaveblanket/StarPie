@@ -31,7 +31,7 @@ param(
     [switch]$NoWait,
     [switch]$Status,
     [string]$Python = '',
-    [string]$TestPath = 'tests/test_settings.py'
+    [string]$TestPath = 'tests'
 )
 
 $ErrorActionPreference = 'Stop'

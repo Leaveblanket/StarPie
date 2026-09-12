@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import subprocess
 import time
 import warnings
@@ -27,6 +28,9 @@ except ImportError:
     PIL_AVAILABLE = False
 
 _screenshot_warned = False
+
+# 仓库根（tests/ 的上一级）：被测 exe 定位与失败取证落盘共用同一来源。
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def screenshot_unavailable_reason():
@@ -387,6 +391,24 @@ def wait_dialog_closed(dialog, timeout: float = 5.0) -> None:
         time.sleep(0.1)
 
 
+def find_app_path() -> str:
+    """定位被测 exe（与运行器/CI 同一构建输出顺序）；找不到时报出全部候选路径。
+
+    app fixture 与沙箱预置（如往用户插件目录放真实入口程序集副本）共用同一份定位逻辑，
+    避免测试侧复算路径时与 fixture 漂移。
+    """
+    project_root = PROJECT_ROOT
+    candidates = [
+        os.path.join(project_root, "StarPie.Ui", "bin", config, tfm, "StarPie.exe")
+        for config in ("Release", "Debug")
+        for tfm in ("net10.0-windows10.0.19041.0", "net10.0-windows")
+    ]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    pytest.fail(f"Executable not found in {candidates}. Please build the project first.")
+
+
 @pytest.fixture(scope="function")
 def sandbox_env(tmp_path):
     """
@@ -408,6 +430,23 @@ def sandbox_env(tmp_path):
     return env, local_app_data
 
 
+def _seed_plugin_state(local_app_data, plugins, developer_mode=False):
+    """预置沙箱宿主状态文件：启动扫描前的权威意图（启停/隔离/开发者模式）。"""
+    state_dir = local_app_data / "StarPie"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "plugin-state.json").write_text(
+        json.dumps(
+            {
+                "SchemaVersion": 1,
+                "DeveloperModeEnabled": developer_mode,
+                "Plugins": plugins,
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+
+
 @pytest.fixture(scope="function")
 def sandbox_seed(request, sandbox_env):
     """
@@ -419,46 +458,61 @@ def sandbox_seed(request, sandbox_env):
     env, local_app_data = sandbox_env
     mode = getattr(request, "param", None)
     if mode == "disabled-program-source":
+        _seed_plugin_state(local_app_data, {"starpie.builtin.program-source": {"Enabled": False}})
+    elif mode == "disabled-sample-ui":
+        _seed_plugin_state(local_app_data, {"starpie.builtin.sample-ui": {"Enabled": False}})
+    elif mode == "developer-user-plugin":
+        # 开发者模式 + 用户插件目录预置一个已停用的可发现包：清单复用内置程序来源插件的入口
+        # 程序集副本（副本不在宿主/SDK 禁带名单内）。停用预置让「彻底移除」打在未装载的包上——
+        # WPF 宿主里活动插件的程序集锁到进程退出（回收只降级为诊断），包目录删不掉是记录在案语义。
+        _seed_plugin_state(
+            local_app_data,
+            {"e2e.user.probe": {"Enabled": False}},
+            developer_mode=True,
+        )
         state_dir = local_app_data / "StarPie"
-        state_dir.mkdir(parents=True, exist_ok=True)
-        (state_dir / "plugin-state.json").write_text(
+        package_dir = state_dir / "plugins" / "e2e.user.probe"
+        package_dir.mkdir(parents=True)
+        install_plugins_dir = os.path.join(os.path.dirname(find_app_path()), "plugins")
+        shutil.copyfile(
+            # 内置程序来源包里的入口程序集副本（包子目录布局，不在宿主/SDK 禁带名单内）。
+            os.path.join(install_plugins_dir, "starpie.builtin.program-source", "StarPie.Plugin.Programs.dll"),
+            package_dir / "StarPie.Plugin.Programs.dll",
+        )
+        (package_dir / "plugin.json").write_text(
             json.dumps(
                 {
-                    "SchemaVersion": 1,
-                    "DeveloperModeEnabled": False,
-                    "Plugins": {"starpie.builtin.program-source": {"Enabled": False}},
+                    "schemaVersion": 1,
+                    "id": "e2e.user.probe",
+                    "name": "e2e 用户探针",
+                    "version": "1.0.0",
+                    "sdk": "1.0",
+                    "entryAssembly": "StarPie.Plugin.Programs.dll",
+                    "entryType": "StarPie.Plugin.Programs.ProgramSourcePlugin",
+                    "capabilities": [{"id": "program-source", "abi": 1}],
                 },
                 ensure_ascii=False,
             ),
             encoding="utf-8",
         )
     elif mode == "quarantined-program-source":
-        state_dir = local_app_data / "StarPie"
-        state_dir.mkdir(parents=True, exist_ok=True)
-        (state_dir / "plugin-state.json").write_text(
-            json.dumps(
-                {
-                    "SchemaVersion": 1,
-                    "DeveloperModeEnabled": False,
-                    "Plugins": {
-                        "starpie.builtin.program-source": {
-                            "Enabled": True,
-                            "Quarantine": {
-                                "Reason": "e2e 预置隔离：装载失败",
-                                "Since": "2026-01-01T00:00:00+08:00",
-                                "Residuals": [
-                                    {
-                                        "Kind": "Assembly",
-                                        "Detail": "入口程序集 StarPie.Plugin.Programs",
-                                    }
-                                ],
-                            },
-                        }
+        _seed_plugin_state(
+            local_app_data,
+            {
+                "starpie.builtin.program-source": {
+                    "Enabled": True,
+                    "Quarantine": {
+                        "Reason": "e2e 预置隔离：装载失败",
+                        "Since": "2026-01-01T00:00:00+08:00",
+                        "Residuals": [
+                            {
+                                "Kind": "Assembly",
+                                "Detail": "入口程序集 StarPie.Plugin.Programs",
+                            }
+                        ],
                     },
-                },
-                ensure_ascii=False,
-            ),
-            encoding="utf-8",
+                }
+            },
         )
     return mode
 
@@ -470,16 +524,7 @@ def app(sandbox_env, sandbox_seed, request):
     if not PIL_AVAILABLE:
         warn_screenshot_unavailable("PIL 未安装")
 
-    # Locate the executable
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    candidates = [
-        os.path.join(project_root, "StarPie.Ui", "bin", config, tfm, "StarPie.exe")
-        for config in ("Release", "Debug")
-        for tfm in ("net10.0-windows10.0.19041.0", "net10.0-windows")
-    ]
-    app_path = next((c for c in candidates if os.path.exists(c)), None)
-    if not app_path:
-        pytest.fail(f"Executable not found in {candidates}. Please build the project first.")
+    app_path = find_app_path()
         
     # Start the process with sandboxed environment variables.
     # 默认静默形态（--background：屏幕左上角 + 不可激活 + 点击穿透 + 不进任务栏，键鼠不被打扰）；
@@ -522,7 +567,7 @@ def app(sandbox_env, sandbox_seed, request):
         if reason:
             warn_screenshot_unavailable(reason)
         else:
-            artifacts_dir = os.path.join(project_root, "artifacts")
+            artifacts_dir = os.path.join(PROJECT_ROOT, "artifacts")
             os.makedirs(artifacts_dir, exist_ok=True)
             try:
                 img = capture_window_image(win.handle)
