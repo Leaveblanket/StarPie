@@ -44,7 +44,7 @@
      `IThemeService` 别名注册由 `ThemeModuleRegistrar.RegisterServices` 下放（StarPie.Ui；
      `IThemeService` 契约驻 StarPie.Sdk.Wpf，ADR-0023），组合根不直接登记主题服务；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
-     `WheelModuleRegistrar.RegisterServices` 下放（StarPie.Wheel，D5；契约驻 `StarPie.Sdk`，ADR-0023，
+     `WheelModuleRegistrar.RegisterServices` 下放（驻 StarPie.Ui，D5；契约驻 `StarPie.Sdk`，ADR-0023，
      P1.3/#112 收口，M1 手势侧只经契约接口消费），组合根不直接登记轮盘工厂。
    - 程序扫描由组合根直登记——`IShortcutTargetResolver→ShortcutResolver` 与
      `IProgramScanner→ProgramScanner`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
@@ -74,7 +74,7 @@
      `ProfileListViewModel`）由 `GesturesModuleRegistrar.RegisterServices` 下放
      `StarPie.Gestures`；组合根仍注册 `AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeModuleRegistrar 注册）与
-     `WheelAppearanceSettingsViewModel`（由 WheelModuleRegistrar 注册，随 StarPie.Wheel 下放），
+     `WheelAppearanceSettingsViewModel`（由 WheelModuleRegistrar 注册，随 Ui 集下放），
      均另行注册单例）、`MainViewModel`（目录驱动：导航项/选中态全部来自目录注册；运行时主体
      在 Host `ViewModels/Navigation/`，命名空间不变；页面 VM 的 DI 注册已全部
      下放所属模块注册器，仅 Host 外观聚合页 VM 与导航 VM 留在组合根；
@@ -93,7 +93,7 @@
       Sdk.Wpf 契约面），轮盘工厂
       `IWheelFactory→WheelFactory` 与轮盘外观设置子 VM 的工厂只解析契约程序集（`IThemeService`
       经 Sdk.Wpf，ADR-0023）；RadialWindow 不经 Host
-      直接 new——由 WheelFactory 在 StarPie.Wheel 内创建。
+      直接 new——由 WheelFactory 在 StarPie.Ui 内创建。
     - `GesturesModuleRegistrar.RegisterServices` 在组合根调用（M1 → Sdk + Host 内核 + Sdk.Wpf
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，

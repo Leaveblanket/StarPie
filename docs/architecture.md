@@ -102,13 +102,14 @@
   `AppThemePaletteManager`、五套主题字典 `Themes/`、主题设置子 VM 与模块注册器
   `ThemeModuleRegistrar` 驻 `StarPie.Ui/`；出口契约 `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`；
   命名空间统一为 `StarPie.*`。
-- 模块程序集（出口契约随实现方下沉）：`StarPie.Wheel/`（WPF 类库，程序集 `StarPie.Wheel`）
-  承载 M2 轮盘与渲染（WheelViewModel/RadialWindow/Views/Renderers 样式渲染器与预览、
-  Views/Converters 核图标预览转换器、Models/WheelPalette* 配色目录与解析、Services/Wheel
-  WheelGeometry 视觉几何与 WheelFactory 实现、模块注册器 WheelModuleRegistrar），
-  出口契约（IWheelFactory/IWheelViewModel/IWheelAppearanceState）驻 `StarPie.Sdk`
-  （命名空间不变）；runtime → Sdk +
-  Sdk.Wpf（IThemeService/IIconAssetService 契约面）+ Host（内核）单向（runtime 允许边清零）；
+- M2 轮盘与渲染（P1.7/#116 归并，不再独立成集）：配色目录与色值解析
+  `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free）驻 `StarPie.Host/Wheel/`
+  （命名空间 `StarPie.Wheel`）；WPF 亲和件——`WheelGeometry`（直接构造 `Geometry`）与
+  `WheelFactory` 驻 `StarPie.Ui/Services/Wheel/`，`WheelViewModel` 与外观设置子 VM 驻
+  `StarPie.Ui/ViewModels/{Wheel,Pages}/`，`RadialWindow`、样式渲染器/预览与核图标预览转换器分驻
+  `StarPie.Ui/Views/{Wheel,Renderers,Converters}/`，DI 注册由 `StarPie.Ui/Modules/`
+  的 `WheelModuleRegistrar` 下放（无导航页）；出口契约
+  （IWheelFactory/IWheelViewModel/IWheelAppearanceState）驻 `StarPie.Sdk`（命名空间不变）；
   命名空间统一为 `StarPie.*`。
 - 模块程序集：`StarPie.Gestures/`（WPF 类库，程序集 `StarPie.Gestures`）承载 M1 手势与动作
   （手势管线 Services/Gestures（MouseHook/GestureController/GestureEngine/IWindowContext/
@@ -157,13 +158,12 @@ StarPie/
 ├── StarPie.Core/                # 设计期投影壳（只余设计期字符串字典；运行时已迁 Host，见 layout.md）
 ├── StarPie.Dialogs/             # S6 对话框实现模块程序集（见 layout.md）
 ├── StarPie.Shell/               # M5 壳层与系统设置模块程序集（见 layout.md）
-├── StarPie.Wheel/               # M2 轮盘与渲染模块程序集（见 layout.md）
 ├── StarPie.Gestures/            # M1 手势与动作模块程序集（见 layout.md）
 ├── StarPie.Tests/        # xUnit 单元测试
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
-> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地（Icons/Programs、Host 内核与 M4 主题已归并撤销），`plugins/` 自 P2 起加入。
+> 插件化目标态（三集 `StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；P1.2/#111 已建四集骨架并把 exe 工程改名为 `StarPie.Ui`，15 集归并在 P1.3–P1.10 分批落地（Icons/Programs、Host 内核、M4 主题与 M2 轮盘已归并撤销），`plugins/` 自 P2 起加入。
 
 测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集、Core 与已拆模块程序集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 
