@@ -141,6 +141,7 @@ public sealed class PluginLifecycleStateMachineTests
         Assert.Equal(from, machine.Current);
     }
 
+    /// <summary>测试侧的期望转移表：独立于状态机实现书写，避免断言退化为实现的镜像。</summary>
     private static readonly HashSet<(PluginLifecycleState From, PluginLifecycleState To)> AllowedPairs = new()
     {
         (PluginLifecycleState.Discovered, PluginLifecycleState.Validated),

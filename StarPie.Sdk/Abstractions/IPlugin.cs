@@ -1,4 +1,4 @@
-namespace StarPie.Plugins
+namespace StarPie.Abstractions
 {
     /// <summary>
     /// 插件入口契约：宿主装载入口类型后调用其生命周期方法。
@@ -16,6 +16,7 @@ namespace StarPie.Plugins
         Task StartAsync(IPluginContext context, CancellationToken cancellationToken);
 
         /// <summary>停止插件：宿主在安全点调用，插件应释放自身持有的资源。</summary>
+        /// <param name="cancellationToken">宿主取消停止流程的令牌。</param>
         Task StopAsync(CancellationToken cancellationToken);
     }
 }

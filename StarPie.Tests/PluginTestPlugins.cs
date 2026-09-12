@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using StarPie.Plugins;
+using StarPie.Abstractions;
 
 namespace StarPie.Tests;
 
@@ -39,4 +39,15 @@ public sealed class ThrowingTestPlugin : IPlugin
 /// <summary>未实现 <see cref="IPlugin"/> 的夹具类型：验证入口类型判定。</summary>
 public sealed class NotAnEntryTestPlugin
 {
+}
+
+/// <summary>尊重取消令牌的夹具：启动一直等待，直到宿主取消。</summary>
+public sealed class TokenAwareTestPlugin : IPlugin
+{
+    /// <inheritdoc/>
+    public async Task StartAsync(IPluginContext context, CancellationToken cancellationToken)
+        => await Task.Delay(Timeout.Infinite, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }

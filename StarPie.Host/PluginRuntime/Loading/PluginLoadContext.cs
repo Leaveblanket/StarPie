@@ -16,6 +16,8 @@ namespace StarPie.PluginRuntime.Loading
         private readonly AssemblyDependencyResolver _resolver;
 
         /// <summary>为指定插件建一个可回收装载上下文；入口程序集路径决定私有依赖的分辨起点。</summary>
+        /// <param name="pluginId">插件 id；用于上下文命名与定位。</param>
+        /// <param name="entryAssemblyPath">入口程序集路径，作为私有依赖解析器的分辨起点。</param>
         public PluginLoadContext(string pluginId, string entryAssemblyPath)
             : base(BuildContextName(pluginId), isCollectible: true)
         {

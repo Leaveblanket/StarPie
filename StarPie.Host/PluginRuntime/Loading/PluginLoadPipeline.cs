@@ -1,5 +1,5 @@
 using System.Reflection;
-using StarPie.Plugins;
+using StarPie.Abstractions;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Manifest;
@@ -11,14 +11,16 @@ namespace StarPie.PluginRuntime.Loading
     /// </summary>
     /// <remarks>
     /// 每次装载尝试都新建 ALC 与状态机；拒绝路径不创建 ALC、不加载任何程序集，
-    /// 装载或启动失败进入隔离并在结果中给出可读原因，异常不外溢到宿主启动流程。
+    /// 重校验、装载与启动的失败都进入隔离并在结果中给出可读原因，不中断宿主启动流程。
     /// 装载完成后的 ALC 由卸载管线负责回收。
     /// </remarks>
     public sealed class PluginLoadPipeline
     {
         /// <summary>执行一次装载尝试。</summary>
         /// <param name="request">装载请求（清单、包目录与准入结果）。</param>
-        /// <param name="cancellationToken">传入插件启动方法的取消令牌；取消按装载失败处理。</param>
+        /// <param name="cancellationToken">
+        /// 传入插件启动方法的取消令牌；取消按中止处理（进入隔离，不保留半启动实例）。
+        /// </param>
         /// <returns>装载结果三态之一，带生命周期机的转移记录。</returns>
         public async Task<PluginLoadResult> LoadAsync(
             PluginLoadRequest request,
@@ -29,24 +31,24 @@ namespace StarPie.PluginRuntime.Loading
             var lifecycle = new PluginLifecycleStateMachine();
             string pluginId = ResolvePluginId(request);
 
-            // 拒绝路径：准入拒绝或重校验不通过，都不创建 ALC、不加载任何程序集。
+            // 拒绝路径：准入拒绝不创建 ALC、不加载任何程序集。
             if (request.Admission.Status == PluginAdmission.Rejected)
             {
                 return Reject(pluginId, lifecycle, request.Admission.Reason);
             }
 
-            IReadOnlyList<string> violations =
-                PluginManifestValidator.Validate(request.Manifest, request.PackageDirectory);
-            if (violations.Count > 0)
-            {
-                return Reject(pluginId, lifecycle, string.Join("；", violations));
-            }
-
-            lifecycle.Transition(PluginLifecycleState.Validated);
-
             PluginLoadContext? loadContext = null;
             try
             {
+                // 装载前重校验：发现到装载之间包内容可能变化，校验不通过同样走拒绝路径。
+                IReadOnlyList<string> violations =
+                    PluginManifestValidator.Validate(request.Manifest, request.PackageDirectory);
+                if (violations.Count > 0)
+                {
+                    return Reject(pluginId, lifecycle, string.Join("；", violations));
+                }
+
+                lifecycle.Transition(PluginLifecycleState.Validated);
                 lifecycle.Transition(PluginLifecycleState.Loading);
                 string entryAssemblyPath = Path.Combine(
                     request.PackageDirectory,
@@ -71,8 +73,10 @@ namespace StarPie.PluginRuntime.Loading
             }
             catch (Exception ex)
             {
-                // 插件抛出的任意异常都收在隔离态：宿主不因单个插件失败而中断启动。
-                string reason = $"装载/启动失败：{ex.GetType().Name}：{ex.Message}";
+                // 重校验、装载与启动的任意异常都收在隔离态：宿主不因单个插件失败而中断启动。
+                string reason = ex is OperationCanceledException
+                    ? $"装载/启动被取消：{ex.Message}"
+                    : $"装载/启动失败：{ex.GetType().Name}：{ex.Message}";
                 lifecycle.Quarantine(reason);
                 return new PluginLoadResult(
                     pluginId,

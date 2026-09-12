@@ -1,4 +1,4 @@
-using StarPie.Plugins;
+using StarPie.Abstractions;
 using StarPie.PluginRuntime.Lifecycle;
 
 namespace StarPie.PluginRuntime.Loading

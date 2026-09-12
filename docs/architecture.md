@@ -57,7 +57,7 @@
   RgbColor/ColorMath/GesturePoint）、`Services/`（AppHostDelegates、Messages 消息与通知载体、
   Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口、Icons 图标条目与
   .lnk 解析 SPI、Programs 扫描契约与纯规则）、`ViewModels/`
-  （Pages 预览源接口、Wheel 轮盘只读接口）、`Plugins/`（`IPlugin` 入口与 `IPluginContext`
+  （Pages 预览源接口、Wheel 轮盘只读接口）、`Abstractions/`（`IPlugin` 入口与 `IPluginContext`
   宿主服务面）；迁移期源码镜像旧相对路径、命名空间保持
   `StarPie.*` 不变，导出面与全仓类型唯一性由 `StarPie.Tests/SdkBoundaryTests.cs` 收口；
   WPF 契约件（主题、图标资产服务）已随 P1.4/#113 迁入 `StarPie.Sdk.Wpf`，导出面与 ABI/装载政策

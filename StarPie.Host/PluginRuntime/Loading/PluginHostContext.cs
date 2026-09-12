@@ -1,4 +1,4 @@
-using StarPie.Plugins;
+using StarPie.Abstractions;
 
 namespace StarPie.PluginRuntime.Loading
 {

@@ -180,10 +180,10 @@ Ui 集工程根（`StarPie.Ui/`）：
   `Models/`、`Services/`、`ViewModels/`（迁移期镜像旧相对路径、命名空间保持 `StarPie.*` 不变，
   避免 API 抖动；`Services/Icons|Programs/` 分别承载 S1/M3 契约件；导出面与全仓类型唯一性由
    `StarPie.Tests/SdkBoundaryTests.cs` 收口）与插件面落点 `Manifest/`（plugin.json 纯数据模型）、
-   `Plugins/`（`IPlugin` 入口与 `IPluginContext` 宿主服务面）、
+   `Abstractions/`（`IPlugin` 入口与 `IPluginContext` 宿主服务面）、
    `Compatibility/`（`AbiVersion` 版本串解析与 headless `SdkAbi`）。目标树
-   `Abstractions/`、`Capabilities/`、`Settings/`、`Events/`（见 [plugins.md](plugins.md) §2）
-   随插件面其余能力落地启用。
+   `Capabilities/`、`Settings/`、`Events/`（见 [plugins.md](plugins.md) §2）
+  随插件面其余能力落地启用。
 - `StarPie.Sdk.Wpf.csproj`：SDK 的 WPF 类型契约面工程入口（UseWPF；P1.2/#111 骨架，P1.4/#113
   起承载 WPF 契约件）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；
   `StarPie.Sdk.Wpf/` 源码根目录**只允许** `Services/Icons/`、`Services/Shell/`

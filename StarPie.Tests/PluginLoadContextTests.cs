@@ -1,8 +1,8 @@
 using System;
 using System.IO;
 using System.Reflection;
+using StarPie.Abstractions;
 using StarPie.Compatibility;
-using StarPie.Plugins;
 using StarPie.PluginRuntime.Loading;
 
 namespace StarPie.Tests;
@@ -10,7 +10,7 @@ namespace StarPie.Tests;
 /// <summary>
 /// 装载上下文缝：共享契约与框架程序集回退默认 ALC（类型身份唯一），包内私有依赖经
 /// <see cref="System.Runtime.Loader.AssemblyDependencyResolver"/> 私有加载；判定常量与
-/// Sdk.Wpf 的装载政策一致。
+/// Sdk.Wpf 装载政策的两个共享契约名对齐。
 /// </summary>
 public sealed class PluginLoadContextTests : IDisposable
 {
@@ -59,6 +59,7 @@ public sealed class PluginLoadContextTests : IDisposable
 
         Assert.False(PluginSharedAssemblyPolicy.MustResolveFromDefaultAlc("CommunityToolkit.Mvvm"));
         Assert.False(PluginSharedAssemblyPolicy.MustResolveFromDefaultAlc("Example.Plugin"));
+        Assert.False(PluginSharedAssemblyPolicy.MustResolveFromDefaultAlc("SystemFoo"));
         Assert.False(PluginSharedAssemblyPolicy.MustResolveFromDefaultAlc(null));
         Assert.False(PluginSharedAssemblyPolicy.MustResolveFromDefaultAlc(string.Empty));
     }

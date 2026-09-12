@@ -5,8 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using StarPie.Abstractions;
 using StarPie.Manifest;
-using StarPie.Plugins;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
@@ -208,6 +208,22 @@ public sealed class PluginLoadPipelineTests : IDisposable
         Assert.Null(result.Plugin);
         Assert.Null(result.LoadContext);
         Assert.Equal(PluginLifecycleState.Discovered, result.Lifecycle.Current);
+    }
+
+    [Fact]
+    public async Task 启动被取消_按中止隔离且不保留半启动实例()
+    {
+        PluginLoadRequest request = CreateRequest(PluginId, typeof(TokenAwareTestPlugin));
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        PluginLoadResult result = await new PluginLoadPipeline().LoadAsync(request, cancellation.Token);
+
+        Assert.Equal(PluginLoadStatus.Quarantined, result.Status);
+        Assert.Contains("被取消", result.FailureReason);
+        Assert.Null(result.Plugin);
+        Assert.NotNull(result.LoadContext);
+        Assert.Equal(PluginLifecycleState.Starting, result.Lifecycle.Transitions[^1].From);
     }
 
     private static Task<PluginLoadResult> LoadAsync(PluginLoadRequest request)

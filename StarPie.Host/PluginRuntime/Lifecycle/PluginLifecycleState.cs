@@ -24,7 +24,10 @@ namespace StarPie.PluginRuntime.Lifecycle
         /// <summary>停止中：拒绝新调用并在途调用排空。</summary>
         Stopping,
 
-        /// <summary>UI 释放中：仅 UI 插件进入，在 UI 线程清理资产并验证无泄漏。</summary>
+        /// <summary>
+        /// UI 释放中：在 UI 线程清理资产并验证无泄漏。由卸载编排按插件是否含 UI 决定是否进入，
+        /// 状态机本身不感知插件类型。
+        /// </summary>
         ReleasingUi,
 
         /// <summary>卸载中：宿主侧清理完成，等待 ALC 卸载与回收判定。</summary>

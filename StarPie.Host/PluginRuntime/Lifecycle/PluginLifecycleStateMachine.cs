@@ -45,6 +45,7 @@ namespace StarPie.PluginRuntime.Lifecycle
         /// 转移到相邻状态；跳级、回退、终态出走都抛 <see cref="InvalidOperationException"/>，
         /// 状态与转移记录保持不变。
         /// </summary>
+        /// <param name="next">目标状态；必须是当前状态的规范相邻状态。</param>
         /// <exception cref="InvalidOperationException">
         /// 目标为隔离态（须经 <see cref="Quarantine"/>）、当前为终态或目标不是规范允许的相邻状态。
         /// </exception>
@@ -73,6 +74,7 @@ namespace StarPie.PluginRuntime.Lifecycle
         /// 从任一非终态进入隔离并记录原因；重复隔离或卸载后隔离抛
         /// <see cref="InvalidOperationException"/>。
         /// </summary>
+        /// <param name="reason">隔离原因（诊断与测试可读文本）。</param>
         /// <exception cref="ArgumentException">原因为空或全为空白。</exception>
         public void Quarantine(string reason)
         {
