@@ -30,7 +30,6 @@ internal static class FourSetBoundaryProbe
     {
         "StarPie.Core",
         "StarPie.Dialogs",
-        "StarPie.Gestures",
         "StarPie.Shell",
     };
 

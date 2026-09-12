@@ -13,12 +13,11 @@
                 <!--  全局控件样式字典（宿主本地）：随共享 UI 基建去共享化迁入 Host
                       （ADR-0022/#94），本地合并  -->
                 <ResourceDictionary Source="Views/Styles/ModernControls.xaml" />
-                <!--  热键录制控件样式字典（StarPie.Gestures）：样式段随控件下沉模块后
-                      经跨程序集 pack URI 合并  -->
-                <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Views/Styles/HotkeyRecorderBox.xaml" />
-                <!--  模块页面模板字典：Gestures/Shell 经跨程序集 pack URI 合并，
+                <!--  热键录制控件样式字典（M1，随归并入 Ui）：本地合并  -->
+                <ResourceDictionary Source="Views/Styles/HotkeyRecorderBox.xaml" />
+                <!--  模块页面模板字典：Gestures 本地合并、Shell 经跨程序集 pack URI 合并，
                       宿主外观聚合页模板由本地 Modules/HostPageTemplates.xaml 提供  -->
-                <ResourceDictionary Source="pack://application:,,,/StarPie.Gestures;component/Modules/GesturesPageTemplates.xaml" />
+                <ResourceDictionary Source="Modules/GesturesPageTemplates.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/StarPie.Shell;component/Modules/ShellPageTemplates.xaml" />
                 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>

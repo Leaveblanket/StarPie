@@ -1,5 +1,7 @@
 global using StarPie.Models;
+global using StarPie.Actions;
 global using StarPie.Icons;
+global using StarPie.Gestures;
 global using StarPie.Ports;
 global using StarPie.Programs;
 global using StarPie.Services.Actions;

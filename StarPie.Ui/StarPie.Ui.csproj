@@ -44,10 +44,6 @@
     <!-- B6/#79：M5 模块程序集显式引用（TrayIconManager/MemoryOptimizer/General 设置面随迁；
          组合根调 ShellModuleRegistrar 装配导航与页面 VM DI、AppHost 装配托盘对象用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
-    <!-- B9/#82：M1 手势与动作模块程序集显式引用（手势管线/动作执行/触发+手势设置页随迁；
-         组合根调 GesturesModuleRegistrar 装配导航与 M1 DI、AppHost 持有 MouseHook，
-         手势侧只经 M2 IWheelFactory/IWheelViewModel 接口消费轮盘） -->
-    <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
   </ItemGroup>
 
   <ItemGroup>

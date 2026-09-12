@@ -40,10 +40,6 @@
     <ProjectReference Include="..\StarPie.Dialogs\StarPie.Dialogs.csproj" />
     <!-- ADR-0016/B6：#79 M5 模块程序集（GeneralSettingsViewModel/ShellModuleRegistrar 等测试直用） -->
     <ProjectReference Include="..\StarPie.Shell\StarPie.Shell.csproj" />
-    <!-- ADR-0016/B9：#82 M1 手势与动作模块程序集（MouseHook/GestureEngine/ActionExecutor/
-         BehaviorSettingsViewModel/ProfileListViewModel/SlotViewModel/Trigger+Gestures 页/
-         GesturesModuleRegistrar 等测试直用） -->
-    <ProjectReference Include="..\StarPie.Gestures\StarPie.Gestures.csproj" />
   </ItemGroup>
 
 </Project>
