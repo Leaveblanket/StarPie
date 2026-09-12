@@ -19,14 +19,14 @@ ADR-0031 把 `--background` 窗口放到 `-32000,-32000`：对用户完全不可
 
 ## Decision
 
-1. **窗口形态**：`--background` 主窗口定位 `(0,0)`（真实可见、被 DWM 合成）；`ShowActivated=false` + `ShowInTaskbar=false` + `WS_EX_NOACTIVATE`；额外 `WS_EX_TRANSPARENT`，并在 `AppHost` 的 HWND hook 中对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`——鼠标点击穿透到下层窗口，键鼠不被打扰。
+1. **窗口形态**：`--background` 主窗口定位 `(0,0)`（真实可见、被 DWM 合成），界面按 `0.9` 线性缩放（窗口 954×648——实测 0.5/0.75 会把正文压到 6–9px、失败截图不可读，0.9 保正文 ~11px）；`ShowActivated=false` + `ShowInTaskbar=false` + `WS_EX_NOACTIVATE`；额外 `WS_EX_TRANSPARENT`，并在 `AppHost` 的 HWND hook 中对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`——鼠标点击穿透到下层窗口，键鼠不被打扰。
 2. **托盘**：静默形态照常创建 `TrayIconManager`（通知区可见、可退出）；全局鼠标钩子仍不启动（用户真实手势不触发轮盘）。
 3. **对话框**：程序/图标/颜色选择器与输入框保持离屏 + 不可激活（ADR-0031 决策 2 不变）；提示框不呈现、确认框取"是"不变。
 4. **失败截图**：静默形态即可用——`conftest` 用 `PrintWindow(PW_RENDERFULLCONTENT)` 抓真实内容，客户区单色视为未取到内容；仅 pillow 缺件时 `status.json` 记 `screenshotAvailable=false` + `screenshotNote`。
 
 ## Consequences
 
-- 静默形态运行期间，用户屏幕左上角会出现被测窗口（1060×720）；因点击穿透，覆盖区域的点击仍落到用户自己的窗口；窗口不抢焦点、不进任务栏/Alt+Tab。
+- 静默形态运行期间，用户屏幕左上角会出现被测窗口（954×648）；因点击穿透，覆盖区域的点击仍落到用户自己的窗口；窗口不抢焦点、不进任务栏/Alt+Tab。
 - WPF 下拉弹层在屏内窗口上正常展开，ADR-0031 记录的"弹层被约束到 `(0,0)`"残留随之消失。
 - 失败截图恢复真实内容，`-NoWait` 后台形态同样可截；`-Status` 的 `screenshotAvailable` 只反映 pillow 缺件。
 - 静默能力边界不变：不注入物理输入、不抢前台、不启全局钩子、对话框不入屏。

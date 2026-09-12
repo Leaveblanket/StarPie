@@ -24,7 +24,7 @@
 
 1. `App.OnStartup`：
    - 单实例互斥（`DevInstance.MutexName`；`--dev` 与正式版并存、同类互斥）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
-   - 后台/静默模式：命令行含 `--background` 时，设置窗口固定在屏幕左上角（`0,0`）+ 挂
+   - 后台/静默模式：命令行含 `--background` 时，设置窗口固定在屏幕左上角（`0,0`）、界面 `0.9` 缩放（954×648）+ 挂
      `WS_EX_NOACTIVATE`/`WS_EX_TRANSPARENT` 并对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`（不抢焦点、点击穿透）
      + 不进任务栏，且不启全局鼠标钩子；托盘照常创建（人工观察/退出入口）。
      `DialogService` 回填后台模式后提示框不呈现、确认框取"是"，自定义对话框（程序/图标/颜色选择器、

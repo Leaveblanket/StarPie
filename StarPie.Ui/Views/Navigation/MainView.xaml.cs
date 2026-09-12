@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
 using Application = System.Windows.Application;
@@ -57,6 +58,17 @@ namespace StarPie.Views.Navigation
 
         /// <summary>Windows 系统深浅色探测（外观页预览渲染取主题用；同属壳层主题职责）。</summary>
         public bool IsWindowsInDarkTheme() => _themeService.IsWindowsInDarkTheme();
+
+        /// <summary>
+        /// 界面整体按比例缩放并同步窗口尺寸（静默形态 1/2 线性 → 窗口面积 1/4）：
+        /// 缩放走根布局 LayoutTransform，逻辑坐标系不变——内容完整可见且 UIA 元素齐全可驱动。
+        /// </summary>
+        public void ApplyLayoutScale(double scale)
+        {
+            RootLayout.LayoutTransform = new ScaleTransform(scale, scale);
+            Width = Math.Round(Width * scale);
+            Height = Math.Round(Height * scale);
+        }
 
         /// <summary>显示并激活主窗口（托盘直达/双击；页面切换由目录执行缝
         /// <see cref="INavigationExecutor"/> 先行完成），带淡入动画。</summary>
