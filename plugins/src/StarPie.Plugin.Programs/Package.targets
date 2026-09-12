@@ -1,0 +1,47 @@
+<Project>
+
+  <!-- 随包插件打包：把插件工程产物 + plugin.json 复制到引用方输出目录的 plugins/<id>/。
+       引用方（Ui = 宿主产物、Tests = xUnit 的插件装载夹具）各自 Import 本文件；
+       包目录名必须等于清单 id（plugins.md §3），两者都由 BuiltInProgramsPluginId 单一提供。
+       构建输出与发布输出各挂一次：dotnet build 落 bin 下（e2e 与 xUnit 按生产路径装载），
+       dotnet publish 落发布目录（发行产物随包分发）。 -->
+  <PropertyGroup>
+    <BuiltInProgramsPluginId Condition="'$(BuiltInProgramsPluginId)' == ''">starpie.builtin.program-source</BuiltInProgramsPluginId>
+    <BuiltInProgramsPluginSourceDir>$(MSBuildThisFileDirectory)</BuiltInProgramsPluginSourceDir>
+    <BuiltInProgramsPluginProjectPath>$(MSBuildThisFileDirectory)StarPie.Plugin.Programs.csproj</BuiltInProgramsPluginProjectPath>
+  </PropertyGroup>
+
+  <Target Name="ResolveBuiltInProgramsPluginPackage">
+    <MSBuild
+      Projects="$(BuiltInProgramsPluginProjectPath)"
+      Targets="Build"
+      Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="_BuiltInProgramsPluginOutputs" />
+    </MSBuild>
+  </Target>
+
+  <Target
+    Name="PackBuiltInProgramsPluginIntoBuildOutput"
+    AfterTargets="Build"
+    DependsOnTargets="ResolveBuiltInProgramsPluginPackage">
+    <Copy
+      SourceFiles="@(_BuiltInProgramsPluginOutputs)"
+      DestinationFolder="$(OutDir)plugins\$(BuiltInProgramsPluginId)\" />
+    <Copy
+      SourceFiles="$(BuiltInProgramsPluginSourceDir)plugin.json"
+      DestinationFolder="$(OutDir)plugins\$(BuiltInProgramsPluginId)\" />
+  </Target>
+
+  <Target
+    Name="PackBuiltInProgramsPluginIntoPublishOutput"
+    AfterTargets="Publish"
+    DependsOnTargets="ResolveBuiltInProgramsPluginPackage">
+    <Copy
+      SourceFiles="@(_BuiltInProgramsPluginOutputs)"
+      DestinationFolder="$(PublishDir)plugins\$(BuiltInProgramsPluginId)\" />
+    <Copy
+      SourceFiles="$(BuiltInProgramsPluginSourceDir)plugin.json"
+      DestinationFolder="$(PublishDir)plugins\$(BuiltInProgramsPluginId)\" />
+  </Target>
+
+</Project>

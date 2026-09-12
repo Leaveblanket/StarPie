@@ -406,8 +406,36 @@ def sandbox_env(tmp_path):
     
     return env, local_app_data
 
+
 @pytest.fixture(scope="function")
-def app(sandbox_env, request):
+def sandbox_seed(request, sandbox_env):
+    """
+    沙箱预置钩子：在应用启动前向沙箱写入文件，默认不写任何东西。
+
+    用例经 `@pytest.mark.parametrize("sandbox_seed", [...], indirect=True)` 取用某个预置形态，
+    只影响该用例的启动环境（如"停用内置程序来源插件"的宿主状态）。
+    """
+    env, local_app_data = sandbox_env
+    mode = getattr(request, "param", None)
+    if mode == "disabled-program-source":
+        state_dir = local_app_data / "StarPie"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        (state_dir / "plugin-state.json").write_text(
+            json.dumps(
+                {
+                    "SchemaVersion": 1,
+                    "DeveloperModeEnabled": False,
+                    "Plugins": {"starpie.builtin.program-source": {"Enabled": False}},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    return mode
+
+
+@pytest.fixture(scope="function")
+def app(sandbox_env, sandbox_seed, request):
     env, local_app_data = sandbox_env
 
     if not PIL_AVAILABLE:

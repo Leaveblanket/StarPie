@@ -81,7 +81,7 @@ StarPie/
 │   ├── StarPie.Host.csproj        # ProjectReference 只许 StarPie.Sdk（不引用 StarPie.Sdk.Wpf）
 │   ├── GlobalUsings.cs            # 工程级全局 using（内核命名空间 + SDK 模型/消息）
 │   ├── Icons/                     # S1 WPF-free 部分：IconCatalog（静态纯目录）+ CustomIconStore（自定义图标目录），命名空间 StarPie.Icons
-│   ├── Programs/                  # M3 实现：ProgramScanner（八源扫描）+ ShortcutResolver（.lnk 解析），命名空间 StarPie.Programs
+│   ├── Programs/                  # M3 实现：内置程序来源 ProgramScanner + 程序来源能力契约/聚合（ProgramSourceCapability/ProgramSourceAggregator）+ ShortcutResolver（.lnk 解析），命名空间 StarPie.Programs
 │   ├── Themes/                    # M4 引擎：ThemeEngine（请求/有效主题状态、解析、切换与系统跟随重解析），命名空间 StarPie.Themes
 │   ├── Ports/                     # Host→Ui 端口：IThemeApplier（主题应用；Ui 侧适配器实现），命名空间 StarPie.Ports
 │   ├── Wheel/                     # M2 WPF-free 配色：WheelPalette/WheelPaletteCatalog/WheelPaletteParser，命名空间 StarPie.Wheel
@@ -193,14 +193,15 @@ Ui 集工程根（`StarPie.Ui/`）：
   只许 `StarPie.Sdk`；不引用 `StarPie.Sdk.Wpf`）；`StarPie.Host/` 源码根目录**只允许**
   `Kernel/`（`Kernel/Configuration/`、`Kernel/Localization/` 与 `Kernel/ShellIntegration/`
   ——M5 自启注册表/内存整理）、`Icons/`（`IconCatalog`/
-  `CustomIconStore`）、`Programs/`（`ProgramScanner`/`ShortcutResolver`）、`Themes/`（`ThemeEngine`
+  `CustomIconStore`）、`Programs/`（内置来源 `ProgramScanner`、能力契约/聚合
+  `ProgramSourceCapability`/`ProgramSourceAggregator`、`ShortcutResolver`）、`Themes/`（`ThemeEngine`
   主题引擎）、`Ports/`（`IThemeApplier` 等宿主→Ui 端口）、`Wheel/`（`WheelPalette*` 配色目录与
   解析）、`Gestures/`（手势内核）与 `Actions/`（动作路由纯函数）以及工程级
    `GlobalUsings.cs`；插件面落点 `PluginRuntime/`（`Discovery/`、`Manifest/`、`Admission/`、
-   `State/`、`Loading/`、`Lifecycle/`、`Diagnostics/`——插件发现/清单校验/准入/宿主状态/
-   collectible ALC 装载管线与生命周期状态机/启动报告，可 headless 直接构造）——
-   目标树其余目录（`HostServices/` 与 `PluginRuntime/` 的能力表/配置/隔离）随插件面后续落地，
-   目标树见 [plugins.md](plugins.md) §2；
+   `State/`、`Hosting/`、`Loading/`、`Unloading/`、`Lifecycle/`、`Registry/`、`Diagnostics/`——
+   插件发现/清单校验/准入/宿主状态/宿主侧运行时（启用装载与停用再启用）/collectible ALC 装载与
+   安全点卸载管线/生命周期状态机/能力表/启动报告，可 headless 直接构造；随包插件工程落
+   `plugins/src/StarPie.Plugin.Programs/`（首个 headless 插件），目标树见 [plugins.md](plugins.md) §2；
   导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
   `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Tests/`

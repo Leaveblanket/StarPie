@@ -5,7 +5,12 @@ using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Discovery;
+using StarPie.PluginRuntime.Hosting;
+using StarPie.PluginRuntime.Loading;
+using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
+using StarPie.PluginRuntime.Unloading;
+using StarPie.Programs;
 using StarPie.Services;
 
 namespace StarPie.Modules
@@ -41,7 +46,17 @@ namespace StarPie.Modules
             // 程序扫描与 .lnk 解析：实现驻宿主内核（StarPie.Host/Programs），
             // 契约（IProgramScanner/IShortcutTargetResolver）在 StarPie.Sdk。
             services.AddSingleton<IShortcutTargetResolver, ShortcutResolver>();
-            services.AddSingleton<IProgramScanner, ProgramScanner>();
+            // 能力表：宿主声明「程序来源」契约并登记内置来源（永远排在插件条目之前）。
+            services.AddSingleton(sp =>
+            {
+                var registry = new CapabilityRegistry();
+                registry.DeclareBuiltin(
+                    ProgramSourceCapability.Contract,
+                    new ProgramScanner(sp.GetRequiredService<IShortcutTargetResolver>()));
+                return registry;
+            });
+            // 消费者面：内置来源 + 插件来源的聚合（扩展点降级——插件停用/缺席只剩内置来源）。
+            services.AddSingleton<IProgramScanner, ProgramSourceAggregator>();
             // 图标资产：自定义图标目录（宿主内核 CustomIconStore）之上由 Ui 侧
             // IconAssetService 做 WPF 图像构造，实现 Sdk.Wpf 的 IIconAssetService 契约。
             services.AddSingleton<CustomIconStore>();
@@ -81,6 +96,13 @@ namespace StarPie.Modules
                 sp.GetRequiredService<PluginAdmissionPolicy>(),
                 sp.GetRequiredService<PluginStateStore>(),
                 new PluginStartupReportWriter(PluginPaths.StartupReportFilePath)));
+
+            // 插件装载/卸载与宿主侧运行时：两条管线只在组合根装配一次，
+            // 卸载管线的配置落盘接缝直接接共享内核的防抖落盘编排（安全点第一步）。
+            services.AddSingleton(sp => new PluginLoadPipeline(sp.GetRequiredService<CapabilityRegistry>()));
+            services.AddSingleton(sp => new PluginUnloadPipeline(
+                sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave));
+            services.AddSingleton<PluginRuntimeHost>();
 
             // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
             services.AddSingleton<MainViewModel>();

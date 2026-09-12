@@ -1,9 +1,12 @@
 # 插件体系（目标态）
 
 > **状态**：P1（三集物理形态 + 统一注册管线 + 静态加载）已落地；P2 首层（§3 的清单校验、发现顺序与
-> 同 id 冲突、宿主状态字段、启动报告、开发者模式开关与准入四态）亦已落地，其条款即 as-built；
-> 插件装载/卸载（collectible ALC）、能力注册、UI 托管与生态化为目标态规范，未落地条款在落地前
-> as-built 以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
+> 同 id 冲突、宿主状态字段、启动报告、开发者模式开关与准入四态）、§5/§6/§8 的 headless 运行时
+> （collectible ALC 装载、能力注册与调用守卫、安全点卸载与回收判定）、§2 的首个随包 headless 插件
+> 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
+> 插件管理面与诊断报告（§9/§10）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
+> [assemblies.md](assemblies.md) 与
+> [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
@@ -76,8 +79,8 @@ StarPie/
 │   ├── Ports/                            # Host→Ui 端口：IUiDispatcher/IThemeApplier/IWheelPresenter/IIconImageFactory/IPluginUiCoordinator
 │   │                                     # 存在理由：零 WPF 的 Host 要「做 WPF 事」只能回抛接口，这是两集间唯一的反向缝（9 个污染点收口）
 │   ├── HostServices/                     # 插件可见宿主服务实现：IPluginLog/IPluginConfig/IPluginEvents/…；每插件一个 PluginServiceScope（§6.1）
-│   └── PluginRuntime/{Discovery,Manifest,Admission,State,Loading,Unloading,Lifecycle,Registry,Config,Isolation,Diagnostics}
-│                                         # 发现/清单校验/准入判定/宿主状态/collectible ALC/状态机/能力表/配置命名空间/隔离决策/诊断报告
+│   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Config,Isolation,Diagnostics}
+│                                         # 发现/清单校验/准入判定/宿主状态/启用装载与停用再启用/collectible ALC/安全点卸载/状态机/能力表/配置命名空间/隔离决策/诊断报告
 ├── StarPie.Ui/                           # WinExe，AssemblyName=StarPie；唯一含 XAML（ADR-0027 决策 1）
 │   ├── App.xaml(.cs)  AppHost/  Composition/   # 应用资源树、启动退出编排、组合根（内置与插件贡献者共用一条注册管线）
 │   ├── Adapters/                         # 实现 Host/Ports 的 WPF 适配器：零 WPF 的 Host 只能吃接口
@@ -95,7 +98,7 @@ StarPie/
 │       ├── Cleanup/PluginUiCleanup.cs    # UI 线程上的有序清理（§8 步骤 4）
 │       └── Verification/PluginUiLeakVerifier.cs   # 泄漏扫描 + WeakReference 判定；生产诊断与测试共用
 ├── plugins/
-│   ├── src/StarPie.Plugin.Programs/      # 首个 headless 插件（只引 StarPie.Sdk）；默认启用、可停用（Q6 dogfooding）
+│   ├── src/StarPie.Plugin.Programs/      # 首个 headless 插件（只引 StarPie.Sdk；深扫程序来源）；构建时随包打包进产物 plugins/<id>/；默认启用、可停用（Q6 dogfooding）
 │   └── src/StarPie.Plugin.SampleUi/      # 首个 UI 示例插件（P3，引 Sdk + Sdk.Wpf）
 ├── StarPie.Tests/                        # 平铺：Plugin*Tests.cs / AbiTests.cs / BoundaryTests.cs + STA harness
 └── tests/                                # 维持现状（pywinauto），P1 不搬迁；Q6 起程序选择器用例分「启用/停用」两态

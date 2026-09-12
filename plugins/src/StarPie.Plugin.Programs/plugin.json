@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "starpie.builtin.program-source",
+  "name": "StarPie 程序来源",
+  "version": "1.0.0",
+  "sdk": "1.0",
+  "entryAssembly": "StarPie.Plugin.Programs.dll",
+  "entryType": "StarPie.Plugin.Programs.ProgramSourcePlugin",
+  "capabilities": [{ "id": "program-source", "abi": 1 }]
+}

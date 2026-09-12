@@ -69,10 +69,12 @@
   `StarPie.Kernel.Configuration`）与 `Kernel/Localization/`（`ILocalizationService`/
   `LocalizationService` + `Strings*.resx` 四语言，命名空间 `StarPie.Kernel.Localization`）；
   S1/M3 的 WPF-free 逻辑同驻本集——`Icons/`（`IconCatalog` 静态纯目录 + `CustomIconStore`
-  自定义图标目录，命名空间 `StarPie.Icons`）与 `Programs/`（`ProgramScanner` 八源扫描 +
+  自定义图标目录，命名空间 `StarPie.Icons`）与 `Programs/`（内置程序来源 `ProgramScanner` +
+  程序来源能力契约/聚合 `ProgramSourceCapability|ProgramSourceAggregator` +
   `ShortcutResolver` .lnk 解析，命名空间 `StarPie.Programs`）；插件运行时驻
   `PluginRuntime/`——`Discovery/`（安装目录 + 用户目录发现与包内容违规）、`Manifest/`（清单解析与
   校验）、`Admission/`（准入四态与开发者模式开关）、`State/`（宿主状态 `plugin-state.json`）、
+  `Hosting/`（`PluginRuntimeHost`：启动扫描后装载启用插件、停用/再启用入口）、
   `Loading/`（collectible ALC 与装载管线：共享契约/框架回退默认 ALC、包内私有解析、
   入口类型不缓存）、`Unloading/`（安全点卸载管线：配置冲刷 → 拒绝新调用 → 能力摘除 →
   在途归零 → `StopAsync` → 作用域释放 → `ALC.Unload` → `WeakReference` 回收判定；失败进隔离）、
@@ -174,6 +176,7 @@ StarPie/
 ├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML；承载主题/图标资产服务契约与 ABI 政策）
 ├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测；内核运行时在 Kernel/，图标目录/程序扫描在 Icons|Programs/）
 ├── StarPie.Tests/               # xUnit 单元测试（显式引用四集，不依赖传递引用）
+├── plugins/src/StarPie.Plugin.Programs/  # 首个随包 headless 插件（只引 SDK；深扫程序来源，默认启用、可停用）
 └── tests/                       # pywinauto e2e（不在本文档体系展开）
 ```
 
