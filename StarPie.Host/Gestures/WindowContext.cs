@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace StarPie.Services.Gestures
+namespace StarPie.Gestures
 {
     /// <summary>
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former

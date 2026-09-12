@@ -3,5 +3,7 @@ global using StarPie.Kernel.Localization;
 global using StarPie.Models;
 global using StarPie.Ports;
 global using StarPie.Services.Messages;
+global using StarPie.Services.Wheel;
 global using StarPie.Themes;
+global using StarPie.ViewModels.Wheel;
 global using StarPie.Wheel;

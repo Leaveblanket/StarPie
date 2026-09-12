@@ -159,7 +159,8 @@ def test_profile_management_ui_and_buttons(app):
 def test_hotkey_recorder_and_system_presets_catalog(app):
     """
     手势页（NavPage2）的方案/槽位控件存在性 + 保存持久化：
-    Save 后 config 必须包含 Profiles 且含 Global 兜底方案。
+    改首个槽位动作类型后 Save，断言落盘的是本次改动值（System），
+    不再让默认就已存在的 Global 兜底方案充当"保存成功"的证据（#135 P0-3）。
     """
     win, local_app_data = app
 
@@ -168,17 +169,32 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
     assert profiles_list.exists(timeout=3), "ProfilesListBox should exist in Gestures tab"
 
-    # Save settings and verify config persistence（轮询落盘）
+    # 改首个槽位的动作类型（目录 index 3 = System）。该模板 ComboBox 的 UIA 不暴露选中项
+    # （selected_index/selected_text 均不可用），故"切换是否生效"以 Save 后的落盘值为准。
+    type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
+    assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
+    type_combo.select(3)
+
+    # Save settings and verify config persistence（谓词轮询等改动值落盘）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
     save_btn.invoke()
 
     dismiss_messagebox()
 
-    config = read_config(local_app_data)
+    def _first_global_action_is_system(c):
+        profiles = c.get("Profiles", [])
+        glob = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
+        actions = (glob or {}).get("Actions") or []
+        return bool(actions) and actions[0].get("Type") == "System"
+
+    config = read_config(local_app_data, predicate=_first_global_action_is_system)
     profiles = config.get("Profiles", [])
     assert profiles, "保存后 config 必须包含 Profiles"
-    assert any(p.get("ProcessName") == "Global" for p in profiles), \
-        f"保存后必须有 Global 兜底方案: {[p.get('ProcessName') for p in profiles]}"
+    glob = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
+    assert glob is not None, f"保存后必须有 Global 方案: {[p.get('ProcessName') for p in profiles]}"
+    actions = glob.get("Actions") or []
+    assert actions and actions[0].get("Type") == "System", \
+        f"Slot0 动作类型应落盘为 System: {actions[0] if actions else None}"
     assert win.is_visible()
 
 

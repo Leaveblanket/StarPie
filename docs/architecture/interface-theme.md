@@ -44,7 +44,7 @@ DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui
    画刷令牌存于 `StarPie.Ui/Themes/*.xaml`（五套同 key 集）；Host `App.xaml`
    经本地绝对 pack URI 静态合并 Light 仅作设计时/首帧默认，
    并本地单点合并宿主 `Views/Styles/ModernControls.xaml`（全局控件样式字典）
-   + 跨集合并 `StarPie.Gestures` 的 `Views/Styles/HotkeyRecorderBox.xaml`。
+   + 本地合并 M1 归并后的 `Views/Styles/HotkeyRecorderBox.xaml`。
 2. **整项替换**：`AppThemePaletteManager`（驻 `StarPie.Ui/Adapters/`，实现内核端口）加载/缓存/
    冻结主题字典，把目标调色板**整项替换** Application `MergedDictionaries` 中含 `/Themes/` 的
    活动槽（切 Light 亦整项替换，无直接键残留）。

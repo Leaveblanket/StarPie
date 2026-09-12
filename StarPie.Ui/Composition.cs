@@ -163,7 +163,7 @@ namespace StarPie
 
             // 手势与动作的 DI 注册（鼠标钩子/动作执行/窗口上下文/手势引擎与控制器、
             // 触发与手势两页 VM、IProfilePreviewSource 别名）由 GesturesModuleRegistrar
-            // 下放 StarPie.Gestures。
+            // 下放本集 M1 部件。
             GesturesModuleRegistrar.RegisterServices(services);
 
             // 两个设置子 VM（界面主题、轮盘外观）分别由 Theme/Wheel 模块注册器注册，

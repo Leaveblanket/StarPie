@@ -37,19 +37,19 @@
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
 - `Composition.cs` / 导航登记一次：模块注册器 `RegisterNavigation` + 模块页面模板字典 +
   [naming.md](naming.md) 映射表（M5：`StarPie.Shell` 的 `ShellModuleRegistrar`；M1：
-  `StarPie.Gestures` 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
+  Ui 集内 M1 的 `GesturesModuleRegistrar`；Host 外观聚合页：exe 内
   `HostModuleRegistrar`）；页面 VM DI 注册由所属注册器下放——M5 页面 VM 由
   ShellModuleRegistrar、M4 主题服务与主题设置子 VM 由 `ThemeModuleRegistrar`（`StarPie.Ui`，
   M4 无导航页）、M2 轮盘工厂与轮盘外观设置子 VM 由 `WheelModuleRegistrar`（`StarPie.Ui`，
   M2 无导航页）、M1 手势管线/页面 VM/`IProfilePreviewSource` 别名由
-  `GesturesModuleRegistrar`（`StarPie.Gestures`）下放；S1 图标资产与 M3 程序扫描
+  `GesturesModuleRegistrar`（M1，驻 `StarPie.Ui`）下放；S1 图标资产与 M3 程序扫描
   （两模块无注册器、无导航页）由组合根直登记；仅 Host 外观聚合页 VM 仍
   由组合根注册；注册器 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（ADR-0015 决策 7）；
 - 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
   实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
-  `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 `StarPie.Gestures`（模块内部）；
+  `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 M1（P1.6/#115 随归并入 `StarPie.Ui`）；
   共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance 四页 XAML
   根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
@@ -170,7 +170,7 @@
   `NavigationItemViewModel`）在 Host（命名空间不变，见
   [host.md](host.md)/[navigation.md](navigation.md)）；`SidebarView` 属 Host。
 - **扩展局部性**：新增页面（原型 B）→ 所属模块注册器 `RegisterNavigation` + 页面模板字典
-  （M5 只动 `StarPie.Shell`、M1 只动 `StarPie.Gestures` 模块内部，页面 VM DI 注册随各自
+  （M5 只动 `StarPie.Shell`、M1 只动 Ui 集内 M1 部件，页面 VM DI 注册随各自
   ShellModuleRegistrar/GesturesModuleRegistrar 下放；Host 外观聚合页经 exe 内
   HostModuleRegistrar/HostPageTemplates），不碰其它模块（见 [assemblies.md](assemblies.md) §5）。
 
@@ -248,11 +248,11 @@ ADR-0016 决策 11：`WheelFactory` 随 M2 收编
 （契约随实现方下沉；实现方 M1 ProfileListViewModel 与消费方 M2
 WheelAppearanceSettingsViewModel 均只依赖契约程序集），同样 P1.3/#112 收口入 `StarPie.Sdk/`。
 M2 构造契约变更不再波及 Host/M1
-装配点；M1 手势侧随 `StarPie.Gestures` 成集，仍只经 SDK 契约引用 M2。
+装配点；M1 手势侧随归并入 Ui 集，仍只经 SDK 契约引用 M2。
 
 ### D6 页面壳
 
-- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随 `StarPie.Gestures` 成集：
+- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随归并入 `StarPie.Ui`：
   VM+View+注册器+模板字典均在模块程序集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳；
 - Advanced 设置页 = M5 的设置面（随 `StarPie.Shell` 成集：VM+View+注册器+模板字典
@@ -264,7 +264,7 @@ M2 构造契约变更不再波及 Host/M1
 | 原型/场景             | 示例                              | 只动                                                                        | 放行共享面                                                                                                                                                                                                                                                                                                                             |
 | --------------------- | --------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | A 新增设置项          | 现有页加开关                      | 所属模块 VM                                                                 | S2 模型字段、S3 文案键                                                                                                                                                                                                                                                                                                                 |
-| B 新增设置页面        | 新导航页                          | 新域/所属模块（注册器 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5 只动`StarPie.Shell` 模块内部；M1 只动 `StarPie.Gestures` 模块内部（Shell/GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + Shell/GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
+| B 新增设置页面        | 新导航页                          | 新域/所属模块（注册器 + 页面模板字典，见[assemblies.md](assemblies.md) §5） | M5 只动`StarPie.Shell` 模块内部；M1 只动 Ui 集内 M1 部件（GesturesModuleRegistrar 的 RegisterNavigation/RegisterServices + GesturesPageTemplates.xaml + 页面 VM/View），不碰 Host；Host 外观聚合页经 exe 内注册器 + 模板字典、页面 VM DI 注册在组合根；新增页面不碰其它模块，仅新增模块才 H1 登记；S3 文案 |
 | C 新增对话框          | 新模态                            | S6 内部                                                                     | 调用方模块一行（经`IDialogService`）                                                                                                                                                                                                                                                                                                 |
 | D 新增动作类型        | 新 Launch/Folder/Hotkey/System 值 | M1 内部（路由/执行/预设/槽位编辑/图标键映射）                               | 新图标资产 → S1；S3 文案；config 兼容                                                                                                                                                                                                                                                                                                 |
 | E 新增轮盘样式        | 新 Renderer                       | M2 内部（渲染器/工厂/配色目录/外观选项）                                    | S3 文案                                                                                                                                                                                                                                                                                                                                |

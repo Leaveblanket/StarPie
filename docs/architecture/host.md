@@ -52,7 +52,7 @@
    - 图标资产由组合根直登记——内核 `CustomIconStore`（`StarPie.Host/Icons/`，目录默认
      `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
      （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。
-   - `NavigationCatalog` 由 `StarPie.Gestures` 的 `GesturesModuleRegistrar.RegisterNavigation`、
+    - `NavigationCatalog` 由 Ui 集内 M1 的 `GesturesModuleRegistrar.RegisterNavigation`、
      `StarPie.Shell` 的 `ShellModuleRegistrar.RegisterNavigation` 与 exe 内 `HostModuleRegistrar`
      按固定顺序装配并 `Validate()` 后单例注册——导航装配/解析清单不硬编码页面类型（运行时
      类型与执行缝的注册见上段基础设施）。
@@ -64,7 +64,7 @@
      供图标/程序选择器使用）、`ISaveDebouncer`（实现 = Ui 适配器 `DispatcherSaveDebouncer`）、
      `SettingsSaveOrchestrator`（宿主内核）。（M1 手势管线
      `MouseHook`/`IActionExecutorService`/`IWindowContext`/`GestureEngine`/`GestureController`
-     的注册由 `GesturesModuleRegistrar.RegisterServices` 下放 `StarPie.Gestures`；`IWheelFactory`
+     的注册由 `GesturesModuleRegistrar.RegisterServices` 下放 Ui 集 M1；`IWheelFactory`
      的注册见 WheelModuleRegistrar 注。）
    - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
      `ThemeModuleRegistrar.RegisterServices` 下放 `StarPie.Ui`（模块无导航页，只下放 DI
@@ -72,7 +72,7 @@
      `ShellModuleRegistrar.RegisterServices` 下放模块程序集（ADR-0016 决策 8，见
      [assemblies.md](assemblies.md) §6）；M1 两页（`BehaviorSettingsViewModel`/
      `ProfileListViewModel`）由 `GesturesModuleRegistrar.RegisterServices` 下放
-     `StarPie.Gestures`；组合根仍注册 `AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
+     Ui 集 M1；组合根仍注册 `AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeModuleRegistrar 注册）与
      `WheelAppearanceSettingsViewModel`（由 WheelModuleRegistrar 注册，随 Ui 集下放），
      均另行注册单例）、`MainViewModel`（目录驱动：导航项/选中态全部来自目录注册；运行时主体

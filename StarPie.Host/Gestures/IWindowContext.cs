@@ -1,4 +1,4 @@
-namespace StarPie.Services.Gestures
+namespace StarPie.Gestures
 {
     [Flags]
     public enum GestureModifierKeys
