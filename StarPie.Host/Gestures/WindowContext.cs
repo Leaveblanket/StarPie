@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 
 namespace StarPie.Gestures
 {
@@ -7,6 +8,7 @@ namespace StarPie.Gestures
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former
     /// ActiveWindowHelper and FullScreenHelper statics plus live modifier-key state.
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public sealed class WindowContext : IWindowContext
     {
         [DllImport("user32.dll")]

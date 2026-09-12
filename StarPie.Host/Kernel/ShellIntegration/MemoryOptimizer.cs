@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace StarPie.Kernel.ShellIntegration
     /// <summary>
     /// 内存优化器：压缩托管堆并裁剪进程工作集页，使占用回落到最小足迹（约 15–25MB）。
     /// </summary>
+    [SupportedOSPlatform("windows")]
     public static class MemoryOptimizer
     {
         [DllImport("psapi.dll", SetLastError = true)]
