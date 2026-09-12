@@ -1,10 +1,9 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:controls="clr-namespace:StarPie.Views.Controls">
-    <!--  热键录制控件（HotkeyRecorderBox）隐式默认样式：控件随共享 UI 基建去共享化
-         （ADR-0022/#94）下沉本模块（Views/Controls/HotkeyRecorderBox.cs，P1.6/#115 随
-         M1 归并入 Ui），样式段同驻本集，由 App.xaml 本地单点合并一次；
-         模板引用的 ModernControls 几何令牌经 DynamicResource 跨字典运行期解析。  -->
+    <!--  热键录制控件（HotkeyRecorderBox）隐式默认样式：样式段与控件同驻本集，
+         由 App.xaml 本地单点合并一次；模板引用的 ModernControls 几何令牌经
+         DynamicResource 运行期解析。  -->
     <Style TargetType="{x:Type controls:HotkeyRecorderBox}">
         <Setter Property="Background" Value="{DynamicResource InputBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource InputBorderBrush}" />
