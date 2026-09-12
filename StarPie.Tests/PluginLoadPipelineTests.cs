@@ -414,35 +414,23 @@ public sealed class PluginLoadPipelineTests : IDisposable
         string? capabilitiesJson = null,
         int priority = 0)
     {
-        string packageDirectory = Path.Combine(_pluginsRoot, pluginId);
-        Directory.CreateDirectory(packageDirectory);
-
-        string entryAssemblyName = Path.GetFileName(typeof(RecordingTestPlugin).Assembly.Location);
-        string manifestJson = PluginTestPackage.Manifest(
+        PluginLoadRequest request = PluginTestPackage.CreateLoadRequest(
+            _pluginsRoot,
             pluginId,
-            entryAssembly: entryAssemblyName,
-            entryType: entryTypeName ?? entryType.FullName!,
-            priority: priority,
-            capabilitiesJson: capabilitiesJson);
-        File.WriteAllText(Path.Combine(packageDirectory, "plugin.json"), manifestJson);
-        File.Copy(
-            typeof(RecordingTestPlugin).Assembly.Location,
-            Path.Combine(packageDirectory, entryAssemblyName),
-            overwrite: true);
+            entryType,
+            entryTypeName,
+            capabilitiesJson,
+            priority);
 
         if (copyPrivateDependency)
         {
             const string privateDependencyName = "CommunityToolkit.Mvvm.dll";
             File.Copy(
                 Path.Combine(AppContext.BaseDirectory, privateDependencyName),
-                Path.Combine(packageDirectory, privateDependencyName));
+                Path.Combine(request.PackageDirectory, privateDependencyName));
         }
 
-        PluginManifest manifest = PluginManifestParser.Parse(manifestJson).Manifest!;
-        return new PluginLoadRequest(
-            manifest,
-            packageDirectory,
-            new PluginAdmissionDecision(PluginAdmission.DeveloperMode, "开发者模式：未命中审核清单，经开发者模式放行"));
+        return request;
     }
 
     private static IEnumerable<Type> DeclaredMemberTypes(Type type)

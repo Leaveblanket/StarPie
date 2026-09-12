@@ -1,5 +1,9 @@
 using System;
 using System.IO;
+using StarPie.Manifest;
+using StarPie.PluginRuntime.Admission;
+using StarPie.PluginRuntime.Loading;
+using StarPie.PluginRuntime.Manifest;
 
 namespace StarPie.Tests;
 
@@ -11,6 +15,43 @@ internal static class PluginTestPackage
 {
     /// <summary>默认入口程序集文件名。</summary>
     internal const string DefaultEntryAssembly = "Example.Plugin.dll";
+
+    /// <summary>程序来源能力声明（借 SDK 的 IProgramScanner 契约做能力夹具）。</summary>
+    internal const string ProgramSourceCapabilitiesJson = """[{ "id": "program-source", "abi": 1 }]""";
+
+    /// <summary>建包 + 拷入口程序集 + 解析清单，返回「开发者模式放行」的装载请求。</summary>
+    internal static PluginLoadRequest CreateLoadRequest(
+        string pluginsRoot,
+        string pluginId,
+        Type entryType,
+        string? entryTypeName = null,
+        string? capabilitiesJson = null,
+        int priority = 0)
+    {
+        string entryAssemblyName = Path.GetFileName(entryType.Assembly.Location);
+        string packageDirectory = Create(
+            pluginsRoot,
+            pluginId,
+            Manifest(
+                pluginId,
+                entryAssembly: entryAssemblyName,
+                entryType: entryTypeName ?? entryType.FullName!,
+                priority: priority,
+                capabilitiesJson: capabilitiesJson));
+        File.Copy(
+            entryType.Assembly.Location,
+            Path.Combine(packageDirectory, entryAssemblyName),
+            overwrite: true);
+        PluginManifest manifest = PluginManifestParser
+            .Parse(File.ReadAllText(Path.Combine(packageDirectory, "plugin.json")))
+            .Manifest!;
+        return new PluginLoadRequest(
+            manifest,
+            packageDirectory,
+            new PluginAdmissionDecision(
+                PluginAdmission.DeveloperMode,
+                "开发者模式：未命中审核清单，经开发者模式放行"));
+    }
 
     /// <summary>写出插件包目录并返回其路径。</summary>
     internal static string Create(

@@ -14,6 +14,7 @@ using StarPie.PluginRuntime.Loading;
 using StarPie.PluginRuntime.Manifest;
 using StarPie.PluginRuntime.Registry;
 using StarPie.PluginRuntime.State;
+using StarPie.PluginRuntime.Unloading;
 
 namespace StarPie.Tests;
 
@@ -71,6 +72,9 @@ public sealed class HostBoundaryTests
         typeof(CapabilityGuardOptions), typeof(CapabilityUnavailableException),
         typeof(CapabilityCircuitOpenException), typeof(CapabilityCallTimeoutException),
         typeof(PluginServiceScope), typeof(IPluginLogSink), typeof(PluginLogEntry),
+        // PluginRuntime/Unloading/（安全点卸载管线与回收判定）
+        typeof(PluginUnloadStatus), typeof(PluginUnloadRequest), typeof(PluginUnloadResult),
+        typeof(PluginUnloadPipeline),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

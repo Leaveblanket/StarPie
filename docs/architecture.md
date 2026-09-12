@@ -74,7 +74,9 @@
   `PluginRuntime/`——`Discovery/`（安装目录 + 用户目录发现与包内容违规）、`Manifest/`（清单解析与
   校验）、`Admission/`（准入四态与开发者模式开关）、`State/`（宿主状态 `plugin-state.json`）、
   `Loading/`（collectible ALC 与装载管线：共享契约/框架回退默认 ALC、包内私有解析、
-  入口类型不缓存）、`Lifecycle/`（生命周期状态机：装载链、headless/UI 两条卸载链与隔离终态）、
+  入口类型不缓存）、`Unloading/`（安全点卸载管线：配置冲刷 → 拒绝新调用 → 能力摘除 →
+  在途归零 → `StopAsync` → 作用域释放 → `ALC.Unload` → `WeakReference` 回收判定；失败进隔离）、
+  `Lifecycle/`（生命周期状态机：装载链、headless/UI 两条卸载链与隔离终态）、
   `Registry/`（`CapabilityRegistry` 能力表 + `CapabilityGuard` 调用守卫：状态检查、在途计数、
   超时、异常捕获、连续失败熔断与隔离，命名空间 `StarPie.PluginRuntime.Registry`）、
   `Diagnostics/`（启动扫描与 `plugin-startup-report.json`），命名空间 `StarPie.PluginRuntime.*`；
@@ -165,7 +167,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0029，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0034，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
@@ -232,5 +234,6 @@ Services ---> Models
 | 0031 | `docs/adr/0031-e2e-silent-background-run.md` | e2e 静默后台化（`--background` 窗口形态 + 选中态驱动导航 + 运行器脚本） | Active（窗口形态/托盘/截图被 0032 修订） |
 | 0032 | `docs/adr/0032-e2e-silent-visible-window.md` | e2e 静默形态改屏内左上角（点击穿透 + 托盘可见 + 失败截图可用） | Active |
 | 0033 | `docs/adr/0033-plugin-service-scope-without-di-container.md` | 插件服务作用域自持实例与账本（不引入 MS.DI 子容器） | Active |
+| 0034 | `docs/adr/0034-headless-unload-handover-and-hard-reclaim.md` | headless 卸载三条款（交接即清空强引用 / 在途未归零中止于危险区之前 / 硬判 ALC 与程序集回收） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
