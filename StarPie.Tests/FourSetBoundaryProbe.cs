@@ -23,8 +23,9 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 尚未撤销的旧集 runtime 程序集名：Sdk/Sdk.Wpf/Host 三集不得引用旧集 runtime
-    /// （跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）；旧集只被 Ui 组合根与测试引用。
+    /// 尚未撤销的旧集程序集名：只剩设计期投影壳 <c>StarPie.Core</c>（零导出类型、零运行时件）。
+    /// Sdk/Sdk.Wpf/Host 三集不得引用它（跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）；它只被 Ui
+    /// 组合根与测试引用。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =
     {

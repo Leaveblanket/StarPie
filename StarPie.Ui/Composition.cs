@@ -51,10 +51,10 @@ namespace StarPie
             navigationCatalog.Validate();
             services.AddSingleton(navigationCatalog);
 
-            // 轮盘与渲染的 DI 注册由 WheelModuleRegistrar 下放本集（组合根仍唯一
+            // 轮盘与渲染的 DI 注册由 WheelModuleRegistrar 承载（组合根仍唯一
             // BuildServiceProvider）：手势侧只经 SDK 的 IWheelFactory 接口消费轮盘；
-            // 预览 Profile 契约 IProfilePreviewSource 随实现方下沉、#112 收口入 SDK
-            //（ADR-0023/#97），别名由 GesturesModuleRegistrar 注册。
+            // 预览 Profile 契约 IProfilePreviewSource 的实现驻本集，别名由
+            // GesturesModuleRegistrar 注册。
             WheelModuleRegistrar.RegisterServices(services);
 
             ConfigureServices(services);
@@ -142,9 +142,8 @@ namespace StarPie
                 sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IConfigService>(sp => sp.GetRequiredService<JsonConfigService>());
             services.AddSingleton<ILocalizationService, LocalizationService>();
-            // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 下放本集
-            // （ADR-0020/#88）：扫描能力经 SDK 契约 IProgramScanner 注入（实现由组合根注册），
-            // 组合根不再直接装配对话框服务。
+            // S6 对话框实现的 DI 注册由 DialogsModuleRegistrar 承载：扫描能力经 SDK 契约
+            // IProgramScanner 注入（实现由组合根注册），组合根不直接装配对话框服务。
             DialogsModuleRegistrar.RegisterServices(services);
             services.AddSingleton<ISaveDebouncer, DispatcherSaveDebouncer>();
 
@@ -158,12 +157,11 @@ namespace StarPie
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 页面 VM：容器单例，状态跨导航常驻；解析时机在配置加载后（CreateAppHost）。
-            // 高级页的注册已由 ShellModuleRegistrar 下放本集。
+            // 高级页 VM 的注册由 ShellModuleRegistrar 承载。
             ShellModuleRegistrar.RegisterServices(services);
 
             // 手势与动作的 DI 注册（鼠标钩子/动作执行/窗口上下文/手势引擎与控制器、
-            // 触发与手势两页 VM、IProfilePreviewSource 别名）由 GesturesModuleRegistrar
-            // 下放本集 M1 部件。
+            // 触发与手势两页 VM、IProfilePreviewSource 别名）由 GesturesModuleRegistrar 承载。
             GesturesModuleRegistrar.RegisterServices(services);
 
             // 两个设置子 VM（界面主题、轮盘外观）分别由 Theme/Wheel 模块注册器注册，

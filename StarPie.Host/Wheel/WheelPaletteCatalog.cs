@@ -13,50 +13,103 @@ namespace StarPie.Wheel
         // ---- 系统预设（解析器按方案名整组替换，各风格一致） ----
 
         public static WheelPalette StandardLight { get; } = Create(
-            "#F0F8FAFC", "#3064748B", "#FF2563EB", "#FF60A5FA", "#FF0F172A");
+            sectorBgHex: "#F0F8FAFC",
+            sectorBorderHex: "#3064748B",
+            highlightBgHex: "#FF2563EB",
+            highlightBorderHex: "#FF60A5FA",
+            textHex: "#FF0F172A");
 
         public static WheelPalette MatchaForest { get; } = Create(
-            "#E6142E1F", "#4034D399", "#FF10B981", "#FF6EE7B7", "#FFF0FDF4");
+            sectorBgHex: "#E6142E1F",
+            sectorBorderHex: "#4034D399",
+            highlightBgHex: "#FF10B981",
+            highlightBorderHex: "#FF6EE7B7",
+            textHex: "#FFF0FDF4");
 
         public static WheelPalette GlacialIce { get; } = Create(
-            "#E0E0F2FE", "#6038BDF8", "#FF0284C7", "#FFBAE6FD", "#FF0C4A6E");
+            sectorBgHex: "#E0E0F2FE",
+            sectorBorderHex: "#6038BDF8",
+            highlightBgHex: "#FF0284C7",
+            highlightBorderHex: "#FFBAE6FD",
+            textHex: "#FF0C4A6E");
 
         public static WheelPalette MorandiMuted { get; } = Create(
-            "#E62C302E", "#409CA3AF", "#FF78716C", "#FFD6D3D1", "#FFF5F5F4");
+            sectorBgHex: "#E62C302E",
+            sectorBorderHex: "#409CA3AF",
+            highlightBgHex: "#FF78716C",
+            highlightBorderHex: "#FFD6D3D1",
+            textHex: "#FFF5F5F4");
 
         // ---- 中性/紧急回落 ----
 
         /// <summary>渲染器中性深色默认；CatPaw 的 Custom 分支与未知风格均回落此值。</summary>
         public static WheelPalette NeutralDark { get; } = Create(
-            "#EB18181B", "#30FFFFFF", "#FF2563EB", "#FF60A5FA", "#FFF8FAFC");
+            sectorBgHex: "#EB18181B",
+            sectorBorderHex: "#30FFFFFF",
+            highlightBgHex: "#FF2563EB",
+            highlightBorderHex: "#FF60A5FA",
+            textHex: "#FFF8FAFC");
 
         /// <summary>坏值/空值全局回落：任一解析失败即整组替换（核色与扇区色不同源）。</summary>
         public static WheelPalette Emergency { get; } = new WheelPalette(
-            Parse("#E618181B"), Parse("#35FFFFFF"), Parse("#FF3B82F6"), Parse("#A0FFFFFF"), Parse("#F8FAFC"),
-            Parse("#F018181B"), Parse("#30FFFFFF"));
+            sectorBg: Parse("#E618181B"),
+            sectorBorder: Parse("#35FFFFFF"),
+            highlightBg: Parse("#FF3B82F6"),
+            highlightBorder: Parse("#A0FFFFFF"),
+            textColor: Parse("#F8FAFC"),
+            coreBg: Parse("#F018181B"),
+            coreBorder: Parse("#30FFFFFF"));
 
         // ---- 风格默认深浅观感（各风格 Light/Dark/Custom 的固有观感，随风格切换不变） ----
 
         private static readonly WheelPalette ClassicRingLight = Create(
-            "#F5F8FAFC", "#3564748B", "#FF2563EB", "#FF93C5FD", "#FF0F172A");
+            sectorBgHex: "#F5F8FAFC",
+            sectorBorderHex: "#3564748B",
+            highlightBgHex: "#FF2563EB",
+            highlightBorderHex: "#FF93C5FD",
+            textHex: "#FF0F172A");
 
         private static readonly WheelPalette ClassicRingDark = Create(
-            "#F018181B", "#40FFFFFF", "#FF2563EB", "#FF93C5FD", "#FFF8FAFC");
+            sectorBgHex: "#F018181B",
+            sectorBorderHex: "#40FFFFFF",
+            highlightBgHex: "#FF2563EB",
+            highlightBorderHex: "#FF93C5FD",
+            textHex: "#FFF8FAFC");
 
         private static readonly WheelPalette CleanSectorsLight = Create(
-            "#F8FFFFFF", "#35CBD5E1", "#FF059669", "#FF10B981", "#FF0F172A");
+            sectorBgHex: "#F8FFFFFF",
+            sectorBorderHex: "#35CBD5E1",
+            highlightBgHex: "#FF059669",
+            highlightBorderHex: "#FF10B981",
+            textHex: "#FF0F172A");
 
         private static readonly WheelPalette CleanSectorsDark = Create(
-            "#F20F172A", "#35334155", "#FF10B981", "#FF6EE7B7", "#FFF8FAFC");
+            sectorBgHex: "#F20F172A",
+            sectorBorderHex: "#35334155",
+            highlightBgHex: "#FF10B981",
+            highlightBorderHex: "#FF6EE7B7",
+            textHex: "#FFF8FAFC");
 
         private static readonly WheelPalette GlassmorphismLight = Create(
-            "#45FFFFFF", "#85FFFFFF", "#D86366F1", "#FFFFFFFF", "#FF0F172A");
+            sectorBgHex: "#45FFFFFF",
+            sectorBorderHex: "#85FFFFFF",
+            highlightBgHex: "#D86366F1",
+            highlightBorderHex: "#FFFFFFFF",
+            textHex: "#FF0F172A");
 
         private static readonly WheelPalette GlassmorphismDark = Create(
-            "#40181E32", "#50E2E8F0", "#D07C3AED", "#FFF5F3FF", "#FFF8FAFC");
+            sectorBgHex: "#40181E32",
+            sectorBorderHex: "#50E2E8F0",
+            highlightBgHex: "#D07C3AED",
+            highlightBorderHex: "#FFF5F3FF",
+            textHex: "#FFF8FAFC");
 
         private static readonly WheelPalette CatPawPastel = Create(
-            "#FFF7F9", "#F472B6", "#FB7185", "#FFE4E6", "#881337");
+            sectorBgHex: "#FFF7F9",
+            sectorBorderHex: "#F472B6",
+            highlightBgHex: "#FB7185",
+            highlightBorderHex: "#FFE4E6",
+            textHex: "#881337");
 
         /// <summary>
         /// 按风格取默认观感：非 Light 一律走深色变体；CatPaw 除 Custom 外恒为粉彩观感；
@@ -84,7 +137,12 @@ namespace StarPie.Wheel
             => !string.Equals(style, "CatPaw", StringComparison.Ordinal);
 
         private static WheelPalette Create(string sectorBgHex, string sectorBorderHex, string highlightBgHex, string highlightBorderHex, string textHex)
-            => WheelPalette.Create(Parse(sectorBgHex), Parse(sectorBorderHex), Parse(highlightBgHex), Parse(highlightBorderHex), Parse(textHex));
+            => WheelPalette.Create(
+                sectorBg: Parse(sectorBgHex),
+                sectorBorder: Parse(sectorBorderHex),
+                highlightBg: Parse(highlightBgHex),
+                highlightBorder: Parse(highlightBorderHex),
+                textColor: Parse(textHex));
 
         private static RgbColor Parse(string hex)
         {

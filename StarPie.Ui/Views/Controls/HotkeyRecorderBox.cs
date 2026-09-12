@@ -15,10 +15,9 @@ namespace StarPie.Views.Controls
     /// 热键录制输入框：文案与状态配色一律声明式。
     /// </summary>
     /// <remarks>
-    /// 占位文案由消费方经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键），
-    /// 录制提示与录制态配色由控件模板（StarPie.Ui/Views/Styles/
-    /// HotkeyRecorderBox.xaml，随控件下沉本模块，ADR-0022/#94；P1.6/#115 随 M1 归并入 Ui）持有；code-behind 只
-    /// 负责输入逻辑与动态文本/可见性编排，不出现静态文案或 hex 画刷。
+    /// 占位文案由消费方经 <see cref="Placeholder"/> 传入（{DynamicResource} 语言键）；
+    /// 录制提示与录制态配色由控件模板（Views/Styles/HotkeyRecorderBox.xaml）持有，
+    /// code-behind 只负责输入逻辑与动态文本/可见性编排，不出现静态文案或 hex 画刷。
     /// </remarks>
     public class HotkeyRecorderBox : Control
     {
