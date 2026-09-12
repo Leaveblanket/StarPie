@@ -31,6 +31,8 @@ public sealed class HostBoundaryTests
         typeof(ProgramScanner), typeof(ShortcutResolver),
         // Themes/（界面主题引擎）与 Ports/（宿主→Ui 端口：主题应用）
         typeof(ThemeEngine), typeof(IThemeApplier),
+        // Wheel/（轮盘配色目录与色值解析，WPF-free）
+        typeof(WheelPalette), typeof(WheelPaletteCatalog), typeof(WheelPaletteParser),
     };
 
     /// <summary>设计期字符串字典的唯一来源（Page 编译、签入生成物；pack URI 由 UI 工程资源锚合并）。</summary>
@@ -124,9 +126,9 @@ public sealed class HostBoundaryTests
     }
 
     [Fact]
-    public void 设计期资源锚_五个UI工程指向Core投影字典()
+    public void 设计期资源锚_四个UI工程指向Core投影字典()
     {
-        foreach (string project in new[] { "StarPie.Ui", "StarPie.Shell", "StarPie.Gestures", "StarPie.Dialogs", "StarPie.Wheel" })
+        foreach (string project in new[] { "StarPie.Ui", "StarPie.Shell", "StarPie.Gestures", "StarPie.Dialogs" })
         {
             string path = Path.Combine(FourSetBoundaryProbe.RepoRoot, project, "Properties", "DesignTimeResources.xaml");
             Assert.True(File.Exists(path), $"设计期资源锚缺失: {project}");

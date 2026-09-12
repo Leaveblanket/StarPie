@@ -25,3 +25,4 @@ global using StarPie.Views.Navigation;
 global using StarPie.Views.Pages;
 global using StarPie.Views.Renderers;
 global using StarPie.Views.Wheel;
+global using StarPie.Wheel;

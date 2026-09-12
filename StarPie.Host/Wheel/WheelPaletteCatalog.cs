@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Models
+namespace StarPie.Wheel
 {
     /// <summary>
     /// 轮盘配色静态色值目录：系统预设与各风格默认深浅观感、中性/紧急回落的唯一 hex 来源。

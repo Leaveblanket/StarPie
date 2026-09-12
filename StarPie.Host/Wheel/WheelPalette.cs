@@ -1,4 +1,4 @@
-namespace StarPie.Models
+namespace StarPie.Wheel
 {
     /// <summary>
     /// 轮盘配色解析结果（与 WPF 解耦的色值组）：扇区底色/边框、高亮/高亮边框、文字，
