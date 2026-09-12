@@ -54,6 +54,11 @@
    - 程序扫描由 `HostCoreContributor` 登记——`IShortcutTargetResolver→ShortcutResolver` 与
      `IProgramScanner→ProgramScanner`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
      实现驻宿主内核 `StarPie.Host/Programs/`，ADR-0023；组合根无静态扫描委托行）。
+   - 插件运行时首层由 `HostCoreContributor` 登记——`PluginStateStore`（宿主状态）、
+     `PluginAdmissionPolicy`（准入判定，审核清单先接入空实现）、`PluginDeveloperModeService`
+     （开发者模式开关与风险披露）、`PluginDiscovery`（安装目录 + 用户目录）与
+     `PluginStartupScanner`（发现 → 清单校验 → 准入 → 状态与报告落盘）；路径经
+     `PluginPaths` 单一来源推导（见 [plugins.md](plugins.md) §2/§3）。
    - 图标资产由 `HostCoreContributor` 登记——内核 `CustomIconStore`（`StarPie.Host/Icons/`，目录默认
      `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
      （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。
@@ -118,8 +123,10 @@
      驻留气泡直调不变）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
 4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
-   - `_mouseHook.Start()` → 订阅 `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
-     首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
+   - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
+     不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
+     `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
+    首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
      `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
      `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→

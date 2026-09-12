@@ -1,6 +1,11 @@
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using StarPie.PluginRuntime;
+using StarPie.PluginRuntime.Admission;
+using StarPie.PluginRuntime.Diagnostics;
+using StarPie.PluginRuntime.Discovery;
+using StarPie.PluginRuntime.State;
 using StarPie.Services;
 
 namespace StarPie.Modules
@@ -60,6 +65,22 @@ namespace StarPie.Modules
             // NavigationStore 单例 + 目录执行缝按槽位注册。
             services.AddSingleton<NavigationStore>();
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
+
+            // 插件运行时：路径、发现、清单校验、准入判定与宿主状态（含开发者模式开关）。
+            // 启动扫描只做发现/准入与启动报告落盘，不装载插件代码；路径经 PluginPaths 单一来源，
+            // 用户侧目录随 dev 实例落沙箱。
+            services.AddSingleton(_ => new PluginStateStore(PluginPaths.StateFilePath));
+            services.AddSingleton<IPluginReviewCatalog, EmptyPluginReviewCatalog>();
+            services.AddSingleton(sp => new PluginAdmissionPolicy(
+                PluginAdmissionPolicy.DefaultBuiltInPluginIds,
+                sp.GetRequiredService<IPluginReviewCatalog>()));
+            services.AddSingleton<PluginDeveloperModeService>();
+            services.AddSingleton(_ => new PluginDiscovery(PluginPaths.InstallDirectory, PluginPaths.UserDirectory));
+            services.AddSingleton(sp => new PluginStartupScanner(
+                sp.GetRequiredService<PluginDiscovery>(),
+                sp.GetRequiredService<PluginAdmissionPolicy>(),
+                sp.GetRequiredService<PluginStateStore>(),
+                new PluginStartupReportWriter(PluginPaths.StartupReportFilePath)));
 
             // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
             services.AddSingleton<MainViewModel>();

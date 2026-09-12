@@ -175,6 +175,11 @@
     <sys:String x:Key="PickGlowColorTooltip" xml:space="preserve">打开调色板选取光晕颜色</sys:String>
     <sys:String x:Key="PickGlowEyedropperTooltip" xml:space="preserve">从屏幕任意位置吸取光晕颜色</sys:String>
     <sys:String x:Key="PickIconTooltip" xml:space="preserve">点击选取矢量图标</sys:String>
+    <sys:String x:Key="PluginDevModeDisclosureCode" xml:space="preserve">插件可在你的账户权限内执行任意代码</sys:String>
+    <sys:String x:Key="PluginDevModeDisclosureCrash" xml:space="preserve">插件可能使 StarPie 崩溃或卡死</sys:String>
+    <sys:String x:Key="PluginDevModeDisclosureData" xml:space="preserve">插件可读取本机 StarPie 配置与插件数据</sys:String>
+    <sys:String x:Key="PluginDevModeDisclosureTitle" xml:space="preserve">开发者模式：进程内全信任风险披露</sys:String>
+    <sys:String x:Key="PluginDevModeDisclosureUnload" xml:space="preserve">卸载可能失败；失败的插件会被隔离，需重启处理</sys:String>
     <sys:String x:Key="ProfileCardDesc" xml:space="preserve">选择或新建针对特定程序（如 Chrome、VS Code）或特定工作流的轮盘配置方案（支持双击重命名）。</sys:String>
     <sys:String x:Key="ProfileCardTitle" xml:space="preserve">当前配置方案 (Profile)</sys:String>
     <sys:String x:Key="ProgramPickerExeFilter" xml:space="preserve">可执行程序 (*.exe)|*.exe|快捷方式 (*.lnk)|*.lnk|所有文件 (*.*)|*.*</sys:String>

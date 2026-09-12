@@ -1,8 +1,9 @@
 # 插件体系（目标态）
 
-> **状态**：P1（三集物理形态 + 统一注册管线 + 静态加载）已落地，其条款即 as-built；
-> 插件装载/卸载、能力、UI 托管与生态化为 P2–P4 目标态规范，落地前插件子系统 as-built 以
-> [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
+> **状态**：P1（三集物理形态 + 统一注册管线 + 静态加载）已落地；P2 首层（§3 的清单校验、发现顺序与
+> 同 id 冲突、宿主状态字段、启动报告、开发者模式开关与准入四态）亦已落地，其条款即 as-built；
+> 插件装载/卸载（collectible ALC）、能力注册、UI 托管与生态化为目标态规范，未落地条款在落地前
+> as-built 以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
@@ -73,8 +74,8 @@ StarPie/
 │   ├── Ports/                            # Host→Ui 端口：IUiDispatcher/IThemeApplier/IWheelPresenter/IIconImageFactory/IPluginUiCoordinator
 │   │                                     # 存在理由：零 WPF 的 Host 要「做 WPF 事」只能回抛接口，这是两集间唯一的反向缝（9 个污染点收口）
 │   ├── HostServices/                     # 插件可见宿主服务实现：IPluginLog/IPluginConfig/IPluginEvents/…；每插件一个 PluginServiceScope（§6.1）
-│   └── PluginRuntime/{Discovery,Manifest,Loading,Lifecycle,Registry,Config,Isolation,Diagnostics}
-│                                         # 发现/清单校验/collectible ALC/状态机/能力表/配置命名空间/隔离决策/诊断报告
+│   └── PluginRuntime/{Discovery,Manifest,Admission,State,Loading,Lifecycle,Registry,Config,Isolation,Diagnostics}
+│                                         # 发现/清单校验/准入判定/宿主状态/collectible ALC/状态机/能力表/配置命名空间/隔离决策/诊断报告
 ├── StarPie.Ui/                           # WinExe，AssemblyName=StarPie；唯一含 XAML（ADR-0027 决策 1）
 │   ├── App.xaml(.cs)  AppHost/  Composition/   # 应用资源树、启动退出编排、组合根（内置与插件贡献者共用一条注册管线）
 │   ├── Adapters/                         # 实现 Host/Ports 的 WPF 适配器：零 WPF 的 Host 只能吃接口
@@ -127,6 +128,11 @@ StarPie/
 - `id` 反向域名、发布后不可变；`version` SemVer。
 - `ui` 段可选：声明插件含 UI，并给出 `IPluginUiModule` 入口类型；无 `ui` 段即为 headless 插件。
 - 发现顺序：安装目录 `plugins/` 与用户目录；同 id 冲突禁用两者并提示处理。
+- 清单校验在发现期收口（失败即 `Rejected` 并附原因）：`schemaVersion` 只接受 1；`id`/`name`/`version`/`sdk`/`entryAssembly`/`entryType` 必填；`id` 须等于包目录名；`sdk` 按 §11 的 ABI 政策判定；`entryAssembly`/`settingsSchema` 必须是包内裸文件名且文件存在于包内；`ui` 段只做纯格式校验（UI 侧 ABI 兼容判定归 Ui 侧插件托管层，见 §5.1 约束 7）。
+- 宿主状态条目字段：启用/停用、已装版本、包路径、准入来源（四态）、隔离状态；每次启动扫描重算准入并刷新条目，用户的启用意图与隔离状态不被扫描覆盖。
+- 启动扫描产物 `plugin-startup-report.json`：扫描目录、开发者模式开关、逐插件准入结果与四态计数——**准入四态在启动报告里直接可见**。
+- 开发者模式开关存宿主状态（默认关闭）：开启须显式确认全信任风险披露（可读配置与插件数据 / 执行任意代码 / 使进程崩溃 / 卸载可能失败并被隔离），未确认不得置位。
+- 内置认定以宿主内置 id 清单为准：随包第一方插件登记 id，安装目录位置本身不是信任依据；未登记的包按未审核处理。
 - 包内**不得**出现 `StarPie.Sdk.dll`/`StarPie.Sdk.Wpf.dll`（共享契约不做随包分发）；命中即 `Rejected`（§5.1 约束 3）。
 - `capabilities` 是数组：一个插件可声明多个能力，每条各自带 ABI；**卸载粒度仍是整个插件**，不能单摘一个能力（Q8）。
 - 首期**禁止插件间依赖**：插件只依赖 SDK 与框架程序集，包内私有依赖由该插件独占，不跨插件共享（Q8）。
@@ -331,7 +337,7 @@ public interface IPluginUiContext
 - **ABI**：`StarPie.Sdk` 与 `StarPie.Sdk.Wpf` 同政策：主.次版本；宿主接受同主版本且次版本不高于宿主的插件；接口 additive-only，破坏性变更 = 新接口 + 新能力 id/新描述符。
 - **准入（ADR-0029）**：目标态 = 签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验），未命中即 `Rejected`；首期 = 仅第一方随包插件与**开发者模式**插件（默认关闭的显式开关 + 全信任风险披露）；不做默认侧载放行。
 - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即停用。
-- **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。
+- **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。「内置」= 命中宿主内置 id 清单的第一方随包插件，见 §3。
 - **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 UI 插件的卸载边界**：程序集在进程内不可回收，卸载语义见 ADR-0030 与 §5.2。
 
 ## 12. 迁移映射（15 集 → 三集 + 插件）

@@ -41,6 +41,11 @@ public sealed class SdkBoundaryTests
         typeof(CustomIconItem), typeof(VectorIconItem), typeof(IShortcutTargetResolver),
         // Services/Programs/（扫描契约与纯规则）
         typeof(IProgramScanner), typeof(ProgramEntry), typeof(ProgramCatalog),
+        // Compatibility/（SDK ABI 版本常量与兼容判定）
+        typeof(StarPie.Compatibility.AbiVersion), typeof(StarPie.Compatibility.SdkAbi),
+        // Manifest/（plugin.json 纯数据模型；校验归宿主）
+        typeof(StarPie.Manifest.PluginManifest), typeof(StarPie.Manifest.PluginUiManifest),
+        typeof(StarPie.Manifest.PluginCapabilityReference),
         // ViewModels/Wheel/
         typeof(IWheelViewModel), typeof(IWheelAppearanceState),
         // ViewModels/Pages/
@@ -93,7 +98,12 @@ public sealed class SdkBoundaryTests
     public void Sdk源码树_镜像旧相对路径_无清单外落点()
     {
         string sdkRoot = Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Sdk");
-        string[] allowed = { "bin", "obj", "StarPie.Sdk.csproj", "Models", "Services", "ViewModels" };
+        string[] allowed =
+        {
+            "bin", "obj", "StarPie.Sdk.csproj",
+            "Models", "Services", "ViewModels",
+            "Manifest", "Compatibility",
+        };
 
         string[] unexpected = Directory.EnumerateFileSystemEntries(sdkRoot)
             .Select(path => Path.GetFileName(path)!)
