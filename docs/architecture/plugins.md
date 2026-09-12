@@ -6,7 +6,9 @@
 > 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
 > 最小插件管理面与诊断报告（§10 的列表/状态/启停/重试/诊断入口，含可定位残留清单）亦已落地；
 > 插件 UI 托管基础层（§7 的资产登记表、每插件资源根、UI 线程释放编排与泄漏验证器）亦已落地；
-> 插件 UI 装载接线（页面挂载与示例插件）、管理面剩余动作（重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
+> 固定扩展点（§7.1 的导航页/设置区/托盘菜单/插件窗口/内容容器的注册与出账，含无插件时的
+> 降级行为）亦已落地；插件 UI 装载接线（UI 入口调用与示例插件）、管理面剩余动作
+> （重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
 > [assemblies.md](assemblies.md) 与
 > [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
@@ -253,6 +255,12 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 扩展点由宿主定义并与现有 UI 结构对齐：**导航页、设置区、托盘菜单、插件窗口、内容容器宿主**（P3 可按需增加轮盘样式扩展点）。不引入 Prism 式通用 Region/模块系统（ADR-0016 已否决 Prism）。
 
 插件页追加在固定五页之后；固定页 AutomationId 仍是 `NavPage0..4`（e2e 依赖），插件页用 `NavPlugin_<plugin-id>`——该规则是 P3 前置（Q10）。
+
+扩展点的宿主落点（as-built）：导航页进 `NavigationCatalog`（运行期可增删，摘除随资产出账）；
+设置区由 `PluginUiCoordinator.SettingsSections` 汇总、在插件管理页的设置区按区块呈现；托盘菜单
+由 `TrayMenuComposer` 在内置条目之后追加并路由到插件命令；插件窗口与内容容器分别经
+`PluginWindowRegistry` 与 `PluginViewHost` 托管。**无插件时每个扩展点都必须为空而非空壳**：
+目录只剩固定页、托盘菜单不追加分隔线、设置区整块隐藏、未注册 UI 资产的插件释放直接成功。
 
 ### 7.2 契约funnel：插件只能经 `IPluginUiContext` 注册
 
