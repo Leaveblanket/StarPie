@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using StarPie.Abstractions;
 using StarPie.HostServices;
 using StarPie.PluginRuntime.Lifecycle;
@@ -22,9 +23,9 @@ namespace StarPie.PluginRuntime.Unloading
 
         private PluginUnloadRequest(
             string pluginId,
-            IPlugin plugin,
+            IPlugin? plugin,
             PluginLoadContext loadContext,
-            PluginServiceScope scope,
+            PluginServiceScope? scope,
             PluginLifecycleStateMachine lifecycle)
         {
             PluginId = pluginId;
@@ -32,9 +33,13 @@ namespace StarPie.PluginRuntime.Unloading
             _loadContext = loadContext;
             _scope = scope;
             Lifecycle = lifecycle;
+            HasScope = scope is not null;
             PluginProbe = new WeakReference(plugin);
             LoadContextProbe = new WeakReference(loadContext);
-            EntryAssemblyProbe = new WeakReference(plugin.GetType().Assembly);
+            // 未启动成功的隔离结果没有入口实例，回落到 ALC 内已加载的入口程序集；
+            // 连程序集都没加载起来（例如入口程序集损坏）时探针为空，判定按"已回收"计。
+            EntryAssemblyProbe = new WeakReference(
+                plugin?.GetType().Assembly ?? loadContext.Assemblies.FirstOrDefault());
         }
 
         /// <summary>插件 id。</summary>
@@ -43,11 +48,18 @@ namespace StarPie.PluginRuntime.Unloading
         /// <summary>该插件的生命周期状态机。</summary>
         internal PluginLifecycleStateMachine Lifecycle { get; }
 
-        /// <summary>入口实例（交接期间有效）。</summary>
+        /// <summary>
+        /// 请求是否携带服务作用域（活动态装载结果为真，启动失败的隔离装载结果为假）。
+        /// 判定必须是构造期算好的布尔值：卸载帧直接读实例字段会把引用留在栈槽里，
+        /// 回收判定时被 GC 当作 root（headless 硬判据要求插件对象全部死亡）。
+        /// </summary>
+        internal bool HasScope { get; }
+
+        /// <summary>入口实例（交接期间有效；仅活动态装载结果的请求可用）。</summary>
         internal IPlugin Plugin => _plugin
             ?? throw new InvalidOperationException("卸载请求已交出插件引用");
 
-        /// <summary>服务作用域（交接期间有效）。</summary>
+        /// <summary>服务作用域（交接期间有效；仅活动态装载结果的请求可用）。</summary>
         internal PluginServiceScope Scope => _scope
             ?? throw new InvalidOperationException("卸载请求已交出插件引用");
 
@@ -73,6 +85,32 @@ namespace StarPie.PluginRuntime.Unloading
             {
                 throw new ArgumentException(
                     $"卸载请求要求活动态装载结果（含实例、ALC 与作用域）：{loaded.Status}",
+                    nameof(loaded));
+            }
+
+            var request = new PluginUnloadRequest(
+                loaded.PluginId,
+                loaded.Plugin,
+                loaded.LoadContext,
+                loaded.Scope,
+                loaded.Lifecycle);
+            loaded.ReleaseForUnload();
+            return request;
+        }
+
+        /// <summary>
+        /// 从隔离装载结果构造回收请求：插件没启动成功，没有实例与作用域可清，
+        /// 只回收失败装载留下的 ALC 与已加载程序集。
+        /// </summary>
+        /// <param name="loaded">隔离的装载结果（拒绝路径没有 ALC，不接受）。</param>
+        /// <exception cref="ArgumentException">装载结果不是带 ALC 的隔离结论。</exception>
+        public static PluginUnloadRequest FromQuarantined(PluginLoadResult loaded)
+        {
+            ArgumentNullException.ThrowIfNull(loaded);
+            if (loaded.Status != PluginLoadStatus.Quarantined || loaded.LoadContext is null)
+            {
+                throw new ArgumentException(
+                    $"回收请求要求带 ALC 的隔离装载结果：{loaded.Status}",
                     nameof(loaded));
             }
 

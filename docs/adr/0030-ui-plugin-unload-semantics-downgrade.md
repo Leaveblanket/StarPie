@@ -1,6 +1,6 @@
 # UI 插件不承诺 ALC 真卸载：卸载语义降级为「托管清理 + 可验证 + 泄漏隔离 + 重启生效」
 
-> Status: Active
+> Status: Active（决策 1 对 headless 的承诺边界被 [ADR-0035](0035-wpf-host-plugin-assembly-reclaim-downgrade.md) 修订：WPF 宿主里 headless 插件同样不承诺 ALC 回收）
 >
 > 本文修订 [ADR-0028](0028-plugin-ui-hosting-and-host-managed-lifecycle.md) 决策 4（卸载管线的最终验证）与决策 6（承诺分级）；其余条款（宿主托管资产、资产登记表、受支持特性白名单、信任前置）继续有效。目标态规范见 `docs/architecture/plugins.md`。
 

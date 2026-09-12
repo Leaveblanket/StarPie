@@ -25,12 +25,15 @@
 | `AppearanceSettingsViewModel` | `AppearanceSettingsPage` | 外观与形态 |
 | `ProfileListViewModel` | `GesturesSettingsPage` | 手势与动作 |
 | `GeneralSettingsViewModel` | `AdvancedSettingsPage` | 高级与系统 |
+| `PluginManagerViewModel` | `PluginManagerPage` | 插件管理 |
 
 规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属贡献者
 `RegisterNavigation`（M5 为 `StarPie.Ui` 的 `ShellContributor`、M1 为
-`StarPie.Ui` 的 `GesturesContributor`，Host 外观聚合页为 `HostPageContributor`）
+`StarPie.Ui` 的 `GesturesContributor`，Host 外观聚合页为 `HostPageContributor`，
+宿主直持页为 `HostCoreContributor`）
 + 所属模块页面模板字典 DataTemplate（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
-`StarPie.Ui/Modules/GesturesPageTemplates.xaml`）+ 本表各登记一行**；映射表是唯一事实来源
+`StarPie.Ui/Modules/GesturesPageTemplates.xaml`、插件管理在
+`StarPie.Ui/Modules/HostCorePageTemplates.xaml`）+ 本表各登记一行**；映射表是唯一事实来源
 （接线流程见 [navigation.md](navigation.md)）。
 
 ## 对话框配对与例外

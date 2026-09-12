@@ -267,4 +267,29 @@
   <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>插件可在你的账户权限内执行任意代码</value></data>
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>插件可能使 StarPie 崩溃或卡死</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸载可能失败；失败的插件会被隔离，需重启处理</value></data>
+  <data name="PagePlugins" xml:space="preserve"><value>🧩 插件</value></data>
+  <data name="PluginManagerSubheader" xml:space="preserve"><value>查看宿主扫描到的插件与状态，执行启用、停用、重试与诊断。</value></data>
+  <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>插件</value></data>
+  <data name="PluginManagerVersionLabel" xml:space="preserve"><value>版本</value></data>
+  <data name="PluginManagerStatusLabel" xml:space="preserve"><value>状态</value></data>
+  <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>准入</value></data>
+  <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>包目录</value></data>
+  <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>隔离原因</value></data>
+  <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>诊断报告</value></data>
+  <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>选择一个插件查看诊断报告。</value></data>
+  <data name="PluginManagerNoResiduals" xml:space="preserve"><value>无残留：失败现场已收口。</value></data>
+  <data name="PluginManagerResiduals" xml:space="preserve"><value>残留清单</value></data>
+  <data name="PluginManagerEnable" xml:space="preserve"><value>启用</value></data>
+  <data name="PluginManagerDisable" xml:space="preserve"><value>停用</value></data>
+  <data name="PluginManagerRetry" xml:space="preserve"><value>重试</value></data>
+  <data name="PluginManagerDiagnostics" xml:space="preserve"><value>诊断</value></data>
+  <data name="PluginStatusActive" xml:space="preserve"><value>活动</value></data>
+  <data name="PluginStatusDisabled" xml:space="preserve"><value>已停用</value></data>
+  <data name="PluginStatusQuarantined" xml:space="preserve"><value>已隔离</value></data>
+  <data name="PluginStatusRejected" xml:space="preserve"><value>已拒绝</value></data>
+  <data name="PluginStatusInactive" xml:space="preserve"><value>未活动</value></data>
+  <data name="PluginAdmissionBuiltIn" xml:space="preserve"><value>内置</value></data>
+  <data name="PluginAdmissionReviewed" xml:space="preserve"><value>已审核</value></data>
+  <data name="PluginAdmissionDeveloperMode" xml:space="preserve"><value>开发者模式</value></data>
+  <data name="PluginAdmissionRejected" xml:space="preserve"><value>拒绝</value></data>
 </root>

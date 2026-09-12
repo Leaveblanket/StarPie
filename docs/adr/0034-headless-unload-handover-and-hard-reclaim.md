@@ -1,6 +1,6 @@
 # headless 卸载三条款：装载结果交接即清空强引用、在途未归零中止于危险区之前、硬判 ALC 与程序集回收
 
-> Status: Active
+> Status: Active（决策 3 的适用范围被 [ADR-0035](0035-wpf-host-plugin-assembly-reclaim-downgrade.md) 修订）
 >
 > 关联：#124。契约正典：plugins.md §8。**本 ADR 只覆盖 headless 插件**；UI 插件的卸载语义见
 > [ADR-0030](0030-ui-plugin-unload-semantics-downgrade.md)（不承诺 ALC 与程序集回收）。

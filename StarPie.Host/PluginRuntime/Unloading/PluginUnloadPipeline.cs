@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using StarPie.Abstractions;
 using StarPie.HostServices;
+using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Lifecycle;
 using StarPie.PluginRuntime.Loading;
 
@@ -18,10 +22,12 @@ namespace StarPie.PluginRuntime.Unloading
     /// 任何一步失败都进隔离（<see cref="PluginUnloadStatus.Quarantined"/>）并附诊断，不谎报成功；
     /// 在途调用未归零时中止于危险区之前（不释放作用域、不卸载 ALC），要收口只能等重启或显式重载时
     /// 再走一次安全点。已隔离的插件可经同一管线回收资源，结果仍是隔离、不改写既有隔离原因。
-    /// 回收判定对 headless 插件是硬判据：入口实例、ALC 与入口程序集的
-    /// <see cref="WeakReference"/> 必须全部死亡；判定要求调用方经 <see cref="PluginUnloadRequest"/>
-    /// 交出插件对象（交接即清空装载结果的强引用）。本管线只服务 headless 插件；UI 插件的卸载编排
-    /// 另有一套（不判 ALC 与程序集回收，存活只记诊断），不在本管线内。
+    /// 回收判定分两档（<see cref="PluginReclaimPolicy"/>）：纯 headless 宿主硬判入口实例、ALC 与
+    /// 入口程序集的 <see cref="WeakReference"/> 全部死亡；WPF 宿主降级为只硬判入口实例——
+    /// 宿主框架（System.Xaml 架构上下文经 AppDomain 程序集加载事件收拢全部程序集）必然强引用插件
+    /// 程序集，ALC 与程序集存活属预期，记诊断而不隔离。两档都要求调用方经
+    /// <see cref="PluginUnloadRequest"/> 交出插件对象（交接即清空装载结果的强引用）。
+    /// 本管线只服务 headless 插件；UI 插件的卸载编排另有一套（资产清理与泄漏扫描），不在本管线内。
     /// </remarks>
     public sealed class PluginUnloadPipeline
     {
@@ -30,6 +36,7 @@ namespace StarPie.PluginRuntime.Unloading
         private readonly Action _flushPendingSaves;
         private readonly TimeSpan _drainTimeout;
         private readonly IPluginLogSink _logSink;
+        private readonly PluginReclaimPolicy _reclaimPolicy;
 
         /// <summary>构造卸载管线。</summary>
         /// <param name="flushPendingSaves">
@@ -37,15 +44,21 @@ namespace StarPie.PluginRuntime.Unloading
         /// </param>
         /// <param name="drainTimeout">在途调用归零的最长等待；缺省 5 秒。</param>
         /// <param name="logSink">诊断日志落点；缺省写 Debug。</param>
+        /// <param name="reclaimPolicy">
+        /// 回收判定策略；缺省硬判（纯 headless 宿主）。WPF 宿主传
+        /// <see cref="PluginReclaimPolicy.Diagnostic"/>：宿主框架缓存插件程序集，ALC 与程序集存活只记诊断。
+        /// </param>
         public PluginUnloadPipeline(
             Action flushPendingSaves,
             TimeSpan? drainTimeout = null,
-            IPluginLogSink? logSink = null)
+            IPluginLogSink? logSink = null,
+            PluginReclaimPolicy reclaimPolicy = PluginReclaimPolicy.Hard)
         {
             ArgumentNullException.ThrowIfNull(flushPendingSaves);
             _flushPendingSaves = flushPendingSaves;
             _drainTimeout = drainTimeout ?? DefaultDrainTimeout;
             _logSink = logSink ?? DebugPluginLogSink.Instance;
+            _reclaimPolicy = reclaimPolicy;
         }
 
         /// <summary>执行一次安全点卸载。</summary>
@@ -85,6 +98,14 @@ namespace StarPie.PluginRuntime.Unloading
                 failures.Add($"配置落盘失败：{flushFailure}");
             }
 
+            // 启动失败的隔离装载结果没有实例与服务作用域：只回收 ALC 与已加载程序集。
+            // 判定用构造期算好的布尔值——卸载帧直接读实例字段会把引用留在栈槽里，
+            // 回收判定时被 GC 当作 root（headless 硬判据要求插件对象全部死亡）。
+            if (!request.HasScope)
+            {
+                return UnloadIsolatedLoadAsync(request, lifecycle, diagnostics, failures);
+            }
+
             // 2. 拒绝新调用 + 能力摘除 + 在途归零（危险区之前的三道门）。
             //    并发熔断可能已把状态机置为隔离：此时不再转移，但摘除与回收照做（隔离是终态，转移必抛）。
             TransitionOrSkip(lifecycle, PluginLifecycleState.Stopping, diagnostics);
@@ -106,7 +127,17 @@ namespace StarPie.PluginRuntime.Unloading
             {
                 // 在途未归零即不进危险区：不释放作用域、不卸载 ALC，直接隔离收口。
                 diagnostics.Add($"{drainFailure}：中止于危险区之前");
-                return QuarantineResult(request, $"卸载中止：{drainFailure}", lifecycle, diagnostics);
+                var inFlightResiduals = new List<PluginResidual>
+                {
+                    new() { Kind = PluginResidualKind.InFlightCall, Detail = drainFailure },
+                };
+                return QuarantineResult(
+                    request,
+                    $"卸载中止：{drainFailure}",
+                    lifecycle,
+                    diagnostics,
+                    reclaimed: false,
+                    inFlightResiduals);
             }
 
             diagnostics.Add("在途调用：已归零");
@@ -128,7 +159,9 @@ namespace StarPie.PluginRuntime.Unloading
             int handlesBefore = request.Scope.HandleCount;
             string? scopeFailure = TryRun(() => request.Scope.Dispose());
             int handlesAfter = request.Scope.HandleCount;
-            if (scopeFailure is null && handlesAfter == 0)
+            bool scopeReclaimed = scopeFailure is null && handlesAfter == 0;
+            PluginResidual? scopeResidual = null;
+            if (scopeReclaimed)
             {
                 diagnostics.Add($"作用域：已释放（账本 {handlesBefore}→{handlesAfter}）");
             }
@@ -139,21 +172,45 @@ namespace StarPie.PluginRuntime.Unloading
                     : $"句柄清理失败：{scopeFailure}";
                 diagnostics.Add($"作用域：释放失败（{scopeReason}）");
                 failures.Add($"作用域释放失败：{scopeReason}");
+                scopeResidual = new PluginResidual
+                {
+                    Kind = PluginResidualKind.ScopeHandle,
+                    Detail = scopeReason,
+                };
             }
 
-            // 5. 交出强引用 → ALC 卸载 → 回收判定（headless 硬判据）。
+            // 5. 交出强引用 → ALC 卸载 → 回收判定（硬判或宿主降级，见 PluginReclaimPolicy）。
             TransitionOrSkip(lifecycle, PluginLifecycleState.Unloading, diagnostics);
 
             ReclaimAndJudge(request, diagnostics);
-            string? residual = DescribeResidual(request);
+            List<PluginResidual> residuals = CollectResiduals(request);
+            if (scopeResidual is not null)
+            {
+                residuals.Insert(0, scopeResidual);
+            }
+
+            List<PluginResidual> blocking = SplitResiduals(residuals, diagnostics, out string? reclaimNote);
+
+            string? residual = DescribeResidual(blocking);
             if (residual is not null)
             {
                 failures.Add(residual);
             }
 
+            // 资源回收成功与否独立于隔离结论：作用域释放、账本清零与阻断残留清零才算回收成功。
+            // 降级策略下 ALC 与程序集残留不算阻断（宿主框架缓存程序集），请求已交出全部强引用。
+            bool reclaimed = scopeReclaimed && blocking.Count == 0;
+
             if (failures.Count > 0)
             {
-                return QuarantineResult(request, string.Join("；", failures), lifecycle, diagnostics);
+                return QuarantineResult(
+                    request,
+                    string.Join("；", failures),
+                    lifecycle,
+                    diagnostics,
+                    reclaimed,
+                    residuals,
+                    reclaimNote);
             }
 
             if (lifecycle.Current == PluginLifecycleState.Unloading)
@@ -164,7 +221,14 @@ namespace StarPie.PluginRuntime.Unloading
                     PluginUnloadStatus.Unloaded,
                     null,
                     lifecycle,
-                    diagnostics);
+                    diagnostics)
+                {
+                    Reclaimed = reclaimed,
+                    // 降级判定下停止是成功的，但宿主框架缓存的程序集仍在：残留清单随结果带出，
+                    // 管理面的诊断报告据此展示"重启后释放"的现场；硬判成功时这里为空清单。
+                    Residuals = residuals,
+                    ReclaimNote = reclaimNote,
+                };
             }
 
             // 6. 无失败但状态机处于隔离终态（调用守卫在卸载前或卸载中途熔断）：回收已照做，
@@ -173,7 +237,59 @@ namespace StarPie.PluginRuntime.Unloading
                 request,
                 $"插件已隔离（{lifecycle.QuarantineReason ?? "未记录原因"}），资源已回收",
                 lifecycle,
-                diagnostics);
+                diagnostics,
+                reclaimed,
+                residuals,
+                reclaimNote);
+        }
+
+        /// <summary>
+        /// 启动失败的隔离装载结果回收：没有实例、服务作用域与在途调用可清，
+        /// 交出 ALC 并做回收判定；结论仍是隔离，不改写既有隔离原因。
+        /// </summary>
+        private PluginUnloadResult UnloadIsolatedLoadAsync(
+            PluginUnloadRequest request,
+            PluginLifecycleStateMachine lifecycle,
+            List<string> diagnostics,
+            List<string> failures)
+        {
+            // 配置落盘是安全点第一步，已由 UnloadAsync 统一执行并记账，本路径不重复落盘。
+            diagnostics.Add("能力与在途：未启动成功，无作用域（跳过）");
+            diagnostics.Add("StopAsync：未启动成功（跳过）");
+            diagnostics.Add("作用域：未创建（跳过）");
+
+            TransitionOrSkip(lifecycle, PluginLifecycleState.Unloading, diagnostics);
+
+            ReclaimAndJudge(request, diagnostics);
+            List<PluginResidual> residuals = CollectResiduals(request);
+            List<PluginResidual> blocking = SplitResiduals(residuals, diagnostics, out string? reclaimNote);
+            string? residual = DescribeResidual(blocking);
+            if (residual is not null)
+            {
+                failures.Add(residual);
+            }
+
+            bool reclaimed = blocking.Count == 0;
+            if (failures.Count > 0)
+            {
+                return QuarantineResult(
+                    request,
+                    string.Join("；", failures),
+                    lifecycle,
+                    diagnostics,
+                    reclaimed,
+                    residuals,
+                    reclaimNote);
+            }
+
+            return QuarantineResult(
+                request,
+                $"插件已隔离（{lifecycle.QuarantineReason ?? "未记录原因"}），资源已回收",
+                lifecycle,
+                diagnostics,
+                reclaimed,
+                residuals,
+                reclaimNote);
         }
 
         /// <summary>
@@ -277,22 +393,185 @@ namespace StarPie.PluginRuntime.Unloading
             }
         }
 
-        /// <summary>回收判定未过时的失败描述；全部死亡时返回 null。</summary>
-        private static string? DescribeResidual(PluginUnloadRequest request)
+        /// <summary>回收判定未过时收集可定位残留；全部死亡时返回空清单。</summary>
+        private static List<PluginResidual> CollectResiduals(PluginUnloadRequest request)
         {
-            string[] surviving = new[]
+            var residuals = new List<PluginResidual>();
+            if (request.PluginProbe.IsAlive)
+            {
+                residuals.Add(new PluginResidual
                 {
-                    (Name: "入口实例", Probe: request.PluginProbe),
-                    (Name: "ALC", Probe: request.LoadContextProbe),
-                    (Name: "入口程序集", Probe: request.EntryAssemblyProbe),
-                }
-                .Where(entry => entry.Probe.IsAlive)
-                .Select(entry => entry.Name)
-                .ToArray();
-            return surviving.Length == 0
-                ? null
-                : $"回收判定未通过（仍存活：{string.Join("、", surviving)}），已隔离；请重启宿主后重试";
+                    Kind = PluginResidualKind.PluginObject,
+                    Detail = $"入口实例 {DescribeTarget(request.PluginProbe)}",
+                });
+            }
+
+            if (request.LoadContextProbe.IsAlive)
+            {
+                residuals.Add(new PluginResidual
+                {
+                    Kind = PluginResidualKind.LoadContext,
+                    Detail = $"ALC {DescribeTarget(request.LoadContextProbe)}",
+                });
+                CollectLoadContextTypes(request.LoadContextProbe, residuals);
+            }
+
+            if (request.EntryAssemblyProbe.IsAlive)
+            {
+                residuals.Add(new PluginResidual
+                {
+                    Kind = PluginResidualKind.Assembly,
+                    Detail = $"入口程序集 {DescribeTarget(request.EntryAssemblyProbe)}",
+                });
+            }
+
+            return residuals;
         }
+
+        /// <summary>
+        /// 按判定策略分流残留：硬判下全部残留阻断；降级下只有插件自有对象（入口实例、作用域句柄、
+        /// 在途调用）阻断，宿主框架缓存的 ALC、程序集与类型只记诊断。
+        /// </summary>
+        private List<PluginResidual> SplitResiduals(
+            IReadOnlyList<PluginResidual> residuals,
+            List<string> diagnostics,
+            out string? reclaimNote)
+        {
+            reclaimNote = null;
+            var blocking = new List<PluginResidual>();
+            var deferred = new List<PluginResidual>();
+            foreach (PluginResidual item in residuals)
+            {
+                if (_reclaimPolicy == PluginReclaimPolicy.Hard || IsPluginOwned(item.Kind))
+                {
+                    blocking.Add(item);
+                }
+                else
+                {
+                    deferred.Add(item);
+                }
+            }
+
+            if (deferred.Count > 0)
+            {
+                reclaimNote = $"宿主框架缓存插件程序集（{DescribeKinds(deferred)} 仍存活），重启宿主后释放";
+                diagnostics.Add(
+                    $"回收判定（宿主降级）：{DescribeKinds(deferred)} 仍存活（宿主框架缓存程序集），"
+                    + "只记诊断；重启宿主后释放");
+            }
+
+            return blocking;
+        }
+
+        /// <summary>插件自有残留：降级策略下仍按失败记账的类别。</summary>
+        private static bool IsPluginOwned(PluginResidualKind kind)
+            => kind is PluginResidualKind.PluginObject
+                or PluginResidualKind.ScopeHandle
+                or PluginResidualKind.InFlightCall;
+
+        /// <summary>残留清单的可读摘要；无残留时返回 null。</summary>
+        private static string? DescribeResidual(IReadOnlyList<PluginResidual> residuals)
+        {
+            if (residuals.Count == 0)
+            {
+                return null;
+            }
+
+            return $"回收判定未通过（仍存活：{DescribeKinds(residuals)}），已隔离；请重启宿主后重试";
+        }
+
+        /// <summary>残留类别的去重可读清单。</summary>
+        private static string DescribeKinds(IReadOnlyList<PluginResidual> residuals)
+            => string.Join(
+                "、",
+                residuals.Select(item => item.Kind switch
+                {
+                    PluginResidualKind.PluginObject => "入口实例",
+                    PluginResidualKind.LoadContext => "ALC",
+                    PluginResidualKind.Assembly => "入口程序集",
+                    PluginResidualKind.Type => "类型",
+                    PluginResidualKind.ScopeHandle => "作用域句柄",
+                    PluginResidualKind.InFlightCall => "在途调用",
+                    _ => item.Kind.ToString(),
+                }).Distinct());
+
+        /// <summary>ALC 仍存活时枚举其程序集与类型，给出"哪个类型还在"的定位清单。</summary>
+        private static void CollectLoadContextTypes(
+            WeakReference loadContextProbe,
+            List<PluginResidual> residuals)
+        {
+            if (loadContextProbe.Target is not PluginLoadContext context)
+            {
+                return;
+            }
+
+            // 同名上下文不止一个：历史装载残留没有被回收，重试前必须先收干净。
+            int sameNameCount = AssemblyLoadContext.All.Count(item => item.Name == context.Name);
+            if (sameNameCount > 1)
+            {
+                residuals.Add(new PluginResidual
+                {
+                    Kind = PluginResidualKind.LoadContext,
+                    Detail = $"同名装载上下文共 {sameNameCount} 个（存在历史装载残留）",
+                });
+            }
+
+            foreach (Assembly assembly in context.Assemblies)
+            {
+                string assemblyName = assembly.GetName().Name ?? "未命名程序集";
+                residuals.Add(new PluginResidual
+                {
+                    Kind = PluginResidualKind.Assembly,
+                    Detail = $"上下文内程序集 {assemblyName}（{assembly.Location}）",
+                });
+
+                // 同一程序集若同时进了默认 ALC，插件 ALC 永远回收不掉——这是可定位的硬证据。
+                if (AppDomain.CurrentDomain.GetAssemblies().Any(loaded =>
+                        !ReferenceEquals(loaded, assembly)
+                        && string.Equals(loaded.GetName().Name, assemblyName, StringComparison.Ordinal)))
+                {
+                    residuals.Add(new PluginResidual
+                    {
+                        Kind = PluginResidualKind.Assembly,
+                        Detail = $"程序集 {assemblyName} 同时被默认 ALC 加载（位置 {assembly.Location}）",
+                    });
+                }
+
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException exception)
+                {
+                    types = exception.Types.Where(type => type is not null).ToArray()!;
+                }
+                catch (Exception)
+                {
+                    // 类型枚举本身失败时不阻断诊断：程序集条目已足够定位。
+                    continue;
+                }
+
+                foreach (Type type in types)
+                {
+                    residuals.Add(new PluginResidual
+                    {
+                        Kind = PluginResidualKind.Type,
+                        Detail = $"{assemblyName}：{type.FullName}",
+                    });
+                }
+            }
+        }
+
+        /// <summary>弱引用目标的可读定位串。</summary>
+        private static string DescribeTarget(WeakReference probe)
+            => probe.Target switch
+            {
+                PluginLoadContext context => context.Name ?? "未命名 ALC",
+                Assembly assembly => assembly.GetName().FullName ?? assembly.FullName ?? "未命名程序集",
+                { } target => target.GetType().FullName ?? target.GetType().Name,
+                null => "已不可达",
+            };
 
         private static string Describe(string what, WeakReference probe)
             => probe.IsAlive ? $"{what}：仍存活（泄漏）" : $"{what}：已回收";
@@ -351,7 +630,10 @@ namespace StarPie.PluginRuntime.Unloading
             PluginUnloadRequest request,
             string reason,
             PluginLifecycleStateMachine lifecycle,
-            List<string> diagnostics)
+            List<string> diagnostics,
+            bool reclaimed,
+            IReadOnlyList<PluginResidual>? residuals = null,
+            string? reclaimNote = null)
         {
             diagnostics.Add($"卸载未完成：{reason}");
             WriteLog(request.PluginId, $"卸载未完成：{reason}");
@@ -361,7 +643,12 @@ namespace StarPie.PluginRuntime.Unloading
                 PluginUnloadStatus.Quarantined,
                 reason,
                 lifecycle,
-                diagnostics);
+                diagnostics)
+            {
+                Reclaimed = reclaimed,
+                Residuals = residuals ?? Array.Empty<PluginResidual>(),
+                ReclaimNote = reclaimNote,
+            };
         }
 
         /// <summary>置隔离：终态时幂等忽略（并发熔断可能已先隔离）。</summary>

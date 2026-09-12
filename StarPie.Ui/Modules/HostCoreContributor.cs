@@ -1,6 +1,7 @@
 using System.IO;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using StarPie.Kernel.Localization;
 using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
@@ -12,6 +13,8 @@ using StarPie.PluginRuntime.State;
 using StarPie.PluginRuntime.Unloading;
 using StarPie.Programs;
 using StarPie.Services;
+using StarPie.Services.Navigation;
+using StarPie.ViewModels.Pages;
 
 namespace StarPie.Modules
 {
@@ -21,7 +24,7 @@ namespace StarPie.Modules
     /// </summary>
     /// <remarks>
     /// 宿主回调委托包 <see cref="AppHostDelegates"/> 由组合根持有并在 AppHost 构造后回填
-    /// （宿主状态不归贡献者，本贡献者只负责把同一实例注册为单例）；无导航页。
+    /// （宿主状态不归贡献者，本贡献者只负责把同一实例注册为单例）；插件管理页（槽位 4）随本贡献者登记。
     /// 注册的可解析件：内核实现驻 <c>StarPie.Host</c>，WPF 适配件（<c>DispatcherSaveDebouncer</c>）
     /// 与图像构造（<c>IconAssetService</c>）驻本集，契约在 <c>StarPie.Sdk</c>/<c>StarPie.Sdk.Wpf</c>。
     /// </remarks>
@@ -37,6 +40,16 @@ namespace StarPie.Modules
         public string Id => "host.core";
 
         public int Order => 0;
+
+        /// <summary>向导航目录注册插件管理页（槽位 4）。</summary>
+        public void RegisterNavigation(NavigationCatalog catalog)
+        {
+            catalog.RegisterPage<PluginManagerViewModel>(
+                NavigationSlot.Plugins,
+                NavigationSlots.GetAutomationId(NavigationSlot.Plugins),
+                "PagePlugins",
+                IconPlugins);
+        }
 
         public void RegisterServices(IServiceCollection services)
         {
@@ -99,14 +112,28 @@ namespace StarPie.Modules
 
             // 插件装载/卸载与宿主侧运行时：两条管线只在组合根装配一次，
             // 卸载管线的配置落盘接缝直接接共享内核的防抖落盘编排（安全点第一步）。
+            // 回收判定走降级档：本进程是 WPF 宿主，System.Xaml 的 BAML 架构上下文会经
+            // AppDomain 程序集加载事件收拢全部程序集并强引用，插件程序集不可能在本进程内回收；
+            // 入口实例仍硬判，ALC 与程序集存活只记诊断，重启后释放。
             services.AddSingleton(sp => new PluginLoadPipeline(sp.GetRequiredService<CapabilityRegistry>()));
             services.AddSingleton(sp => new PluginUnloadPipeline(
-                sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave));
+                sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave,
+                reclaimPolicy: PluginReclaimPolicy.Diagnostic));
             services.AddSingleton<PluginRuntimeHost>();
 
             // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<ShellViewModel>();
+
+            // 插件管理页 VM：数据源是宿主报告快照，页面每次被导航到时经导航状态刷新。
+            services.AddSingleton(sp => new PluginManagerViewModel(
+                sp.GetRequiredService<PluginRuntimeHost>(),
+                sp.GetRequiredService<NavigationStore>(),
+                sp.GetRequiredService<ILocalizationService>()));
         }
+
+        // 插件槽位导航图标 Path Data（拼图）
+        private const string IconPlugins =
+            "M20.5,11H19V7C19,5.89 18.1,5 17,5H13V3.5A2.5,2.5 0 0,0 10.5,1A2.5,2.5 0 0,0 8,3.5V5H4A2,2 0 0,0 2,7V10.8H3.5C5,10.8 6.2,12 6.2,13.5C6.2,15 5,16.2 3.5,16.2H2V20A2,2 0 0,0 4,22H7.8V20.5C7.8,19 9,17.8 10.5,17.8C12,17.8 13.2,19 13.2,20.5V22H17A2,2 0 0,0 19,20V16H20.5A2.5,2.5 0 0,0 23,13.5A2.5,2.5 0 0,0 20.5,11Z";
     }
 }

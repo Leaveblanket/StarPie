@@ -169,7 +169,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0034，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0035，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
@@ -233,10 +233,11 @@ Services ---> Models
 | 0027 | `docs/adr/0027-plugin-architecture-and-host-sdk-ui-split.md` | 插件体系与三集物理形态（第三方能力插件 / ALC 真卸载 / 宿主独占呈现） | Active（部分被 0028 修订） |
 | 0028 | `docs/adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md` | 插件 UI 宿主化（允许 XAML/Window/资源字典；宿主托管登记、清理与验证） | Active（决策 4/6 被 0030 修订） |
 | 0029 | `docs/adr/0029-plugin-trust-model.md` | 插件信任模型（目标态签名 + 审核白名单；首期开发者模式准入；进程内全信任披露） | Active |
-| 0030 | `docs/adr/0030-ui-plugin-unload-semantics-downgrade.md` | UI 插件不承诺 ALC 真卸载（卸载语义降级为托管清理 + 可验证 + 泄漏隔离 + 重启生效） | Active |
+| 0030 | `docs/adr/0030-ui-plugin-unload-semantics-downgrade.md` | UI 插件不承诺 ALC 真卸载（卸载语义降级为托管清理 + 可验证 + 泄漏隔离 + 重启生效） | Active（决策 1 的 headless 承诺边界被 0035 修订） |
 | 0031 | `docs/adr/0031-e2e-silent-background-run.md` | e2e 静默后台化（`--background` 窗口形态 + 选中态驱动导航 + 运行器脚本） | Active（窗口形态/托盘/截图被 0032 修订） |
 | 0032 | `docs/adr/0032-e2e-silent-visible-window.md` | e2e 静默形态改屏内左上角（点击穿透 + 托盘可见 + 失败截图可用） | Active |
 | 0033 | `docs/adr/0033-plugin-service-scope-without-di-container.md` | 插件服务作用域自持实例与账本（不引入 MS.DI 子容器） | Active |
-| 0034 | `docs/adr/0034-headless-unload-handover-and-hard-reclaim.md` | headless 卸载三条款（交接即清空强引用 / 在途未归零中止于危险区之前 / 硬判 ALC 与程序集回收） | Active |
+| 0034 | `docs/adr/0034-headless-unload-handover-and-hard-reclaim.md` | headless 卸载三条款（交接即清空强引用 / 在途未归零中止于危险区之前 / 硬判 ALC 与程序集回收） | Active（决策 3 的适用范围被 0035 修订） |
+| 0035 | `docs/adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md` | WPF 宿主降级回收判定（判据按宿主环境分档：headless 硬判 / WPF 宿主只硬判插件自有对象） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

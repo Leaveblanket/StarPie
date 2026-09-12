@@ -4,10 +4,11 @@
 > 同 id 冲突、宿主状态字段、启动报告、开发者模式开关与准入四态）、§5/§6/§8 的 headless 运行时
 > （collectible ALC 装载、能力注册与调用守卫、安全点卸载与回收判定）、§2 的首个随包 headless 插件
 > 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
-> 插件管理面与诊断报告（§9/§10）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
+> 最小插件管理面与诊断报告（§10 的列表/状态/启停/重试/诊断入口，含可定位残留清单）亦已落地；
+> UI 托管（§7）、管理面剩余动作（重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
 > [assemblies.md](assemblies.md) 与
 > [modules.md](modules.md) 为准。
-> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）。
+> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
 > **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
 ## 术语（架构词正典在本文）
@@ -200,7 +201,7 @@ public interface IPluginUiModule
 
 ### 5.2 受支持特性白名单与不支持列表（卸载判据）
 
-白名单逐项只按「宿主清理后资产登记表清零 + 插件对象与插件委托的 `WeakReference` 全部死亡 + 全局根扫描无残留」判定；**UI 插件不判 ALC/程序集回收**（ADR-0030）。
+白名单逐项只按「宿主清理后资产登记表清零 + 插件对象与插件委托的 `WeakReference` 全部死亡 + 全局根扫描无残留」判定；**WPF 宿主不判 ALC/程序集回收**（[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md) + [ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)：宿主框架必然强引用插件程序集，存活只记诊断）。
 
 | 特性 | 资产可清零 | 摘除方式 |
 |---|---|---|
@@ -250,7 +251,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 
 扩展点由宿主定义并与现有 UI 结构对齐：**导航页、设置区、托盘菜单、插件窗口、内容容器宿主**（P3 可按需增加轮盘样式扩展点）。不引入 Prism 式通用 Region/模块系统（ADR-0016 已否决 Prism）。
 
-插件页追加在固定四页之后；固定页 AutomationId 仍是 `NavPage0..3`（e2e 依赖），插件页用 `NavPlugin_<plugin-id>`——该规则是 P3 前置（Q10）。
+插件页追加在固定五页之后；固定页 AutomationId 仍是 `NavPage0..4`（e2e 依赖），插件页用 `NavPlugin_<plugin-id>`——该规则是 P3 前置（Q10）。
 
 ### 7.2 契约funnel：插件只能经 `IPluginUiContext` 注册
 
@@ -309,12 +310,13 @@ public interface IPluginUiContext
  6. GC.Collect → WaitForPendingFinalizers → GC.Collect
  7. `WeakReference` 判定（可判定项）：资产对象与插件委托必须全部死亡
  8. ALC.Unload()
- 9. 再 GC + 二次判定：ALC/程序集存活只记诊断——UI 插件不回收是预期（ADR-0030），headless 插件才判回收
+9. 再 GC + 二次判定（`PluginReclaimPolicy` 分档）：纯 headless 宿主硬判 ALC 与程序集回收；WPF 宿主降级——
+   只硬判插件自有对象（入口实例/作用域句柄/在途调用），ALC 与程序集存活记诊断，不判隔离（ADR-0035）
 任一步失败（配置未落盘 / 能力摘除失败 / 在途未归零 / 停用失败 / 作用域未释放或句柄残留 / 回收判定未过 /
 资产未清零 / 全局根有残留） → Quarantined + 诊断（含残留清单）+ 重启提示；不得谎报成功
 ```
 
-**卸载输入是交接对象**：装载结果的入口实例、ALC 与服务作用域经 `PluginUnloadRequest.FromLoaded` 交接给卸载管线，交接即清空装载结果持有的三条强引用——调用方无从再经装载结果持有插件对象；回收判定在请求清空强引用、且 `ALC.Unload()` 的调用帧退出后再做。在途调用未归零时中止于危险区之前：不释放作用域、不卸载 ALC，直接按隔离收口，要收口只能等重启或显式重载时再走一次安全点。已隔离的插件可经同一管线回收资源：结论仍是隔离、不改写既有隔离原因，也不谎报已卸载。这三条款只对 headless 插件成立：P2 的管线硬判 ALC 与程序集回收，P3 的 UI 插件按 [ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md) 降级为诊断——规范判决见 [ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)。
+**卸载输入是交接对象**：装载结果的入口实例、ALC 与服务作用域经 `PluginUnloadRequest.FromLoaded` 交接给卸载管线，交接即清空装载结果持有的三条强引用——调用方无从再经装载结果持有插件对象；回收判定在请求清空强引用、且 `ALC.Unload()` 的调用帧退出后再做。在途调用未归零时中止于危险区之前：不释放作用域、不卸载 ALC，直接按隔离收口，要收口只能等重启或显式重载时再走一次安全点。已隔离的插件可经同一管线回收资源：结论仍是隔离、不改写既有隔离原因，也不谎报已卸载。这三条款对全部 headless 插件成立；回收判定本身按**宿主环境**分档：`Hard`（纯 headless 宿主，管线缺省）硬判 ALC 与程序集回收，`Diagnostic`（WPF 宿主，Ui 组合根）只硬判插件自有对象、ALC 与程序集存活记诊断且不判隔离——规范判决见 [ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md) 与 [ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)。UI 插件的资产清理与泄漏扫描另按 [ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md) 执行。
 
 **泄漏扫描**（`PluginUiLeakVerifier`，生产诊断 + 测试共用）至少覆盖：
 
@@ -332,14 +334,14 @@ public interface IPluginUiContext
 - **配置**：`config.json` 新增 `plugins: { "<id>": { … } }`；旧配置无该段照常加载。该段归插件所有（经 `IPluginConfig` 读写），宿主状态不写这里（Q9b）。
 - **数据**：`%LOCALAPPDATA%\StarPie\plugin-data\<id>\`；卸载默认保留，管理面提供"彻底移除"。
 - **宿主状态**：`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用/停用、已装版本、路径、准入来源（内置/审核清单/开发者模式）、隔离状态；宿主唯一权威，插件不可读写（Q9、Q9b）。
-- **三个动作要分清（Q9）**：**停用** = 安全点卸载出内存、保留包与状态；**移除包** = 停用后删插件目录、状态条目保留；**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目，再 `FlushPendingSave()`。
+- **三个动作要分清（Q9）**：**停用** = 安全点卸载（停用插件代码、摘除能力、释放服务作用域与插件对象；WPF 宿主里插件程序集留到重启释放，见 ADR-0035）、保留包与状态；**移除包** = 停用后删插件目录、状态条目保留；**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目，再 `FlushPendingSave()`。
 - **文案**：随包 `strings\<culture>.json` + `IPluginContext.Localization`；宿主渲染的设置表单用插件自报文案。
 - **日志**：插件只经 `IPluginContext.Log` 写宿主日志（自动带 plugin id）。
 
 ## 10. 设置面与插件管理面
 
 - 插件不自绘设置表单时，用 `settings.schema.json` 由宿主渲染（bool/数字/字符串/枚举/路径/路径列表）；写了 UI 的插件也可以注册 `PluginSettingsSectionDescriptor` 自绘设置区。
-- 宿主必须有 `PluginManagerPage`：列表、状态（Active / 已停用 / Quarantined）、启用/停用、重载/更新、隔离后的**重试**、诊断报告、"彻底移除"；页面常显当前**准入模式**（ADR-0029）。
+- 宿主必须有 `PluginManagerPage`：列表、状态（Active / 已停用 / Quarantined）、启用/停用、重载/更新、隔离后的**重试**、诊断报告、"彻底移除"；页面常显当前**准入模式**（ADR-0029）。隔离态同时提供**重试**与**停用**两条出口：重试 = 回收续做 + 重新装载，停用 = 落停用意图并尽力回收（隔离原因保持可见，隔离不因停用被抹去）。
 - 首次开启开发者模式必须走确认流程并展示全信任风险披露：可读配置与插件数据、可执行任意代码、可使进程崩溃、卸载可能失败并被隔离。
 
 ## 11. ABI、版本与信任
@@ -348,7 +350,7 @@ public interface IPluginUiContext
 - **准入（ADR-0029）**：目标态 = 签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验），未命中即 `Rejected`；首期 = 仅第一方随包插件与**开发者模式**插件（默认关闭的显式开关 + 全信任风险披露）；不做默认侧载放行。
 - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即停用。
 - **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。「内置」= 命中宿主内置 id 清单的第一方随包插件，见 §3。
-- **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 UI 插件的卸载边界**：程序集在进程内不可回收，卸载语义见 ADR-0030 与 §5.2。
+- **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 WPF 宿主内任何插件的卸载边界**：宿主框架缓存使程序集留在进程内不可回收，卸载语义见 ADR-0030、ADR-0035 与 §5.2。
 
 ## 12. 迁移映射（15 集 → 三集 + 插件）
 
@@ -375,7 +377,7 @@ public interface IPluginUiContext
 |---|---|---|
 | P0 | ALC+WPF 打样：XAML 视图/窗口/资源字典/DataTemplate/定时器/动画/事件/绑定逐项认证；确定 BAML/pack URI 宿主包装方式与卸载判据 | 打样报告 + 受支持特性白名单（§5.2）；未过项列入不支持列表 |
 | P1 | 三集物理重构：建 SDK/Sdk.Wpf/Host/Ui；15 集撤销；现有模块改走统一注册管线但静态加载 | build + 全量 xUnit + 全量 e2e，行为零变化 |
-| P2 | headless 插件运行时 + M3 首个插件：清单/发现/ALC/子容器/能力/安全点卸载/隔离；准入走开发者模式 | 卸载回收（含 §6.1 作用域释放与日志不 root）、隔离持久化、停用态降级（程序选择器）、准入关闭时第三方被拒；全量门 |
+| P2 | headless 插件运行时 + M3 首个插件：清单/发现/ALC/子容器/能力/安全点卸载/隔离；准入走开发者模式 | 卸载回收（含 §6.1 作用域释放与日志不 root；WPF 宿主按 ADR-0035 降级判定）、隔离持久化、停用态降级（程序选择器）、准入关闭时第三方被拒；全量门 |
 | P3 | 插件 UI 宿主：`PluginHosting` 全层 + 导航动态注册（`NavPlugin_<id>`）+ 首个 UI 示例插件 + 卸载测试矩阵 | STA 卸载矩阵全绿（资产清零 + 泄漏隔离，ALC 存活不上判）；全量门 |
 | P4 | 生态化：签名校验 + 审核清单与撤销通道、SDK 文档/示例仓库、插件管理面完善、第三方准入开启 | 发布前评审 |
 | P5 | 视需要评估进程外后端（不可信插件） | 新 ADR |

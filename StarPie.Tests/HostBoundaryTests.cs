@@ -64,6 +64,9 @@ public sealed class HostBoundaryTests
         typeof(PluginQuarantineState), typeof(PluginStateEntry), typeof(PluginStateDocument), typeof(PluginStateStore),
         typeof(PluginStartupReportEntry), typeof(PluginStartupReport),
         typeof(PluginStartupReportWriter), typeof(PluginStartupScanner),
+        // PluginRuntime/Diagnostics/（残留清单与插件诊断报告）
+        typeof(PluginResidualKind), typeof(PluginResidual), typeof(PluginRuntimeStatus),
+        typeof(PluginDiagnosticsReport),
         // PluginRuntime/Loading/（collectible ALC 与装载管线）与 Lifecycle/（生命周期状态机）
         typeof(PluginSharedAssemblyPolicy), typeof(PluginLoadContext), typeof(PluginLoadRequest),
         typeof(PluginLoadStatus), typeof(PluginLoadResult), typeof(PluginLoadPipeline),
@@ -76,7 +79,7 @@ public sealed class HostBoundaryTests
         typeof(PluginServiceScope), typeof(IPluginLogSink), typeof(PluginLogEntry),
         // PluginRuntime/Unloading/（安全点卸载管线与回收判定）
         typeof(PluginUnloadStatus), typeof(PluginUnloadRequest), typeof(PluginUnloadResult),
-        typeof(PluginUnloadPipeline),
+        typeof(PluginUnloadPipeline), typeof(PluginReclaimPolicy),
         // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用）
         typeof(PluginRuntimeHost),
     };

@@ -11,7 +11,7 @@
 SDK（`StarPie.Sdk/`；P1.3/#112 收口，仅目录/槽位契约）：
 
 - `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
-  `NavigationPageRegistration`（全局槽位表 0–3、`NavPage0..3` 正典与缺失/重复/未知槽位收口测试，
+  `NavigationPageRegistration`（全局槽位表 0–4、`NavPage0..4` 正典与缺失/重复/未知槽位收口测试，
   见 [assemblies.md](assemblies.md) §5.2）——跨模块注册契约（贡献者写、控制台读），
   属共享契约面的"全局机制"，不受运行时归属影响。
 
@@ -50,7 +50,8 @@ M1（P1.6/#115 起驻 `StarPie.Ui/`）：
 ## 关键流程
 
 1. `Composition` 装配目录：构造期遍历 `BuiltInContributors` 有序清单调各贡献者的
-   `RegisterNavigation(catalog)`（M1 槽位 0/2、Host 页槽位 1、M5 槽位 3）并 `catalog.Validate()`（四槽收口），
+   `RegisterNavigation(catalog)`（M1 槽位 0/2、Host 外观页槽位 1、M5 槽位 3、宿主插件管理页槽位 4）
+   并 `catalog.Validate()`（五槽收口），
    目录单例注册；随后同一清单的 `RegisterServices` 登记 M5/M1 页面 VM 与手势管线
    （`ShellContributor`/`GesturesContributor`，含宿主回调经 `StarPie.Sdk` 的 `AppHostDelegates`
    接线、`IProfilePreviewSource` 别名）；导航运行时（`NavigationStore`/`NavigationExecutor`/
@@ -84,12 +85,11 @@ as-built：
 - Host（外观聚合页，留 Host）：由 `HostPageContributor` + HostPageTemplates.xaml
   登记，页面 VM 的 DI 注册在同一贡献者内。
 
-**槽位容量**：槽位表 = SDK `NavigationSlot` 固定 0–3（`NavigationSlots.All` + e2e
-`NavPage0..3`），是产品侧边栏顺序的唯一正典；**产品页面数封顶 4**（槽位 4「关于与更新」
-已随 #107 于 2026-09-10 下线移除，其余四页 AutomationId 零漂移）。新增第 5 页起需改 SDK
-枚举与收口测试（可能波及 e2e AutomationId），属放行共享面而非纯模块内部——此约束被有意
-接受；若未来出现新模块页面需求，再议槽位表可扩展化（字符串槽位/目录驱动
-注册，会破坏 `NavPage0..3` 稳定性，需先写 ADR）。
+**槽位容量**：槽位表 = SDK `NavigationSlot` 固定 0–4（`NavigationSlots.All` + e2e
+`NavPage0..4`），是产品侧边栏顺序的唯一正典；**产品页面数封顶 5**（五个槽位全部注册，含
+插件管理页）。新增第 6 页起需改 SDK 枚举与收口测试（可能波及 e2e AutomationId），属放行
+共享面而非纯模块内部——此约束被有意接受；若未来出现新模块页面需求，再议槽位表可扩展化
+（字符串槽位/目录驱动注册，会破坏 `NavPageN` 稳定性，需先写 ADR）。
 
 ## 参见 ADR
 

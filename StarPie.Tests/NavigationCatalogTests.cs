@@ -15,8 +15,9 @@ public sealed class NavigationCatalogTests
     private sealed class AppearanceViewModel : ObservableObject { }
     private sealed class GesturesViewModel : ObservableObject { }
     private sealed class AdvancedViewModel : ObservableObject { }
+    private sealed class PluginsViewModel : ObservableObject { }
 
-    /// <summary>故意打乱注册顺序：目录条目必须仍按槽位 0–3 返回。</summary>
+    /// <summary>故意打乱注册顺序：目录条目必须仍按槽位 0–4 返回。</summary>
     private static NavigationCatalog CreateFullCatalog()
     {
         var catalog = new NavigationCatalog();
@@ -28,14 +29,16 @@ public sealed class NavigationCatalogTests
             NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "Ap");
         catalog.RegisterPage<AdvancedViewModel>(
             NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "Ad");
+        catalog.RegisterPage<PluginsViewModel>(
+            NavigationSlot.Plugins, NavigationSlots.GetAutomationId(NavigationSlot.Plugins), "PagePlugins", "P");
         return catalog;
     }
 
     [Fact]
-    public void NavigationSlots_CanonicalAutomationIds_AreNavPage0To3()
+    public void NavigationSlots_CanonicalAutomationIds_AreNavPage0To4()
     {
-        Assert.Equal(new[] { 0, 1, 2, 3 }, NavigationSlots.All.Select(s => (int)s));
-        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3" },
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, NavigationSlots.All.Select(s => (int)s));
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             NavigationSlots.All.Select(NavigationSlots.GetAutomationId));
     }
 
@@ -44,23 +47,23 @@ public sealed class NavigationCatalogTests
     {
         var catalog = CreateFullCatalog();
 
-        catalog.Validate(); // 四槽齐全：不应抛
+        catalog.Validate(); // 全槽齐全：不应抛
 
         Assert.Equal(new[]
         {
             NavigationSlot.Trigger, NavigationSlot.Appearance, NavigationSlot.Gestures,
-            NavigationSlot.Advanced
+            NavigationSlot.Advanced, NavigationSlot.Plugins
         }, catalog.Entries.Select(e => e.Slot));
-        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3" },
+        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
             catalog.Entries.Select(e => e.AutomationId));
         Assert.Equal(new[]
         {
-            "PageTrigger", "PageAppearance", "PageGestures", "PageAdvanced"
+            "PageTrigger", "PageAppearance", "PageGestures", "PageAdvanced", "PagePlugins"
         }, catalog.Entries.Select(e => e.TitleKey));
         Assert.Equal(new[]
         {
             typeof(TriggerViewModel), typeof(AppearanceViewModel), typeof(GesturesViewModel),
-            typeof(AdvancedViewModel)
+            typeof(AdvancedViewModel), typeof(PluginsViewModel)
         }, catalog.Entries.Select(e => e.ViewModelType));
     }
 

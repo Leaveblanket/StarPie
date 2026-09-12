@@ -188,6 +188,7 @@ PAGE_ANCHORS = {
     1: ("AppearancePageSubheader", "Text"),
     2: ("GesturesPageSubheader", "Text"),
     3: ("AdvancedPageSubheader", "Text"),
+    4: ("PluginManagerSubheader", "Text"),
 }
 
 
@@ -426,6 +427,34 @@ def sandbox_seed(request, sandbox_env):
                     "SchemaVersion": 1,
                     "DeveloperModeEnabled": False,
                     "Plugins": {"starpie.builtin.program-source": {"Enabled": False}},
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+    elif mode == "quarantined-program-source":
+        state_dir = local_app_data / "StarPie"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        (state_dir / "plugin-state.json").write_text(
+            json.dumps(
+                {
+                    "SchemaVersion": 1,
+                    "DeveloperModeEnabled": False,
+                    "Plugins": {
+                        "starpie.builtin.program-source": {
+                            "Enabled": True,
+                            "Quarantine": {
+                                "Reason": "e2e 预置隔离：装载失败",
+                                "Since": "2026-01-01T00:00:00+08:00",
+                                "Residuals": [
+                                    {
+                                        "Kind": "Assembly",
+                                        "Detail": "入口程序集 StarPie.Plugin.Programs",
+                                    }
+                                ],
+                            },
+                        }
+                    },
                 },
                 ensure_ascii=False,
             ),

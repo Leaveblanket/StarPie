@@ -267,4 +267,29 @@
   <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>プラグインはあなたのアカウント権限で任意のコードを実行できます</value></data>
   <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>プラグインは StarPie をクラッシュさせたり固まらせたりする可能性があります</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>アンインストールに失敗する可能性があり、失敗したプラグインは隔離され再起動が必要です</value></data>
+  <data name="PagePlugins" xml:space="preserve"><value>🧩 プラグイン</value></data>
+  <data name="PluginManagerSubheader" xml:space="preserve"><value>検出されたプラグインと状態を確認し、有効化・無効化・再試行・診断を行います。</value></data>
+  <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>プラグイン</value></data>
+  <data name="PluginManagerVersionLabel" xml:space="preserve"><value>バージョン</value></data>
+  <data name="PluginManagerStatusLabel" xml:space="preserve"><value>状態</value></data>
+  <data name="PluginManagerAdmissionLabel" xml:space="preserve"><value>承認</value></data>
+  <data name="PluginManagerPackagePathLabel" xml:space="preserve"><value>パッケージフォルダー</value></data>
+  <data name="PluginManagerQuarantineLabel" xml:space="preserve"><value>隔離理由</value></data>
+  <data name="PluginManagerDiagnosticsTitle" xml:space="preserve"><value>診断レポート</value></data>
+  <data name="PluginManagerNoPluginSelected" xml:space="preserve"><value>プラグインを選択すると診断レポートを表示します。</value></data>
+  <data name="PluginManagerNoResiduals" xml:space="preserve"><value>残留なし：失敗現場は収束済みです。</value></data>
+  <data name="PluginManagerResiduals" xml:space="preserve"><value>残留一覧</value></data>
+  <data name="PluginManagerEnable" xml:space="preserve"><value>有効化</value></data>
+  <data name="PluginManagerDisable" xml:space="preserve"><value>無効化</value></data>
+  <data name="PluginManagerRetry" xml:space="preserve"><value>再試行</value></data>
+  <data name="PluginManagerDiagnostics" xml:space="preserve"><value>診断</value></data>
+  <data name="PluginStatusActive" xml:space="preserve"><value>稼働中</value></data>
+  <data name="PluginStatusDisabled" xml:space="preserve"><value>無効</value></data>
+  <data name="PluginStatusQuarantined" xml:space="preserve"><value>隔離済み</value></data>
+  <data name="PluginStatusRejected" xml:space="preserve"><value>拒否</value></data>
+  <data name="PluginStatusInactive" xml:space="preserve"><value>未稼働</value></data>
+  <data name="PluginAdmissionBuiltIn" xml:space="preserve"><value>組み込み</value></data>
+  <data name="PluginAdmissionReviewed" xml:space="preserve"><value>審査済み</value></data>
+  <data name="PluginAdmissionDeveloperMode" xml:space="preserve"><value>開発者モード</value></data>
+  <data name="PluginAdmissionRejected" xml:space="preserve"><value>拒否</value></data>
 </root>

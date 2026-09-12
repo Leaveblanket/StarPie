@@ -37,6 +37,8 @@ namespace StarPie.PluginRuntime.Hosting
         private readonly PluginUnloadPipeline _unloadPipeline;
         private readonly Dictionary<string, PluginUnloadRequest> _handovers =
             new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, PluginUnloadResult> _lastUnloadResults =
+            new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>构造插件运行时：扫描器、状态存储与两条管线均为显式依赖。</summary>
         public PluginRuntimeHost(
@@ -94,7 +96,9 @@ namespace StarPie.PluginRuntime.Hosting
             if (_handovers.TryGetValue(pluginId, out PluginUnloadRequest? request))
             {
                 result = await _unloadPipeline.UnloadAsync(request, cancellationToken).ConfigureAwait(false);
-                if (result.Status == PluginUnloadStatus.Unloaded)
+                // 资源已回收即从交接账本摘除：隔离终态的回收同样让请求耗尽（ALC 已交出），
+                // 留着会在下一次重试或停用时被误当成"还有资源可收"。
+                if (result.Status == PluginUnloadStatus.Unloaded || result.Reclaimed)
                 {
                     _handovers.Remove(pluginId);
                 }
@@ -102,7 +106,14 @@ namespace StarPie.PluginRuntime.Hosting
                 // 未归零或回收未过：保留交接对象——隔离后仍可在下一次安全点续做回收，不谎报已停用。
                 if (result.Status == PluginUnloadStatus.Quarantined)
                 {
-                    PersistQuarantine(pluginId, result.FailureReason);
+                    PersistQuarantine(pluginId, result.FailureReason, result.Residuals);
+                    _lastUnloadResults.Remove(pluginId);
+                }
+                else
+                {
+                    // 降级判定下 ALC 与程序集可能仍被宿主框架缓存：残留清单留给诊断报告，
+                    // 重启后随宿主框架缓存一起消失。
+                    _lastUnloadResults[pluginId] = result;
                 }
             }
 
@@ -126,11 +137,12 @@ namespace StarPie.PluginRuntime.Hosting
             ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
 
             PluginStartupReportEntry entry = RequireScannedEntry(pluginId);
-            if (_handovers.TryGetValue(pluginId, out PluginUnloadRequest? active))
+            if (_handovers.TryGetValue(pluginId, out PluginUnloadRequest? active)
+                && active.Lifecycle.Current == PluginLifecycleState.Active)
             {
                 // 已装载即不重复装载：覆盖持有权会丢掉落单实例的 StopAsync 与 ALC 回收。
                 throw new InvalidOperationException(
-                    $"插件已在活动态 {active.Lifecycle.Current}：{pluginId}；重载请先停用再启用");
+                    $"插件已处于活动态：{pluginId}；重载请先停用再启用");
             }
 
             PluginStateEntry state = _stateStore.Current.GetOrCreate(pluginId);
@@ -153,6 +165,114 @@ namespace StarPie.PluginRuntime.Hosting
             return await LoadEntryAsync(entry, cancellationToken).ConfigureAwait(false)
                 ?? Reject(pluginId, "包不可用：清单缺失或目录已不在");
         }
+
+        /// <summary>
+        /// 显式重试隔离插件：先把上一次没走完的安全点回收续完，再按启用意图重新装载。
+        /// </summary>
+        /// <param name="pluginId">插件 id。</param>
+        /// <param name="cancellationToken">回收与装载的取消令牌。</param>
+        /// <returns>重新装载的结果；回收未完成或装载再次失败时结论仍是隔离。</returns>
+        /// <exception cref="InvalidOperationException">
+        /// 插件不在最近一次启动扫描结果里，或已处于活动态（活动插件无需重试）。
+        /// </exception>
+        public async Task<PluginLoadResult> RetryAsync(string pluginId, CancellationToken cancellationToken)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
+
+            PluginStartupReportEntry entry = RequireScannedEntry(pluginId);
+            if (_handovers.TryGetValue(pluginId, out PluginUnloadRequest? request))
+            {
+                if (request.Lifecycle.Current == PluginLifecycleState.Active)
+                {
+                    throw new InvalidOperationException(
+                        $"插件处于活动态，无需重试：{pluginId}；重载请先停用再启用");
+                }
+
+                // 隔离插件的上一次卸载可能停在危险区之前（例如在途调用未归零）：重试先把安全点
+                // 续完。回收没成功就不重新装载——旧实例还活着时重装会把泄漏叠成两份。
+                PluginUnloadResult reclaim = await _unloadPipeline
+                    .UnloadAsync(request, cancellationToken)
+                    .ConfigureAwait(false);
+                if (!reclaim.Reclaimed)
+                {
+                    PersistQuarantine(pluginId, reclaim.FailureReason, reclaim.Residuals);
+                    return QuarantinedLoadResult(pluginId, reclaim.FailureReason);
+                }
+
+                _handovers.Remove(pluginId);
+            }
+
+            SetEnabled(pluginId, enabled: true);
+            PluginLoadResult? result = await LoadEntryAsync(entry, cancellationToken).ConfigureAwait(false);
+            if (result is null)
+            {
+                // 包不可用不算恢复：保持隔离，装载结果如实报"拒绝"。
+                const string Unavailable = "包不可用：清单缺失或目录已不在";
+                PersistQuarantine(pluginId, Unavailable);
+                return Reject(pluginId, Unavailable);
+            }
+
+            if (result.Status == PluginLoadStatus.Active)
+            {
+                // 显式重试成功：隔离状态随本次装载清除并落盘；失败结果保留新写入的原因。
+                ClearQuarantine(pluginId);
+            }
+
+            return result;
+        }
+
+        /// <summary>取单个插件的诊断报告：状态、准入、隔离原因与可定位的残留清单。</summary>
+        /// <param name="pluginId">插件 id。</param>
+        /// <exception cref="InvalidOperationException">插件不在最近一次启动扫描结果里。</exception>
+        public PluginDiagnosticsReport GetDiagnostics(string pluginId)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
+
+            PluginStartupReportEntry entry = RequireScannedEntry(pluginId);
+            PluginStateEntry state = _stateStore.Current.GetOrCreate(pluginId);
+            bool active = _handovers.TryGetValue(pluginId, out PluginUnloadRequest? request)
+                && request.Lifecycle.Current == PluginLifecycleState.Active;
+            return new PluginDiagnosticsReport
+            {
+                PluginId = entry.PluginId,
+                Name = entry.Name,
+                Version = entry.Version,
+                Status = ResolveStatus(entry, state, active),
+                Admission = entry.Admission,
+                AdmissionReason = entry.AdmissionReason,
+                PackagePath = entry.PackagePaths.FirstOrDefault(),
+                Enabled = state.Enabled,
+                QuarantineReason = state.Quarantine?.Reason,
+                QuarantinedAt = state.Quarantine?.Since,
+                Residuals = state.Quarantine?.Residuals
+                    ?? (_lastUnloadResults.TryGetValue(pluginId, out PluginUnloadResult? last)
+                        ? last.Residuals
+                        : Array.Empty<PluginResidual>()),
+                ReclaimNote = state.Quarantine is null
+                    && _lastUnloadResults.TryGetValue(pluginId, out PluginUnloadResult? lastUnload)
+                        ? lastUnload.ReclaimNote
+                        : null,
+            };
+        }
+
+        /// <summary>全部已扫描插件的诊断报告（插件管理面的列表数据源）。</summary>
+        public IReadOnlyList<PluginDiagnosticsReport> DescribePlugins()
+            => Report is null
+                ? Array.Empty<PluginDiagnosticsReport>()
+                : Report.Plugins
+                    .Select(item => GetDiagnostics(item.PluginId))
+                    .ToList();
+
+        /// <summary>状态判定优先级：隔离 → 活动 → 准入拒绝 → 停用 → 启用未活动。</summary>
+        private static PluginRuntimeStatus ResolveStatus(
+            PluginStartupReportEntry entry,
+            PluginStateEntry state,
+            bool active)
+            => state.Quarantine is not null ? PluginRuntimeStatus.Quarantined
+            : active ? PluginRuntimeStatus.Active
+            : entry.Admission == PluginAdmission.Rejected ? PluginRuntimeStatus.Rejected
+            : !state.Enabled ? PluginRuntimeStatus.Disabled
+            : PluginRuntimeStatus.Inactive;
 
         /// <summary>启动期装载判定：启用意图 + 不在隔离 + 准入不是拒绝。</summary>
         private static bool ShouldLoad(PluginStartupReportEntry entry)
@@ -177,11 +297,19 @@ namespace StarPie.PluginRuntime.Hosting
             if (result.Status == PluginLoadStatus.Active && result.Scope is not null)
             {
                 _handovers[entry.PluginId] = PluginUnloadRequest.FromLoaded(result);
+                // 重新装载后上一次卸载的残留不再代表当前状态（旧 ALC 的释放留给重启）。
+                _lastUnloadResults.Remove(entry.PluginId);
             }
             else if (result.Status == PluginLoadStatus.Quarantined)
             {
                 // 隔离是持久状态：写进宿主状态后，下次启动扫描保留它，本类不再自动重试装载。
                 PersistQuarantine(entry.PluginId, result.FailureReason);
+                if (result.LoadContext is not null)
+                {
+                    // 失败装载留下的 ALC 不能无人回收：接进交接账本，用户显式重试或停用时
+                    // 先经同一个安全点把上一次的失败现场收干净。
+                    _handovers[entry.PluginId] = PluginUnloadRequest.FromQuarantined(result);
+                }
             }
 
             return result;
@@ -232,13 +360,58 @@ namespace StarPie.PluginRuntime.Hosting
             _stateStore.Save();
         }
 
-        /// <summary>落隔离状态（宿主状态是唯一权威；扫描只刷新准入与路径，不覆盖它）。</summary>
-        private void PersistQuarantine(string pluginId, string? reason)
+        /// <summary>
+        /// 落隔离状态（宿主状态是唯一权威；扫描只刷新准入与路径，不覆盖它）。
+        /// 既有隔离原因不被后续回收续做或重试覆盖——首次进入隔离的原因才是用户要定位的现场；
+        /// 残留清单按最新一次回收结果补齐。
+        /// </summary>
+        private void PersistQuarantine(
+            string pluginId,
+            string? reason,
+            IReadOnlyList<PluginResidual>? residuals = null)
         {
-            _stateStore.Current.GetOrCreate(pluginId).Quarantine = new PluginQuarantineState(
+            PluginStateEntry state = _stateStore.Current.GetOrCreate(pluginId);
+            if (state.Quarantine is { } existing)
+            {
+                if (residuals is { Count: > 0 })
+                {
+                    state.Quarantine = existing with { Residuals = residuals };
+                    _stateStore.Save();
+                }
+
+                return;
+            }
+
+            state.Quarantine = new PluginQuarantineState(
                 string.IsNullOrWhiteSpace(reason) ? "装载或卸载失败" : reason,
-                DateTimeOffset.Now);
+                DateTimeOffset.Now)
+            {
+                Residuals = residuals ?? Array.Empty<PluginResidual>(),
+            };
             _stateStore.Save();
+        }
+
+        /// <summary>清除隔离状态并落盘（显式重试成功后调用）。</summary>
+        private void ClearQuarantine(string pluginId)
+        {
+            _stateStore.Current.GetOrCreate(pluginId).Quarantine = null;
+            _stateStore.Save();
+        }
+
+        /// <summary>不装载、不创建 ALC 的隔离结论（重试被回收门槛拦下时返回）。</summary>
+        private static PluginLoadResult QuarantinedLoadResult(string pluginId, string? reason)
+        {
+            string text = string.IsNullOrWhiteSpace(reason) ? "插件已隔离" : reason;
+            var lifecycle = new PluginLifecycleStateMachine();
+            lifecycle.Quarantine(text);
+            return new PluginLoadResult(
+                pluginId,
+                PluginLoadStatus.Quarantined,
+                text,
+                null,
+                null,
+                lifecycle,
+                null);
         }
 
         /// <summary>包不可用时的拒绝结果（未创建 ALC、未启动插件代码）。</summary>
