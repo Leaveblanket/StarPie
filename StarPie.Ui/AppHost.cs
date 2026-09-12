@@ -266,6 +266,8 @@ namespace StarPie
         /// <summary>静默形态主窗口定位：屏幕左上角（窗口真实可见、被 DWM 合成，失败截图可抓真实内容）。</summary>
         private const int SilentWindowLeft = 0;
         private const int SilentWindowTop = 0;
+        /// <summary>静默形态界面缩放：0.9 线性 → 窗口 954×648；再小正文会掉到 9px 以下、截图不可读。</summary>
+        private const double SilentWindowScale = 0.9;
         private const int GwlExStyle = -20;
         private const int WsExNoActivate = 0x08000000;
         private const int WsExTransparent = 0x00000020;
@@ -282,6 +284,7 @@ namespace StarPie
             view.ShowActivated = false;
             view.ShowInTaskbar = false;
             view.WindowStartupLocation = WindowStartupLocation.Manual;
+            view.ApplyLayoutScale(SilentWindowScale);
             view.Left = SilentWindowLeft;
             view.Top = SilentWindowTop;
 
