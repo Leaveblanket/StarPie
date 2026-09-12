@@ -4,6 +4,12 @@ using System.Linq;
 using System.Reflection;
 using StarPie.Kernel.Configuration;
 using StarPie.Kernel.Localization;
+using StarPie.PluginRuntime;
+using StarPie.PluginRuntime.Admission;
+using StarPie.PluginRuntime.Diagnostics;
+using StarPie.PluginRuntime.Discovery;
+using StarPie.PluginRuntime.Manifest;
+using StarPie.PluginRuntime.State;
 
 namespace StarPie.Tests;
 
@@ -42,6 +48,15 @@ public sealed class HostBoundaryTests
         typeof(ActionRouting.SystemCommand), typeof(ActionRouting.SystemCommand.Noop),
         typeof(ActionRouting.SystemCommand.SendHotkey), typeof(ActionRouting.SystemCommand.SendKey),
         typeof(ActionRouting.SystemCommand.LockWorkstation), typeof(ActionRouting.SystemCommand.StartProcess),
+        // PluginRuntime/（插件运行时首层：路径、发现、清单校验、准入、宿主状态与启动报告）
+        typeof(PluginPaths),
+        typeof(PluginPackageOrigin), typeof(PluginPackageCandidate), typeof(PluginDiscovery),
+        typeof(PluginManifestParseResult), typeof(PluginManifestParser), typeof(PluginManifestValidator),
+        typeof(PluginAdmission), typeof(PluginAdmissionDecision), typeof(IPluginReviewCatalog),
+        typeof(EmptyPluginReviewCatalog), typeof(PluginAdmissionPolicy), typeof(PluginDeveloperModeService),
+        typeof(PluginQuarantineState), typeof(PluginStateEntry), typeof(PluginStateDocument), typeof(PluginStateStore),
+        typeof(PluginStartupReportEntry), typeof(PluginStartupReport),
+        typeof(PluginStartupReportWriter), typeof(PluginStartupScanner),
     };
 
     /// <summary>设计期字符串字典的 pack URI（Page 编译、签入生成物；由 Ui 工程资源锚设计期合并）。</summary>

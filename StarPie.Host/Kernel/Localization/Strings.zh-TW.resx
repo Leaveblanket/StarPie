@@ -262,4 +262,9 @@
   <data name="GlowPresetRed" xml:space="preserve"><value>🔴 珊瑚赤光 (Coral Red #EF4444)</value></data>
   <data name="GlowPresetWhite" xml:space="preserve"><value>⚪ 冰魄純白 (Pure Ice White #FFFFFF)</value></data>
   <data name="GlowPresetCustom" xml:space="preserve"><value>🎨 自訂光暈顏色 (Custom Glow Color)</value></data>
+  <data name="PluginDevModeDisclosureTitle" xml:space="preserve"><value>開發者模式：處理程序內全信任風險揭露</value></data>
+  <data name="PluginDevModeDisclosureData" xml:space="preserve"><value>外掛可讀取本機 StarPie 設定與外掛資料</value></data>
+  <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>外掛可在你的帳戶權限內執行任意程式碼</value></data>
+  <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>外掛可能使 StarPie 當機或卡住</value></data>
+  <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸載可能失敗；失敗的外掛會被隔離，需重新啟動處理</value></data>
 </root>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Modules;
+using StarPie.PluginRuntime.Diagnostics;
 using StarPie.Services;
 using StarPie.Kernel.Localization;
 
@@ -114,6 +115,8 @@ namespace StarPie
             // 壳层 VM 独立注册/解析——AppHost 退出链与主框架分区 DataContext 指向壳层 VM；
             // 导航 VM 只持导航状态。
             var shellViewModel = _provider.GetRequiredService<ShellViewModel>();
+            // 插件启动扫描器（发现/准入/启动报告）：由 AppHost 在启动序列里驱动，不装载插件代码。
+            var pluginScanner = _provider.GetRequiredService<PluginStartupScanner>();
 
             return new AppHost(
                 messenger,
@@ -128,6 +131,7 @@ namespace StarPie
                 mainViewModel,
                 shellViewModel,
                 _hostDelegates,
+                pluginScanner,
                 background);
         }
 

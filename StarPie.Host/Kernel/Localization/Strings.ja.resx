@@ -262,4 +262,9 @@
   <data name="GlowPresetRed" xml:space="preserve"><value>🔴 コーラルレッド (#EF4444)</value></data>
   <data name="GlowPresetWhite" xml:space="preserve"><value>⚪ ピュアアイスホワイト (#FFFFFF)</value></data>
   <data name="GlowPresetCustom" xml:space="preserve"><value>🎨 カスタムグロー色</value></data>
+  <data name="PluginDevModeDisclosureTitle" xml:space="preserve"><value>開発者モード：プロセス内フルトラストのリスク開示</value></data>
+  <data name="PluginDevModeDisclosureData" xml:space="preserve"><value>プラグインは本機の StarPie 設定とプラグインデータを読み取れます</value></data>
+  <data name="PluginDevModeDisclosureCode" xml:space="preserve"><value>プラグインはあなたのアカウント権限で任意のコードを実行できます</value></data>
+  <data name="PluginDevModeDisclosureCrash" xml:space="preserve"><value>プラグインは StarPie をクラッシュさせたり固まらせたりする可能性があります</value></data>
+  <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>アンインストールに失敗する可能性があり、失敗したプラグインは隔離され再起動が必要です</value></data>
 </root>

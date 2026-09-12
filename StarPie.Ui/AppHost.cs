@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
+using StarPie.PluginRuntime.Diagnostics;
 using StarPie.Services;
 using StarPie.Kernel.Localization;
 
@@ -41,6 +43,8 @@ namespace StarPie
         private readonly MainViewModel _mainViewModel;
         private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
+        // 插件启动扫描器：只做发现/校验/准入与启动报告落盘，不装载插件代码。
+        private readonly PluginStartupScanner _pluginScanner;
         // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
         // 无任务栏项，且不启全局鼠标钩子——用户同机工作时键鼠不受打扰，窗口仍真实可见可截图。
         private readonly bool _background;
@@ -63,6 +67,7 @@ namespace StarPie
             MainViewModel mainViewModel,
             ShellViewModel shellViewModel,
             AppHostDelegates hostDelegates,
+            PluginStartupScanner pluginScanner,
             bool background = false)
         {
             _messenger = messenger;
@@ -77,6 +82,7 @@ namespace StarPie
             _mainViewModel = mainViewModel;
             _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
+            _pluginScanner = pluginScanner;
             _background = background;
 
             // 主题画刷换入经端口回填：整项替换合并字典的活动主题槽；
@@ -95,6 +101,17 @@ namespace StarPie
         /// <summary>启动鼠标钩子、换入语言字典、创建托盘与主框架并显示——顺序显式可控。</summary>
         public void Run()
         {
+            // 插件启动扫描先于窗口与钩子：刷新宿主状态（启用/停用/版本/路径/准入来源/隔离）并落盘
+            // 启动报告（准入四态可见）。扫描失败不阻断启动——插件缺席与插件出错都是可运行态。
+            try
+            {
+                _pluginScanner.Scan();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Plugin startup scan failed: {ex.Message}");
+            }
+
             // 后台模式不启全局鼠标钩子：钩子属产品交互，e2e 不覆盖它，
             // 却可能在用户操作鼠标时把轮盘弹到屏幕上。
             if (!_background)
