@@ -20,6 +20,9 @@ namespace StarPie.PluginRuntime
         /// <summary>宿主插件状态文件（宿主唯一权威，插件不可读写）。</summary>
         public static string StateFilePath => Path.Combine(AppDataPaths.GetAppDataFolder(), "plugin-state.json");
 
+        /// <summary>插件数据根目录（每插件一个子目录，卸载默认保留）。</summary>
+        public static string DataDirectory => Path.Combine(AppDataPaths.GetAppDataFolder(), "plugin-data");
+
         /// <summary>插件启动报告文件（每次启动扫描覆写，诊断与准入结果可见面）。</summary>
         public static string StartupReportFilePath => Path.Combine(AppDataPaths.GetAppDataFolder(), "plugin-startup-report.json");
     }

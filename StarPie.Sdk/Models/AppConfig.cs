@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Nodes;
 
 namespace StarPie.Models
 {
@@ -55,6 +56,16 @@ namespace StarPie.Models
 
         /// <summary>用户保存的自定义配色预设列表（WheelPalette 可选 "CustomPreset_{Id}" 或预设名引用）。</summary>
         public List<CustomColorPreset> CustomColorPresets { get; set; } = new List<CustomColorPreset>();
+
+        /// <summary>
+        /// 插件配置段：键为插件 id，值为该插件自己的配置对象（<c>plugins.&lt;id&gt;</c>）。
+        /// </summary>
+        /// <remarks>
+        /// 该段归插件所有，宿主状态不写这里；旧配置没有该段时照常加载，缺段即空字典。
+        /// 取值放宽到任意 JSON 值（而非只收对象）：手改配置写坏某一段时不该让整份配置回退默认值，
+        /// 段内形状由读它的插件自行判定。宿主只在"彻底移除"时整段删除，不解释段内内容。
+        /// </remarks>
+        public Dictionary<string, JsonNode?> Plugins { get; set; } = new Dictionary<string, JsonNode?>(StringComparer.Ordinal);
 
         // —— 背景图片与纹理自定义 ——
         public string WheelBgImagePath { get; set; } = ""; // 轮盘背景图片路径（空表示不使用）

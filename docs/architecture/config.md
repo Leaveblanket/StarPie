@@ -30,3 +30,9 @@ WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer`（UI 线程 `DispatcherTi
 - 新设置变更：变更处发保存消息即可，不直接写文件。
 - 调整落盘节奏：改 `AutoSaveDelay`。
 - 改配置路径：S2 内只动 `AppDataPaths`（开发配置夹分支依赖 `DevInstance`，见 [host.md](host.md)）。
+
+## 插件配置段
+
+`AppConfig.Plugins` 是 `plugins.<id>` 段的内存形态：键为插件 id，值为该插件自己的 JSON 值
+（段内形状归插件，宿主不解释）。该段不参与任何内置设置页的读写，只在管理面的「彻底移除」
+里整体删除并立即冲刷落盘——删除只动内存态，不冲刷会被挂起的防抖落盘写回磁盘。

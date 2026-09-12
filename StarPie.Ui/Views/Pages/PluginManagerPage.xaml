@@ -22,6 +22,16 @@
                        Margin="0,4,0,0" FontSize="12"
                        Foreground="{DynamicResource TextSecondaryBrush}"
                        Text="{DynamicResource PluginManagerSubheader}" />
+            <!--  准入模式常显：当前进程凭什么允许装载插件。  -->
+            <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                <TextBlock FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           Text="{DynamicResource PluginManagerAdmissionMode}" />
+                <TextBlock AutomationProperties.AutomationId="PluginManagerAdmissionMode"
+                           Margin="6,0,0,0" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           Text="{Binding AdmissionModeText}" />
+            </StackPanel>
         </StackPanel>
 
         <Grid Grid.Row="1">
@@ -69,6 +79,11 @@
                                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                                        Text="{Binding QuarantineText}"
                                                        Visibility="{Binding HasQuarantine, Converter={StaticResource BoolToVis}}" />
+                                            <TextBlock AutomationProperties.AutomationId="{Binding PendingRestartAutomationId}"
+                                                       Margin="0,4,0,0" FontSize="12"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       Text="{Binding PendingRestartText}"
+                                                       Visibility="{Binding HasPendingRestart, Converter={StaticResource BoolToVis}}" />
                                         </StackPanel>
     
                                         <StackPanel Grid.Column="1" Margin="12,0,0,0"
@@ -80,11 +95,29 @@
                                                     Style="{StaticResource ModernButtonStyle}"
                                                     Visibility="{Binding CanToggle, Converter={StaticResource BoolToVis}}" />
                                             <Button Margin="0,0,8,0" Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding ReloadAutomationId}"
+                                                    Command="{Binding ReloadCommand}"
+                                                    Content="{Binding ReloadText}"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Visibility="{Binding CanReload, Converter={StaticResource BoolToVis}}" />
+                                            <Button Margin="0,0,8,0" Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding UpdateAutomationId}"
+                                                    Command="{Binding UpdateCommand}"
+                                                    Content="{Binding UpdateText}"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Visibility="{Binding CanUpdate, Converter={StaticResource BoolToVis}}" />
+                                            <Button Margin="0,0,8,0" Padding="12,4"
                                                     AutomationProperties.AutomationId="{Binding RetryAutomationId}"
                                                     Command="{Binding RetryCommand}"
                                                     Content="{DynamicResource PluginManagerRetry}"
                                                     Style="{StaticResource ModernButtonStyle}"
                                                     Visibility="{Binding CanRetry, Converter={StaticResource BoolToVis}}" />
+                                            <Button Margin="0,0,8,0" Padding="12,4"
+                                                    AutomationProperties.AutomationId="{Binding UninstallAutomationId}"
+                                                    Command="{Binding UninstallCommand}"
+                                                    Content="{DynamicResource PluginManagerUninstall}"
+                                                    Style="{StaticResource ModernButtonStyle}"
+                                                    Visibility="{Binding CanUninstall, Converter={StaticResource BoolToVis}}" />
                                             <Button Padding="12,4"
                                                     AutomationProperties.AutomationId="{Binding DiagnosticsAutomationId}"
                                                     Command="{Binding DiagnosticsCommand}"

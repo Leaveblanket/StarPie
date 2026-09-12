@@ -203,7 +203,7 @@ Ui 集工程根（`StarPie.Ui/`）：
   解析）、`Gestures/`（手势内核）与 `Actions/`（动作路由纯函数）以及工程级
    `GlobalUsings.cs`；插件面落点 `PluginRuntime/`（`Discovery/`、`Manifest/`、`Admission/`、
    `State/`、`Hosting/`、`Loading/`、`Unloading/`、`Lifecycle/`、`Registry/`、`Diagnostics/`——
-   插件发现/清单校验/准入/宿主状态/宿主侧运行时（启用装载与停用再启用）/collectible ALC 装载与
+   插件发现/清单校验/准入/宿主状态/宿主侧运行时（启用装载、停用再启用、重载、更新与彻底移除）/collectible ALC 装载与
    安全点卸载管线/生命周期状态机/能力表/启动报告，可 headless 直接构造；随包插件工程落
    `plugins/src/StarPie.Plugin.Programs/`（首个 headless 插件），目标树见 [plugins.md](plugins.md) §2；
   导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。

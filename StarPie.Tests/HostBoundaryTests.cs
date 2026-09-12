@@ -81,8 +81,8 @@ public sealed class HostBoundaryTests
         // PluginRuntime/Unloading/（安全点卸载管线与回收判定）
         typeof(PluginUnloadStatus), typeof(PluginUnloadRequest), typeof(PluginUnloadResult),
         typeof(PluginUnloadPipeline), typeof(PluginReclaimPolicy),
-        // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用）
-        typeof(PluginRuntimeHost),
+        // PluginRuntime/Hosting/（宿主侧插件运行时：启动装载与停用/再启用/重载/更新/彻底移除）
+        typeof(PluginRuntimeHost), typeof(PluginUninstallResult), typeof(PluginUninstallOptions),
         // PluginRuntime/Ui/（UI 释放端口：Host 零 WPF，实现封送在 Ui 层）
         typeof(IPluginUiCoordinator), typeof(PluginUiReleaseResult),
     };

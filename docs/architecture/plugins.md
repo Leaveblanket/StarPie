@@ -5,10 +5,12 @@
 > （collectible ALC 装载、能力注册与调用守卫、安全点卸载与回收判定）、§2 的首个随包 headless 插件
 > 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
 > 最小插件管理面与诊断报告（§10 的列表/状态/启停/重试/诊断入口，含可定位残留清单）亦已落地；
+> 管理面完整化（§10 的重载/更新/彻底移除与页面常显准入模式，含界面插件「下次启动生效」的
+> 挂起版本语义）亦已落地；
 > 插件 UI 托管基础层（§7 的资产登记表、每插件资源根、UI 线程释放编排与泄漏验证器）亦已落地；
 > 固定扩展点（§7.1 的导航页/设置区/托盘菜单/插件窗口/内容容器的注册与出账，含无插件时的
-> 降级行为）亦已落地；插件 UI 装载接线（UI 入口调用与示例插件）、管理面剩余动作
-> （重载/更新/彻底移除）与生态化（§11）为目标态规范，未落地条款在落地前 as-built 以
+> 降级行为）亦已落地；插件 UI 装载接线（UI 入口调用与示例插件）与生态化（§11）
+> 为目标态规范，未落地条款在落地前 as-built 以
 > [assemblies.md](assemblies.md) 与
 > [modules.md](modules.md) 为准。
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
@@ -139,7 +141,7 @@ StarPie/
 - `ui` 段可选：声明插件含 UI，并给出 `IPluginUiModule` 入口类型；无 `ui` 段即为 headless 插件。
 - 发现顺序：安装目录 `plugins/` 与用户目录；同 id 冲突禁用两者并提示处理。
 - 清单校验在发现期收口（失败即 `Rejected` 并附原因）：`schemaVersion` 只接受 1；`id`/`name`/`version`/`sdk`/`entryAssembly`/`entryType` 必填；`id` 须等于包目录名；`sdk` 按 §11 的 ABI 政策判定；`entryAssembly`/`settingsSchema` 必须是包内裸文件名且文件存在于包内；`ui` 段只做纯格式校验（UI 侧 ABI 兼容判定归 Ui 侧插件托管层，见 §5.1 约束 7）。
-- 宿主状态条目字段：启用/停用、已装版本、包路径、准入来源（四态）、隔离状态；每次启动扫描重算准入并刷新条目，用户的启用意图与隔离状态不被扫描覆盖。
+- 宿主状态条目字段：启用/停用、已装版本、包路径、准入来源（四态）、隔离状态、挂起版本（界面插件更新后就位、待下次启动装载的那一份）；每次启动扫描重算准入并刷新条目，用户的启用意图与隔离状态不被扫描覆盖。
 - 启动扫描产物 `plugin-startup-report.json`：扫描目录、开发者模式开关、逐插件准入结果与四态计数——**准入四态在启动报告里直接可见**。
 - 开发者模式开关存宿主状态（默认关闭）：开启须显式确认全信任风险披露（可读配置与插件数据 / 执行任意代码 / 使进程崩溃 / 卸载可能失败并被隔离），未确认不得置位。
 - 内置认定以宿主内置 id 清单为准：随包第一方插件登记 id，安装目录位置本身不是信任依据；未登记的包按未审核处理。
@@ -345,8 +347,11 @@ public interface IPluginUiContext
 
 - **配置**：`config.json` 新增 `plugins: { "<id>": { … } }`；旧配置无该段照常加载。该段归插件所有（经 `IPluginConfig` 读写），宿主状态不写这里（Q9b）。
 - **数据**：`%LOCALAPPDATA%\StarPie\plugin-data\<id>\`；卸载默认保留，管理面提供"彻底移除"。
-- **宿主状态**：`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用/停用、已装版本、路径、准入来源（内置/审核清单/开发者模式）、隔离状态；宿主唯一权威，插件不可读写（Q9、Q9b）。
+- **宿主状态**：`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用/停用、已装版本、路径、准入来源（内置/审核清单/开发者模式）、隔离状态、挂起版本；宿主唯一权威，插件不可读写（Q9、Q9b）。
 - **三个动作要分清（Q9）**：**停用** = 安全点卸载（停用插件代码、摘除能力、释放服务作用域与插件对象；WPF 宿主里插件程序集留到重启释放，见 ADR-0035）、保留包与状态；**移除包** = 停用后删插件目录、状态条目保留；**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目，再 `FlushPendingSave()`。
+
+  as-built：管理面按插件形态给两条更新路径——无界面插件就地「安全点卸载 + 按新包装载」；界面插件只隔离旧版本，
+  把新版本登记为**挂起版本**（宿主状态 `PendingVersion`），页面显式提示「下次启动生效」，重启装载成功后挂起标记清除。
 - **文案**：随包 `strings\<culture>.json` + `IPluginContext.Localization`；宿主渲染的设置表单用插件自报文案。
 - **日志**：插件只经 `IPluginContext.Log` 写宿主日志（自动带 plugin id）。
 
@@ -354,6 +359,8 @@ public interface IPluginUiContext
 
 - 插件不自绘设置表单时，用 `settings.schema.json` 由宿主渲染（bool/数字/字符串/枚举/路径/路径列表）；写了 UI 的插件也可以注册 `PluginSettingsSectionDescriptor` 自绘设置区。
 - 宿主必须有 `PluginManagerPage`：列表、状态（Active / 已停用 / Quarantined）、启用/停用、重载/更新、隔离后的**重试**、诊断报告、"彻底移除"；页面常显当前**准入模式**（ADR-0029）。隔离态同时提供**重试**与**停用**两条出口：重试 = 回收续做 + 重新装载，停用 = 落停用意图并尽力回收（隔离原因保持可见，隔离不因停用被抹去）。
+- as-built：列表另有**待重启**态（界面插件的挂起版本）；启停/重载/更新/重试/诊断/彻底移除各有稳定
+  `PluginManager*_<plugin-id>` AutomationId；彻底移除前必须经用户确认，未清干净时如实报残余。
 - 首次开启开发者模式必须走确认流程并展示全信任风险披露：可读配置与插件数据、可执行任意代码、可使进程崩溃、卸载可能失败并被隔离。
 
 ## 11. ABI、版本与信任

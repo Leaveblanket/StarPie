@@ -17,6 +17,12 @@ namespace StarPie.PluginRuntime.Diagnostics
         /// <summary>清单版本（清单可用时）。</summary>
         public string? Version { get; set; }
 
+        /// <summary>
+        /// 清单是否声明了 ui 段（界面插件）。更新语义按此分档：界面插件的程序集留在进程内，
+        /// 新版本须下次启动生效；无界面插件可就地卸载后装载新版本。
+        /// </summary>
+        public bool HasUi { get; set; }
+
         /// <summary>准入结果四态。</summary>
         public PluginAdmission Admission { get; set; }
 

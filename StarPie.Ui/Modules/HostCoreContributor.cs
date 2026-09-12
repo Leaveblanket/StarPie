@@ -122,7 +122,20 @@ namespace StarPie.Modules
             services.AddSingleton(sp => new PluginUnloadPipeline(
                 sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave,
                 reclaimPolicy: PluginReclaimPolicy.Diagnostic));
-            services.AddSingleton<PluginRuntimeHost>();
+            // 「彻底移除」的三条宿主侧接缝：配置段删除走配置服务、插件数据目录走 PluginPaths、
+            // 删除后立即冲刷配置落盘（挂起的防抖落盘会把旧段写回磁盘）。
+            services.AddSingleton(sp => new PluginRuntimeHost(
+                sp.GetRequiredService<PluginStartupScanner>(),
+                sp.GetRequiredService<PluginStateStore>(),
+                sp.GetRequiredService<PluginLoadPipeline>(),
+                sp.GetRequiredService<PluginUnloadPipeline>(),
+                new PluginUninstallOptions
+                {
+                    RemoveConfigSection = pluginId =>
+                        sp.GetRequiredService<IConfigService>().Current.Plugins.Remove(pluginId),
+                    PluginDataRoot = PluginPaths.DataDirectory,
+                    FlushPendingSaves = sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave,
+                }));
 
             // 插件 UI 托管门面：宿主应用实例与 UI 调度器取自进程内唯一 Application（组合根在
             // Application 启动后解析），导航目录经构造注入——插件注册的导航页直接进目录。
@@ -141,7 +154,8 @@ namespace StarPie.Modules
                 sp.GetRequiredService<PluginRuntimeHost>(),
                 sp.GetRequiredService<NavigationStore>(),
                 sp.GetRequiredService<ILocalizationService>(),
-                sp.GetRequiredService<PluginUiCoordinator>()));
+                sp.GetRequiredService<PluginUiCoordinator>(),
+                sp.GetService<IDialogService>()));
         }
 
         // 插件槽位导航图标 Path Data（拼图）

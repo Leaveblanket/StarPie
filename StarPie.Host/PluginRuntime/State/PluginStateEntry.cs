@@ -13,6 +13,12 @@ namespace StarPie.PluginRuntime.State
         /// <summary>最近一次扫描所见版本（清单不可用时为空）。</summary>
         public string? Version { get; set; }
 
+        /// <summary>
+        /// 已就位但尚未装载的新版本（界面插件更新后留待下次启动装载）；无挂起时为空。
+        /// 与 <see cref="Version"/> 分开：后者是包目录里的当前版本，前者是本进程不能立即生效的那一份。
+        /// </summary>
+        public string? PendingVersion { get; set; }
+
         /// <summary>最近一次扫描所见包目录（同 id 冲突时记安装目录中的那份）。</summary>
         public string? PackagePath { get; set; }
 

@@ -9,8 +9,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Kernel.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginHosting.Extensions;
+using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
+using StarPie.Services.Dialogs;
 using StarPie.Services.Navigation;
 
 namespace StarPie.ViewModels.Pages
@@ -28,6 +30,7 @@ namespace StarPie.ViewModels.Pages
         private readonly PluginUiCoordinator? _pluginUi;
         private readonly NavigationStore _navigation;
         private readonly ILocalizationService _localization;
+        private readonly IDialogService? _dialogs;
 
         /// <summary>插件条目（按宿主报告的稳定序）。</summary>
         public ObservableCollection<PluginManagerItemViewModel> Plugins { get; } = new();
@@ -47,17 +50,32 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private string _diagnosticsText = string.Empty;
 
+        /// <summary>页面常显的当前准入模式文案。</summary>
+        [ObservableProperty]
+        private string _admissionModeText = string.Empty;
+
+        /// <summary>开发者模式是否已开启（准入模式的依据）。</summary>
+        [ObservableProperty]
+        private bool _isDeveloperModeEnabled;
+
         /// <summary>构造页面 VM：宿主运行时、导航状态与本地化服务均为显式依赖。</summary>
+        /// <param name="runtime">宿主侧插件运行时。</param>
+        /// <param name="navigation">导航状态（页面被导航到时重读宿主报告）。</param>
+        /// <param name="localization">本地化服务。</param>
+        /// <param name="pluginUi">插件 UI 托管门面；为 null 时不呈现插件设置区块。</param>
+        /// <param name="dialogs">对话框服务（彻底移除前的确认）；为 null 时按取消处理，不误删。</param>
         public PluginManagerViewModel(
             PluginRuntimeHost runtime,
             NavigationStore navigation,
             ILocalizationService localization,
-            PluginUiCoordinator? pluginUi = null)
+            PluginUiCoordinator? pluginUi = null,
+            IDialogService? dialogs = null)
         {
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
             _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _pluginUi = pluginUi;
+            _dialogs = dialogs;
 
             _navigation.PropertyChanged += OnNavigationChanged;
             Refresh();
@@ -75,8 +93,17 @@ namespace StarPie.ViewModels.Pages
 
             SelectedPlugin = Plugins.FirstOrDefault(item => item.PluginId == selectedId)
                 ?? Plugins.FirstOrDefault();
+            RefreshAdmissionMode();
             UpdateDiagnostics();
             RefreshPluginSettingsSections();
+        }
+
+        /// <summary>刷新页面常显的准入模式文案；语言切换后随本页刷新重取。</summary>
+        private void RefreshAdmissionMode()
+        {
+            IsDeveloperModeEnabled = _runtime.IsDeveloperModeEnabled;
+            AdmissionModeText = _localization.GetString(
+                IsDeveloperModeEnabled ? "PluginManagerAdmissionModeDev" : "PluginManagerAdmissionModeDefault");
         }
 
         /// <summary>重建插件设置区块：标题按当前语言取词，区块 VM 由插件描述符工厂创建。</summary>
@@ -133,6 +160,56 @@ namespace StarPie.ViewModels.Pages
             Refresh();
         }
 
+        /// <summary>重载插件：安全点卸载后按当前包重新装载，完成后刷新列表。</summary>
+        /// <param name="item">目标条目。</param>
+        internal async Task ReloadAsync(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            await _runtime.ReloadAsync(item.PluginId, CancellationToken.None).ConfigureAwait(true);
+            Refresh();
+        }
+
+        /// <summary>
+        /// 应用新版本：无界面插件当场生效，界面插件转入"下次启动生效"，完成后刷新列表。
+        /// </summary>
+        /// <param name="item">目标条目。</param>
+        internal async Task UpdateAsync(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            await _runtime.UpdateAsync(item.PluginId, CancellationToken.None).ConfigureAwait(true);
+            Refresh();
+        }
+
+        /// <summary>
+        /// 彻底移除插件：先经用户确认（对话框服务缺席时按取消处理，不误删），
+        /// 再清包/配置段/数据/宿主状态；未清干净时保持列表并给出失败原因。
+        /// </summary>
+        /// <param name="item">目标条目。</param>
+        internal async Task UninstallAsync(PluginManagerItemViewModel item)
+        {
+            ArgumentNullException.ThrowIfNull(item);
+            if (_dialogs is null
+                || !_dialogs.Confirm(
+                    _localization.GetString("PluginManagerUninstallConfirmTitle"),
+                    string.Format(
+                        _localization.GetString("PluginManagerUninstallConfirmMessage"),
+                        item.DisplayName)))
+            {
+                return;
+            }
+
+            PluginUninstallResult? result = await _runtime
+                .UninstallAsync(item.PluginId, CancellationToken.None)
+                .ConfigureAwait(true);
+            Refresh();
+            if (result is { Succeeded: false })
+            {
+                _dialogs.ShowInfo(
+                    _localization.GetString("PluginManagerUninstallFailedTitle"),
+                    result.FailureReason ?? string.Empty);
+            }
+        }
+
         /// <summary>退订导航状态（容器单例，随组合根释放）。</summary>
         public void Dispose()
         {
@@ -167,6 +244,19 @@ namespace StarPie.ViewModels.Pages
                 $"{localization.GetString("PluginManagerAdmissionLabel")}：{localization.GetString(PluginManagerItemViewModel.ToAdmissionKey(report.Admission))}",
                 $"{localization.GetString("PluginManagerPackagePathLabel")}：{report.PackagePath ?? "-"}",
             };
+
+            if (!string.IsNullOrWhiteSpace(report.LoadedVersion))
+            {
+                lines.Add(
+                    $"{localization.GetString("PluginManagerLoadedVersionLabel")}：{report.LoadedVersion}");
+            }
+
+            if (!string.IsNullOrWhiteSpace(report.PendingRestartVersion))
+            {
+                lines.Add(string.Format(
+                    localization.GetString("PluginManagerPendingRestart"),
+                    report.PendingRestartVersion));
+            }
 
             if (!string.IsNullOrWhiteSpace(report.QuarantineReason))
             {
