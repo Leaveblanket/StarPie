@@ -17,6 +17,7 @@ StarPie/
 │   ├── Composition.cs             # DI 组合根（唯一）：四阶段（早期回填 → 贡献者有序清单注册 → BuildServiceProvider → eager 解析）
 │   ├── DevInstance.cs             # 开发实例标记（H1）：--dev 互斥/触发键/自启保护
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
+│   ├── PluginHosting/             # P3：插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
 │   ├── Modules/                   # 统一注册管线：ICompositionContributor + BuiltInContributors（内置有序清单）+ HostCore/HostPage 贡献者；M4：ThemeContributor；M2：WheelContributor；M1：GesturesContributor + GesturesPageTemplates.xaml；M5：ShellContributor + ShellPageTemplates.xaml；HostCore：HostCoreContributor + HostCorePageTemplates.xaml；S6：DialogsContributor
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
@@ -71,6 +72,8 @@ StarPie/
 │                                  #   导出面与全仓类型唯一性由 StarPie.Tests/SdkBoundaryTests 收口
 ├── StarPie.Sdk.Wpf/                # SDK 的 WPF 类型契约面（UseWPF；P1.2/#111 骨架，P1.4/#113 起承载 WPF 契约件）
 │   ├── StarPie.Sdk.Wpf.csproj     # 唯一 ProjectReference 允许指向 StarPie.Sdk（不产出 XAML）
+│   ├── Abstractions/
+│   │   └── Ui/                    # 插件 UI 契约：IPluginUiModule/IPluginUiContext/IUiDispatcher 与注册描述符（P3 起）
 │   ├── Services/
 │   │   ├── Icons/                 # 图标资产服务契约：IIconAssetService（实现驻 Ui；条目类型在 SDK、目录在 Host）
 │   │   └── Shell/                 # M4 契约：IThemeService.cs
@@ -187,7 +190,8 @@ Ui 集工程根（`StarPie.Ui/`）：
 - `StarPie.Sdk.Wpf.csproj`：SDK 的 WPF 类型契约面工程入口（UseWPF；P1.2/#111 骨架，P1.4/#113
   起承载 WPF 契约件）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；
   `StarPie.Sdk.Wpf/` 源码根目录**只允许** `Services/Icons/`、`Services/Shell/`
-  （迁移期镜像旧相对路径）与 `Compatibility/`（UiSdkAbi/DefaultAlcPolicy）——
+  （迁移期镜像旧相对路径）、`Compatibility/`（UiSdkAbi/DefaultAlcPolicy）与
+  `Abstractions/Ui/`（插件 UI 契约，P3 起）——
   导出面与 ABI 政策由 `StarPie.Tests/SdkWpfBoundaryTests.cs` 收口。
 - `StarPie.Host.csproj` / `GlobalUsings.cs`：宿主内核工程入口（net10.0 零 WPF；ProjectReference
   只许 `StarPie.Sdk`；不引用 `StarPie.Sdk.Wpf`）；`StarPie.Host/` 源码根目录**只允许**
