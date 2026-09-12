@@ -34,9 +34,6 @@
     <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
          WPF 适配件（DispatcherSaveDebouncer）驻本集 Adapters/，实现内核防抖接缝 -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
-    <!-- 设计期资源锚的 pack URI 解析目标（设计期字符串字典在 Core）；
-         运行时内核（S2 配置 / S3 本地化）在 StarPie.Host -->
-    <ProjectReference Include="..\StarPie.Core\StarPie.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +43,9 @@
       <SubType>Designer</SubType>
       <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
     </Page>
+    <!-- 设计期字符串字典（签入生成物，由同目录生成脚本从 Host 内核的 Strings.resx 派生）：
+         Page 编译为惰性 BAML，只被上面的资源锚以 pack URI 在设计期合并，运行时永不合并。 -->
+    <Page Update="Services\Localization\DesignTimeStrings.xaml" />
   </ItemGroup>
 
 </Project>

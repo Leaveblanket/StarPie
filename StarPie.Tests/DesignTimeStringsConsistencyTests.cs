@@ -8,29 +8,22 @@ namespace StarPie.Tests;
 /// <summary>
 /// 设计期字符串字典一致性测试（ADR-0025/#101）：DesignTimeStrings.xaml 是签入生成物，
 /// 由 GenerateDesignTimeStrings.ps1 从 Strings.resx（zh-CN 中性）派生——测试锁
-/// “键集一致 + 值与 resx 一致”，防止新增/修改文案键后漏再生成。纯文件级断言，不经容器。
+/// “键集一致 + 值与 resx 一致”，防止新增/修改文案键后漏再生成。字典随 Ui 集编译
+/// （独立设计期投影壳已删除，Page 编译与资源锚见 HostBoundaryTests）。纯文件级断言，不经容器。
 /// </summary>
 public sealed class DesignTimeStringsConsistencyTests
 {
     private const string XamlKeyNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
 
-    private static string RepoRoot
-    {
-        get
-        {
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            return dir.FullName;
-        }
-    }
+    private static string RepoRoot => FourSetBoundaryProbe.RepoRoot;
 
     /// <summary>运行时本地化源 resx（宿主内核）。</summary>
     private static string ResxDirectory
         => Path.Combine(RepoRoot, "StarPie.Host", "Kernel", "Localization");
 
-    /// <summary>设计期投影字典（Page 编译签入生成物）。</summary>
+    /// <summary>设计期投影字典（Page 编译签入生成物，随 Ui 集承载）。</summary>
     private static string DesignTimeDictionaryDirectory
-        => Path.Combine(RepoRoot, "StarPie.Core", "Services", "Localization");
+        => Path.Combine(RepoRoot, "StarPie.Ui", "Services", "Localization");
 
     private static XmlDocument LoadResx()
     {
