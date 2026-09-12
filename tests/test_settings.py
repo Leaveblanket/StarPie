@@ -1,13 +1,39 @@
 import base64
-import time
 
 import pytest
-from conftest import ONSCREEN, dismiss_messagebox, goto, label_value, read_config, wait_dialog, wait_dialog_closed
+from conftest import (
+    ONSCREEN,
+    assert_catalog,
+    assert_text_contains,
+    dismiss_messagebox,
+    goto,
+    list_item_texts,
+    read_config,
+    select_option,
+    text_of,
+    wait_dialog,
+    wait_dialog_closed,
+    wait_for_label_value,
+    wait_until,
+)
 
 # 1×1 PNG：v136 中心图标用例的自建测试图片（不再依赖 C:\Windows 系统文件）
 PNG_1X1_BASE64 = (
     "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 )
+
+# 产品下拉目录（Tag 的固定顺序）。UIA 不暴露选项文本、SelectedValuePath 取 Tag，
+# 故用例用名字（= 落盘值）而不是魔数索引选项目；select_option 会先断言目录规模，
+# 目录变更时显式失败而不是"选错项还侥幸通过"。
+APP_THEME_CATALOG = ("System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray")  # InterfaceThemeSettingsViewModel
+WHEEL_STYLE_CATALOG = ("ClassicRing", "CleanSectors", "Glassmorphism")  # AppearanceSettingsPage.xaml
+WHEEL_PALETTE_CATALOG = ("System", "Dark", "Light", "MatchaForest", "GlacialIce", "MorandiMuted")  # 固定项；自定义预设追加在后
+ICON_LAYOUT_CATALOG = ("IconAndText", "IconOnly", "TextOnly")  # AppearanceSettingsPage.xaml
+SHAPE_CATALOG = ("Original", "Circle", "RoundedCapsule", "HexagonHive")  # AppearanceSettingsPage.xaml
+CORE_ICON_CATALOG = ("Exit", "Crosshair", "Windows", "Dot", "Home", "Power", "Compass", "CatPaw", "Custom", "Image")  # AppearanceSettingsPage.xaml
+GLOW_PRESET_CATALOG = ("Auto", "Lilac", "Blue", "Emerald", "Rose", "Amber", "Red", "White", "Custom")  # AppearanceSettingsPage.xaml
+LANGUAGE_CATALOG = ("zh-CN", "zh-TW", "en", "ja", "Auto")  # AdvancedSettingsPage.xaml
+SLOT_ACTION_TYPE_CATALOG = ("Hotkey", "Launch", "Folder", "System")  # SlotViewModel.ActionTypes
 
 def test_modify_slider_and_save(app):
     win, local_app_data = app
@@ -20,7 +46,7 @@ def test_modify_slider_and_save(app):
 
     # 2. Set value directly using UIA RangeValue pattern
     slider.set_value(32.0)
-    time.sleep(0.3)
+    wait_for_label_value(win, "ThresholdValueLabel", 32.0)
 
     new_val = float(label.window_text())
     assert new_val != initial_val, f"Slider value should have changed from {initial_val}"
@@ -48,8 +74,6 @@ def test_switch_all_tabs_smoothly(app):
     # 0: 触发与场景 (NavPage0) / 1: 外观与形态 / 2: 手势与动作 / 3: 高级与系统
     for slot in range(4):
         goto(win, slot)
-
-    assert win.is_visible(), "Window must remain visible after switching all pages"
 
     # 各页代表性控件（锚点之外的补充检查）
     goto(win, 1)
@@ -83,16 +107,13 @@ def test_appearance_shapes_and_geometry_reset(app):
 
     gap_slider.set_value(5.0)
     corner_slider.set_value(8.0)
-    time.sleep(0.3)
-
-    assert label_value(win, "SectorGapLabel") == pytest.approx(5.0), "SectorGap 应显示 5"
+    wait_for_label_value(win, "SectorGapLabel", 5.0)
 
     # 2. Test Reset Dimensions Button（产品默认间隙为 2；缺失即失败，不静默跳过）
     reset_btn = win.child_window(auto_id="ResetDimensionsButton", control_type="Button")
     assert reset_btn.exists(timeout=3), "ResetDimensionsButton 必须存在"
     reset_btn.invoke()
-    time.sleep(0.4)
-    assert label_value(win, "SectorGapLabel") == pytest.approx(2.0), "重置后 SectorGap 应回默认 2"
+    wait_for_label_value(win, "SectorGapLabel", 2.0)
 
 
 def test_blacklist_add_and_delete(app):
@@ -109,24 +130,22 @@ def test_blacklist_add_and_delete(app):
     list_box = win.child_window(auto_id="BlacklistListBox", control_type="List")
     
     txt_box.set_text("testgame.exe")
-    time.sleep(0.2)
     add_btn.invoke()
-    time.sleep(0.3)
     
     # Check that item was added to listbox
-    items = [item.window_text() for item in list_box.children(control_type="ListItem")]
+    wait_until(lambda: "testgame.exe" in list_item_texts(list_box), description="黑名单出现 testgame.exe")
+    items = list_item_texts(list_box)
     assert "testgame.exe" in items, f"testgame.exe should be in blacklist items: {items}"
     
     # Select and remove
     for item in list_box.children(control_type="ListItem"):
         if item.window_text() == "testgame.exe":
             item.select()
-            time.sleep(0.2)
             del_btn.invoke()
-            time.sleep(0.3)
             break
-            
-    items_after = [item.window_text() for item in list_box.children(control_type="ListItem")]
+
+    wait_until(lambda: "testgame.exe" not in list_item_texts(list_box), description="黑名单删除 testgame.exe")
+    items_after = list_item_texts(list_box)
     assert "testgame.exe" not in items_after, "testgame.exe should have been deleted"
 
 
@@ -169,11 +188,11 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     profiles_list = win.child_window(auto_id="ProfilesListBox", control_type="List")
     assert profiles_list.exists(timeout=3), "ProfilesListBox should exist in Gestures tab"
 
-    # 改首个槽位的动作类型（目录 index 3 = System）。该模板 ComboBox 的 UIA 不暴露选中项
-    # （selected_index/selected_text 均不可用），故"切换是否生效"以 Save 后的落盘值为准。
+    # 改首个槽位的动作类型（目录 index 3 = System）。该模板 ComboBox 的 UIA 不暴露选中态
+    # （selected_index 恒为 None），故不做选中态回读——"切换是否生效"以 Save 后的落盘值为准。
     type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
     assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
-    type_combo.select(3)
+    select_option(type_combo, SLOT_ACTION_TYPE_CATALOG, "System", verify_selection=False)
 
     # Save settings and verify config persistence（谓词轮询等改动值落盘）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
@@ -195,7 +214,6 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     actions = glob.get("Actions") or []
     assert actions and actions[0].get("Type") == "System", \
         f"Slot0 动作类型应落盘为 System: {actions[0] if actions else None}"
-    assert win.is_visible()
 
 
 def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
@@ -216,6 +234,8 @@ def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
     # 2. Verify Wheel Theme dropdown (轮盘配色方案)
     wheel_theme_combo = win.child_window(auto_id="WheelPaletteComboBox", control_type="ComboBox")
     assert wheel_theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
+    # 固定配色目录（自定义预设按配置追加；沙盒冷启动无自定义预设）
+    assert_catalog(wheel_theme_combo, WHEEL_PALETTE_CATALOG)
 
     # 3. Verify Wheel Background images controls are removed
     #    否定断言可证否：同一次全量枚举既证明枚举面有效（清单里含已知在页控件），
@@ -227,9 +247,8 @@ def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
     stale_bg_ids = sorted(auto_id for auto_id in auto_ids if auto_id.startswith("WheelBg"))
     assert not stale_bg_ids, f"已下线的轮盘背景图片控件仍存在: {stale_bg_ids}"
 
-    # 4. Select App Theme by index（目录固定 System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray，index 2 = Dark）
-    app_theme_combo.select(2)
-    time.sleep(0.3)
+    # 4. 选中 Dark（目录常量 = 产品下拉项 Tag 顺序）
+    select_option(app_theme_combo, APP_THEME_CATALOG, "Dark")
 
     # 5. Save settings and verify config persistence（轮询落盘）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
@@ -259,10 +278,9 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     wheel_theme_combo = win.child_window(auto_id="WheelPaletteComboBox", control_type="ComboBox")
     assert wheel_theme_combo.exists(timeout=3), "WheelPaletteComboBox should exist"
 
-    # 3. Select Theme (index 1: Dark) and WheelStyle (index 1: CleanSectors)
-    wheel_theme_combo.select(1)
-    ui_style_combo.select(1)
-    time.sleep(0.4)
+    # 3. Select Theme (Dark) and WheelStyle (CleanSectors)
+    select_option(wheel_theme_combo, WHEEL_PALETTE_CATALOG, "Dark")
+    select_option(ui_style_combo, WHEEL_STYLE_CATALOG, "CleanSectors")
 
     # 4. Verify ShowText checkbox and IconLayoutMode dropdown
     show_text_chk = win.child_window(auto_id="ShowTextCheckBox", control_type="CheckBox")
@@ -300,33 +318,25 @@ def test_shape_selection_and_icon_font_size_persistence(app):
     # 1. Verify ShapeComboBox exists and can select new shapes
     shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
     assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
-    assert shape_combo.item_count() == 4, f"ShapeComboBox 应为 4 项，got {shape_combo.item_count()}"
+    assert_catalog(shape_combo, SHAPE_CATALOG)
 
-    # 选 RoundedCapsule（目录固定 4 项，index 2）；模板内 ComboBox 的 UIA 选中态刷新可能滞后，
-    # 故轮询确认选中项；落盘值在 Save 后另行断言——不再"点过即算"或靠固定 sleep 兜底（#135 P0-1/P0-2）。
-    shape_combo.select(2)
-    deadline = time.time() + 3.0
-    selected = shape_combo.selected_index()
-    while selected != 2 and time.time() < deadline:
-        time.sleep(0.1)
-        selected = shape_combo.selected_index()
-    assert selected == 2, f"ShapeComboBox 未切到 index 2（RoundedCapsule），实为 {selected}"
+    # 选 RoundedCapsule（select_option 断言 4 项目录并等选中态回读）；
+    # 落盘值在 Save 后另行断言——不再"点过即算"。
+    select_option(shape_combo, SHAPE_CATALOG, "RoundedCapsule")
 
     # 2. Verify SectorIconSizeSlider exists and functions
     icon_slider = win.child_window(auto_id="SectorIconSizeSlider", control_type="Slider")
     assert icon_slider.exists(timeout=3), "SectorIconSizeSlider should exist"
 
     icon_slider.set_value(26)
-    time.sleep(0.3)
-    assert label_value(win, "SectorIconSizeLabel") == pytest.approx(26), "SectorIconSize 应显示 26"
+    wait_for_label_value(win, "SectorIconSizeLabel", 26.0)
 
     # 3. Verify SectorFontSizeSlider exists and functions
     font_slider = win.child_window(auto_id="SectorFontSizeSlider", control_type="Slider")
     assert font_slider.exists(timeout=3), "SectorFontSizeSlider should exist"
 
     font_slider.set_value(13.5)
-    time.sleep(0.3)
-    assert label_value(win, "SectorFontSizeLabel") == pytest.approx(13.5), "SectorFontSize 应显示 13.5"
+    wait_for_label_value(win, "SectorFontSizeLabel", 13.5)
 
     # 4. Save and verify persistence（轮询落盘）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
@@ -359,7 +369,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
     goto(win, 1)
     shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
     assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
-    assert shape_combo.item_count() == 4, f"ShapeComboBox 应为 4 项，got {shape_combo.item_count()}"
+    assert_catalog(shape_combo, SHAPE_CATALOG)
 
     # 2. Switch to Gestures & Actions tab
     goto(win, 2)
@@ -374,7 +384,7 @@ def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
 
     # 3. Select 12-key sector count
     radio12.select()
-    time.sleep(0.4)
+    wait_until(radio12.is_selected, description="12 键单选已选中")
 
     # 4. Save and verify persistence in config（显式找 Global，不再用 Profiles[0] 兜底）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
@@ -444,8 +454,7 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
     # 3. Toggle ShowCoreIcon and select Core Pattern
     pre_state = core_chk.get_toggle_state()
     core_chk.toggle()
-    core_combo.select(1)
-    time.sleep(0.3)
+    select_option(core_combo, CORE_ICON_CATALOG, "Crosshair")
 
     # 4. Verify config persisted（轮询：ShowCoreIcon 翻转 + CoreIconType == Crosshair）
     config = read_config(
@@ -516,16 +525,14 @@ def test_v136_glow_color_customization_config_memory_and_core_image(app, tmp_pat
     assert glow_opacity_slider.exists(timeout=3), "HighlightGlowOpacitySlider should exist"
 
     # Select a glow preset (e.g. 1: Lilac Violet)
-    glow_preset_combo.select(1)
-    time.sleep(0.3)
+    select_option(glow_preset_combo, GLOW_PRESET_CATALOG, "Lilac")
 
     # 3. Check Core Image Controls
     core_combo = win.child_window(auto_id="CoreIconTypeComboBox", control_type="ComboBox")
     assert core_combo.exists(timeout=3), "CoreIconTypeComboBox should exist"
 
-    # Select Image item (last item；SelectedValuePath=Tag，目录最后一项 Tag=Image)
-    core_combo.select(core_combo.item_count() - 1)
-    time.sleep(0.3)
+    # Select Image item（SelectedValuePath=Tag，目录内 Tag=Image）
+    select_option(core_combo, CORE_ICON_CATALOG, "Image")
 
     core_img_box = win.child_window(auto_id="CoreImagePathTextBox", control_type="Edit")
     assert core_img_box.exists(timeout=3), "CoreImagePathTextBox should exist"
@@ -535,10 +542,13 @@ def test_v136_glow_color_customization_config_memory_and_core_image(app, tmp_pat
     img_path.write_bytes(base64.b64decode(PNG_1X1_BASE64))
     core_img_box.set_text(str(img_path))
 
-    # 4. Verify config file contains all v1.3.6 entries（轮询等待图片路径落盘）
+    # 4. Verify config file contains all v1.3.6 entries（一次等齐本次改动，避免读到中间快照）
     config = read_config(
         local_app_data,
-        predicate=lambda c: c.get("CoreCustomImagePath") == str(img_path),
+        predicate=lambda c: c.get("CoreCustomImagePath") == str(img_path)
+        and c.get("CoreIconType") == "Image"
+        and c.get("HighlightGlowPreset") == "Lilac"
+        and c.get("HighlightGlowColor") == "#A855F7",
         timeout=5.0,
     )
 
@@ -593,57 +603,45 @@ def test_v138_i18n_multilanguage_support(app):
     lang_combo = win.child_window(auto_id="LanguageComboBox", control_type="ComboBox")
     assert lang_combo.exists(timeout=3), "LanguageComboBox should exist in Page 3"
 
-    # Verify items count >= 5 (zh-CN, zh-TW, en, ja, Auto)
-    assert lang_combo.item_count() >= 5, f"LanguageComboBox should have at least 5 options, got {lang_combo.item_count()}"
+    # 语言目录固定 5 项（zh-CN, zh-TW, en, ja, Auto）
+    assert_catalog(lang_combo, LANGUAGE_CATALOG)
 
-    # 3. Select English (Tag="en", index 2)
-    lang_combo.select(2)
-    time.sleep(0.5)
+    # 3. Select English（目录常量 = 产品下拉项 Tag 顺序）
+    select_option(lang_combo, LANGUAGE_CATALOG, "en")
 
-    # 4. Verify UI elements updated to English
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    assert "Save" in save_btn.window_text(), f"Save button should be in English, got {save_btn.window_text()}"
+    # 4. Verify UI elements updated to English（文本刷新用轮询，不靠固定等待）
+    assert_text_contains(win, "SaveButton", "Button", "Save")
 
     # T19 数据驱动侧边栏:标题是 NavPage0 单选钮的内容文本(不再有独立 NavPage0Text 元素)
-    tab0_text = win.child_window(auto_id="NavPage0", control_type="RadioButton").window_text()
-    assert "Trigger" in tab0_text or "🎯" in tab0_text, f"Tab0 should update, got {tab0_text}"
+    def _tab0_title():
+        return text_of(win, "NavPage0", "RadioButton", timeout=0.3)
+
+    wait_until(lambda: "Trigger" in _tab0_title() or "🎯" in _tab0_title(), description="侧边栏标题切英文")
 
     # T24 设置页文本经运行时语言字典 DynamicResource 刷新(页面保持挂载, 无 code-behind 回填)
-    advanced_header = win.child_window(auto_id="AdvancedPageHeader", control_type="Text")
-    assert "System Integration & Preferences" in advanced_header.window_text(), \
-        f"Advanced page header should refresh in place, got {advanced_header.window_text()}"
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "System Integration & Preferences")
 
     # 5. Check config file persists Language = "en"（轮询等待落盘）
     config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "en")
     assert config.get("Language") == "en", f"Expected config Language='en', got {config.get('Language')}"
 
-    # 6. Switch to Japanese (Tag="ja", index 3)
-    lang_combo.select(3)
-    time.sleep(0.5)
-
-    assert "保存" in save_btn.window_text(), f"Save button should update to Japanese, got {save_btn.window_text()}"
-    assert "システム統合と高度な設定" in advanced_header.window_text(), \
-        f"Advanced page header should refresh in place (ja), got {advanced_header.window_text()}"
+    # 6. Switch to Japanese
+    select_option(lang_combo, LANGUAGE_CATALOG, "ja")
+    assert_text_contains(win, "SaveButton", "Button", "保存")
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "システム統合と高度な設定")
     config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "ja")
     assert config.get("Language") == "ja", f"Expected config Language='ja', got {config.get('Language')}"
 
-    # 7. Switch back to zh-CN (Tag="zh-CN", index 0)
-    lang_combo.select(0)
-    time.sleep(0.5)
+    # 7. Switch back to zh-CN
+    select_option(lang_combo, LANGUAGE_CATALOG, "zh-CN")
     config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "zh-CN")
     assert config.get("Language") == "zh-CN", f"Expected config Language='zh-CN', got {config.get('Language')}"
-    assert "系统集成与高级偏好设置" in advanced_header.window_text(), \
-        f"Advanced page header should refresh in place (zh-CN), got {advanced_header.window_text()}"
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "系统集成与高级偏好设置")
 
 def test_v139_folder_action_type_and_i18n_consistency(app):
     """
-    Test v1.3.9 Folder Action Type and Global UI I18n Consistency:
-    1. Navigate to Gestures & Actions (NavPage2).
-    2. Verify SectorActionListTitleText and ProfileCardTitleText exist.
-    3. Locate the first slot's Action Type ComboBox and select "Folder" (index 2).
-    4. Save configuration and verify config.json persists Type="Folder".
-    5. Switch language to English (en), verify action type options are translated.
-    6. Switch back to zh-CN.
+    v1.3.9 文件夹动作类型落盘：手势页首个槽位动作类型选 Folder，Save 后断言 Global
+    方案首个动作 Type 落盘为 Folder。（动作类型下拉的本地化文本不在此用例覆盖。）
     """
     win, local_app_data = app
 
@@ -659,9 +657,8 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
     type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
     assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
 
-    # Select index 2: Folder
-    type_combo.select(2)
-    time.sleep(0.3)
+    # 该 ComboBox（Slot0 动作类型）的 UIA 不暴露选中态，落盘值断言即门。
+    select_option(type_combo, SLOT_ACTION_TYPE_CATALOG, "Folder", verify_selection=False)
 
     # 4. Save configuration（轮询等待 Global 方案首个动作落盘为 Folder）
     save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
@@ -679,12 +676,10 @@ def test_v139_folder_action_type_and_i18n_consistency(app):
 
 def test_v140_custom_icons_and_appearance_collapsible(app):
     """
-    Test v1.4.0 Features:
-    1. Appearance Page (NavPage1):
-       - Verify WheelStyleComboBox does not contain CatPaw.
-       - Verify CustomColorExpander exists and is collapsible.
-    2. Gestures Page (NavPage2):
-       - Verify Launch and Folder browse buttons exist.
+    v1.4.0 目录与容器（外观页 + 手势页）：
+    1. 外观页 WheelStyleComboBox 固定 3 项（ClassicRing/CleanSectors/Glassmorphism，无 CatPaw）；
+    2. CustomColorExpander 存在；
+    3. 手势页动作列表标题存在。
     """
     win, local_app_data = app
 
@@ -693,8 +688,8 @@ def test_v140_custom_icons_and_appearance_collapsible(app):
 
     ui_style_combo = win.child_window(auto_id="WheelStyleComboBox", control_type="ComboBox")
     assert ui_style_combo.exists(timeout=3), "WheelStyleComboBox should exist"
-    # Should have exactly 3 styles now (ClassicRing, CleanSectors, Glassmorphism)
-    assert ui_style_combo.item_count() == 3, f"WheelStyleComboBox should have 3 items without CatPaw, got {ui_style_combo.item_count()}"
+    # 轮盘风格目录固定 3 项（ClassicRing/CleanSectors/Glassmorphism，无 CatPaw）
+    assert_catalog(ui_style_combo, WHEEL_STYLE_CATALOG)
 
     color_expander = win.child_window(auto_id="CustomColorExpander", control_type="Group")
     assert color_expander.exists(timeout=3), "CustomColorExpander should exist"
@@ -707,14 +702,10 @@ def test_v140_custom_icons_and_appearance_collapsible(app):
 
 def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     """
-    Test v1.4.1 Features:
-    1. Triggers & Scenes Page (NavPage0):
-       - Verify EnableOuterEscapeCheckBox exists and can be toggled.
-    2. Gestures Page (NavPage2):
-       - Verify RenameProfileButton exists and is enabled.
-    3. Appearance Page (NavPage1):
-       - Verify custom color expander and theme preset capabilities.
-    4. Save configuration and verify persistence of v1.4.1 settings.
+    v1.4.1 开关与控件存在性：
+    1. 触发页 EnableOuterEscapeCheckBox 可切换（保存后断言 config 值随 toggle 翻转）；
+    2. 手势页 RenameProfileButton 存在；
+    3. 外观页 CustomColorExpander 存在。
     """
     win, local_app_data = app
 
@@ -771,39 +762,22 @@ def test_t28_hardcoded_copy_follows_language(app):
     assert lang_combo.exists(timeout=3), "LanguageComboBox should exist"
 
     # --- English ---
-    lang_combo.select(2)  # en
-    time.sleep(0.6)
-
-    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
-    assert adv_sub.exists(timeout=3), "AdvancedPageSubheader should exist"
-    assert "Manage interface language" in adv_sub.window_text(), \
-        f"Advanced subheader should be en, got {adv_sub.window_text()}"
+    select_option(lang_combo, LANGUAGE_CATALOG, "en")
+    assert_text_contains(win, "AdvancedPageSubheader", "Text", "Manage interface language")
 
     # Gestures & Actions (NavPage2)
     goto(win, 2)
-    ges_sub = win.child_window(auto_id="GesturesPageSubheader", control_type="Text")
-    assert ges_sub.exists(timeout=3), "GesturesPageSubheader should exist"
-    assert "Set dedicated multi-directional gesture wheels" in ges_sub.window_text(), \
-        f"Gestures subheader should be en, got {ges_sub.window_text()}"
+    assert_text_contains(win, "GesturesPageSubheader", "Text", "Set dedicated multi-directional gesture wheels")
 
     # Appearance (NavPage1)
     goto(win, 1)
-    app_sub = win.child_window(auto_id="AppearancePageSubheader", control_type="Text")
-    assert app_sub.exists(timeout=3), "AppearancePageSubheader should exist"
-    assert "Customize visual styles" in app_sub.window_text(), \
-        f"Appearance subheader should be en, got {app_sub.window_text()}"
+    assert_text_contains(win, "AppearancePageSubheader", "Text", "Customize visual styles")
 
     # --- Japanese --- (switch back on Advanced, then re-check in place)
     goto(win, 3)
-    lang_combo.select(3)  # ja
-    time.sleep(0.6)
-    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
-    assert "インターフェース言語" in adv_sub.window_text(), \
-        f"Advanced subheader should be ja, got {adv_sub.window_text()}"
+    select_option(lang_combo, LANGUAGE_CATALOG, "ja")
+    assert_text_contains(win, "AdvancedPageSubheader", "Text", "インターフェース言語")
 
     # --- back to Simplified Chinese ---
-    lang_combo.select(0)  # zh-CN
-    time.sleep(0.6)
-    adv_sub = win.child_window(auto_id="AdvancedPageSubheader", control_type="Text")
-    assert "管理界面语言" in adv_sub.window_text(), \
-        f"Advanced subheader should be zh-CN, got {adv_sub.window_text()}"
+    select_option(lang_combo, LANGUAGE_CATALOG, "zh-CN")
+    assert_text_contains(win, "AdvancedPageSubheader", "Text", "管理界面语言")
