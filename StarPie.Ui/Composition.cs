@@ -88,6 +88,9 @@ namespace StarPie
             var saveOrchestrator = _provider.GetRequiredService<SettingsSaveOrchestrator>();
             var navigation = _provider.GetRequiredService<INavigationExecutor>();
             var navigationCatalog = _provider.GetRequiredService<NavigationCatalog>();
+            // 轮盘预热（启动编排末尾）所需：配置运行态与图标资产服务
+            IConfigService config = _config;
+            var iconAssets = _provider.GetRequiredService<IIconAssetService>();
 
             // 手势控制器需在钩子启动前实例化并保持订阅（构造即接线鼠标事件）。
             _ = _provider.GetRequiredService<GestureController>();
@@ -121,6 +124,8 @@ namespace StarPie
                 dialogService,
                 themeService,
                 localization,
+                config,
+                iconAssets,
                 saveOrchestrator,
                 navigation,
                 interfaceTheme,
