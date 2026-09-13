@@ -14,7 +14,7 @@ public sealed class TrayVisibilitySignalTests
         IReadOnlyList<TraySignalStep> steps = TrayVisibilitySignal.Resolve(visible: false, isExiting: false, background: false);
 
         Assert.Equal(
-            new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage },
+            new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.ReleaseIconCaches, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage },
             steps);
     }
 

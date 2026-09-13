@@ -93,6 +93,13 @@ namespace StarPie.Icons
             return list;
         }
 
+        /// <summary>清空图标列表缓存（幂等）：下次 GetCustomIcons 重新扫描目录。
+        /// 托盘出账路径调用——非后台形态进托盘时整体释放，恢复后由消费方按需重建。</summary>
+        public void ClearCache()
+        {
+            _cachedCustomIcons = null;
+        }
+
         /// <summary>
         /// 导入自定义图标文件到自定义图标目录：文件名清洗非法字符后追加时间戳避免重名，
         /// 复制成功后使缓存失效并返回新条目。源文件不存在或复制失败返回 null。

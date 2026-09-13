@@ -49,6 +49,9 @@ namespace StarPie.Services.Icons
         /// <inheritdoc/>
         public bool DeleteCustomIcon(string key) => _store.DeleteCustomIcon(key);
 
+        /// <inheritdoc/>
+        public void ReleaseTransientCaches() => _store.ClearCache();
+
         /// <summary>
         /// 取自定义图标的位图源：入参可为 "custom:xxx" 键（解析为文件路径）或直接的文件路径；
         /// 仅位图可返回 <see cref="BitmapImage"/>，SVG 交由 XAML 几何绑定，此处返回 null。
