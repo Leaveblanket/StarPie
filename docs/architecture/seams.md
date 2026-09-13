@@ -28,7 +28,6 @@
 | 契约缝·轮盘外观只读状态 | `IWheelAppearanceState` 驻 `StarPie.Sdk`（签名暴露件，ADR-0023，P1.3/#112 随 SDK 收口），实现 = M2 `WheelAppearanceSettingsViewModel`，消费方 = M2 预览渲染器 + Host 外观页 | ADR-0014 决策 8 + ADR-0023 |
 | 契约缝·对话框 | `IDialogService`/结果 record 驻 `StarPie.Sdk`（纯 C#，ADR-0023 自 Core 迁出，P1.3/#112 随 SDK 收口）← 实现 `DialogService` 驻 Dialogs；M1/M2/M5/Host 经契约边调用 | ADR-0023 |
 | 注册缝 | 统一注册管线：`ICompositionContributor`（`Id`/`Order`/`RegisterServices` + 可选 `RegisterNavigation`）+ `BuiltInContributors` 有序清单（`HostCore`/`HostPage`/Theme/Wheel/Gestures/Shell/Dialogs 七个内置贡献者）下放 DI/导航登记；注册的契约类型驻 `StarPie.Sdk`/`StarPie.Sdk.Wpf`；组合根唯一解析、插件贡献者接同一接口（P2/P3） | ADR-0023；BuiltInContributorsTests |
-| 回填缝·dev 标志 | `AppDataPaths.IsDevInstance` 组合根装配前回填（宿主内核 `StarPie.Host/Kernel/Configuration/`；消费 M1/M5/S2） | MouseHook/Autostart 测试 |
 | 内核消费缝 | 旧集 runtime 与 Ui 经 `StarPie.Host/Kernel/{Configuration,Localization}` 消费内核件（内核定义、消费方单向；P1.5/#114 起归并期过渡边，模块拆入 Ui 后收敛） | HostBoundaryTests |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 `StarPie.Sdk`（可空 Action 单例，P1.3/#112 随 SDK 收口），由 `HostCoreContributor` 登记单例、AppHost 构造后回填 | 无专用机械断言（缝本身无解析时机；注册体由 BuiltInContributorsTests 覆盖） |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004；e2e |

@@ -74,8 +74,9 @@ StarPie.Ui (exe) ──→ StarPie.Host → StarPie.Sdk
   `StarPie.Sdk.Wpf` 消费的契约面能力（扫描/.lnk 与图标条目经 SDK，主题与图标资产服务经
   Sdk.Wpf；对话框/轮盘工厂与 VM 接口/预览源契约统一经 `StarPie.Sdk`），不反向引用
   其它模块 runtime；内核运行时（S2/S3）在 `StarPie.Host`，模块 runtime 已归并入 Ui/Host，
-  旧集 → Host 的过渡边清零；托底深色探针、dev 分支等宿主能力经组合根注入委托或
-  `AppDataPaths` 回填缝提供；`Ui → 全部`（仅经贡献者清单登记各模块与装配宿主对象，不引用模块内部）。
+  旧集 → Host 的过渡边清零；托底深色探针等宿主能力经组合根注入委托提供，dev 分支等
+  进程环境判定由内核 `AppDataPaths` 环境变量一次性求值（无跨程序集回填）；
+  `Ui → 全部`（仅经贡献者清单登记各模块与装配宿主对象，不引用模块内部）。
 - **S1/M3 归并（不再独立成集）**：`IIconAssetService` 驻 `StarPie.Sdk.Wpf`；图标条目类型与
   `.lnk` SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录
   `CustomIconStore` 驻 `StarPie.Host/Icons/`；WPF 图像构造 `IconAssetService` 驻
@@ -166,7 +167,7 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 ## 6. DI 与注册契约（as-built）
 
 - **统一注册管线（内置贡献者与未来插件贡献者共用入口）**：`ICompositionContributor`（`Id`/`Order`/`RegisterServices(IServiceCollection)`/可选 `RegisterNavigation(NavigationCatalog)`，末者以接口默认实现表达“无导航页”）驻 `StarPie.Ui/Modules/`；`BuiltInContributors.CreateAll` 给出**有序清单**——`HostCoreContributor`（宿主编排与内核接入：宿主回调委托包、程序扫描/.lnk、图标资产、配置/本地化/防抖、消息、导航运行时、壳层 VM、插件运行时与插件管理页；槽位 4）、`HostPageContributor`（槽位 1 聚合页）、`ThemeContributor`（M4：主题服务与主题设置子 VM；无导航页）、`WheelContributor`（M2：轮盘工厂 `IWheelFactory→WheelFactory` 与外观设置子 VM；无导航页）、`GesturesContributor`（M1：手势管线、两页 VM 与 `IProfilePreviewSource` 别名；槽位 0/2）、`ShellContributor`（M5：高级页 VM；槽位 3）、`DialogsContributor`（S6：`IDialogService→DialogService`；无导航页）；S1/M3 无导航页，其服务由 `HostCoreContributor` 登记。
-- **注册顺序 ≠ 解析时机**：组合根（`Composition`，驻 Ui 集）按四阶段显式分离——(1) 早期回填（`AppDataPaths.IsDevInstance`，注册前）→ (2) 注册期（有序清单先写导航目录并 `Validate()` 收口五槽，再写容器描述符）→ (3) 唯一 `BuildServiceProvider` → (4) `CreateAppHost` 在配置加载后目录驱动 eager 解析全部页面 VM 与宿主直持 VM。贡献者只登记不解析，解析点只在组合根。
+- **注册顺序 ≠ 解析时机**：组合根（`Composition`，驻 Ui 集）按三阶段显式分离——(1) 注册期（有序清单先写导航目录并 `Validate()` 收口五槽，再写容器描述符）→ (2) 唯一 `BuildServiceProvider` → (3) `CreateAppHost` 在配置加载后目录驱动 eager 解析全部页面 VM 与宿主直持 VM。贡献者只登记不解析，解析点只在组合根。（dev 实例标记不占装配阶段：由内核 `AppDataPaths` 按环境变量一次性求值，见 [host.md](host.md)。）
 - **M3（程序扫描，已归并 + 插件化）**：由 `HostCoreContributor` 登记
   `IShortcutTargetResolver→ShortcutResolver`、能力表（声明 `program-source@1` 契约 + 内置来源）
   与 `IProgramScanner→ProgramSourceAggregator`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，

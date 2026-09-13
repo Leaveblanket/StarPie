@@ -7,24 +7,29 @@ namespace StarPie.Kernel.Configuration
     /// 解析应用数据目录：正式实例使用 StarPie，dev 实例使用 StarPie-Dev。
     /// </summary>
     /// <remarks>
-    /// dev/正式分支由 <see cref="IsDevInstance"/> 决定；该标记由宿主组合根在装配前回填，
-    /// 应用代码只读不写。目录供 <see cref="JsonConfigService"/>（config.json）与图标资产服务
-    /// （自定义图标目录）使用。
+    /// dev/正式分支由 <see cref="IsDevInstance"/> 决定；该标记由进程环境变量在类型初始化时
+    /// 一次性求值，应用代码只读不写。目录供 <see cref="JsonConfigService"/>（config.json）
+    /// 与图标资产服务（自定义图标目录）使用。
     /// </remarks>
     public static class AppDataPaths
     {
         private const string ReleaseFolderName = "StarPie";
         private const string DevFolderName = "StarPie-Dev";
 
+        /// <summary>dev 实例环境变量名：launchSettings 的 StarPie Dev profile 注入值 "dev"。</summary>
+        public const string DevEnvVariable = "STARPIE_INSTANCE";
+
         /// <summary>dev 实例标记：为 true 时目录分支指向 StarPie-Dev 沙箱。</summary>
-        /// <remarks>由宿主组合根在装配前按 dev 启动参数回填；应用代码只读不写。</remarks>
-        public static bool IsDevInstance { get; set; }
+        /// <remarks>类型初始化时读环境变量一次性求值并缓存；宿主入口求值后即把变量
+        /// 移出进程环境（见 App.OnStartup），动作执行器启动的子进程不再继承。</remarks>
+        public static bool IsDevInstance { get; } = string.Equals(
+            Environment.GetEnvironmentVariable(DevEnvVariable), "dev", StringComparison.OrdinalIgnoreCase);
 
         /// <summary>应用数据目录名（dev 沙箱 StarPie-Dev / 正式 StarPie）——目录名的单一来源。</summary>
         public static string FolderName => IsDevInstance ? DevFolderName : ReleaseFolderName;
 
         /// <summary>
-        /// 返回应用数据目录：dev 实例（--dev）隔离进 StarPie-Dev 子目录（首次从正式版配置
+        /// 返回应用数据目录：dev 实例隔离进 StarPie-Dev 子目录（首次从正式版配置
         /// 播种），正式版使用 StarPie 目录并自动从 legacy WinPieGestures 目录迁移配置。
         /// </summary>
         public static string GetAppDataFolder()

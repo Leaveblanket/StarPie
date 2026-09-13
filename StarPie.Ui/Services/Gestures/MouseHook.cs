@@ -74,7 +74,7 @@ namespace StarPie.Services.Gestures
         private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
 
         // dev 实例以中键触发，与保留默认右键手势的正式版共存。dev 分支读共享内核的
-        // AppDataPaths.IsDevInstance 回填缝（组合根装配前以 DevInstance.IsActive 回填），
+        // AppDataPaths.IsDevInstance（环境变量一次性求值，无跨程序集回填），
         // 本模块不反向引用宿主。
         private readonly int _triggerDownMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
         private readonly int _triggerUpMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONUP : WM_RBUTTONUP;
