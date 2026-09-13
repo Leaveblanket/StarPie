@@ -186,13 +186,34 @@ namespace StarPie
             {
                 ConfigureBackgroundWindow(_mainView);
             }
+            // 托盘状态信号：可见性变化 → 有序动作（进托盘 Flush → Minimized → GC；恢复 Restored；
+            // 退出态不发；后台形态出账禁用、消息照发——决策在 TrayVisibilitySignal，可测）。
+            // 宿主气泡经既有订阅直调通用 VM（文案与编排仍在 VM）。
             _mainView.IsVisibleChanged += (_, _) =>
             {
-                if (_mainView is { IsVisible: false } && !_shellViewModel.IsExiting)
+                if (_mainView is not { } view)
                 {
-                    _saveOrchestrator.FlushPendingSave();
-                    MemoryOptimizer.CollectGarbage();
-                    _messenger.Send(MinimizedToTrayMessage.Instance);
+                    return;
+                }
+                foreach (TraySignalStep step in TrayVisibilitySignal.Resolve(
+                    view.IsVisible, _shellViewModel.IsExiting, _background))
+                {
+                    switch (step)
+                    {
+                        case TraySignalStep.FlushPendingSave:
+                            _saveOrchestrator.FlushPendingSave();
+                            break;
+                        case TraySignalStep.SendMinimized:
+                            _messenger.Send(MinimizedToTrayMessage.Instance);
+                            break;
+                        case TraySignalStep.CollectGarbage:
+                            // MemoryOptimizer 内部 Task.Run：GC 后台执行，不占 Send 调用线程。
+                            MemoryOptimizer.CollectGarbage();
+                            break;
+                        case TraySignalStep.SendRestored:
+                            _messenger.Send(RestoredFromTrayMessage.Instance);
+                            break;
+                    }
                 }
             };
             _mainView.ApplyAppTheme(_interfaceTheme.AppTheme);

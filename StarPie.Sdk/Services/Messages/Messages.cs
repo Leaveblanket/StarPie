@@ -47,6 +47,14 @@ namespace StarPie.Services.Messages
         private MinimizedToTrayMessage() { }
     }
 
+    /// <summary>设置窗口从托盘恢复显示：与 <see cref="MinimizedToTrayMessage"/> 对称的宿主状态信号，
+    /// 订阅方（页面/插件）据此重建随出账释放的瞬态资源。</summary>
+    public sealed class RestoredFromTrayMessage
+    {
+        public static RestoredFromTrayMessage Instance { get; } = new();
+        private RestoredFromTrayMessage() { }
+    }
+
     /// <summary>
     /// 界面主题（AppTheme）变更消息：<see cref="StarPie.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
     /// 写穿运行态配置后发布，由壳层主窗口（MainView）订阅执行窗口主题应用（<c>ApplyAppTheme</c>）；

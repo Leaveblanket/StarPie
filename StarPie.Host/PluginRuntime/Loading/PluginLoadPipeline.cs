@@ -28,6 +28,7 @@ namespace StarPie.PluginRuntime.Loading
         private readonly IPluginLogSink _logSink;
         private readonly CapabilityGuardOptions _guardOptions;
         private readonly IPluginUiCoordinator? _uiCoordinator;
+        private readonly PluginEventPump? _eventPump;
 
         /// <summary>构造装载管线。</summary>
         /// <param name="capabilityRegistry">宿主能力表（插件在 StartAsync 内经上下文注册能力）。</param>
@@ -37,17 +38,23 @@ namespace StarPie.PluginRuntime.Loading
         /// UI 托管端口（UI 插件装载期注册资产）；null 表示本宿主不托管插件 UI——此时清单声明
         /// ui 段的插件按装载失败隔离，不静默降级成"无界面插件"。
         /// </param>
+        /// <param name="eventPump">
+        /// 宿主消息泵（headless 插件的托盘状态事件源）；null 表示不桥接——headless 插件订阅
+        /// 托盘消息将收不到投递。
+        /// </param>
         public PluginLoadPipeline(
             CapabilityRegistry capabilityRegistry,
             IPluginLogSink? logSink = null,
             CapabilityGuardOptions? guardOptions = null,
-            IPluginUiCoordinator? uiCoordinator = null)
+            IPluginUiCoordinator? uiCoordinator = null,
+            PluginEventPump? eventPump = null)
         {
             ArgumentNullException.ThrowIfNull(capabilityRegistry);
             _capabilityRegistry = capabilityRegistry;
             _logSink = logSink ?? DebugPluginLogSink.Instance;
             _guardOptions = guardOptions ?? CapabilityGuardOptions.Default;
             _uiCoordinator = uiCoordinator;
+            _eventPump = eventPump;
         }
 
         /// <summary>执行一次装载尝试。</summary>
@@ -99,6 +106,8 @@ namespace StarPie.PluginRuntime.Loading
                     _capabilityRegistry,
                     _logSink,
                     _guardOptions);
+                // headless 插件的托盘状态事件源:装载即登记(弱引用),卸载由作用域 Publish 自防御
+                _eventPump?.Register(scope);
                 await plugin
                     .StartAsync(scope.Context, cancellationToken)
                     .ConfigureAwait(false);
