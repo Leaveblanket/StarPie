@@ -116,6 +116,48 @@ public sealed class EventSubscriberTestPlugin : IPlugin
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 }
 
+/// <summary>
+/// 托盘状态消息双订阅夹具：进托盘/恢复两个方向分别计数（消息泵广播验证用）。
+/// </summary>
+public sealed class TrayEventSubscriberTestPlugin : IPlugin
+{
+    /// <summary>收到的进托盘消息数（经反射从该插件 ALC 内的类型读取）。</summary>
+    public static int MinimizedCount;
+
+    /// <summary>收到的恢复消息数（经反射从该插件 ALC 内的类型读取）。</summary>
+    public static int RestoredCount;
+
+    /// <inheritdoc/>
+    public Task StartAsync(IPluginContext context, CancellationToken cancellationToken)
+    {
+        context.Events.Subscribe<MinimizedToTrayMessage>(
+            _ => Interlocked.Increment(ref MinimizedCount));
+        context.Events.Subscribe<RestoredFromTrayMessage>(
+            _ => Interlocked.Increment(ref RestoredCount));
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
+/// <summary>
+/// 托盘消息投递即抛异常的夹具：验证泵的兜底防御——单插件异常不沿宿主 Send 传播。
+/// </summary>
+public sealed class TrayThrowingSubscriberTestPlugin : IPlugin
+{
+    /// <inheritdoc/>
+    public Task StartAsync(IPluginContext context, CancellationToken cancellationToken)
+    {
+        context.Events.Subscribe<MinimizedToTrayMessage>(_ => throw new PluginCustomException("投递即抛"));
+        context.Events.Subscribe<RestoredFromTrayMessage>(_ => throw new PluginCustomException("投递即抛"));
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+}
+
 /// <summary>插件集自定义异常：验证异常经日志后不 root 插件 ALC 内的类型实例。</summary>
 public sealed class PluginCustomException : Exception
 {

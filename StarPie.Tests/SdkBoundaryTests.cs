@@ -25,7 +25,8 @@ public sealed class SdkBoundaryTests
         typeof(StarPie.Services.AppHostDelegates),
         // Services/Messages/
         typeof(ImmediateSaveRequestedMessage), typeof(DebouncedSaveRequestedMessage),
-        typeof(ConfigImportedMessage), typeof(MinimizedToTrayMessage), typeof(AppThemeChangedMessage),
+        typeof(ConfigImportedMessage), typeof(MinimizedToTrayMessage), typeof(RestoredFromTrayMessage),
+        typeof(AppThemeChangedMessage),
         typeof(AppearancePreviewInvalidatedMessage), typeof(PageConfigReloadedMessage),
         typeof(BlacklistEntryAddedMessage), typeof(GeneralNoticeRequestedMessage),
         typeof(NoticeKind), typeof(NoticeRequest),

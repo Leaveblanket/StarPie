@@ -3,6 +3,7 @@ using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Events;
+using StarPie.HostServices;
 using StarPie.Kernel.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginRuntime;
@@ -128,9 +129,12 @@ namespace StarPie.Modules
             // 入口实例仍硬判，ALC 与程序集存活只记诊断，重启后释放。
             // 两条管线都接 UI 托管端口：装载期调 IPluginUiModule.RegisterUi，卸载期先清 UI 资产
             // 再释放作用域与 ALC（界面插件在安全点的固定顺序）。
+            // headless 插件的宿主消息泵：托盘状态消息广播给全部活动作用域（UI 插件走 PluginUiEvents 直桥）。
+            services.AddSingleton<PluginEventPump>();
             services.AddSingleton(sp => new PluginLoadPipeline(
                 sp.GetRequiredService<CapabilityRegistry>(),
-                uiCoordinator: sp.GetService<IPluginUiCoordinator>()));
+                uiCoordinator: sp.GetService<IPluginUiCoordinator>(),
+                eventPump: sp.GetRequiredService<PluginEventPump>()));
             services.AddSingleton(sp => new PluginUnloadPipeline(
                 sp.GetRequiredService<SettingsSaveOrchestrator>().FlushPendingSave,
                 reclaimPolicy: PluginReclaimPolicy.Diagnostic,

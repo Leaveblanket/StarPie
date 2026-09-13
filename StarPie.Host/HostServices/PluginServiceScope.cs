@@ -19,7 +19,7 @@ namespace StarPie.HostServices
     /// <see cref="Dispose"/> 幂等，且是 ALC 卸载的前置：释放后账本必为零、登记一律被拒。
     /// 能力实例活在本作用域内（宿主单例不缓存插件实例），释放时连同能力条目一并摘除。
     /// </remarks>
-    public sealed class PluginServiceScope : IDisposable
+    public sealed class PluginServiceScope : IPluginEventSink, IDisposable
     {
         private readonly object _sync = new();
         private readonly HashSet<ScopeHandle> _handles = new();
