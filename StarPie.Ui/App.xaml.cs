@@ -30,15 +30,13 @@ namespace StarPie
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // 测试运行器显式指定时允许绕过单实例互斥
+            // e2e/测试运行器经显式参数绕过单实例闸门：用例冷启动需要并行多实例，
+            // 且测试实例不持有全机互斥——否则 e2e 运行期间会挡住用户正常启动。
             string cmdLine = Environment.CommandLine;
-            bool isTestMode = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
-                              cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
-            // 后台/静默模式：窗口离屏且不可激活、不进任务栏、不建托盘、不启全局鼠标钩子，
-            // 供 e2e 在用户同机工作时无打扰驱动（见 docs/architecture/host.md）。
-            bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
+            bool allowMultipleInstances = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
+                                          cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
 
-            if (!isTestMode)
+            if (!allowMultipleInstances)
             {
                 bool isNewInstance;
                 try
@@ -85,6 +83,9 @@ namespace StarPie
                 // 经注入的配置服务加载配置
                 _composition.Config.Load();
 
+                // 静默形态（--background）：窗口离屏且不可激活、不进任务栏、不建托盘、不启全局鼠标钩子，
+                // 供 e2e 在用户同机工作时无打扰驱动（见 docs/architecture/host.md）。
+                bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
                 _appHost = _composition.CreateAppHost(isBackground);
                 _appHost.Run();
 
