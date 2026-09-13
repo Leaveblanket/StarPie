@@ -159,7 +159,7 @@ Ui 集工程根（`StarPie.Ui/`）：
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——三阶段：内置贡献者有序清单注册（导航目录 + 容器描述符）→ `BuildServiceProvider` → `CreateAppHost()` eager 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
-- `DevInstance.cs`：开发实例标记——Debug 构建即 dev（判定唯一真相在内核 `AppDataPaths`，编译期定死），隔离互斥/配置目录/触发键并保护正式自启项（见 [host.md](host.md)）。
+- `DevInstance.cs`：开发实例标记——Debug 构建即 dev（判定唯一真相在内核 `AppDataPaths`，编译期定死）；配置目录隔离与自启注册表保护生效，窗口/托盘带 `(Dev)` 可见标记；与正式实例同闸互斥、同为右键触发，不并行（见 [host.md](host.md)）。
 - `Adapters/`：Ui 侧 WPF 适配器——实现 Host 内核接缝/端口（`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`，把防抖计时绑到 UI 线程，见 [config.md](config.md)；`AppThemePaletteManager` 实现 `IThemeApplier`，整项替换主题调色板，见 [interface-theme.md](interface-theme.md)）。
 - `Services/`：Ui 侧服务实现——`Services/Navigation/`（导航运行时）；`Services/Icons/`
   （图标资产的 WPF 图像构造 `IconAssetService`，实现 `StarPie.Sdk.Wpf` 的 `IIconAssetService`

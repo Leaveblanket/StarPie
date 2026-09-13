@@ -25,6 +25,9 @@ namespace StarPie
 
         private const int SW_RESTORE = 9;
 
+        // 单实例闸门：全机命名互斥，dev 与正式实例同闸（不并行运行，后启动方按已有实例路径置前退出）。
+        private const string SingleInstanceMutexName = @"Global\StarPie_SingleInstance_Mutex_9B8A7C";
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // 测试运行器显式指定时允许绕过单实例互斥
@@ -40,7 +43,7 @@ namespace StarPie
                 bool isNewInstance;
                 try
                 {
-                    _singleInstanceMutex = new Mutex(true, DevInstance.MutexName, out isNewInstance);
+                    _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out isNewInstance);
                 }
                 catch
                 {

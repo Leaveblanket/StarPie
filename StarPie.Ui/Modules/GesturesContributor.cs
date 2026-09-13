@@ -22,8 +22,7 @@ namespace StarPie.Modules
     /// BuildServiceProvider，本贡献者只注册不解析）。新增页面/动作/触发规则只动本模块内部。
     /// 依赖方向：本模块依赖共享内核契约，仅经 SDK（#112 收口）的
     /// <c>IWheelFactory</c>/<c>IWheelViewModel</c> 契约接口消费瞬态轮盘（M1→M2 runtime
-    /// 允许边清零，ADR-0023/#97），不反向引用宿主；MouseHook 的 dev 分支读共享内核
-    /// <see cref="AppDataPaths.IsDevInstance"/>（按构建配置编译期定死）。
+    /// 允许边清零，ADR-0023/#97），不反向引用宿主。
     /// </remarks>
     internal sealed class GesturesContributor : ICompositionContributor
     {
@@ -55,8 +54,7 @@ namespace StarPie.Modules
         /// </summary>
         public void RegisterServices(IServiceCollection services)
         {
-            // 手势管线：MouseHook 为无参单例（构造即选 dev/正式触发键，dev 分支读共享内核
-            // AppDataPaths.IsDevInstance 回填缝）；GestureController 构造即订阅钩子事件，由
+            // 手势管线：MouseHook 为无参单例；GestureController 构造即订阅钩子事件，由
             // CreateAppHost 在 Run 前 eager 解析保活。
             services.AddSingleton<MouseHook>();
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();

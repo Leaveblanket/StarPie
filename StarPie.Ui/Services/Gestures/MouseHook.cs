@@ -26,8 +26,6 @@ namespace StarPie.Services.Gestures
         private const int WM_MOUSEMOVE = 0x0200;
         private const int WM_RBUTTONDOWN = 0x0204;
         private const int WM_RBUTTONUP = 0x0205;
-        private const int WM_MBUTTONDOWN = 0x0207;
-        private const int WM_MBUTTONUP = 0x0208;
 
         [StructLayout(LayoutKind.Sequential)]
         private struct POINT
@@ -70,14 +68,6 @@ namespace StarPie.Services.Gestures
 
         private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
         private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
-        private const uint MOUSEEVENTF_MIDDLEDOWN = 0x0020;
-        private const uint MOUSEEVENTF_MIDDLEUP = 0x0040;
-
-        // dev 实例以中键触发，与保留默认右键手势的正式版共存。dev 分支读共享内核的
-        // AppDataPaths.IsDevInstance（按构建配置编译期定死），
-        // 本模块不反向引用宿主。
-        private readonly int _triggerDownMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONDOWN : WM_RBUTTONDOWN;
-        private readonly int _triggerUpMessage = AppDataPaths.IsDevInstance ? WM_MBUTTONUP : WM_RBUTTONUP;
 
         public bool IsPaused { get; set; } = false;
 
@@ -196,7 +186,7 @@ namespace StarPie.Services.Gestures
                 int message = (int)wParam;
                 MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
 
-                if (message == _triggerDownMessage)
+                if (message == WM_RBUTTONDOWN)
                 {
                     if (_ignoreNextRButtonDown)
                     {
@@ -211,7 +201,7 @@ namespace StarPie.Services.Gestures
                         return (IntPtr)1; // Block the event from propagating
                     }
                 }
-                else if (message == _triggerUpMessage)
+                else if (message == WM_RBUTTONUP)
                 {
                     if (_ignoreNextRButtonUp)
                     {
@@ -248,16 +238,8 @@ namespace StarPie.Services.Gestures
         {
             _ignoreNextRButtonDown = true;
             _ignoreNextRButtonUp = true;
-            if (AppDataPaths.IsDevInstance)
-            {
-                mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-                mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
-            }
-            else
-            {
-                mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-                mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
-            }
+            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
         }
     }
 }
