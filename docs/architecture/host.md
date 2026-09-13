@@ -26,7 +26,8 @@
    - dev 实例标记：`AppDataPaths.IsDevInstance` 按构建配置在编译期定死——Debug 构建
      （`dotnet run` 默认）即 dev 沙箱，Release 构建即正式形态
      （见 [ADR-0037](../adr/0037-dev-instance-flag-by-build-config.md)）。
-   - 单实例互斥（`DevInstance.MutexName`；dev 实例与正式版并存、同类互斥）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
+   - 单实例互斥（全机命名互斥 `Global\StarPie_SingleInstance_Mutex_…`，dev 与正式实例
+     同闸、不并行运行）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
    - 后台/静默模式：命令行含 `--background` 时，设置窗口固定在屏幕左上角（`0,0`）、界面 `0.9` 缩放（954×648）+ 挂
      `WS_EX_NOACTIVATE`/`WS_EX_TRANSPARENT` 并对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`（不抢焦点、点击穿透）
      + 不进任务栏，且不启全局鼠标钩子；托盘照常创建（人工观察/退出入口）。
@@ -109,8 +110,7 @@
     - `GesturesContributor.RegisterServices` 在注册期调用（M1 → Sdk + Host 内核 + Sdk.Wpf
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
-      ADR-0023；P1.3/#112 收口）；MouseHook dev 分支读内核 `AppDataPaths.IsDevInstance`
-      （按构建配置编译期定死），M1 不反向引用宿主。
+      ADR-0023；P1.3/#112 收口），M1 不反向引用宿主。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。

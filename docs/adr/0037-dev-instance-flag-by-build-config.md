@@ -1,6 +1,6 @@
 # dev 实例标记按构建配置定死（Debug=dev，Release=正式）
 
-> Status: Active
+> Status: Active（互斥名与触发键两个行为分支被 [0038](0038-dev-instance-no-parallel.md) 移除）
 >
 > 关联：#146。取代 [ADR-0036](0036-dev-instance-flag-via-environment-variable.md) 的环境变量判定；五个行为分支（配置沙箱、互斥名、触发键、自启保护、`(Dev)` 标记）不变。
 
