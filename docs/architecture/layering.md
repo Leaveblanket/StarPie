@@ -17,7 +17,7 @@ Services ---> Models
 ## 程序集层
 
 程序集划分、依赖方向与逐程序集职责见 [assemblies.md](assemblies.md) §2/§3。跨程序集回填缝
-（`AppDataPaths.IsDevInstance` 装配前回填、`AppHostDelegates` 为 SDK 公开契约（P1.3/#112 收口）由组合根注册 /
+（`AppHostDelegates` 为 SDK 公开契约（P1.3/#112 收口）由组合根注册 /
 AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下分层规则适用于各程序集内部。
 
 ## 依赖矩阵
@@ -64,7 +64,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
-    组合根构造配置路径与回填 dev 分支用；内核导出面由 `HostBoundaryTests` 白名单收口）。
+    组合根构造配置路径用，dev 实例标记经其环境变量一次性求值；内核导出面由 `HostBoundaryTests` 白名单收口）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
     `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `AppHost.Run` 负责 `new` 托盘并注入
     菜单 provider；`AutostartRegistry` 住 `StarPie.Host/Kernel/ShellIntegration/`，由 Ui 侧

@@ -17,9 +17,8 @@ namespace StarPie
     /// （含 <see cref="CreateAppHost"/>）。
     /// </summary>
     /// <remarks>
-    /// 四个阶段在本类显式分离（**注册顺序 ≠ 解析时机**）：
+    /// 三个阶段在本类显式分离（**注册顺序 ≠ 解析时机**）：
     /// <list type="number">
-    /// <item>早期回填：共享内核的 dev 目录分支依赖宿主 <see cref="DevInstance"/>，装配前回填；</item>
     /// <item>注册期：<see cref="BuiltInContributors.CreateAll"/> 的有序清单驱动——先写导航目录并收口，
     /// 再写容器描述符（贡献者只注册不解析）；</item>
     /// <item>容器构建：唯一 <c>BuildServiceProvider</c>；</item>
@@ -47,18 +46,12 @@ namespace StarPie
 
         public Composition()
         {
-            // 阶段 1｜早期回填（注册前）：跨程序集环境参数回填缝——共享内核的 dev 目录分支
-            // 依赖宿主 DevInstance，共享内核不能反向引用宿主，故装配前由组合根回填
-            //（.lnk 图标提取的解析契约自 ADR-0019/#87 起经 DI 注册的
-            //  IShortcutTargetResolver 注入，不再静态回填）。
-            AppDataPaths.IsDevInstance = DevInstance.IsActive;
-
-            // 阶段 2｜注册期：有序列表驱动（贡献者只登记不解析；注册顺序 ≠ 解析时机）。
+            // 阶段 1｜注册期：有序列表驱动（贡献者只登记不解析；注册顺序 ≠ 解析时机）。
             _contributors = BuiltInContributors.CreateAll(_hostDelegates);
 
             var services = new ServiceCollection();
 
-            // 2a 导航目录：各贡献者自报导航页（M1 槽位 0/2、Host 聚合页槽位 1、M5 槽位 3；
+            // 1a 导航目录：各贡献者自报导航页（M1 槽位 0/2、Host 聚合页槽位 1、M5 槽位 3；
             // 其余贡献者无导航页）。Validate 在 BuildServiceProvider 前收口四个槽位完整，
             // 供 CreateAppHost 目录驱动 eager 解析与导航 VM/导航执行消费。
             var navigationCatalog = new NavigationCatalog();
@@ -69,14 +62,14 @@ namespace StarPie
             navigationCatalog.Validate();
             services.AddSingleton(navigationCatalog);
 
-            // 2b 容器：各贡献者的服务与页面 VM 登记（组合根仍唯一 BuildServiceProvider）；
+            // 1b 容器：各贡献者的服务与页面 VM 登记（组合根仍唯一 BuildServiceProvider）；
             // 跨模块消费一律经 SDK/Sdk.Wpf 契约面，贡献者之间不引用彼此的实现类型。
             foreach (ICompositionContributor contributor in _contributors)
             {
                 contributor.RegisterServices(services);
             }
 
-            // 阶段 3｜容器构建：解析点仍只在组合根。
+            // 阶段 2｜容器构建：解析点仍只在组合根。
             _provider = services.BuildServiceProvider();
 
             _config = _provider.GetRequiredService<JsonConfigService>();
@@ -85,7 +78,7 @@ namespace StarPie
         /// <summary>解析全部宿主依赖并创建 <see cref="AppHost"/>；解析点仍集中在本组合根。</summary>
         internal AppHost CreateAppHost(bool background = false)
         {
-            // 阶段 4｜eager 解析：时机在配置加载后、AppHost.Run 前，与贡献者注册顺序无关
+            // 阶段 3｜eager 解析：时机在配置加载后、AppHost.Run 前，与贡献者注册顺序无关
             //（页面清单由导航目录驱动，不逐个硬编码页面类型）。
             var messenger = _provider.GetRequiredService<IMessenger>();
             var mouseHook = _provider.GetRequiredService<MouseHook>();

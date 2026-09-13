@@ -23,7 +23,10 @@
 ## 生命周期与关键流程
 
 1. `App.OnStartup`：
-   - 单实例互斥（`DevInstance.MutexName`；`--dev` 与正式版并存、同类互斥）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
+   - dev 实例标记：环境变量 `STARPIE_INSTANCE=dev`（launchSettings 的 StarPie Dev profile 注入）在
+     `AppDataPaths` 类型初始化时一次性求值缓存；`App` 求值后即把变量移出进程环境，
+     动作执行器启动的子进程不继承（见 [ADR-0036](../adr/0036-dev-instance-flag-via-environment-variable.md)）。
+   - 单实例互斥（`DevInstance.MutexName`；dev 实例与正式版并存、同类互斥）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
    - 后台/静默模式：命令行含 `--background` 时，设置窗口固定在屏幕左上角（`0,0`）、界面 `0.9` 缩放（954×648）+ 挂
      `WS_EX_NOACTIVATE`/`WS_EX_TRANSPARENT` 并对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`（不抢焦点、点击穿透）
      + 不进任务栏，且不启全局鼠标钩子；托盘照常创建（人工观察/退出入口）。
@@ -35,11 +38,7 @@
    - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()` → 内存整理兜底
      `MemoryOptimizer.TrimMemory(true)`（见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition` 注册期（**内置贡献者有序清单驱动**，全部单例；注册顺序 ≠ 解析时机）：
-   - 阶段 1｜早期回填（注册前）：`AppDataPaths.IsDevInstance = DevInstance.IsActive`
-     （S2 dev 目录分支，`AppDataPaths` 在宿主内核 `StarPie.Host/Kernel/Configuration/`）——
-     内核不反向引用宿主；.lnk 图标提取的解析契约经 DI 注入的
-     `IShortcutTargetResolver`（组合根登记宿主内核 `ShortcutResolver`），无静态回填。
-   - 阶段 2｜注册期：`BuiltInContributors.CreateAll(_hostDelegates)` 得到按 `Order` 升序的清单
+   - 阶段 1｜注册期：`BuiltInContributors.CreateAll(_hostDelegates)` 得到按 `Order` 升序的清单
      （HostCore/HostPage/Theme/Wheel/Gestures/Shell/Dialogs 七个内置贡献者）；先集中调各贡献者
      `RegisterNavigation(catalog)` 并 `Validate()`，再集中调 `RegisterServices(services)`。
    - `HostCoreContributor` 基础设施：`JsonConfigService`（具体类，配置路径经内核 `AppDataPaths.GetAppDataFolder()` 构造）+
@@ -110,12 +109,13 @@
     - `GesturesContributor.RegisterServices` 在注册期调用（M1 → Sdk + Host 内核 + Sdk.Wpf
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
-      ADR-0023；P1.3/#112 收口）；MouseHook dev 分支读内核 `AppDataPaths.IsDevInstance` 回填缝（组合根
-      装配前已以 DevInstance.IsActive 回填），M1 不反向引用宿主。
+      ADR-0023；P1.3/#112 收口）；MouseHook dev 分支读内核 `AppDataPaths.IsDevInstance`
+      （环境变量一次性求值，无跨程序集回填），M1 不反向引用宿主。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
    - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。
-3. 阶段 4｜`Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
+3. 阶段 2｜容器构建：唯一 `BuildServiceProvider`，解析点仍只在组合根。
+4. 阶段 3｜`Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`；
    - **页面 VM eager 解析清单目录化**：遍历 `NavigationCatalog.Entries` 逐个解析注册的页面 VM
@@ -125,7 +125,7 @@
      `ThemeContributor`/`ShellContributor` 登记，组合根仅解析取回单例；初始主题与托盘/
      驻留气泡直调不变）；
    - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
-4. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
+5. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
      `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
@@ -135,11 +135,11 @@
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
       `_dialogService.SetOwner(_mainView)`（Ui 集 public 装配面）
      → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
-5. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
+6. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
    → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
    dispose、`_mouseHook.Stop()`、`MainViewModel.Dispose()`、`ShellViewModel.Dispose()`）→ `Composition.Dispose()`
    （容器 dispose）→ 释放互斥体。
-6. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 冲刷保存 → 内存整理
+7. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 冲刷保存 → 内存整理
    `MemoryOptimizer.TrimMemory()`（见 [shell.md](shell.md)）→ 发 `MinimizedToTrayMessage` → `AppHost` 直调
    `GeneralSettingsViewModel.NotifyMinimizedToTray()`。
 
