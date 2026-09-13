@@ -88,14 +88,7 @@ namespace StarPie
                 bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
                 _appHost = _composition.CreateAppHost(isBackground);
                 _appHost.Run();
-
-                // 启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时生效口径，
-                // 被运行时钳制时以此记录为准；预算值 256 MiB 见 StarPie.Ui/runtimeconfig.template.json）
-                if (GC.GetConfigurationVariables().TryGetValue("GCHeapHardLimit", out var hardLimit))
-                {
-                    Debug.WriteLine($"[Startup] GC HeapHardLimit 生效值: {hardLimit}");
-                }
-                MemoryOptimizer.CollectGarbage(true);
+                // 启动兜底内存整理与堆硬顶生效值日志在 AppHost 启动编排末尾执行（预热之后，#150）
             }
             catch (Exception ex)
             {

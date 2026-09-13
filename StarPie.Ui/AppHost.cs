@@ -33,6 +33,8 @@ namespace StarPie
         private readonly DialogService _dialogService;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
+        private readonly IConfigService _config;
+        private readonly IIconAssetService _iconAssets;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         // 目录执行缝按槽位导航——宿主不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
@@ -66,6 +68,8 @@ namespace StarPie
             DialogService dialogService,
             ThemeService themeService,
             ILocalizationService localization,
+            IConfigService config,
+            IIconAssetService iconAssets,
             SettingsSaveOrchestrator saveOrchestrator,
             INavigationExecutor navigation,
             InterfaceThemeSettingsViewModel interfaceTheme,
@@ -82,6 +86,8 @@ namespace StarPie
             _dialogService = dialogService;
             _themeService = themeService;
             _localization = localization;
+            _config = config;
+            _iconAssets = iconAssets;
             _saveOrchestrator = saveOrchestrator;
             _navigation = navigation;
             _interfaceTheme = interfaceTheme;
@@ -204,6 +210,40 @@ namespace StarPie
             _trayIcon.SetTooltip(CurrentTooltip());
 
             _mainView.Show();
+
+            // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
+            // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
+            // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发（#150）。
+            WarmUpWheelCorePath();
+            RunStartupMemoryHousekeeping();
+        }
+
+        /// <summary>启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时
+        /// 生效口径，被运行时钳制时以此记录为准；预算值 256 MiB 见 runtimeconfig.template.json）。</summary>
+        private static void RunStartupMemoryHousekeeping()
+        {
+            if (GC.GetConfigurationVariables().TryGetValue("GCHeapHardLimit", out object? hardLimit))
+            {
+                Debug.WriteLine($"[Startup] GC HeapHardLimit 生效值: {hardLimit}");
+            }
+            MemoryOptimizer.CollectGarbage(true);
+        }
+
+        /// <summary>轮盘核心路径离屏预热：以全局方案构造视图模型并渲染一次后放弃产物；
+        /// 失败吞异常记调试日志，不影响启动。</summary>
+        private void WarmUpWheelCorePath()
+        {
+            try
+            {
+                WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == "Global") ?? new WheelProfile();
+                var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, _config.Current, _localization);
+                WheelWarmup.Run(viewModel, _themeService, _localization, _iconAssets);
+                Debug.WriteLine("[Startup] Wheel core path warmed up");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Startup] Wheel warmup failed (ignored): {ex.Message}");
+            }
         }
 
         public void Dispose()
