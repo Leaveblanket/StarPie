@@ -34,10 +34,13 @@
      `DialogService` 回填后台模式后提示框不呈现、确认框取"是"，自定义对话框（程序/图标/颜色选择器、
      输入框）仍离屏 + 不可激活。仅影响窗口呈现/激活/命中测试与对话框可见性，导航、配置与渲染语义不变
      （e2e 静默跑用，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md) / [ADR-0032](../adr/0032-e2e-silent-visible-window.md)）。
-   - 非首实例：查找既有设置窗口并置前（`FindWindow`/`ShowWindow`/`SetForegroundWindow`），然后 `Shutdown(0)`。
+   - 非首实例：查找既有设置窗口并置前（`FindWindow` → 发单实例恢复消息
+     `SingleInstanceRestore.Send`，主框架收消息后经 WPF 显示路径自恢复 → `ShowWindow`/`SetForegroundWindow`
+     即时反馈），然后 `Shutdown(0)`。
    - 注册全局异常处理器（Dispatcher + AppDomain，均不崩溃）。
-   - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()` → 内存整理兜底
-     `MemoryOptimizer.TrimMemory(true)`（见 [shell.md](shell.md)）；失败弹错误框并退出。
+   - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()`
+     （启动编排末尾：轮盘预热 → 内存整理兜底 `MemoryOptimizer.CollectGarbage(true)`，
+     见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition` 注册期（**内置贡献者有序清单驱动**，全部单例；注册顺序 ≠ 解析时机）：
    - 阶段 1｜注册期：`BuiltInContributors.CreateAll(_hostDelegates)` 得到按 `Order` 升序的清单
      （HostCore/HostPage/Theme/Wheel/Gestures/Shell/Dialogs 七个内置贡献者）；先集中调各贡献者
@@ -139,9 +142,11 @@
    → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
    dispose、`_mouseHook.Stop()`、`MainViewModel.Dispose()`、`ShellViewModel.Dispose()`）→ `Composition.Dispose()`
    （容器 dispose）→ 释放互斥体。
-7. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 冲刷保存 → 内存整理
-   `MemoryOptimizer.TrimMemory()`（见 [shell.md](shell.md)）→ 发 `MinimizedToTrayMessage` → `AppHost` 直调
-   `GeneralSettingsViewModel.NotifyMinimizedToTray()`。
+7. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 经
+   `TrayVisibilitySignal` 有序决策执行：冲刷保存 → 导航视图出账 → 图标缓存出账 → 发
+   `MinimizedToTrayMessage`（订阅方同步出账，`AppHost` 直调 `GeneralSettingsViewModel.NotifyMinimizedToTray()`）→
+   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行（见 [shell.md](shell.md)）；恢复（重新可见）→
+   按最后导航槽位重放导航 → 发 `RestoredFromTrayMessage`。
 
 ## 宿主委托包
 

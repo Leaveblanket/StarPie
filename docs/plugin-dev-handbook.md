@@ -25,6 +25,7 @@
 | 生命周期（启动/停止） | `IPlugin` | plugins.md §4 |
 | 宿主日志（自动带 plugin id） | `IPluginContext.Log` | plugins.md §9 |
 | 订阅宿主事件（卸载即断） | `IPluginContext.Events` / UI 侧 `Subscribe<TEvent>` | plugins.md §6.1/§7.2 |
+| 订阅托盘状态消息自清缓存（内存自治模式） | `Events.Subscribe<MinimizedToTrayMessage>` / `<RestoredFromTrayMessage>` | plugins.md §6.1；示范见随包 Programs 插件 |
 | 注册能力（宿主须已声明契约；清单声明 capability） | `IPluginContext.RegisterCapability<T>` | plugins.md §6 |
 | 导航页 / 设置区 / 插件窗口 / 托盘菜单 | `IPluginUiContext.Register*`（Descriptor 纯数据 + 工厂） | plugins.md §7.1/§7.2 |
 | 打开自己注册的窗口 | `IPluginUiContext.ShowWindow(windowKey)` | plugins.md §7.2 |

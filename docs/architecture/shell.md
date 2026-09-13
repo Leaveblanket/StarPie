@@ -16,8 +16,9 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
   由同集 `AppHost.Run` 装配实例——见下方关键流程 1）。
 - `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；
   `[SupportedOSPlatform("windows")]`、public 装配面）、
-  `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3）——零 WPF、纯托管 + P/Invoke，
-  命名空间 `StarPie.Kernel.ShellIntegration`。
+  `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
+  `StarPie.Host/Kernel/ShellIntegration/TrayVisibilitySignal.cs`（托盘状态信号纯决策）——
+  命名空间均为 `StarPie.Kernel.ShellIntegration`。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
@@ -46,9 +47,17 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
    不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
-2. **内存**：`MemoryOptimizer.TrimMemory()`（驻 `StarPie.Host/Kernel/ShellIntegration/`）在 `App` 启动兜底与 `AppHost` 主框架隐藏时直调
-   （不进业务层，调用点见 [host.md](host.md)）；“立即清理”由 `GeneralSettingsViewModel` 直调
-   （VM 在 Ui、工具在宿主内核，行为不变）。
+2. **内存（分层常驻，#149）**：`MemoryOptimizer.CollectGarbage()`（驻
+   `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
+   （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
+   已整体删除，设置页手动"内存整理"入口与四语言文案已移除（不留"留作诊断"死路径，
+   需要时从 git 历史恢复）。自动触发点经 `TrayVisibilitySignal` 有序决策编排：App 启动兜底
+   force（轮盘预热之后，#150）与进托盘（非后台）——进托盘固定顺序
+   `FlushPendingSave → 导航视图出账（#152）→ 图标缓存出账（#153）→ 发 MinimizedToTrayMessage →
+   CollectGarbage 后台执行`，恢复按最后导航槽位重放导航后发 `RestoredFromTrayMessage`；
+   后台静默形态（e2e）出账动作禁用、消息照发。GC 堆预算由
+   `StarPie.Ui/runtimeconfig.template.json` 的 `System.GC.HeapHardLimit`（256 MiB）约束，
+   逼近上限时 GC 自行提升回收激进度；生效值由启动日志（`GC.GetConfigurationVariables`）记录。
 3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
@@ -58,7 +67,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `ShellViewModel`（D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
    操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
    `CloseButton_Click` 纯 UI 取消语义。
-5. **高级设置面**：导入/导出、内存清理、自启开关、托盘气泡与退出等宿主接线经
+5. **高级设置面**：导入/导出、自启开关、托盘气泡与退出等宿主接线经
    SDK 契约 `AppHostDelegates` 转发（贡献者只依赖 SDK，宿主回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。

@@ -20,9 +20,18 @@ namespace StarPie.Plugin.Programs
     [SupportedOSPlatform("windows")]
     internal sealed class InstalledProgramScanner
     {
-        /// <summary>扫描全部插件来源，按显示名排序返回去重后的候选程序。</summary>
+        /// <summary>深扫结果缓存：五源扫描（注册表 + 文件系统）代价高，首扫后复用。</summary>
+        private IReadOnlyList<ProgramEntry>? _cachedEntries;
+
+        /// <summary>扫描全部插件来源，按显示名排序返回去重后的候选程序；深扫结果缓存，
+        /// 进托盘时由入口随宿主信号释放（<see cref="InvalidateCache"/>），下次消费重建。</summary>
         internal IReadOnlyList<ProgramEntry> ScanInstalledPrograms()
         {
+            if (_cachedEntries is { } cached)
+            {
+                return cached;
+            }
+
             var candidates = new List<ProgramEntry>();
 
             // 1. 用户 AppData\Local\Programs（VS Code、Discord、Spotify、Xmind 等）
@@ -42,7 +51,15 @@ namespace StarPie.Plugin.Programs
 
             var list = ProgramCatalog.MergeSources(candidates);
             list.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
+            _cachedEntries = list;
             return list;
+        }
+
+        /// <summary>释放深扫缓存（幂等）：下次 ScanInstalledPrograms 重新扫描。
+        /// 托盘自治出账示范（#154）：订阅宿主进托盘信号，随宿主分层常驻策略一并出账。</summary>
+        internal void InvalidateCache()
+        {
+            _cachedEntries = null;
         }
 
         /// <summary>应用数据目录下的本地程序目录（宿主同约定：环境变量优先，其次已知文件夹）。</summary>
