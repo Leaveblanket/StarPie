@@ -182,9 +182,6 @@
   <data name="LangAuto" xml:space="preserve"><value>🖥️ System Default</value></data>
   <data name="StartupTitle" xml:space="preserve"><value>Run on Windows Startup</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>Automatically start StarPie silently minimized to tray on login.</value></data>
-  <data name="MemoryTitle" xml:space="preserve"><value>Memory Optimization</value></data>
-  <data name="MemoryDesc" xml:space="preserve"><value>Deep trims working set, keeping background RAM usage under 20MB.</value></data>
-  <data name="BtnTrimMemory" xml:space="preserve"><value>Trim RAM Now</value></data>
   <data name="ElevateTitle" xml:space="preserve"><value>Run as Administrator</value></data>
   <data name="ElevateDesc" xml:space="preserve"><value>Relaunch with administrator privileges to interact with elevated windows.</value></data>
   <data name="BtnElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
@@ -206,7 +203,6 @@ This cannot be undone.</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS Live Rendering</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup, administrator elevation, and config import/export backups.</value></data>
-  <data name="TrimMemoryTooltip" xml:space="preserve"><value>Instantly trim unused working-set physical memory</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>Create a dedicated profile by choosing an installed app from the Start menu</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>Create a new wheel profile with a custom name</value></data>

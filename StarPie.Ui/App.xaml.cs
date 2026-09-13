@@ -83,14 +83,19 @@ namespace StarPie
                 // 经注入的配置服务加载配置
                 _composition.Config.Load();
 
-                // 静默形态（--background）：窗口离屏且不可激活、不进任务栏、不建托盘、不启全局鼠标钩子，
-                // 供 e2e 在用户同机工作时无打扰驱动（见 docs/architecture/host.md）。
+                // 静默形态（--background）：窗口屏内左上角、不可激活、点击穿透、不进任务栏，托盘保留，
+                // 全局鼠标钩子不启动——e2e 在用户同机工作时无打扰驱动（见 docs/adr/0032）。
                 bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
                 _appHost = _composition.CreateAppHost(isBackground);
                 _appHost.Run();
 
-                // 启动后做一次内存整理
-                MemoryOptimizer.TrimMemory(true);
+                // 启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时生效口径，
+                // 被运行时钳制时以此记录为准；预算值 256 MiB 见 StarPie.Ui/runtimeconfig.template.json）
+                if (GC.GetConfigurationVariables().TryGetValue("GCHeapHardLimit", out var hardLimit))
+                {
+                    Debug.WriteLine($"[Startup] GC HeapHardLimit 生效值: {hardLimit}");
+                }
+                MemoryOptimizer.CollectGarbage(true);
             }
             catch (Exception ex)
             {

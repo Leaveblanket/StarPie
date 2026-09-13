@@ -131,13 +131,6 @@ namespace StarPie.ViewModels.Pages
         [RelayCommand]
         private void Elevate() => ElevateAndRestart();
 
-        [RelayCommand]
-        private void TrimMemory()
-        {
-            MemoryOptimizer.TrimMemory(true);
-            _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("提示", "物理工作集内存已深度压缩！", NoticeKind.Info)));
-        }
-
         /// <summary>开机自启切换：注册表读写经注入委托，并请求落盘。</summary>
         public void SetAutoStart(bool enable)
         {
