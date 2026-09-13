@@ -1,6 +1,6 @@
 # dev 实例标记改由环境变量注入（STARPIE_INSTANCE）
 
-> Status: Active
+> Status: Superseded by [0037](0037-dev-instance-flag-by-build-config.md)（判定机制改按构建配置编译期定死）
 >
 > 关联：#145
 

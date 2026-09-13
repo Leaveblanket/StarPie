@@ -23,7 +23,7 @@ namespace StarPie.Modules
     /// 依赖方向：本模块依赖共享内核契约，仅经 SDK（#112 收口）的
     /// <c>IWheelFactory</c>/<c>IWheelViewModel</c> 契约接口消费瞬态轮盘（M1→M2 runtime
     /// 允许边清零，ADR-0023/#97），不反向引用宿主；MouseHook 的 dev 分支读共享内核
-    /// <see cref="AppDataPaths.IsDevInstance"/>（环境变量一次性求值，无跨程序集回填）。
+    /// <see cref="AppDataPaths.IsDevInstance"/>（按构建配置编译期定死）。
     /// </remarks>
     internal sealed class GesturesContributor : ICompositionContributor
     {

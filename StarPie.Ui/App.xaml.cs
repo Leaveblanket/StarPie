@@ -4,7 +4,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
-using StarPie.Kernel.Configuration;
 
 namespace StarPie
 {
@@ -28,14 +27,6 @@ namespace StarPie
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // dev 实例标记由环境变量注入（launchSettings 的 StarPie Dev profile）：
-            // 此处先触发 AppDataPaths 类型初始化一次性求值，再把变量移出进程环境，
-            // 避免经动作执行器启动的子进程继承标记而意外进入 dev 沙箱。
-            if (AppDataPaths.IsDevInstance)
-            {
-                Environment.SetEnvironmentVariable(AppDataPaths.DevEnvVariable, null);
-            }
-
             // 测试运行器显式指定时允许绕过单实例互斥
             string cmdLine = Environment.CommandLine;
             bool isTestMode = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||

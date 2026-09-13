@@ -16,16 +16,16 @@
    ```
    `scripts/run-e2e.ps1` 的解释器解析顺序：`-Python` 显式指定 > 仓库 `.venv` > PATH（回退 PATH 时会警告"解释器未锁定"）。
 
-### 🧩 与正式版并存开发（--dev 模式）
+### 🧩 与正式版并存开发（dev 实例）
 
-本机已安装并正在运行正式版 StarPie 时，开发实例可通过 `--dev` 参数与之并存，互不干扰：
+本机已安装并正在运行正式版 StarPie 时，开发实例（Debug 构建）可与之并存，互不干扰：
 
 ```bash
-dotnet run --project StarPie.Ui        # launchSettings 已默认附加 --dev
-# 或显式指定：dotnet run --project StarPie.Ui -- --dev
+dotnet run --project StarPie.Ui        # Debug 构建（默认）即 dev 实例
+# Release 构建即正式形态：dotnet run --project StarPie.Ui -c Release
 ```
 
-`--dev` 开发实例与正式版的行为差异：
+dev 实例与正式版的行为差异：
 
 - **独立配置目录**：读写 `%LOCALAPPDATA%\StarPie-Dev`，首次启动会自动从正式版的 `StarPie` 目录复制一份配置作为起点，正式版配置永不被修改；
 - **独立单实例锁**：开发实例与正式版可同时运行（各自仍只允许一个实例）；
@@ -33,7 +33,7 @@ dotnet run --project StarPie.Ui        # launchSettings 已默认附加 --dev
 - **不写自启动注册表**：在开发实例中切换「开机自启」不会影响正式版的注册表项；
 - 托盘提示与设置窗口标题附带 `(Dev)` 后缀，便于区分当前正在操作哪个实例。
 
-> 提示：测试套件（`tests/conftest.py`）通过 `--allow-multiple` 与 `LOCALAPPDATA` 环境变量沙盒运行，不受 `--dev` 影响。
+> 提示：测试套件（`tests/conftest.py`）通过 `--allow-multiple` 与 `LOCALAPPDATA` 环境变量沙盒运行，不受 dev 判定影响。
 
 ---
 

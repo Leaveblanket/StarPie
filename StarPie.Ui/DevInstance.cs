@@ -3,10 +3,10 @@ using StarPie.Kernel.Configuration;
 namespace StarPie
 {
     /// <summary>
-    /// 开发实例标记：以环境变量 <see cref="AppDataPaths.DevEnvVariable"/>=dev 注入
-    /// （launchSettings 的 StarPie Dev profile），使其可与已安装的正式版并行运行——
-    /// 独立配置目录、独立的单实例互斥名、中键手势触发，且不写真实开机自启注册表项。
-    /// 判定唯一真相在共享内核 <see cref="AppDataPaths.IsDevInstance"/>，本类只是 Ui 侧投影。
+    /// 开发实例标记：Debug 构建即开发实例（判定唯一真相在共享内核
+    /// <see cref="AppDataPaths.IsDevInstance"/>，按构建配置编译期定死），使其可与已安装的
+    /// 正式版并行运行——独立配置目录、独立的单实例互斥名、中键手势触发，且不写真实
+    /// 开机自启注册表项。本类只是 Ui 侧投影。
     /// </summary>
     public static class DevInstance
     {
