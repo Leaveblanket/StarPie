@@ -38,7 +38,7 @@ public sealed class HostBoundaryTests
         typeof(AppDataPaths), typeof(SettingsSaveOrchestrator),
         // Kernel/Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
-        // Kernel/ShellIntegration/（开机自启注册表与内存整理，纯托管 + P/Invoke）
+        // Kernel/ShellIntegration/（开机自启注册表与 GC 内存整理，纯托管）
         typeof(AutostartRegistry), typeof(MemoryOptimizer),
         // Icons/（资产目录与自定义图标存储）
         typeof(IconCatalog), typeof(CustomIconStore),

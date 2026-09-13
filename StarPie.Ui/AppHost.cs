@@ -185,7 +185,7 @@ namespace StarPie
                 if (_mainView is { IsVisible: false } && !_shellViewModel.IsExiting)
                 {
                     _saveOrchestrator.FlushPendingSave();
-                    MemoryOptimizer.TrimMemory();
+                    MemoryOptimizer.CollectGarbage();
                     _messenger.Send(MinimizedToTrayMessage.Instance);
                 }
             };

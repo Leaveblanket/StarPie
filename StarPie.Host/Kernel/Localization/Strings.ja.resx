@@ -182,9 +182,6 @@
   <data name="LangAuto" xml:space="preserve"><value>🖥️ システム既定 (System Default)</value></data>
   <data name="StartupTitle" xml:space="preserve"><value>Windows起動時に自動起動</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>Windows起動時に自動でタスクトレイに常駐します。</value></data>
-  <data name="MemoryTitle" xml:space="preserve"><value>メモリ最適化 (ワーキングセット圧縮)</value></data>
-  <data name="MemoryDesc" xml:space="preserve"><value>メモリを自動トリムし、バックグラウンド使用量を15〜25MBに維持します。</value></data>
-  <data name="BtnTrimMemory" xml:space="preserve"><value>今すぐメモリ圧縮</value></data>
   <data name="ElevateTitle" xml:space="preserve"><value>管理者権限で実行</value></data>
   <data name="ElevateDesc" xml:space="preserve"><value>管理者権限で再起動し、タスクマネージャー等の高権限画面でも動作可能にします。</value></data>
   <data name="BtnElevate" xml:space="preserve"><value>🛡️ 管理者として再起動</value></data>
@@ -206,7 +203,6 @@
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルジェスチャー</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS ライブレンダリング</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>インターフェース言語、Windows 自動起動、管理者権限、設定のインポート/エクスポートを管理します。</value></data>
-  <data name="TrimMemoryTooltip" xml:space="preserve"><value>未使用のワーキングセット物理メモリを即時クリアします</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>フォアグラウンドアプリごとに専用の多方向ジェスチャーホイール、キー操作、ベクターアイコンを設定できます。</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>スタートメニューのインストール済みアプリから専用プロファイルを作成します</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>任意の名前で新しいホイールプロファイルを作成します</value></data>
