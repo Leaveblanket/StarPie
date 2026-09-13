@@ -241,9 +241,9 @@ public interface IPluginUiModule
 - **能力–插件归属（Q8）**：能力实例活在该插件的 `PluginServiceScope` 内；消费者经 `CapabilityGuard` 短租用，宿主单例不得缓存能力实例。
 - **顺序语义（Q10）**：`CapabilityRegistry.GetAll<T>()` 返回顺序 = 内置优先（内置不可被插件覆盖）→ 插件清单 `priority` → plugin id 稳定序；用户可调的顺序覆盖存 `plugin-state.json`，避免列表顺序随装载顺序抖动。
 
-### 6.1 HostServices 硬约束（7 条，P2 落地判据）
+### 6.1 HostServices 硬约束（8 条，P2 落地判据）
 
-HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPluginEvents`/…）。七条都是验收判据：
+HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPluginEvents`/…）。八条都是验收判据：
 
 | # | 约束 | 判据与落点 |
 |---|---|---|
@@ -252,6 +252,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 | 3 | 插件只经 `IPluginContext` 取用 | 无静态单例、无服务定位器；`IPluginContext` 的属性即插件的全部可达面 |
 | 4 | 服务按插件作用域隔离 | 每插件一个 `PluginServiceScope`（自持宿主服务实例 + 能力实例 + 句柄账本，不引入 MS.DI 容器，见 [ADR-0033](../adr/0033-plugin-service-scope-without-di-container.md)）；宿主根容器不含任何插件类型 |
 | 5 | 订阅/回调/动作可按 plugin id 注销 | 每次注册返回 `IDisposable` 并登记进该插件的 scope 账本；卸载按 id 强制枚举清理，不依赖插件自觉 Dispose |
+| 5a | 托盘状态消息对插件可见（headless 侧经 `PluginEventPump` 广播、UI 侧经 `PluginUiEvents` 直桥） | 插件经 `IPluginEvents` 订阅 `MinimizedToTrayMessage`（进托盘）/`RestoredFromTrayMessage`（恢复）即收投递——订阅方在宿主 Send 调用线程同步执行，推荐语义是"进托盘释放自身深扫缓存、恢复按需重建"（内存自治出账，示范见随包 Programs 插件 #154；宿主后台静默形态下宿主侧出账禁用但消息照发） |
 | 6 | 审计与日志不持有插件对象 | 只记 plugin id + 字符串/值类型字段；插件异常入日志前先转成"类型全名 + message + stack 字符串"的宿主 DTO——**`Exception` 实例与任何插件对象不得存进长生命周期结构（含日志 sink、诊断快照）** |
 | 7 | 卸载前必须释放该插件的作用域 | `PluginServiceScope.Dispose()`（幂等）是 `ALC.Unload()` 的前置；scope 未释放或释放后仍有句柄残留 → `Quarantined`（残留是防御性检查：`Dispose` 先清账本再释放句柄，账本必为零；不为零即说明清账语义被改动） |
 
