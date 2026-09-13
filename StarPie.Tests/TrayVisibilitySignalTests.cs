@@ -14,7 +14,7 @@ public sealed class TrayVisibilitySignalTests
         IReadOnlyList<TraySignalStep> steps = TrayVisibilitySignal.Resolve(visible: false, isExiting: false, background: false);
 
         Assert.Equal(
-            new[] { TraySignalStep.FlushPendingSave, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage },
+            new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage },
             steps);
     }
 
@@ -27,9 +27,17 @@ public sealed class TrayVisibilitySignalTests
     }
 
     [Fact]
-    public void 恢复显示_发Restored()
+    public void 恢复显示_先重放导航再发Restored()
     {
         IReadOnlyList<TraySignalStep> steps = TrayVisibilitySignal.Resolve(visible: true, isExiting: false, background: false);
+
+        Assert.Equal(new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored }, steps);
+    }
+
+    [Fact]
+    public void 恢复显示_后台形态_不重放只发Restored()
+    {
+        IReadOnlyList<TraySignalStep> steps = TrayVisibilitySignal.Resolve(visible: true, isExiting: false, background: true);
 
         Assert.Equal(new[] { TraySignalStep.SendRestored }, steps);
     }

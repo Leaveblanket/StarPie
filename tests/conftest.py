@@ -18,6 +18,14 @@ from pywinauto.findwindows import ElementNotFoundError
 # 默认（静默形态）被测应用在屏幕左上角且提示框不呈现（ADR-0031/0032），e2e 不应等待任何弹窗。
 ONSCREEN = os.environ.get("STARPIE_E2E_ONSCREEN") == "1"
 
+
+def pytest_configure(config):
+    """注册用例标记：@pytest.mark.onscreen 单用例可见形态（出账重放等后台形态覆盖不到的系统行为）。"""
+    config.addinivalue_line(
+        "markers",
+        "onscreen: 用例以可见形态启动被测应用（非 --background）",
+    )
+
 # 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。静默形态窗口固定在屏幕左上角、
 # 被 DWM 合成，PrintWindow 能抓到真实内容；缺 PIL 时显式告警并把原因写进运行 header。
 try:
@@ -528,9 +536,10 @@ def app(sandbox_env, sandbox_seed, request):
         
     # Start the process with sandboxed environment variables.
     # 默认静默形态（--background：屏幕左上角 + 不可激活 + 点击穿透 + 不进任务栏，键鼠不被打扰）；
-    # ONSCREEN（STARPIE_E2E_ONSCREEN=1，scripts/run-e2e.ps1 -OnScreen）时窗口正常显示，供调试。
+    # ONSCREEN（STARPIE_E2E_ONSCREEN=1，scripts/run-e2e.ps1 -OnScreen）时窗口正常显示，供调试；
+    # @pytest.mark.onscreen 标记的用例单点以可见形态启动（后台形态出账禁用，覆盖不到出账重放）。
     flags = ["--allow-multiple"]
-    if not ONSCREEN:
+    if not (ONSCREEN or request.node.get_closest_marker("onscreen") is not None):
         flags.append("--background")
     proc = subprocess.Popen([app_path, *flags], env=env)
     

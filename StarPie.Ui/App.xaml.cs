@@ -56,6 +56,9 @@ namespace StarPie
                         IntPtr hWnd = FindWindow(null, "StarPie 设置控制台 (Preferences)" + DevInstance.Suffix);
                         if (hWnd != IntPtr.Zero)
                         {
+                            // 先发恢复消息：主框架收到后经 WPF 显示路径自恢复（ShowAndActivate）——
+                            // 纯外部 ShowWindow 不更新 WPF 的 IsVisible，隐藏到托盘后的恢复序列不触发。
+                            SingleInstanceRestore.Send(hWnd);
                             ShowWindow(hWnd, SW_RESTORE);
                             SetForegroundWindow(hWnd);
                         }

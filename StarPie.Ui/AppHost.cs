@@ -59,6 +59,8 @@ namespace StarPie
         // 主题调色板换入经 Ui 侧适配器（实现内核主题应用端口）执行；
         // 宿主只负责装配，不做直接键覆盖。
         private readonly AppThemePaletteManager _paletteManager = new();
+        // 导航视图出账与恢复重放（进托盘出账/恢复重放按最后导航槽位；幂等）。
+        private readonly NavigationSuspension _navigationSuspension;
         private TrayIconManager? _trayIcon;
         private MainView? _mainView;
 
@@ -79,6 +81,7 @@ namespace StarPie
             AppHostDelegates hostDelegates,
             PluginRuntimeHost pluginRuntime,
             PluginUiCoordinator pluginUi,
+            NavigationSuspension navigationSuspension,
             bool background = false)
         {
             _messenger = messenger;
@@ -97,6 +100,7 @@ namespace StarPie
             _hostDelegates = hostDelegates;
             _pluginRuntime = pluginRuntime;
             _pluginUi = pluginUi;
+            _navigationSuspension = navigationSuspension;
             _background = background;
 
             // 主题画刷换入经端口回填：整项替换合并字典的活动主题槽；
@@ -203,12 +207,18 @@ namespace StarPie
                         case TraySignalStep.FlushPendingSave:
                             _saveOrchestrator.FlushPendingSave();
                             break;
+                        case TraySignalStep.ReleaseNavigation:
+                            _navigationSuspension.Release();
+                            break;
                         case TraySignalStep.SendMinimized:
                             _messenger.Send(MinimizedToTrayMessage.Instance);
                             break;
                         case TraySignalStep.CollectGarbage:
                             // MemoryOptimizer 内部 Task.Run：GC 后台执行，不占 Send 调用线程。
                             MemoryOptimizer.CollectGarbage();
+                            break;
+                        case TraySignalStep.RestoreNavigation:
+                            _navigationSuspension.Restore();
                             break;
                         case TraySignalStep.SendRestored:
                             _messenger.Send(RestoredFromTrayMessage.Instance);
