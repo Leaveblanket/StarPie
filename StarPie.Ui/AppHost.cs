@@ -210,6 +210,9 @@ namespace StarPie
                         case TraySignalStep.ReleaseNavigation:
                             _navigationSuspension.Release();
                             break;
+                        case TraySignalStep.ReleaseIconCaches:
+                            _iconAssets.ReleaseTransientCaches();
+                            break;
                         case TraySignalStep.SendMinimized:
                             _messenger.Send(MinimizedToTrayMessage.Instance);
                             break;

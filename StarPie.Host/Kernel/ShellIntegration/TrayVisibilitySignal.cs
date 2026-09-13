@@ -14,6 +14,7 @@ namespace StarPie.Kernel.ShellIntegration
     {
         FlushPendingSave,
         ReleaseNavigation,
+        ReleaseIconCaches,
         SendMinimized,
         CollectGarbage,
         RestoreNavigation,
@@ -38,10 +39,10 @@ namespace StarPie.Kernel.ShellIntegration
                     : new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored };
             }
 
-            // 进托盘：固定顺序；后台形态出账动作（落盘/导航出账/GC）禁用，消息照发。
+            // 进托盘：固定顺序；后台形态出账动作（落盘/导航出账/图标缓存/GC）禁用，消息照发。
             return background
                 ? new[] { TraySignalStep.SendMinimized }
-                : new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
+                : new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.ReleaseIconCaches, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
         }
     }
 }

@@ -36,5 +36,10 @@ namespace StarPie.Services.Icons
         /// 解析顺序：快捷方式先解析目标（自定义图标文件优先，其次目标程序自身）→
         /// 直接按文件/目录路径提取 → 文件不存在时退回按属性取系统关联图标。</summary>
         BitmapSource? GetIcon(string path);
+
+        /// <summary>释放瞬态缓存（幂等）：图标列表缓存整体清空、下次消费重建（additive，
+        /// #153 内存分层常驻）。托盘出账路径调用；显示中的位图随导航视图出账自然回收，
+        /// 本服务不长期持有位图。</summary>
+        void ReleaseTransientCaches();
     }
 }
