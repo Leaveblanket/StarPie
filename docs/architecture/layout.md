@@ -23,8 +23,7 @@ StarPie/
 │   ├── GlobalUsings.cs            # 工程级全局 using
 │   ├── StarPie.Ui.csproj          # Ui 集工程文件（#111 起目录/文件名 StarPie.Ui，程序集名仍为 StarPie）
 │   ├── Properties/
-│   │   ├── DesignTimeResources.xaml  # 设计期资源锚（仅设计期合并，见 design-time-preview.md）
-│   │   └── launchSettings.json    # 工程配置；不放源码
+│   │   └── DesignTimeResources.xaml  # 设计期资源锚（仅设计期合并，见 design-time-preview.md）
 │   ├── assets/
 │   │   ├── app_icon.ico           # 应用图标（csproj ApplicationIcon 引用）
 │   │   └── logo.png
@@ -108,7 +107,7 @@ StarPie/
 | `Models/` | `StarPie.Sdk/`（P1.3/#112 迁入）：配置 POCO（`AppConfig`/`WheelProfile`/`ActionItem`/`CustomColorPreset`——AppConfig 引用）与 WPF-free 值类型/纯函数（`RgbColor`/`ColorMath`/`GesturePoint`）；`StarPie.Host/Wheel/`：轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free、命名空间 `StarPie.Wheel`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
 | `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；静态工具需符合 [layering.md](layering.md)（Services） |
 | `Services/Actions/` | 路由纯函数 `ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）驻 `StarPie.Host/Actions/`（WPF-free）；`StarPie.Ui/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`（系统调用层，默认 MessageBox 上报） | 路由决策不得散落 VM/View；实现见 [gestures.md](gestures.md) |
-| `Kernel/Configuration/` | `StarPie.Host/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`AppDataPaths`、`SettingsSaveOrchestrator`（dev 分支经环境变量一次性求值）；`DispatcherSaveDebouncer` 在 `StarPie.Ui/Adapters/` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；内核不得出现 WPF 类型；实现见 [config.md](config.md) |
+| `Kernel/Configuration/` | `StarPie.Host/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`AppDataPaths`、`SettingsSaveOrchestrator`（dev 分支按构建配置编译期定死）；`DispatcherSaveDebouncer` 在 `StarPie.Ui/Adapters/` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；内核不得出现 WPF 类型；实现见 [config.md](config.md) |
 | `Services/Dialogs/` | 契约 `IDialogService` + 结果 record 在 `StarPie.Sdk`；实现 `DialogService` 在 `StarPie.Ui/Services/Dialogs/`（S6 随 P1.10/#119 归并入 Ui，SetOwner 回填装配面） | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View |
 | `Services/Gestures/` | 手势内核 `GestureEngine`（+`GestureState`/`GestureReleaseResult`）与 `IWindowContext`/`WindowContext` 驻 `StarPie.Host/Gestures/`（WPF-free、可 headless 构造）；`StarPie.Ui/Services/Gestures/`：`MouseHook`（Win32 钩子）、`GestureController`（Dispatcher 封送副作用）（`WheelFactory` 属 M2，见 `Services/Wheel/` 行） | 手势判定纯逻辑不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
 | `Services/Icons/` | 契约分层：`IIconAssetService` 在 `StarPie.Sdk.Wpf/Services/Icons/`；条目类型 `CustomIconItem`/`VectorIconItem` 与 .lnk SPI 在 `StarPie.Sdk/Services/Icons/`；WPF 图像构造 `IconAssetService` 在 `StarPie.Ui/Services/Icons/` | 几何/程序解析类入口不在此（归属见 [modules.md](modules.md) §3 S1）；有状态/IO/Win32 面只经实例服务注入 |
@@ -160,7 +159,7 @@ Ui 集工程根（`StarPie.Ui/`）：
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
 - `Composition.cs`：唯一 DI 组合根——三阶段：内置贡献者有序清单注册（导航目录 + 容器描述符）→ `BuildServiceProvider` → `CreateAppHost()` eager 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
 - `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
-- `DevInstance.cs`：开发实例标记——环境变量注入（`STARPIE_INSTANCE=dev`），隔离互斥/配置目录/触发键并保护正式自启项；判定唯一真相在内核 `AppDataPaths`（见 [host.md](host.md)）。
+- `DevInstance.cs`：开发实例标记——Debug 构建即 dev（判定唯一真相在内核 `AppDataPaths`，编译期定死），隔离互斥/配置目录/触发键并保护正式自启项（见 [host.md](host.md)）。
 - `Adapters/`：Ui 侧 WPF 适配器——实现 Host 内核接缝/端口（`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`，把防抖计时绑到 UI 线程，见 [config.md](config.md)；`AppThemePaletteManager` 实现 `IThemeApplier`，整项替换主题调色板，见 [interface-theme.md](interface-theme.md)）。
 - `Services/`：Ui 侧服务实现——`Services/Navigation/`（导航运行时）；`Services/Icons/`
   （图标资产的 WPF 图像构造 `IconAssetService`，实现 `StarPie.Sdk.Wpf` 的 `IIconAssetService`

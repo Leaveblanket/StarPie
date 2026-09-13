@@ -7,7 +7,7 @@ namespace StarPie.Kernel.ShellIntegration
     /// <summary>
     /// 开机自启注册表读写：维护 HKCU Run 键的 StarPie 值（含旧 WinPieGestures 键清理）。
     /// dev 实例绝不改写正式版自启项——dev 判定读 <see cref="AppDataPaths.IsDevInstance"/>，
-    /// 该标记由进程环境变量在类型初始化时一次性求值。
+    /// 该标记按构建配置在编译期定死。
     /// 与 <c>MemoryOptimizer</c> 同属无状态系统调用静态工具，经委托由组合根接线进
     /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表本身）。
     /// </summary>
