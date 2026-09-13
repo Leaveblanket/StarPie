@@ -117,6 +117,11 @@ namespace StarPie
             var pluginRuntime = _provider.GetRequiredService<PluginRuntimeHost>();
             // 插件 UI 托管门面：AppHost 用它合成托盘菜单的插件条目、插件管理页用它呈现设置区块。
             var pluginUi = _provider.GetRequiredService<PluginUiCoordinator>();
+            // 导航视图出账与恢复重放（托盘信号序列的宿主动作；解析点收在组合根）。
+            var navigationSuspension = new NavigationSuspension(
+                _provider.GetRequiredService<NavigationStore>(),
+                navigationCatalog,
+                navigation);
 
             return new AppHost(
                 messenger,
@@ -135,6 +140,7 @@ namespace StarPie
                 _hostDelegates,
                 pluginRuntime,
                 pluginUi,
+                navigationSuspension,
                 background);
         }
 

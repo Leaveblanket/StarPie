@@ -5,15 +5,18 @@ namespace StarPie.Kernel.ShellIntegration
 {
     /// <summary>
     /// 主框架可见性 → 托盘状态信号的纯决策：动作序列即语义——
-    /// 进托盘按固定顺序 FlushPendingSave → 发 MinimizedToTrayMessage（订阅方同步出账）→
-    /// CollectGarbage 后台执行（出账先于 GC）；恢复发 RestoredFromTrayMessage；退出态两者都不发；
+    /// 进托盘按固定顺序 FlushPendingSave → 导航视图出账 → 发 MinimizedToTrayMessage
+    /// （订阅方同步出账）→ CollectGarbage 后台执行（出账先于 GC）；恢复按最后导航槽位
+    /// 重放导航重建视图后发 RestoredFromTrayMessage；退出态两者都不发；
     /// 后台静默形态（--background，e2e）出账动作禁用、消息照发。
     /// </summary>
     public enum TraySignalStep
     {
         FlushPendingSave,
+        ReleaseNavigation,
         SendMinimized,
         CollectGarbage,
+        RestoreNavigation,
         SendRestored,
     }
 
@@ -29,13 +32,16 @@ namespace StarPie.Kernel.ShellIntegration
 
             if (visible)
             {
-                return new[] { TraySignalStep.SendRestored };
+                // 恢复：先按最后导航槽位重放导航重建视图（选中态回灌），再发恢复信号。
+                return background
+                    ? new[] { TraySignalStep.SendRestored }
+                    : new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored };
             }
 
-            // 进托盘：固定顺序；后台形态出账动作（落盘/GC）禁用，消息照发。
+            // 进托盘：固定顺序；后台形态出账动作（落盘/导航出账/GC）禁用，消息照发。
             return background
                 ? new[] { TraySignalStep.SendMinimized }
-                : new[] { TraySignalStep.FlushPendingSave, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
+                : new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
         }
     }
 }

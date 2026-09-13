@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
@@ -84,6 +85,29 @@ namespace StarPie.Views.Navigation
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
             BeginAnimation(Window.OpacityProperty, anim);
+        }
+
+        /// <summary>挂单实例恢复消息钩子：句柄建立后常驻（窗口隐藏到托盘不销毁 HWND）。</summary>
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?
+                .AddHook(MainViewWndProc);
+        }
+
+        /// <summary>单实例恢复消息：外部实例请求置前——经 WPF 显示路径自恢复
+        /// （ShowAndActivate；IsVisible 恢复即触发托盘恢复序列），纯外部 ShowWindow
+        /// 不更新 WPF 的 IsVisible 状态，故必须经本消息驱动。</summary>
+        private IntPtr MainViewWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg != SingleInstanceRestore.MessageId)
+            {
+                return IntPtr.Zero;
+            }
+
+            handled = true;
+            Dispatcher.BeginInvoke(ShowAndActivate);
+            return IntPtr.Zero;
         }
 
         private void Window_Closing(object sender, CancelEventArgs e)
