@@ -219,7 +219,12 @@ def goto(win, slot: int, timeout: float = 5.0):
 
 
 def wait_until(predicate, timeout: float = 5.0, interval: float = 0.1, description: str = "条件成立"):
-    """轮询 predicate 直到返回真值；超时抛带最后取值的断言（替代固定 sleep）。"""
+    """轮询 predicate 直到返回真值；超时抛带最后取值的断言（替代固定 sleep）。
+
+    predicate 抛出的异常按"条件尚未成立"处理——异常文本只进超时诊断，**不得当作成立返回**：
+    断言型 predicate（如 `text_of` 的"控件必须存在"）一抛异常就被吞成通过，会让整条用例
+    在目标不存在时静默变绿。
+    """
     deadline = time.time() + timeout
     last = None
     while True:
@@ -227,8 +232,9 @@ def wait_until(predicate, timeout: float = 5.0, interval: float = 0.1, descripti
             last = predicate()
         except Exception as ex:
             last = f"{type(ex).__name__}: {ex}"
-        if last:
-            return last
+        else:
+            if last:
+                return last
         if time.time() >= deadline:
             raise AssertionError(f"等待「{description}」超时（{timeout}s），最后取值: {last!r}")
         time.sleep(interval)
