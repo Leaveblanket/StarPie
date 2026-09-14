@@ -78,7 +78,7 @@ namespace StarPie
         }
 
         /// <summary>解析全部常驻依赖并创建 <see cref="ShellHost"/>；解析点仍集中在本组合根。</summary>
-        internal ShellHost CreateShellHost(bool background = false)
+        internal ShellHost CreateShellHost(bool background = false, bool testInstance = false)
         {
             // 阶段 3｜解析：时机在配置加载后、ShellHost.Run 前，与贡献者注册顺序无关
             //（页面清单由导航目录驱动，不逐个硬编码页面类型）。
@@ -147,7 +147,8 @@ namespace StarPie
                 pluginUi,
                 navigationSuspension,
                 CreateSettingsConsole,
-                background);
+                background,
+                testInstance);
         }
 
         public void Dispose()
