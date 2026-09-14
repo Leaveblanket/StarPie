@@ -100,8 +100,6 @@ namespace StarPie
 
             // 页面 VM 不再在启动期 eager 解析：它们的作用域是设置台会话，首次进入该页时
             // 由导航执行缝经 ConsolePageSession 构造（见 CreateSettingsConsole）。
-            // 壳层直持的常驻 VM：托盘驻留气泡与提权重启直调的通用 VM（容器单例）。
-            var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
             // 设置台会话缓存：开/结束会话由设置台租户驱动，实例边界是组合根交付的 DI 作用域。
             var pageSession = _provider.GetRequiredService<ConsolePageSession>();
             // 插件运行时（扫描 + 装载/停用/再启用）：由 ShellHost 在启动序列里驱动。
@@ -114,7 +112,7 @@ namespace StarPie
             // 设置台会话工厂：会话级对象图（导航区 VM + 壳区 VM + 会话作用域内的页面/设置子 VM）
             // 在每次开窗时新建，解析仍只发生在组合根——壳层拿到的只是这个闭包。
             // 工厂在构造租户前开启会话作用域（Begin），结束由租户释放时执行（End）。
-            SettingsConsole CreateSettingsConsole(System.Windows.Window anchor)
+            SettingsConsole CreateSettingsConsole(System.Windows.Window anchor, Func<bool> isExiting)
             {
                 pageSession.Begin();
                 IServiceProvider sessionServices = pageSession.Services;
@@ -130,7 +128,8 @@ namespace StarPie
                     messenger,
                     anchor,
                     background,
-                    pageSession);
+                    pageSession,
+                    isExiting);
             }
 
             return new ShellHost(
@@ -143,7 +142,6 @@ namespace StarPie
                 iconAssets,
                 saveOrchestrator,
                 navigation,
-                general,
                 _hostDelegates,
                 pluginRuntime,
                 pluginUi,

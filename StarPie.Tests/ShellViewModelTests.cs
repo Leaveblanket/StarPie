@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Services;
@@ -7,8 +7,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 主框架壳层 VM 的行为覆盖：<see cref="ShellViewModel"/> 的壳层职责——
-/// WindowTitle 随 I18n 刷新并成对退订、IsExiting 退出
-/// 放行置位、Save 落盘请求与成功提示。只测外部行为，直接 new + 替身，不经容器。
+/// WindowTitle 随 I18n 刷新并成对退订、Save 落盘请求与成功提示。
+/// 只测外部行为，直接 new + 替身，不经容器；进程退出态归常驻壳层，不在本 VM。
 /// </summary>
 public sealed class ShellViewModelTests
 {
@@ -20,19 +20,6 @@ public sealed class ShellViewModelTests
         var dialogs = new TestDialogService();
         var vm = new ShellViewModel(messenger, dialogs, Localization);
         return (vm, spy, dialogs);
-    }
-
-    [Fact]
-    public void IsExiting_DefaultsFalse_AndIsSettable()
-    {
-        // App 退出状态归壳层 VM（AppHost 置位、MainView.Closing 读取），View 不反向依赖组合根。
-        var (vm, _, _) = Create();
-
-        Assert.False(vm.IsExiting);
-
-        vm.IsExiting = true;
-
-        Assert.True(vm.IsExiting);
     }
 
     [Fact]

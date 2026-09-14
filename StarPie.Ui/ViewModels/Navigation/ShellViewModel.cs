@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -6,24 +6,21 @@ using CommunityToolkit.Mvvm.Messaging;
 namespace StarPie.ViewModels.Navigation
 {
     /// <summary>
-    /// 主框架壳层 ViewModel：承接主窗口壳层职责——窗口标题
-    /// （<see cref="WindowTitle"/>，随 I18n 语言广播刷新）、退出态（<see cref="IsExiting"/>，
-    /// 主框架 Closing 据此放行真关窗）、保存（<c>Save</c>：立即落盘请求 + 成功提示）。
+    /// 主框架壳层 ViewModel：承接主窗口壳层职责——窗口标题（<see cref="WindowTitle"/>，
+    /// 随 I18n 语言广播刷新）与保存（<c>Save</c>：立即落盘请求 + 成功提示）。
     /// </summary>
     /// <remarks>
     /// <see cref="MainView"/> 按区域分区 DataContext：壳区绑本 VM、导航区绑
-    /// <see cref="MainViewModel"/>；生命周期同主窗口（容器单例，<see cref="IDisposable"/>
-    /// 成对退订本地化静态事件，由 AppHost.Dispose 调用）。
+    /// <see cref="MainViewModel"/>；生命周期同设置台会话（一个会话一份，
+    /// <see cref="IDisposable"/> 成对退订本地化静态事件，随会话作用域释放）。
+    /// 进程退出态不在这里：它归常驻壳层（<see cref="ShellHost"/>）——退出是壳层的编排，
+    /// 设置台只是被关闭。
     /// </remarks>
     public partial class ShellViewModel : ObservableObject, IDisposable
     {
         private readonly IMessenger _messenger;
         private readonly IDialogService _dialogs;
         private readonly ILocalizationService _localization;
-
-        /// <summary>App 级退出进行中（AppHost 在托盘退出时置位）：主框架 Closing
-        /// 据此放行真关窗而非隐藏到托盘。</summary>
-        public bool IsExiting { get; set; }
 
         /// <summary>壳层窗口标题：WindowTitle 键 + DevInstance 标记；语言切换随本 VM 刷新。</summary>
         public string WindowTitle => _localization.GetString("WindowTitle") + DevInstance.Suffix;

@@ -1,6 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.IO;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
@@ -9,8 +7,7 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启、退出/提权重启、托盘驻留气泡提示与
-    /// 配置导入/导出的状态与编排。
+    /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启、提权重启与配置导入/导出的状态与编排。
     /// </summary>
     /// <remarks>
     /// 语言切换写入运行态配置并调用 <see cref="ILocalizationService.SetLanguage"/>；界面文本
@@ -19,13 +16,15 @@ namespace StarPie.ViewModels.Pages
     /// 上报组合根编排的订阅者；配置导入成功发布 <see cref="ConfigImportedMessage"/>，各页面 VM
     /// 订阅后自行重挂（本 VM 亦订阅重挂语言码，并经 <see cref="PageConfigReloadedMessage"/>
     /// 通知页面 View 同步控件）。
+    /// 托盘气泡与提权重启都是壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
+    /// 决策 7）：本 VM 只经 <see cref="AppHostDelegates.ElevateAndRestart"/> 转发触发提权，
+    /// 不自行启动进程、不碰托盘。
     /// </remarks>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
         private AppConfig _config;
         private readonly IDialogService _dialogs;
-        private readonly Action<string, string> _showTrayBalloonTip;
-        private readonly Action _exitApplication;
+        private readonly Action _elevateAndRestart;
         private readonly Func<bool> _isAutoStartEnabled;
         private readonly Action<bool> _setAutoStart;
         private readonly Func<string, bool> _exportConfig;
@@ -33,7 +32,6 @@ namespace StarPie.ViewModels.Pages
         private readonly Func<AppConfig> _currentConfig;
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
-        private readonly Action<string> _startElevated;
         private readonly Func<bool> _isAdministratorProbe;
 
         /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
@@ -55,8 +53,7 @@ namespace StarPie.ViewModels.Pages
         public GeneralSettingsViewModel(
             AppConfig config,
             IDialogService dialogs,
-            Action<string, string> showTrayBalloonTip,
-            Action exitApplication,
+            Action elevateAndRestart,
             Func<bool> isAutoStartEnabled,
             Action<bool> setAutoStart,
             Func<string, bool> exportConfig,
@@ -64,13 +61,11 @@ namespace StarPie.ViewModels.Pages
             Func<AppConfig> currentConfig,
             IMessenger messenger,
             ILocalizationService localization,
-            Action<string>? startElevated = null,
             Func<bool>? isAdministrator = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
-            _showTrayBalloonTip = showTrayBalloonTip ?? throw new ArgumentNullException(nameof(showTrayBalloonTip));
-            _exitApplication = exitApplication ?? throw new ArgumentNullException(nameof(exitApplication));
+            _elevateAndRestart = elevateAndRestart ?? throw new ArgumentNullException(nameof(elevateAndRestart));
             _isAutoStartEnabled = isAutoStartEnabled ?? throw new ArgumentNullException(nameof(isAutoStartEnabled));
             _setAutoStart = setAutoStart ?? throw new ArgumentNullException(nameof(setAutoStart));
             _exportConfig = exportConfig ?? throw new ArgumentNullException(nameof(exportConfig));
@@ -78,7 +73,6 @@ namespace StarPie.ViewModels.Pages
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
-            _startElevated = startElevated ?? StartElevatedProcess;
             _isAdministratorProbe = isAdministrator ?? (() => false);
 
             // 导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
@@ -138,45 +132,11 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        /// <summary>窗口最小化到托盘时的气泡提示；经组合根注入的委托传递，不新建服务。</summary>
-        public void NotifyMinimizedToTray()
-        {
-            _showTrayBalloonTip(
-                "StarPie",
-                "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。");
-        }
-
         /// <summary>
-        /// 以管理员身份重启并退出应用（托盘菜单同样经窗口转发调用）。启动编排经注入委托
-        /// （默认 Process.Start runas）；失败或已取消
-        /// 经 <see cref="GeneralNoticeRequestedMessage"/> 交窗口弹窗，不退出。
+        /// 以管理员身份重启：壳层动作（托盘点选与页面按钮是同一实现），本 VM 只转发触发；
+        /// 失败或用户取消由壳层提示且不退出，故此处无异常分支。
         /// </summary>
-        public void ElevateAndRestart()
-        {
-            try
-            {
-                string exePath = Environment.ProcessPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
-                _startElevated(exePath);
-                _exitApplication();
-            }
-            catch (Exception ex)
-            {
-                _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest("管理员提权", $"提权重启失败或已取消: {ex.Message}", NoticeKind.Warning)));
-            }
-        }
-
-        /// <summary>默认提权启动实现：Process.Start runas 启动；失败/取消以异常表达。</summary>
-        private static void StartElevatedProcess(string exePath)
-        {
-            var startInfo = new ProcessStartInfo
-            {
-                FileName = exePath,
-                UseShellExecute = true,
-                Verb = "runas"
-            };
-
-            Process.Start(startInfo);
-        }
+        public void ElevateAndRestart() => _elevateAndRestart();
 
         /// <summary>导出配置编排：保存对话框 → 导出 → 结果弹窗请求。</summary>
         [RelayCommand]

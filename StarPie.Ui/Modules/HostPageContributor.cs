@@ -38,7 +38,9 @@ namespace StarPie.Modules
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<InterfaceThemeSettingsViewModel>(),
                 sp.GetRequiredService<WheelAppearanceSettingsViewModel>(),
-                sp.GetRequiredService<IIconAssetService>()));
+                sp.GetRequiredService<IIconAssetService>(),
+                // 系统深浅色探针（无状态，实时读注册表键）：页面按值渲染，不经窗口绕行服务。
+                sp.GetRequiredService<Func<bool>>()));
         }
 
         // 外观槽位导航图标 Path Data

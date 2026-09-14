@@ -1,4 +1,4 @@
-# 模块：界面主题
+﻿# 模块：界面主题
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及 AppTheme 配置与解析、状态/切换与系统跟随、
 > XAML 令牌集与整项替换、界面主题设置面与主题应用消息时读本篇。
@@ -34,9 +34,10 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
 DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui）与 S6 对话框侧
-（驻 StarPie.Ui）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；M5 托盘深色
-探针经组合根注入的 `Func<bool>` 委托（Shell 不反向引用 M4）；Ui → 宿主内核 + Sdk.Wpf 单向，
-内核不反向引用 Ui。
+（驻 StarPie.Ui）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；**深浅色消费方一律经
+无状态探针 `Func<bool>`**（ADR-0039 决策 3）：M5 托盘由壳层注入探针，外观页实时预览由
+`ThemeContributor` 登记的 `Func<bool>` 注入外观聚合 VM（页面读 VM 属性取值，不向窗口/壳层绕行，
+也不做服务调用）；Ui → 宿主内核 + Sdk.Wpf 单向，内核不反向引用 Ui。
 
 ## 关键流程
 
@@ -48,12 +49,12 @@ DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui
 2. **整项替换**：`AppThemePaletteManager`（驻 `StarPie.Ui/Adapters/`，实现内核端口）加载/缓存/
    冻结主题字典，把目标调色板**整项替换** Application `MergedDictionaries` 中含 `/Themes/` 的
    活动槽（切 Light 亦整项替换，无直接键残留）。
-3. **宿主编排（H1 放行面）**：`AppHost` 只编排（宿主流程见 [host.md](host.md)）：构造时把
-   Ui 侧调色板适配器接到主题服务（`AttachApplier`），初始主题经
-   `MainView.ApplyAppTheme(_interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用），`Run()` 末尾
-   `EnableSystemThemeTracking()` 启动系统跟随。
+3. **宿主编排（H1 放行面）**：`ShellHost` 只编排（宿主流程见 [host.md](host.md)）：构造时把
+   Ui 侧调色板适配器接到主题服务（`AttachApplier`）；初始主题在设置台开窗时经
+   `MainView.ApplyAppTheme(interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用，子 VM 从
+   设置台会话作用域取），`Run()` 内 `EnableSystemThemeTracking()` 启动系统跟随（进程级主题状态常驻）。
 4. **界面主题设置面（ADR-0014 决策 6/7）**：`InterfaceThemeSettingsViewModel`
-   （`StarPie.Ui/ViewModels/Pages`，DI 单例，由 `ThemeContributor.RegisterServices`
+   （`StarPie.Ui/ViewModels/Pages`，设置台会话作用域，由 `ThemeContributor.RegisterServices`
    注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；写穿配置后发布
    `AppThemeChangedMessage`，由 `MainView` 壳层 code-behind（文件归属见 [shell.md](shell.md)）订阅执行
    `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径

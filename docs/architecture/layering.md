@@ -108,7 +108,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 为**设置台会话作用域**（scoped：同一会话内保留实例使状态跨导航常驻，
-  会话结束整批释放）——暂留常驻的页面（插件管理页、托盘气泡/提权寄居的高级页）注册 singleton；
+  会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
   导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按手势创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
 - 主框架 VM 拆分（D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；目录驱动；运行时主体在
@@ -119,9 +119,9 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或**贡献者注入的委托**编排（托盘气泡、退出、自启、导入导出：
-  `GeneralSettingsViewModel` 模式，M5 页面 VM 由 ShellContributor
-  登记、M1 页面 VM 由 GesturesContributor 登记）；
+- 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡、提权重启与
+  退出是壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
+  M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 GesturesContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`MainViewModel.Dispose`/

@@ -160,11 +160,11 @@ public sealed class MainViewModelTests
             InterfaceTheme = new InterfaceThemeSettingsViewModel(configService, Messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 configService, Dialogs, Messenger, Profiles, Localization);
-            Appearance = new AppearanceSettingsViewModel(Messenger, InterfaceTheme, WheelAppearance, new TestIconAssetService());
+            Appearance = new AppearanceSettingsViewModel(
+                Messenger, InterfaceTheme, WheelAppearance, new TestIconAssetService(), () => false);
             General = new GeneralSettingsViewModel(
                 Config,
                 Dialogs,
-                (_, _) => { },
                 () => { },
                 () => false,
                 _ => { },

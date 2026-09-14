@@ -21,19 +21,33 @@ namespace StarPie.Kernel.ShellIntegration
         SendRestored,
     }
 
-    public static class TrayVisibilitySignal
+    /// <summary>控制台状态变化：设置台开窗 / 关闭——托盘状态信号的输入。</summary>
+    public enum TrayStateChange
     {
-        /// <summary>解析一次可见性变化为有序动作序列（无状态、无副作用；调用方持有全部动作）。</summary>
-        public static IReadOnlyList<TraySignalStep> Resolve(bool visible, bool isExiting, bool background)
+        /// <summary>设置台已打开（按需创建并显示，或关闭后重开）。</summary>
+        ConsoleOpened,
+
+        /// <summary>设置台已关闭（关窗即销毁，托盘驻留由常驻壳层承担）。</summary>
+        ConsoleClosed,
+    }
+
+    public static class TrayStateSignal
+    {
+        /// <summary>解析一次控制台状态变化为有序动作序列（无状态、无副作用；调用方持有全部动作）。</summary>
+        /// <remarks>
+        /// 输入是**控制台开/关**而不是窗口可见性：设置台是瞬态窗口，新建窗口首次 <c>Show()</c>
+        /// 同样产生可见性变化，按可见性判读会把"首次打开"误判成"从托盘恢复"。
+        /// </remarks>
+        public static IReadOnlyList<TraySignalStep> Resolve(TrayStateChange change, bool isExiting, bool background)
         {
             if (isExiting)
             {
                 return Array.Empty<TraySignalStep>();
             }
 
-            if (visible)
+            if (change == TrayStateChange.ConsoleOpened)
             {
-                // 恢复：先按最后导航槽位重放导航重建视图（选中态回灌），再发恢复信号。
+                // 重开：先按最后导航槽位重放导航重建视图（选中态回灌），再发恢复信号。
                 return background
                     ? new[] { TraySignalStep.SendRestored }
                     : new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored };

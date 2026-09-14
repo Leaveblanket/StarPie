@@ -17,22 +17,24 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 - `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；
   `[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
-  `StarPie.Host/Kernel/ShellIntegration/TrayVisibilitySignal.cs`（托盘状态信号纯决策）——
+  `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
+  `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）——
   命名空间均为 `StarPie.Kernel.ShellIntegration`。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
 - `StarPie.Ui/Modules/ShellContributor.cs` + `ShellPageTemplates.xaml`（M5 贡献者与
   页面模板字典，自报导航项/模板并登记页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
-- SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出，
-  P1.3/#112 收口；见 [host.md](host.md)）。
+- SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（提权重启为现役委托面；
+  托盘气泡/退出自 M3 起由壳层直接呈现与执行，属性保留为契约面，P1.3/#112 收口；见 [host.md](host.md)）。
 
 M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie.Ui/Services/Shell/`
 （命名空间 `StarPie.Services.Shell`；主题引擎 `ThemeEngine` 在宿主内核，见
 [interface-theme.md](interface-theme.md)），不在 M5；各业务目录不跨模块登记。
 
-- `ViewModels/Navigation/ShellViewModel.cs`（D3：Host 壳窗口壳层 VM——`WindowTitle`/`IsExiting`/`Save()`；
-  归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4）。
+- `ViewModels/Navigation/ShellViewModel.cs`（D3：Host 壳窗口壳层 VM——`WindowTitle`/`Save()`；
+  归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4。进程退出态归**壳层**
+  （`ShellHost`），不寄居在本 VM：退出是壳层编排，设置台只是被关闭）。
 - `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml`
   为纯壳——页面 DataTemplate 在 App 级模块页面模板字典（M1/M5 随归并入 `StarPie.Ui/Modules/`，
   Host 外观聚合页同在 `StarPie.Ui/Modules/`，见 [navigation.md](navigation.md)），
@@ -51,7 +53,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
    （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
    已整体删除，设置页手动"内存整理"入口与四语言文案已移除（不留"留作诊断"死路径，
-   需要时从 git 历史恢复）。自动触发点经 `TrayVisibilitySignal` 有序决策编排：App 启动兜底
+   需要时从 git 历史恢复）。自动触发点经 `TrayStateSignal` 有序决策编排（输入是设置台开/关）：App 启动兜底
    force（轮盘预热之后，#150）与进托盘（非后台）——进托盘固定顺序
    `FlushPendingSave → 导航视图出账（#152）→ 图标缓存出账（#153）→ 发 MinimizedToTrayMessage →
    CollectGarbage 后台执行`，恢复按最后导航槽位重放导航后发 `RestoredFromTrayMessage`；
@@ -69,13 +71,14 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    → 排空 Dispatcher → `Application.MainWindow` 回退常驻锚窗口），`SettingsConsole` 另解绑对话框 Owner。
    `App.xaml` 因此设 `ShutdownMode="OnExplicitShutdown"`（关窗不等于退出进程）。
    `MainView` 壳层 code-behind 只剩淡入`ShowAndActivate`、主题应用与深色探测（ADR-0009 白名单第 3/5 条）；
-   壳层成员（`WindowTitle`/`IsExiting`/`Save()`）在 `ShellViewModel`（D3：Host 壳窗口 VM，H1，随设置台会话生灭），
+   壳层成员（`WindowTitle`/`Save()`）在 `ShellViewModel`（D3：Host 壳窗口 VM，H1，随设置台会话生灭），
    `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
    `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
-5. **高级设置面**：导入/导出、自启开关、托盘气泡与退出等宿主接线经
-   SDK 契约 `AppHostDelegates` 转发（贡献者只依赖 SDK，壳层回填实现，
-   见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
-   （`AdvancedSettingsPage` 示例）。
+5. **高级设置面**：导入/导出与自启开关在贡献者接线（本模块静态行为）；**托盘气泡与提权重启
+   归壳层**——气泡由壳层在进托盘时报出，提权由壳层执行（`Process.Start runas` + 退出，失败以
+   气泡提示且不退出），页面按钮只经 SDK 契约 `AppHostDelegates.ElevateAndRestart` 转发触发
+   （贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；页面绑定规范见
+   [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
 
 ## 扩展点
 

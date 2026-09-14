@@ -1,4 +1,4 @@
-# 模块划分地图（模块地图）
+﻿# 模块划分地图（模块地图）
 
 > 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：模块清单、职责、归属裁定、扩展点验收与模块化候选。
 
@@ -229,10 +229,10 @@
 
 ### D3 MainViewModel / ShellViewModel 拆分（ADR-0016）
 
-原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`IsExiting`、`Save()`）借调 M5，类型级双职责例外。
+原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`Save()`）借调 M5，类型级双职责例外。
 
 ADR-0016 决策 7：`MainViewModel` 收敛为纯导航；壳成员迁出为
-`ShellViewModel`（`WindowTitle`/`IsExiting`/`Save()`，留 Host 壳窗口，与 R4 同判据）；
+`ShellViewModel`（`WindowTitle`/`Save()`，留 Host 壳窗口，与 R4 同判据；进程退出态归壳层）；
 `MainView` 分区 DataContext（导航区绑导航 VM、壳区绑壳 VM）；目录驱动——MainViewModel
 无页面类型硬编码，导航项来自 `NavigationCatalog` 模块注册。
 **物理落点修订**：ADR-0016 决策 7 中"MainViewModel 随 S5 导航内核进

@@ -37,6 +37,8 @@ namespace StarPie
         private readonly IMessenger _messenger;
         private readonly Window _anchor;
         private readonly bool _background;
+        // 退出态探针：退出态归常驻壳层（设置台只是被关闭；Shutdown 触发的关窗不得走托盘态出账序列）。
+        private readonly Func<bool> _isExiting;
         private MainView? _view;
         private bool _disposed;
 
@@ -55,7 +57,8 @@ namespace StarPie
             IMessenger messenger,
             Window anchor,
             bool background,
-            ConsolePageSession pageSession)
+            ConsolePageSession pageSession,
+            Func<bool> isExiting)
         {
             _main = main;
             _shell = shell;
@@ -69,6 +72,7 @@ namespace StarPie
             _anchor = anchor;
             _background = background;
             _pageSession = pageSession;
+            _isExiting = isExiting ?? throw new ArgumentNullException(nameof(isExiting));
         }
 
         /// <summary>
@@ -87,13 +91,21 @@ namespace StarPie
             view.Show();
             view.WindowState = WindowState.Normal;
             view.Activate();
+            RunTraySequence(TrayStateChange.ConsoleOpened);
         }
 
         /// <summary>显示并激活（托盘直达/单实例恢复）：已开着走淡入激活，否则先建后显示。</summary>
         public void ShowAndActivate()
         {
             MainView view = EnsureView();
+            bool wasOpen = view.IsVisible;
             view.ShowAndActivate();
+
+            // 已开着的窗口再激活不是"重开"：重复发恢复序列会把用户点选的页重放回上次停驻页。
+            if (!wasOpen)
+            {
+                RunTraySequence(TrayStateChange.ConsoleOpened);
+            }
         }
 
         /// <summary>创建窗口并完成接线（幂等：窗口已存在时直接返回）。</summary>
@@ -112,10 +124,6 @@ namespace StarPie
             {
                 ConfigureBackgroundWindow(view);
             }
-
-            // 托盘状态信号：可见性变化 → 有序动作（进入托盘态 Flush → 导航出账 → 图标缓存出账
-            // → Minimized 消息；重开按最后导航槽位重放导航；退出态不发；后台形态出账禁用、消息照发）。
-            view.IsVisibleChanged += OnViewVisibilityChanged;
 
             // 关窗即租户生命期结束：任何关窗路径（关闭按钮、Alt+F4、WM_CLOSE、进程退出）都收敛到 Closed，
             // 在此完成窗口收尾与 VM 树释放——否则壳层持有的设置台引用会停在已关闭窗口上，
@@ -140,24 +148,15 @@ namespace StarPie
             return view;
         }
 
-        /// <summary>退出编排置位：进程退出中的关窗不走托盘态出账序列。</summary>
-        public void MarkExiting()
+        /// <summary>
+        /// 托盘状态信号：设置台开/关 → 有序动作（关闭走 Flush → 导航出账 → 图标缓存出账 →
+        /// Minimized 消息 → GC；重开按最后导航槽位重放导航；退出态不发；后台形态出账禁用、消息照发）。
+        /// 输入是控制台开/关而非窗口可见性：设置台是瞬态窗口，新建窗口首次 Show() 也产生可见性变化，
+        /// 按可见性判读会把"首次打开"误判成"从托盘恢复"。
+        /// </summary>
+        private void RunTraySequence(TrayStateChange change)
         {
-            if (_shell is { } shell)
-            {
-                shell.IsExiting = true;
-            }
-        }
-
-        private void OnViewVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (_view is not { } view)
-            {
-                return;
-            }
-
-            foreach (TraySignalStep step in TrayVisibilitySignal.Resolve(
-                view.IsVisible, _shell?.IsExiting ?? true, _background))
+            foreach (TraySignalStep step in TrayStateSignal.Resolve(change, _isExiting(), _background))
             {
                 switch (step)
                 {
@@ -207,12 +206,12 @@ namespace StarPie
 
             _view = null;
             view.Closed -= OnViewClosed;
-            view.IsVisibleChanged -= OnViewVisibilityChanged;
             _dialogs.SetOwner(null);
 
-            // 会话作用域即将释放：宿主侧状态不得滞留会话内页面 VM。
-            // 正常关窗由托盘状态信号出账；退出态与后台静默形态不走出账动作，此处兜底出账——
-            // 否则导航状态会指着已释放的页面 VM，重开时"同类型已停驻"短路会让页面渲染已释放实例。
+            // 关闭序列先于窗口收尾与会话释放执行：落盘冲刷与导航出账都要求会话内页面 VM 还在
+            //（顺序即语义，见 TrayStateSignal）；退出态与后台静默形态不走出账动作，此处兜底出账，
+            // 否则导航状态会滞留已随会话释放的页面 VM，重开时"同类型已停驻"短路会让页面渲染已释放实例。
+            RunTraySequence(TrayStateChange.ConsoleClosed);
             _navigationSuspension.Release();
 
             // 瞬态窗口收尾纪律集中一处：清动画 → 丢弃内容与 DataContext → Close →

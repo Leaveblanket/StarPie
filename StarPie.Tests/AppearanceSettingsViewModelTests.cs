@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.ViewModels.Wheel;
@@ -45,6 +45,9 @@ public sealed class AppearanceSettingsViewModelTests
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }
         public AppearanceSettingsViewModel Vm { get; }
 
+        /// <summary>深浅色探针替身：由用例设定返回值，页面按值渲染。</summary>
+        public bool WindowsInDarkMode { get; set; }
+
         public Harness(AppConfig? config = null)
         {
             ConfigService = new TestConfigService { Current = config ?? new AppConfig() };
@@ -58,7 +61,12 @@ public sealed class AppearanceSettingsViewModelTests
             InterfaceTheme = new InterfaceThemeSettingsViewModel(ConfigService, messenger, Localization);
             WheelAppearance = new WheelAppearanceSettingsViewModel(
                 ConfigService, Dialogs, messenger, ProfileList, Localization);
-            Vm = new AppearanceSettingsViewModel(messenger, InterfaceTheme, WheelAppearance, new TestIconAssetService());
+            Vm = new AppearanceSettingsViewModel(
+                messenger,
+                InterfaceTheme,
+                WheelAppearance,
+                new TestIconAssetService(),
+                () => WindowsInDarkMode);
         }
     }
 

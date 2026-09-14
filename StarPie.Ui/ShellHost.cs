@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
@@ -42,8 +43,6 @@ namespace StarPie
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         // 目录执行缝按槽位导航——壳层不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
-        // 通用分区 VM：托盘驻留气泡由壳层直调（文案与编排仍在 VM）。
-        private readonly GeneralSettingsViewModel _general;
         private readonly AppHostDelegates _hostDelegates;
         // 插件 UI 托管：托盘/设置面的插件条目由它提供（无插件时为空，菜单与设置面不出现空壳）。
         private readonly PluginUiCoordinator _pluginUi;
@@ -52,7 +51,7 @@ namespace StarPie
         private readonly PluginRuntimeHost _pluginRuntime;
         // 设置台工厂：组合根交付，按需产出一次性设置台租户（对象图解析仍收在组合根）；
         // 参数是常驻锚窗口——设置台关闭时把 Application.MainWindow 回退给它。
-        private readonly Func<Window, SettingsConsole> _createSettingsConsole;
+        private readonly Func<Window, Func<bool>, SettingsConsole> _createSettingsConsole;
         // 导航视图出账与恢复重放（设置台关闭时出账、重开时按最后导航槽位重放；幂等）。
         private readonly NavigationSuspension _navigationSuspension;
         // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
@@ -60,6 +59,8 @@ namespace StarPie
         private readonly bool _background;
         // 常驻锚窗口：永不显示，专门长期持有 Application.MainWindow。
         private readonly ShellAnchorWindow _anchor;
+        // 退出态：进程退出编排归壳层（设置台关闭不是退出；退出时的关窗不走托盘态出账序列）。
+        private bool _isExiting;
         private TrayIconManager? _trayIcon;
         private SettingsConsole? _settingsConsole;
         // 托盘消息窗口上的恢复消息钩子（常驻；释放时成对摘除）。
@@ -75,12 +76,11 @@ namespace StarPie
             IIconAssetService iconAssets,
             SettingsSaveOrchestrator saveOrchestrator,
             INavigationExecutor navigation,
-            GeneralSettingsViewModel general,
             AppHostDelegates hostDelegates,
             PluginRuntimeHost pluginRuntime,
             PluginUiCoordinator pluginUi,
             NavigationSuspension navigationSuspension,
-            Func<Window, SettingsConsole> createSettingsConsole,
+            Func<Window, Func<bool>, SettingsConsole> createSettingsConsole,
             bool background = false)
         {
             _messenger = messenger;
@@ -92,7 +92,6 @@ namespace StarPie
             _iconAssets = iconAssets;
             _saveOrchestrator = saveOrchestrator;
             _navigation = navigation;
-            _general = general;
             _hostDelegates = hostDelegates;
             _pluginRuntime = pluginRuntime;
             _pluginUi = pluginUi;
@@ -113,6 +112,7 @@ namespace StarPie
             // 退出动作指向本壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
+            _hostDelegates.ElevateAndRestart = ElevateAndRestart;
 
             // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
             _dialogService.SetBackgroundMode(background);
@@ -183,8 +183,10 @@ namespace StarPie
             _localization.LanguageChanged += RefreshTrayTooltip;
             ApplyLanguageDictionary();
 
-            // 托盘驻留气泡：壳层订阅消息后直调通用 VM（文案与编排仍在 VM）。
-            _messenger.Register<MinimizedToTrayMessage>(this, (_, _) => _general?.NotifyMinimizedToTray());
+            // 托盘驻留气泡：壳层动作（不是设置页职责）——设置台的页面 VM 是会话内的、此刻也可能没开，
+            // 气泡一律由壳层直接呈现。
+            _messenger.Register<MinimizedToTrayMessage>(this, (_, _) =>
+                ShowTrayBalloonTip("StarPie", MinimizedToTrayBalloonText));
 
             // 设置台会话（页面 VM 与设置台 VM 的宿主）先于初始导航建立：
             // 页面 VM 只存在于设置台会话内，导航执行缝在无会话时会拒绝解析。
@@ -320,7 +322,7 @@ namespace StarPie
             if (current is not { IsOpen: true })
             {
                 current?.Dispose();
-                current = _createSettingsConsole(_anchor);
+                current = _createSettingsConsole(_anchor, () => _isExiting);
                 _settingsConsole = current;
             }
 
@@ -369,7 +371,7 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), () => _general?.ElevateAndRestart()));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), ElevateAndRestart));
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
@@ -420,23 +422,65 @@ namespace StarPie
 
         private string DefaultTooltip => _localization.GetString("TrayTooltip") + DevInstance.Suffix;
 
-        private void ExitApplication()
+        /// <summary>最小化到托盘的驻留气泡文案（壳层动作，不经页面 VM）。</summary>
+        private const string MinimizedToTrayBalloonText = "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。";
+
+        /// <summary>
+        /// 以管理员身份重启并退出（托盘点选与设置页提权按钮的同一实现）：提权是壳层动作，
+        /// 页面只经 <see cref="AppHostDelegates.ElevateAndRestart"/> 转发触发。
+        /// 失败或用户取消 UAC 时不退出，以托盘气泡提示（无设置台时也可读）。
+        /// </summary>
+        private void ElevateAndRestart()
         {
             try
             {
-                // 退出前兜底落盘：直调编排订阅者冲刷挂起防抖并立即落盘。
-                _saveOrchestrator.FlushPendingSave();
+                string exePath = Environment.ProcessPath
+                    ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = exePath,
+                    UseShellExecute = true,
+                    Verb = "runas",
+                });
             }
-            catch { }
-
-            if (_trayIcon != null)
+            catch (Exception ex)
             {
-                DisposeTray();
+                ShowTrayBalloonTip("StarPie", $"提权重启失败或已取消: {ex.Message}");
+                return;
             }
 
-            // 退出态：进程退出中的关窗不走托盘态出账序列（设置台租户随之销毁）。
-            _settingsConsole?.MarkExiting();
-            Application.Current.Shutdown();
+            ExitApplication();
+        }
+
+        /// <summary>
+        /// 托盘退出：按 <see cref="ShellExitSequence"/> 的固定顺序执行（落盘 → 释壳 → 应用关闭）。
+        /// 不依赖设置台是否存在——无控制台时同样走完（退出态先置位，Shutdown 触发的关窗不再走
+        /// 托盘态出账序列，设置台租户随之销毁）；互斥体与容器的释放由 `App.OnExit` 收尾。
+        /// </summary>
+        private void ExitApplication()
+        {
+            foreach (ShellExitStep step in ShellExitSequence.Resolve())
+            {
+                switch (step)
+                {
+                    case ShellExitStep.FlushPendingSave:
+                        try
+                        {
+                            // 兜底落盘：直调编排订阅者冲刷挂起防抖并立即落盘。
+                            _saveOrchestrator.FlushPendingSave();
+                        }
+                        catch { }
+                        break;
+                    case ShellExitStep.ReleaseTray:
+                        DisposeTray();
+                        break;
+                    case ShellExitStep.ShutdownApplication:
+                        // 退出态先置位：Shutdown 触发的关窗不走托盘态出账序列。
+                        _isExiting = true;
+                        Application.Current.Shutdown();
+                        break;
+                }
+            }
         }
     }
 }
