@@ -220,7 +220,9 @@ namespace StarPie
         }
 
         /// <summary>启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时
-        /// 生效口径，被运行时钳制时以此记录为准；预算值 256 MiB 见 runtimeconfig.template.json）。</summary>
+        /// 生效口径，被运行时钳制时以此记录为准；预算值 256 MiB 见 runtimeconfig.template.json）。
+        /// 生效值经 <see cref="Debug.WriteLine(string)"/> 记载，只在 Debug 构建/附加调试器时可见
+        /// ——正式版核对以产物 StarPie.runtimeconfig.json 的 configProperties 为准。</summary>
         private static void RunStartupMemoryHousekeeping()
         {
             if (GC.GetConfigurationVariables().TryGetValue("GCHeapHardLimit", out object? hardLimit))

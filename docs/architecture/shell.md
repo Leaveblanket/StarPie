@@ -59,7 +59,11 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    CollectGarbage 后台执行`，恢复按最后导航槽位重放导航后发 `RestoredFromTrayMessage`；
    后台静默形态（e2e）出账动作禁用、消息照发。GC 堆预算由
    `StarPie.Ui/runtimeconfig.template.json` 的 `System.GC.HeapHardLimit`（256 MiB）约束，
-   逼近上限时 GC 自行提升回收激进度；生效值由启动日志（`GC.GetConfigurationVariables`）记录。
+   逼近上限时 GC 自行提升回收激进度；声明面与编译产物由 `MemoryResidencyTests` 双断言锁定，
+   运行时生效值以 `GC.GetConfigurationVariables` 为口径经 `Debug.WriteLine` 记载——
+   **只在 Debug 构建/附加调试器时可见**（`Debug` 日志调用在 Release 构建被编译期整体移除，
+   实测该字面量在 Release 产物中不存在），正式版核对以产物 `StarPie.runtimeconfig.json`
+   的 `configProperties` 为准。
 3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入

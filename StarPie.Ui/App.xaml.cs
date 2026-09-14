@@ -81,7 +81,7 @@ namespace StarPie
                 bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
                 _shellHost = _composition.CreateShellHost(isBackground);
                 _shellHost.Run();
-                // 启动兜底内存整理与堆硬顶生效值日志在 ShellHost 启动编排末尾执行（预热之后，#150）
+                // 启动兜底内存整理（含 Debug 构建的堆硬顶生效值日志）在 ShellHost 启动编排末尾执行（预热之后，#150）
             }
             catch (Exception ex)
             {
