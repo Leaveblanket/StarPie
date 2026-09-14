@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Services;
@@ -67,6 +67,9 @@ namespace StarPie.ViewModels.Pages
         {
             if (_disposed) return;
             _disposed = true;
+            _messenger.UnregisterAll(this);
+            // 两个设置子 VM 与聚合页同作用域：作用域释放会各自 Dispose，此处显式释放保证
+            // 聚合页被单独释放（测试/显式路径）时子 VM 也成对退订；重复 Dispose 幂等。
             InterfaceTheme.Dispose();
             WheelAppearance.Dispose();
         }

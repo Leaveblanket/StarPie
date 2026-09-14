@@ -1,4 +1,4 @@
-# 分层与依赖规范
+﻿# 分层与依赖规范
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；写代码前需要核对“谁可以引用谁、类型可见性、Model/Service/VM/View 各自边界”时读本篇。
 
@@ -101,12 +101,16 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
   有状态/IO/Win32 = 实例服务」判据的统一表述。
-- 服务注册以单例为主；页面 VM 单例、轮盘 VM 按手势瞬态创建（见 [gestures.md](gestures.md)/[wheel.md](wheel.md)）。
+- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按手势瞬态创建
+  （见 [gestures.md](gestures.md)/[wheel.md](wheel.md)）。
 
 ## ViewModels
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
-- **生命周期注册**：页面 VM 容器单例（状态跨导航常驻）；轮盘 VM 按手势创建、不注册；对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
+- **生命周期注册**：页面 VM 为**设置台会话作用域**（scoped：同一会话内保留实例使状态跨导航常驻，
+  会话结束整批释放）——暂留常驻的页面（插件管理页、托盘气泡/提权寄居的高级页）注册 singleton；
+  导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按手势创建、不注册；
+  对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
 - 主框架 VM 拆分（D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；目录驱动；运行时主体在
   Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与
   `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区 DataContext 的
@@ -120,8 +124,9 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   登记、M1 页面 VM 由 GesturesContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
-- 订阅 `I18n.LanguageChanged`/messenger 的 VM（壳层与驻留文案持有者）必须成对退订（`MainViewModel.Dispose`/
-  `ShellViewModel.Dispose` 模式）。
+- 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`MainViewModel.Dispose`/
+  `ShellViewModel.Dispose` 模式；页面 VM 随设置台会话释放，退订在 `Dispose` 内执行，
+  messenger 侧另有 `UnregisterAll(this)` 显式出账）。
 
 官方 API：
 

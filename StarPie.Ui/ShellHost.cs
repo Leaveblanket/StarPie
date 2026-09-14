@@ -42,9 +42,6 @@ namespace StarPie
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         // 目录执行缝按槽位导航——壳层不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
-        // 界面主题设置子 VM：设置台开窗时读取 AppTheme 做初始主题应用；
-        // 运行时变更经 AppThemeChangedMessage 由主框架订阅执行。
-        private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
         // 通用分区 VM：托盘驻留气泡由壳层直调（文案与编排仍在 VM）。
         private readonly GeneralSettingsViewModel _general;
         private readonly AppHostDelegates _hostDelegates;
@@ -78,7 +75,6 @@ namespace StarPie
             IIconAssetService iconAssets,
             SettingsSaveOrchestrator saveOrchestrator,
             INavigationExecutor navigation,
-            InterfaceThemeSettingsViewModel interfaceTheme,
             GeneralSettingsViewModel general,
             AppHostDelegates hostDelegates,
             PluginRuntimeHost pluginRuntime,
@@ -96,7 +92,6 @@ namespace StarPie
             _iconAssets = iconAssets;
             _saveOrchestrator = saveOrchestrator;
             _navigation = navigation;
-            _interfaceTheme = interfaceTheme;
             _general = general;
             _hostDelegates = hostDelegates;
             _pluginRuntime = pluginRuntime;
@@ -191,6 +186,10 @@ namespace StarPie
             // 托盘驻留气泡：壳层订阅消息后直调通用 VM（文案与编排仍在 VM）。
             _messenger.Register<MinimizedToTrayMessage>(this, (_, _) => _general?.NotifyMinimizedToTray());
 
+            // 设置台会话（页面 VM 与设置台 VM 的宿主）先于初始导航建立：
+            // 页面 VM 只存在于设置台会话内，导航执行缝在无会话时会拒绝解析。
+            SettingsConsole console = EnsureSettingsConsole();
+
             // 初始页为“触发与场景”槽位。
             _navigation.Navigate(NavigationSlot.Trigger);
 
@@ -209,7 +208,7 @@ namespace StarPie
             _restoreMessageHook = OnResidentWindowMessage;
             _trayIcon.AddHook(_restoreMessageHook);
 
-            ShowSettingsConsole(activate: false);
+            console.Show();
 
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
             // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
@@ -311,18 +310,27 @@ namespace StarPie
         /// 显示设置台（未创建则创建）：<paramref name="activate"/> 为真时走淡入激活
         ///（托盘直达/单实例恢复），为假时按启动呈现。关闭后的设置台在此重建。
         /// </summary>
-        private SettingsConsole ShowSettingsConsole(bool activate)
+        /// <summary>
+        /// 取当前设置台（未开则新建）：设置台是瞬态租户，已关闭（或从未创建）时新建会话，
+        /// 已关闭的旧会话先出账。会话作用域（页面 VM 的宿主）在此开启。
+        /// </summary>
+        private SettingsConsole EnsureSettingsConsole()
         {
-            // 设置台是瞬态租户：已关闭（或从未创建）时新建会话，已关闭的旧会话先出账。
-            SettingsConsole? stale = _settingsConsole;
-            if (stale is not { IsOpen: true })
+            SettingsConsole? current = _settingsConsole;
+            if (current is not { IsOpen: true })
             {
-                stale?.Dispose();
-                stale = _createSettingsConsole(_anchor);
-                _settingsConsole = stale;
+                current?.Dispose();
+                current = _createSettingsConsole(_anchor);
+                _settingsConsole = current;
             }
 
-            SettingsConsole console = stale;
+            return current;
+        }
+
+        /// <summary>显示设置台：<paramref name="activate"/> 为真时走淡入激活（托盘直达/单实例恢复）。</summary>
+        private SettingsConsole ShowSettingsConsole(bool activate)
+        {
+            SettingsConsole console = EnsureSettingsConsole();
             if (activate)
             {
                 console.ShowAndActivate();
@@ -337,7 +345,8 @@ namespace StarPie
 
         /// <summary>
         /// 按目录槽位导航 + 显示设置台并激活（托盘直达）：先开设置台再导航——
-        /// 开窗会先按最后导航槽位重放（恢复序列），重放之后的目标槽位才是用户点选的页。
+        /// 开窗会先按最后导航槽位重放（恢复序列），重放之后的目标槽位才是用户点选的页；
+        /// 页面 VM 只存在于设置台会话内，故导航必须在会话建立之后。
         /// </summary>
         private void NavigateAndShow(NavigationSlot slot)
         {

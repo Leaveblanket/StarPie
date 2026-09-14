@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Services;
@@ -40,6 +40,8 @@ namespace StarPie.Modules
         /// 注册本模块页面 VM（容器单例）：高级与系统页。工厂经 ServiceProvider
         /// 惰性解析共享内核件（配置/对话框/本地化/消息与 AppHostDelegates）；开机自启/提权探测
         /// 等本模块内静态行为在此接线，VM 保持委托注入可测。
+        /// 本页暂留常驻（托盘驻留气泡与提权重启由本页 VM 承担，属常驻职责的临时寄居；
+        /// 两项职责迁入壳层后本页随设置台会话作用域，见 issue #158）。
         /// </summary>
         public void RegisterServices(IServiceCollection services)
         {

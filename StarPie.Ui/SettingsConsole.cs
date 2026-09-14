@@ -19,13 +19,16 @@ namespace StarPie
     /// 常驻职责不寄居在本对象上：托盘、手势、单实例接收、退出编排都在常驻壳层
     /// （<see cref="ShellHost"/>）。本对象只承担设置台一段生命期：开窗（含初始主题、对话框 Owner
     /// 绑定、托盘状态信号接线）与关窗收尾（对话框 Owner 解绑 → 成对退订 → 瞬态窗口收尾 →
-    /// 释放 VM 树）。关闭即销毁、重开重建：关窗后本对象、窗口与 VM 树一起不可达。
+    /// 释放 VM 树与会话作用域）。关闭即销毁、重开重建：关窗后本对象、窗口、VM 树与会话内的
+    /// 页面 VM 一起不可达（会话作用域由组合根交付的工厂开启，由本对象结束）。
     /// </remarks>
     public sealed class SettingsConsole : IDisposable
     {
         private MainViewModel? _main;
         private ShellViewModel? _shell;
         private readonly IThemeService _themeService;
+        // 设置台会话作用域：页面 VM 与设置台会话级 VM 的实例边界；释放时结束会话（整批释放）。
+        private readonly ConsolePageSession _pageSession;
         private readonly DialogService _dialogs;
         private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
@@ -51,7 +54,8 @@ namespace StarPie
             NavigationSuspension navigationSuspension,
             IMessenger messenger,
             Window anchor,
-            bool background)
+            bool background,
+            ConsolePageSession pageSession)
         {
             _main = main;
             _shell = shell;
@@ -64,6 +68,7 @@ namespace StarPie
             _messenger = messenger;
             _anchor = anchor;
             _background = background;
+            _pageSession = pageSession;
         }
 
         /// <summary>
@@ -205,6 +210,11 @@ namespace StarPie
             view.IsVisibleChanged -= OnViewVisibilityChanged;
             _dialogs.SetOwner(null);
 
+            // 会话作用域即将释放：宿主侧状态不得滞留会话内页面 VM。
+            // 正常关窗由托盘状态信号出账；退出态与后台静默形态不走出账动作，此处兜底出账——
+            // 否则导航状态会指着已释放的页面 VM，重开时"同类型已停驻"短路会让页面渲染已释放实例。
+            _navigationSuspension.Release();
+
             // 瞬态窗口收尾纪律集中一处：清动画 → 丢弃内容与 DataContext → Close →
             // 排空 Dispatcher → 主窗口属性回退到常驻锚窗口；随后丢弃强引用。
             TransientWindowTeardown.Complete(view, _anchor, alreadyClosed);
@@ -227,6 +237,8 @@ namespace StarPie
             _shell?.Dispose();
             _main = null;
             _shell = null;
+            // 结束会话作用域：会话内的页面 VM 与设置子 VM 随作用域释放（成对退订在此执行）。
+            _pageSession.End();
         }
 
         // ==== 后台/静默模式（--background，e2e 用）====

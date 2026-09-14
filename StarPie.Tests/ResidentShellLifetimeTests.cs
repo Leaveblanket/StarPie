@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using Microsoft.Extensions.DependencyInjection;
 using System.Windows.Media;
 using System.Windows.Threading;
 using StarPie.Services.Programs;
@@ -79,10 +80,30 @@ public sealed class ResidentShellLifetimeTests
         public IReadOnlyList<ProgramEntry> ScanInstalledPrograms() => Array.Empty<ProgramEntry>();
     }
 
-    /// <summary>固定页解析替身：设置台夹具不经容器（本用例不触发导航，解析不会被调用）。</summary>
-    private sealed class NullServiceProvider : IServiceProvider
+    /// <summary>夹具页面 VM：会话作用域内的唯一解析目标。</summary>
+    private sealed class TriggerPageViewModel : System.ComponentModel.INotifyPropertyChanged
     {
-        public object? GetService(Type serviceType) => null;
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+        public void Raise() => PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(null));
+    }
+
+    /// <summary>会话作用域替身：只解析夹具的页面 VM（夹具不经容器）。</summary>
+    private static IServiceScope NewSessionScope() => new FixtureScope();
+
+    private sealed class FixtureScope : IServiceScope
+    {
+        public IServiceProvider ServiceProvider { get; } = new FixtureServiceProvider();
+
+        public void Dispose() { }
+    }
+
+    private sealed class FixtureServiceProvider : IServiceProvider
+    {
+        private readonly TriggerPageViewModel _page = new();
+
+        public object? GetService(Type serviceType)
+            => serviceType == typeof(TriggerPageViewModel) ? _page : null;
     }
 
     private sealed class FakeThemeService : IThemeService
@@ -109,6 +130,8 @@ public sealed class ResidentShellLifetimeTests
         public required DialogService Dialogs { get; init; }
         public required MainViewModel MainViewModel { get; init; }
         public required ShellViewModel ShellViewModel { get; init; }
+        public required NavigationStore Store { get; init; }
+        public required INavigationExecutor Navigation { get; init; }
     }
 
     private static ConsoleFixture CreateFixture()
@@ -119,12 +142,14 @@ public sealed class ResidentShellLifetimeTests
         var messenger = TestHub.NewMessenger();
         var iconAssets = new TestIconAssetService();
         var catalog = new NavigationCatalog();
-        catalog.RegisterPage<MainViewModel>(
+        catalog.RegisterPage<TriggerPageViewModel>(
             NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
-        catalog.RegisterPage<ShellViewModel>(
+        catalog.RegisterPage<TriggerPageViewModel>(
             NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
         var store = new NavigationStore();
-        var executor = new NavigationExecutor(store, catalog, new NullServiceProvider());
+        var session = new ConsolePageSession(NewSessionScope);
+        session.Begin();
+        var executor = new NavigationExecutor(store, catalog, session);
         var dialogs = new DialogService(
             new FakeThemeService(),
             localization,
@@ -153,7 +178,8 @@ public sealed class ResidentShellLifetimeTests
             new NavigationSuspension(store, catalog, executor),
             messenger,
             anchor,
-            background: false);
+            background: false,
+            session);
 
         console.Show();
 
@@ -176,6 +202,8 @@ public sealed class ResidentShellLifetimeTests
             Dialogs = dialogs,
             MainViewModel = main,
             ShellViewModel = shell,
+            Store = store,
+            Navigation = executor,
         };
     }
 
@@ -258,6 +286,20 @@ public sealed class ResidentShellLifetimeTests
         Assert.Null(StaTestHarness.Run(() => fixture.Dialogs.Owner));
         Assert.DoesNotContain(fixture.View, ResidentWindows());
         Assert.Same(fixture.Anchor, StaTestHarness.Run(() => Application.Current.MainWindow));
+    }
+
+    [Fact]
+    public void 关窗后_宿主导航状态不滞留会话内页面VM_重开不渲染已释放实例()
+    {
+        // 后台静默形态与退出态不走出账动作，关窗收尾必须兜底出账：否则常驻的 NavigationStore
+        // 仍指着会话内页面 VM（随会话作用域已释放），重开时"同类型已停驻"短路会让页面渲染已释放实例。
+        var fixture = StaTestHarness.Run(CreateFixture);
+        StaTestHarness.Run(() => fixture.Navigation.Navigate(NavigationSlot.Trigger));
+        Assert.NotNull(StaTestHarness.Run(() => fixture.Store.CurrentViewModel));
+
+        StaTestHarness.Run(() => fixture.View.Close());
+
+        Assert.Null(StaTestHarness.Run(() => fixture.Store.CurrentViewModel));
     }
 
     [Fact]

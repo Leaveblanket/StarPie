@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,10 +7,13 @@ namespace StarPie.Services.Navigation
 {
     /// <summary>
     /// 目录驱动导航执行入口：按 <see cref="NavigationSlot"/> 从
-    /// <see cref="NavigationCatalog"/> 取注册项，再从容器惰性解析目标页面 VM。
+    /// <see cref="NavigationCatalog"/> 取注册项，再从设置台会话缓存取目标页面 VM。
     /// </summary>
     /// <remarks>
-    /// 页面 VM 为容器单例，多次导航同一实例、状态常驻。接口随实现整体归 Host
+    /// 页面 VM 的作用域是**设置台会话**：同一会话内多次导航同一实例（来回切页保留页内状态），
+    /// 会话结束整批释放（<see cref="ConsolePageSession"/>）。本执行缝是规范允许的页面 VM 解析例外
+    /// （[ADR-0039](docs/adr/0039-resident-shell-and-transient-settings-console.md) 决策 9），
+    /// 缓存由本缝消费，不新增解析点。接口随实现整体归 Host
     /// （ADR-0021/#92），属宿主内部件而非跨程序集解析缝——消费方（主框架导航项、
     /// 托盘直达与初始导航）均在 Host，经本接口按槽位导航，不持有页面类型；
     /// 第二消费方出现时按 <see cref="IDialogService"/> 先例把接口上提共享内核。
@@ -27,21 +30,21 @@ namespace StarPie.Services.Navigation
     }
 
     /// <summary><see cref="INavigationExecutor"/> 默认实现：经 <see cref="NavigationCatalog"/>
-    /// 槽位表解析目标类型并交给容器解析（解析点收在本执行缝，组合根只注册）。</summary>
+    /// 槽位表取目标类型，从设置台会话缓存解析实例（解析点收在本执行缝，组合根只注册）。</summary>
     public sealed class NavigationExecutor : INavigationExecutor
     {
         private readonly NavigationStore _store;
         private readonly NavigationCatalog _catalog;
-        private readonly IServiceProvider _services;
+        private readonly ConsolePageSession _session;
 
         public NavigationExecutor(
             NavigationStore store,
             NavigationCatalog catalog,
-            IServiceProvider services)
+            ConsolePageSession session)
         {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
-            _services = services ?? throw new ArgumentNullException(nameof(services));
+            _session = session ?? throw new ArgumentNullException(nameof(session));
         }
 
         public void Navigate(NavigationSlot slot)
@@ -55,7 +58,8 @@ namespace StarPie.Services.Navigation
         }
 
         /// <summary>
-        /// 固定页经容器解析单例；插件页经注册工厂创建（工厂返回值须是页面 VM）。
+        /// 固定页经设置台会话缓存取实例（会话内保留、会话结束释放；常驻型页面注册为 singleton，
+        /// 不随会话销毁）；插件页经注册工厂创建（工厂返回值须是页面 VM，每次导航新建）。
         /// </summary>
         /// <remarks>
         /// 页面 VM 只要求实现 <see cref="INotifyPropertyChanged"/>：绑定要的通知面是框架契约，
@@ -65,7 +69,7 @@ namespace StarPie.Services.Navigation
         {
             object viewModel = entry.ViewModelFactory is { } factory
                 ? factory()
-                : _services.GetRequiredService(entry.ViewModelType);
+                : _session.Resolve(entry.ViewModelType);
 
             _store.CurrentViewModel = viewModel as INotifyPropertyChanged
                 ?? throw new InvalidOperationException(

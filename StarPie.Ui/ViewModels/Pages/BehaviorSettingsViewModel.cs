@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -19,7 +19,7 @@ namespace StarPie.ViewModels.Pages
     /// （立即请求/防抖请求两类消息）。导入配置会替换运行态配置实例，届时经
     /// <see cref="Reload"/> 重挂，绑定控件随属性通知自动刷新。
     /// </remarks>
-    public partial class BehaviorSettingsViewModel : ObservableObject
+    public partial class BehaviorSettingsViewModel : ObservableObject, IDisposable
     {
         private AppConfig _config;
         private readonly IDialogService _dialogs;
@@ -83,6 +83,12 @@ namespace StarPie.ViewModels.Pages
 
             Reload(config);
         }
+
+        /// <summary>
+        /// 成对退订导入广播（页面 VM 随设置台会话释放；消息总线为弱引用注册，
+        /// 此处显式出账使订阅面与生命周期一致，不依赖弱引用语义）。
+        /// </summary>
+        public void Dispose() => _messenger.UnregisterAll(this);
 
         /// <summary>
         /// 以运行态配置重挂状态（构造与导入配置后调用）。经属性赋值刷新通知，重挂期间

@@ -1,4 +1,4 @@
-# 新功能添加规范
+﻿# 新功能添加规范
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；加新功能前先读“通用底线”，再按功能原型读对应清单。
 
@@ -43,7 +43,9 @@
    `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/TitleKey/IconData；M5 为
    `StarPie.Ui` 的 ShellContributor、M1 为 `StarPie.Ui` 的 GesturesContributor、
    Host 为 HostPageContributor）→ 所属模块页面模板字典加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
-   eager 启动解析与侧栏导航项由目录自动纳入，无需再改组合根清单。
+   会话作用域注册：新增页面的 VM 与同模块设置子 VM 一律注册为 **scoped**（作用域 = 设置台会话；
+   暂留常驻的页面才用 singleton）；侧栏导航项与目录取用自动纳入，无需再改组合根清单。
+   页面 VM 不在启动期构造：首次进入该页时由导航执行缝经 `ConsolePageSession` 构造。
 4. **i18n**：导航标题/壳层文案键 + 四语言（见 [localization.md](localization.md)）。
 5. **测试**：页面 VM 单测；`NavigationTests` 如涉及导航项列表需同步。
 

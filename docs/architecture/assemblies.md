@@ -185,8 +185,9 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 - `AppHostDelegates` 是 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）；
   Host 组合根持有实例并由 `HostCoreContributor` 登记单例，ShellHost 构造后回填实现（契约名不随类改名）。贡献者只依赖
   SDK/Sdk.Wpf 契约面与 Host 内核面，不在贡献者内引用其它模块 runtime 类型。
-- CreateShellHost 的解析清单目录化：遍历 `NavigationCatalog.Entries` 逐个 eager 解析页面 VM；
-  设置台会话对象图（导航区 VM + 壳区 VM + `SettingsConsole`）由组合根交付的工厂在每次开窗时构造。
+- 页面 VM 不再启动期 eager 解析：作用域是设置台会话（scoped 注册），由导航执行缝经
+  `ConsolePageSession` 取用；设置台会话对象图（导航区 VM + 壳区 VM + `SettingsConsole`）
+  由组合根交付的工厂在每次开窗时构造（工厂内开启会话作用域）。
 - 不引入子容器、Generic Host、Autofac、Prism（ADR-0016 决策 13）。
 
 ## 7. 可见性（as-built）

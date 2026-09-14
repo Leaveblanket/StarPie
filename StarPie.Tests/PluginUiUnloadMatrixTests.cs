@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -700,7 +700,9 @@ public sealed class PluginUiUnloadMatrixTests
                 string.Empty);
 
             var store = new NavigationStore();
-            var executor = new NavigationExecutor(store, catalog, provider);
+            var session = new ConsolePageSession(provider.CreateScope);
+            session.Begin();
+            var executor = new NavigationExecutor(store, catalog, session);
             var main = new MainViewModel(store, catalog, executor, new LocalizationService());
 
             var content = new ContentControl();

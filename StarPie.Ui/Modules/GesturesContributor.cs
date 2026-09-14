@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Services.Actions;
 using StarPie.Kernel.Configuration;
@@ -62,12 +62,13 @@ namespace StarPie.Modules
             services.AddSingleton<GestureEngine>();
             services.AddSingleton<GestureController>();
 
-            // 页面 VM 为容器单例，状态跨导航常驻；解析时机在 Config.Load 之后 CreateAppHost。
-            services.AddSingleton(sp => new BehaviorSettingsViewModel(
+            // 页面 VM 的作用域是设置台会话：同一会话内保留实例（切页保状态），会话结束整批释放；
+            // 解析只经导航执行缝（ADR-0039 决策 9）。
+            services.AddScoped(sp => new BehaviorSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>()));
-            services.AddSingleton(sp => new ProfileListViewModel(
+            services.AddScoped(sp => new ProfileListViewModel(
                 sp.GetRequiredService<IConfigService>().Current.Profiles,
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
@@ -77,7 +78,7 @@ namespace StarPie.Modules
             // 配置方案列表 VM 以只读契约 IProfilePreviewSource 暴露给轮盘侧：
             // 轮盘外观设置子 VM 经接口解析，不引用本集具体 VM 类型
             //（契约随实现方下沉，ADR-0023/#97；#112 收口入 StarPie.Sdk）。
-            services.AddSingleton<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
+            services.AddScoped<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
         }
 
         // 导航图标路径数据（NavPage0 / NavPage2）。

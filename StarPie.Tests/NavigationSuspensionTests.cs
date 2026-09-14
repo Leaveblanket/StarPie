@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -38,7 +38,9 @@ public sealed class NavigationSuspensionTests
             "NavPlugin_com.example.test", "PluginPageTitle", "",
             typeof(PluginPageViewModel),
             () => (object)(pluginPageFactory?.Invoke() ?? new PluginPageViewModel()));
-        var executor = new NavigationExecutor(store, catalog, provider);
+        var session = new ConsolePageSession(provider.CreateScope);
+        session.Begin();
+        var executor = new NavigationExecutor(store, catalog, session);
         return (new NavigationSuspension(store, catalog, executor), executor, store, catalog, provider);
     }
 

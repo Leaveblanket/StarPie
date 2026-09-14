@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Kernel.Configuration;
 using StarPie.Services.Dialogs;
@@ -29,15 +29,16 @@ namespace StarPie.Modules
 
         public int Order => 30;
 
-        /// <summary>注册轮盘工厂与轮盘外观设置子 VM（容器单例）。</summary>
+        /// <summary>注册轮盘工厂（常驻单例）与轮盘外观设置子 VM（设置台会话作用域）。</summary>
         public void RegisterServices(IServiceCollection services)
         {
             // IWheelFactory → WheelFactory 装配注册；手势侧仅经接口消费。
             services.AddSingleton<IWheelFactory, WheelFactory>();
-            // 轮盘外观设置子 VM：单例注入外观聚合 VM；预览 Profile 上下文经 SDK 只读契约
-            // IProfilePreviewSource 转发（实现方别名由 GesturesContributor 登记），
-            // 本贡献者只解析 SDK 契约面，不引用具体方案列表 VM。
-            services.AddSingleton(sp => new WheelAppearanceSettingsViewModel(
+            // 轮盘外观设置子 VM：与外观聚合 VM 同在设置台会话作用域（子 VM 随设置台销毁）；
+            // 预览 Profile 上下文经 SDK 只读契约 IProfilePreviewSource 转发（实现方别名由
+            // GesturesContributor 在同一会话作用域登记），本贡献者只解析 SDK 契约面，
+            // 不引用具体方案列表 VM。
+            services.AddScoped(sp => new WheelAppearanceSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IDialogService>(),
                 sp.GetRequiredService<IMessenger>(),
