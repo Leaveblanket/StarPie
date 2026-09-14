@@ -129,6 +129,22 @@ public sealed class NavigationSuspensionTests
     [Fact]
     public void 插件页VM随出账真实回收_无静态根()
     {
+        var reference = NavigatePluginPageThenRelease();
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Assert.False(reference.IsAlive, "插件页 VM（工厂新建型）随出账应真实回收，出现滞留");
+    }
+
+    /// <summary>
+    /// 导航到插件页后出账，只把弱引用带回调用方：强引用全部留在本方法栈上，返回即消失
+    /// ——同 <c>ConsolePageSessionTests</c> 的处理。留在断言方法里时，优化后的 JIT 会把
+    /// "已置空"的局部变量当作死存储丢掉、旧值继续占着栈槽，断言在 Release 下假红。
+    /// </summary>
+    private static WeakReference NavigatePluginPageThenRelease()
+    {
         PluginPageViewModel? created = null;
         var (suspension, executor, _, _, _) = Create(pluginPageFactory: () => created = new PluginPageViewModel());
 
@@ -140,13 +156,9 @@ public sealed class NavigationSuspensionTests
         Assert.True(suspension.Release());
 
         var reference = new WeakReference(instance!);
-        instance = null;
+        // 工厂闭包被目录长期持有，其捕获字段仍指向实例——置空才是"无其它根"的前提
         created = null;
-
-        GC.Collect();
-        GC.WaitForPendingFinalizers();
-        GC.Collect();
-
-        Assert.False(reference.IsAlive, "插件页 VM（工厂新建型）随出账应真实回收，出现滞留");
+        instance = null;
+        return reference;
     }
 }
