@@ -1,6 +1,6 @@
 # 轮盘配色模块归属与外观设置模块化拆分（界面主题模块边界 + 预设名语义）
 
-> Status: Active（决策已实施，现状见 `docs/architecture/wheel.md` / `interface-theme.md` / `modules.md`）
+> Status: Active（现状见 `docs/architecture/wheel.md` / `interface-theme.md` / `modules.md`）
 
 ## 动机
 

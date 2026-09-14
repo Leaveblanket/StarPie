@@ -16,7 +16,7 @@ StarPie/
 │   ├── ShellHost.cs               # 常驻壳层：Run/Dispose、托盘、语言资源、退出协调、设置台按需创建与释放
 │   ├── SettingsConsole.cs         # 设置台租户：按需创建、关闭即销毁（主窗口 + 导航区/壳区 VM 树）
 │   ├── Composition.cs             # DI 组合根（唯一）：三阶段（贡献者有序清单注册 → BuildServiceProvider → 解析 + 设置台会话工厂）
-│   ├── DevInstance.cs             # 开发实例标记：环境变量注入，互斥/触发键/自启保护（判定真相在内核 AppDataPaths）
+│   ├── DevInstance.cs             # 开发实例标记：Debug 构建即开发实例（按构建配置编译期定死，判定真相在内核 AppDataPaths）；本类只承担可见标识
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
 │   ├── PluginHosting/             # P3：插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
 │   ├── Modules/                   # 统一注册管线：ICompositionContributor + BuiltInContributors（内置有序清单）+ HostCore/HostPage 贡献者；M4：ThemeContributor；M2：WheelContributor；M1：GesturesContributor + GesturesPageTemplates.xaml；M5：ShellContributor + ShellPageTemplates.xaml；HostCore：HostCoreContributor + HostCorePageTemplates.xaml；S6：DialogsContributor
@@ -93,7 +93,7 @@ StarPie/
 │   └── Kernel/
 │       ├── Configuration/         # S2：IConfigService/JsonConfigService、ISaveDebouncer/AppDataPaths、SettingsSaveOrchestrator
 │       ├── Localization/          # S3：ILocalizationService/LocalizationService + Strings*.resx（四语言）
-│       └── ShellIntegration/      # M5：AutostartRegistry（HKCU Run 注册表，[SupportedOSPlatform("windows")]）+ MemoryOptimizer（工作集裁剪），命名空间 StarPie.Kernel.ShellIntegration
+│       └── ShellIntegration/      # M5：AutostartRegistry（HKCU Run 注册表，[SupportedOSPlatform("windows")]）+ MemoryOptimizer（纯托管 GC 收敛），命名空间 StarPie.Kernel.ShellIntegration
 └── StarPie.Tests/          # xUnit 单测（显式引用四集，不依赖传递引用）
 ```
 > 程序集归属：目录名在所属工程内各自保持“命名空间 = 物理目录”（跨程序集共享同一棵

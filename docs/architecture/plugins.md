@@ -1,25 +1,11 @@
 # 插件体系（目标态）
 
-> **状态**：P1（三集物理形态 + 统一注册管线 + 静态加载）已落地；P2 首层（§3 的清单校验、发现顺序与
-> 同 id 冲突、宿主状态字段、启动报告、开发者模式开关与准入四态）、§5/§6/§8 的 headless 运行时
-> （collectible ALC 装载、能力注册与调用守卫、安全点卸载与回收判定）、§2 的首个随包 headless 插件
-> 及其停用降级、隔离落盘与「下次启动不自动重试」亦已落地，其条款即 as-built；UI 托管（§7）、
-> 最小插件管理面与诊断报告（§10 的列表/状态/启停/重试/诊断入口，含可定位残留清单）亦已落地；
-> 管理面完整化（§10 的重载/更新/彻底移除与页面常显准入模式，含界面插件「下次启动生效」的
-> 挂起版本语义）亦已落地；
-> 插件 UI 托管基础层（§7 的资产登记表、每插件资源根、UI 线程释放编排与泄漏验证器）亦已落地；
-> 固定扩展点（§7.1 的导航页/设置区/托盘菜单/插件窗口/内容容器的注册与出账，含无插件时的
-> 降级行为）亦已落地；插件 UI 装载接线（装载期在 UI 线程调用一次
-> `IPluginUiModule.RegisterUi`、ui 段 ABI 兼容判定归 UI 托管层、卸载链 ReleasingUi 资产
-> 清理）与首个 UI 示例插件（`plugins/src/StarPie.Plugin.SampleUi`，导航页/设置区/窗口/
-> 托盘菜单示例）及其 STA 卸载矩阵（StarPie.Tests：视图/窗口/资源字典/DataTemplate/定时器/
-> 动画/事件/绑定逐项断言探针回收 + 登记表清零 + 全局根扫描无残留，负对照按隔离流程处理，
-> ALC 存活只作诊断不上判）亦已落地；生态化（§11）的信任机制——签名校验（WinVerifyTrust）、
-> 可离线校验的签名审核清单与版本级撤销、启动重判——亦已落地，首方发布公钥已 pin，
-> 第三方准入按审核清单开启；其余未落地条款在落地前 as-built 以
+> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0029](../adr/0029-plugin-trust-model.md)（信任模型与准入）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
+>
+> **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责见 [modules.md](modules.md)。
+> 正文以 as-built 撰写——各节的「as-built：」标注即现状，未加该标注的条款即现行规范；§13 演进阶段表中
+> 尚未实现的阶段（P5 进程外后端等）与 §2 树中尚未落地的路径为规划。规划条款在落地前，as-built 以
 > [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
-> **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
-> **阅读方式**：本文只讲插件子系统的契约、生命周期、文件架构与迁移；宿主内核子域职责在 P1 后回填 `modules.md`。
 
 ## 术语（架构词正典在本文）
 
@@ -93,18 +79,17 @@ StarPie/
 │   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Config,Isolation,Diagnostics}
 │                                         # 发现/清单校验/准入判定/宿主状态/启用装载与停用再启用/collectible ALC/安全点卸载/状态机/能力表/配置命名空间/隔离决策/诊断报告
 ├── StarPie.Ui/                           # WinExe，AssemblyName=StarPie；唯一含 XAML（ADR-0027 决策 1）
-│   ├── App.xaml(.cs)  AppHost/  Composition/   # 应用资源树、启动退出编排、组合根（内置与插件贡献者共用一条注册管线）
+│   ├── App.xaml(.cs)  ShellHost.cs  SettingsConsole.cs  Composition.cs   # 应用资源树、常驻壳层、设置台租户、组合根（内置与插件贡献者共用一条注册管线）
 │   ├── Adapters/                         # 实现 Host/Ports 的 WPF 适配器：零 WPF 的 Host 只能吃接口
 │   ├── ViewModels/  Views/  Controls/  Styles/  Themes/   # 全部 VM/View/对话框/轮盘渲染/主题字典/共享 UI 基建
 │   └── PluginHosting/                    # 插件 UI 资产生命周期（宿主托管，ADR-0028 决策 3/4）
 │       ├── PluginUiAssetRegistry.cs      # plugin id → 资产清单；卸载枚举与清零断言的唯一依据
 │       ├── PluginUiHost.cs               # IPluginUiCoordinator + IPluginUiContext 实现：Host 端口与插件 funnel 在此对接
-│       ├── Extensions/                   # 固定扩展点：导航页/设置区/托盘菜单/窗口/内容容器（U1）
+│       ├── Extensions/                   # 固定扩展点：导航页 PluginPage/设置区 PluginSettingsSection/托盘菜单项 PluginMenuItem 的注册与摘除（PluginExtensionRegistry）
 │       ├── Resources/PluginResourceRoot.cs    # 每插件资源根字典（一次 merge、一次摘除），DataTemplate/Style 随容器摘净
 │       ├── Windows/PluginWindowRegistry.cs    # 窗口由宿主创建、关闭并等待 Closed
 │       ├── Views/PluginViewHost.cs       # 视图进宿主容器并记账（容器 ↔ 视图 ↔ plugin id）
 │       ├── Commands/PluginCommandRegistry.cs  # 命令与 InputBinding 的注册/注销
-│       ├── Menus/PluginMenuRegistry.cs   # 托盘/页内菜单项注册与摘除
 │       ├── Timers/PluginTimerRegistry.cs # 宿主签发的 DispatcherTimer/动画，可整体停止
 │       ├── Cleanup/PluginUiCleanup.cs    # UI 线程上的有序清理（§8 步骤 4）
 │       └── Verification/PluginUiLeakVerifier.cs   # 泄漏扫描 + WeakReference 判定；生产诊断与测试共用
@@ -384,7 +369,7 @@ public interface IPluginUiContext
 
 | 现程序集 | 目标归属 |
 |---|---|
-| `StarPie`（App/AppHost/Composition/MainView/导航运行时/外观页/共享 UI 基建） | `StarPie.Ui` |
+| `StarPie`（App/ShellHost/SettingsConsole/Composition/MainView/导航运行时/外观页/共享 UI 基建） | `StarPie.Ui` |
 | `StarPie.Core`（Models/Messages/NavigationCatalog/AppHostDelegates） | 契约/模型 → `StarPie.Sdk`；运行时 → `StarPie.Host` |
 | `StarPie.Core`（Configuration/Localization 实现） | `StarPie.Host.Kernel` |
 | `StarPie.Gestures` | 可 headless 内核（`GestureEngine`/`WindowContext`/`ActionRouting`）→ `StarPie.Host`；WPF 亲和件（`MouseHook`/`GestureController`/`ActionExecutorService`）与 VM/View → `StarPie.Ui` |
@@ -395,7 +380,7 @@ public interface IPluginUiContext
 | `StarPie.Dialogs` | `StarPie.Ui`（宿主对话框）；端口只在 Ui 内部 |
 | `StarPie.Icons` + `StarPie.Icons.Contracts` | 资产目录/降级服务 → `StarPie.Host`；`IconRef` → SDK；图像构造 → Ui |
 
-> **P1 归并口径（2026-09-11 路线审查）**：上表按 `StarPie.Host` 零 WPF 硬约束细化——直接构造 WPF
+> **归并口径**：上表按 `StarPie.Host` 零 WPF 硬约束细化——直接构造 WPF
 > 类型（如 `WheelGeometry` 的 `Geometry`）、持有 `Application.Current.Dispatcher` 或默认 `MessageBox`
 > 的 WPF 亲和件一律留 `StarPie.Ui`；端口化推迟到出现真实 headless 需求时再引入（`Ports/` 新增项随需求走）。
 
@@ -412,4 +397,4 @@ public interface IPluginUiContext
 
 ## 参见
 
-[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)、[ADR-0029](../adr/0029-plugin-trust-model.md)、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)、[assemblies.md](assemblies.md)（P1 前 as-built）、[modules.md](modules.md)（P1 前 as-built）。
+[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)、[ADR-0029](../adr/0029-plugin-trust-model.md)、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)、[assemblies.md](assemblies.md)、[modules.md](modules.md)。

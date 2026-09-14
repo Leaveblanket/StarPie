@@ -1,6 +1,6 @@
 # 术语终态与全仓正名：不留历史别名，只留持久化迁移
 
-> Status: Active（已实施；终态词表见 `CONTEXT.md` 与 `docs/architecture/naming.md`）
+> Status: Active（终态词表见 `CONTEXT.md` 与 `docs/architecture/naming.md`）
 
 ## 动机
 
@@ -30,14 +30,14 @@
 | 渲染/解析输入 | 参数 `palette`（方案名） | `theme` 参数 |
 | 界面主题整项替换管理器 | `AppThemePaletteManager` | `ThemePaletteManager` |
 | 界面主题变更消息成员 | `AppThemeChangedMessage.AppTheme` | `Theme` 属性 |
-| 页面导航（UIA/resx） | `NavPage0..3` / `PageTrigger..PageAdvanced`（`PageAbout`/`NavPage4` 随 #107 于 2026-09-10 下线移除） | `NavTab0..4` / `TabTrigger..TabAbout` |
+| 页面导航（UIA/resx） | `NavPage0..3` / `PageTrigger..PageAdvanced`（`PageAbout`/`NavPage4` 已下线移除） | `NavTab0..4` / `TabTrigger..TabAbout` |
 | 品牌/工程 | `StarPie` | `WinPieGestures`（目录/工程/测试工程/自启值/注释/文档） |
 
 ### 壳层术语（伞形终态）
 
 「壳层 (Shell)」是应用外壳职责的伞形术语，下分两个子词条（CONTEXT.md 已收录）：
 - **壳窗口 (Shell Window)**：设置控制台主窗口的窗口职责（H1：MainView/ShellViewModel/关窗驻留/界面主题应用）；
-- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面）；P1.10/#119 归并后不再独立成集（自启/内存整理驻 `StarPie.Host/Kernel/ShellIntegration`，托盘/高级页驻 `StarPie.Ui`），伞形语义保留在 `StarPie.Services.Shell`/`StarPie.Kernel.ShellIntegration` 命名空间中。
+- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面）；归并后不再独立成集（自启/内存整理驻 `StarPie.Host/Kernel/ShellIntegration`，托盘/高级页驻 `StarPie.Ui`），伞形语义保留在 `StarPie.Services.Shell`/`StarPie.Kernel.ShellIntegration` 命名空间中。
 
 ## Decision
 
