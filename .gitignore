@@ -10,6 +10,9 @@
 !.vscode/settings.json
 !.vscode/extensions.json
 
+# 本机 VS Code 工作区文件（含个人编译诊断偏好，不入库共享）
+StarPie.code-workspace
+
 # Executables, Assemblies & Release Binaries
 *.exe
 *.dll
@@ -39,6 +42,7 @@ windowsdesktop-runtime-*.exe
 *.tmp
 *.log
 .tolaria-rename-txn/
+.scratch/
 
 # OS Specific
 Thumbs.db
@@ -49,3 +53,4 @@ $RECYCLE.BIN/
 
 # Tool Indexes
 .codegraph/
+.codebuddy/
