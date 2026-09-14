@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -88,9 +88,9 @@ namespace StarPie.Views.Pages
         private void RenderLiveWheelPreview()
         {
             if (LiveWheelPreviewCanvas == null || _previewState == null || _previewRenderer == null) return;
-            // 深浅色探测由壳层主窗口执行——渲染器不反向引用宿主，
-            // 调用方把探测结果以 bool 传入（无壳窗口时回落 false）。
-            bool windowsInDarkMode = Window.GetWindow(this) is MainView mainView && mainView.IsWindowsInDarkTheme();
+            // 深浅色取值由 VM 提供（无状态探针注入设置 VM）：View 不做服务调用，
+            // 也不经窗口向上找壳层——渲染器只接收 bool。
+            bool windowsInDarkMode = (DataContext as AppearanceSettingsViewModel)?.WindowsInDarkMode ?? false;
             _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, windowsInDarkMode);
         }
 

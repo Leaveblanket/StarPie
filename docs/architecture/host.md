@@ -128,7 +128,8 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
       ADR-0023；P1.3/#112 收口），M1 不反向引用宿主。
-   - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
+   - `GeneralSettingsViewModel` 的提权重启经 SDK `AppHostDelegates.ElevateAndRestart` 转发注册，
+     不直接引用宿主类（托盘气泡与退出已归壳层直接呈现/执行）。
    - **Views 不注册**（页面无参构造；`MainView` 由 `SettingsConsole` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。
 3. 阶段 2｜容器构建：唯一 `BuildServiceProvider`，解析点仍只在组合根。
@@ -137,13 +138,15 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`、`NavigationStore`；
    - 页面 VM **不在启动期解析**：它们的作用域是设置台会话，首次进入该页时由导航执行缝经
      `ConsolePageSession` 构造（scoped 注册，作用域 = 会话；会话结束整批释放）；壳层直持的常驻 VM
-     在此解析（`GeneralSettingsViewModel`——托盘驻留气泡与提权重启暂由它承担，#158 迁壳层后随会话）；
+     在此解析（`InterfaceThemeSettingsViewModel` 由设置台会话工厂从会话作用域取，故此处只解析
+     常驻件）；
    - 构造并交付**设置台会话工厂** `Func<Window, SettingsConsole>`：每次开窗时开启设置台会话作用域
      （`ConsolePageSession.Begin`：页面 VM 与设置子 VM 的实例边界），新建导航区 `MainViewModel`
      与壳区 `ShellViewModel`（不注册进容器——它们随设置台开关生灭），并从会话作用域解析
      `InterfaceThemeSettingsViewModel`（初始主题），与主题服务、对话框服务、图标资产、导航出账、
      消息总线、锚窗口、会话缓存一起构造 `SettingsConsole`；
-   - 构造 `ShellHost`（持有常驻件、设置台工厂与常驻锚窗口）并回填 `AppHostDelegates`（托盘气泡、退出）。
+   - 构造 `ShellHost`（持有常驻件、设置台工厂与常驻锚窗口）并回填 `AppHostDelegates`
+     （提权重启、托盘气泡、退出）。
 5. `ShellHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
@@ -156,19 +159,24 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
       `_dialogService.SetOwner(view)`（Ui 集 public 装配面）→ `Application.MainWindow = view` →
      `view.Show()`。
-6. 退出：托盘退出 → `ShellHost.ExitApplication`：冲刷挂起保存 → 释放托盘（含摘除恢复消息钩子）
-   → 设置台置退出态 → `Application.Shutdown()`（`ShutdownMode=OnExplicitShutdown`，关窗不自行结束进程）。
+6. 退出：托盘退出 → `ShellHost.ExitApplication` 按 `ShellExitSequence` 固定顺序执行：
+   冲刷挂起保存 → 释放托盘（含摘除恢复消息钩子）→ 置退出态并 `Application.Shutdown()`
+   （`ShutdownMode=OnExplicitShutdown`，关窗不自行结束进程）。顺序无输入参数即语义：
+   退出编排不依赖设置台是否存在（无控制台时同样走完）。
    `App.OnExit`：`Config.Save()` 兜底 → `ShellHost.Dispose()`（退订语言服务、释放设置台租户、托盘
    dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体。
-7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。`MainView.IsVisibleChanged`（非退出态）→ 经
-   `TrayVisibilitySignal` 有序决策执行：冲刷保存 → 导航视图出账 → 图标缓存出账 → 发
-   `MinimizedToTrayMessage`（订阅方同步出账，`ShellHost` 直调 `GeneralSettingsViewModel.NotifyMinimizedToTray()`）→
-   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行（见 [shell.md](shell.md)）；重开（重新可见）→
-   按最后导航槽位重放导航 → 发 `RestoredFromTrayMessage`；关闭收尾走 `TransientWindowTeardown`
-   （清动画 → 丢弃内容与 DataContext → `Close()` → 排空 Dispatcher → `Application.MainWindow` 回退锚窗口）
-   并解绑对话框 Owner、结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
+7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。
+   托盘状态信号的输入是**设置台开/关**（不是窗口可见性：新建窗口首次 `Show()` 同样产生可见性变化，
+   按可见性判读会把「首次打开」误判成「从托盘恢复」），经 `TrayStateSignal` 有序决策执行：
+   关闭 → 冲刷保存 → 导航视图出账 → 图标缓存出账 → 发 `MinimizedToTrayMessage`（订阅方同步出账）→
+   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行；重开 → 按最后导航槽位重放导航 → 发
+   `RestoredFromTrayMessage`（见 [shell.md](shell.md)）。关闭序列先于窗口收尾执行（落盘与导航出账
+   都要求会话内页面 VM 还在）；随后走 `TransientWindowTeardown`（清动画 → 丢弃内容与 DataContext →
+   `Close()` → 排空 Dispatcher → `Application.MainWindow` 回退锚窗口）、解绑对话框 Owner、
+   结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
+   进托盘的驻留气泡由壳层直接呈现（`MinimizedToTrayMessage` 订阅方在壳层），不寄居设置页 VM。
 
 ## 宿主委托包
 

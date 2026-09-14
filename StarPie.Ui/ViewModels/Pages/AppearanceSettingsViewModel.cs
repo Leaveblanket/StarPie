@@ -22,12 +22,15 @@ namespace StarPie.ViewModels.Pages
     /// 保留导入订阅只为页面级收尾——广播
     /// <see cref="PageConfigReloadedMessage"/>（typeof 本 VM）通知外观页 View 重绘实时预览等 View
     /// 效果；窗口主题应用由 InterfaceTheme 子 VM 发 AppThemeChangedMessage、壳层主窗口订阅执行。
+    /// 系统深浅色取值经注入的无状态探针 <see cref="WindowsInDarkMode"/> 暴露给页面：
+    /// 页面（View）不得做服务调用，也不得用 messenger 替代同页绑定，故由 VM 取值、页面读属性。
     /// 释放链：随容器释放时先释放两个子 VM（各自成对退订本地化事件）；
     /// 幂等——容器随后对子 VM 单例的直接释放亦安全。
     /// </remarks>
     public partial class AppearanceSettingsViewModel : ObservableObject, IDisposable
     {
         private readonly IMessenger _messenger;
+        private readonly Func<bool> _windowsInDarkModeProbe;
         private bool _disposed;
 
         /// <summary>界面主题设置子 VM 单例（构造注入）：外观页界面主题卡 DataContext 指向
@@ -40,17 +43,25 @@ namespace StarPie.ViewModels.Pages
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }
 
         /// <summary>共享图标资产实例服务（S1，ADR-0019/#87）：外观页实时预览渲染器为
-        /// View 层无 DI 构造对象，经本聚合 VM（容器单例）暴露的已批准预览桥取得服务，
+        /// View 层无 DI 构造对象，经本聚合 VM（设置台会话作用域）暴露的已批准预览桥取得服务，
         /// 供页面 OnPageLoaded 装配 <c>WheelPreviewRenderer</c>。</summary>
         public IIconAssetService IconAssetService { get; }
+
+        /// <summary>
+        /// Windows 当前是否处于深色模式（实时读注册表键的无状态探针，见 ADR-0039 决策 3）：
+        /// 外观页实时预览渲染取用。探针由宿主注入，本 VM 不引用主题服务。
+        /// </summary>
+        public bool WindowsInDarkMode => _windowsInDarkModeProbe();
 
         public AppearanceSettingsViewModel(
             IMessenger messenger,
             InterfaceThemeSettingsViewModel interfaceTheme,
             WheelAppearanceSettingsViewModel wheelAppearance,
-            IIconAssetService iconAssetService)
+            IIconAssetService iconAssetService,
+            Func<bool> windowsInDarkModeProbe)
         {
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
+            _windowsInDarkModeProbe = windowsInDarkModeProbe ?? throw new ArgumentNullException(nameof(windowsInDarkModeProbe));
             InterfaceTheme = interfaceTheme ?? throw new ArgumentNullException(nameof(interfaceTheme));
             WheelAppearance = wheelAppearance ?? throw new ArgumentNullException(nameof(wheelAppearance));
             IconAssetService = iconAssetService ?? throw new ArgumentNullException(nameof(iconAssetService));
@@ -62,7 +73,7 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>释放链：释放两个设置子 VM（各自成对退订本地化事件）。
-        /// 幂等——组合根随 Composition.Dispose 对每个单例再释放一次亦安全。</summary>
+        /// 幂等——设置台会话作用域释放与聚合页显式释放重复调用亦安全。</summary>
         public void Dispose()
         {
             if (_disposed) return;

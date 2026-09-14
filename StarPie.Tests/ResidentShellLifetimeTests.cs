@@ -179,7 +179,8 @@ public sealed class ResidentShellLifetimeTests
             messenger,
             anchor,
             background: false,
-            session);
+            session,
+            isExiting: () => false);
 
         console.Show();
 
@@ -401,6 +402,34 @@ public sealed class ResidentShellLifetimeTests
         StaTestHarness.Run(() => TransientWindowTeardown.Complete(window));
 
         Assert.False(StaTestHarness.Run(() => window.HasAnimatedProperties), "收尾未清除窗口动画");
+    }
+
+    // ==== INV5：无控制台时轮盘路径可用且产物可回收 ====
+
+    [Fact]
+    public void 无控制台时_轮盘预热路径仍可用_产物可回收()
+    {
+        // 托盘态只保留托盘与手势：轮盘不依赖设置台——会话已结束、导航状态已出账（无控制台），
+        // 轮盘离屏预热仍能跑完，且产物（窗口 + 视图）放弃引用后可回收。
+        var fixture = StaTestHarness.Run(CreateFixture);
+        StaTestHarness.Run(fixture.Console.Dispose);
+        Assert.Null(StaTestHarness.Run(() => fixture.Store.CurrentViewModel));
+
+        WeakReference wheel = StaTestHarness.Run(() =>
+        {
+            var viewModel = new WheelViewModel(
+                new GesturePoint(200, 200),
+                new WheelProfile(),
+                new AppConfig(),
+                new LocalizationService());
+            return WheelWarmup.Run(viewModel, new FakeThemeService(), new LocalizationService(), new TestIconAssetService());
+        });
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+
+        Assert.False(wheel.IsAlive, "无控制台时轮盘预热产物未被回收");
     }
 
     // ==== 地基假设：零 WPF 窗口状态下 UI 线程消息泵仍在 ====

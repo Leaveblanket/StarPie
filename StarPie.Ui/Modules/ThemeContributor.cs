@@ -25,6 +25,9 @@ namespace StarPie.Modules
         {
             services.AddSingleton(new ThemeService());
             services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<ThemeService>());
+            // 系统深浅色无状态探针：轮盘/托盘/预览消费它，不沉入主题状态与系统监听器
+            //（后者随设置台作用域，见 ADR-0039 决策 3）。
+            services.AddSingleton<Func<bool>>(sp => sp.GetRequiredService<ThemeService>().IsWindowsInDarkTheme);
             services.AddScoped(sp => new InterfaceThemeSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IMessenger>(),

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie;
@@ -19,11 +19,9 @@ public sealed class GeneralSettingsViewModelTests
     private static GeneralSettingsViewModel Create(
         AppConfig config,
         TestDialogService? dialogs = null,
-        List<string>? exitCalls = null,
-        List<string>? balloonCalls = null,
+        List<string>? elevateCalls = null,
         List<bool>? autoStartCalls = null,
         bool autoStartEnabled = false,
-        Action<string>? startElevated = null,
         Func<string, bool>? exportConfig = null,
         Func<string, bool>? importConfig = null,
         List<NoticeRequest>? notices = null,
@@ -34,16 +32,14 @@ public sealed class GeneralSettingsViewModelTests
         var vm = new GeneralSettingsViewModel(
             config,
             dialogs ?? new TestDialogService(),
-            (title, text) => balloonCalls?.Add($"{title}|{text}"),
-            () => exitCalls?.Add("exit"),
+            () => elevateCalls?.Add("elevate"),
             () => autoStartEnabled,
             enable => autoStartCalls?.Add(enable),
             exportConfig ?? (_ => true),
             importConfig ?? (_ => true),
             currentConfig: () => config,
             messenger: messenger,
-            localization: Localization,
-            startElevated);
+            localization: Localization);
         if (notices != null)
         {
             messenger.Register<GeneralNoticeRequestedMessage>(vm, (_, m) => notices.Add(m.Notice));
@@ -171,61 +167,19 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal(1, save.Immediate);
     }
 
-    // --- 托盘驻留提示 ----------------------------------------------------------------
+    // --- 提权重启（壳层动作）---------------------------------------------------------
 
     [Fact]
-    public void NotifyMinimizedToTray_UsesCompositionRootDelegateWithFixedText()
+    public void ElevateAndRestart_ForwardsToShellDelegate()
     {
-        var balloon = new List<string>();
-        var vm = Create(MakeConfig(), balloonCalls: balloon);
-
-        vm.NotifyMinimizedToTray();
-
-        var request = Assert.Single(balloon);
-        Assert.Equal("StarPie", request.Split('|')[0]);
-        Assert.Equal("应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。", request.Split('|')[1]);
-    }
-
-    // --- 提权重启 / 退出 -------------------------------------------------------------
-
-    [Fact]
-    public void ElevateAndRestart_StartsElevatedThenExits()
-    {
-        var config = MakeConfig();
-        var exitCalls = new List<string>();
-        var started = new List<string>();
-        var notices = new List<NoticeRequest>();
-        var vm = Create(config, startElevated: path => started.Add(path), exitCalls: exitCalls, notices: notices);
+        // 提权实现（Process.Start runas + 退出 + 失败提示）在壳层：页面只转发触发，不自行启动进程。
+        var elevateCalls = new List<string>();
+        var vm = Create(MakeConfig(), elevateCalls: elevateCalls);
 
         vm.ElevateAndRestart();
+        vm.ElevateCommand.Execute(null);
 
-        // 启动成功后才经组合根委托退出，失败弹窗不出现
-        //（测试宿主中 ProcessPath 指向 testhost，非空即可）
-        var start = Assert.Single(started);
-        Assert.False(string.IsNullOrWhiteSpace(start));
-        Assert.Equal(new[] { "exit" }, exitCalls);
-        Assert.Empty(notices);
-    }
-
-    [Fact]
-    public void ElevateAndRestart_FailureOrCancel_NoticesAndDoesNotExit()
-    {
-        var config = MakeConfig();
-        var exitCalls = new List<string>();
-        var notices = new List<NoticeRequest>();
-        var vm = Create(
-            config,
-            startElevated: _ => throw new Exception("已取消"),
-            exitCalls: exitCalls,
-            notices: notices);
-
-        vm.ElevateAndRestart();
-
-        Assert.Empty(exitCalls);
-        var notice = Assert.Single(notices);
-        Assert.Equal("管理员提权", notice.Title);
-        Assert.Equal("提权重启失败或已取消: 已取消", notice.Message);
-        Assert.Equal(NoticeKind.Warning, notice.Kind);
+        Assert.Equal(new[] { "elevate", "elevate" }, elevateCalls);
     }
 
     // --- 配置导出/导入 ---------------------------------------------------------------

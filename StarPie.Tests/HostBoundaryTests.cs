@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -39,7 +39,8 @@ public sealed class HostBoundaryTests
         // Kernel/Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
         // Kernel/ShellIntegration/（开机自启注册表与 GC 内存整理，纯托管）
-        typeof(AutostartRegistry), typeof(MemoryOptimizer), typeof(TrayVisibilitySignal), typeof(TraySignalStep),
+        typeof(AutostartRegistry), typeof(MemoryOptimizer), typeof(TrayStateSignal), typeof(TraySignalStep), typeof(TrayStateChange),
+        typeof(ShellExitSequence), typeof(ShellExitStep),
         // HostServices/（插件服务出口与托盘状态消息泵）
         typeof(IPluginEventSink), typeof(PluginEventPump),
         // Icons/（资产目录与自定义图标存储）
