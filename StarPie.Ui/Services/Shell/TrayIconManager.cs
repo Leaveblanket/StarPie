@@ -116,6 +116,13 @@ namespace StarPie.Services.Shell
         private string _currentTip = string.Empty;
         private Window? _menuWindow;
 
+        /// <summary>
+        /// 托盘消息窗口的常驻窗口名（对外唯一定位面：第二实例按窗口名查找本进程的常驻 HWND）。
+        /// <see cref="HwndSourceParameters"/> 的首参是窗口标题，窗口类名由 WPF 生成为
+        /// <c>HwndWrapper[...]</c>——外部只能按标题定位。
+        /// </summary>
+        public const string WindowName = "StarPieTrayWindow";
+
         public TrayIconManager(
             Func<bool> windowsInDarkModeProbe,
             Action onDoubleClick,
@@ -129,7 +136,7 @@ namespace StarPie.Services.Shell
             _taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
 
             // 隐藏弹出窗口，用于接收托盘图标回调
-            var parameters = new HwndSourceParameters("StarPieTrayWindow", 0, 0)
+            var parameters = new HwndSourceParameters(WindowName, 0, 0)
             {
                 WindowStyle = unchecked((int)0x80000000),      // WS_POPUP
                 ExtendedWindowStyle = 0x00000080               // WS_EX_TOOLWINDOW: never in Alt+Tab
@@ -140,6 +147,18 @@ namespace StarPie.Services.Shell
             _hIcon = LoadTrayIcon();
             AddIcon();
         }
+
+        /// <summary>
+        /// 托盘消息窗口句柄（常驻 HWND，进程存活期间不变）：常驻职责的窗口消息接收端挂在这里，
+        /// 使这些消息不依赖设置台窗口是否存在。
+        /// </summary>
+        public IntPtr Handle => _source.Handle;
+
+        /// <summary>挂窗口消息钩子（常驻职责的消息接收）；返回的委托可交给 <see cref="RemoveHook"/> 成对摘除。</summary>
+        public void AddHook(HwndSourceHook hook) => _source.AddHook(hook);
+
+        /// <summary>摘除 <see cref="AddHook"/> 挂上的窗口消息钩子。</summary>
+        public void RemoveHook(HwndSourceHook hook) => _source.RemoveHook(hook);
 
         public void SetTooltip(string tip)
         {

@@ -41,11 +41,11 @@ namespace StarPie.Services.Wheel
                 96, 96, PixelFormats.Pbgra32);
             bitmap.Render(window);
 
-            // 关闭以解除 Application.Windows 集合的强引用（窗口构造即入集合，Closed 才出）；
-            // 随后排空 Dispatcher 上遗留的布局/渲染清理载荷——它们持有刚关闭的窗口，
-            // 不排空则预热产物滞留。未显示窗口无 HWND，Close 无视觉/系统副作用。
-            window.Close();
-            window.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+            // 关闭以解除 Application.Windows 集合的强引用（窗口构造即入集合，Closed 才出），
+            // 收尾纪律走常驻壳层的唯一实现：清动画 → Close → 排空 Dispatcher 上遗留的
+            // 布局/渲染清理载荷——它们持有刚关闭的窗口，不排空则预热产物滞留。
+            // 未显示窗口无 HWND，Close 无视觉/系统副作用。
+            TransientWindowTeardown.Complete(window);
 
             return new WeakReference(window);
         }

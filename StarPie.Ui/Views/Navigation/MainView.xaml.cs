@@ -1,28 +1,26 @@
 using System;
-using System.ComponentModel;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
-using Application = System.Windows.Application;
 using StarPie.ViewModels;
 
 namespace StarPie.Views.Navigation
 {
     /// <summary>
-    /// 设置控制台主框架：独立承担窗口职责——关窗隐藏到托盘（含兜底冲刷）、淡入淡出动画；
+    /// 设置控制台主框架：独立承担窗口职责——淡入淡出动画与界面主题应用；
     /// 页面区是 ContentControl（DataContext.CurrentViewModel），页面经 DataTemplate 由页面 VM 映射呈现。
     /// 壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播
     /// 由组合根承接。
     /// </summary>
     /// <remarks>
-    /// 壳层静态文案为声明式 {DynamicResource}；Window.Title 收进
+    /// 本窗口是设置台租户的瞬态窗口：关窗即销毁（不隐藏、不保留状态），托盘驻留由常驻壳层承担，
+    /// 重开时重建。壳层静态文案为声明式 {DynamicResource}；Window.Title 收进
     /// <see cref="ShellViewModel.WindowTitle"/>。DataContext 分区——壳区（本窗口）绑壳层 VM，
     /// 导航区（侧栏 + 页面 ContentControl）绑 <see cref="MainViewModel"/>。
     /// 界面主题应用改消息驱动：订阅 <see cref="AppThemeChangedMessage"/> 执行
     /// <see cref="ApplyAppTheme"/>（配置导入后的重挂路径同样经此消息由壳层执行），初始主题
-    /// 仍由 AppHost.Run 直调本方法。
+    /// 仍由设置台开窗时直调本方法。
     /// </remarks>
     public partial class MainView : Window
     {
@@ -71,8 +69,9 @@ namespace StarPie.Views.Navigation
             Height = Math.Round(Height * scale);
         }
 
-        /// <summary>显示并激活主窗口（托盘直达/双击；页面切换由目录执行缝
-        /// <see cref="INavigationExecutor"/> 先行完成），带淡入动画。</summary>
+        /// <summary>显示并激活主窗口（托盘直达/双击/单实例恢复），带淡入动画。
+        /// 首次显示与已显示窗口的重新激活共用本入口（页面切换由目录执行缝
+        /// <see cref="INavigationExecutor"/> 先行完成）。</summary>
         public void ShowAndActivate()
         {
             Opacity = 0.0;
@@ -83,47 +82,6 @@ namespace StarPie.Views.Navigation
             var anim = new DoubleAnimation(0.0, 1.0, new Duration(TimeSpan.FromMilliseconds(160)))
             {
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            BeginAnimation(Window.OpacityProperty, anim);
-        }
-
-        /// <summary>挂单实例恢复消息钩子：句柄建立后常驻（窗口隐藏到托盘不销毁 HWND）。</summary>
-        protected override void OnSourceInitialized(EventArgs e)
-        {
-            base.OnSourceInitialized(e);
-            HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)?
-                .AddHook(MainViewWndProc);
-        }
-
-        /// <summary>单实例恢复消息：外部实例请求置前——经 WPF 显示路径自恢复
-        /// （ShowAndActivate；IsVisible 恢复即触发托盘恢复序列），纯外部 ShowWindow
-        /// 不更新 WPF 的 IsVisible 状态，故必须经本消息驱动。</summary>
-        private IntPtr MainViewWndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            if (msg != SingleInstanceRestore.MessageId)
-            {
-                return IntPtr.Zero;
-            }
-
-            handled = true;
-            Dispatcher.BeginInvoke(ShowAndActivate);
-            return IntPtr.Zero;
-        }
-
-        private void Window_Closing(object sender, CancelEventArgs e)
-        {
-            // App 级退出：挂起修改已由组合根冲刷，放行关窗；退出状态在壳层 VM
-            // （ShellViewModel.IsExiting），视图不反向依赖组合根。
-            if (_shell.IsExiting) return;
-
-            e.Cancel = true;
-
-            // 隐藏前先淡出
-            var anim = new DoubleAnimation(1.0, 0.0, new Duration(TimeSpan.FromMilliseconds(120)));
-            anim.Completed += (s, ev) =>
-            {
-                Hide();
-                Opacity = 1.0;
             };
             BeginAnimation(Window.OpacityProperty, anim);
         }

@@ -8,9 +8,10 @@ using StarPie.Kernel.Localization;
 namespace StarPie.Services.Dialogs
 {
     /// <summary>
-    /// 对话框服务实现。Owner 采用惰性回填：组合根先建服务、后建设置窗口，
-    /// 窗口创建完成后调 <see cref="SetOwner"/> 回填引用，化解“服务需要 Owner ↔ 窗口依赖
-    /// 服务”的循环；Owner 的用法是实现内部自由，不泄露进接口。
+    /// 对话框服务实现。Owner 采用按设置台开关绑定的惰性回填：组合根先建服务、后建设置窗口，
+    /// 窗口创建完成后调 <see cref="SetOwner"/> 绑定引用、窗口关闭时解绑（传 null），
+    /// 化解"服务需要 Owner ↔ 窗口依赖服务"的循环，并避免已关闭窗口被长期强引用；
+    /// Owner 的用法是实现内部自由，不泄露进接口。
     /// </summary>
     /// <remarks>
     /// 程序选择器、输入框、图标/颜色选择器与屏上取色均已走 VM 化链路。
@@ -46,8 +47,11 @@ namespace StarPie.Services.Dialogs
             _programScanner = programScanner ?? throw new ArgumentNullException(nameof(programScanner));
         }
 
-        /// <summary>组合根在设置窗口创建完成后回填 Owner；此前调用任何 Show* 都不带 Owner。</summary>
-        public void SetOwner(Window owner) => _owner = owner;
+        /// <summary>设置台开时绑定 Owner、关时解绑（传 null）；无 Owner 期间的调用不带归属窗口。</summary>
+        public void SetOwner(Window? owner) => _owner = owner;
+
+        /// <summary>当前 Owner 绑定（装配面只读诊断；不进 <see cref="IDialogService"/> 契约面）。</summary>
+        public Window? Owner => _owner;
 
         /// <summary>宿主启动时按 <c>--background</c> 回填（后台/静默运行语义）。</summary>
         public void SetBackgroundMode(bool value) => _backgroundMode = value;

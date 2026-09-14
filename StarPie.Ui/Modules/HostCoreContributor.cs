@@ -24,12 +24,14 @@ using StarPie.ViewModels.Pages;
 namespace StarPie.Modules
 {
     /// <summary>
-    /// 宿主编排与内核接入贡献者：把宿主直持的运行时件（配置/本地化/图标资产/程序扫描/
-    /// 导航运行时/壳层 VM）按贡献者接口登记，组合根不再逐行硬编码注册体。
+    /// 宿主编排与内核接入贡献者：把宿主直持的常驻运行时件（配置/本地化/图标资产/程序扫描/
+    /// 导航运行时）按贡献者接口登记，组合根不再逐行硬编码注册体。
     /// </summary>
     /// <remarks>
-    /// 宿主回调委托包 <see cref="AppHostDelegates"/> 由组合根持有并在 AppHost 构造后回填
+    /// 宿主回调委托包 <see cref="AppHostDelegates"/> 由组合根持有并在 ShellHost 构造后回填
     /// （宿主状态不归贡献者，本贡献者只负责把同一实例注册为单例）；插件管理页（槽位 4）随本贡献者登记。
+    /// 设置台会话级 VM（导航区 <c>MainViewModel</c>、壳区 <c>ShellViewModel</c>）不在此登记：
+    /// 它们随设置台开关重建，由组合根在设置台工厂里构造。
     /// 注册的可解析件：内核实现驻 <c>StarPie.Host</c>，WPF 适配件（<c>DispatcherSaveDebouncer</c>）
     /// 与图像构造（<c>IconAssetService</c>）驻本集，契约在 <c>StarPie.Sdk</c>/<c>StarPie.Sdk.Wpf</c>。
     /// </remarks>
@@ -166,10 +168,6 @@ namespace StarPie.Modules
                 sp.GetRequiredService<NavigationCatalog>()));
             services.AddSingleton<IPluginUiCoordinator>(sp =>
                 sp.GetRequiredService<PluginUiCoordinator>());
-
-            // 壳层 VM：状态跨导航常驻；解析时机在配置加载后（组合根 eager 解析阶段）。
-            services.AddSingleton<MainViewModel>();
-            services.AddSingleton<ShellViewModel>();
 
             // 插件管理页 VM：数据源是宿主报告快照，页面每次被导航到时经导航状态刷新。
             services.AddSingleton(sp => new PluginManagerViewModel(

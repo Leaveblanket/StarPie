@@ -5,7 +5,6 @@
         Title="{Binding WindowTitle}" Height="720" Width="1060"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource WindowBackgroundBrush}"
-        Closing="Window_Closing"
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"

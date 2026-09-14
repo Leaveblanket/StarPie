@@ -1,11 +1,8 @@
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Kernel.Localization;
 using StarPie.PluginHosting;
@@ -13,20 +10,27 @@ using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
 using StarPie.Services;
 using StarPie.Services.Shell;
+using StarPie.Views.Navigation;
 
 namespace StarPie
 {
     /// <summary>
-    /// 应用宿主：执行启动/退出编排——鼠标钩子启动、语言资源字典、主框架/托盘创建、
-    /// 隐藏到托盘与退出协调。
+    /// 常驻壳层：进程存活期内一直存在的编排面——鼠标钩子、语言资源字典、托盘、插件运行时、
+    /// 单实例恢复接收、退出协调，以及设置台租户（<see cref="SettingsConsole"/>）的按需创建与释放。
     /// </summary>
     /// <remarks>
-    /// DI 注册与解析仍归 <see cref="Composition"/>（组合根），本类不接触 ServiceProvider。
-    /// 生命周期：App.OnStartup 经 <see cref="Composition.CreateAppHost"/> 取得本对象后调用
-    /// Run；App.OnExit 先保存配置再释放本对象（释放托盘、停钩、退订语言、释放壳层 VM），
+    /// 单进程内按生命周期划分：本类常驻至进程结束；设置台是按需创建、关闭即销毁的租户；
+    /// 轮盘维持每次手势一个实例。常驻职责不寄居在瞬态对象上——单实例恢复消息的接收端驻托盘
+    /// 消息窗口（常驻 HWND），退出编排与托盘气泡归本类，设置台窗口只是它创建的瞬态窗口。
+    /// <see cref="Application.MainWindow"/> 由常驻锚窗口（<see cref="ShellAnchorWindow"/>）兜底持有，
+    /// 使任何瞬态窗口都不可能被自动赋值钉住。
+    /// DI 注册与解析仍归 <see cref="Composition"/>（组合根），本类不接触 ServiceProvider；
+    /// 设置台的对象图经组合根交付的工厂创建，解析点未离开组合根。
+    /// 生命周期：App.OnStartup 经 <see cref="Composition.CreateShellHost"/> 取得本对象后调用
+    /// Run；App.OnExit 先保存配置再释放本对象（释放设置台、托盘、停钩、退订语言），
     /// Composition 最后释放容器。
     /// </remarks>
-    internal sealed class AppHost : IDisposable
+    internal sealed class ShellHost : IDisposable
     {
         private readonly IMessenger _messenger;
         private readonly MouseHook _mouseHook;
@@ -36,35 +40,35 @@ namespace StarPie
         private readonly IConfigService _config;
         private readonly IIconAssetService _iconAssets;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
-        // 目录执行缝按槽位导航——宿主不持有任何页面类型。
+        // 目录执行缝按槽位导航——壳层不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
-        // 界面主题设置子 VM：壳层启动时读取 AppTheme 做初始主题应用；
+        // 界面主题设置子 VM：设置台开窗时读取 AppTheme 做初始主题应用；
         // 运行时变更经 AppThemeChangedMessage 由主框架订阅执行。
         private readonly InterfaceThemeSettingsViewModel _interfaceTheme;
-        // 通用分区 VM：托盘提权重启与驻留气泡由宿主直调/订阅。
+        // 通用分区 VM：托盘驻留气泡由壳层直调（文案与编排仍在 VM）。
         private readonly GeneralSettingsViewModel _general;
-        // 退出状态归壳层 VM：主框架 Closing 据此放行真关窗而非隐藏到托盘；
-        // 导航 VM 只持导航状态（分区 DataContext 的导航区）。
-        private readonly MainViewModel _mainViewModel;
-        private readonly ShellViewModel _shellViewModel;
         private readonly AppHostDelegates _hostDelegates;
         // 插件 UI 托管：托盘/设置面的插件条目由它提供（无插件时为空，菜单与设置面不出现空壳）。
         private readonly PluginUiCoordinator _pluginUi;
         // 插件运行时：启动扫描（发现/校验/准入 + 启动报告落盘）后按宿主状态装载启用插件，
         // 并持有停用/再启用入口。
         private readonly PluginRuntimeHost _pluginRuntime;
+        // 设置台工厂：组合根交付，按需产出一次性设置台租户（对象图解析仍收在组合根）；
+        // 参数是常驻锚窗口——设置台关闭时把 Application.MainWindow 回退给它。
+        private readonly Func<Window, SettingsConsole> _createSettingsConsole;
+        // 导航视图出账与恢复重放（设置台关闭时出账、重开时按最后导航槽位重放；幂等）。
+        private readonly NavigationSuspension _navigationSuspension;
         // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
         // 无任务栏项，且不启全局鼠标钩子——用户同机工作时键鼠不受打扰，窗口仍真实可见可截图。
         private readonly bool _background;
-        // 主题调色板换入经 Ui 侧适配器（实现内核主题应用端口）执行；
-        // 宿主只负责装配，不做直接键覆盖。
-        private readonly AppThemePaletteManager _paletteManager = new();
-        // 导航视图出账与恢复重放（进托盘出账/恢复重放按最后导航槽位；幂等）。
-        private readonly NavigationSuspension _navigationSuspension;
+        // 常驻锚窗口：永不显示，专门长期持有 Application.MainWindow。
+        private readonly ShellAnchorWindow _anchor;
         private TrayIconManager? _trayIcon;
-        private MainView? _mainView;
+        private SettingsConsole? _settingsConsole;
+        // 托盘消息窗口上的恢复消息钩子（常驻；释放时成对摘除）。
+        private HwndSourceHook? _restoreMessageHook;
 
-        public AppHost(
+        public ShellHost(
             IMessenger messenger,
             MouseHook mouseHook,
             DialogService dialogService,
@@ -76,12 +80,11 @@ namespace StarPie
             INavigationExecutor navigation,
             InterfaceThemeSettingsViewModel interfaceTheme,
             GeneralSettingsViewModel general,
-            MainViewModel mainViewModel,
-            ShellViewModel shellViewModel,
             AppHostDelegates hostDelegates,
             PluginRuntimeHost pluginRuntime,
             PluginUiCoordinator pluginUi,
             NavigationSuspension navigationSuspension,
+            Func<Window, SettingsConsole> createSettingsConsole,
             bool background = false)
         {
             _messenger = messenger;
@@ -95,20 +98,24 @@ namespace StarPie
             _navigation = navigation;
             _interfaceTheme = interfaceTheme;
             _general = general;
-            _mainViewModel = mainViewModel;
-            _shellViewModel = shellViewModel;
             _hostDelegates = hostDelegates;
             _pluginRuntime = pluginRuntime;
             _pluginUi = pluginUi;
             _navigationSuspension = navigationSuspension;
+            _createSettingsConsole = createSettingsConsole;
             _background = background;
 
-            // 主题画刷换入经端口回填：整项替换合并字典的活动主题槽；
-            // 主题服务不接触视图资源，只经端口触发换入。
-            themeService.AttachApplier(_paletteManager);
+            // 锚窗口在任何其它窗口之前实例化并占住 Application.MainWindow：
+            // 进程内第一个实例化的 Window 会被该属性长期强引用，先占位可保证瞬态窗口
+            // （设置台/轮盘/对话框/插件窗口）永远不可能被自动赋值钉住。
+            _anchor = new ShellAnchorWindow();
+            if (Application.Current is { } application)
+            {
+                application.MainWindow = _anchor;
+            }
 
             // 回填宿主回调：模块注册器装配页面 VM 时持转发委托，此刻起托盘气泡与
-            // 退出动作指向本宿主实例。
+            // 退出动作指向本壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
 
@@ -116,9 +123,11 @@ namespace StarPie
             _dialogService.SetBackgroundMode(background);
         }
 
+        /// <summary>当前设置台租户（未打开时为 null）——仅诊断与测试口径。</summary>
+        internal SettingsConsole? SettingsConsole => _settingsConsole;
         /// <summary>
         /// 启动编排：先在工作线程上完成插件装载（界面插件的 UI 注册要回到 UI 线程），
-        /// 再启动鼠标钩子、换入语言字典、创建托盘与主框架并显示——顺序显式可控。
+        /// 再启动鼠标钩子、换入语言字典、创建托盘与设置台并显示——顺序显式可控。
         /// </summary>
         /// <remarks>
         /// 装载不能阻塞 UI 线程：界面插件经 <c>IPluginUiModule.RegisterUi</c> 在 UI 线程注册资产，
@@ -161,7 +170,7 @@ namespace StarPie
             StartCore();
         }
 
-        /// <summary>UI 线程上的启动编排：钩子、语言字典、托盘、主框架与初始导航。</summary>
+        /// <summary>UI 线程上的启动编排：钩子、语言字典、托盘、设置台与初始导航。</summary>
         private void StartCore()
         {
             // 后台模式不启全局鼠标钩子：钩子属产品交互，e2e 不覆盖它，
@@ -179,71 +188,28 @@ namespace StarPie
             _localization.LanguageChanged += RefreshTrayTooltip;
             ApplyLanguageDictionary();
 
-            // 托盘驻留气泡：宿主订阅消息后直调通用 VM（文案与编排仍在 VM）。
+            // 托盘驻留气泡：壳层订阅消息后直调通用 VM（文案与编排仍在 VM）。
             _messenger.Register<MinimizedToTrayMessage>(this, (_, _) => _general?.NotifyMinimizedToTray());
 
             // 初始页为“触发与场景”槽位。
             _navigation.Navigate(NavigationSlot.Trigger);
 
-            _mainView = new MainView(_mainViewModel, _shellViewModel, _themeService);
-            if (_background)
-            {
-                ConfigureBackgroundWindow(_mainView);
-            }
-            // 托盘状态信号：可见性变化 → 有序动作（进托盘 Flush → Minimized → GC；恢复 Restored；
-            // 退出态不发；后台形态出账禁用、消息照发——决策在 TrayVisibilitySignal，可测）。
-            // 宿主气泡经既有订阅直调通用 VM（文案与编排仍在 VM）。
-            _mainView.IsVisibleChanged += (_, _) =>
-            {
-                if (_mainView is not { } view)
-                {
-                    return;
-                }
-                foreach (TraySignalStep step in TrayVisibilitySignal.Resolve(
-                    view.IsVisible, _shellViewModel.IsExiting, _background))
-                {
-                    switch (step)
-                    {
-                        case TraySignalStep.FlushPendingSave:
-                            _saveOrchestrator.FlushPendingSave();
-                            break;
-                        case TraySignalStep.ReleaseNavigation:
-                            _navigationSuspension.Release();
-                            break;
-                        case TraySignalStep.ReleaseIconCaches:
-                            _iconAssets.ReleaseTransientCaches();
-                            break;
-                        case TraySignalStep.SendMinimized:
-                            _messenger.Send(MinimizedToTrayMessage.Instance);
-                            break;
-                        case TraySignalStep.CollectGarbage:
-                            // MemoryOptimizer 内部 Task.Run：GC 后台执行，不占 Send 调用线程。
-                            MemoryOptimizer.CollectGarbage();
-                            break;
-                        case TraySignalStep.RestoreNavigation:
-                            _navigationSuspension.Restore();
-                            break;
-                        case TraySignalStep.SendRestored:
-                            _messenger.Send(RestoredFromTrayMessage.Instance);
-                            break;
-                    }
-                }
-            };
-            _mainView.ApplyAppTheme(_interfaceTheme.AppTheme);
-            // 初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）。
+            // 初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）——进程级主题状态随壳层，
+            // 不随设置台开关反复启停（实现内部幂等，重入安全）。
             _themeService.EnableSystemThemeTracking();
-            // 惰性回填 Owner：此后所有模态对话框归属主框架。
-            _dialogService.SetOwner(_mainView);
 
-            // 托盘深色配色由宿主以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
+            // 托盘深色配色由壳层以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
             // 静默形态也建托盘：通知区入口保留（人工观察/退出），不影响测试侧驱动。
             _trayIcon = new TrayIconManager(
                 windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
                 onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
                 menuProvider: BuildTrayMenuEntries);
             _trayIcon.SetTooltip(CurrentTooltip());
+            // 单实例恢复消息的接收端驻常驻侧：设置台窗口关着时也要能受理"打开设置台"请求。
+            _restoreMessageHook = OnResidentWindowMessage;
+            _trayIcon.AddHook(_restoreMessageHook);
 
-            _mainView.Show();
+            ShowSettingsConsole(activate: false);
 
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
             // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
@@ -258,8 +224,9 @@ namespace StarPie
         {
             if (GC.GetConfigurationVariables().TryGetValue("GCHeapHardLimit", out object? hardLimit))
             {
-                Debug.WriteLine($"[Startup] GC HeapHardLimit 生效值: {hardLimit}");
+                Debug.WriteLine($"[Startup] GC Heap HardLimit 生效值: {hardLimit}");
             }
+
             MemoryOptimizer.CollectGarbage(true);
         }
 
@@ -282,16 +249,38 @@ namespace StarPie
 
         public void Dispose()
         {
-            // 成对退订语言字典换入（订阅在 Run()），避免宿主释放后事件仍持有引用。
+            // 成对退订语言字典换入（订阅在 Run()），避免壳层释放后事件仍持有引用。
             _localization.LanguageChanged -= ApplyLanguageDictionary;
             _localization.LanguageChanged -= RefreshTrayTooltip;
-            _trayIcon?.Dispose();
-            _trayIcon = null;
-            _mouseHook.Stop();
 
-            // 进程级 VM 成对退订本地化静态事件（容器释放亦覆盖，此处显式保证顺序）。
-            _mainViewModel.Dispose();
-            _shellViewModel.Dispose();
+            if (_trayIcon != null)
+            {
+                DisposeTray();
+            }
+
+            // 设置台租户先于常驻件释放：关窗收尾 + VM 树成对退订。
+            _settingsConsole?.Dispose();
+            _settingsConsole = null;
+
+            _mouseHook.Stop();
+        }
+
+        /// <summary>释放托盘与挂在其消息窗口上的常驻钩子（成对摘除；幂等）。</summary>
+        private void DisposeTray()
+        {
+            if (_trayIcon is not { } tray)
+            {
+                return;
+            }
+
+            _trayIcon = null;
+            if (_restoreMessageHook is { } hook)
+            {
+                _restoreMessageHook = null;
+                tray.RemoveHook(hook);
+            }
+
+            tray.Dispose();
         }
 
         // 运行时语言字典：本地化服务的 XAML 投影，只持当前语言一份；
@@ -318,11 +307,42 @@ namespace StarPie
             }
         }
 
-        /// <summary>按目录槽位导航 + 窗口激活（托盘直达；淡入淡出在 <see cref="MainView.ShowAndActivate"/>）。</summary>
+        /// <summary>
+        /// 显示设置台（未创建则创建）：<paramref name="activate"/> 为真时走淡入激活
+        ///（托盘直达/单实例恢复），为假时按启动呈现。关闭后的设置台在此重建。
+        /// </summary>
+        private SettingsConsole ShowSettingsConsole(bool activate)
+        {
+            // 设置台是瞬态租户：已关闭（或从未创建）时新建会话，已关闭的旧会话先出账。
+            SettingsConsole? stale = _settingsConsole;
+            if (stale is not { IsOpen: true })
+            {
+                stale?.Dispose();
+                stale = _createSettingsConsole(_anchor);
+                _settingsConsole = stale;
+            }
+
+            SettingsConsole console = stale;
+            if (activate)
+            {
+                console.ShowAndActivate();
+            }
+            else
+            {
+                console.Show();
+            }
+
+            return console;
+        }
+
+        /// <summary>
+        /// 按目录槽位导航 + 显示设置台并激活（托盘直达）：先开设置台再导航——
+        /// 开窗会先按最后导航槽位重放（恢复序列），重放之后的目标槽位才是用户点选的页。
+        /// </summary>
         private void NavigateAndShow(NavigationSlot slot)
         {
+            ShowSettingsConsole(activate: true);
             _navigation.Navigate(slot);
-            _mainView?.ShowAndActivate();
         }
 
         private List<TrayMenuEntry> BuildTrayMenuEntries()
@@ -348,6 +368,22 @@ namespace StarPie
             return TrayMenuComposer.Compose(entries, _pluginUi, _localization).ToList();
         }
 
+        /// <summary>
+        /// 常驻窗口消息：单实例恢复请求 → 创建设置台并显示（设置台关着时也受理）。
+        /// 钩子挂在托盘消息窗口（常驻 HWND）上，不依赖设置台窗口是否存在。
+        /// </summary>
+        private IntPtr OnResidentWindowMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            if (msg != SingleInstanceRestore.MessageId)
+            {
+                return IntPtr.Zero;
+            }
+
+            handled = true;
+            _ = Application.Current?.Dispatcher.BeginInvoke(() => ShowSettingsConsole(activate: true));
+            return IntPtr.Zero;
+        }
+
         private void ShowTrayBalloonTip(string title, string text)
         {
             _trayIcon?.ShowBalloonTip(title, text);
@@ -359,7 +395,7 @@ namespace StarPie
             _trayIcon?.SetTooltip(CurrentTooltip());
         }
 
-        /// <summary>当前暂停态对应的托盘 tooltip；语言切换时由宿主按暂停态刷新。</summary>
+        /// <summary>当前暂停态对应的托盘 tooltip；语言切换时由壳层按暂停态刷新。</summary>
         private string CurrentTooltip()
         {
             return _mouseHook.IsPaused ? $"StarPie ({_localization.GetString("TrayPause")})" : DefaultTooltip;
@@ -386,73 +422,12 @@ namespace StarPie
 
             if (_trayIcon != null)
             {
-                _trayIcon.Dispose();
-                _trayIcon = null;
+                DisposeTray();
             }
 
-            // 退出状态落壳层 VM，主框架 Closing 据此放行真关窗。
-            _shellViewModel.IsExiting = true;
+            // 退出态：进程退出中的关窗不走托盘态出账序列（设置台租户随之销毁）。
+            _settingsConsole?.MarkExiting();
             Application.Current.Shutdown();
         }
-
-        // ==== 后台/静默模式（--background，e2e 用）====
-
-        /// <summary>静默形态主窗口定位：屏幕左上角（窗口真实可见、被 DWM 合成，失败截图可抓真实内容）。</summary>
-        private const int SilentWindowLeft = 0;
-        private const int SilentWindowTop = 0;
-        /// <summary>静默形态界面缩放：0.9 线性 → 窗口 954×648；再小正文会掉到 9px 以下、截图不可读。</summary>
-        private const double SilentWindowScale = 0.9;
-        private const int GwlExStyle = -20;
-        private const int WsExNoActivate = 0x08000000;
-        private const int WsExTransparent = 0x00000020;
-        private const int WmNcHitTest = 0x0084;
-        private const int HtTransparent = -1;
-
-        /// <summary>
-        /// 把设置控制台窗口切成"静默形态"：屏幕左上角定位、不可激活（WS_EX_NOACTIVATE）、
-        /// 点击穿透（WS_EX_TRANSPARENT + WM_NCHITTEST→HTTRANSPARENT，用户点击落到下层窗口）、
-        /// 不进任务栏。语义只影响窗口呈现/激活/命中测试，不影响导航/配置/渲染，UIA 仍可完整驱动。
-        /// </summary>
-        private static void ConfigureBackgroundWindow(MainView view)
-        {
-            view.ShowActivated = false;
-            view.ShowInTaskbar = false;
-            view.WindowStartupLocation = WindowStartupLocation.Manual;
-            view.ApplyLayoutScale(SilentWindowScale);
-            view.Left = SilentWindowLeft;
-            view.Top = SilentWindowTop;
-
-            // HWND 在 Show 时创建：SourceInitialized 早于窗口出现在屏幕上，此刻挂扩展样式最稳。
-            view.SourceInitialized += (_, _) =>
-            {
-                IntPtr hwnd = new WindowInteropHelper(view).Handle;
-                if (hwnd == IntPtr.Zero)
-                {
-                    return;
-                }
-
-                int exStyle = GetWindowLong(hwnd, GwlExStyle);
-                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate | WsExTransparent);
-
-                // 命中测试一律 HTTRANSPARENT：鼠标点击穿透到下层窗口（跨进程亦生效），
-                // 配合 WS_EX_NOACTIVATE 让静默形态对用户键鼠完全无感。
-                HwndSource.FromHwnd(hwnd)?.AddHook((IntPtr h, int msg, IntPtr w, IntPtr l, ref bool handled) =>
-                {
-                    if (msg == WmNcHitTest)
-                    {
-                        handled = true;
-                        return new IntPtr(HtTransparent);
-                    }
-
-                    return IntPtr.Zero;
-                });
-            };
-        }
-
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
-        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }

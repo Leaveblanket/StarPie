@@ -1,4 +1,4 @@
-# 程序集地图与程序集化收尾（目标态 = as-built）
+﻿# 程序集地图与程序集化收尾（目标态 = as-built）
 
 > 本文记录程序集化目标态（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) +
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
@@ -26,7 +26,7 @@
 
 | 程序集 | 形态 | 承载 |
 |---|---|---|
-| `StarPie`（项目 `StarPie.Ui`） | WinExe | Ui 集与组合根（App/AppHost/Composition/DevInstance）；统一注册管线（`Modules/`：`ICompositionContributor` + `BuiltInContributors` 有序清单 + 宿主编排贡献者 `HostCoreContributor` 与外观页 `HostPageContributor`）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel，命名空间不变）；Appearance 聚合页与插件管理页（`PluginManagerPage`/`PluginManagerViewModel` + 插件设置区块 `PluginSettingsSectionViewModel`，模板字典 `Modules/HostCorePageTemplates.xaml`）；设计期投影字典 `Services/Localization/DesignTimeStrings.xaml`（Page 编译惰性 BAML）与生成脚本；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`（App.xaml 本地单点实例化/合并、资源 key 不变）；S1/M3 的 WPF 图像构造与扫描消费；M4 的 `IThemeService` 实现 `Services/Shell/`、调色板适配器 `Adapters/`、五套主题字典 `Themes/`、主题设置子 VM 与 `ThemeContributor`；M2 轮盘与渲染的 WPF 亲和件——`Services/Wheel/`（WheelGeometry/WheelFactory）、`ViewModels/Wheel|Pages/`（WheelViewModel/WheelAppearanceSettingsViewModel）、`Views/Wheel|Renderers/`（RadialWindow/样式渲染器与预览）、`Views/Converters/`（核图标预览转换器）与 `WheelContributor`；M1 手势与动作的 WPF 亲和件——`Services/Gestures/`（MouseHook/GestureController）、`Services/Actions/`（IActionExecutorService/ActionExecutorService）、`ViewModels/Pages|Gestures/`（BehaviorSettingsViewModel/ProfileListViewModel/SlotViewModel）、`Views/Pages|Controls|Styles|DesignTime/`（触发+手势页、热键录制控件与样式字典）与 `GesturesContributor` + `GesturesPageTemplates.xaml`；M5 壳层与系统设置面——`Services/Shell/`（TrayIconManager/TrayMenuEntry 与插件菜单合成 `TrayMenuComposer`）、`ViewModels/Pages/`（GeneralSettingsViewModel）、`Views/Pages/`（AdvancedSettingsPage）与 `ShellContributor` + `ShellPageTemplates.xaml`；S6 对话框——`Services/Dialogs/`（DialogService）、`ViewModels/Dialogs/`（五对对话框 VM）、`Views/Dialogs|Controls/`（五对对话框 Window 与 SpectrumCanvasBehavior）与 `DialogsContributor`；插件 UI 托管——`PluginHosting/`（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排与泄漏验证器）与固定扩展点 `PluginHosting/Extensions/`（插件页 `PluginPage`、设置区块 `PluginSettingsSection`、托盘菜单项 `PluginMenuItem` 的登记与出账，导航页经宿主签发的 `NavPlugin_<插件 id>` 进目录）；仅保留 DialogService.SetOwner 回填等宿主装配面 |
+| `StarPie`（项目 `StarPie.Ui`） | WinExe | Ui 集与组合根（App/AppHost/Composition/DevInstance）；统一注册管线（`Modules/`：`ICompositionContributor` + `BuiltInContributors` 有序清单 + 宿主编排贡献者 `HostCoreContributor` 与外观页 `HostPageContributor`）；Host 壳窗口（`MainView` 全文件 + `ShellViewModel`）；导航运行时主体（`Services/Navigation/`：NavigationStore/NavigationExecutor（含 INavigationExecutor）；`ViewModels/Navigation/`：MainViewModel/NavigationItemViewModel，命名空间不变）；Appearance 聚合页与插件管理页（`PluginManagerPage`/`PluginManagerViewModel` + 插件设置区块 `PluginSettingsSectionViewModel`，模板字典 `Modules/HostCorePageTemplates.xaml`）；设计期投影字典 `Services/Localization/DesignTimeStrings.xaml`（Page 编译惰性 BAML）与生成脚本；共享 UI 基建（通用转换器 `Views/Converters/` + `ModernControls.xaml` `Views/Styles/`（App.xaml 本地单点实例化/合并、资源 key 不变）；S1/M3 的 WPF 图像构造与扫描消费；M4 的 `IThemeService` 实现 `Services/Shell/`、调色板适配器 `Adapters/`、五套主题字典 `Themes/`、主题设置子 VM 与 `ThemeContributor`；M2 轮盘与渲染的 WPF 亲和件——`Services/Wheel/`（WheelGeometry/WheelFactory）、`ViewModels/Wheel|Pages/`（WheelViewModel/WheelAppearanceSettingsViewModel）、`Views/Wheel|Renderers/`（RadialWindow/样式渲染器与预览）、`Views/Converters/`（核图标预览转换器）与 `WheelContributor`；M1 手势与动作的 WPF 亲和件——`Services/Gestures/`（MouseHook/GestureController）、`Services/Actions/`（IActionExecutorService/ActionExecutorService）、`ViewModels/Pages|Gestures/`（BehaviorSettingsViewModel/ProfileListViewModel/SlotViewModel）、`Views/Pages|Controls|Styles|DesignTime/`（触发+手势页、热键录制控件与样式字典）与 `GesturesContributor` + `GesturesPageTemplates.xaml`；M5 壳层与系统设置面——`Services/Shell/`（TrayIconManager/TrayMenuEntry 与插件菜单合成 `TrayMenuComposer`）、`ViewModels/Pages/`（GeneralSettingsViewModel）、`Views/Pages/`（AdvancedSettingsPage）与 `ShellContributor` + `ShellPageTemplates.xaml`；S6 对话框——`Services/Dialogs/`（DialogService）、`ViewModels/Dialogs/`（五对对话框 VM）、`Views/Dialogs|Controls/`（五对对话框 Window 与 SpectrumCanvasBehavior）与 `DialogsContributor`；插件 UI 托管——`PluginHosting/`（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排与泄漏验证器）与固定扩展点 `PluginHosting/Extensions/`（插件页 `PluginPage`、设置区块 `PluginSettingsSection`、托盘菜单项 `PluginMenuItem` 的登记与出账，导航页经宿主签发的 `NavPlugin_<插件 id>` 进目录）；仅保留 DialogService.SetOwner 绑定/解绑等宿主装配面 |
 | `StarPie.Sdk` | 类库（net10.0） | SDK 集（P1.2/#111 骨架，P1.3/#112 headless 收口）：零 WPF、零第三方包、零 ProjectReference；承载跨集共享的纯托管契约/模型/DTO——`Models/`（AppConfig/WheelProfile/ActionItem/CustomColorPreset/ColorMath/GesturePoint）、`Services/`（AppHostDelegates、Messages、Navigation 目录与槽位契约、Dialogs 契约与 6 结果 record、IWheelFactory、Icons 条目类型与 .lnk SPI、Programs 扫描契约与纯规则）、`ViewModels/`（Pages 预览源接口、Wheel 轮盘只读接口）；迁移期镜像旧相对路径、命名空间保持 `StarPie.*` 不变，导出面与类型唯一性由 `SdkBoundaryTests` 收口 |
 | `StarPie.Sdk.Wpf` | WPF 类库 | SDK 的 WPF 类型契约面（P1.2/#111 骨架，P1.4/#113 收口）：承载跨集共享的 WPF 契约件——`Services/Icons/`（IIconAssetService）、`Services/Shell/`（IThemeService）、`Abstractions/Ui/`（插件 UI 契约：IPluginUiModule/IPluginUiContext/IUiDispatcher 与注册描述符）、`Compatibility/`（UiSdkAbi 主次版本/兼容判定 + DefaultAlcPolicy 默认 ALC 统一加载政策）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；导出面与 ABI 政策由 `SdkWpfBoundaryTests` 收口 |
 | `StarPie.Host` | 类库（net10.0） | 宿主内核：零 WPF、零 XAML（不引用 `StarPie.Sdk.Wpf`），ProjectReference 只许 `StarPie.Sdk`；承载 `Kernel/Configuration`（S2 配置读写/防抖落盘接缝/AppDataPaths）、`Kernel/Localization`（S3 本地化实现 + `Strings*.resx` 四语言）与 `Kernel/ShellIntegration`（M5 开机自启注册表 + 内存整理，命名空间 `StarPie.Kernel.ShellIntegration`），S1/M3 的 WPF-free 逻辑——`Icons/`（`IconCatalog` 静态纯目录 + `CustomIconStore` 自定义图标目录，命名空间 `StarPie.Icons`）与 `Programs/`（内置程序来源 `ProgramScanner` + 程序来源能力契约/聚合 + `ShortcutResolver` .lnk 解析，命名空间 `StarPie.Programs`），M4 的主题引擎 `Themes/`（`ThemeEngine`，命名空间 `StarPie.Themes`）与宿主→Ui 端口 `Ports/`（`IThemeApplier`，命名空间 `StarPie.Ports`），M2 的 WPF-free 配色目录与解析 `Wheel/`（`WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`，命名空间 `StarPie.Wheel`），以及 M1 的手势内核 `Gestures/`（`GestureEngine`/`GestureState`/`GestureReleaseResult`/`IWindowContext`/`WindowContext`，命名空间 `StarPie.Gestures`）与动作路由纯函数 `Actions/`（`ActionRouting` + `ActionRoute`/`KeyStroke`/`SystemCommand`，命名空间 `StarPie.Actions`）；件件可 headless 直接构造（Windows-only 项以 `[SupportedOSPlatform]` 标注）；导出面与零 WPF 泄漏由 `HostBoundaryTests` 收口 |
@@ -117,7 +117,7 @@ StarPie.Ui (exe) ──→ StarPie.Host → StarPie.Sdk
 | 导航目录/槽位契约 | S5（纯契约共享模块） | `StarPie.Sdk`（P1.3/#112 收口） | NavigationCatalog、NavigationSlot/NavigationSlots、NavigationPageRegistration |
 | 导航运行时/状态 | H1（宿主壳，与 R4/D3 同判据——单一消费方在 Host） | StarPie（exe） | NavigationStore、NavigationExecutor（含 INavigationExecutor）、MainViewModel、NavigationItemViewModel（命名空间不变） |
 | 壳层服务与系统集成 | M5 | `StarPie.Ui`（+ `StarPie.Host/Kernel/ShellIntegration`） | 托盘、自启、内存、Advanced 设置面 |
-| Host 壳窗口 | H1（宿主壳） | StarPie（exe） | MainView 全文件、ShellViewModel、App/AppHost/Composition（导航 VM 与主框架同窗，物理同居 Host） |
+| Host 壳窗口 | H1（宿主壳） | StarPie（exe） | MainView 全文件、ShellViewModel、SettingsConsole/ShellHost/App/Composition（导航 VM 与主框架同窗，物理同居 Host） |
 
 `MainView.xaml.cs` 与 `ShellViewModel` **归 Host 壳窗口**（ADR-0016 决策 6/7），不再归 M5；M5 只拥有壳层服务与设置面。
 导航运行时（含主框架导航区 VM `MainViewModel`）随壳窗口同判据归 Host（R9）。
@@ -167,7 +167,7 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 ## 6. DI 与注册契约（as-built）
 
 - **统一注册管线（内置贡献者与未来插件贡献者共用入口）**：`ICompositionContributor`（`Id`/`Order`/`RegisterServices(IServiceCollection)`/可选 `RegisterNavigation(NavigationCatalog)`，末者以接口默认实现表达“无导航页”）驻 `StarPie.Ui/Modules/`；`BuiltInContributors.CreateAll` 给出**有序清单**——`HostCoreContributor`（宿主编排与内核接入：宿主回调委托包、程序扫描/.lnk、图标资产、配置/本地化/防抖、消息、导航运行时、壳层 VM、插件运行时与插件管理页；槽位 4）、`HostPageContributor`（槽位 1 聚合页）、`ThemeContributor`（M4：主题服务与主题设置子 VM；无导航页）、`WheelContributor`（M2：轮盘工厂 `IWheelFactory→WheelFactory` 与外观设置子 VM；无导航页）、`GesturesContributor`（M1：手势管线、两页 VM 与 `IProfilePreviewSource` 别名；槽位 0/2）、`ShellContributor`（M5：高级页 VM；槽位 3）、`DialogsContributor`（S6：`IDialogService→DialogService`；无导航页）；S1/M3 无导航页，其服务由 `HostCoreContributor` 登记。
-- **注册顺序 ≠ 解析时机**：组合根（`Composition`，驻 Ui 集）按三阶段显式分离——(1) 注册期（有序清单先写导航目录并 `Validate()` 收口五槽，再写容器描述符）→ (2) 唯一 `BuildServiceProvider` → (3) `CreateAppHost` 在配置加载后目录驱动 eager 解析全部页面 VM 与宿主直持 VM。贡献者只登记不解析，解析点只在组合根。（dev 实例标记不占装配阶段：由内核 `AppDataPaths` 按构建配置编译期定死，见 [host.md](host.md)。）
+- **注册顺序 ≠ 解析时机**：组合根（`Composition`，驻 Ui 集）按三阶段显式分离——(1) 注册期（有序清单先写导航目录并 `Validate()` 收口五槽，再写容器描述符）→ (2) 唯一 `BuildServiceProvider` → (3) `CreateShellHost` 在配置加载后目录驱动 eager 解析全部页面 VM 与壳层直持 VM，并交付设置台会话工厂。贡献者只登记不解析，解析点只在组合根。（dev 实例标记不占装配阶段：由内核 `AppDataPaths` 按构建配置编译期定死，见 [host.md](host.md)。）
 - **M3（程序扫描，已归并 + 插件化）**：由 `HostCoreContributor` 登记
   `IShortcutTargetResolver→ShortcutResolver`、能力表（声明 `program-source@1` 契约 + 内置来源）
   与 `IProgramScanner→ProgramSourceAggregator`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
@@ -179,13 +179,14 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 - **S1（图标资产，已归并）**：由 `HostCoreContributor` 登记内核 `CustomIconStore`（`StarPie.Host/Icons/`）与
   Ui 侧 `IIconAssetService→IconAssetService`（`StarPie.Ui/Services/Icons/`，构造解析内核图标
   目录与 `IShortcutTargetResolver`）。
-- **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateAppHost`；贡献者不解析、不持容器。
+- **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateShellHost`；贡献者不解析、不持容器。
 - **已批准解析缝**：`WheelFactory`、`DialogService`、贡献者注册体（仅登记不解析）。导航目录执行缝
   不是跨程序集缝（`INavigationExecutor` 随运行时整体归 Host，为宿主内部件，见 [seams.md](seams.md)）。
 - `AppHostDelegates` 是 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）；
-  Host 组合根持有实例并由 `HostCoreContributor` 登记单例，AppHost 构造后回填实现。贡献者只依赖
+  Host 组合根持有实例并由 `HostCoreContributor` 登记单例，ShellHost 构造后回填实现（契约名不随类改名）。贡献者只依赖
   SDK/Sdk.Wpf 契约面与 Host 内核面，不在贡献者内引用其它模块 runtime 类型。
-- CreateAppHost 的解析清单目录化：遍历 `NavigationCatalog.Entries` 逐个 eager 解析页面 VM。
+- CreateShellHost 的解析清单目录化：遍历 `NavigationCatalog.Entries` 逐个 eager 解析页面 VM；
+  设置台会话对象图（导航区 VM + 壳区 VM + `SettingsConsole`）由组合根交付的工厂在每次开窗时构造。
 - 不引入子容器、Generic Host、Autofac、Prism（ADR-0016 决策 13）。
 
 ## 7. 可见性（as-built）
@@ -195,13 +196,13 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
 - Host 只经贡献者清单登记模块，不引用模块内部。
 - 跨集必需的内部件（如 `TrayIconManager`）单独裁决为 public 或改经接口注入。
 
-  既有先例：`TrayIconManager`/`TrayMenuEntry` 随 M5 并入 Ui 后由同集 `AppHost` 装配，维持
+  既有先例：`TrayIconManager`/`TrayMenuEntry` 随 M5 并入 Ui 后由同集 `ShellHost` 装配，维持
   public（被测/装配类型）；`AutostartRegistry` 随 M5 归并驻 `StarPie.Host/Kernel/ShellIntegration/`
   后裁决为 **public**（`[SupportedOSPlatform("windows")]`）——由同集的 `ShellContributor`
   委托接线，跨集边界使原 internal 不再成立。
 
   同判据先例：M4 的 `AppThemePaletteManager` 随实现并入 Ui 集后回落 **internal**——
-  装配方 `AppHost` 与实现在同一程序集，跨集公开面按需撤销；模块内主题文件映射/缓存/冻结等
+  装配方 `ShellHost` 与实现在同一程序集，跨集公开面按需撤销；模块内主题文件映射/缓存/冻结等
   实现细节保持私有。
 
   同判据先例：M2 的 `WheelFactory`/`IWheelFactory` 与外观设置子 VM 只经同集贡献者
@@ -209,7 +210,7 @@ Host、目录契约驻 `StarPie.Sdk`（P1.3/#112 收口），程序集归属见 
   由 WheelFactory 在同集内创建，不经 Host 直接 new；`WheelPreviewRenderer` 深浅色探测改由
   调用方（Host 外观页）以 `bool` 传入（M2 不反向引用 Host `MainView`）。
 
-  同判据先例：S6 的 `DialogService` 裁决 **public**——Host `AppHost` 建窗后调
+  同判据先例：S6 的 `DialogService` 裁决 **public**——Host `SettingsConsole` 建窗后调
   `SetOwner(MainView)` 惰性回填 Owner（ADR-0004），接口 `IDialogService` 不含 SetOwner（Owner
   是实现内部自由，不泄露进契约）；对话框 VM/Window 与 `SpectrumCanvasBehavior` 维持 public
   （被测/装配类型），无新增 InternalsVisibleTo。

@@ -1,4 +1,4 @@
-# 模块：壳层与系统集成
+﻿# 模块：壳层与系统集成
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及托盘、开机自启、内存整理、主窗口壳层行为
 > 与高级设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)。
@@ -13,7 +13,7 @@
 M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内核，托盘与高级设置面入 Ui 集）：
 
 - `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
-  由同集 `AppHost.Run` 装配实例——见下方关键流程 1）。
+  由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
 - `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；
   `[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
@@ -40,14 +40,14 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 
 ## 关键流程
 
-1. **托盘**：`TrayIconManager`（驻 `StarPie.Ui/Services/Shell/`，`AppHost.Run` 创建）持 tooltip
+1. **托盘**：`TrayIconManager`（驻 `StarPie.Ui/Services/Shell/`，`ShellHost.Run` 创建）持 tooltip
    （暂停态实时文案）、双击直达、
-   右键菜单（`AppHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
-   气泡通知、`Dispose`；tooltip 在语言切换时由宿主 `AppHost.RefreshTrayTooltip` 按暂停态刷新
+   右键菜单（`ShellHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
+   气泡通知、`Dispose`；tooltip 在语言切换时由壳层 `ShellHost.RefreshTrayTooltip` 按暂停态刷新
    （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
-   不反向引用 Host/M4，`AppHost` 装配时注入 `Func<bool>` 深色探针
+   不反向引用 Host/M4，`ShellHost` 装配时注入 `Func<bool>` 深色探针
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
-2. **内存（分层常驻，#149）**：`MemoryOptimizer.CollectGarbage()`（驻
+2. **内存（分层常驻）**：`MemoryOptimizer.CollectGarbage()`（驻
    `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
    （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
    已整体删除，设置页手动"内存整理"入口与四语言文案已移除（不留"留作诊断"死路径，
@@ -62,13 +62,18 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`setAutoStart`），不进 VM/View。
-4. **关窗驻留**：`MainView` 壳层 code-behind（`Window_Closing` 隐藏到托盘 + 淡出，退出态读
-   `ShellViewModel.IsExiting`）属 ADR-0009 白名单；壳层成员（`WindowTitle`/`IsExiting`/`Save()`）在
-   `ShellViewModel`（D3：Host 壳窗口 VM，H1），`MainView` 分区 DataContext——壳区（窗口标题/底部
-   操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑 `MainViewModel`（见 [navigation.md](navigation.md)）；
-   `CloseButton_Click` 纯 UI 取消语义。
+4. **关窗即销毁、托盘驻留、重开重建**（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）：
+   设置台是瞬态租户——关窗销毁窗口与 VM 树（`Window_Closing` 不再取消），托盘驻留由常驻壳层
+   （`ShellHost` + 托盘消息窗口）承担，托盘直达/单实例恢复经 `ShellHost.ShowSettingsConsole` 重建。关窗收尾
+   走 `Services/Shell/TransientWindowTeardown.cs` 的唯一实现（清动画 → 丢弃内容与 DataContext → `Close()`
+   → 排空 Dispatcher → `Application.MainWindow` 回退常驻锚窗口），`SettingsConsole` 另解绑对话框 Owner。
+   `App.xaml` 因此设 `ShutdownMode="OnExplicitShutdown"`（关窗不等于退出进程）。
+   `MainView` 壳层 code-behind 只剩淡入`ShowAndActivate`、主题应用与深色探测（ADR-0009 白名单第 3/5 条）；
+   壳层成员（`WindowTitle`/`IsExiting`/`Save()`）在 `ShellViewModel`（D3：Host 壳窗口 VM，H1，随设置台会话生灭），
+   `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
+   `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出、自启开关、托盘气泡与退出等宿主接线经
-   SDK 契约 `AppHostDelegates` 转发（贡献者只依赖 SDK，宿主回填实现，
+   SDK 契约 `AppHostDelegates` 转发（贡献者只依赖 SDK，壳层回填实现，
    见 [host.md](host.md)），页面绑定规范见 [layering.md](layering.md)
    （`AdvancedSettingsPage` 示例）。
 
@@ -78,7 +83,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
   `StarPie.Host/Kernel/ShellIntegration/` 的 `AutostartRegistry` 等）并保持委托注入边界；
   新增 M5 设置页只动 Ui 内部（贡献者 + 模板字典 +
    VM 注册，见 [navigation.md](navigation.md)），不碰 Host。
-- 新托盘菜单项：在 `AppHost.BuildTrayMenuEntries` 登记（宿主接线见 [host.md](host.md)）。
+- 新托盘菜单项：在 `ShellHost.BuildTrayMenuEntries` 登记（宿主接线见 [host.md](host.md)）。
 - 新 OS 集成功能按 D2 护栏先对号入座（[modules.md](modules.md) §5 D2）。
 
 ## 参见 ADR
