@@ -21,13 +21,14 @@ namespace StarPie
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            // e2e/测试运行器经显式参数绕过单实例闸门：用例冷启动需要并行多实例，
-            // 且测试实例不持有全机互斥——否则 e2e 运行期间会挡住用户正常启动。
+            // e2e/测试运行器经显式参数声明测试实例：绕过单实例闸门（用例冷启动需要并行多实例，
+            // 且测试实例不持有全机互斥——否则 e2e 运行期间会挡住用户正常启动），
+            // 并让常驻壳层受理测试实例退出消息（见 TestInstanceExit；正式实例不受理）。
             string cmdLine = Environment.CommandLine;
-            bool allowMultipleInstances = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
-                                          cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
+            bool testInstance = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
+                                cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
 
-            if (!allowMultipleInstances)
+            if (!testInstance)
             {
                 bool isNewInstance;
                 try
@@ -79,7 +80,7 @@ namespace StarPie
                 // 静默形态（--background）：窗口屏内左上角、不可激活、点击穿透、不进任务栏，托盘保留，
                 // 全局鼠标钩子不启动——e2e 在用户同机工作时无打扰驱动（见 docs/adr/0032）。
                 bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
-                _shellHost = _composition.CreateShellHost(isBackground);
+                _shellHost = _composition.CreateShellHost(isBackground, testInstance);
                 _shellHost.Run();
                 // 启动兜底内存整理（含 Debug 构建的堆硬顶生效值日志）在 ShellHost 启动编排末尾执行（预热之后，#150）
             }

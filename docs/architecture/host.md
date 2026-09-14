@@ -19,7 +19,8 @@
 
 ## 组成文件
 
-`App.xaml(.cs)`、`Composition.cs`、`ShellHost.cs`、`SettingsConsole.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）。
+`App.xaml(.cs)`、`Composition.cs`、`ShellHost.cs`、`SettingsConsole.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）、
+`SingleInstanceRestore.cs` 与 `TestInstanceExit.cs`（进程生命周期窗口消息：单实例重激活 / 测试实例退出）。
 
 瞬态窗口收尾的**唯一实现**：`Services/Shell/TransientWindowTeardown.cs`（清动画 → 丢弃内容与
 DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWindow`；设置台与轮盘预热共用）；
@@ -40,17 +41,24 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      （`dotnet run` 默认）即 dev 沙箱，Release 构建即正式形态
      （见 [ADR-0037](../adr/0037-dev-instance-flag-by-build-config.md)）。
    - 单实例互斥（全机命名互斥 `Global\StarPie_SingleInstance_Mutex_…`，dev 与正式实例
-     同闸、不并行运行）；命令行含 `--allow-multiple`/`--test-instance` 时跳过互斥（测试运行器用）。
+     同闸、不并行运行）；命令行含 `--allow-multiple`/`--test-instance` 即**测试实例**：
+     跳过互斥，并让常驻壳层受理测试实例退出消息（测试运行器用，见下条）。
    - 后台/静默模式：命令行含 `--background` 时，设置窗口固定在屏幕左上角（`0,0`）、界面 `0.9` 缩放（954×648）+ 挂
      `WS_EX_NOACTIVATE`/`WS_EX_TRANSPARENT` 并对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`（不抢焦点、点击穿透）
      + 不进任务栏，且不启全局鼠标钩子；托盘照常创建（人工观察/退出入口）。
      `DialogService` 回填后台模式后提示框不呈现、确认框取"是"，自定义对话框（程序/图标/颜色选择器、
      输入框）仍离屏 + 不可激活。仅影响窗口呈现/激活/命中测试与对话框可见性，导航、配置与渲染语义不变
      （e2e 静默跑用，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md) / [ADR-0032](../adr/0032-e2e-silent-visible-window.md)）。
-   - 非首实例：按托盘消息窗口类名（`TrayIconManager.WindowClassName` = `StarPieTrayWindow`，进程存活期内恒在的
+   - 非首实例：按托盘消息窗口标题（`TrayIconManager.WindowName` = `StarPieTrayWindow`，进程存活期内恒在的
      常驻 HWND）找到既有实例并投递单实例恢复消息 `SingleInstanceRestore.Send`——接收端在常驻壳层，
      设置台关着时也受理（创建设置台并显示）；随后 `Shutdown(0)`。不按设置台窗口标题查找：
-     设置台是瞬态窗口，关闭后该窗口不存在。
+     设置台是瞬态窗口，关闭后该窗口不存在。消息窗口的窗口类名由 WPF 生成（`HwndWrapper[…]`），
+     外部只能按标题定位。
+   - 测试实例退出消息（`TestInstanceExit`，`StarPie_TestInstance_Exit`）：测试实例在托盘消息窗口
+     受理退出请求，走 `ExitApplication` 的真实退出编排（落盘 → 释放托盘 → 关闭应用）。e2e fixture
+     以此收尾：硬杀（`TerminateProcess`）不执行用户态收尾，`NIM_DELETE` 不执行，shell 的通知区会
+     留下宿主窗口已失效的死条目（幽灵托盘图标），直到通知区收到鼠标输入才被摘除。注册窗口消息
+     全机可投递，故正式实例不受理。
    - 注册全局异常处理器（Dispatcher + AppDomain，均不崩溃）。
    - `new Composition()` → `Config.Load()` → `Composition.CreateShellHost()` → `ShellHost.Run()`
      （启动编排末尾：轮盘预热 → 内存整理兜底 `MemoryOptimizer.CollectGarbage(true)`，
@@ -154,12 +162,13 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
     首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 →
      `EnsureSettingsConsole()`：经工厂建设置台租户与会话作用域（页面 VM 的宿主，必须先于初始导航）→
      初始导航 `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
-     创建 `TrayIconManager` 并挂常驻恢复消息钩子（见 [shell.md](shell.md)）→
+     创建 `TrayIconManager` 并挂常驻窗口消息钩子（单实例恢复 + 测试实例退出，见 [shell.md](shell.md)）→
      `console.Show()` → `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
       `_dialogService.SetOwner(view)`（Ui 集 public 装配面）→ `Application.MainWindow = view` →
      `view.Show()`。
-6. 退出：托盘退出 → `ShellHost.ExitApplication` 按 `ShellExitSequence` 固定顺序执行：
+6. 退出：托盘退出（正式实例的唯一入口；测试实例另受理退出消息，见 §1）→
+   `ShellHost.ExitApplication` 按 `ShellExitSequence` 固定顺序执行：
    冲刷挂起保存 → 释放托盘（含摘除恢复消息钩子）→ 置退出态并 `Application.Shutdown()`
    （`ShutdownMode=OnExplicitShutdown`，关窗不自行结束进程）。顺序无输入参数即语义：
    退出编排不依赖设置台是否存在（无控制台时同样走完）。

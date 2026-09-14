@@ -219,7 +219,12 @@ def goto(win, slot: int, timeout: float = 5.0):
 
 
 def wait_until(predicate, timeout: float = 5.0, interval: float = 0.1, description: str = "条件成立"):
-    """轮询 predicate 直到返回真值；超时抛带最后取值的断言（替代固定 sleep）。"""
+    """轮询 predicate 直到返回真值；超时抛带最后取值的断言（替代固定 sleep）。
+
+    predicate 抛出的异常按"条件尚未成立"处理——异常文本只进超时诊断，**不得当作成立返回**：
+    断言型 predicate（如 `text_of` 的"控件必须存在"）一抛异常就被吞成通过，会让整条用例
+    在目标不存在时静默变绿。
+    """
     deadline = time.time() + timeout
     last = None
     while True:
@@ -227,8 +232,9 @@ def wait_until(predicate, timeout: float = 5.0, interval: float = 0.1, descripti
             last = predicate()
         except Exception as ex:
             last = f"{type(ex).__name__}: {ex}"
-        if last:
-            return last
+        else:
+            if last:
+                return last
         if time.time() >= deadline:
             raise AssertionError(f"等待「{description}」超时（{timeout}s），最后取值: {last!r}")
         time.sleep(interval)
@@ -417,6 +423,58 @@ def find_app_path() -> str:
     pytest.fail(f"Executable not found in {candidates}. Please build the project first.")
 
 
+# 常驻托盘消息窗口的标题（进程存活期内恒在的常驻 HWND）与测试实例退出消息名
+# （两端各自注册同一名称字符串，产品侧见 StarPie.Ui/TestInstanceExit.cs）。
+TRAY_WINDOW_TITLE = "StarPieTrayWindow"
+TEST_INSTANCE_EXIT_MESSAGE = "StarPie_TestInstance_Exit"
+
+
+def find_tray_window(pid: int) -> int:
+    """被测进程的常驻托盘消息窗口 HWND；不存在时为 0。
+
+    该窗口是常驻 HWND（进程存活期内恒在），也是测试实例退出消息的接收端——设置台是瞬态窗口，
+    关闭后不存在，不能作定位面。
+    """
+    hwnd = win32gui.FindWindow(None, TRAY_WINDOW_TITLE)
+    if hwnd and win32process.GetWindowThreadProcessId(hwnd)[1] == pid:
+        return hwnd
+    return 0
+
+
+def shutdown_app(proc, timeout: float = 15.0) -> bool:
+    """请求被测应用退出，返回是否走成了优雅退出。
+
+    优雅退出（投递测试实例退出消息 → 常驻壳层按 ShellExitSequence 落盘/释放托盘/关应用）是唯一
+    执行 `NIM_DELETE` 的路径。硬杀（`TerminateProcess`）不跑用户态收尾，托盘图标会以宿主窗口已
+    失效的死条目留在 shell 通知区（幽灵托盘图标），累积到用户托盘里，故硬杀只作超时兜底并告警。
+    """
+    if proc.poll() is not None:
+        return True
+
+    tray = find_tray_window(proc.pid)
+    if tray:
+        message = win32gui.RegisterWindowMessage(TEST_INSTANCE_EXIT_MESSAGE)
+        win32gui.PostMessage(tray, message, 0, 0)
+        deadline = time.time() + timeout
+        while time.time() < deadline:
+            if proc.poll() is not None:
+                return True
+            time.sleep(0.1)
+        warnings.warn(
+            f"被测应用未在 {timeout}s 内按测试实例退出消息退出，回落硬杀——"
+            "shell 通知区会留下幽灵托盘图标，检查常驻壳层的退出消息受理",
+            stacklevel=2,
+        )
+
+    # 无托盘窗口（进程未起到注册图标那一步）时硬杀不留残留，无需告警。
+    try:
+        proc.kill()
+        proc.wait(timeout=2)
+    except Exception:
+        pass
+    return False
+
+
 @pytest.fixture(scope="function")
 def sandbox_env(tmp_path):
     """
@@ -552,11 +610,7 @@ def app(sandbox_env, sandbox_seed, request):
         win.wait("visible", timeout=15)
     except Exception as ex:
         dump_process_windows(proc.pid, label="fixture setup 失败取证")
-        try:
-            proc.kill()
-            proc.wait(timeout=2)
-        except Exception:
-            pass
+        shutdown_app(proc, timeout=5.0)
         pytest.fail(f"Failed to launch or connect to application window: {type(ex).__name__}: {ex}")
         
     yield win, local_app_data
@@ -589,12 +643,8 @@ def app(sandbox_env, sandbox_seed, request):
             except Exception as ex:
                 warn_screenshot_unavailable(f"截图异常：{type(ex).__name__}: {ex}")
             
-    # Clean shutdown
-    try:
-        proc.kill()
-        proc.wait(timeout=2)
-    except Exception:
-        pass
+    # 收尾走被测应用的真实退出路径（硬杀会在 shell 通知区留下幽灵托盘图标）
+    shutdown_app(proc)
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):

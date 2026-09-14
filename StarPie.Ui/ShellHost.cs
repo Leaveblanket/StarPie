@@ -57,6 +57,9 @@ namespace StarPie
         // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
         // 无任务栏项，且不启全局鼠标钩子——用户同机工作时键鼠不受打扰，窗口仍真实可见可截图。
         private readonly bool _background;
+        // 测试实例（命令行 --allow-multiple/--test-instance）：受理测试实例退出消息，
+        // 使 e2e 能以真实退出路径收尾——硬杀不执行用户态收尾，托盘图标会以死条目留在通知区。
+        private readonly bool _testInstance;
         // 常驻锚窗口：永不显示，专门长期持有 Application.MainWindow。
         private readonly ShellAnchorWindow _anchor;
         // 退出态：进程退出编排归壳层（设置台关闭不是退出；退出时的关窗不走托盘态出账序列）。
@@ -81,7 +84,8 @@ namespace StarPie
             PluginUiCoordinator pluginUi,
             NavigationSuspension navigationSuspension,
             Func<Window, Func<bool>, SettingsConsole> createSettingsConsole,
-            bool background = false)
+            bool background = false,
+            bool testInstance = false)
         {
             _messenger = messenger;
             _mouseHook = mouseHook;
@@ -98,6 +102,7 @@ namespace StarPie
             _navigationSuspension = navigationSuspension;
             _createSettingsConsole = createSettingsConsole;
             _background = background;
+            _testInstance = testInstance;
 
             // 锚窗口在任何其它窗口之前实例化并占住 Application.MainWindow：
             // 进程内第一个实例化的 Window 会被该属性长期强引用，先占位可保证瞬态窗口
@@ -382,18 +387,28 @@ namespace StarPie
         }
 
         /// <summary>
-        /// 常驻窗口消息：单实例恢复请求 → 创建设置台并显示（设置台关着时也受理）。
-        /// 钩子挂在托盘消息窗口（常驻 HWND）上，不依赖设置台窗口是否存在。
+        /// 常驻窗口消息：单实例恢复请求 → 创建设置台并显示（设置台关着时也受理）；
+        /// 测试实例退出请求 → 走真实退出编排。钩子挂在托盘消息窗口（常驻 HWND）上，
+        /// 不依赖设置台窗口是否存在。
         /// </summary>
         private IntPtr OnResidentWindowMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
-            if (msg != SingleInstanceRestore.MessageId)
+            if (msg == SingleInstanceRestore.MessageId)
             {
+                handled = true;
+                _ = Application.Current?.Dispatcher.BeginInvoke(() => ShowSettingsConsole(activate: true));
                 return IntPtr.Zero;
             }
 
-            handled = true;
-            _ = Application.Current?.Dispatcher.BeginInvoke(() => ShowSettingsConsole(activate: true));
+            // 注册窗口消息全机可投递：退出只对测试实例受理，正式实例不会被任意进程一刀关停。
+            if (_testInstance && msg == TestInstanceExit.MessageId)
+            {
+                handled = true;
+                // 退出收尾要销毁窗口（含本消息窗口），排到当前消息之后执行，不在 WndProc 内重入。
+                _ = Application.Current?.Dispatcher.BeginInvoke(() => ExitApplication());
+                return IntPtr.Zero;
+            }
+
             return IntPtr.Zero;
         }
 
