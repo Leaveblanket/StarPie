@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace StarPie.Modules
@@ -20,12 +20,12 @@ namespace StarPie.Modules
 
         public int Order => 20;
 
-        /// <summary>注册主题服务与主题设置子 VM（容器单例）。</summary>
+        /// <summary>注册主题服务（常驻单例，进程级主题状态）与主题设置子 VM（设置台会话作用域）。</summary>
         public void RegisterServices(IServiceCollection services)
         {
             services.AddSingleton(new ThemeService());
             services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<ThemeService>());
-            services.AddSingleton(sp => new InterfaceThemeSettingsViewModel(
+            services.AddScoped(sp => new InterfaceThemeSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<ILocalizationService>()));

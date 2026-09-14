@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Services.Navigation;
 using StarPie.ViewModels.Pages;
@@ -33,8 +33,8 @@ namespace StarPie.Modules
         public void RegisterServices(IServiceCollection services)
         {
             // 聚合页 VM：外观/形态两个设置子 VM 经工厂惰性解析（子 VM 由 Theme/Wheel 贡献者登记）；
-            // 解析由组合根 eager 触发，与注册顺序无关。
-            services.AddSingleton(sp => new AppearanceSettingsViewModel(
+            // 作用域为设置台会话——与两个子 VM 同在会话作用域里解析，实例一致。
+            services.AddScoped(sp => new AppearanceSettingsViewModel(
                 sp.GetRequiredService<IMessenger>(),
                 sp.GetRequiredService<InterfaceThemeSettingsViewModel>(),
                 sp.GetRequiredService<WheelAppearanceSettingsViewModel>(),

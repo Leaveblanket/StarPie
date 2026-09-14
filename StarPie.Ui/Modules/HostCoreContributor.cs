@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -97,8 +97,10 @@ namespace StarPie.Modules
             services.AddSingleton<SettingsSaveOrchestrator>();
 
             // 导航运行时（ADR-0021/#92 起为 Host 内部件，共享内核仅留目录/槽位契约）：
-            // NavigationStore 单例 + 目录执行缝按槽位注册。
+            // NavigationStore 单例 + 目录执行缝按槽位注册。页面 VM 的作用域是设置台会话：
+            // 会话作用域由组合根交付（本工厂即唯一来源），执行缝经 ConsolePageSession 取实例。
             services.AddSingleton<NavigationStore>();
+            services.AddSingleton(sp => new ConsolePageSession(sp.CreateScope));
             services.AddSingleton<INavigationExecutor, NavigationExecutor>();
 
             // 插件运行时：路径、发现、清单校验、准入判定与宿主状态（含开发者模式开关）。
@@ -170,6 +172,7 @@ namespace StarPie.Modules
                 sp.GetRequiredService<PluginUiCoordinator>());
 
             // 插件管理页 VM：数据源是宿主报告快照，页面每次被导航到时经导航状态刷新。
+            // 单例即"暂留常驻"的作用域表达：插件范围跨设置台开关，其页面资产不随设置台销毁。
             services.AddSingleton(sp => new PluginManagerViewModel(
                 sp.GetRequiredService<PluginRuntimeHost>(),
                 sp.GetRequiredService<NavigationStore>(),

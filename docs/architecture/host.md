@@ -135,24 +135,24 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
 4. 阶段 3｜`Composition.CreateShellHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`、`NavigationStore`；
-   - **页面 VM eager 解析清单目录化**：遍历 `NavigationCatalog.Entries` 逐个解析注册的页面 VM
-     （VM 构造即订阅导入广播/落盘消息与 I18n 事件，时机在 `Config.Load` 之后；eager 语义保留——
-     新增页面注册进目录即自动纳入启动构造）；另解析壳层直持的
-     `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（分别已由
-     `ThemeContributor`/`ShellContributor` 登记，组合根仅解析取回单例；初始主题与托盘/
-     驻留气泡直调不变）；
-   - 构造并交付**设置台会话工厂** `Func<Window, SettingsConsole>`：每次开窗时新建导航区
-     `MainViewModel` 与壳区 `ShellViewModel`（不注册进容器——它们随设置台开关生灭），与主题服务、
-     对话框服务、图标资产、导航出账、消息总线、锚窗口一起构造 `SettingsConsole`；
+   - 页面 VM **不在启动期解析**：它们的作用域是设置台会话，首次进入该页时由导航执行缝经
+     `ConsolePageSession` 构造（scoped 注册，作用域 = 会话；会话结束整批释放）；壳层直持的常驻 VM
+     在此解析（`GeneralSettingsViewModel`——托盘驻留气泡与提权重启暂由它承担，#158 迁壳层后随会话）；
+   - 构造并交付**设置台会话工厂** `Func<Window, SettingsConsole>`：每次开窗时开启设置台会话作用域
+     （`ConsolePageSession.Begin`：页面 VM 与设置子 VM 的实例边界），新建导航区 `MainViewModel`
+     与壳区 `ShellViewModel`（不注册进容器——它们随设置台开关生灭），并从会话作用域解析
+     `InterfaceThemeSettingsViewModel`（初始主题），与主题服务、对话框服务、图标资产、导航出账、
+     消息总线、锚窗口、会话缓存一起构造 `SettingsConsole`；
    - 构造 `ShellHost`（持有常驻件、设置台工厂与常驻锚窗口）并回填 `AppHostDelegates`（托盘气泡、退出）。
 5. `ShellHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
      `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
-    首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
-     `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
+    首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 →
+     `EnsureSettingsConsole()`：经工厂建设置台租户与会话作用域（页面 VM 的宿主，必须先于初始导航）→
+     初始导航 `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
      创建 `TrayIconManager` 并挂常驻恢复消息钩子（见 [shell.md](shell.md)）→
-     `ShowSettingsConsole(activate: false)`：经工厂建设置台租户 → `new MainView(...)` + 应用初始界面主题
+     `console.Show()` → `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
       `_dialogService.SetOwner(view)`（Ui 集 public 装配面）→ `Application.MainWindow = view` →
      `view.Show()`。
@@ -166,7 +166,8 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行（见 [shell.md](shell.md)）；重开（重新可见）→
    按最后导航槽位重放导航 → 发 `RestoredFromTrayMessage`；关闭收尾走 `TransientWindowTeardown`
    （清动画 → 丢弃内容与 DataContext → `Close()` → 排空 Dispatcher → `Application.MainWindow` 回退锚窗口）
-   并解绑对话框 Owner。托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
+   并解绑对话框 Owner、结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
+   托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
 
 ## 宿主委托包

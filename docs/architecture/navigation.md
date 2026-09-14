@@ -1,4 +1,4 @@
-# 模块：导航
+﻿# 模块：导航
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；新增/修改设置页导航时读本篇。
 
@@ -55,22 +55,27 @@ M1（P1.6/#115 起驻 `StarPie.Ui/`）：
    目录单例注册；随后同一清单的 `RegisterServices` 登记 M5/M1 页面 VM 与手势管线
    （`ShellContributor`/`GesturesContributor`，含宿主回调经 `StarPie.Sdk` 的 `AppHostDelegates`
    接线、`IProfilePreviewSource` 别名）；导航运行时（`NavigationStore`/`NavigationExecutor`/
-   `MainViewModel`）与 Host 外观聚合页 VM 由 `HostCoreContributor`/`HostPageContributor` 登记——
-   前者为 Host 内部件，后者为 Host 页。
+   `ConsolePageSession`）与 Host 外观聚合页 VM 由 `HostCoreContributor`/`HostPageContributor` 登记——
+   前者为 Host 内部件，后者为 Host 页。页面 VM 与外观/主题/轮盘外观三个会话级 VM 注册为
+   **scoped**（作用域 = 设置台会话），插件管理页与暂留常驻的高级页注册为 singleton；
+   `MainViewModel`/`ShellViewModel` 不进容器，由组合根的设置台会话工厂构造。
 2. `MainViewModel`（Host，目录驱动；运行时归 Host）按 `catalog.Entries`
    构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType`
    均来自目录注册，导航 `Action` = `INavigationExecutor.Navigate(槽位)`。
 3. 导航项"选中态置真"即导航——点击（RadioButton `Command`）与 UIA `SelectionItem.Select` 是等价入口
    （后者是 e2e 静默导航与无障碍客户端可用路径，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md)）→
-   `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` → 容器解析
-   页面 VM（单例 → 状态常驻）→ 更新 `NavigationStore.CurrentViewModel`。`MainViewModel` 订阅 store
+   `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` →
+   `ConsolePageSession` 取页面 VM（会话缓存 → 同一会话内状态常驻）→ 更新
+   `NavigationStore.CurrentViewModel`。`MainViewModel` 订阅 store
    变更同步各导航项选中态（回灌的选中态指向已停驻页面，短路不自我导航），并随 I18n 广播刷新标题。
 4. `MainView` 分区 DataContext（D3）：导航区（侧栏 + 页面 ContentControl）绑 `MainViewModel`，壳区
    （窗口标题/底部操作区）绑 `ShellViewModel`（见 [shell.md](shell.md)）；页面 `ContentControl`
    `Content="{Binding CurrentViewModel}"`，页面 View 由 App 级模块模板字典中
    `DataTemplate DataType="{x:Type vm:Xxx}"` 映射（View 无参、按导航重建、不经容器）。
 5. 初始导航/托盘直达 = `INavigationExecutor.Navigate(槽位)` +（托盘场景另加）
-   `MainView.ShowAndActivate()`（AppHost，见 [host.md](host.md)）。
+   `MainView.ShowAndActivate()`（ShellHost，见 [host.md](host.md)）。页面 VM 只存在于设置台会话内，
+   故导航（含启动期初始导航）一律在会话建立之后；设置台关闭即会话结束，会话内页面 VM 整批释放
+   （[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）。
 
 ## 扩展点
 

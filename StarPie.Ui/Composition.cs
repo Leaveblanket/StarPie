@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,8 +22,9 @@ namespace StarPie
     /// <item>注册期：<see cref="BuiltInContributors.CreateAll"/> 的有序清单驱动——先写导航目录并收口，
     /// 再写容器描述符（贡献者只注册不解析）；</item>
     /// <item>容器构建：唯一 <c>BuildServiceProvider</c>；</item>
-    /// <item>解析：<see cref="CreateShellHost"/> 在配置加载后解析常驻件并按目录解析常驻页面 VM；
-    /// 设置台的会话级对象图由 <see cref="CreateSettingsConsole"/> 每次开窗时解析（工厂交给壳层按需调用）。</item>
+    /// <item>解析：<see cref="CreateShellHost"/> 在配置加载后解析常驻件；设置台的会话对象图
+    ///（含会话作用域内的页面 VM 与设置子 VM）由组合根交付的工厂在每次开窗时解析——
+    /// 页面 VM 不再启动期 eager 解析。</item>
     /// </list>
     /// 插件贡献者在装载期适配成同一 <see cref="ICompositionContributor"/> 接口追加进同一管线（P2/P3）。
     /// 运行与退出编排在 <see cref="ShellHost"/>，本类不持有托盘/主窗口/语言字典等宿主状态；
@@ -97,19 +98,12 @@ namespace StarPie
             // 手势控制器需在钩子启动前实例化并保持订阅（构造即接线鼠标事件）。
             _ = _provider.GetRequiredService<GestureController>();
 
-            // 页面 VM eager 解析清单目录化：遍历导航目录槽位，解析全部注册的页面 VM
-            // （VM 构造即订阅导入广播/落盘消息；时机在配置加载后、ShellHost.Run 前）。
-            // 外观聚合解析时经工厂构造两个设置子 VM；新增页面注册进目录后自动纳入
-            // eager 解析，组合根不再逐个硬编码页面类型。
-            foreach (NavigationPageRegistration entry in navigationCatalog.Entries)
-            {
-                _ = _provider.GetRequiredService(entry.ViewModelType);
-            }
-
-            // 壳层直持的常驻 VM：初始主题取界面主题子 VM（外观聚合已构造，此处取回单例）
-            // 与托盘/驻留气泡直调的通用 VM（由 ShellContributor 登记，此处仅取回单例）。
-            var interfaceTheme = _provider.GetRequiredService<InterfaceThemeSettingsViewModel>();
+            // 页面 VM 不再在启动期 eager 解析：它们的作用域是设置台会话，首次进入该页时
+            // 由导航执行缝经 ConsolePageSession 构造（见 CreateSettingsConsole）。
+            // 壳层直持的常驻 VM：托盘驻留气泡与提权重启直调的通用 VM（容器单例）。
             var general = _provider.GetRequiredService<GeneralSettingsViewModel>();
+            // 设置台会话缓存：开/结束会话由设置台租户驱动，实例边界是组合根交付的 DI 作用域。
+            var pageSession = _provider.GetRequiredService<ConsolePageSession>();
             // 插件运行时（扫描 + 装载/停用/再启用）：由 ShellHost 在启动序列里驱动。
             var pluginRuntime = _provider.GetRequiredService<PluginRuntimeHost>();
             // 插件 UI 托管门面：ShellHost 用它合成托盘菜单的插件条目、插件管理页用它呈现设置区块。
@@ -117,21 +111,27 @@ namespace StarPie
             // 导航视图出账与恢复重放（设置台关闭出账、重开重放；构造点收在组合根）。
             var navigationSuspension = new NavigationSuspension(navigationStore, navigationCatalog, navigation);
 
-            // 设置台会话工厂：会话级对象图（导航区 VM + 壳区 VM + 设置台租户）在每次开窗时新建，
-            // 解析仍只发生在组合根——壳层拿到的只是这个闭包。
-            SettingsConsole CreateSettingsConsole(System.Windows.Window anchor) =>
-                new(
+            // 设置台会话工厂：会话级对象图（导航区 VM + 壳区 VM + 会话作用域内的页面/设置子 VM）
+            // 在每次开窗时新建，解析仍只发生在组合根——壳层拿到的只是这个闭包。
+            // 工厂在构造租户前开启会话作用域（Begin），结束由租户释放时执行（End）。
+            SettingsConsole CreateSettingsConsole(System.Windows.Window anchor)
+            {
+                pageSession.Begin();
+                IServiceProvider sessionServices = pageSession.Services;
+                return new SettingsConsole(
                     new MainViewModel(navigationStore, navigationCatalog, navigation, localization),
                     new ShellViewModel(messenger, dialogService, localization),
                     themeService,
                     dialogService,
-                    interfaceTheme,
+                    sessionServices.GetRequiredService<InterfaceThemeSettingsViewModel>(),
                     saveOrchestrator,
                     iconAssets,
                     navigationSuspension,
                     messenger,
                     anchor,
-                    background);
+                    background,
+                    pageSession);
+            }
 
             return new ShellHost(
                 messenger,
@@ -143,7 +143,6 @@ namespace StarPie
                 iconAssets,
                 saveOrchestrator,
                 navigation,
-                interfaceTheme,
                 general,
                 _hostDelegates,
                 pluginRuntime,

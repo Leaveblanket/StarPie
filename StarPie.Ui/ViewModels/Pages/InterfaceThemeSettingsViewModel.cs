@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -109,12 +109,13 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(new AppThemeChangedMessage(AppTheme));
         }
 
-        /// <summary>退订本地化事件（单例 VM 成对退订；组合根随 Composition.Dispose 调用）。</summary>
+        /// <summary>退订本地化事件与导入广播（页面 VM 随设置台会话释放，成对退订）。</summary>
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
             _localization.LanguageChanged -= OnLanguageChanged;
+            _messenger.UnregisterAll(this);
         }
     }
 

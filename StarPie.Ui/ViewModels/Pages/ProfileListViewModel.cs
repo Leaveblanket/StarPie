@@ -421,6 +421,7 @@ namespace StarPie.ViewModels.Pages
         {
             if (_isDisposed) return;
             _isDisposed = true;
+            _messenger.UnregisterAll(this);
             DisposeSlots();
             Slots.Clear();
         }

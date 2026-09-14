@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -140,6 +140,7 @@ namespace StarPie.ViewModels.Pages
             if (_disposed) return;
             _disposed = true;
             _localization.LanguageChanged -= OnLanguageChanged;
+            _messenger.UnregisterAll(this);
         }
 
         /// <summary>当前选中的自定义配色预设；未选中自定义预设时为 null。</summary>

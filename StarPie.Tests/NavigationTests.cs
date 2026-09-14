@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
@@ -80,7 +80,9 @@ public sealed class NavigationExecutorTests
             NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         catalog.RegisterPage<AppearanceViewModel>(
             NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
-        return (new NavigationExecutor(store, catalog, provider), store, provider);
+        var session = new ConsolePageSession(provider.CreateScope);
+        session.Begin();
+        return (new NavigationExecutor(store, catalog, session), store, provider);
     }
 
     [Fact]
@@ -117,7 +119,9 @@ public sealed class NavigationExecutorTests
         var catalog = new NavigationCatalog();
         catalog.RegisterPage<TriggerViewModel>(
             NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
-        var executor = new NavigationExecutor(store, catalog, provider);
+        var session = new ConsolePageSession(provider.CreateScope);
+        session.Begin();
+        var executor = new NavigationExecutor(store, catalog, session);
 
         Assert.Throws<InvalidOperationException>(() => executor.Navigate(NavigationSlot.Advanced));
     }
@@ -399,7 +403,9 @@ public sealed class MainViewModelPluginPageTests
             .AddSingleton<AdvancedPageViewModel>()
             .AddSingleton<PluginsPageViewModel>()
             .BuildServiceProvider();
-        var executor = new NavigationExecutor(store, catalog, provider);
+        var session = new ConsolePageSession(provider.CreateScope);
+        session.Begin();
+        var executor = new NavigationExecutor(store, catalog, session);
         return (new MainViewModel(store, catalog, executor, Localization), catalog, store);
     }
 
