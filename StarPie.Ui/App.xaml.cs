@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -11,19 +11,10 @@ namespace StarPie
     {
         private static Mutex? _singleInstanceMutex;
         private Composition? _composition;
-        private AppHost? _appHost;
+        private ShellHost? _shellHost;
 
         [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        private const int SW_RESTORE = 9;
+        private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
 
         // 单实例闸门：全机命名互斥，dev 与正式实例同闸（不并行运行，后启动方按已有实例路径置前退出）。
         private const string SingleInstanceMutexName = @"Global\StarPie_SingleInstance_Mutex_9B8A7C";
@@ -50,17 +41,16 @@ namespace StarPie
 
                 if (!isNewInstance)
                 {
-                    // 已有实例在运行：若设置窗口已打开则将其置前
+                    // 已有实例在运行：向它的常驻消息窗口投递恢复消息——接收端驻常驻壳层，
+                    // 设置台关着时也会创建设置台并显示（纯外部 ShowWindow 不更新 WPF 的
+                    // IsVisible 状态，恢复序列不会触发，故必须经本消息驱动）。
+                    // 按窗口名查找：托盘消息窗口是常驻 HWND（进程存活期内恒在），设置台是瞬态窗口。
                     try
                     {
-                        IntPtr hWnd = FindWindow(null, "StarPie 设置控制台 (Preferences)" + DevInstance.Suffix);
+                        IntPtr hWnd = FindWindow(null, TrayIconManager.WindowName);
                         if (hWnd != IntPtr.Zero)
                         {
-                            // 先发恢复消息：主框架收到后经 WPF 显示路径自恢复（ShowAndActivate）——
-                            // 纯外部 ShowWindow 不更新 WPF 的 IsVisible，隐藏到托盘后的恢复序列不触发。
                             SingleInstanceRestore.Send(hWnd);
-                            ShowWindow(hWnd, SW_RESTORE);
-                            SetForegroundWindow(hWnd);
                         }
                     }
                     catch { }
@@ -79,8 +69,8 @@ namespace StarPie
 
             try
             {
-                // 手动组合根 + 应用宿主：Composition 装配对象图（无 StartupUri），
-                // AppHost 执行启动编排。
+                // 手动组合根 + 常驻壳层：Composition 装配对象图（无 StartupUri），
+                // ShellHost 执行启动编排。
                 _composition = new Composition();
 
                 // 经注入的配置服务加载配置
@@ -89,9 +79,9 @@ namespace StarPie
                 // 静默形态（--background）：窗口屏内左上角、不可激活、点击穿透、不进任务栏，托盘保留，
                 // 全局鼠标钩子不启动——e2e 在用户同机工作时无打扰驱动（见 docs/adr/0032）。
                 bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
-                _appHost = _composition.CreateAppHost(isBackground);
-                _appHost.Run();
-                // 启动兜底内存整理与堆硬顶生效值日志在 AppHost 启动编排末尾执行（预热之后，#150）
+                _shellHost = _composition.CreateShellHost(isBackground);
+                _shellHost.Run();
+                // 启动兜底内存整理与堆硬顶生效值日志在 ShellHost 启动编排末尾执行（预热之后，#150）
             }
             catch (Exception ex)
             {
@@ -122,9 +112,9 @@ namespace StarPie
             }
             catch { }
 
-            // 托盘、鼠标钩子与壳层 VM 的生命周期归 AppHost；DI 容器由组合根最后释放
-            _appHost?.Dispose();
-            _appHost = null;
+            // 托盘、鼠标钩子与设置台的生命周期归 ShellHost；DI 容器由组合根最后释放
+            _shellHost?.Dispose();
+            _shellHost = null;
             _composition?.Dispose();
             _composition = null;
 

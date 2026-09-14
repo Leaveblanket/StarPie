@@ -19,8 +19,8 @@ namespace StarPie.ViewModels.Navigation
     /// 自动化/无障碍客户端只能置选中态、不产生鼠标输入，e2e 静默导航依赖这条路径。
     /// 壳层职责（WindowTitle/IsExiting/Save）
     /// 在 Host 的 ShellViewModel；主框架分区 DataContext：导航区绑本 VM、壳区绑壳层 VM。
-    /// 本 VM 为容器单例并实现 <see cref="IDisposable"/>：与本地化事件成对退订，
-    /// 由 AppHost.Dispose 调用（兼作测试拆卸）。
+    /// 本 VM 的实例与设置台租户同生命周期（一个设置台会话一份），实现 <see cref="IDisposable"/>
+    /// 与常驻事件源成对退订，由设置台释放时统一执行。
     /// </remarks>
     public partial class MainViewModel : ObservableObject, IDisposable
     {
@@ -51,14 +51,7 @@ namespace StarPie.ViewModels.Navigation
             NavigationItems = new ObservableCollection<NavigationItemViewModel>();
             FillNavigationItems(catalog, navigation);
 
-            store.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(NavigationStore.CurrentViewModel))
-                {
-                    OnPropertyChanged(nameof(CurrentViewModel));
-                    SyncSelection();
-                }
-            };
+            store.PropertyChanged += OnStorePropertyChanged;
 
             // 导航项选中态 → 导航：点击（RadioButton Command）与 UIA SelectionItem.Select
             // 都会把 IsChecked(↔IsSelected) 置真，两条路径最终都落到目录执行缝且幂等
@@ -113,6 +106,16 @@ namespace StarPie.ViewModels.Navigation
             }
         }
 
+        /// <summary>当前页变更 → 转发给页面 ContentControl 并回灌导航项选中态。</summary>
+        private void OnStorePropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(NavigationStore.CurrentViewModel))
+            {
+                OnPropertyChanged(nameof(CurrentViewModel));
+                SyncSelection();
+            }
+        }
+
         /// <summary>
         /// 选中态置真即导航（UIA <c>Select</c> 与点击共用的入口）；已停在目标页时跳过，
         /// 避免 <see cref="SyncSelection"/> 回灌选中态时自我导航。
@@ -164,9 +167,11 @@ namespace StarPie.ViewModels.Navigation
             navigation.Navigate(NavigationSlot.Trigger);
         }
 
-        /// <summary>退订本地化事件（容器单例成对退订；由 AppHost.Dispose 调用）。</summary>
+        /// <summary>退订导航与本地化事件（导航 VM 随设置台会话成对退订；兼作测试拆卸）。
+        /// NavigationStore 与 NavigationCatalog 是常驻件，订阅不退订即每次开关泄漏一份本 VM。</summary>
         public void Dispose()
         {
+            _store.PropertyChanged -= OnStorePropertyChanged;
             _localization.LanguageChanged -= RefreshTitles;
             if (_onCatalogChanged is not null)
             {
