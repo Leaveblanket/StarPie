@@ -31,13 +31,11 @@ PNG_1X1_BASE64 = (
 APP_THEME_CATALOG = ("System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray")  # InterfaceThemeSettingsViewModel
 WHEEL_STYLE_CATALOG = ("ClassicRing", "CleanSectors", "Glassmorphism")  # AppearanceSettingsPage.xaml
 WHEEL_PALETTE_CATALOG = ("System", "Dark", "Light", "MatchaForest", "GlacialIce", "MorandiMuted")  # 固定项；自定义预设追加在后
-ICON_LAYOUT_CATALOG = ("IconAndText", "IconOnly", "TextOnly")  # AppearanceSettingsPage.xaml
 
 # 随包程序来源插件（plugins/src/StarPie.Plugin.Programs/plugin.json）与探针程序：
 # 探针经 HKCU App Paths 指向仓库 artifacts 下的一个 exe，只有插件的深扫来源（注册表 App Paths）
 # 会发现它——启用/停用两态由此可观察。探针不落沙箱临时目录：产品侧垃圾过滤会排除 temp/tmp 路径，
 # 放临时目录里根本扫不到（过滤器行为本身正确）。
-PROGRAM_SOURCE_PLUGIN_ID = "starpie.builtin.program-source"
 PROBE_PROGRAM_NAME = "starpie-e2e-probe"
 APP_PATHS_KEY = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"
 PROBE_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
