@@ -32,7 +32,7 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
 - `AppThemeChangedMessage`（主题应用消息：语义归 M4；类型定义集中于 S4 hub
   `StarPie.Sdk/Services/Messages/Messages.cs`，放行共享面，见 [messages.md](messages.md)）。
 
-消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（AppHost/Composition/MainView/
+消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（ShellHost/SettingsConsole/Composition/MainView/
 DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui）与 S6 对话框侧
 （驻 StarPie.Ui）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；**深浅色消费方一律经
 无状态探针 `Func<bool>`**（ADR-0039 决策 3）：M5 托盘由壳层注入探针，外观页实时预览由

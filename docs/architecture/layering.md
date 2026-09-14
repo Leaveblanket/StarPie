@@ -5,7 +5,7 @@
 ## 分层总览
 
 ```text
-App / AppHost / Composition  # 宿主编排（AppHost）+ 装配与解析（Composition，唯一解析点）
+App / ShellHost / SettingsConsole / Composition  # 常驻壳层 + 设置台租户 + 装配与解析（Composition，唯一解析点）
       |
       v
 ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
@@ -18,17 +18,17 @@ Services ---> Models
 
 程序集划分、依赖方向与逐程序集职责见 [assemblies.md](assemblies.md) §2/§3。跨程序集回填缝
 （`AppHostDelegates` 为 SDK 公开契约（P1.3/#112 收口）由组合根注册 /
-AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下分层规则适用于各程序集内部。
+ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下分层规则适用于各程序集内部。
 
 ## 依赖矩阵
 
-| 引用方 \ 被引用方 | App/AppHost/Composition | Models | Services | ViewModels | Views | Messages |
+| 引用方 \ 被引用方 | App/ShellHost/Composition | Models | Services | ViewModels | Views | Messages |
 |---|---|---|---|---|---|---|
 | Models | ✗ | △（同层值类型互用） | ✗ | ✗ | ✗ | ✗ |
 | Services | ✗ | ✅ | ✅（经接口，见下） | ✗ | ✗ | ✅ |
 | ViewModels | ✗ | ✅ | ✅（接口/委托） | △（仅静态已知依赖，见下） | ✗ | ✅ |
 | Views | ✗ | △（仅 WPF-free 值类型经绑定/转换器） | △（仅白名单服务构造注入，见下） | ✅（DataContext/DataTemplate） | △（同层控件/样式/转换器） | ✗ |
-| App/AppHost/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App/ShellHost/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 必须遵守的例外与说明
 
@@ -56,7 +56,7 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
 ## 命名空间与可见性
 
 - **命名空间 = 物理目录（全仓统一前缀 `StarPie`）**：`StarPie.Services.Actions`、
-  `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`AppHost`、
+  `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`ShellHost`、
   `Composition`）在 `StarPie`。
 - **命名空间统一为 `StarPie.*`**（ADR-0016 决策 12）：命名空间根是产品名 `StarPie` 而非
   程序集名，故 `StarPie.Host/Kernel/Configuration/` 内文件声明 `StarPie.Kernel.Configuration`
@@ -66,17 +66,18 @@ AppHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下�
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
     组合根构造配置路径用，dev 实例标记按构建配置编译期定死；内核导出面由 `HostBoundaryTests` 白名单收口）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
-    `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `AppHost.Run` 负责 `new` 托盘并注入
+    `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `ShellHost.Run` 负责 `new` 托盘并注入
     菜单 provider；`AutostartRegistry` 住 `StarPie.Host/Kernel/ShellIntegration/`，由 Ui 侧
     贡献者跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
-    `AppThemePaletteManager` 回落 internal（装配方 `AppHost` 与实现同集），
+    `AppThemePaletteManager` 回落 internal（装配方 `ShellHost` 与实现同集），
     `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
     M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集贡献者接线/容器解析，维持 public
     （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
     不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
-  - `Composition`、`AppHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露。
+  - `Composition`、`ShellHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露
+  （`SettingsConsole` 为 `public`：被测类型保持 public，见测试约定）。
 - 页面 View 无参构造、不注册容器，因此不需要 public 构造注入（`MainView`、对话框 Window 是仅有的、经组合根/服务显式 `new` 的窗口）。
 
 ## Models

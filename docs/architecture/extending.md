@@ -82,9 +82,9 @@
 1. **接口与实现**：`Services/{Feature}/IXxxService.cs` + `XxxService.cs`（同目录）；副作用经构造注入接缝。
 2. **注册**：所属贡献者 `RegisterServices` 登记（默认单例；M1 为 `GesturesContributor`，
    Host 侧件为 `HostCoreContributor`）；若需启动保活
-   （订阅事件/消息），仿 `GestureController`（M1 贡献者登记、`CreateAppHost` 经容器 eager 解析）/
+   （订阅事件/消息），仿 `GestureController`（M1 贡献者登记、`CreateShellHost` 经容器解析保活）/
    `SettingsSaveOrchestrator` 模式在贡献者或组合根接线。
 3. **线程边界**：钩子/后台线程事件不得直接改 VM/UI；经 Dispatcher 封送（`WheelFactory.DispatchedWheelViewModel` 模式——工厂驻 `StarPie.Ui/Services/Wheel/`，M1 只经 `IWheelFactory` 接口）或由 UI 线程组件消费。
-4. **生命周期**：实现 `IDisposable` 并在 `Composition.Dispose`/`AppHost.Dispose` 停止/退订
+4. **生命周期**：实现 `IDisposable` 并在 `Composition.Dispose`/`ShellHost.Dispose` 停止/退订
    （`MouseHook.Stop`、I18n 退订模式）。
 5. **测试**：决策逻辑纯函数/引擎单测；系统调用经注入假体验证；集成性质不测（如 `ProgramScanner`、注册表）。

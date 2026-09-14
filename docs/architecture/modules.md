@@ -151,7 +151,7 @@
 #### S3 本地化
 
 - **职责**：四语言键表与取词、语言状态/切换/回退链、运行时语言字典投影桥、文案分类语义。
-- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`；`AppHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
+- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`；`ShellHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
 - **扩展局部性**：新语言/新文案键/改回退链 → S3 内部。
 
 #### S4 消息与通知
@@ -197,7 +197,7 @@
 #### H1 宿主与组合根
 
 - **职责**：进程生命周期（单实例、全局异常、启动/退出/隐藏协调）、DI 组合根注册与解析、宿主回调委托、开发实例。
-- **关键内部**：`App`/`AppHost`/`Composition`/`DevInstance`（R2）；宿主回调委托包
+- **关键内部**：`App`/`ShellHost`/`SettingsConsole`/`Composition`/`DevInstance`（R2）；宿主回调委托包
   `AppHostDelegates` 为 H1 职责——类型本体为 SDK 公开契约（`StarPie.Sdk/Services/`，
   P1.3/#112 自 Core 收口），
   回填实现归 Host（见 [host.md](host.md)/[layering.md](layering.md)）。
