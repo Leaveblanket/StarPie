@@ -28,7 +28,7 @@
    `AliasToCanonical` 表折叠为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），未知码兜底 zh-CN，
    语言状态不再保留自定义枚举中间表示；语言实际变化才触发 `LanguageChanged`。
    静态 `I18n` 已删除，消费点一律注入 `ILocalizationService`。
-2. **XAML 声明式文案**：宿主 `AppHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护
+2. **XAML 声明式文案**：宿主 `ShellHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护
    Application 级静态 `LanguageDictionary`（MergedDictionaries 中仅一份，切语原地 `Clear` 重建，数据源为
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，
    不 code-behind 回填**。
@@ -38,7 +38,7 @@
    `WheelAppearanceSettingsViewModel.PaletteOptions`（轮盘配色，M2，见 [wheel.md](wheel.md)）、
    `InterfaceThemeSettingsViewModel.AppPaletteOptions`（界面主题，M4，见 [interface-theme.md](interface-theme.md)）等）/
    即时取词（每次展示读当前语言：通知、对话框标题与系统文件对话框文案、托盘菜单）/
-   壳外（托盘 tooltip：宿主 `AppHost` 订阅 `LanguageChanged` 按暂停态刷新，见 [host.md](host.md)）。
+   壳外（托盘 tooltip：宿主 `ShellHost` 订阅 `LanguageChanged` 按暂停态刷新，见 [host.md](host.md)）。
 4. **新增/修改文案后**补齐四语言 resx 键值（新增/修改与盘点登记流程见下方扩展点）。
 
 ## 扩展点
