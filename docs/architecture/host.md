@@ -1,23 +1,36 @@
-# 模块：宿主与组合根（App + AppHost + Composition）
+﻿# 模块：宿主与组合根（App + ShellHost + SettingsConsole + Composition）
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及启动顺序、DI 注册、退出/隐藏流程时读本篇。
 
 ## 职责
 
-- `App`：进程级生命周期——单实例、全局异常、启动/退出兜底（不做业务）。
-- `Composition`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、解析宿主依赖并创建 `AppHost`；不持有托盘/主窗口/语言字典等宿主状态。
-- `AppHost`：宿主启动/退出编排——鼠标钩子启停、语言字典投影（H1 消费 S3）、托盘创建与菜单、主框架创建、隐藏到托盘与真退出协调（[ADR-0011](../adr/0011-composition-apphost-split.md)）。
+- `App`：进程级生命周期——单实例闸门、全局异常、启动/退出兜底（不做业务）。`App.xaml` 设
+  `ShutdownMode="OnExplicitShutdown"`：设置台是瞬态窗口，关窗不代表进程退出，退出只走托盘退出。
+- `Composition`：唯一 DI 组合根——`ServiceCollection` 注册、`BuildServiceProvider`、解析常驻依赖并创建
+  `ShellHost`，另交付**设置台会话工厂**（工厂闭包在组合根内构造会话对象图，解析点未离开组合根）；
+  不持有托盘/主窗口/语言字典等宿主状态。
+- `ShellHost`（常驻壳层）：进程存活期内一直存在的编排面——鼠标钩子启停、语言字典投影（H1 消费 S3）、
+  托盘创建与菜单、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、设置台的按需创建与释放、
+  驻留与真退出协调（[ADR-0011](../adr/0011-composition-apphost-split.md)、
+  [ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）。
+- `SettingsConsole`（设置台租户）：按需创建、关闭即销毁的设置控制台会话——主窗口（`MainView`）与其
+  VM 树（导航区 `MainViewModel` + 壳区 `ShellViewModel`）同生共死；开窗时应用初始主题、绑定对话框
+  Owner、接线托盘状态信号，关窗收尾解绑 Owner 并走瞬态窗口收尾纪律。
 
 ## 组成文件
 
-`App.xaml(.cs)`、`Composition.cs`、`AppHost.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）。
+`App.xaml(.cs)`、`Composition.cs`、`ShellHost.cs`、`SettingsConsole.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）。
+
+瞬态窗口收尾的**唯一实现**：`Services/Shell/TransientWindowTeardown.cs`（清动画 → 丢弃内容与
+DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWindow`；设置台与轮盘预热共用）；
+常驻锚窗口 `Views/Navigation/ShellAnchorWindow.cs`（永不显示，长期持有 `Application.MainWindow`）。
 
 导航运行时（归 H1，命名空间不变）：
 
 - `Services/Navigation/`：`NavigationStore`、`NavigationExecutor`（含 `INavigationExecutor`）；
 - `ViewModels/Navigation/`：`MainViewModel`、`NavigationItemViewModel`（与 `ShellViewModel` 同目录族）。
 
-> 归属边界（[modules.md](modules.md) §5 D4）：`AppHost` 的语言字典投影与壳外文案刷新是 H1 对 S3 的消费，
+> 归属边界（[modules.md](modules.md) §5 D4）：`ShellHost` 的语言字典投影与壳外文案刷新是 H1 对 S3 的消费，
 > 不是本地化组成文件（见 [localization.md](localization.md)）。
 
 ## 生命周期与关键流程
@@ -34,11 +47,12 @@
      `DialogService` 回填后台模式后提示框不呈现、确认框取"是"，自定义对话框（程序/图标/颜色选择器、
      输入框）仍离屏 + 不可激活。仅影响窗口呈现/激活/命中测试与对话框可见性，导航、配置与渲染语义不变
      （e2e 静默跑用，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md) / [ADR-0032](../adr/0032-e2e-silent-visible-window.md)）。
-   - 非首实例：查找既有设置窗口并置前（`FindWindow` → 发单实例恢复消息
-     `SingleInstanceRestore.Send`，主框架收消息后经 WPF 显示路径自恢复 → `ShowWindow`/`SetForegroundWindow`
-     即时反馈），然后 `Shutdown(0)`。
+   - 非首实例：按托盘消息窗口类名（`TrayIconManager.WindowClassName` = `StarPieTrayWindow`，进程存活期内恒在的
+     常驻 HWND）找到既有实例并投递单实例恢复消息 `SingleInstanceRestore.Send`——接收端在常驻壳层，
+     设置台关着时也受理（创建设置台并显示）；随后 `Shutdown(0)`。不按设置台窗口标题查找：
+     设置台是瞬态窗口，关闭后该窗口不存在。
    - 注册全局异常处理器（Dispatcher + AppDomain，均不崩溃）。
-   - `new Composition()` → `Config.Load()` → `Composition.CreateAppHost()` → `AppHost.Run()`
+   - `new Composition()` → `Config.Load()` → `Composition.CreateShellHost()` → `ShellHost.Run()`
      （启动编排末尾：轮盘预热 → 内存整理兜底 `MemoryOptimizer.CollectGarbage(true)`，
      见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition` 注册期（**内置贡献者有序清单驱动**，全部单例；注册顺序 ≠ 解析时机）：
@@ -100,10 +114,10 @@
      标题/退出态/保存，主框架分区 DataContext 的壳区，见 [shell.md](shell.md)）。
    - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112
      收口）并以单例注册进容器，
-`AppHost` 构造后回填；`ShellContributor` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
+`ShellHost` 构造后回填；`ShellContributor` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
     - `ThemeContributor.RegisterServices` 在注册期调用（M4 → Host 内核 + Sdk.Wpf
       单向），主题服务/主题设置子 VM 的工厂只解析内核/SDK 契约（`IThemeService` 契约驻
-      StarPie.Sdk.Wpf，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `AppHost` 构造时
+      StarPie.Sdk.Wpf，ADR-0023）；`AppThemePaletteManager` 不经容器，由 `ShellHost` 构造时
       直接 `new` 并经内核端口 `IThemeApplier` 接到主题服务（同集适配器，装配面在 Ui 内）。
     - `WheelContributor.RegisterServices` 在注册期调用（M2 → Sdk + Host 内核 +
       Sdk.Wpf 契约面），轮盘工厂
@@ -115,45 +129,53 @@
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
       ADR-0023；P1.3/#112 收口），M1 不反向引用宿主。
    - `GeneralSettingsViewModel` 的托盘气泡/退出回调经 SDK `AppHostDelegates` 转发注册，不直接引用宿主类。
-   - **Views 不注册**（页面无参构造；`MainView` 由 `AppHost` 显式 `new`；对话框 Window 由
+   - **Views 不注册**（页面无参构造；`MainView` 由 `SettingsConsole` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。
 3. 阶段 2｜容器构建：唯一 `BuildServiceProvider`，解析点仍只在组合根。
-4. 阶段 3｜`Composition.CreateAppHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
+4. 阶段 3｜`Composition.CreateShellHost`（解析点仍集中在组合根，[ADR-0005](../adr/0005-di-container-for-navigation.md)/[0011](../adr/0011-composition-apphost-split.md)）：
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
-     `INavigationExecutor`、`NavigationCatalog`、`GestureController`；
+     `INavigationExecutor`、`NavigationCatalog`、`GestureController`、`NavigationStore`；
    - **页面 VM eager 解析清单目录化**：遍历 `NavigationCatalog.Entries` 逐个解析注册的页面 VM
      （VM 构造即订阅导入广播/落盘消息与 I18n 事件，时机在 `Config.Load` 之后；eager 语义保留——
-     新增页面注册进目录即自动纳入启动构造）；另解析 `MainViewModel`/`ShellViewModel` 与宿主
-     直持的 `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（分别已由
+     新增页面注册进目录即自动纳入启动构造）；另解析壳层直持的
+     `InterfaceThemeSettingsViewModel`/`GeneralSettingsViewModel`（分别已由
      `ThemeContributor`/`ShellContributor` 登记，组合根仅解析取回单例；初始主题与托盘/
      驻留气泡直调不变）；
-   - 构造 `AppHost` 并回填 `AppHostDelegates`（托盘气泡、退出）。
-5. `AppHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
+   - 构造并交付**设置台会话工厂** `Func<Window, SettingsConsole>`：每次开窗时新建导航区
+     `MainViewModel` 与壳区 `ShellViewModel`（不注册进容器——它们随设置台开关生灭），与主题服务、
+     对话框服务、图标资产、导航出账、消息总线、锚窗口一起构造 `SettingsConsole`；
+   - 构造 `ShellHost`（持有常驻件、设置台工厂与常驻锚窗口）并回填 `AppHostDelegates`（托盘气泡、退出）。
+5. `ShellHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
      `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
     首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 → 初始导航
      `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
-     `new MainView(...)` + 应用初始界面主题
+     创建 `TrayIconManager` 并挂常驻恢复消息钩子（见 [shell.md](shell.md)）→
+     `ShowSettingsConsole(activate: false)`：经工厂建设置台租户 → `new MainView(...)` + 应用初始界面主题
       （`MainView.ApplyAppTheme`，见 [interface-theme.md](interface-theme.md)）→
-      `_dialogService.SetOwner(_mainView)`（Ui 集 public 装配面）
-     → 创建 `TrayIconManager`（见 [shell.md](shell.md)）→ `_mainView.Show()`。
-6. 退出：托盘退出 → `AppHost.ExitApplication`：冲刷挂起保存 → dispose 托盘 → `ShellViewModel.IsExiting = true`
-   → `Application.Shutdown()`。`App.OnExit`：`Config.Save()` 兜底 → `AppHost.Dispose()`（退订语言服务、托盘
-   dispose、`_mouseHook.Stop()`、`MainViewModel.Dispose()`、`ShellViewModel.Dispose()`）→ `Composition.Dispose()`
-   （容器 dispose）→ 释放互斥体。
-7. 设置窗口隐藏（关窗/`MinimizedToTray` 语义）：`MainView.IsVisibleChanged`（非退出态）→ 经
+      `_dialogService.SetOwner(view)`（Ui 集 public 装配面）→ `Application.MainWindow = view` →
+     `view.Show()`。
+6. 退出：托盘退出 → `ShellHost.ExitApplication`：冲刷挂起保存 → 释放托盘（含摘除恢复消息钩子）
+   → 设置台置退出态 → `Application.Shutdown()`（`ShutdownMode=OnExplicitShutdown`，关窗不自行结束进程）。
+   `App.OnExit`：`Config.Save()` 兜底 → `ShellHost.Dispose()`（退订语言服务、释放设置台租户、托盘
+   dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体。
+7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。`MainView.IsVisibleChanged`（非退出态）→ 经
    `TrayVisibilitySignal` 有序决策执行：冲刷保存 → 导航视图出账 → 图标缓存出账 → 发
-   `MinimizedToTrayMessage`（订阅方同步出账，`AppHost` 直调 `GeneralSettingsViewModel.NotifyMinimizedToTray()`）→
-   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行（见 [shell.md](shell.md)）；恢复（重新可见）→
-   按最后导航槽位重放导航 → 发 `RestoredFromTrayMessage`。
+   `MinimizedToTrayMessage`（订阅方同步出账，`ShellHost` 直调 `GeneralSettingsViewModel.NotifyMinimizedToTray()`）→
+   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行（见 [shell.md](shell.md)）；重开（重新可见）→
+   按最后导航槽位重放导航 → 发 `RestoredFromTrayMessage`；关闭收尾走 `TransientWindowTeardown`
+   （清动画 → 丢弃内容与 DataContext → `Close()` → 排空 Dispatcher → `Application.MainWindow` 回退锚窗口）
+   并解绑对话框 Owner。托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
+   托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
 
 ## 宿主委托包
 
 `AppHostDelegates`（SDK 公开契约，`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）承载页面 VM
 注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`。
 组合根持有该实例并由 `HostCoreContributor` 登记单例，`ShellContributor` 装配 `GeneralSettingsViewModel` 时持稳定转发委托，
-`AppHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication = …`）；VM 不反向依赖宿主类。
+`ShellHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication = …`）；VM 不反向依赖宿主类。
+委托包名保持 `AppHostDelegates`（SDK 公开契约面，ABI additive-only，改名破坏第三方插件编译兼容）。
 
 ## 扩展点
 
@@ -162,9 +184,10 @@
   `HostPageContributor` 登记，宿主编排/内核件在 `HostCoreContributor` 登记
   （导航项与页面模板一律经所属贡献者 + 模块模板字典，
   见 [navigation.md](navigation.md)/[naming.md](naming.md)）。
-- 新托盘入口：在 `AppHost.BuildTrayMenuEntries` 登记（托盘职责见 [shell.md](shell.md)）。
-- 新增“启动/退出/隐藏”副作用：优先以委托注入页面 VM，不新增服务定位器；宿主编排改 `AppHost`，不改 `Composition`。
+- 新托盘入口：在 `ShellHost.BuildTrayMenuEntries` 登记（托盘职责见 [shell.md](shell.md)）。
+- 新增“启动/退出/隐藏”副作用：优先以委托注入页面 VM，不新增服务定位器；常驻编排改 `ShellHost`，
+  设置台会话内编排改 `SettingsConsole`，解析面的增删改 `Composition`。
 
 ## 参见 ADR
 
-[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）。
+[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）、[0039](../adr/0039-resident-shell-and-transient-settings-console.md)（常驻壳层与瞬态设置台租户）。

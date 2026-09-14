@@ -1,4 +1,4 @@
-# 目录与文件架构
+﻿# 目录与文件架构
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；需要确认“某个路径放什么 / 新增文件落在哪”时读本篇。
 
@@ -13,8 +13,9 @@ StarPie/
 ├── Directory.Packages.props       # 中央包管理（包版本唯一集中处；csproj 不写版本）
 ├── StarPie.Ui/             # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口）：组合根、宿主壳窗口、导航运行时、外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
-│   ├── AppHost.cs                 # 宿主编排：Run/Dispose、托盘、语言资源、退出协调
-│   ├── Composition.cs             # DI 组合根（唯一）：三阶段（贡献者有序清单注册 → BuildServiceProvider → eager 解析）
+│   ├── ShellHost.cs               # 常驻壳层：Run/Dispose、托盘、语言资源、退出协调、设置台按需创建与释放
+│   ├── SettingsConsole.cs         # 设置台租户：按需创建、关闭即销毁（主窗口 + 导航区/壳区 VM 树）
+│   ├── Composition.cs             # DI 组合根（唯一）：三阶段（贡献者有序清单注册 → BuildServiceProvider → 解析 + 设置台会话工厂）
 │   ├── DevInstance.cs             # 开发实例标记：环境变量注入，互斥/触发键/自启保护（判定真相在内核 AppDataPaths）
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
 │   ├── PluginHosting/             # P3：插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
@@ -57,7 +58,7 @@ StarPie/
 │   ├── StarPie.Sdk.csproj         # 零 ProjectReference（引用面只有平台程序集，见 plugins.md §2）
 │   ├── Models/                    # 稳定 DTO 与 WPF-free 值类型：AppConfig/WheelProfile/ActionItem/CustomColorPreset/ColorMath/GesturePoint
 │   ├── Services/
-│   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（Host 组合根注册单例、AppHost 回填）
+│   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（Host 组合根注册单例、ShellHost 回填；契约名不随类改名）
 │   │   ├── Messages/              # S4：IMessenger 消息与跨层通知载体（Messages.cs/Notices.cs）
 │   │   ├── Navigation/            # S5：目录/槽位契约——NavigationCatalog/NavigationSlots（槽位表 0–4；运行时在 Host，仅此文件）
 │   │   ├── Dialogs/               # S6 契约：IDialogService + 6 结果 record
@@ -157,8 +158,9 @@ StarPie/
 Ui 集工程根（`StarPie.Ui/`）：
 
 - `App.xaml` / `App.xaml.cs`：只处理单实例、异常、启动、退出和资源释放，不写业务（见 [host.md](host.md)）。
-- `Composition.cs`：唯一 DI 组合根——三阶段：内置贡献者有序清单注册（导航目录 + 容器描述符）→ `BuildServiceProvider` → `CreateAppHost()` eager 解析；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
-- `AppHost.cs`：宿主编排——`Run`/`Dispose`、托盘创建与菜单、退出协调、语言资源字典（见 [host.md](host.md)）。
+- `Composition.cs`：唯一 DI 组合根——三阶段：内置贡献者有序清单注册（导航目录 + 容器描述符）→ `BuildServiceProvider` → `CreateShellHost()` 解析常驻件并交付设置台会话工厂；不持有托盘/主窗口/语言字典等宿主状态（见 [host.md](host.md)）。
+- `ShellHost.cs`：常驻壳层——`Run`/`Dispose`、托盘创建与菜单、插件运行时驱动、单实例恢复接收、退出协调、语言资源字典、设置台按需创建与释放（见 [host.md](host.md)）。
+- `SettingsConsole.cs`：设置台租户——按需创建设置控制台会话（主窗口 + 导航区/壳区 VM 树），开窗绑对话框 Owner、关窗走瞬态窗口收尾纪律并释放 VM 树（见 [host.md](host.md)）。
 - `DevInstance.cs`：开发实例标记——Debug 构建即 dev（判定唯一真相在内核 `AppDataPaths`，编译期定死）；配置目录隔离与自启注册表保护生效，窗口/托盘带 `(Dev)` 可见标记；与正式实例同闸互斥、同为右键触发，不并行（见 [host.md](host.md)）。
 - `Adapters/`：Ui 侧 WPF 适配器——实现 Host 内核接缝/端口（`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`，把防抖计时绑到 UI 线程，见 [config.md](config.md)；`AppThemePaletteManager` 实现 `IThemeApplier`，整项替换主题调色板，见 [interface-theme.md](interface-theme.md)）。
 - `Services/`：Ui 侧服务实现——`Services/Navigation/`（导航运行时）；`Services/Icons/`

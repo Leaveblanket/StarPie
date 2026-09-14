@@ -1,4 +1,4 @@
-# StarPie 架构文档（入口）
+﻿# StarPie 架构文档（入口）
 
 > **阅读方式**：先读本文，按任务跳转到 `docs/architecture/` 下的叶子文件；不要把整卷叶子一次性注入上下文。
 >
@@ -26,7 +26,7 @@
 | 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
 | 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
 | 注释规范（XML 文档注释 / 行注释） | [comments.md](architecture/comments.md) |
-| 启动退出 / 单实例与开发实例 / AppHost 编排 / Composition 注册 / 窗口隐藏流程 | [host.md](architecture/host.md) |
+| 启动退出 / 单实例与开发实例 / 壳层与设置台编排 / Composition 注册 / 窗口生命周期 | [host.md](architecture/host.md) |
 | 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
 | 设置页导航 / 页面 DataTemplate 映射 | [navigation.md](architecture/navigation.md) |
 | 对话框实现 / 对话框唯一形态 | [dialogs.md](architecture/dialogs.md) |
@@ -188,7 +188,7 @@ StarPie/
 ## 5. 分层速览
 
 ```text
-App / AppHost / Composition  # 宿主编排（AppHost）+ 装配与解析（Composition，唯一解析点）
+App / ShellHost / SettingsConsole / Composition  # 常驻壳层 + 设置台租户 + 装配与解析（Composition，唯一解析点）
       |
       v
 ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
@@ -240,5 +240,9 @@ Services ---> Models
 | 0033 | `docs/adr/0033-plugin-service-scope-without-di-container.md` | 插件服务作用域自持实例与账本（不引入 MS.DI 子容器） | Active |
 | 0034 | `docs/adr/0034-headless-unload-handover-and-hard-reclaim.md` | headless 卸载三条款（交接即清空强引用 / 在途未归零中止于危险区之前 / 硬判 ALC 与程序集回收） | Active（决策 3 的适用范围被 0035 修订） |
 | 0035 | `docs/adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md` | WPF 宿主降级回收判定（判据按宿主环境分档：headless 硬判 / WPF 宿主只硬判插件自有对象） | Active |
+| 0036 | `docs/adr/0036-dev-instance-flag-via-environment-variable.md` | dev 实例标记改由环境变量注入 | Superseded by 0037 |
+| 0037 | `docs/adr/0037-dev-instance-flag-by-build-config.md` | dev 实例标记按构建配置定死（Debug=dev，Release=正式） | Active（互斥名与触发键被 0038 移除） |
+| 0038 | `docs/adr/0038-dev-instance-no-parallel.md` | dev 实例不与正式版并行（互斥收敛单一名、触发键回归右键） | Active |
+| 0039 | `docs/adr/0039-resident-shell-and-transient-settings-console.md` | 常驻壳层与瞬态设置台租户（托盘态只保留托盘与手势，设置台按需创建并随关闭释放） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
