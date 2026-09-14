@@ -10,10 +10,12 @@
   </PropertyGroup>
 
   <Target Name="ResolveBuiltInSampleUiPluginPackage">
+    <!-- RemoveProperties 同 Programs 包：宿主按 RID 或自包含方式发布时不下传给插件工程（NETSDK1047）。 -->
     <MSBuild
       Projects="$(BuiltInSampleUiPluginProjectPath)"
       Targets="Build"
-      Properties="Configuration=$(Configuration)">
+      Properties="Configuration=$(Configuration)"
+      RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile">
       <Output TaskParameter="TargetOutputs" ItemName="_BuiltInSampleUiPluginOutputs" />
     </MSBuild>
   </Target>

@@ -12,10 +12,14 @@
   </PropertyGroup>
 
   <Target Name="ResolveBuiltInProgramsPluginPackage">
+    <!-- RemoveProperties：宿主按 RID 或自包含方式发布时，这些全局属性会经 MSBuild 任务
+         下传给平台中立的插件工程，让它被要求提供 net10.0/<rid> 目标而报 NETSDK1047
+         （插件按 plugins.md §2 平台中立 TFM 声明，不随宿主做运行时假设）。 -->
     <MSBuild
       Projects="$(BuiltInProgramsPluginProjectPath)"
       Targets="Build"
-      Properties="Configuration=$(Configuration)">
+      Properties="Configuration=$(Configuration)"
+      RemoveProperties="RuntimeIdentifier;SelfContained;PublishSingleFile">
       <Output TaskParameter="TargetOutputs" ItemName="_BuiltInProgramsPluginOutputs" />
     </MSBuild>
   </Target>
