@@ -20,7 +20,11 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
   （签名暴露件）。
 - `StarPie.Host/Wheel/`（WPF-free，命名空间 `StarPie.Wheel`，可 headless 直接构造）：
   `WheelPalette.cs`（色值组）、`WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/
-  系统预设/紧急回落）、`WheelPaletteParser.cs`（方案名→色值组解析）。`CustomColorPreset` 因
+  系统预设/紧急回落）、`WheelPaletteParser.cs`（方案名→色值组解析）、
+  `WheelSectorContentKernel.cs`（扇区内容内核：图标五级回退链 + 按扇区数排版缩放表，
+  入参为 `WheelSectorInput`/`WheelSectorLayoutSpec` 窄字段，SVG 可解析性经注入接缝判定）、
+  `WheelSectorContent.cs`（内核出参：图标内容 + 排版度量，纯数据）、
+  `WheelBuiltInIcons.cs`（内置向量字面量与系统参数→目录键映射）。`CustomColorPreset` 因
   `AppConfig` 引用居 `StarPie.Sdk/Models/`，语义归 M2，见 [modules.md](modules.md) §4 R8。
 - `StarPie.Ui/Services/Wheel/`：`WheelGeometry.cs`（M2 轮盘视觉几何出口：扇区切削/核图标
   几何，R6 三分；直接构造 WPF `Geometry`，故留 Ui）、`WheelFactory.cs`（`IWheelFactory`

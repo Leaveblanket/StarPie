@@ -1,4 +1,4 @@
-# 模块间接合缝编目（Seams）
+﻿# 模块间接合缝编目（Seams）
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；做跨模块/程序集改动前，
 > 或想确认"某条缝是否规范内/需关注/残留"时读本篇。
@@ -34,7 +34,7 @@
 | 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–3，P1.3/#112 收口入 `StarPie.Sdk`）+ 贡献者 `RegisterNavigation` + 页面模板字典 | NavigationCatalogTests + BuiltInContributorsTests（补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |
 | XAML 资源缝 | App.xaml 资源单点合并/实例化：页面模板字典、主题字典、ModernControls.xaml 与 HotkeyRecorderBox 样式字典均为 Ui 集内本地合并（归并后无跨集 pack URI），转换器 App 级实例；`Properties/DesignTimeResources.xaml` 设计期资源锚是唯一 pack URI 缝（仅设计期、运行时永不合并，见 design-time-preview.md） | ADR-0012、ADR-0025 |
 | 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`，P1.3/#112 自 Core 收口入 `StarPie.Sdk`），跨模块广播；新消息 = 放行共享面 | messages.md |
-| 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（`ThemeEngine`/`ActionExecutorService`/VM 委托），生产默认值内建 | layering.md「系统调用接缝模式」；单测替身 |
+| 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（`ThemeEngine`/`ActionExecutorService`/VM 委托），生产默认值内建；轮盘扇区内容内核的 SVG 可解析性探针 `WheelSectorContentKernel.Build(..., Func<string,bool> isParsableSvg)` 由 WPF-free 的 Host 内核声明、Ui 侧以 `WheelGeometry.IsParsablePathData` 注入（解析是 WPF 面），省略即视为全部可解析 | layering.md「系统调用接缝模式」；单测替身 |
 | 收口测试缝 | 四集基线：`FourSetBoundaryTests`（解决方案登记 / 根 props 生效值与工程差异 / 跨集依赖方向 / CI 与 e2e 路径）+ `RuntimeNoCrossReferenceTests`（产物恰为四集 / 旧集文件不存在 / 引用面与平台投影 / 入口与 XAML 唯一 / 全类型空壳检查）+ `SdkBoundaryTests`/`SdkWpfBoundaryTests`/`HostBoundaryTests`（导出面白名单 / ABI 与默认 ALC 政策 / 内核零 WPF / 设计期字典随 Ui 编译且资源锚唯一）；`BuiltInContributorsTests` + `NavigationCatalogTests` 收口注册管线与目录 | 测试自身守护 |
 
 > **收窄说明**：上表各行原先引用的 9 个 `*AssemblyPlacementTests` 与旧
