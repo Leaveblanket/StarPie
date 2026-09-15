@@ -23,18 +23,18 @@ namespace StarPie.Services.Wheel
         private static readonly GesturePoint WarmupCenter = new GesturePoint(200, 200);
 
         private readonly IConfigService _config;
-        private readonly IThemeService _themeService;
+        private readonly Func<bool> _windowsInDarkModeProbe;
         private readonly ILocalizationService _localization;
         private readonly IIconAssetService _iconAssets;
 
         public WheelFactory(
             IConfigService config,
-            IThemeService themeService,
+            Func<bool> windowsInDarkModeProbe,
             ILocalizationService localization,
             IIconAssetService iconAssets)
         {
             _config = config;
-            _themeService = themeService;
+            _windowsInDarkModeProbe = windowsInDarkModeProbe ?? throw new ArgumentNullException(nameof(windowsInDarkModeProbe));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
         }
@@ -48,7 +48,7 @@ namespace StarPie.Services.Wheel
             {
                 // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流。
                 viewModel = new WheelViewModel(center, profile, WheelViewData.FromConfig(_config.Current), _localization);
-                window = new RadialWindow(viewModel, _themeService, _localization, _iconAssets);
+                window = new RadialWindow(viewModel, _windowsInDarkModeProbe, _localization, _iconAssets);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
         }
@@ -60,7 +60,7 @@ namespace StarPie.Services.Wheel
         {
             WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == GlobalProfileName) ?? new WheelProfile();
             var viewModel = new WheelViewModel(WarmupCenter, profile, WheelViewData.FromConfig(_config.Current), _localization);
-            WheelWarmup.Run(viewModel, _themeService, _localization, _iconAssets);
+            WheelWarmup.Run(viewModel, _windowsInDarkModeProbe, _localization, _iconAssets);
         }
 
         /// <summary>把每次轮盘交互经调度器转发到 UI 线程，落地为视图模型状态变更；

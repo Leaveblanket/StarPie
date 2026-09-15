@@ -29,7 +29,7 @@ namespace StarPie.Views.Wheel
     public partial class RadialWindow : Window
     {
         private readonly WheelViewModel _viewModel;
-        private readonly IThemeService _themeService;
+        private readonly Func<bool> _windowsInDarkModeProbe;
         private readonly ILocalizationService _localization;
         private readonly IIconAssetService _iconAssets;
         private readonly List<Path> _sectorPaths = new List<Path>();
@@ -56,14 +56,14 @@ namespace StarPie.Views.Wheel
 
         public RadialWindow(
             WheelViewModel viewModel,
-            IThemeService themeService,
+            Func<bool> windowsInDarkModeProbe,
             ILocalizationService localization,
             IIconAssetService iconAssets)
         {
             InitializeComponent();
 
             _viewModel = viewModel;
-            _themeService = themeService;
+            _windowsInDarkModeProbe = windowsInDarkModeProbe ?? throw new ArgumentNullException(nameof(windowsInDarkModeProbe));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _iconAssets = iconAssets ?? throw new ArgumentNullException(nameof(iconAssets));
             DataContext = viewModel;
@@ -86,7 +86,7 @@ namespace StarPie.Views.Wheel
         {
             // 经工厂实例化对应样式渲染器
             _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.WheelStyle);
-            _styleRenderer.Initialize(_viewModel.WheelPalette, _viewModel.ViewData.PaletteInput, _themeService.IsWindowsInDarkTheme());
+            _styleRenderer.Initialize(_viewModel.WheelPalette, _viewModel.ViewData.PaletteInput, _windowsInDarkModeProbe());
 
             _innerRadius = _viewModel.InnerRadius;
             _outerRadius = _viewModel.OuterRadius;
