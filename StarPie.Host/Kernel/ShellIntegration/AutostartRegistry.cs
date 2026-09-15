@@ -1,19 +1,28 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.Versioning;
 using StarPie.Kernel.Configuration;
 
 namespace StarPie.Kernel.ShellIntegration
 {
     /// <summary>
-    /// 开机自启注册表读写：维护 HKCU Run 键的 StarPie 值（含旧 WinPieGestures 键清理）。
-    /// dev 实例绝不改写正式版自启项——dev 判定读 <see cref="AppDataPaths.IsDevInstance"/>，
-    /// 该标记按构建配置在编译期定死。
+    /// 开机自启的两种形态读写：HKCU Run 注册表项（普通权限自启）与 Windows 任务计划程序任务
+    /// （<c>/rl highest</c> 提权自启——触发时由任务计划程序服务完成提权，**不弹 UAC**）。
+    /// 提权自启以自启为前提：注册表 Run 始终照写（兜底，且是"关掉提权形态"的回落落点），
+    /// 计划任务是叠加在它之上的一层。
+    /// dev 实例绝不改写正式版自启项——dev 判定读 <see cref="AppDataPaths.IsDevInstance"/>（编译期定死），
+    /// 且 dev 的提权自启任务用独立名字，绝不与正式版共用。
     /// 与 <c>MemoryOptimizer</c> 同属无状态系统调用静态工具，经委托由组合根接线进
-    /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表本身）。
+    /// 通用分区 ViewModel（可测缝是 ViewModel 的注入委托，不是注册表/任务计划程序本身）。
     /// </summary>
     [SupportedOSPlatform("windows")]
     public static class AutostartRegistry
     {
+        /// <summary>提权自启的计划任务名；dev 实例带独立后缀，绝不与正式版共用。</summary>
+        public static string AdminTaskName
+            => AppDataPaths.IsDevInstance ? "StarPie_AdminAutoStart_Dev" : "StarPie_AdminAutoStart";
+
         /// <summary>当前是否已注册开机自启（StarPie 或 legacy WinPieGestures 任一存在即是）。</summary>
         public static bool IsAutoStartEnabled()
         {
@@ -28,8 +37,48 @@ namespace StarPie.Kernel.ShellIntegration
             }
         }
 
-        /// <summary>注册/注销开机自启；失败静默（Debug 输出），不抛出。</summary>
-        public static void SetAutoStart(bool enable)
+        /// <summary>
+        /// 提权自启的计划任务是否已注册（以任务计划程序的实况为准，不读配置）。
+        /// 用户可在任务计划程序里手工删除该任务，故界面状态一律以此为准。
+        /// </summary>
+        public static bool IsAdminAutoStartEnabled()
+        {
+            // 只认退出码（0 = 任务存在），不解析输出：schtasks 的输出随系统语言变化。
+            // 查询不需要提权，故不弹 UAC。
+            return RunSchtasks(BuildAdminTaskQueryArguments(AdminTaskName), elevate: false) == 0;
+        }
+
+        /// <summary>
+        /// 自启形态落位：<paramref name="enable"/> 为假时注册表 Run 与计划任务一并删除；
+        /// 为真时按 <paramref name="asAdmin"/> 决定是否叠加提权计划任务。
+        /// </summary>
+        /// <returns>提权形态是否按请求落位（注册表读写失败不影响该返回值）。</returns>
+        public static bool ApplyAutoStart(bool enable, bool asAdmin)
+        {
+            SetRegistryAutoStart(enable);
+            return asAdmin ? EnableAdminTask() : DisableAdminTask();
+        }
+
+        /// <summary>建/更新提权自启任务的 schtasks 参数（纯字符串构造，供单测锁定形状）。</summary>
+        /// <remarks>
+        /// <c>/rl highest</c> 让任务以最高权限运行——提权由任务计划程序服务在触发时完成，不弹 UAC；
+        /// <c>/sc onlogon</c> 登录即起；<c>/delay 0000:00</c> 消掉任务计划程序默认的登录延迟；
+        /// <c>/f</c> 覆盖同名任务（可执行文件搬家/升级后刷新路径）。
+        /// 任务命令行不带额外参数：与注册表自启形态完全一致，只差权限级别。
+        /// </remarks>
+        public static string BuildAdminTaskCreateArguments(string exePath, string taskName)
+            => $"/create /tn \"{taskName}\" /tr \"\\\"{exePath}\\\"\" /sc onlogon /delay 0000:00 /rl highest /f";
+
+        /// <summary>删除提权自启任务的 schtasks 参数。</summary>
+        public static string BuildAdminTaskDeleteArguments(string taskName)
+            => $"/delete /tn \"{taskName}\" /f";
+
+        /// <summary>查询提权自启任务的 schtasks 参数（退出码 0 = 存在）。</summary>
+        public static string BuildAdminTaskQueryArguments(string taskName)
+            => $"/query /tn \"{taskName}\"";
+
+        /// <summary>注册表形态的落位；失败静默（Debug 输出），不抛出。</summary>
+        private static void SetRegistryAutoStart(bool enable)
         {
             // dev 实例不得把正式自启项指向 dev 可执行文件
             if (AppDataPaths.IsDevInstance) return;
@@ -41,8 +90,7 @@ namespace StarPie.Kernel.ShellIntegration
 
                 if (enable)
                 {
-                    string exePath = Environment.ProcessPath ?? System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
-                    key.SetValue("StarPie", $"\"{exePath}\"");
+                    key.SetValue("StarPie", $"\"{CurrentExecutablePath()}\"");
                     // 若存在旧键则清理
                     try { key.DeleteValue("WinPieGestures", false); } catch { }
                 }
@@ -54,8 +102,81 @@ namespace StarPie.Kernel.ShellIntegration
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Failed to set autostart: {ex.Message}");
+                Debug.WriteLine($"Failed to set autostart: {ex.Message}");
             }
         }
+
+        private static bool EnableAdminTask()
+            => RunSchtasks(
+                BuildAdminTaskCreateArguments(CurrentExecutablePath(), AdminTaskName),
+                elevate: true) == 0;
+
+        private static bool DisableAdminTask()
+        {
+            // 无任务可删时直接成功：不为一次注定的空操作白弹一次 UAC。
+            if (!IsAdminAutoStartEnabled()) return true;
+            return RunSchtasks(BuildAdminTaskDeleteArguments(AdminTaskName), elevate: true) == 0;
+        }
+
+        /// <summary>
+        /// 跑一次 schtasks 并返回退出码；启动失败或超时返回 -1。
+        /// <paramref name="elevate"/> 为真且当前未提权时经 <c>runas</c> 触发一次 UAC
+        /// ——建/删 <c>/rl highest</c> 的任务本身需要管理员；用户取消会以
+        /// <c>Win32Exception(1223 ERROR_CANCELLED)</c> 抛出，此处按失败返回。
+        /// </summary>
+        private static int RunSchtasks(string arguments, bool elevate)
+        {
+            try
+            {
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = SchtasksPath,
+                    Arguments = arguments,
+                    CreateNoWindow = true,
+                };
+
+                if (elevate && !ProcessElevation.IsRunningAsAdministrator())
+                {
+                    startInfo.UseShellExecute = true;
+                    startInfo.Verb = "runas";
+                    startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                }
+                else
+                {
+                    // 已提权（或本就无需提权）：直接跑，不经 UAC 一跳。
+                    startInfo.UseShellExecute = false;
+                }
+
+                using Process? process = Process.Start(startInfo);
+                if (process == null) return -1;
+                if (!process.WaitForExit(SchtasksTimeoutMs))
+                {
+                    try { process.Kill(); } catch { }
+                    return -1;
+                }
+
+                if (process.ExitCode != 0)
+                {
+                    Debug.WriteLine($"[Autostart] schtasks 退出码 {process.ExitCode}: {arguments}");
+                }
+
+                return process.ExitCode;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[Autostart] schtasks 调用失败: {ex.Message}");
+                return -1;
+            }
+        }
+
+        private static string CurrentExecutablePath()
+            => Environment.ProcessPath
+               ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
+
+        /// <summary>schtasks 全路径：不依赖 PATH，避免工作目录被劫持。</summary>
+        private static string SchtasksPath => Path.Combine(Environment.SystemDirectory, "schtasks.exe");
+
+        /// <summary>任务创建可能弹 UAC 等用户操作，超时给宽；查询是本地调用，给窄。</summary>
+        private const int SchtasksTimeoutMs = 60_000;
     }
 }

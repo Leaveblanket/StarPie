@@ -93,7 +93,42 @@
                             </StackPanel>
                             <CheckBox x:Name="AutoStartCheckBox" Grid.Column="1"
                                       VerticalAlignment="Center"
+                                      AutomationProperties.AutomationId="AutoStartCheckBox"
                                       IsChecked="{Binding AutoStartEnabled, Mode=TwoWay}"
+                                      Style="{StaticResource ToggleSwitchStyle}"
+                                      />
+                        </Grid>
+                    </Border>
+
+                    <!--  卡片 1b：以管理员身份开机自启（任务计划程序 /rl highest，触发时不弹 UAC）。
+                          勾上它会把上面的自启一并打开（提权自启蕴含自启）。  -->
+                    <Border Margin="0,0,0,14" Padding="20"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource CardBorderBrush}"
+                            BorderThickness="1" CornerRadius="12">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="12" Opacity="0.03" ShadowDepth="1"
+                                              Color="#000000" />
+                        </Border.Effect>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,12,0" VerticalAlignment="Center">
+                                <TextBlock FontSize="14"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           Text="{DynamicResource AdminAutoStartTitle}" />
+                                <TextBlock Margin="0,2,0,0" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           Text="{DynamicResource AdminAutoStartDesc}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                            <CheckBox x:Name="AdminAutoStartCheckBox" Grid.Column="1"
+                                      VerticalAlignment="Center"
+                                      AutomationProperties.AutomationId="AdminAutoStartCheckBox"
+                                      IsChecked="{Binding AdminAutoStartEnabled, Mode=TwoWay}"
                                       Style="{StaticResource ToggleSwitchStyle}"
                                       />
                         </Grid>

@@ -14,7 +14,7 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 
 - `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
   由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
-- `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；
+- `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态；
   `[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
   `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
@@ -79,10 +79,16 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    不随出账归还、只有进程退出才释放。故对外报内存用**专用工作集**（任务管理器默认「内存」列），
    不用含共享代码页的总工作集；设置台「关闭即销毁」同样不拿省内存当理由——若将来以首次开台变冷或
    页内半输入状态丢失为由讨论回退，内存不构成理由。
-3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
+3. **自启**：两种形态的读写都收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
-   `GeneralSettingsViewModel`（`isAutoStartEnabled`/`setAutoStart`），不进 VM/View。
+   `GeneralSettingsViewModel`（`isAutoStartEnabled`/`applyAutoStart`/`isAdminAutoStartEnabled`），
+   不进 VM/View。形态一 HKCU Run（普通权限自启）；形态二 Windows 任务计划程序任务
+   （`/rl highest /sc onlogon /delay 0000:00`，提权由服务在触发时完成、**不弹 UAC**，见
+   [ADR-0041](../adr/0041-admin-autostart-opt-in.md)）。Run 始终照写——它是关掉提权形态后的回落落点；
+   关总开关时两者一并删除。提权形态的状态读自计划任务的实况（`schtasks /query` 退出码），
+   `config.json` 的 `AutoStartAsAdmin` 只记录用户意图；落位失败（UAC 取消、账号无管理员凭据）
+   由 VM 提示并把开关拨回实况，不静默。dev 实例的任务名带独立后缀，与配置目录同口径。
 4. **关窗即销毁、托盘驻留、重开重建**（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）：
    设置台是瞬态租户——关窗销毁窗口与 VM 树（`Window_Closing` 不再取消），托盘驻留由常驻壳层
    （`ShellHost` + 托盘消息窗口）承担，托盘直达/单实例恢复经 `ShellHost.ShowSettingsConsole` 重建。关窗收尾
@@ -101,7 +107,8 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    提权入口的可见性两处同口径：高级页卡片绑 `ShowUacWarning => !IsAdministrator`，托盘菜单项
    同样**只在非提权态出现**（提权态下该入口无意义）；两处共用共享内核 `ProcessElevation`
    的同一探测，不各留一份实现。进程权限级别本身由 [ADR-0040](../adr/0040-startup-privilege-policy.md)
-   固定为 asInvoker + 按需提权（不写清单声明、无"始终以管理员启动"偏好）。
+   固定为 asInvoker + 按需提权（不写清单声明）；"始终以管理员身份"由用户可选的**提权自启**形态表达
+   （见下方关键流程 3）。
 
 ## 扩展点
 
