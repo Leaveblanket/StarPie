@@ -52,6 +52,8 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   XAML；ProjectReference 只许 `StarPie.Sdk`；承载主题/图标/扫描 WPF 契约件与 ABI/装载政策
   （`Compatibility/`：UiSdkAbi 主次版本兼容判定、DefaultAlcPolicy 默认 ALC 统一加载），引用面
   只含平台/WPF 程序集（`SdkWpfBoundaryTests`/`RuntimeNoCrossReferenceTests` 机械断言）。
+  本集的导出面是**引用面**（哪些类型可被引用），不等于插件的能力面——插件的可达面定义与守护见
+  [plugins.md](plugins.md) §5.1 与 [ADR-0047](../adr/0047-plugin-reachable-surface.md)。
 - 四集不得引用旧集（跨集只经 SDK）：旧 15 集已全部撤销，任何旧集工程引用（含测试工程的
   传递依赖）都属违规；设计期投影字典随 Ui 集承载（不再有独立壳工程）。
 

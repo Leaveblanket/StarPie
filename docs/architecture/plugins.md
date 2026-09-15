@@ -195,6 +195,12 @@ public interface IPluginUiModule
 | 8 | UI SDK ABI additive-only | 与 `StarPie.Sdk` 同政策：接受同主版本、次版本不高于宿主；破坏性变更 = 新描述符/新接口 | 不匹配 → 拒绝装载 |
 | 9 | 插件界面文案来源与失败可见 | 描述符文案成员按「`DisplayName` 字面量 → `TitleKey` 宿主 resx 键」单一优先级解析（解析点收成一个共用件），两者不可同时为空；解析不到时按字面量显示并在**注册期**告警（告警经 UI 装载结果回传宿主日志，自动带 plugin id） | 解析不到不静默；插件自持文案表与插件面取词属规划（见 §9、[ADR-0046](../adr/0046-plugin-surface-copy-source.md)） |
 
+> **插件可达面**：插件在宿主的可达面 = 从 `IPluginContext` 与 `IPluginUiContext` 的成员签名出发、
+> 可传递到达的宿主类型集合。程序集导出面只决定「哪些类型可被引用」，不决定「插件能拿到什么服务」——
+> 涉及「插件能不能做什么」的判定一律以可达面为准（[ADR-0047](../adr/0047-plugin-reachable-surface.md)）。
+> 据此，`StarPie.Sdk.Wpf` 导出面里的 `IThemeService` **不构成**插件可达面（没有注入边），插件侧的
+> 深浅色需求由宿主注入的无状态探针满足；该判定由 `SdkWpfBoundaryTests` 的成员签名闭包断言守护。
+
 ### 5.2 受支持特性白名单与不支持列表（卸载判据）
 
 白名单逐项只按「宿主清理后资产登记表清零 + 插件对象与插件委托的 `WeakReference` 全部死亡 + 全局根扫描无残留」判定；**WPF 宿主不判 ALC/程序集回收**（[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md) + [ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)：宿主框架必然强引用插件程序集，存活只记诊断）。

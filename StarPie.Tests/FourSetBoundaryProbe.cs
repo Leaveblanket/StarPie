@@ -190,4 +190,115 @@ internal static class FourSetBoundaryProbe
             .Where(key => key.EndsWith(".baml", StringComparison.OrdinalIgnoreCase))
             .ToArray();
     }
+
+    /// <summary>类型声明面（字段/属性/事件/方法与构造的参数与返回值）出现的全部类型。</summary>
+    internal static Type[] SignatureTypes(Type type)
+    {
+        const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic
+            | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+
+        return type.GetFields(All).Select(field => field.FieldType)
+            .Concat(type.GetProperties(All).Select(property => property.PropertyType))
+            .Concat(type.GetEvents(All).Select(declaredEvent => declaredEvent.EventHandlerType!))
+            .Concat(type.GetMethods(All).SelectMany(method => method.GetParameters()
+                .Select(parameter => parameter.ParameterType)
+                .Prepend(method.ReturnType)))
+            .Concat(type.GetConstructors(All).SelectMany(ctor => ctor.GetParameters()
+                .Select(parameter => parameter.ParameterType)))
+            .ToArray();
+    }
+
+    /// <summary>递归判定类型（含数组/指针/泛型实参）是否来自 WPF 程序集。</summary>
+    internal static bool TouchesWpf(Type type)
+    {
+        if (type.IsGenericParameter) return false;
+        if (type.HasElementType) return TouchesWpf(type.GetElementType()!);
+        if (WpfAssemblyNames.Contains(type.Assembly.GetName().Name)) return true;
+        return type.IsGenericType && type.GetGenericArguments().Any(TouchesWpf);
+    }
+
+    /// <summary>
+    /// 从根类型出发、沿声明面与基类型/接口可传递到达的**本仓**类型集合（含根自身），按序数序排序。
+    /// </summary>
+    /// <param name="roots">起点类型（可达面的入口）。</param>
+    /// <remarks>
+    /// 只展开四集里的类型：平台与 BCL 类型不是宿主提供给插件的能力面，展开它们既无意义也让集合发散。
+    /// 「插件可达面」一类判定以此为基准——导出面决定哪些类型可被引用，本闭包决定插件实际能拿到什么。
+    /// </remarks>
+    internal static Type[] ReachableSignatureTypes(params Type[] roots)
+    {
+        var reached = new HashSet<Type>();
+        var pending = new Queue<Type>();
+        foreach (Type root in roots)
+        {
+            if (reached.Add(root))
+            {
+                pending.Enqueue(root);
+            }
+        }
+
+        while (pending.Count > 0)
+        {
+            foreach (Type next in Edges(pending.Dequeue()))
+            {
+                if (reached.Add(next))
+                {
+                    pending.Enqueue(next);
+                }
+            }
+        }
+
+        return reached
+            .OrderBy(type => type.FullName, StringComparer.Ordinal)
+            .ToArray();
+    }
+
+    /// <summary>一个类型的可达边：声明面 + 基类型 + 接口，拆到元素与泛型实参后只留四集类型。</summary>
+    private static IEnumerable<Type> Edges(Type type)
+    {
+        IEnumerable<Type> edges = SignatureTypes(type);
+        if (type.BaseType is not null)
+        {
+            edges = edges.Append(type.BaseType);
+        }
+
+        foreach (Type edge in edges.Concat(type.GetInterfaces()))
+        {
+            foreach (Type flat in Flatten(edge))
+            {
+                if (!flat.IsGenericParameter && FourSetAssemblyNames.Contains(flat.Assembly.GetName().Name))
+                {
+                    yield return flat;
+                }
+            }
+        }
+    }
+
+    /// <summary>把数组/指针/泛型类型拆到元素类型与泛型实参。</summary>
+    private static IEnumerable<Type> Flatten(Type type)
+    {
+        if (type.HasElementType)
+        {
+            foreach (Type inner in Flatten(type.GetElementType()!))
+            {
+                yield return inner;
+            }
+
+            yield break;
+        }
+
+        yield return type;
+        if (!type.IsGenericType)
+        {
+            yield break;
+        }
+
+        foreach (Type argument in type.GetGenericArguments())
+        {
+            foreach (Type inner in Flatten(argument))
+            {
+                yield return inner;
+            }
+        }
+    }
 }
