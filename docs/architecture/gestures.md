@@ -101,3 +101,10 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
 
 - 新增动作类型 = `ActionItem` 新类型值 + `ActionRouting.ResolveRoute` + `ActionExecutorService` 分支 + 动作选择 UI 选项 + i18n + config 兼容（清单见 [extending.md](extending.md) 原型 D）。
 - 调整手感常量/死区比例/外甩倍数：改 `GestureEngine` 常量（`CenterDeadzoneFractionOfThreshold`、`OuterEscapeFractionOfRadius`）。
+
+## 参见 ADR
+
+[0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（模块契约硬边界）、
+[0042](../adr/0042-privilege-routes-two-only.md)（动作落地不做子进程权限适配）、
+[0043](../adr/0043-wheel-preview-runtime-shared-content-kernel.md)（配套修正：`MouseHook`
+去 WPF `Application.Current` 引用、壳层预热改走 `IWheelFactory.Warmup()`，随轮盘内容同源收敛落地）。
