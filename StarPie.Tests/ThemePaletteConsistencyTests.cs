@@ -16,23 +16,13 @@ public sealed class ThemePaletteConsistencyTests
 {
     private static readonly string[] ThemeNames = { "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray" };
 
-    /// <summary>仓库根：测试程序集位于 <c>StarPie.Tests/bin/&lt;配置&gt;/&lt;TFM&gt;</c>，回退四级。</summary>
-    private static string RepoRoot
-    {
-        get
-        {
-            var dir = new DirectoryInfo(AppContext.BaseDirectory);
-            for (int i = 0; i < 4; i++) dir = dir.Parent!;
-            return dir.FullName;
-        }
-    }
-
     // 主题字典位于 StarPie.Ui/Themes。
-    private static string ThemesDirectory => Path.Combine(RepoRoot, "StarPie.Ui", "Themes");
+    private static string ThemesDirectory
+        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "Themes");
 
     // 四语言 resx 位于宿主内核（StarPie.Host/Kernel/Localization）。
     private static string LanguageResourcesFile
-        => Path.Combine(RepoRoot, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
+        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
 
     private static SortedSet<string> ReadKeys(string theme)
     {
@@ -136,8 +126,8 @@ public sealed class ThemePaletteConsistencyTests
     {
         // AppThemePaletteManager.FindThemeSlot 把「顶层恰有一项 Source 含 /Themes/、且它就是
         // App.xaml 静态 Light 那一项」当不变式：按 Source 字符串定位、原位替换。不改成按引用跟踪
-        // 是因为 WPF 合并字典后项覆盖前项，原位替换是承重的。该不变式今天成立却无断言守着。
-        string path = Path.Combine(RepoRoot, "StarPie.Ui", "App.xaml");
+        // 是因为 WPF 合并字典后项覆盖前项，原位替换是承重的。本测试守住该不变式。
+        string path = Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "App.xaml");
         Assert.True(File.Exists(path), $"App.xaml missing: {path}");
 
         XNamespace ns = "http://schemas.microsoft.com/winfx/2006/xaml/presentation";
