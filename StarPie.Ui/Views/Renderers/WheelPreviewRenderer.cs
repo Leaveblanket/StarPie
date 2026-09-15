@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using StarPie.ViewModels.Wheel;
+using StarPie.Services.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
@@ -79,8 +80,8 @@ namespace StarPie.Views.Renderers
                 if (innerR >= outerR) innerR = outerR * 0.5;
                 if (coreR >= innerR) coreR = innerR * 0.8;
 
-                string wheelStyle = state.WheelStyle ?? "ClassicRing";
-                string palette = state.SelectedPalette ?? "System";
+                string wheelStyle = state.WheelStyle ?? WheelStyleNames.Default;
+                string palette = state.SelectedPalette ?? WheelPaletteNames.System;
                 string shape = state.Shape ?? "Original";
                 string layoutMode = state.IconLayoutMode ?? "IconAndText";
                 bool showText = state.ShowText && layoutMode != "IconOnly";
@@ -125,7 +126,7 @@ namespace StarPie.Views.Renderers
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
-                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != WheelStyleNames.CatPaw) ? Visibility.Visible : Visibility.Collapsed
                     };
                     if (!string.IsNullOrEmpty(state.CoreCustomImagePath) && File.Exists(state.CoreCustomImagePath))
                     {
@@ -155,7 +156,7 @@ namespace StarPie.Views.Renderers
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
-                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != WheelStyleNames.CatPaw) ? Visibility.Visible : Visibility.Collapsed
                     };
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }

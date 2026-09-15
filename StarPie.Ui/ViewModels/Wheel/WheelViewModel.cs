@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Kernel.Localization;
+using StarPie.Services.Wheel;
 
 namespace StarPie.ViewModels.Wheel
 {
@@ -67,8 +68,8 @@ namespace StarPie.ViewModels.Wheel
                 .Select(i => new WheelSectorViewModel(i, i < profile.Actions.Count ? profile.Actions[i] : null))
                 .ToList();
 
-            WheelPalette = config.WheelPalette ?? "System";
-            WheelStyle = config.WheelStyle ?? "ClassicRing";
+            WheelPalette = config.WheelPalette ?? WheelPaletteNames.System;
+            WheelStyle = config.WheelStyle ?? WheelStyleNames.Default;
             OuterRadius = config.WheelRadius;
             CoreRadius = config.CoreRadius;
             // 安全边界：环不得退化，内半径保持小于外半径。

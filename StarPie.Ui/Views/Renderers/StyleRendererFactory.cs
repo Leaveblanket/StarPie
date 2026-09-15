@@ -1,3 +1,5 @@
+using StarPie.Services.Wheel;
+
 namespace StarPie.Views.Renderers
 {
     public static class StyleRendererFactory
@@ -5,20 +7,15 @@ namespace StarPie.Views.Renderers
         /// <summary>按风格名实例化对应的样式渲染器。</summary>
         public static IRadialStyleRenderer CreateRenderer(string style)
         {
-            if (string.IsNullOrEmpty(style))
+            switch (style?.Trim())
             {
-                return new ClassicRingRenderer();
-            }
-
-            switch (style.Trim())
-            {
-                case "CatPaw":
+                case WheelStyleNames.CatPaw:
                     return new CatPawRenderer();
-                case "Glassmorphism":
+                case WheelStyleNames.Glassmorphism:
                     return new GlassmorphismRenderer();
-                case "CleanSectors":
+                case WheelStyleNames.CleanSectors:
                     return new CleanSectorsRenderer();
-                case "ClassicRing":
+                case WheelStyleNames.ClassicRing:
                 default:
                     return new ClassicRingRenderer();
             }

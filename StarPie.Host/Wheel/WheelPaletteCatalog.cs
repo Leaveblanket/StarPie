@@ -1,4 +1,5 @@
 using System;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Wheel
 {
@@ -119,14 +120,14 @@ namespace StarPie.Wheel
         {
             switch (style)
             {
-                case "ClassicRing":
-                    return effectiveTheme == "Light" ? ClassicRingLight : ClassicRingDark;
-                case "CleanSectors":
-                    return effectiveTheme == "Light" ? CleanSectorsLight : CleanSectorsDark;
-                case "Glassmorphism":
-                    return effectiveTheme == "Light" ? GlassmorphismLight : GlassmorphismDark;
-                case "CatPaw":
-                    return effectiveTheme == "Custom" ? NeutralDark : CatPawPastel;
+                case WheelStyleNames.ClassicRing:
+                    return effectiveTheme == WheelPaletteNames.Light ? ClassicRingLight : ClassicRingDark;
+                case WheelStyleNames.CleanSectors:
+                    return effectiveTheme == WheelPaletteNames.Light ? CleanSectorsLight : CleanSectorsDark;
+                case WheelStyleNames.Glassmorphism:
+                    return effectiveTheme == WheelPaletteNames.Light ? GlassmorphismLight : GlassmorphismDark;
+                case WheelStyleNames.CatPaw:
+                    return effectiveTheme == WheelPaletteNames.Custom ? NeutralDark : CatPawPastel;
                 default:
                     return NeutralDark;
             }
@@ -134,7 +135,7 @@ namespace StarPie.Wheel
 
         /// <summary>主题名恰为 "Light" 时是否套用标准浅色表（CatPaw 为保持粉彩观感不套用）。</summary>
         public static bool UsesStandardLightFallback(string style)
-            => !string.Equals(style, "CatPaw", StringComparison.Ordinal);
+            => !string.Equals(style, WheelStyleNames.CatPaw, StringComparison.Ordinal);
 
         private static WheelPalette Create(string sectorBgHex, string sectorBorderHex, string highlightBgHex, string highlightBorderHex, string textHex)
             => WheelPalette.Create(

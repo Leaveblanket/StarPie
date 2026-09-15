@@ -1,8 +1,9 @@
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Views.Renderers
 {
@@ -11,7 +12,7 @@ namespace StarPie.Views.Renderers
     /// </summary>
     public class CleanSectorsRenderer : BaseStyleRenderer
     {
-        protected override string WheelStyleName => "CleanSectors";
+        protected override string WheelStyleName => WheelStyleNames.CleanSectors;
 
         protected override void PostInitialize()
         {

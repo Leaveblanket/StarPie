@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +9,7 @@ using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Point = System.Windows.Point;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Views.Renderers
 {
@@ -17,7 +18,7 @@ namespace StarPie.Views.Renderers
     /// </summary>
     public class CatPawRenderer : BaseStyleRenderer
     {
-        protected override string WheelStyleName => "CatPaw";
+        protected override string WheelStyleName => WheelStyleNames.CatPaw;
 
         protected override void PostInitialize()
         {

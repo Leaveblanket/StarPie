@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Models
 {
@@ -18,14 +19,14 @@ namespace StarPie.Models
 
         // —— 主题与 UI 风格 ——
         public string AppTheme { get; set; } = "System"; // 应用界面主题："System" / "Light" / "Dark" / "MidnightNavy" / "RoyalViolet" / "TitaniumGray"
-        public string WheelPalette { get; set; } = "System"; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
-        public string WheelStyle { get; set; } = "ClassicRing"; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
+        public string WheelPalette { get; set; } = WheelPaletteNames.System; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
+        public string WheelStyle { get; set; } = WheelStyleNames.Default; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
 
         // —— 轮盘几何 ——
         public bool ShowText { get; set; } = true; // 扇区上是否显示文字标签
-        public double WheelRadius { get; set; } = 138.0; // 轮盘外半径（像素）
-        public double InnerRadius { get; set; } = 52.0; // 扇区环的内半径（像素）
-        public double CoreRadius { get; set; } = 50.0; // 中心核圆的半径（像素）
+        public double WheelRadius { get; set; } = WheelGeometryDefaults.Radius; // 轮盘外半径（像素）
+        public double InnerRadius { get; set; } = WheelGeometryDefaults.InnerRadius; // 扇区环的内半径（像素）
+        public double CoreRadius { get; set; } = WheelGeometryDefaults.CoreRadius; // 中心核圆的半径（像素）
         public string Shape { get; set; } = "Original"; // 扇区形状："Original" / "Circle" / "RoundedRect" / "FloatingCapsules" / "HexagonHive"
         public double SectorGap { get; set; } = 2.0; // 扇区间的光学间隙：0 ~ 12 px
         public double SectorCornerRadius { get; set; } = 4.0; // 扇区圆角（导角）：0 ~ 16 px

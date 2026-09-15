@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -10,6 +10,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using StarPie.Kernel.Localization;
+using StarPie.Services.Wheel;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
@@ -44,8 +45,9 @@ namespace StarPie.Views.Wheel
         private Brush _coreBgBrush = Brushes.Transparent;
         private Brush _coreBorderBrush = Brushes.Transparent;
 
-        private double _innerRadius = 52;
-        private double _outerRadius = 138;
+        // 尺寸在 InitializePaletteAndStyle 由视图模型赋值，此处不留默认值（否则是第二份几何默认值）。
+        private double _innerRadius;
+        private double _outerRadius;
         private double _borderThickness = 1.0;
         private double _highlightBorderThickness = 1.5;
 
@@ -164,7 +166,7 @@ namespace StarPie.Views.Wheel
             CoreTitle.FontSize = Math.Max(8.0, coreRadius / 5.0);
             CoreSubtitle.FontSize = Math.Max(6.0, coreRadius / 7.0);
 
-            bool isCatPaw = _viewModel.WheelStyle == "CatPaw";
+            bool isCatPaw = _viewModel.WheelStyle == WheelStyleNames.CatPaw;
             bool showCoreIcon = _viewModel.ShowCoreIcon;
             string coreType = _viewModel.Config.CoreIconType ?? "Exit";
 
