@@ -31,6 +31,16 @@ WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer`（UI 线程 `DispatcherTi
 - 调整落盘节奏：改 `AutoSaveDelay`。
 - 改配置路径：S2 内只动 `AppDataPaths`（开发配置夹分支依赖 `DevInstance`，见 [host.md](host.md)）。
 
+## 向后兼容硬约束
+
+新增字段一律走"模型加属性 + 默认值"，旧配置缺键时按属性的声明默认值处理，**不得**用"缺键即整份回退默认"
+或改键名（重命名须走 `MigrateLegacyKeys` 的老键回退，见上文流程 1）。反序列化是大小写不敏感、
+允许注释与尾随逗号，未知顶层键在下一次落盘时被丢弃——故非宿主所有的内容不得放在 `config.json` 顶层。
+
+已知的模型属性示例：`ElevatedWindowNoticeShown`（高权限窗口一次性告知的已提示过标记，
+缺键按未提示处理，见 [shell.md](shell.md)）；动作项上的 `ActionItem.RunAsAdmin`（缺键按 false，
+见 [gestures.md](gestures.md) 关键流程 4）。
+
 ## 插件配置段
 
 `AppConfig.Plugins` 是 `plugins.<id>` 段的内存形态：键为插件 id，值为该插件自己的 JSON 值

@@ -95,12 +95,15 @@
 
 ## Consequences
 
-- 高权限窗口内唤不起手势仍是默认行为，只能由用户主动提权获得；本 ADR 不引入任何运行时告知机制。
+- 高权限窗口内唤不起手势仍是默认行为，只能由用户主动提权获得；本 ADR 不引入任何运行时告知机制
+  （后续由 #165 补一次性告知，见下）。
 - 强制路线的四笔代价（UAC 常税、自启破裂、子进程继承、插件提权）不落地；提权失败/取消的既有语义
   （气泡提示且不退出）保持不变。
 - **已定但未落地的行为**（各自独立为后续工作项，不阻塞本 ADR）：
-  - 未提权态检测到前台窗口属于更高完整性级别时，报**一次**托盘气泡（每个安装一次，需 `config.json`
-    新增标记字段，缺字段按未提示处理）；
+  - ~~未提权态检测到前台窗口属于更高完整性级别时，报**一次**托盘气泡~~ 已落地（#165：
+    `ProcessElevation.IsForegroundWindowHigherIntegrity` + 纯判据 `ElevatedWindowNotice` +
+    `config.json` 的 `ElevatedWindowNoticeShown` 标记 + 气泡点击即以管理员身份重启；
+    见 [host.md](../architecture/host.md)、[shell.md](../architecture/shell.md)）；
   - ~~提权态下在插件管理页显示一行警示（当前插件以管理员身份运行）~~ 已落地（#164：页首
     `PluginManagerElevatedNotice` 一行，非提权态不出现；见 [plugins.md](../architecture/plugins.md) §10）；
   - ~~提权态下"启动程序"动作改走 Explorer 中介降权启动~~ 已落地（#163：
@@ -108,8 +111,11 @@
     见 [shell.md](../architecture/shell.md)、[gestures.md](../architecture/gestures.md)）。
 - **不可自动化验证的边界**：跨完整性级别行为（消息放行与互斥体分支）无法被不提权的 xUnit/e2e 环境复现，
   其验收只能由一次真实的提权实例 + 非提权双击手动完成；本 ADR 不为此设自动判据。
+  同上，降权启动的"子进程为普通权限"与一次性告知的"高权限窗口前台时报出"两条也只能手动验收：
+  自动侧覆盖的是判据（`ResolveLaunchMode`/`ElevatedWindowNotice` 纯函数）、配置往返与
+  "非提权态零变化"，探测本身的正确性由 `ProcessElevationTests` 守住数值合法性。
 - **叶子回填**：`host.md` 单实例段补跨级别行为与失败分类；`shell.md` 高级设置面段补托盘提权入口的可见性口径；
   `CONTEXT.md` 增「提权」「高权限窗口」两词。
 - **边界守护**：新增 public 内核类型 `ProcessElevation` 已登记进 `HostBoundaryTests` 的内核清单
   （该表为"导出面 = 内核清单"的守护，新增 public 类型须同步）；后续落地的
-  `ExplorerShellLaunch` 与 `LaunchMode` 同此登记。
+  `ExplorerShellLaunch`、`LaunchMode` 与 `ElevatedWindowNotice` 同此登记。

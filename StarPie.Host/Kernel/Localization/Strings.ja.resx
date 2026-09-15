@@ -201,6 +201,7 @@
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ 管理者として再起動</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ StarPie を終了</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルジェスチャー</value></data>
+  <data name="ElevatedWindowNoticeBalloon" xml:space="preserve"><value>前面のウィンドウは管理者として実行されているため、その中ではジェスチャーを呼び出せません。この通知をクリックすると StarPie を管理者として再起動します。</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS ライブレンダリング</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>インターフェース言語、Windows 自動起動、管理者権限、設定のインポート/エクスポートを管理します。</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>フォアグラウンドアプリごとに専用の多方向ジェスチャーホイール、キー操作、ベクターアイコンを設定できます。</value></data>

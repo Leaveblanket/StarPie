@@ -201,6 +201,7 @@ This cannot be undone.</value></data>
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
+  <data name="ElevatedWindowNoticeBalloon" xml:space="preserve"><value>The foreground window runs as administrator — gestures cannot be summoned inside it. Click this notification to restart StarPie as administrator.</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS Live Rendering</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup, administrator elevation, and config import/export backups.</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.</value></data>
