@@ -244,5 +244,6 @@ Services ---> Models
 | 0037 | `docs/adr/0037-dev-instance-flag-by-build-config.md` | dev 实例标记按构建配置定死（Debug=dev，Release=正式） | Active（互斥名与触发键被 0038 移除） |
 | 0038 | `docs/adr/0038-dev-instance-no-parallel.md` | dev 实例不与正式版并行（互斥收敛单一名、触发键回归右键） | Active |
 | 0039 | `docs/adr/0039-resident-shell-and-transient-settings-console.md` | 常驻壳层与瞬态设置台租户（托盘态只保留托盘与手势，设置台按需创建并随关闭释放） | Active |
+| 0040 | `docs/adr/0040-startup-privilege-policy.md` | 启动权限策略（坚持 asInvoker 与按需提权；强制管理员与偏好持久化记为条件备选） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

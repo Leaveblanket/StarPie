@@ -62,6 +62,14 @@ _Avoid_: 外壳、主窗口容器
 壳层的系统级服务子域（M5，程序集名沿用 Shell）：托盘与气泡、开机自启、内存整理、高级设置面。
 _Avoid_: 壳层（仅指窗口职责时）
 
+**提权 (Elevation)**:
+把 StarPie 自身以管理员完整性级别重新启动的动作；提权只改变进程自身的权限级别，不改变配置与动作的语义。
+_Avoid_: 管理员模式、Run as Admin（界面文案用语）
+
+**高权限窗口 (Elevated Window)**:
+完整性级别高于 StarPie 自身进程的窗口（如任务管理器、注册表编辑器）。手势只有在 StarPie 以不低于该窗口的完整性级别运行时才能在其中唤起。
+_Avoid_: 管理员窗口、受保护窗口
+
 **界面主题 (App Theme)**:
 设置控制台与对话框等窗口的 UI 配色体系：由同 key 令牌集（Light / Dark / MidnightNavy / RoyalViolet / TitaniumGray）加“跟随系统 (System)”模式构成。
 _Avoid_: 主题、皮肤、配色方案

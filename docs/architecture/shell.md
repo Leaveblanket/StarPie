@@ -89,6 +89,10 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    气泡提示且不退出），页面按钮只经 SDK 契约 `AppHostDelegates.ElevateAndRestart` 转发触发
    （贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；页面绑定规范见
    [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
+   提权入口的可见性两处同口径：高级页卡片绑 `ShowUacWarning => !IsAdministrator`，托盘菜单项
+   同样**只在非提权态出现**（提权态下该入口无意义）；两处共用共享内核 `ProcessElevation`
+   的同一探测，不各留一份实现。进程权限级别本身由 [ADR-0040](../adr/0040-startup-privilege-policy.md)
+   固定为 asInvoker + 按需提权（不写清单声明、无"始终以管理员启动"偏好）。
 
 ## 扩展点
 

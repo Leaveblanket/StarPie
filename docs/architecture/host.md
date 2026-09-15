@@ -54,6 +54,14 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      设置台关着时也受理（创建设置台并显示）；随后 `Shutdown(0)`。不按设置台窗口标题查找：
      设置台是瞬态窗口，关闭后该窗口不存在。消息窗口的窗口类名由 WPF 生成（`HwndWrapper[…]`），
      外部只能按标题定位。
+   - 跨完整性级别（提权实例在跑）：UIPI 默认拦截值大于 `WM_USER` 的窗口消息，而注册消息必大于之，
+     故提权实例在创建托盘窗口后经 `SingleInstanceRestore.AllowFromLowerIntegrity` 放行**本进程自有的
+     这一个注册消息**（`ChangeWindowMessageFilterEx`，按窗口生效、只在提权态执行）——否则非提权实例的
+     置前请求会被静默丢掉（"双击图标没反应"）。互斥体方向：更高完整性级别的对象带"不向上写"强制策略，
+     本次打开因写访问被拒抛 `UnauthorizedAccessException`，该失败**按"已有实例"处理**并走上面的恢复
+     消息路径（退回新实例会得到两个托盘图标与两条全局鼠标钩子）；其余失败才保守退回新实例。
+     该路径无法被不提权的 xUnit/e2e 环境复现，验收只能靠真实提权实例 + 非提权双击
+     （见 [ADR-0040](../adr/0040-startup-privilege-policy.md)）。
    - 测试实例退出消息（`TestInstanceExit`，`StarPie_TestInstance_Exit`）：测试实例在托盘消息窗口
      受理退出请求，走 `ExitApplication` 的真实退出编排（落盘 → 释放托盘 → 关闭应用）。e2e fixture
      以此收尾：硬杀（`TerminateProcess`）不执行用户态收尾，`NIM_DELETE` 不执行，shell 的通知区会
