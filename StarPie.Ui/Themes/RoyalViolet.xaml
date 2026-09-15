@@ -29,4 +29,5 @@
     <SolidColorBrush x:Key="AccentTextBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="PreviewCanvasBackgroundBrush" Color="#130B22" />
     <SolidColorBrush x:Key="PreviewCanvasBorderBrush" Color="#322156" />
+    <SolidColorBrush x:Key="PreviewGridLineBrush" Color="#1F1437" />
 </ResourceDictionary>
