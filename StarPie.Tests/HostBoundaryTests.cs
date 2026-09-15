@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using StarPie.Kernel.Configuration;
 using StarPie.Kernel.Localization;
 using StarPie.HostServices;
@@ -129,11 +128,11 @@ public sealed class HostBoundaryTests
     {
         foreach (Type type in KernelTypes)
         {
-            Assert.All(SignatureTypes(type), member => Assert.False(
-                TouchesWpf(member),
+            Assert.All(FourSetBoundaryProbe.SignatureTypes(type), member => Assert.False(
+                FourSetBoundaryProbe.TouchesWpf(member),
                 $"{type.FullName} 的成员签名泄漏 WPF 类型: {member}"));
 
-            Assert.All(SignatureTypes(type), member => Assert.DoesNotContain(
+            Assert.All(FourSetBoundaryProbe.SignatureTypes(type), member => Assert.DoesNotContain(
                 member.Assembly.GetName().Name!,
                 FourSetBoundaryProbe.LegacyAssemblyNames));
         }
@@ -215,29 +214,4 @@ public sealed class HostBoundaryTests
             File.ReadAllText(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "Properties", "DesignTimeResources.xaml")));
     }
 
-    /// <summary>导出类型声明面（字段/属性/事件/方法与构造的参数与返回值）出现的全部类型。</summary>
-    private static Type[] SignatureTypes(Type type)
-    {
-        const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic
-            | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly;
-
-        return type.GetFields(All).Select(field => field.FieldType)
-            .Concat(type.GetProperties(All).Select(property => property.PropertyType))
-            .Concat(type.GetEvents(All).Select(declaredEvent => declaredEvent.EventHandlerType!))
-            .Concat(type.GetMethods(All).SelectMany(method => method.GetParameters()
-                .Select(parameter => parameter.ParameterType)
-                .Prepend(method.ReturnType)))
-            .Concat(type.GetConstructors(All).SelectMany(ctor => ctor.GetParameters()
-                .Select(parameter => parameter.ParameterType)))
-            .ToArray();
-    }
-
-    /// <summary>递归判定类型（含数组/指针/泛型实参）是否来自 WPF 程序集。</summary>
-    private static bool TouchesWpf(Type type)
-    {
-        if (type.IsGenericParameter) return false;
-        if (type.HasElementType) return TouchesWpf(type.GetElementType()!);
-        if (FourSetBoundaryProbe.WpfAssemblyNames.Contains(type.Assembly.GetName().Name)) return true;
-        return type.IsGenericType && type.GetGenericArguments().Any(TouchesWpf);
-    }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using StarPie.Abstractions;
 using StarPie.Abstractions.Ui;
 using StarPie.Compatibility;
 using StarPie.Services.Icons;
@@ -94,6 +95,22 @@ public sealed class SdkWpfBoundaryTests
             Assert.Equal(0, failedMajor);
             Assert.Equal(0, failedMinor);
         }
+    }
+
+    [Fact]
+    public void 插件可达面_由两个上下文的成员签名闭包定义_不含主题服务()
+    {
+        Type[] reachable = FourSetBoundaryProbe.ReachableSignatureTypes(
+            typeof(IPluginUiContext), typeof(IPluginContext));
+
+        // 闭包确实在展开（插件页描述符经 IPluginUiContext.RegisterPage 可达、日志经 IPluginContext 可达），
+        // 断言不是空跑。今天这两个上下文的闭包与一层签名面重合——尚无经成员再走一跳的本仓边，
+        // 传递那一半是给后续成员准备的。
+        Assert.Contains(typeof(PluginPageDescriptor), reachable);
+        Assert.Contains(typeof(IPluginLog), reachable);
+
+        // 主题服务在导出面白名单里，但没有任何注入边——插件侧的深浅色走宿主注入的无状态探针。
+        Assert.DoesNotContain(typeof(IThemeService), reachable);
     }
 
     [Fact]

@@ -22,7 +22,7 @@
 | 契约缝·图标资产 | `IIconAssetService` 驻 `StarPie.Sdk.Wpf/Services/Icons/`（实现 `IconAssetService` 驻 `StarPie.Ui/Services/Icons/`）；条目与 .lnk SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录 `CustomIconStore` 驻 `StarPie.Host/Icons/` | ADR-0023；IconCatalogTests |
 | 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`（命名空间 `StarPie.Services.Icons` 不变）← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`（图标服务与程序扫描经契约边消费） | ADR-0023 |
 | 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`（命名空间 `StarPie.Services.Programs` 不变）← 实现 `ProgramScanner` 驻 `StarPie.Host/Programs/`（实例；候选为纯数据，图标由 UI 消费方装配） | ADR-0023 |
-| 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）← 实现 `ThemeService` 驻 `StarPie.Ui/Services/Shell/`（状态/解析在内核 `ThemeEngine`，换肤经端口 `IThemeApplier` 回抛 Ui）；消费方 Host/Dialogs 经契约边（M2 轮盘侧原经本契约的允许边已清零，改经无状态 `Func<bool>` 探针：ADR-0039 决策 3） | ADR-0023 |
+| 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）← 实现 `ThemeService` 驻 `StarPie.Ui/Services/Shell/`（状态/解析在内核 `ThemeEngine`，换肤经端口 `IThemeApplier` 回抛 Ui）；消费方 Host/Dialogs 经契约边（M2 轮盘侧原经本契约的允许边已清零，改经无状态 `Func<bool>` 探针：ADR-0039 决策 3） | ADR-0023；**不构成插件可达面**——插件拿不到本服务实例（无注入边），插件侧深浅色同样走探针（定义与守护见 [plugins.md](plugins.md) §5.1、[ADR-0047](../adr/0047-plugin-reachable-surface.md)） |
 | 契约缝·轮盘工厂 | `IWheelFactory`/`IWheelViewModel` 驻 `StarPie.Sdk`（ADR-0023 自 M2 runtime 迁出，P1.3/#112 随 SDK 收口）← 实现 `WheelFactory`/`WheelViewModel` 驻 M2；消费方 M1 经契约边（M1→M2 runtime 允许边清零） | D5 + ADR-0023 |
 | 契约缝·预览 Profile | `IProfilePreviewSource` 驻 `StarPie.Sdk`（ADR-0023 自 Core 迁出，P1.3/#112 随 SDK 收口，生产方语义 + 破 Wheel↔Gestures 环），别名 = M1 `ProfileListViewModel`，消费 M2 经契约边 | D5 + ADR-0023 |
 | 契约缝·轮盘外观只读状态 | `IWheelAppearanceState` 驻 `StarPie.Sdk`（签名暴露件，ADR-0023，P1.3/#112 随 SDK 收口），实现 = M2 `WheelAppearanceSettingsViewModel`，消费方 = M2 预览渲染器 + Host 外观页 | ADR-0014 决策 8 + ADR-0023 |
@@ -51,7 +51,6 @@
 | 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 SDK 槽位枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶 5，改动属放行共享面；navigation.md 登记 |
 | 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`；模块 VM 构造抓引用，导入后消息自挂 | 任何模块可读写任何配置区；模块间经"同一对象 + 广播"隐式协作 | 放行共享面（modules.md §2.3）；config.json 向后兼容 Hard Constraint |
 | Models 物理残留（R8） | `WheelProfile`/`ActionItem` 语义归 M1、物理 `StarPie.Sdk/Models/`；`CustomColorPreset` 语义归 M2、物理 `StarPie.Sdk/Models/`（AppConfig 引用） | 业务领域形状渗入 SDK 模型面 | R8 已登记；迁移触发条件 = 配置模型与模块语义解耦时再议 |
-| 插件面主题契约偏宽 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（插件可见面）同时暴露写入面 `SetTheme`、解析面 `ResolveEffectiveTheme` 与窗口效果面 `ApplyWindowTheme` | 插件侧的实际需要是深浅色探针（ADR-0039 决策 3 的既定形态）；多出的写入/效果面让插件可绕过宿主编排直接改主题状态 | 收窄插件面契约单开 issue（#184 有意留出：宿主侧消费方仍需这些成员）；改动前先读 ADR-0023 |
 
 ## 4. 残留缝（已裁决清理方向，未排期）
 
