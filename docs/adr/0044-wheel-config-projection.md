@@ -46,7 +46,7 @@
 ## Consequences
 
 - **`IWheelAppearanceState.CurrentConfig` 的同类漏口由本决策连带收口**：预览渲染器不再直读
-  `AppConfig`，改吃 [ADR-0043](0043-wheel-preview-runtime-shared-content-kernel.md) 共享内核
+  `AppConfig`，改吃 [ADR-0045](0045-wheel-preview-runtime-shared-content-kernel.md) 共享内核
   输出的纯数据或本决策交付的窄调色板输入类型。
 - **窄调色板输入类型的收窄是破坏性签名变更**（接口 + 基类 + 各风格渲染器子类 + 两处调用点，
   约 8 个文件），但不构成宽改：改动可单批落绿，无需 expand–contract 展开期。

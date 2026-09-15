@@ -119,12 +119,12 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 - **mousemove 同步封送**（known-issue，单独立项）：`WheelFactory` 的 `DispatchedWheelViewModel`
   对每次 `HighlightSector`/`SetOuterEscapeState` 使用**同步** `Dispatcher.Invoke`，即每次移动
   都阻塞钩子线程等 UI 线程往返；低级鼠标钩子有约 300ms 系统超时，链路清晰但不轻。改异步涉及
-  手势时序语义（高亮与取消的竞态），不随 [ADR-0043](../adr/0043-wheel-preview-runtime-shared-content-kernel.md)
+  手势时序语义（高亮与取消的竞态），不随 [ADR-0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)
   的内容同源收敛顺手改。
 
 ## 参见 ADR
 
 [0009](../adr/0009-view-code-behind-whitelist.md)（渲染器白名单）、[0014](../adr/0014-wheel-palette-module-boundary-and-appearance-split.md)（轮盘配色模块边界与解析收拢）、
 [0016](../adr/0016-assembly-split-target-and-roadmap.md)（程序集化目标态：M2 StarPie.Wheel、D5 决策 11）、
-[0043](../adr/0043-wheel-preview-runtime-shared-content-kernel.md)（预览/运行时扇区内容同源：内容构建下沉 Host）、
-[0044](../adr/0044-wheel-config-projection.md)（轮盘配置瞬态投影：收窄宽 AppConfig 耦合）。
+[0044](../adr/0044-wheel-config-projection.md)（轮盘配置瞬态投影：收窄宽 AppConfig 耦合）、
+[0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（预览/运行时扇区内容同源：内容构建下沉 Host）。
