@@ -189,6 +189,8 @@
   <data name="AdminRestartNow" xml:space="preserve"><value>立即以系統管理員身分重新啟動</value></data>
   <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>需先開啟「以系統管理員身分開機自啟」——立即提權複用的就是它建的那顆排程工作，不另開路徑。</value></data>
   <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>立即以系統管理員身分重新啟動（需先開啟「以系統管理員身分開機自啟」）</value></data>
+  <data name="AdminRestartFailedTitle" xml:space="preserve"><value>提權未生效</value></data>
+  <data name="AdminRestartFailed" xml:space="preserve"><value>本次以系統管理員身分重新啟動未生效：原執行個體未在時限內結束，StarPie 仍以一般權限執行。請稍後重試；若持續如此，可登出或重新啟動系統後再試。</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>配置備份與恢復 (Backup &amp; Reset)</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>匯出配置備份</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>匯入設定檔</value></data>

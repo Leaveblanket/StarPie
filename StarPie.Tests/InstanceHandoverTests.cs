@@ -4,9 +4,11 @@ using StarPie.Kernel.ShellIntegration;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 接管握手信道的可自动覆盖面（#170）：命名对象的**名字形状**与**就绪判据的语义**。
+/// 接管握手信道的可自动覆盖面（#170 / #172）：命名对象的**名字形状**与**就绪判据的语义**。
 /// 跨完整性级别的真实接管不提权的 xUnit 环境复现不了（沿用 ADR-0040 的验收口径，进人工验收清单），
-/// 故这里也**不触碰真实标记事件**——对全机命名对象置位会误伤同机正在运行的实例。
+/// 故这里也**不触碰真实握手事件**——对全机命名对象置位会误伤同机正在运行的实例
+/// （让位请求会让它退出，"提权未生效"会让它弹一个假气泡）。因此"成功路径绝不提示"这条
+/// 只能靠结构与人工验收守：置位只发生在 <c>ExitAndNotifyElevationFailed</c> 那一格。
 /// </summary>
 public sealed class InstanceHandoverTests
 {
@@ -31,6 +33,19 @@ public sealed class InstanceHandoverTests
         Assert.EndsWith("_Dev", dev);
         Assert.StartsWith("StarPie_InstanceOwner", dev.Substring(@"Global\".Length));
         Assert.NotEqual(release, dev);
+    }
+
+    [Fact]
+    public void BuildElevationFailedEventName_IsGlobalAndDevSuffixed()
+    {
+        // "提权未生效"与让位请求是两个对象（事件不带载荷，两个方向不同、后果也不同的信号）：
+        // 名字不重、同在全局命名空间、dev 后缀同口径。
+        string release = InstanceHandover.BuildElevationFailedEventName(devInstance: false);
+        string dev = InstanceHandover.BuildElevationFailedEventName(devInstance: true);
+
+        Assert.Equal(@"Global\StarPie_InstanceHandover_Failed", release);
+        Assert.Equal(@"Global\StarPie_InstanceHandover_Failed_Dev", dev);
+        Assert.NotEqual(release, InstanceHandover.BuildOwnerMarkerName(devInstance: false, elevated: false));
     }
 
     [Fact]
@@ -90,7 +105,9 @@ public sealed class InstanceHandoverTests
     {
         // 标记未发布（或本进程不是首实例）时 Start 静默降级成"让位不可达"，不抛也不阻塞；
         // Dispose 可重入——壳层收尾与 App.OnExit 都可能碰到它。
-        var listener = new InstanceHandoverListener(onYieldRequested: static () => { });
+        var listener = new InstanceHandoverListener(
+            onYieldRequested: static () => { },
+            onElevationNotApplied: static () => { });
 
         listener.Start();
         listener.Dispose();

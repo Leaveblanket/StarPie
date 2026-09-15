@@ -12,6 +12,8 @@ namespace StarPie
         private static Mutex? _singleInstanceMutex;
         // 首实例标记句柄：必须持有到进程结束（句柄一关，标记对象即销毁），与单实例互斥体同生共死。
         private static EventWaitHandle? _ownerMarker;
+        // "提权未生效"事件句柄：同上——对象归首实例所有，提权新实例只是打开同一个对象并置位。
+        private static EventWaitHandle? _elevationFailedEvent;
         private Composition? _composition;
         private ShellHost? _shellHost;
 
@@ -85,8 +87,9 @@ namespace StarPie
                             break;
 
                         case SingleInstanceGateDecision.ExitAndNotifyElevationFailed:
-                            // "本次提权未生效"的告知由 #172 接上（既有实例的气泡通道）；
-                            // 此刻先做到按时限退出、不留残进程。
+                            // 本实例即将退出，无处呈现——把"这次提权没成"经握手信道留给首实例，
+                            // 由它用既有气泡通道给用户一句明确的话（成功路径绝不置位这一信号）。
+                            _ = InstanceHandover.NotifyElevationNotApplied();
                             mutex?.Dispose();
                             Shutdown(0);
                             return;
@@ -113,9 +116,11 @@ namespace StarPie
                     }
                 }
 
-                // 首实例（含接管成功者）发布"我在此"的标记：后启动的实例由此读得既有实例的形态与
-                // 权限态。标记与单实例互斥体同生共死——两者一同在 App.OnExit 释放。
+                // 首实例（含接管成功者）发布"我在此"的标记与"提权未生效"事件：后启动的实例由此读得
+                // 既有实例的形态与权限态，接管没成时也有地方留话。两者与单实例互斥体同生共死——
+                // 一同在 App.OnExit 释放。
                 _ownerMarker = InstanceHandover.PublishOwnerMarker();
+                _elevationFailedEvent = InstanceHandover.PublishElevationFailedEvent();
             }
 
             base.OnStartup(e);
@@ -190,6 +195,8 @@ namespace StarPie
             // 的先后顺序对第二个实例无影响（它看标记决定要不要请求让位，看互斥体决定接管是否成立）。
             _ownerMarker?.Dispose();
             _ownerMarker = null;
+            _elevationFailedEvent?.Dispose();
+            _elevationFailedEvent = null;
 
             base.OnExit(e);
         }

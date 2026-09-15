@@ -235,7 +235,8 @@ namespace StarPie
 
         /// <summary>
         /// 装上让位接收端：等提权新实例"以管理员身份重启/右键运行"时的让位请求，收到即走既有退出编排
-        /// （落盘 → 释托盘 → 关闭，互斥体由 App.OnExit 释放）——新实例这才接得上手。
+        /// （落盘 → 释托盘 → 关闭，互斥体由 App.OnExit 释放）——新实例这才接得上手；
+        /// 接管没成时新实例会留下"提权未生效"，由本实例报气泡（它即将退出，无处呈现）。
         /// </summary>
         /// <remarks>
         /// 只装在**非提权**首实例上：判定严格单向，提权实例永不让位（<see cref="SingleInstanceGate"/>），
@@ -251,9 +252,19 @@ namespace StarPie
             }
 
             _handoverListener = new InstanceHandoverListener(
-                onYieldRequested: () => _ = Application.Current?.Dispatcher.BeginInvoke(ExitApplication));
+                onYieldRequested: () => _ = Application.Current?.Dispatcher.BeginInvoke(ExitApplication),
+                onElevationNotApplied: () => _ = Application.Current?.Dispatcher.BeginInvoke(NotifyElevationNotApplied));
             _handoverListener.Start();
         }
+
+        /// <summary>
+        /// 告诉用户"这次提权没生效"：由既有实例报，因为提权新实例即将退出、无处呈现。走既有气泡通道，
+        /// 文案说清原因（原实例未在时限内退出）与用户能做什么（稍后重试/注销重启）。
+        /// </summary>
+        private void NotifyElevationNotApplied()
+            => ShowTrayBalloonTip(
+                _localization.GetString("AdminRestartFailedTitle"),
+                _localization.GetString("AdminRestartFailed"));
 
         /// <summary>启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时
         /// 生效口径，被运行时钳制时以此记录为准；预算值 256 MiB 见 runtimeconfig.template.json）。
@@ -446,12 +457,20 @@ namespace StarPie
         /// 立即以管理员身份重启：触发提权自启那颗计划任务（非提权进程触发它即可静默得到一个
         /// High 完整性级别的实例，全程不弹 UAC）。**不给应用内入口开专用通道**——接管由新实例
         /// 按 <see cref="SingleInstanceGate"/> 的既有判定完成，本动作只是把触发时机从"登录时"
-        /// 扩到"用户要求时"。触发成败不由退出码判定（它只表示"任务被受理"）；本次尝试未生效的
-        /// 告知由 #172 接上。
+        /// 扩到"用户要求时"。
         /// </summary>
+        /// <remarks>
+        /// 触发成败**不是就绪判据**（返回成功只表示"任务被受理"，动身为空的任务同样返回成功）；
+        /// 但"连受理都失败"时新实例根本不会出现，没人会经握手信道回报——本实例是唯一的知情方，
+        /// 就地告知。成功受理时一律不提示：接管成不成的结论只由新实例给出（见
+        /// <see cref="NotifyElevationNotApplied"/>），成功路径绝不误报。
+        /// </remarks>
         private void RestartElevated()
         {
-            _ = AutostartRegistry.RunAdminTask();
+            if (!AutostartRegistry.RunAdminTask())
+            {
+                NotifyElevationNotApplied();
+            }
         }
 
         /// <summary>

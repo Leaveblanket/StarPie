@@ -189,6 +189,8 @@
   <data name="AdminRestartNow" xml:space="preserve"><value>Restart as administrator now</value></data>
   <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>Turn on “Run as administrator at startup” first — restarting elevated reuses the scheduled task it creates, with no separate path.</value></data>
   <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>Restart as administrator now (turn on “Run as administrator at startup” first)</value></data>
+  <data name="AdminRestartFailedTitle" xml:space="preserve"><value>Elevation did not take effect</value></data>
+  <data name="AdminRestartFailed" xml:space="preserve"><value>Restarting as administrator did not take effect: the running instance did not exit in time, so StarPie is still running with normal privileges. Try again in a moment; if it keeps happening, sign out or restart Windows.</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>Backup &amp; Reset</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>Export Backup</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>Import Config</value></data>
