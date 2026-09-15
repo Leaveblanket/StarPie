@@ -38,7 +38,9 @@ WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer`（UI 线程 `DispatcherTi
 允许注释与尾随逗号，未知顶层键在下一次落盘时被丢弃——故非宿主所有的内容不得放在 `config.json` 顶层。
 
 已知的模型属性示例：`ElevatedWindowNoticeShown`（高权限窗口一次性告知的已提示过标记，
-缺键按未提示处理，见 [shell.md](shell.md)）；动作项上的 `ActionItem.RunAsAdmin`（缺键按 false，
+缺键按未提示处理，见 [shell.md](shell.md)）；`AutoStartAsAdmin`（提权自启的用户意图记录，
+缺键按未开启处理，界面状态另以任务计划程序实况为准，见 [shell.md](shell.md) 关键流程 3 与
+[ADR-0041](../adr/0041-admin-autostart-opt-in.md)）；动作项上的 `ActionItem.RunAsAdmin`（缺键按 false，
 见 [gestures.md](gestures.md) 关键流程 4）。
 
 ## 插件配置段

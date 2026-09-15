@@ -26,7 +26,8 @@ namespace StarPie.ViewModels.Pages
         private readonly IDialogService _dialogs;
         private readonly Action _elevateAndRestart;
         private readonly Func<bool> _isAutoStartEnabled;
-        private readonly Action<bool> _setAutoStart;
+        private readonly Func<bool, bool, bool> _applyAutoStart;
+        private readonly Func<bool> _isAdminAutoStartEnabled;
         private readonly Func<string, bool> _exportConfig;
         private readonly Func<string, bool> _importConfig;
         private readonly Func<AppConfig> _currentConfig;
@@ -37,6 +38,13 @@ namespace StarPie.ViewModels.Pages
         /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
         [ObservableProperty]
         private bool _autoStartEnabled;
+
+        /// <summary>
+        /// 以管理员身份开机自启（任务计划程序 `/rl highest`，ADR-0041）。状态读自计划任务的实况，
+        /// 不读配置——用户在任务计划程序里手工删掉任务时，开关必须如实反映"没在跑"。
+        /// </summary>
+        [ObservableProperty]
+        private bool _adminAutoStartEnabled;
 
         /// <summary>当前界面语言码（"Auto"/"zh-CN"/"zh-TW"/"en"/"ja"），窗口据此初始化语言下拉。</summary>
         [ObservableProperty]
@@ -49,25 +57,30 @@ namespace StarPie.ViewModels.Pages
 
         partial void OnIsAdministratorChanged(bool value) => OnPropertyChanged(nameof(ShowUacWarning));
 
+        /// <summary>落位组合开关时的重入守卫（见 <see cref="SyncProperty"/>）。</summary>
+        private bool _applyingAutoStart;
+
         /// <summary>构造通用分区 VM：注入运行态配置、对话框与系统能力委托，订阅配置导入广播。</summary>
         public GeneralSettingsViewModel(
             AppConfig config,
             IDialogService dialogs,
             Action elevateAndRestart,
             Func<bool> isAutoStartEnabled,
-            Action<bool> setAutoStart,
+            Func<bool, bool, bool> applyAutoStart,
             Func<string, bool> exportConfig,
             Func<string, bool> importConfig,
             Func<AppConfig> currentConfig,
             IMessenger messenger,
             ILocalizationService localization,
-            Func<bool>? isAdministrator = null)
+            Func<bool>? isAdministrator = null,
+            Func<bool>? isAdminAutoStartEnabled = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _elevateAndRestart = elevateAndRestart ?? throw new ArgumentNullException(nameof(elevateAndRestart));
             _isAutoStartEnabled = isAutoStartEnabled ?? throw new ArgumentNullException(nameof(isAutoStartEnabled));
-            _setAutoStart = setAutoStart ?? throw new ArgumentNullException(nameof(setAutoStart));
+            _applyAutoStart = applyAutoStart ?? throw new ArgumentNullException(nameof(applyAutoStart));
+            _isAdminAutoStartEnabled = isAdminAutoStartEnabled ?? (static () => false);
             _exportConfig = exportConfig ?? throw new ArgumentNullException(nameof(exportConfig));
             _importConfig = importConfig ?? throw new ArgumentNullException(nameof(importConfig));
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
@@ -84,16 +97,81 @@ namespace StarPie.ViewModels.Pages
 
             _autoStartEnabled = _isAutoStartEnabled();
             OnPropertyChanged(nameof(AutoStartEnabled));
+            // 直接写后备字段：初始化不触发落位（否则每次开页都会跑一遍注册表/任务计划程序）。
+            _adminAutoStartEnabled = _isAdminAutoStartEnabled();
+            OnPropertyChanged(nameof(AdminAutoStartEnabled));
             LanguageCode = _config.Language ?? "Auto";
             IsAdministrator = _isAdministratorProbe();
         }
 
         partial void OnAutoStartEnabledChanged(bool value)
         {
-            if (_config == null) return;
-            _setAutoStart(value);
+            if (_config == null || _applyingAutoStart) return;
+
+            // 自启关掉即提权形态一并关掉（提权自启以自启为前提）。
+            if (!value && AdminAutoStartEnabled)
+            {
+                SyncProperty(() => AdminAutoStartEnabled = false);
+            }
+
+            ApplyAutoStartShape();
+        }
+
+        partial void OnAdminAutoStartEnabledChanged(bool value)
+        {
+            if (_config == null || _applyingAutoStart) return;
+            ApplyAutoStartShape();
+        }
+
+        /// <summary>
+        /// 把两个开关的组合落位成系统状态并如实回读（ADR-0041）：注册表 Run 与提权计划任务同源落位，
+        /// 失败（用户取消 UAC、标准用户账号无管理员凭据）不静默——以提示告知，并把开关拨回实况。
+        /// </summary>
+        private void ApplyAutoStartShape()
+        {
+            // 提权自启蕴含自启：直接勾提权形态时把自启一并打开（用户不必先手工开自启）。
+            if (AdminAutoStartEnabled && !AutoStartEnabled)
+            {
+                SyncProperty(() => AutoStartEnabled = true);
+            }
+
+            bool asAdminRequested = AutoStartEnabled && AdminAutoStartEnabled;
+            bool applied = _applyAutoStart(AutoStartEnabled, asAdminRequested);
+            if (!applied)
+            {
+                ShowNotice(
+                    _localization.GetString("AdminAutoStartFailedTitle"),
+                    _localization.GetString("AdminAutoStartFailed"),
+                    NoticeKind.Warning);
+            }
+
+            // 一律以任务计划程序的实况回读：开关不得停在"系统里其实没有"的位置。
+            bool actual = _isAdminAutoStartEnabled();
+            if (actual != AdminAutoStartEnabled)
+            {
+                SyncProperty(() => AdminAutoStartEnabled = actual);
+            }
+
+            _config.AutoStartAsAdmin = AdminAutoStartEnabled;
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
+
+        /// <summary>程序化同步开关时挂上重入守卫：一个开关的变更不应再触发一轮落位。</summary>
+        private void SyncProperty(Action setter)
+        {
+            _applyingAutoStart = true;
+            try
+            {
+                setter();
+            }
+            finally
+            {
+                _applyingAutoStart = false;
+            }
+        }
+
+        private void ShowNotice(string title, string message, NoticeKind kind)
+            => _messenger.Send(new GeneralNoticeRequestedMessage(new NoticeRequest(title, message, kind)));
 
         partial void OnLanguageCodeChanged(string value)
         {
@@ -102,7 +180,8 @@ namespace StarPie.ViewModels.Pages
         }
 
         /// <summary>以运行态配置重挂状态（导入配置后调用——配置实例已被替换）。
-        /// 自启勾选不随导入刷新：导入重置亦不触碰注册表开关。</summary>
+        /// 自启勾选与提权形态不随导入刷新：导入只替换配置，不触碰注册表与计划任务（
+        /// <see cref="AppConfig.AutoStartAsAdmin"/> 随导入带来的差异会在用户下次拨开关时被实况覆盖）。</summary>
         public void Reload(AppConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -125,12 +204,8 @@ namespace StarPie.ViewModels.Pages
         [RelayCommand]
         private void Elevate() => ElevateAndRestart();
 
-        /// <summary>开机自启切换：注册表读写经注入委托，并请求落盘。</summary>
-        public void SetAutoStart(bool enable)
-        {
-            _setAutoStart(enable);
-            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
-        }
+        /// <summary>开机自启切换：等价于写入 <see cref="AutoStartEnabled"/>（落位与落盘由属性变更回调统一处理）。</summary>
+        public void SetAutoStart(bool enable) => AutoStartEnabled = enable;
 
         /// <summary>
         /// 以管理员身份重启：壳层动作（托盘点选与页面按钮是同一实现），本 VM 只转发触发；

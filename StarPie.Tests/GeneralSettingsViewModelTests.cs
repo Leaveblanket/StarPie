@@ -15,31 +15,42 @@ public sealed class GeneralSettingsViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    /// <summary>常用装配：记录型托盘/退出/自启/提权委托（export/import 默认成功）。</summary>
+    /// <summary>常用装配：记录型托盘/退出/自启/提权委托（export/import 默认成功）。
+    /// 自启假体带"任务存在"状态：落位成功才改变它，供 VM 的实况回读断言。</summary>
     private static GeneralSettingsViewModel Create(
         AppConfig config,
         TestDialogService? dialogs = null,
         List<string>? elevateCalls = null,
-        List<bool>? autoStartCalls = null,
+        List<(bool Enable, bool AsAdmin)>? applyCalls = null,
         bool autoStartEnabled = false,
         Func<string, bool>? exportConfig = null,
         Func<string, bool>? importConfig = null,
         List<NoticeRequest>? notices = null,
-        SaveSpy? save = null)
+        SaveSpy? save = null,
+        bool adminAutoStartEnabled = false,
+        bool applyAdminSucceeds = true)
     {
         var messenger = TestHub.NewMessenger();
         if (save != null) SaveSpy.Attach(messenger, save);
+        bool adminTaskPresent = adminAutoStartEnabled;
         var vm = new GeneralSettingsViewModel(
             config,
             dialogs ?? new TestDialogService(),
             () => elevateCalls?.Add("elevate"),
             () => autoStartEnabled,
-            enable => autoStartCalls?.Add(enable),
+            (enable, asAdmin) =>
+            {
+                applyCalls?.Add((enable, asAdmin));
+                if (asAdmin && !applyAdminSucceeds) return false;
+                adminTaskPresent = enable && asAdmin;
+                return true;
+            },
             exportConfig ?? (_ => true),
             importConfig ?? (_ => true),
             currentConfig: () => config,
             messenger: messenger,
-            localization: Localization);
+            localization: Localization,
+            isAdminAutoStartEnabled: () => adminTaskPresent);
         if (notices != null)
         {
             messenger.Register<GeneralNoticeRequestedMessage>(vm, (_, m) => notices.Add(m.Notice));
@@ -156,15 +167,73 @@ public sealed class GeneralSettingsViewModelTests
     public void SetAutoStart_CallsRegistryDelegateAndRequestsSave()
     {
         var config = MakeConfig();
-        var calls = new List<bool>();
+        var calls = new List<(bool, bool)>();
         var save = new SaveSpy();
-        var vm = Create(config, autoStartCalls: calls, save: save);
+        var vm = Create(config, applyCalls: calls, save: save);
 
         vm.SetAutoStart(true);
 
-        // 注册表读写经注入委托（组合根接线 AutostartRegistry）
-        Assert.Equal(new[] { true }, calls);
+        // 自启形态落位经注入委托（组合根接线 AutostartRegistry）；未勾提权形态即 (开, 不提权)
+        Assert.Equal(new[] { (Enable: true, AsAdmin: false) }, calls);
         Assert.Equal(1, save.Immediate);
+    }
+
+    [Fact]
+    public void Constructor_ReadsAdminAutoStartFromTaskScheduler()
+    {
+        // 提权形态状态读自计划任务实况，不读配置
+        var vm = Create(MakeConfig(), autoStartEnabled: true, adminAutoStartEnabled: true);
+
+        Assert.True(vm.AdminAutoStartEnabled);
+    }
+
+    [Fact]
+    public void AdminAutoStart_TurningOnAlsoTurnsOnAutoStartAndPersists()
+    {
+        var config = MakeConfig();
+        var calls = new List<(bool Enable, bool AsAdmin)>();
+        var save = new SaveSpy();
+        var vm = Create(config, applyCalls: calls, save: save);
+
+        vm.AdminAutoStartEnabled = true;
+
+        // 提权自启蕴含自启：一次落位就是 (开, 提权)
+        Assert.True(vm.AutoStartEnabled);
+        Assert.Equal(new[] { (Enable: true, AsAdmin: true) }, calls);
+        Assert.True(config.AutoStartAsAdmin);
+        Assert.Equal(1, save.Immediate);
+    }
+
+    [Fact]
+    public void AdminAutoStart_ApplyFailure_NotifiesAndSnapsBackToReality()
+    {
+        // 用户取消 UAC 或账号无管理员凭据：不静默——提示 + 开关拨回实况（系统里并没有那个任务）
+        var config = MakeConfig();
+        var notices = new List<NoticeRequest>();
+        var vm = Create(config, notices: notices, applyAdminSucceeds: false);
+
+        vm.AdminAutoStartEnabled = true;
+
+        Assert.False(vm.AdminAutoStartEnabled);
+        Assert.False(config.AutoStartAsAdmin);
+        var notice = Assert.Single(notices);
+        Assert.Equal(NoticeKind.Warning, notice.Kind);
+        Assert.Contains("UAC", notice.Message);
+    }
+
+    [Fact]
+    public void AutoStart_TurningOffAlsoRevokesAdminShape()
+    {
+        var config = MakeConfig();
+        var calls = new List<(bool Enable, bool AsAdmin)>();
+        var vm = Create(config, applyCalls: calls, autoStartEnabled: true, adminAutoStartEnabled: true);
+
+        vm.AutoStartEnabled = false;
+
+        // 关掉自启即提权形态一并撤销（提权自启以自启为前提）
+        Assert.False(vm.AdminAutoStartEnabled);
+        Assert.False(config.AutoStartAsAdmin);
+        Assert.Equal((Enable: false, AsAdmin: false), calls[^1]);
     }
 
     // --- 提权重启（壳层动作）---------------------------------------------------------

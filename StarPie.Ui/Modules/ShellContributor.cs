@@ -51,7 +51,10 @@ namespace StarPie.Modules
                 // 提权是壳层动作，经共享内核委托包转发：壳层回填实现，VM 不反向依赖宿主类。
                 () => sp.GetRequiredService<AppHostDelegates>().ElevateAndRestart?.Invoke(),
                 isAutoStartEnabled: AutostartRegistry.IsAutoStartEnabled,
-                setAutoStart: AutostartRegistry.SetAutoStart,
+                // 自启形态整体落位（注册表 Run 与提权计划任务同源），成败由系统实况回读；
+                // 提权形态需要管理员权限，失败（UAC 取消/无管理员凭据）由 VM 提示并拨回实况。
+                applyAutoStart: AutostartRegistry.ApplyAutoStart,
+                isAdminAutoStartEnabled: AutostartRegistry.IsAdminAutoStartEnabled,
                 exportConfig: path => sp.GetRequiredService<JsonConfigService>().Export(path),
                 importConfig: path =>
                 {

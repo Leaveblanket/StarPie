@@ -152,6 +152,10 @@ def test_switch_all_tabs_smoothly(app):
     goto(win, 3)
     assert win.child_window(auto_id="AutoStartCheckBox", control_type="CheckBox").exists(timeout=3), \
         "AutoStartCheckBox should exist in System tab"
+    # 提权自启开关只断言存在：切换它会真的建/删 Windows 计划任务并弹 UAC，e2e 不得触碰
+    #（建任务在非提权态是"拒绝访问"，sandbox 里也会挂住等一个永远不会来的确认）。
+    assert win.child_window(auto_id="AdminAutoStartCheckBox", control_type="CheckBox").exists(timeout=3), \
+        "AdminAutoStartCheckBox should exist in System tab"
 
 
 def test_appearance_shapes_and_geometry_reset(app):

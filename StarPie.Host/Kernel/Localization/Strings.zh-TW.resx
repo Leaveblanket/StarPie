@@ -182,6 +182,10 @@
   <data name="LangAuto" xml:space="preserve"><value>🖥️ 跟隨系統 (System Default)</value></data>
   <data name="StartupTitle" xml:space="preserve"><value>開機自啟動</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>在 Windows 開機登入時靜默自啟動並在後台托盤駐留。</value></data>
+  <data name="AdminAutoStartTitle" xml:space="preserve"><value>以系統管理員身分開機自啟</value></data>
+  <data name="AdminAutoStartDesc" xml:space="preserve"><value>經 Windows 工作排程器以最高權限靜默啟動，登入時不再彈出 UAC，可在工作管理員等高權限視窗中正常喚起手勢。代價是 StarPie 與處理序內外掛都以系統管理員身分常駐。</value></data>
+  <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>提示</value></data>
+  <data name="AdminAutoStartFailed" xml:space="preserve"><value>提權自啟未生效：可能取消了 UAC，或目前帳號沒有系統管理員認證。已保持一般權限自啟。</value></data>
   <data name="ElevateTitle" xml:space="preserve"><value>系統管理員權限提升 (Run as Admin)</value></data>
   <data name="ElevateDesc" xml:space="preserve"><value>以系統管理員身分重啟，可在工作管理員、系統設定等高權限視窗中正常呼出手勢。</value></data>
   <data name="BtnElevate" xml:space="preserve"><value>🛡️ 以系統管理員身分重啟</value></data>

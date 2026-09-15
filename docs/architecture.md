@@ -170,7 +170,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0039，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0041，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
@@ -244,6 +244,7 @@ Services ---> Models
 | 0037 | `docs/adr/0037-dev-instance-flag-by-build-config.md` | dev 实例标记按构建配置定死（Debug=dev，Release=正式） | Active（互斥名与触发键被 0038 移除） |
 | 0038 | `docs/adr/0038-dev-instance-no-parallel.md` | dev 实例不与正式版并行（互斥收敛单一名、触发键回归右键） | Active |
 | 0039 | `docs/adr/0039-resident-shell-and-transient-settings-console.md` | 常驻壳层与瞬态设置台租户（托盘态只保留托盘与手势，设置台按需创建并随关闭释放） | Active |
-| 0040 | `docs/adr/0040-startup-privilege-policy.md` | 启动权限策略（坚持 asInvoker 与按需提权；强制管理员与偏好持久化记为条件备选） | Active |
+| 0040 | `docs/adr/0040-startup-privilege-policy.md` | 启动权限策略（坚持 asInvoker 与按需提权；强制管理员与偏好持久化记为条件备选） | Active（决策 2 被 0041 取代） |
+| 0041 | `docs/adr/0041-admin-autostart-opt-in.md` | 以管理员身份开机自启（任务计划程序 `/rl highest` 路径，取代 0040 决策 2） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

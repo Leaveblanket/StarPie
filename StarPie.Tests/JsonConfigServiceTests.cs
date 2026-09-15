@@ -148,6 +148,41 @@ public sealed class JsonConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Save_PersistsAdminAutoStartFlag_ForNextLoad()
+    {
+        var writer = new JsonConfigService(_configPath, Localization);
+        writer.Load();
+        writer.Current.AutoStartAsAdmin = true;
+
+        writer.Save();
+
+        var reader = new JsonConfigService(_configPath, Localization);
+        reader.Load();
+        Assert.True(reader.Current.AutoStartAsAdmin);
+    }
+
+    [Fact]
+    public void Load_LegacyConfigWithoutAdminAutoStartFlag_TreatsAsOffAndKeepsOtherKeys()
+    {
+        // 旧配置没有提权自启键：按未开启处理，既有键照常读出（ADR-0041 的向后兼容硬约束）。
+        File.WriteAllText(_configPath, """
+            {
+              "Language": "en",
+              "DragThreshold": 42.0,
+              "Profiles": [ { "ProcessName": "Global", "SectorCount": 8, "Actions": [] } ]
+            }
+            """);
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.False(service.Current.AutoStartAsAdmin);
+        Assert.Equal("en", service.Current.Language);
+        Assert.Equal(42.0, service.Current.DragThreshold);
+        Assert.Equal(8, Assert.Single(service.Current.Profiles).SectorCount);
+    }
+
+    [Fact]
     public void Load_ToleratesCommentsTrailingCommasAndCasing()
     {
         File.WriteAllText(_configPath, """

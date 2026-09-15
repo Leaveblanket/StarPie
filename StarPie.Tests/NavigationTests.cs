@@ -167,7 +167,7 @@ public sealed class MainViewModelTests
                 Dialogs,
                 () => { },
                 () => false,
-                _ => { },
+                (_, _) => true,
                 _ => true,
                 _ => true,
                 currentConfig: () => Config,
