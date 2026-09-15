@@ -189,6 +189,8 @@
   <data name="AdminRestartNow" xml:space="preserve"><value>今すぐ管理者として再起動</value></data>
   <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>先に「管理者として自動起動」を有効にしてください — 即時昇格はそこで作成されるタスクを再利用するため、別の経路はありません。</value></data>
   <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>今すぐ管理者として再起動（先に「管理者として自動起動」を有効にしてください）</value></data>
+  <data name="AdminRestartFailedTitle" xml:space="preserve"><value>昇格できませんでした</value></data>
+  <data name="AdminRestartFailed" xml:space="preserve"><value>管理者としての再起動は反映されませんでした：実行中のインスタンスが制限時間内に終了しなかったため、StarPie は通常権限のまま動作しています。しばらくしてから再試行してください。繰り返す場合はサインアウトまたは Windows の再起動をお試しください。</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>バックアップとリセット</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>設定をエクスポート</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>設定をインポート</value></data>
