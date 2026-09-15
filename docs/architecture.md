@@ -56,7 +56,8 @@
 - SDK 集（P1.3/#112 headless 收口）：`StarPie.Sdk/`（net10.0、零 WPF、零第三方包）承载跨集共享的
   纯托管契约与模型——`Models/`（AppConfig/WheelProfile/ActionItem/CustomColorPreset 与
   RgbColor/ColorMath/GesturePoint）、`Services/`（AppHostDelegates、Messages 消息与通知载体、
-  Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口、Icons 图标条目与
+  Navigation 目录/槽位契约、Dialogs 契约与结果 record、轮盘工厂接口、界面主题名目录
+  （`AppThemeNames`）、Icons 图标条目与
   .lnk 解析 SPI、Programs 扫描契约与纯规则）、`ViewModels/`
   （Pages 预览源接口、Wheel 轮盘只读接口）、`Abstractions/`（`IPlugin` 入口与 `IPluginContext`
   宿主服务面、`IPluginLog` 日志面）、`Events/`（`IPluginEvents` 宿主中介事件面，订阅返回
