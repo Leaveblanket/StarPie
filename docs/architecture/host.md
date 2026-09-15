@@ -177,7 +177,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
      `ILocalizationService.LanguageChanged`（重建语言字典、刷新托盘 tooltip）并
-    首次应用语言字典（投影见 [localization.md](localization.md)）→ 注册托盘驻留气泡订阅 →
+    首次应用语言字典（投影见 [localization.md](localization.md)）→
      `EnsureSettingsConsole()`：经工厂建设置台租户与会话作用域（页面 VM 的宿主，必须先于初始导航）→
      初始导航 `INavigationExecutor.Navigate(NavigationSlot.Trigger)`（触发与场景，目录槽位）→
      创建 `TrayIconManager` 并挂常驻窗口消息钩子（单实例恢复 + 测试实例退出，见 [shell.md](shell.md)）→
@@ -203,7 +203,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
-   进托盘的驻留气泡由壳层直接呈现（`MinimizedToTrayMessage` 订阅方在壳层），不寄居设置页 VM。
+   进托盘不再弹驻留气泡（该提示已移除）；`MinimizedToTrayMessage` 仍照发，作为出账信号由订阅方消费，不由壳层呈现任何用户可见提示。
 
 ## 宿主委托包
 

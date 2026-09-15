@@ -102,7 +102,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
    `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出与两个自启开关在贡献者接线（本模块静态行为）；**托盘气泡归壳层**
-   ——气泡由壳层在进托盘时报出（贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
+   ——仅剩提权未生效等失败告知（进托盘的驻留气泡已移除；贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
    页面绑定规范见 [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
    进程权限级别由 [ADR-0040](../adr/0040-startup-privilege-policy.md) 与
    [ADR-0042](../adr/0042-privilege-routes-two-only.md) 固定为**两条互斥路线**：普通权限启动
