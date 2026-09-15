@@ -1,6 +1,7 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using StarPie.PluginHosting.Extensions;
 
 namespace StarPie.ViewModels.Navigation
 {
@@ -17,10 +18,13 @@ namespace StarPie.ViewModels.Navigation
         /// <summary>UIA 自动化标识（NavPage{槽位}，e2e 依赖）。</summary>
         public string AutomationId { get; }
 
-        /// <summary>标题的本地化键（语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>
+        /// <summary>标题的宿主文案键（显示名为空时据它取词；语言切换经主框架 VM 重设 <see cref="Title"/>）。</summary>
         public string TitleKey { get; }
 
-        /// <summary>导航项标题（已本地化）。</summary>
+        /// <summary>标题显示名（字面量、语言无关）；空则改用 <see cref="TitleKey"/>。</summary>
+        public string? DisplayName { get; }
+
+        /// <summary>导航项标题（显示名字面量，或按文案键取词的结果）。</summary>
         [ObservableProperty]
         private string _title;
 
@@ -39,6 +43,7 @@ namespace StarPie.ViewModels.Navigation
         public NavigationItemViewModel(
             string automationId,
             string titleKey,
+            string? displayName,
             string iconData,
             Type targetViewModelType,
             Action navigate,
@@ -46,7 +51,8 @@ namespace StarPie.ViewModels.Navigation
         {
             AutomationId = automationId ?? throw new ArgumentNullException(nameof(automationId));
             TitleKey = titleKey ?? throw new ArgumentNullException(nameof(titleKey));
-            _title = localization.GetString(titleKey);
+            _title = PluginSurfaceTitle.Resolve(displayName, titleKey, localization);
+            DisplayName = displayName;
             IconData = iconData ?? throw new ArgumentNullException(nameof(iconData));
             TargetViewModelType = targetViewModelType ?? throw new ArgumentNullException(nameof(targetViewModelType));
 

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using StarPie.PluginHosting.Extensions;
 
 namespace StarPie.ViewModels.Navigation
 {
@@ -94,6 +95,7 @@ namespace StarPie.ViewModels.Navigation
                 NavigationItems.Add(new NavigationItemViewModel(
                     entry.AutomationId,
                     entry.TitleKey,
+                    entry.DisplayName,
                     entry.IconData,
                     entry.ViewModelType,
                     () => navigation.Navigate(entry.Identifier),
@@ -143,12 +145,12 @@ namespace StarPie.ViewModels.Navigation
             }
         }
 
-        /// <summary>语言切换后按导航项的标题键重取本地化文本。</summary>
+        /// <summary>语言切换后按导航项的标题来源重取文案（显示名不受语言影响，重取后取值不变）。</summary>
         private void RefreshTitles()
         {
             foreach (NavigationItemViewModel item in NavigationItems)
             {
-                item.Title = _localization.GetString(item.TitleKey);
+                item.Title = PluginSurfaceTitle.Resolve(item.DisplayName, item.TitleKey, _localization);
             }
         }
 

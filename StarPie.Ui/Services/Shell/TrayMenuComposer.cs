@@ -42,7 +42,10 @@ namespace StarPie.Services.Shell
             {
                 string commandId = pluginItem.Descriptor.CommandId;
                 entries.Add(TrayMenuEntry.Item(
-                    localization.GetString(pluginItem.Descriptor.TitleKey),
+                    PluginSurfaceTitle.Resolve(
+                        pluginItem.Descriptor.DisplayName,
+                        pluginItem.Descriptor.TitleKey,
+                        localization),
                     () => coordinator.ExecuteCommand(commandId)));
             }
 

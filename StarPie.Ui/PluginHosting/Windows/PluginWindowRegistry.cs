@@ -38,6 +38,11 @@ namespace StarPie.PluginHosting.Windows
             {
                 throw new ArgumentException("窗口工厂不能为空", nameof(descriptor));
             }
+            if (string.IsNullOrWhiteSpace(descriptor.TitleKey) &&
+                string.IsNullOrWhiteSpace(descriptor.DisplayName))
+            {
+                throw new ArgumentException("窗口标题键与显示名不能同时为空", nameof(descriptor));
+            }
             if (_descriptors.ContainsKey(descriptor.WindowKey))
             {
                 throw new ArgumentException($"窗口键重复注册：{descriptor.WindowKey}", nameof(descriptor));

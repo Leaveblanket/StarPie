@@ -92,6 +92,26 @@ public sealed class PluginTrayMenuTests
     }
 
     [Fact]
+    public void 插件菜单项显示名_优先于宿主文案键()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+            host.RegisterCommand(new PluginCommandDescriptor("open", "NoSuchCommandTitle", () => { }));
+            host.RegisterMenuItem(new PluginMenuItemDescriptor("open", "NoSuchPluginMenuTitle", "open")
+            {
+                DisplayName = "打开示例",
+            });
+
+            IReadOnlyList<TrayMenuEntry> entries = TrayMenuComposer.Compose(
+                Array.Empty<TrayMenuEntry>(), coordinator, new LocalizationService());
+
+            Assert.Equal("打开示例", entries[1].Label);
+        });
+    }
+
+    [Fact]
     public void 插件卸载后_菜单项与分隔线一并消失()
     {
         StaTestHarness.Run(() =>

@@ -167,7 +167,8 @@ namespace StarPie.Modules
                 Application.Current,
                 Application.Current.Dispatcher,
                 sp.GetService<IPluginEvents>(),
-                sp.GetRequiredService<NavigationCatalog>()));
+                sp.GetRequiredService<NavigationCatalog>(),
+                sp.GetRequiredService<ILocalizationService>()));
             services.AddSingleton<IPluginUiCoordinator>(sp =>
                 sp.GetRequiredService<PluginUiCoordinator>());
 

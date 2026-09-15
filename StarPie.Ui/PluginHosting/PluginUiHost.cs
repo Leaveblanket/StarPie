@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using StarPie.Abstractions.Ui;
 using StarPie.Events;
+using StarPie.Kernel.Localization;
 using StarPie.PluginHosting.Commands;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginHosting.Resources;
@@ -42,7 +43,8 @@ namespace StarPie.PluginHosting
             PluginUiAssetRegistry assets,
             IUiDispatcher dispatcher,
             IPluginEvents? events,
-            NavigationCatalog? navigationCatalog = null)
+            NavigationCatalog? navigationCatalog = null,
+            ILocalizationService? localization = null)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(pluginId);
             PluginId = pluginId;
@@ -56,7 +58,7 @@ namespace StarPie.PluginHosting
             _windows = new PluginWindowRegistry(assets, pluginId);
             _commands = new PluginCommandRegistry(assets, pluginId);
             _timers = new PluginTimerRegistry(assets, pluginId, dispatcher);
-            _extensions = new PluginExtensionRegistry(assets, pluginId, navigationCatalog);
+            _extensions = new PluginExtensionRegistry(assets, pluginId, navigationCatalog, localization);
         }
 
         /// <inheritdoc/>
@@ -79,6 +81,9 @@ namespace StarPie.PluginHosting
 
         /// <summary>本插件注册的托盘菜单项（按注册顺序）。</summary>
         public IReadOnlyList<PluginMenuItem> MenuItems => _extensions.MenuItems;
+
+        /// <summary>取走并清空注册期攒下的告警（文案键不在宿主文案表），由装载管线写入宿主日志。</summary>
+        public IReadOnlyList<string> TakeWarnings() => _extensions.TakeWarnings();
 
         /// <summary>执行本插件登记的指定命令；命令未登记时不动作。</summary>
         /// <param name="commandId">命令 id。</param>

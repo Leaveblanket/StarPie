@@ -60,8 +60,10 @@ M1（P1.6/#115 起驻 `StarPie.Ui/`）：
    **scoped**（作用域 = 设置台会话），插件管理页与暂留常驻的高级页注册为 singleton；
    `MainViewModel`/`ShellViewModel` 不进容器，由组合根的设置台会话工厂构造。
 2. `MainViewModel`（Host，目录驱动；运行时归 Host）按 `catalog.Entries`
-   构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`IconData`/`TargetViewModelType`
-   均来自目录注册，导航 `Action` = `INavigationExecutor.Navigate(槽位)`。
+   构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`DisplayName`/`IconData`/`TargetViewModelType`
+   均来自目录注册，导航 `Action` = `INavigationExecutor.Navigate(槽位)`。标题按
+   「`DisplayName` 字面量 → `TitleKey` 宿主文案表」解析（插件页与固定页同一规则，见
+   [localization.md](localization.md)），语言切换时按同一规则重取。
 3. 导航项"选中态置真"即导航——点击（RadioButton `Command`）与 UIA `SelectionItem.Select` 是等价入口
    （后者是 e2e 静默导航与无障碍客户端可用路径，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md)）→
    `INavigationExecutor.Navigate(slot)` → `NavigationCatalog.GetEntry(slot)` →

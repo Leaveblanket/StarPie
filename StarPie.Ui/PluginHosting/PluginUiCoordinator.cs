@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using StarPie.Abstractions.Ui;
 using StarPie.Compatibility;
 using StarPie.Events;
+using StarPie.Kernel.Localization;
 using StarPie.PluginHosting.Cleanup;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginHosting.Verification;
@@ -38,6 +39,7 @@ namespace StarPie.PluginHosting
         private readonly WpfUiDispatcher _dispatcher;
         private readonly IPluginEvents? _events;
         private readonly NavigationCatalog? _navigationCatalog;
+        private readonly ILocalizationService? _localization;
         private readonly PluginUiAssetRegistry _assets = new();
         private readonly PluginUiCleanup _cleanup;
         private readonly Dictionary<string, PluginUiHost> _hosts = new(StringComparer.Ordinal);
@@ -47,16 +49,22 @@ namespace StarPie.PluginHosting
         /// <param name="dispatcher">宿主 UI 线程调度器。</param>
         /// <param name="events">宿主事件中介；为 null 时 UI 订阅注册不可用。</param>
         /// <param name="navigationCatalog">宿主导航目录；为 null 时插件导航页只登记不挂载。</param>
+        /// <param name="localization">
+        /// 宿主文案服务，用于判定插件标题键是否落在宿主文案表并据此告警；
+        /// 为 null 时不做该判定（插件标题仍按同一优先级解析，只是缺键不告警）。
+        /// </param>
         public PluginUiCoordinator(
             Application application,
             Dispatcher dispatcher,
             IPluginEvents? events = null,
-            NavigationCatalog? navigationCatalog = null)
+            NavigationCatalog? navigationCatalog = null,
+            ILocalizationService? localization = null)
         {
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _dispatcher = new WpfUiDispatcher(dispatcher ?? throw new ArgumentNullException(nameof(dispatcher)));
             _events = events;
             _navigationCatalog = navigationCatalog;
+            _localization = localization;
             _cleanup = new PluginUiCleanup(_assets, new PluginUiLeakVerifier(application));
         }
 
@@ -109,7 +117,7 @@ namespace StarPie.PluginHosting
             if (!_hosts.TryGetValue(pluginId, out PluginUiHost? host))
             {
                 host = new PluginUiHost(
-                    pluginId, _application.Resources, _assets, _dispatcher, _events, _navigationCatalog);
+                    pluginId, _application.Resources, _assets, _dispatcher, _events, _navigationCatalog, _localization);
                 _hosts[pluginId] = host;
             }
 
@@ -204,7 +212,7 @@ namespace StarPie.PluginHosting
 
             // 注册完成才并入资源根：插件注册的资源字典与页面/窗口模板从此可被宿主资源查找命中。
             host.Attach();
-            return PluginUiAttachResult.Success;
+            return PluginUiAttachResult.SuccessWith(host.TakeWarnings());
         }
 
         /// <summary>
