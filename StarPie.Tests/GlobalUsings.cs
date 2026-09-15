@@ -15,6 +15,7 @@ global using StarPie.Services.Messages;
 global using StarPie.Services.Navigation;
 global using StarPie.Services.Programs;
 global using StarPie.Services.Shell;
+global using StarPie.Services.Themes;
 global using StarPie.Services.Wheel;
 global using StarPie.Themes;
 global using StarPie.ViewModels.Dialogs;

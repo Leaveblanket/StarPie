@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Services;
+using StarPie.Services.Themes;
 
 namespace StarPie.ViewModels.Pages
 {
@@ -48,13 +49,15 @@ namespace StarPie.ViewModels.Pages
 
         /// <summary>
         /// 软件界面主题（System/Light/Dark/MidnightNavy/RoyalViolet/TitaniumGray）。
-        /// 透传属性：读直取运行态配置（空值回落 System）；写直穿配置后经防抖消息请求落盘，
-        /// 并发布 <see cref="AppThemeChangedMessage"/> 交壳层主窗口应用窗口主题。
+        /// 透传属性：读直取运行态配置，取值经主题目录归一到常量原形——空值、遗留别名与未知名
+        /// 回落 System，否则旧的遗留值会让下拉空白且界面静默停在别的主题上；归一只读不写盘。
+        /// 写直穿配置后经防抖消息请求落盘，并发布 <see cref="AppThemeChangedMessage"/>
+        /// 交壳层主窗口应用窗口主题。
         /// 下拉项重建期间绑定回推的瞬态 null/空值被忽略，避免切语重建目录时误把选中清成 System。
         /// </summary>
         public string AppTheme
         {
-            get => Config.AppTheme ?? "System";
+            get => AppThemeNames.CanonicalOrNull(Config.AppTheme) ?? AppThemeNames.System;
             set
             {
                 // 重建选项目录期间绑定回推 null/空值：忽略以免误清当前主题。
@@ -82,12 +85,12 @@ namespace StarPie.ViewModels.Pages
         {
             AppThemeOptions = new[]
             {
-                new AppThemeOptionItem("System", _localization.GetString("ThemeSystem")),
-                new AppThemeOptionItem("Light", _localization.GetString("ThemeLight")),
-                new AppThemeOptionItem("Dark", _localization.GetString("ThemeDark")),
-                new AppThemeOptionItem("MidnightNavy", _localization.GetString("ThemeNavy")),
-                new AppThemeOptionItem("RoyalViolet", _localization.GetString("ThemeViolet")),
-                new AppThemeOptionItem("TitaniumGray", _localization.GetString("ThemeGray"))
+                new AppThemeOptionItem(AppThemeNames.System, _localization.GetString("ThemeSystem")),
+                new AppThemeOptionItem(AppThemeNames.Light, _localization.GetString("ThemeLight")),
+                new AppThemeOptionItem(AppThemeNames.Dark, _localization.GetString("ThemeDark")),
+                new AppThemeOptionItem(AppThemeNames.MidnightNavy, _localization.GetString("ThemeNavy")),
+                new AppThemeOptionItem(AppThemeNames.RoyalViolet, _localization.GetString("ThemeViolet")),
+                new AppThemeOptionItem(AppThemeNames.TitaniumGray, _localization.GetString("ThemeGray"))
             };
         }
 

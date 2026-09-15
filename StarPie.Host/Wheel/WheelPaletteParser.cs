@@ -17,7 +17,7 @@ namespace StarPie.Wheel
         {
             if (string.IsNullOrEmpty(palette) || string.Equals(palette, WheelPaletteNames.System, StringComparison.OrdinalIgnoreCase))
             {
-                return windowsInDarkMode ? "Dark" : "Light";
+                return windowsInDarkMode ? WheelPaletteNames.Dark : WheelPaletteNames.Light;
             }
             return palette;
         }

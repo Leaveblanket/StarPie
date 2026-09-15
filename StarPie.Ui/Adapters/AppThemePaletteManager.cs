@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
+using StarPie.Services.Themes;
 
 namespace StarPie.Adapters
 {
@@ -17,17 +18,6 @@ namespace StarPie.Adapters
     /// </remarks>
     internal sealed class AppThemePaletteManager : IThemeApplier
     {
-        // 配置名/遗留别名 → 主题文件规范名（ObsidianDark 等价 Dark）。
-        private static readonly Dictionary<string, string> ThemeFileNames = new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Light"] = "Light",
-            ["Dark"] = "Dark",
-            ["ObsidianDark"] = "Dark",
-            ["MidnightNavy"] = "MidnightNavy",
-            ["RoyalViolet"] = "RoyalViolet",
-            ["TitaniumGray"] = "TitaniumGray"
-        };
-
         private readonly Dictionary<string, ResourceDictionary> _palettes = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>把 effectiveTheme 调色板整项替换进 Application 合并字典的主题槽；未知主题名回落 Light。</summary>
@@ -64,7 +54,9 @@ namespace StarPie.Adapters
 
         private ResourceDictionary LoadPalette(string theme)
         {
-            string file = ThemeFileNames.TryGetValue(theme, out string? name) ? name : "Light";
+            // 规范名即文件名：五套具体主题与 Themes/*.xaml 逐一同名，映射塌缩为恒等；
+            // System（无字典）与未知名/遗留值回落 Light。
+            string file = AppThemeNames.CanonicalOrNull(theme) ?? AppThemeNames.Light;
             if (_palettes.TryGetValue(file, out ResourceDictionary? cached)) return cached;
 
             var source = new Uri($"pack://application:,,,/Themes/{file}.xaml", UriKind.Absolute);

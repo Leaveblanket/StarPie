@@ -15,9 +15,17 @@ public sealed class ThemeServiceTests
         service.SetTheme("System");
 
         Assert.Equal("Dark", service.CurrentEffectiveTheme);
-        Assert.Equal("System", service.RequestedTheme);
         Assert.Equal("Dark", service.ResolveEffectiveTheme("system"));
         Assert.True(service.IsWindowsInDarkTheme());
+    }
+
+    [Fact]
+    public void CurrentEffectiveTheme_ProjectsLight_BeforeAnySetTheme()
+    {
+        // 契约承诺「首次应用前为 Light」：引擎侧未应用态为 null，投影发生在本服务边界。
+        var service = new ThemeService(() => true);
+
+        Assert.Equal("Light", service.CurrentEffectiveTheme);
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using System;
+using StarPie.Services.Themes;
 
 namespace StarPie.Themes
 {
@@ -8,21 +9,22 @@ namespace StarPie.Themes
     /// <remarks>
     /// <see cref="SetTheme"/> 是唯一状态入口——解析、记录 <see cref="CurrentEffectiveTheme"/>、
     /// 并触发调色板整项替换（经附加的 <see cref="IThemeApplier"/> 回抛宿主）。
+    /// 未应用态以 <c>null</c> 表示而不是另立状态位（两个状态位描述同一件事、天然会漂移）；
+    /// 契约承诺的「首次应用前为 Light」在服务边界投影。
     /// Windows 深浅色探测可注入，生产默认值实时读 Personalize 注册表键，使「跟随系统」的
     /// 解析可 headless 单测；系统深浅色变化的监听与窗口效果属宿主层，变化时由调用方驱动
     /// <see cref="RefreshSystemTheme"/>。本类零 WPF。
     /// </remarks>
     public sealed class ThemeEngine
     {
-        /// <summary>最近一次应用的有效主题；首次应用前为 "Light"。</summary>
-        public string CurrentEffectiveTheme { get; private set; } = "Light";
+        /// <summary>最近一次应用的有效主题；构造后从未 <see cref="SetTheme"/> 时为 null。</summary>
+        public string? CurrentEffectiveTheme { get; private set; }
 
         /// <summary>当前请求的主题名（"System"/空 = 跟随系统；固定名 = 不跟随）。</summary>
-        public string RequestedTheme { get; private set; } = "System";
+        public string RequestedTheme { get; private set; } = AppThemeNames.System;
 
         private readonly Func<bool> _windowsInDarkModeProbe;
         private IThemeApplier? _applier;
-        private bool _hasApplied;
 
         /// <summary>注入 Windows 深浅色探针；传 null 使用生产默认值（实时读注册表键）。</summary>
         public ThemeEngine(Func<bool>? windowsInDarkModeProbe)
@@ -39,9 +41,9 @@ namespace StarPie.Themes
         /// <summary>"System"/空值按实时 Windows 设置解析为 "Dark"/"Light"；其余名称原样通过。</summary>
         public string ResolveEffectiveTheme(string themeName)
         {
-            if (string.Equals(themeName, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(themeName))
+            if (string.Equals(themeName, AppThemeNames.System, StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(themeName))
             {
-                return IsWindowsInDarkTheme() ? "Dark" : "Light";
+                return IsWindowsInDarkTheme() ? AppThemeNames.Dark : AppThemeNames.Light;
             }
 
             return themeName;
@@ -52,22 +54,21 @@ namespace StarPie.Themes
         /// （保证 App.xaml 静态 Light 首帧后调色板也入活动主题槽）。</summary>
         public void SetTheme(string themeName)
         {
-            RequestedTheme = string.IsNullOrEmpty(themeName) ? "System" : themeName;
+            RequestedTheme = string.IsNullOrEmpty(themeName) ? AppThemeNames.System : themeName;
             string effectiveTheme = ResolveEffectiveTheme(themeName);
-            if (_hasApplied && string.Equals(CurrentEffectiveTheme, effectiveTheme, StringComparison.Ordinal)) return;
+            if (CurrentEffectiveTheme != null && string.Equals(CurrentEffectiveTheme, effectiveTheme, StringComparison.Ordinal)) return;
 
             CurrentEffectiveTheme = effectiveTheme;
             _applier?.ApplyTheme(effectiveTheme);
-            _hasApplied = true;
         }
 
         /// <summary>若当前跟随系统，则按最新系统状态重新 <see cref="SetTheme"/>（有效主题未变时
         /// no-op）；固定主题下为 no-op。公开以便系统深浅色回调与注入探针单测共用同一路径。</summary>
         public void RefreshSystemTheme()
         {
-            if (string.Equals(RequestedTheme, "System", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(RequestedTheme))
+            if (string.Equals(RequestedTheme, AppThemeNames.System, StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(RequestedTheme))
             {
-                SetTheme("System");
+                SetTheme(AppThemeNames.System);
             }
         }
 

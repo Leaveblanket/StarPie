@@ -12,11 +12,13 @@ namespace StarPie.Tests;
 public sealed class ThemeEngineTests
 {
     [Fact]
-    public void CurrentEffectiveTheme_DefaultsToLight_BeforeAnySetTheme()
+    public void CurrentEffectiveTheme_IsNull_BeforeAnySetTheme()
     {
         var engine = new ThemeEngine(() => true);
 
-        Assert.Equal("Light", engine.CurrentEffectiveTheme);
+        // 未应用态以 null 表示（与 RequestedTheme 单一状态位）；契约承诺的
+        // 「首次应用前为 Light」在服务边界投影，见 ThemeServiceTests。
+        Assert.Null(engine.CurrentEffectiveTheme);
         Assert.Equal("System", engine.RequestedTheme);
     }
 

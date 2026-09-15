@@ -88,6 +88,25 @@ public sealed class InterfaceThemeSettingsViewModelTests
     }
 
     [Fact]
+    public void AppTheme_UnknownOrLegacyValue_NormalizesReadWithoutWriting()
+    {
+        // 遗留配置（旧别名/手改值）不在选项目录里：下拉不得空白、读值归一为 System；
+        // 大小写非规范值归一为常量原形（与主题字典文件名同口径）。两者都只读归一、不写盘。
+        var h = new Harness(new AppConfig { AppTheme = "ObsidianDark" });
+
+        Assert.Equal("System", h.Vm.AppTheme);
+        Assert.Equal("ObsidianDark", h.ConfigService.Current.AppTheme);
+
+        h.ConfigService.Current.AppTheme = "dark";
+        Assert.Equal("Dark", h.Vm.AppTheme);
+        Assert.Equal("dark", h.ConfigService.Current.AppTheme);
+
+        Assert.Equal(0, h.ConfigService.SaveCalls);
+        Assert.Equal(0, h.Spy.Debounced);
+        Assert.Equal(0, h.Spy.Immediate);
+    }
+
+    [Fact]
     public void AppTheme_Set_WritesThroughConfig_NotifiesAndPublishesAutoSaveAndApply()
     {
         var h = new Harness();
