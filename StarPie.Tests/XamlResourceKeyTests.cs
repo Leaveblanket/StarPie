@@ -9,8 +9,8 @@ namespace StarPie.Tests;
 /// </summary>
 /// <remarks>
 /// 既有三条守护都在定义侧——五套主题彼此键集一致、语言键与主题令牌零交集、四语言 resx 键集一致。
-/// 「五套一起缺同一个键」在那三条里天生看不见，<c>PreviewGridLineBrush</c> 正是这样漏掉的
-/// （#35 把它当死令牌删掉，AppearanceSettingsPage 的引用留了下来，运行时静默为 null 不报错）。
+/// 「五套一起缺同一个键」在那三条里天生看不见：定义侧全缺时，引用侧留下的
+/// <c>{DynamicResource}</c> 解析静默为 null、不报错，本测试专守这一缺口。
 /// 本测试只看「Ui 内是否存在该键」，不做合并链与作用域分析：页面局部字典里定义的同名键也算存在。
 /// </remarks>
 public sealed class XamlResourceKeyTests

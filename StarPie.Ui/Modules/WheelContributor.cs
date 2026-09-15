@@ -16,12 +16,11 @@ namespace StarPie.Modules
     /// 下放本程序集（组合根仍唯一 BuildServiceProvider，本贡献者只注册不解析）；
     /// 本模块无导航页，<see cref="ICompositionContributor.RegisterNavigation"/> 保持默认空实现。
     /// 轮盘工厂实现（<see cref="WheelFactory"/>）
-    /// 与接口 <see cref="IWheelFactory"/> 契约（ADR-0023/#97 起独立成集，#112 收口入
-    /// StarPie.Sdk）本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
+    /// 与接口 <see cref="IWheelFactory"/> 契约（驻 StarPie.Sdk）
+    /// 本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
     /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 下沉 SDK 面，实现方与消费方
     /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与宿主注入的无状态深浅色探针
-    /// <c>Func&lt;bool&gt;</c>（ADR-0039 决策 3；原先经 Sdk.Wpf <c>IThemeService</c> 的允许边
-    /// 已清零），不反向引用宿主。
+    /// <c>Func&lt;bool&gt;</c>，不反向引用宿主。
     /// </remarks>
     internal sealed class WheelContributor : ICompositionContributor
     {

@@ -73,8 +73,8 @@ namespace StarPie.Services.Shell
         }
 
         /// <summary>把当前有效主题应用到窗口 DWM 标题栏（资源已是 App 级，无需重复换入）。
-        /// 深浅判定查主题目录的深色集合——未知/遗留主题名在调色板侧回落 Light，
-        /// 此处若沿用「非 Light 即暗」的启发式会配出浅色画刷 + 暗色标题栏。
+        /// 深浅判定必须与调色板侧的回落同源：查主题目录的深色集合，未知/遗留主题名与 Light
+        /// 一律浅色——按「非 Light 即暗」判定会配出浅色画刷 + 暗色标题栏。
         /// null root 安全且不改状态；SourceInitialized 前调用经事件兜底重试。</summary>
         public void ApplyWindowTheme(FrameworkElement? rootElement)
         {

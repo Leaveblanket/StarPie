@@ -38,7 +38,9 @@ namespace StarPie.Services.Themes
             TitaniumGray
         };
 
-        /// <summary>深色主题集合（窗口暗色标题栏判定查表）：五套里除 <see cref="Light"/> 外均为深底令牌集。</summary>
+        /// <summary>深色主题集合（窗口暗色标题栏判定查表）：五套里除 <see cref="Light"/> 外均为深底令牌集。
+        /// 显式列举而不写成「<see cref="Concrete"/> 减去 Light」：将来新增一套浅色主题时，显式列举会
+        /// 失败安全（不误判为暗色），派生写法会把新主题静默算成暗色。</summary>
         public static readonly FrozenSet<string> DarkThemes = new[]
         {
             Dark,

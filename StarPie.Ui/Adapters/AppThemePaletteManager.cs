@@ -54,7 +54,7 @@ namespace StarPie.Adapters
 
         private ResourceDictionary LoadPalette(string theme)
         {
-            // 规范名即文件名：五套具体主题与 Themes/*.xaml 逐一同名，映射塌缩为恒等；
+            // 规范名即文件名：五套具体主题与 Themes/*.xaml 逐一同名；
             // System（无字典）与未知名/遗留值回落 Light。
             string file = AppThemeNames.CanonicalOrNull(theme) ?? AppThemeNames.Light;
             if (_palettes.TryGetValue(file, out ResourceDictionary? cached)) return cached;
