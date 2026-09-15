@@ -170,7 +170,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0041，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0045，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
@@ -248,5 +248,7 @@ Services ---> Models
 | 0041 | `docs/adr/0041-admin-autostart-opt-in.md` | 以管理员身份开机自启（任务计划程序 `/rl highest` 路径，取代 0040 决策 2） | Active（决策 1 的自启落位被 0042 修订；那颗任务的即时触发形态见 0043） |
 | 0042 | `docs/adr/0042-privilege-routes-two-only.md` | 权限路线收敛为两条（普通权限启动 / 管理员权限静默启动；移除运行期提权与子进程权限适配） | Active（决策 2 的边界被 0043 收窄） |
 | 0043 | `docs/adr/0043-elevated-instance-takeover.md` | 提权实例接管非提权实例（即时提权复用路线 B 的任务；让位严格单向、经命名内核对象握手） | Active |
+| 0044 | `docs/adr/0044-wheel-config-projection.md` | 轮盘配置投影（瞬态视图数据收窄宽 AppConfig 耦合；核图 I/O 移出视图；窄调色板输入类型） | Active |
+| 0045 | `docs/adr/0045-wheel-preview-runtime-shared-content-kernel.md` | 预览与运行时轮盘同源（扇区内容构建下沉 Host 内核：图标五级回退 + 排版缩放表 + 内置 SVG 字面量） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
