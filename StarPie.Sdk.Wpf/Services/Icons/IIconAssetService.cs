@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -31,6 +31,10 @@ namespace StarPie.Services.Icons
         /// <summary>取自定义图标的位图源：入参可为 "custom:xxx" 键（解析为文件路径）或直接的文件路径；
         /// 仅位图可返回 <see cref="BitmapImage"/>，SVG 交由 XAML 几何绑定，此处返回 null。</summary>
         ImageSource? GetCustomImageSource(string iconKeyOrPath);
+
+        /// <summary>按文件路径加载位图（核背景图/核自定义图等）：路径为空、文件不存在或解码失败
+        /// 返回 null；加载即解码（不驻留文件句柄），故文件随后被删除/替换不影响已取到的位图。</summary>
+        BitmapSource? LoadBitmap(string? path);
 
         /// <summary>提取干净的高分辨率程序/文件图标（不含 Windows 快捷方式的小箭头角标叠加）。
         /// 解析顺序：快捷方式先解析目标（自定义图标文件优先，其次目标程序自身）→

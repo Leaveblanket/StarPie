@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using System.Linq;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Wheel
 {
@@ -13,7 +15,7 @@ namespace StarPie.Wheel
         /// <summary>System/空值按 OS 深浅色解析为 Dark/Light；命名方案原样透传（沿用渲染器原语义）。</summary>
         public static string ResolveEffectivePalette(string palette, bool windowsInDarkMode)
         {
-            if (string.IsNullOrEmpty(palette) || string.Equals(palette, "System", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrEmpty(palette) || string.Equals(palette, WheelPaletteNames.System, StringComparison.OrdinalIgnoreCase))
             {
                 return windowsInDarkMode ? "Dark" : "Light";
             }
@@ -22,31 +24,31 @@ namespace StarPie.Wheel
 
         /// <summary>方案名 → 色值组：风格默认观感为基底，依次应用标准浅色/系统预设/
         /// 自定义预设匹配/Custom 微调；最终任一色值非法即整组回落紧急色。</summary>
-        public static WheelPalette Resolve(string palette, AppConfig config, bool windowsInDarkMode, string style)
+        public static WheelPalette Resolve(string palette, WheelPaletteInput input, bool windowsInDarkMode, string style)
         {
             string effectivePalette = ResolveEffectivePalette(palette, windowsInDarkMode);
             palette ??= "";
             WheelPalette styleDefault = WheelPaletteCatalog.GetStyleDefault(style, effectivePalette);
 
-            if (palette == "Light" && WheelPaletteCatalog.UsesStandardLightFallback(style))
+            if (palette == WheelPaletteNames.Light && WheelPaletteCatalog.UsesStandardLightFallback(style))
             {
                 return WheelPaletteCatalog.StandardLight;
             }
-            if (palette == "MatchaForest")
+            if (palette == WheelPaletteNames.MatchaForest)
             {
                 return WheelPaletteCatalog.MatchaForest;
             }
-            if (palette == "GlacialIce")
+            if (palette == WheelPaletteNames.GlacialIce)
             {
                 return WheelPaletteCatalog.GlacialIce;
             }
-            if (palette == "MorandiMuted")
+            if (palette == WheelPaletteNames.MorandiMuted)
             {
                 return WheelPaletteCatalog.MorandiMuted;
             }
-            if (palette.StartsWith("CustomPreset_", StringComparison.Ordinal) || IsReferencedPreset(palette, config))
+            if (palette.StartsWith(WheelPaletteNames.CustomPresetPrefix, StringComparison.Ordinal) || IsReferencedPreset(palette, input))
             {
-                CustomColorPreset? preset = FindPreset(palette, config);
+                CustomColorPreset? preset = FindPreset(palette, input);
                 if (preset != null)
                 {
                     // 命中预设即整组采用其色值；任一字段 null/非法即整组回落紧急色。
@@ -60,37 +62,37 @@ namespace StarPie.Wheel
                 // 带前缀但预设已不存在：保持风格默认观感。
                 return styleDefault;
             }
-            if (palette == "Custom")
+            if (palette == WheelPaletteNames.Custom)
             {
-                return ResolveCustom(config, styleDefault);
+                return ResolveCustom(input, styleDefault);
             }
 
             return styleDefault;
         }
 
-        private static bool IsReferencedPreset(string palette, AppConfig config)
-            => config.CustomColorPresets != null && config.CustomColorPresets.Exists(p => p.Id == palette || p.Name == palette);
+        private static bool IsReferencedPreset(string palette, WheelPaletteInput input)
+            => input.CustomPresets.Any(p => p.Id == palette || p.Name == palette);
 
-        private static CustomColorPreset? FindPreset(string palette, AppConfig config)
-            => config.CustomColorPresets?.Find(p => p.Id == palette || p.Name == palette || ("CustomPreset_" + p.Id) == palette);
+        private static CustomColorPreset? FindPreset(string palette, WheelPaletteInput input)
+            => input.CustomPresets.FirstOrDefault(p => p.Id == palette || p.Name == palette || WheelPaletteNames.CustomPresetPrefix + p.Id == palette);
 
-        private static WheelPalette ResolveCustom(AppConfig config, WheelPalette styleDefault)
+        private static WheelPalette ResolveCustom(WheelPaletteInput input, WheelPalette styleDefault)
         {
             bool invalid = false;
             RgbColor sectorBg = styleDefault.SectorBg;
-            if (config.CustomSectorBg != null && !RgbColor.TryParseHex(config.CustomSectorBg, out sectorBg)) invalid = true;
+            if (input.CustomSectorBg != null && !RgbColor.TryParseHex(input.CustomSectorBg, out sectorBg)) invalid = true;
 
             RgbColor sectorBorder = styleDefault.SectorBorder;
-            if (config.CustomSectorBorder != null && !RgbColor.TryParseHex(config.CustomSectorBorder, out sectorBorder)) invalid = true;
+            if (input.CustomSectorBorder != null && !RgbColor.TryParseHex(input.CustomSectorBorder, out sectorBorder)) invalid = true;
 
             RgbColor highlightBg = styleDefault.HighlightBg;
-            if (config.CustomHighlightBg != null && !RgbColor.TryParseHex(config.CustomHighlightBg, out highlightBg)) invalid = true;
+            if (input.CustomHighlightBg != null && !RgbColor.TryParseHex(input.CustomHighlightBg, out highlightBg)) invalid = true;
 
             RgbColor highlightBorder = styleDefault.HighlightBorder;
-            if (config.CustomHighlightBorder != null && !RgbColor.TryParseHex(config.CustomHighlightBorder, out highlightBorder)) invalid = true;
+            if (input.CustomHighlightBorder != null && !RgbColor.TryParseHex(input.CustomHighlightBorder, out highlightBorder)) invalid = true;
 
             RgbColor textColor = styleDefault.TextColor;
-            if (config.CustomText != null && !RgbColor.TryParseHex(config.CustomText, out textColor)) invalid = true;
+            if (input.CustomText != null && !RgbColor.TryParseHex(input.CustomText, out textColor)) invalid = true;
 
             // Custom 微调字段为 null 时逐字段保留风格默认观感；任一非 null 字段非法即整组回落紧急色。
             if (invalid)

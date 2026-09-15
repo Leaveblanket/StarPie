@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using StarPie.Models;
+using StarPie.Services.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
@@ -25,15 +25,16 @@ namespace StarPie.Views.Renderers
         public double HighlightBorderThickness { get; protected set; } = 1.5;
 
         public bool IsLightPalette { get; protected set; } = false;
-        protected AppConfig? _config;
+        // 配色微调与光晕的窄输入快照；未 Initialize 时为 null。
+        protected WheelPaletteInput? _paletteInput;
 
         /// <summary>轮盘配色目录中的风格键（与 <see cref="StyleRendererFactory"/> 分支同名），
         /// 决定该风格的默认深浅观感与 Light 方案是否套用标准浅色表。</summary>
         protected abstract string WheelStyleName { get; }
 
-        public virtual void Initialize(string palette, AppConfig config, bool windowsInDarkMode)
+        public virtual void Initialize(string palette, WheelPaletteInput paletteInput, bool windowsInDarkMode)
         {
-            _config = config;
+            _paletteInput = paletteInput;
             BorderThickness = 1.0;
             HighlightBorderThickness = 1.5;
 
@@ -41,7 +42,7 @@ namespace StarPie.Views.Renderers
             IsLightPalette = string.Equals(effectivePalette, "Light", StringComparison.OrdinalIgnoreCase);
 
             // 方案名→色值组只在解析层发生；渲染器只消费解析结果构造画刷。
-            WheelPalette wheelPalette = WheelPaletteParser.Resolve(palette, config, windowsInDarkMode, WheelStyleName);
+            WheelPalette wheelPalette = WheelPaletteParser.Resolve(palette, paletteInput, windowsInDarkMode, WheelStyleName);
 
             DefaultSectorBrush = CreateBrush(wheelPalette.SectorBg);
             HighlightSectorBrush = CreateBrush(wheelPalette.HighlightBg);
@@ -63,11 +64,11 @@ namespace StarPie.Views.Renderers
 
         public virtual Color GetEffectiveGlowColor()
         {
-            if (_config != null && !string.IsNullOrEmpty(_config.HighlightGlowColor))
+            if (_paletteInput != null && !string.IsNullOrEmpty(_paletteInput.HighlightGlowColor))
             {
                 try
                 {
-                    return (Color)ColorConverter.ConvertFromString(_config.HighlightGlowColor);
+                    return (Color)ColorConverter.ConvertFromString(_paletteInput.HighlightGlowColor);
                 }
                 catch { }
             }
@@ -86,18 +87,18 @@ namespace StarPie.Views.Renderers
 
         public virtual double GetEffectiveGlowRadius(double defaultRadius = 24.0)
         {
-            if (_config != null && _config.HighlightGlowRadius > 0)
+            if (_paletteInput != null && _paletteInput.HighlightGlowRadius > 0)
             {
-                return _config.HighlightGlowRadius;
+                return _paletteInput.HighlightGlowRadius;
             }
             return defaultRadius;
         }
 
         public virtual double GetEffectiveGlowOpacity(double defaultOpacity = 0.85)
         {
-            if (_config != null && _config.HighlightGlowOpacity >= 0)
+            if (_paletteInput != null && _paletteInput.HighlightGlowOpacity >= 0)
             {
-                return _config.HighlightGlowOpacity;
+                return _paletteInput.HighlightGlowOpacity;
             }
             return defaultOpacity;
         }

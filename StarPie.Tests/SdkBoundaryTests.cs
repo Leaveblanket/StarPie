@@ -21,6 +21,7 @@ public sealed class SdkBoundaryTests
         // Models/
         typeof(AppConfig), typeof(WheelProfile), typeof(ActionItem), typeof(CustomColorPreset),
         typeof(RgbColor), typeof(ColorMath), typeof(GesturePoint),
+        typeof(WheelGeometryDefaults),
         // Services/AppHostDelegates.cs
         typeof(StarPie.Services.AppHostDelegates),
         // Services/Messages/
@@ -37,7 +38,8 @@ public sealed class SdkBoundaryTests
         typeof(IDialogService), typeof(ProgramPickResult), typeof(InputDialogResult),
         typeof(IconPickResult), typeof(ColorPickResult), typeof(EyedropResult), typeof(FilePickResult),
         // Services/Wheel/
-        typeof(IWheelFactory),
+        typeof(IWheelFactory), typeof(WheelStyleNames), typeof(WheelPaletteNames),
+        typeof(WheelPaletteInput),
         // Services/Icons/（图标条目与 .lnk 解析 SPI）
         typeof(CustomIconItem), typeof(VectorIconItem), typeof(IShortcutTargetResolver),
         // Services/Programs/（扫描契约与纯规则）

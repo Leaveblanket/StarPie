@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -7,6 +7,7 @@ using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
+using StarPie.Services.Wheel;
 
 namespace StarPie.Views.Renderers
 {
@@ -16,7 +17,7 @@ namespace StarPie.Views.Renderers
     /// </summary>
     public class GlassmorphismRenderer : BaseStyleRenderer
     {
-        protected override string WheelStyleName => "Glassmorphism";
+        protected override string WheelStyleName => WheelStyleNames.Glassmorphism;
 
         protected override void PostInitialize()
         {

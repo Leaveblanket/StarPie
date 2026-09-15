@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StarPie;
 
@@ -474,6 +474,8 @@ internal sealed class FakeWheelFactory : IWheelFactory
         Wheels.Add(wheel);
         return wheel;
     }
+
+    public void Warmup() { }
 }
 
 internal sealed class FakeWheel : IWheelViewModel

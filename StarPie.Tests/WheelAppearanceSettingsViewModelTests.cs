@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
@@ -1111,7 +1111,11 @@ public sealed class WheelAppearanceSettingsViewModelTests
         Assert.Equal("custom:star", state.CoreCustomIconKey);
         Assert.Equal("M0,0L1,1", state.CoreCustomIconSvg);
         Assert.Equal("C:\\core.png", state.CoreCustomImagePath);
-        Assert.Same(configService.Current, state.CurrentConfig);
+        // 渲染侧改经窄配色输入取配色数据（接口不再暴露整个运行态配置）：取值与运行态配置同源。
+        Assert.Equal(configService.Current.CustomSectorBg, state.PaletteInput.CustomSectorBg);
+        Assert.Equal(configService.Current.CustomText, state.PaletteInput.CustomText);
+        Assert.Equal(configService.Current.HighlightGlowRadius, state.PaletteInput.HighlightGlowRadius);
+        Assert.Equal(configService.Current.HighlightGlowOpacity, state.PaletteInput.HighlightGlowOpacity);
         // 预览 Profile 上下文：构造后默认选中首项；无选中时沿用渲染器取值链的回落。
         Assert.Same(profile, state.PreviewProfile);
     }

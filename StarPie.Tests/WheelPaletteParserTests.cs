@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using StarPie.Wheel;
 
 namespace StarPie.Tests;
 
@@ -11,7 +12,7 @@ namespace StarPie.Tests;
 public sealed class WheelPaletteParserTests
 {
     private static WheelPalette Resolve(string theme, AppConfig? config = null, bool windowsInDarkMode = false, string style = "ClassicRing")
-        => WheelPaletteParser.Resolve(theme, config ?? new AppConfig(), windowsInDarkMode, style);
+        => WheelPaletteParser.Resolve(theme, WheelPaletteInput.FromConfig(config ?? new AppConfig()), windowsInDarkMode, style);
 
     private static void AssertPalette(WheelPalette palette,
         string sectorBg, string sectorBorder, string highlightBg, string highlightBorder, string text)

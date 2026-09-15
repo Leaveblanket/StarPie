@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 
 namespace StarPie.Gestures
@@ -47,6 +47,9 @@ namespace StarPie.Gestures
     /// </summary>
     public class GestureEngine
     {
+        // 运行期兜底：配置里的轮盘半径写成 0/负值时，外甩逃逸距离以此为基准换算。
+        // 语义与外观默认值（WheelGeometryDefaults.Radius）不同——那是"新装观感"，这是"坏配置读数的
+        // 安全基准"；两者取值当前相同纯属巧合，故各自独立、不互相引用。
         private const double FallbackWheelRadius = 138.0;
         // Feel constants carried over from the pre-refactor controller: center
         // deadzone radius as a fraction of the drag threshold, and outer-escape

@@ -4,6 +4,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
 using StarPie.Services;
+using StarPie.Services.Wheel;
+using StarPie.Wheel;
 
 namespace StarPie.ViewModels.Pages
 {
@@ -46,8 +48,9 @@ namespace StarPie.ViewModels.Pages
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>运行态配置访问：预览渲染初始化等视图层读取；导入后自动取到新实例。</summary>
-        public AppConfig CurrentConfig => _config.Current;
+        /// <summary>样式渲染器的窄配色输入：每次读取取一份配置快照，运行态与预览态同类型、
+        /// 同组装入口；导入后自动取到新实例。</summary>
+        public WheelPaletteInput PaletteInput => WheelPaletteInput.FromConfig(_config.Current);
 
         /// <summary>预览渲染所用 Profile 上下文（实现自 <see cref="IWheelAppearanceState"/>，
         /// 转发自 <see cref="IProfilePreviewSource"/>）：选中/首项回落语义由来源实现方维护，
@@ -89,12 +92,12 @@ namespace StarPie.ViewModels.Pages
         {
             return new PaletteOptionItem[]
             {
-                new("System", _localization.GetString("WheelPaletteSystem")),
-                new("Dark", _localization.GetString("WheelPaletteDark")),
-                new("Light", _localization.GetString("WheelPaletteLight")),
-                new("MatchaForest", _localization.GetString("WheelPaletteMatchaForest")),
-                new("GlacialIce", _localization.GetString("WheelPaletteGlacialIce")),
-                new("MorandiMuted", _localization.GetString("WheelPaletteMorandiMuted"))
+                new(WheelPaletteNames.System, _localization.GetString("WheelPaletteSystem")),
+                new(WheelPaletteNames.Dark, _localization.GetString("WheelPaletteDark")),
+                new(WheelPaletteNames.Light, _localization.GetString("WheelPaletteLight")),
+                new(WheelPaletteNames.MatchaForest, _localization.GetString("WheelPaletteMatchaForest")),
+                new(WheelPaletteNames.GlacialIce, _localization.GetString("WheelPaletteGlacialIce")),
+                new(WheelPaletteNames.MorandiMuted, _localization.GetString("WheelPaletteMorandiMuted"))
             };
         }
 
@@ -119,7 +122,7 @@ namespace StarPie.ViewModels.Pages
                 foreach (var preset in presets)
                 {
                     options.Add(new PaletteOptionItem(
-                        $"CustomPreset_{preset.Id}",
+                        WheelPaletteNames.CustomPresetPrefix + preset.Id,
                         string.Format(_localization.GetString("WheelPaletteCustomPreset"), preset.Name)));
                 }
             }
@@ -149,8 +152,8 @@ namespace StarPie.ViewModels.Pages
             get
             {
                 string palette = SelectedPalette ?? "";
-                if (!palette.StartsWith("CustomPreset_")) return null;
-                string presetId = palette.Substring("CustomPreset_".Length);
+                if (!palette.StartsWith(WheelPaletteNames.CustomPresetPrefix)) return null;
+                string presetId = palette.Substring(WheelPaletteNames.CustomPresetPrefix.Length);
                 return Config.CustomColorPresets?.Find(p => p.Id == presetId);
             }
         }
@@ -159,10 +162,10 @@ namespace StarPie.ViewModels.Pages
 
         /// <summary>轮盘主题风格（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
         [ObservableProperty]
-        private string _wheelStyle = "ClassicRing";
+        private string _wheelStyle = WheelStyleNames.Default;
 
         /// <summary>轮盘配色方案（含 CustomPreset_{id} 动态项）。瞬态空值（下拉动态项重建时的 null 回推）不写入状态。</summary>
-        private string _selectedPalette = "System";
+        private string _selectedPalette = WheelPaletteNames.System;
 
         public string SelectedPalette
         {
@@ -176,7 +179,7 @@ namespace StarPie.ViewModels.Pages
                 if (!SetProperty(ref _selectedPalette, value)) return;
 
                 Config.WheelPalette = value;
-                bool isCustomPreset = value.StartsWith("CustomPreset_");
+                bool isCustomPreset = value.StartsWith(WheelPaletteNames.CustomPresetPrefix);
                 IsCustomPresetSelected = isCustomPreset;
 
                 if (isCustomPreset)
@@ -254,13 +257,13 @@ namespace StarPie.ViewModels.Pages
         private string _shape = "Original";
 
         [ObservableProperty]
-        private double _wheelRadius = 138.0;
+        private double _wheelRadius = WheelGeometryDefaults.Radius;
 
         [ObservableProperty]
-        private double _innerRadius = 52.0;
+        private double _innerRadius = WheelGeometryDefaults.InnerRadius;
 
         [ObservableProperty]
-        private double _coreRadius = 50.0;
+        private double _coreRadius = WheelGeometryDefaults.CoreRadius;
 
         [ObservableProperty]
         private double _sectorGap = 2.0;
@@ -599,9 +602,9 @@ namespace StarPie.ViewModels.Pages
             _bulkUpdating = true;
             try
             {
-                WheelRadius = 138;
-                InnerRadius = 52;
-                CoreRadius = 50;
+                WheelRadius = WheelGeometryDefaults.Radius;
+                InnerRadius = WheelGeometryDefaults.InnerRadius;
+                CoreRadius = WheelGeometryDefaults.CoreRadius;
                 SectorGap = 2;
                 SectorCornerRadius = 4;
                 SectorIconSize = 20.0;
@@ -698,11 +701,11 @@ namespace StarPie.ViewModels.Pages
             };
 
             Config.CustomColorPresets.Add(newPreset);
-            Config.WheelPalette = "CustomPreset_" + newPreset.Id;
+            Config.WheelPalette = WheelPaletteNames.CustomPresetPrefix + newPreset.Id;
 
             // 先重建下拉项（新 Tag 才有落点），再切选中触发主题管线
             RebuildPaletteOptions();
-            SelectedPalette = "CustomPreset_" + newPreset.Id;
+            SelectedPalette = WheelPaletteNames.CustomPresetPrefix + newPreset.Id;
             _dialogs.ShowInfo(
                 _localization.GetString("Notice"),
                 string.Format(_localization.GetString("SaveCustomPresetSuccess"), presetName));
@@ -757,10 +760,10 @@ namespace StarPie.ViewModels.Pages
             if (Config.CustomColorPresets == null || !Config.CustomColorPresets.Contains(preset)) return;
 
             Config.CustomColorPresets.Remove(preset);
-            Config.WheelPalette = "System";
+            Config.WheelPalette = WheelPaletteNames.System;
 
             RebuildPaletteOptions();
-            SelectedPalette = "System";
+            SelectedPalette = WheelPaletteNames.System;
             _dialogs.ShowInfo(
                 _localization.GetString("Notice"),
                 string.Format(_localization.GetString("DeleteCustomPresetSuccess"), preset.Name));
@@ -811,8 +814,8 @@ namespace StarPie.ViewModels.Pages
         {
             var c = Config;
 
-            WheelStyle = string.IsNullOrEmpty(c.WheelStyle) ? "ClassicRing" : c.WheelStyle;
-            SelectedPalette = string.IsNullOrEmpty(c.WheelPalette) ? "System" : c.WheelPalette;
+            WheelStyle = string.IsNullOrEmpty(c.WheelStyle) ? WheelStyleNames.Default : c.WheelStyle;
+            SelectedPalette = string.IsNullOrEmpty(c.WheelPalette) ? WheelPaletteNames.System : c.WheelPalette;
             Shape = MapLegacyShapeTag(c.Shape);
             IconLayoutMode = string.IsNullOrEmpty(c.IconLayoutMode) ? "IconAndText" : c.IconLayoutMode;
             ShowText = c.ShowText;
@@ -837,8 +840,8 @@ namespace StarPie.ViewModels.Pages
             CustomHighlightBorderText = c.CustomHighlightBorder ?? "";
             CustomTextText = c.CustomText ?? "";
 
-            IsCustomPresetSelected = SelectedPalette.StartsWith("CustomPreset_");
-            IsCustomColorExpanderExpanded = c.WheelPalette == "Custom" || IsCustomPresetSelected;
+            IsCustomPresetSelected = SelectedPalette.StartsWith(WheelPaletteNames.CustomPresetPrefix);
+            IsCustomColorExpanderExpanded = c.WheelPalette == WheelPaletteNames.Custom || IsCustomPresetSelected;
 
             RebuildPaletteOptions();
         }

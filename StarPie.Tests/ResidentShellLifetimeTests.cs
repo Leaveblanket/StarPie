@@ -8,6 +8,8 @@ using StarPie.Services.Programs;
 using StarPie.ViewModels.Navigation;
 using StarPie.Views.Navigation;
 
+using StarPie.ViewModels.Wheel;
+
 namespace StarPie.Tests;
 
 /// <summary>
@@ -418,7 +420,7 @@ public sealed class ResidentShellLifetimeTests
             var viewModel = new WheelViewModel(
                 new GesturePoint(200, 200),
                 new WheelProfile(),
-                new AppConfig(),
+                WheelViewData.FromConfig(new AppConfig()),
                 new LocalizationService());
             return WheelWarmup.Run(viewModel, new FakeThemeService(), new LocalizationService(), new TestIconAssetService());
         });

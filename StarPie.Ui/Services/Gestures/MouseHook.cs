@@ -78,6 +78,10 @@ namespace StarPie.Services.Gestures
         private LowLevelMouseProc _proc;
         private IntPtr _hookId = IntPtr.Zero;
 
+        // 重注册的调度接缝：健康检查计时器跑在线程池线程，重注册（Stop+Start）须回 UI 线程
+        // 执行。接缝由组合根注入，本适配器因此不引用任何 UI 框架类型（与类型级声明一致）。
+        private readonly Action<Action> _postToUiThread;
+
         // Flags to prevent recursive hook interception when we replay right click events
         private bool _ignoreNextRButtonDown = false;
         private bool _ignoreNextRButtonUp = false;
@@ -87,8 +91,9 @@ namespace StarPie.Services.Gestures
         private POINT _lastSystemCursorPos;
         private int _hookEventsCountSinceLastCheck = 0;
 
-        public MouseHook()
+        public MouseHook(Action<Action> postToUiThread)
         {
+            _postToUiThread = postToUiThread ?? throw new ArgumentNullException(nameof(postToUiThread));
             _proc = HookCallback;
         }
 
@@ -139,7 +144,7 @@ namespace StarPie.Services.Gestures
                     // If system mouse moved, but we received 0 hook events, hook is likely dead!
                     if (System.Threading.Interlocked.Exchange(ref _hookEventsCountSinceLastCheck, 0) == 0)
                     {
-                        System.Windows.Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
+                        _postToUiThread(() =>
                         {
                             Debug.WriteLine("Mouse hook health check failed. Re-registering hook...");
                             try
@@ -151,7 +156,7 @@ namespace StarPie.Services.Gestures
                             {
                                 Debug.WriteLine($"Failed to re-register hook: {ex.Message}");
                             }
-                        }));
+                        });
                     }
                 }
                 else

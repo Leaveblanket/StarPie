@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -51,6 +51,28 @@ namespace StarPie.Services.Icons
 
         /// <inheritdoc/>
         public void ReleaseTransientCaches() => _store.ClearCache();
+
+        /// <inheritdoc/>
+        public BitmapSource? LoadBitmap(string? path)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
+
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.UriSource = new Uri(path, UriKind.Absolute);
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                // 路径存在但解码失败（损坏/不支持）：返回 null，由调用方回落
+                return null;
+            }
+        }
 
         /// <summary>
         /// 取自定义图标的位图源：入参可为 "custom:xxx" 键（解析为文件路径）或直接的文件路径；

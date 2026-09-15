@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using StarPie.ViewModels.Wheel;
+using StarPie.Services.Wheel;
+using StarPie.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
@@ -79,14 +81,12 @@ namespace StarPie.Views.Renderers
                 if (innerR >= outerR) innerR = outerR * 0.5;
                 if (coreR >= innerR) coreR = innerR * 0.8;
 
-                string wheelStyle = state.WheelStyle ?? "ClassicRing";
-                string palette = state.SelectedPalette ?? "System";
+                string wheelStyle = state.WheelStyle ?? WheelStyleNames.Default;
+                string palette = state.SelectedPalette ?? WheelPaletteNames.System;
                 string shape = state.Shape ?? "Original";
-                string layoutMode = state.IconLayoutMode ?? "IconAndText";
-                bool showText = state.ShowText && layoutMode != "IconOnly";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(wheelStyle);
-                _previewStyleRenderer.Initialize(palette, state.CurrentConfig, windowsInDarkMode);
+                _previewStyleRenderer.Initialize(palette, state.PaletteInput, windowsInDarkMode);
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;
@@ -125,21 +125,10 @@ namespace StarPie.Views.Renderers
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
-                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != WheelStyleNames.CatPaw) ? Visibility.Visible : Visibility.Collapsed
                     };
-                    if (!string.IsNullOrEmpty(state.CoreCustomImagePath) && File.Exists(state.CoreCustomImagePath))
-                    {
-                        try
-                        {
-                            var bmp = new BitmapImage();
-                            bmp.BeginInit();
-                            bmp.UriSource = new Uri(state.CoreCustomImagePath, UriKind.Absolute);
-                            bmp.CacheOption = BitmapCacheOption.OnLoad;
-                            bmp.EndInit();
-                            coreImg.Source = bmp;
-                        }
-                        catch { }
-                    }
+                    // 存在性检查与解码归图标资产服务，视图不读磁盘
+                    coreImg.Source = _iconAssets.LoadBitmap(state.CoreCustomImagePath);
                     previewCoreGrid.Children.Add(coreImg);
                 }
                 else
@@ -155,7 +144,7 @@ namespace StarPie.Views.Renderers
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center,
                         IsHitTestVisible = false,
-                        Visibility = (state.ShowCoreIcon && state.WheelStyle != "CatPaw") ? Visibility.Visible : Visibility.Collapsed
+                        Visibility = (state.ShowCoreIcon && state.WheelStyle != WheelStyleNames.CatPaw) ? Visibility.Visible : Visibility.Collapsed
                     };
                     previewCoreGrid.Children.Add(_previewExitIcon);
                 }
@@ -166,6 +155,14 @@ namespace StarPie.Views.Renderers
                     ?? new WheelProfile { SectorCount = 8, Actions = new List<ActionItem>() };
                 int n = profile.SectorCount > 0 ? profile.SectorCount : 8;
                 double sectorSize = 360.0 / n;
+
+                // 排版窄字段与实轮盘同源；内容随几何一同按 scale 缩放，故预览与实轮盘等比一致。
+                var layoutSpec = new WheelSectorLayoutSpec(
+                    n,
+                    state.IconLayoutMode,
+                    state.ShowText,
+                    state.SectorIconSize,
+                    state.SectorFontSize);
 
                 for (int i = 0; i < n; i++)
                 {
@@ -211,6 +208,7 @@ namespace StarPie.Views.Renderers
                     string iconKey = "";
                     string actionType = "Hotkey";
                     string parameter = "";
+                    string customSvg = "";
 
                     if (profile.Actions != null && i < profile.Actions.Count && profile.Actions[i] != null)
                     {
@@ -218,135 +216,56 @@ namespace StarPie.Views.Renderers
                         iconKey = profile.Actions[i].IconKey ?? "";
                         actionType = profile.Actions[i].Type ?? "Hotkey";
                         parameter = profile.Actions[i].Parameter ?? "";
+                        customSvg = profile.Actions[i].CustomIconSvg ?? "";
                     }
 
-                    if (layoutMode != "TextOnly")
+                    // 内容与实轮盘同源：图标五级回退链、排版缩放、内置向量一律取内核输出，
+                    // 预览只按自己的画布倍率等比缩放后画成元素（WYSIWYG 由这条同源路径保证）。
+                    WheelSectorContent content = WheelSectorContentKernel.Build(
+                        new WheelSectorInput(
+                            actionName,
+                            actionType,
+                            parameter,
+                            iconKey,
+                            customSvg,
+                            WheelSectorIconFactory.ResolveCustomIcon(iconKey, _iconAssets)),
+                        layoutSpec,
+                        scale,
+                        WheelGeometry.IsParsablePathData);
+
+                    // 顺序契约：先图标元素、后 TextBlock，与实轮盘一致。
+                    FrameworkElement? iconElement = WheelSectorIconFactory.Create(content, _previewTextBrush, _iconAssets);
+                    if (iconElement != null)
                     {
-                        string? customSvg = (profile.Actions != null && i < profile.Actions.Count) ? profile.Actions[i]?.CustomIconSvg : null;
-                        string? svgData = null;
-
-                        CustomIconItem? customItem = null;
-                        if (!string.IsNullOrEmpty(iconKey) && iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            customItem = _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
-                        }
-
-                        if (!string.IsNullOrEmpty(customSvg)) svgData = customSvg;
-                        else if (customItem != null && customItem.IsSvg) svgData = customItem.SvgData;
-                        else if (!string.IsNullOrEmpty(iconKey) && customItem == null) svgData = IconCatalog.GetSvgPathByKey(iconKey);
-                        else if (actionType == "Folder" || actionType == "OpenFolder") svgData = IconCatalog.GetSvgPathByKey("Folder");
-                        else if (actionType == "System" && !string.IsNullOrEmpty(parameter)) svgData = IconCatalog.GetSvgPathByKey(parameter);
-
-                        double configuredIconSize = state.SectorIconSize > 0 ? state.SectorIconSize : 20.0;
-                        double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
-                        double previewIconSize = ((layoutMode == "IconOnly") ? configuredIconSize * 1.35 : configuredIconSize) * 0.72 * scaleFactor;
-
-                        if (!string.IsNullOrEmpty(svgData))
-                        {
-                            try
-                            {
-                                var iconPath = new System.Windows.Shapes.Path
-                                {
-                                    Data = Geometry.Parse(svgData),
-                                    Fill = _previewTextBrush,
-                                    Width = previewIconSize,
-                                    Height = previewIconSize,
-                                    Stretch = Stretch.Uniform,
-                                    HorizontalAlignment = HorizontalAlignment.Center,
-                                    Margin = new Thickness(0, 0, 0, showText ? 1 : 0)
-                                };
-                                sp.Children.Add(iconPath);
-                            }
-                            catch { }
-                        }
-                        else if (customItem != null && !customItem.IsSvg)
-                        {
-                            var iconSrc = _iconAssets.GetCustomImageSource(customItem.FilePath);
-                            if (iconSrc != null)
-                            {
-                                var img = new Image
-                                {
-                                    Source = iconSrc,
-                                    Width = previewIconSize,
-                                    Height = previewIconSize,
-                                    Stretch = Stretch.Uniform,
-                                    HorizontalAlignment = HorizontalAlignment.Center,
-                                    Margin = new Thickness(0, 0, 0, showText ? 1 : 0)
-                                };
-                                sp.Children.Add(img);
-                            }
-                        }
-                        else if (actionType == "Launch" && !string.IsNullOrEmpty(parameter))
-                        {
-                            var iconSrc = _iconAssets.GetIcon(parameter);
-                            if (iconSrc != null)
-                            {
-                                var img = new Image
-                                {
-                                    Source = iconSrc,
-                                    Width = previewIconSize,
-                                    Height = previewIconSize,
-                                    Stretch = Stretch.Uniform,
-                                    HorizontalAlignment = HorizontalAlignment.Center,
-                                    Margin = new Thickness(0, 0, 0, showText ? 1 : 0)
-                                };
-                                sp.Children.Add(img);
-                            }
-                        }
-                        else
-                        {
-                            try
-                            {
-                                var iconPath = new System.Windows.Shapes.Path
-                                {
-                                    Data = Geometry.Parse("M19,15H5V5H19M19,3H5C3.89,3 3,3.89 3,5V15C3,16.1 3.89,17 5,17H19C20.1,17 21,16.1 21,15V5C21,3.89 20.1,3 19,3M2,18H22V20H2V18Z"),
-                                    Fill = _previewTextBrush,
-                                    Width = previewIconSize,
-                                    Height = previewIconSize,
-                                    Stretch = Stretch.Uniform,
-                                    HorizontalAlignment = HorizontalAlignment.Center,
-                                    Margin = new Thickness(0, 0, 0, showText ? 1 : 0)
-                                };
-                                sp.Children.Add(iconPath);
-                            }
-                            catch { }
-                        }
+                        sp.Children.Add(iconElement);
                     }
 
-                    if (showText && !string.IsNullOrEmpty(actionName))
+                    if (content.ShowText)
                     {
-                        double baseFontSize = state.SectorFontSize > 0 ? state.SectorFontSize : 10.5;
-                        double scaleFactor = n == 12 ? 0.80 : (n == 4 ? 1.20 : 1.0);
-                        double previewFs = ((layoutMode == "TextOnly") ? baseFontSize + 1.0 : baseFontSize) * 0.85 * scaleFactor;
-                        double textMaxW = n == 12 ? 44.0 : (n == 4 ? 76.0 : 64.0);
-
-                        var tb = new TextBlock
+                        sp.Children.Add(new TextBlock
                         {
-                            Text = actionName,
-                            FontSize = Math.Max(6.5, previewFs),
+                            Text = content.Text,
+                            FontSize = content.FontSize,
                             Foreground = _previewTextBrush,
                             FontWeight = FontWeights.Medium,
                             HorizontalAlignment = HorizontalAlignment.Center,
                             TextAlignment = TextAlignment.Center,
                             TextTrimming = TextTrimming.CharacterEllipsis,
-                            MaxWidth = textMaxW
-                        };
-                        sp.Children.Add(tb);
+                            MaxWidth = content.TextMaxWidth,
+                            Margin = new Thickness(0, content.TextTopMargin, 0, 0)
+                        });
                     }
-
-                    double containerW = n == 12 ? 46.0 : (n == 4 ? 76.0 : 60.0);
-                    double containerH = n == 12 ? 38.0 : (n == 4 ? 54.0 : 44.0);
 
                     var container = new Grid
                     {
-                        Width = containerW,
-                        Height = containerH,
+                        Width = content.ContainerWidth,
+                        Height = content.ContainerHeight,
                         IsHitTestVisible = false,
                         RenderTransform = transform
                     };
                     container.Children.Add(sp);
-                    Canvas.SetLeft(container, lx - containerW / 2.0);
-                    Canvas.SetTop(container, ly - containerH / 2.0);
+                    Canvas.SetLeft(container, lx - container.Width / 2.0);
+                    Canvas.SetTop(container, ly - container.Height / 2.0);
                     Panel.SetZIndex(container, 10);
                     canvas.Children.Add(container);
                 }

@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Kernel.Localization;
+using StarPie.Services.Wheel;
 
 namespace StarPie.ViewModels.Wheel
 {
@@ -29,9 +30,9 @@ namespace StarPie.ViewModels.Wheel
 
         public GesturePoint Center { get; }
 
-        /// <summary>运行态配置引用：轮盘窗口读取纯样式字段（形状/字体/核图），
-        /// 面向渲染器的状态以属性暴露。</summary>
-        public AppConfig Config { get; }
+        /// <summary>瞬态视图数据投影（快照）：只含渲染所需字段，窗口据此绘制；
+        /// 视图因此不可达全局配置对象。</summary>
+        public WheelViewData ViewData { get; }
 
         /// <summary>每个轮盘扇区一个槽位（按方位角索引）；未绑定动作的槽位 HasAction 为 false。</summary>
         public IReadOnlyList<WheelSectorViewModel> Sectors { get; }
@@ -54,11 +55,11 @@ namespace StarPie.ViewModels.Wheel
 
         public bool ShowCoreIcon { get; }
 
-        public WheelViewModel(GesturePoint center, WheelProfile profile, AppConfig config, ILocalizationService localization)
+        public WheelViewModel(GesturePoint center, WheelProfile profile, WheelViewData viewData, ILocalizationService localization)
         {
             Center = center;
             _profile = profile;
-            Config = config;
+            ViewData = viewData;
 
             CoreTitle = profile.ProcessName == "Global" ? localization.GetString("WheelCoreTitle") : profile.ProcessName;
             CoreSubtitle = string.Format(localization.GetString("WheelCoreSubtitle"), profile.SectorCount);
@@ -67,15 +68,15 @@ namespace StarPie.ViewModels.Wheel
                 .Select(i => new WheelSectorViewModel(i, i < profile.Actions.Count ? profile.Actions[i] : null))
                 .ToList();
 
-            WheelPalette = config.WheelPalette ?? "System";
-            WheelStyle = config.WheelStyle ?? "ClassicRing";
-            OuterRadius = config.WheelRadius;
-            CoreRadius = config.CoreRadius;
+            WheelPalette = viewData.WheelPalette;
+            WheelStyle = viewData.WheelStyle;
+            OuterRadius = viewData.WheelRadius;
+            CoreRadius = viewData.CoreRadius;
             // 安全边界：环不得退化，内半径保持小于外半径。
-            InnerRadius = config.InnerRadius >= OuterRadius
+            InnerRadius = viewData.InnerRadius >= OuterRadius
                 ? Math.Max(0, OuterRadius - 20)
-                : config.InnerRadius;
-            ShowCoreIcon = config.ShowCoreIcon;
+                : viewData.InnerRadius;
+            ShowCoreIcon = viewData.ShowCoreIcon;
         }
 
         public void Show() => IsShown = true;

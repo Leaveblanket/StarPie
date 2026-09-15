@@ -32,6 +32,8 @@ public sealed class TestIconAssetService : IIconAssetService
 
     public ImageSource? GetCustomImageSource(string iconKeyOrPath) => null;
 
+    public BitmapSource? LoadBitmap(string? path) => null;
+
     public BitmapSource? GetIcon(string path) => null;
 
     public void ReleaseTransientCaches() { }

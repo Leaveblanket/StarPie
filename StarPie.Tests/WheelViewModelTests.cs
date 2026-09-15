@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StarPie;
+
+using StarPie.ViewModels.Wheel;
 
 namespace StarPie.Tests;
 
@@ -20,7 +22,7 @@ public sealed class WheelViewModelTests
     }
 
     private static WheelViewModel Create(WheelProfile profile, AppConfig? config = null)
-        => new(new GesturePoint(120, 96), profile, config ?? new AppConfig(), Localization);
+        => new(new GesturePoint(120, 96), profile, WheelViewData.FromConfig(config ?? new AppConfig()), Localization);
 
     // --- 构造 ---------------------------------------------------------
 

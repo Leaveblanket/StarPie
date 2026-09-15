@@ -16,6 +16,22 @@ namespace StarPie.Services.Wheel
     /// </remarks>
     public static class WheelGeometry
     {
+        /// <summary>SVG 路径数据可否构造几何（解析失败即不可用）。供扇区内容内核判定用户提供的
+        /// SVG 是否回落下一级图标来源——解析本身是 WPF 面，故接缝留在本几何出口。</summary>
+        public static bool IsParsablePathData(string pathData)
+        {
+            if (string.IsNullOrWhiteSpace(pathData)) return false;
+            try
+            {
+                Geometry.Parse(pathData);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         #region Geometry Creation Helpers for Advanced Shapes
 
         public static Geometry CreateAdvancedSectorGeometry(
@@ -119,6 +135,11 @@ namespace StarPie.Services.Wheel
 
         #region Center Core Icon Geometries
 
+        /// <summary>中心核图标几何：入参为核图标类型（<c>AppConfig.CoreIconType</c>）。</summary>
+        /// <remarks>
+        /// 下方 <c>CatPaw</c> 分支是<b>核图标类型</b>，与轮盘主题风格同名值 <c>WheelStyleNames.CatPaw</c>
+        /// 不是同一概念（前者画核里的猫爪图案，后者切整套皮肤），勿合并取值来源。
+        /// </remarks>
         public static Geometry GetCoreIconGeometry(string? coreIconType, string? customKey = null, string? customSvg = null)
         {
             string type = string.IsNullOrEmpty(coreIconType) ? "Exit" : coreIconType;

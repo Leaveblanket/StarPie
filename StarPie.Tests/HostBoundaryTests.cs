@@ -52,8 +52,11 @@ public sealed class HostBoundaryTests
         typeof(ProgramSourceAggregator),
         // Themes/（界面主题引擎）与 Ports/（宿主→Ui 端口：主题应用）
         typeof(ThemeEngine), typeof(IThemeApplier),
-        // Wheel/（轮盘配色目录与色值解析，WPF-free）
+        // Wheel/（轮盘配色目录与色值解析 + 扇区内容内核，WPF-free）
         typeof(WheelPalette), typeof(WheelPaletteCatalog), typeof(WheelPaletteParser),
+        typeof(WheelSectorContentKernel), typeof(WheelSectorInput), typeof(WheelSectorLayoutSpec),
+        typeof(WheelSectorContent), typeof(WheelIconContent), typeof(WheelIconKind),
+        typeof(WheelBuiltInIcons),
         // Gestures/（手势内核：状态机/释放语义/窗口上下文接缝）与 Actions/（动作路由纯函数）
         typeof(GestureEngine), typeof(GestureState), typeof(GestureReleaseResult),
         typeof(IWindowContext), typeof(WindowContext), typeof(GestureModifierKeys),
