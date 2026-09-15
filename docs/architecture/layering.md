@@ -120,8 +120,8 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
-- 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡、提权重启与
-  退出是壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
+- 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡与退出是
+  壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
   M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 GesturesContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
@@ -155,8 +155,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 
 ### `AdvancedSettingsPage` 绑定规范（页面级示例，所有页面同则）
 
-- 导入、导出、提权、内存整理按钮绑定 VM 命令。
+- 导入、导出按钮绑定 VM 命令。
 - `AutoStartCheckBox.IsChecked` 双向绑定 `AutoStartEnabled`；注册表写入与保存请求放在 VM 属性变更回调（经组合根注入的自启委托）。
 - `LanguageComboBox` 设置 `SelectedValuePath="Tag"`，双向绑定可写 `LanguageCode`；语言切换与持久化放在 VM。
-- `UacWarningCard.Visibility` 绑定 VM 布尔状态并使用转换器。
 - `MessageBox` 仅可作为 View 显示适配；提示内容与副作用由 VM/服务决定。
