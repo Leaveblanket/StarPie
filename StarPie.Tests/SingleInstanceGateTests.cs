@@ -34,4 +34,30 @@ public sealed class SingleInstanceGateTests
             },
             Enum.GetValues<SingleInstanceGateDecision>());
     }
+
+    // --- 接收端：已有实例只在非提权态受理让位（严格单向的另一面） ---------------------
+
+    [Theory]
+    [InlineData(false, true)]  // 非提权实例让位：接管的目的就是提升权限
+    [InlineData(true, false)]  // 提权实例永不让位：受理让位会让"降权"成为可能
+    public void AcceptsHandoverRequest_OnlyWhenNotElevated(bool existingElevated, bool expected)
+    {
+        Assert.Equal(expected, SingleInstanceGate.AcceptsHandoverRequest(existingElevated));
+    }
+
+    // --- 接管尝试的结果并入决策：等不到让位即转"退出并告知未生效" ---------------------
+
+    [Theory]
+    [InlineData(SingleInstanceGateDecision.RequestHandover, true, SingleInstanceGateDecision.RequestHandover)]
+    [InlineData(SingleInstanceGateDecision.RequestHandover, false, SingleInstanceGateDecision.ExitAndNotifyElevationFailed)]
+    [InlineData(SingleInstanceGateDecision.ForegroundAndExit, true, SingleInstanceGateDecision.ForegroundAndExit)]
+    [InlineData(SingleInstanceGateDecision.ForegroundAndExit, false, SingleInstanceGateDecision.ForegroundAndExit)]
+    [InlineData(SingleInstanceGateDecision.ExitAndNotifyElevationFailed, false, SingleInstanceGateDecision.ExitAndNotifyElevationFailed)]
+    public void ApplyHandoverOutcome_OnlyTurnsAFailedHandoverIntoTheFailureExit(
+        SingleInstanceGateDecision decision, bool takeoverSucceeded, SingleInstanceGateDecision expected)
+    {
+        // 请求让位未成（请求送不出去，或等不到已有实例释放单实例互斥体）→ 本次提权作废，
+        // 新实例按时限退出并告知；其余决策不受接管尝试的结果影响。
+        Assert.Equal(expected, SingleInstanceGate.ApplyHandoverOutcome(decision, takeoverSucceeded));
+    }
 }

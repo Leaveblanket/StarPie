@@ -42,6 +42,7 @@ public sealed class HostBoundaryTests
         typeof(AutostartRegistry), typeof(ProcessElevation), typeof(MemoryOptimizer), typeof(TrayStateSignal), typeof(TraySignalStep), typeof(TrayStateChange),
         typeof(ShellExitSequence), typeof(ShellExitStep),
         typeof(SingleInstanceGate), typeof(SingleInstanceGateDecision),
+        typeof(InstanceHandover), typeof(InstanceHandoverListener),
         // HostServices/（插件服务出口与托盘状态消息泵）
         typeof(IPluginEventSink), typeof(PluginEventPump),
         // Icons/（资产目录与自定义图标存储）
