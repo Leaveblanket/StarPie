@@ -49,6 +49,14 @@ public sealed class AutostartRegistryTests
     }
 
     [Fact]
+    public void BuildAdminTaskRunArguments_TargetsTheTaskWithoutChangingItsRunLevel()
+    {
+        // 权限级别是任务自身的属性（/rl highest），触发方只请求运行——即时提权复用的就是这颗任务。
+        // 带 /tn 指名任务；不带 runas 类选项（触发不需要提权，故不弹 UAC）。
+        Assert.Equal("/run /tn \"StarPie_AdminAutoStart\"", AutostartRegistry.BuildAdminTaskRunArguments(TaskName));
+    }
+
+    [Fact]
     public void AdminTaskName_KeepsReleaseNamePrefix_DevInstanceOnlyAddsSuffix()
     {
         // dev 实例只加后缀，绝不与正式版共用任务（否则 dev 构建会覆盖正式版的自启形态）。
@@ -82,5 +90,24 @@ public sealed class AutostartRegistryTests
         var placement = AutostartRegistry.ResolvePlacement(enable, asAdmin);
 
         Assert.False(placement.WriteRunKey && placement.WantAdminTask);
+    }
+
+    // --- 「立即提权」入口的可见性与可点性 -----------------------------------------
+
+    [Theory]
+    [InlineData(false, true, true, true)]    // 非提权 + 任务在：入口出现且可点
+    [InlineData(false, false, true, false)]  // 非提权 + 任务不在：入口出现但不可点（要说明原因）
+    [InlineData(true, true, false, true)]    // 提权态：入口不出现（对提权实例没有意义）
+    [InlineData(true, false, false, false)]
+    public void ResolveAdminRestartEntry_HidesWhenElevatedAndDisablesWithoutTheTask(
+        bool elevated, bool adminTaskExists, bool expectedVisible, bool expectedEnabled)
+    {
+        // 入口就是提权自启那颗任务的即时触发，故两条口径都从它直接推出：
+        // 提权态下不出现；任务不在时不可点——没有可复用的任务就没有这条路，
+        // 也不做"临时提权、用完删任务"的第三种形态。
+        (bool visible, bool enabled) = AutostartRegistry.ResolveAdminRestartEntry(elevated, adminTaskExists);
+
+        Assert.Equal(expectedVisible, visible);
+        Assert.Equal(expectedEnabled, enabled);
     }
 }

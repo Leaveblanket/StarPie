@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie;
+using StarPie.Services;
 
 namespace StarPie.Tests;
 
@@ -26,7 +27,9 @@ public sealed class GeneralSettingsViewModelTests
         List<NoticeRequest>? notices = null,
         SaveSpy? save = null,
         bool adminAutoStartEnabled = false,
-        bool applyAdminSucceeds = true)
+        bool applyAdminSucceeds = true,
+        bool runningElevated = false,
+        AppHostDelegates? hostDelegates = null)
     {
         var messenger = TestHub.NewMessenger();
         if (save != null) SaveSpy.Attach(messenger, save);
@@ -47,7 +50,9 @@ public sealed class GeneralSettingsViewModelTests
             currentConfig: () => config,
             messenger: messenger,
             localization: Localization,
-            isAdminAutoStartEnabled: () => adminTaskPresent);
+            isAdminAutoStartEnabled: () => adminTaskPresent,
+            isRunningElevated: () => runningElevated,
+            hostDelegates: hostDelegates);
         if (notices != null)
         {
             messenger.Register<GeneralNoticeRequestedMessage>(vm, (_, m) => notices.Add(m.Notice));
@@ -233,8 +238,85 @@ public sealed class GeneralSettingsViewModelTests
         Assert.Equal((Enable: false, AsAdmin: false), calls[^1]);
     }
 
-    // --- 配置导出/导入 ---------------------------------------------------------------
+    // --- 立即以管理员身份重启（入口可见性口径） ---------------------------------------
 
+    [Fact]
+    public void RestartElevatedEntry_VisibleAndClickable_WhenNotElevatedAndTaskPresent()
+    {
+        var vm = Create(MakeConfig(), autoStartEnabled: true, adminAutoStartEnabled: true);
+
+        Assert.True(vm.ShowRestartElevated);
+        Assert.True(vm.CanRestartElevated);
+        Assert.False(vm.ShowRestartElevatedHint);
+    }
+
+    [Fact]
+    public void RestartElevatedEntry_Hidden_WhenAlreadyRunningElevated()
+    {
+        // 提权入口只在非提权态出现：对以管理员身份运行的实例没有意义。
+        var vm = Create(MakeConfig(), autoStartEnabled: true, adminAutoStartEnabled: true, runningElevated: true);
+
+        Assert.False(vm.ShowRestartElevated);
+        Assert.False(vm.ShowRestartElevatedHint);
+    }
+
+    [Fact]
+    public void RestartElevatedEntry_NotClickableWithReason_WhenAdminAutostartTaskMissing()
+    {
+        // 入口出现但不可点，且呈现"为什么不可点"——不给一个点了没反应的按钮。
+        var vm = Create(MakeConfig());
+
+        Assert.True(vm.ShowRestartElevated);
+        Assert.False(vm.CanRestartElevated);
+        Assert.True(vm.ShowRestartElevatedHint);
+    }
+
+    [Fact]
+    public void RestartElevatedEntry_ClickabilityFollowsTheAutostartTaskReality()
+    {
+        var vm = Create(MakeConfig());
+        Assert.False(vm.CanRestartElevated);
+
+        vm.AdminAutoStartEnabled = true;
+
+        // 任务落位成功（实况回读为"在"）后入口即可点，原因说明随之收起。
+        Assert.True(vm.CanRestartElevated);
+        Assert.False(vm.ShowRestartElevatedHint);
+    }
+
+    [Fact]
+    public void RestartElevatedNow_ForwardsToHostDelegate()
+    {
+        // 触发经宿主委托包转发：页面 VM 不反向依赖宿主类，也不给应用内入口开专用通道。
+        var hostDelegates = new AppHostDelegates();
+        int invoked = 0;
+        hostDelegates.RestartElevated = () => invoked++;
+        var vm = Create(
+            MakeConfig(),
+            autoStartEnabled: true,
+            adminAutoStartEnabled: true,
+            hostDelegates: hostDelegates);
+
+        vm.RestartElevatedNowCommand.Execute(null);
+
+        Assert.Equal(1, invoked);
+    }
+
+    [Fact]
+    public void RestartElevatedNow_DoesNothing_WhenEntryIsNotClickable()
+    {
+        // 不可点时不动手（按钮本身也绑 IsEnabled）：守卫写在 VM 里，命令被程序化触发也不会越界。
+        var hostDelegates = new AppHostDelegates();
+        int invoked = 0;
+        hostDelegates.RestartElevated = () => invoked++;
+        var vm = Create(MakeConfig(), hostDelegates: hostDelegates);
+
+        vm.RestartElevatedNowCommand.Execute(null);
+
+        Assert.Equal(0, invoked);
+    }
+
+    // --- 配置导出/导入 ---------------------------------------------------------------
     [Fact]
     public void ExportConfig_Cancelled_DoesNotExport()
     {

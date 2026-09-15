@@ -186,6 +186,9 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>Windows タスクスケジューラ経由で最高権限のままサイレント起動し、サインイン時に UAC を表示しません。タスクマネージャーなどの管理者ウィンドウでもジェスチャーを使えます。代わりに StarPie とインプロセスプラグインは常に管理者として動作します。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>通知</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>管理者としての自動起動を設定できませんでした。UAC をキャンセルしたか、このアカウントに管理者資格情報がない可能性があります。通常権限の自動起動を維持します。</value></data>
+  <data name="AdminRestartNow" xml:space="preserve"><value>今すぐ管理者として再起動</value></data>
+  <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>先に「管理者として自動起動」を有効にしてください — 即時昇格はそこで作成されるタスクを再利用するため、別の経路はありません。</value></data>
+  <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>今すぐ管理者として再起動（先に「管理者として自動起動」を有効にしてください）</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>バックアップとリセット</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>設定をエクスポート</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>設定をインポート</value></data>

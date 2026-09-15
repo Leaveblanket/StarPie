@@ -186,6 +186,9 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>經 Windows 工作排程器以最高權限靜默啟動，登入時不再彈出 UAC，可在工作管理員等高權限視窗中正常喚起手勢。代價是 StarPie 與處理序內外掛都以系統管理員身分常駐。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>提示</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>提權自啟未生效：可能取消了 UAC，或目前帳號沒有系統管理員認證。已保持一般權限自啟。</value></data>
+  <data name="AdminRestartNow" xml:space="preserve"><value>立即以系統管理員身分重新啟動</value></data>
+  <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>需先開啟「以系統管理員身分開機自啟」——立即提權複用的就是它建的那顆排程工作，不另開路徑。</value></data>
+  <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>立即以系統管理員身分重新啟動（需先開啟「以系統管理員身分開機自啟」）</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>配置備份與恢復 (Backup &amp; Reset)</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>匯出配置備份</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>匯入設定檔</value></data>

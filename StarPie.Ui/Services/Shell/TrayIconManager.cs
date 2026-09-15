@@ -22,9 +22,15 @@ namespace StarPie.Services.Shell
         public bool IsHeader;
         public Action? Callback;
 
+        /// <summary>可点性。为假时条目灰显且不响应点击——用于"此刻不可用，且标签已写明原因"
+        /// 的条目（不可用要看得见，不能给一个点了没反应的按钮）。</summary>
+        public bool IsEnabled = true;
+
         public static TrayMenuEntry Header(string label) => new() { Label = label, IsHeader = true };
         public static TrayMenuEntry Separator() => new();
         public static TrayMenuEntry Item(string label, Action callback) => new() { Label = label, Callback = callback };
+        public static TrayMenuEntry Item(string label, Action callback, bool enabled)
+            => new() { Label = label, Callback = callback, IsEnabled = enabled };
     }
 
     /// <summary>
@@ -359,23 +365,34 @@ namespace StarPie.Services.Shell
             var hoverBrush = dark
                 ? new SolidColorBrush(Color.FromArgb(0x25, 0xFF, 0xFF, 0xFF))
                 : new SolidColorBrush(Color.FromArgb(0x14, 0x00, 0x00, 0x00));
+            bool enabled = entry.IsEnabled;
             var text = new TextBlock
             {
                 Text = entry.Label,
                 FontSize = 12.5,
-                Foreground = dark
-                    ? new SolidColorBrush(Color.FromArgb(0xF2, 0xFF, 0xFF, 0xFF))
-                    : new SolidColorBrush(Color.FromArgb(0xF0, 0x1A, 0x1A, 0x1A)),
+                Foreground = enabled
+                    ? (dark
+                        ? new SolidColorBrush(Color.FromArgb(0xF2, 0xFF, 0xFF, 0xFF))
+                        : new SolidColorBrush(Color.FromArgb(0xF0, 0x1A, 0x1A, 0x1A)))
+                    : (dark
+                        ? new SolidColorBrush(Color.FromArgb(0x66, 0xFF, 0xFF, 0xFF))
+                        : new SolidColorBrush(Color.FromArgb(0x70, 0x1A, 0x1A, 0x1A))),
                 Margin = new Thickness(14, 7, 18, 7)
             };
             var row = new Border
             {
                 Child = text,
                 Background = Brushes.Transparent,
-                Cursor = Cursors.Hand,
+                Cursor = enabled ? Cursors.Hand : Cursors.Arrow,
                 CornerRadius = new CornerRadius(5),
                 Margin = new Thickness(6, 0, 6, 0)
             };
+            if (!enabled)
+            {
+                // 不可用条目：无悬停反馈、不挂点击——原因写在标签里，不靠"点了没反应"传达。
+                return row;
+            }
+
             row.MouseEnter += (s, e) => row.Background = hoverBrush;
             row.MouseLeave += (s, e) => row.Background = Brushes.Transparent;
             row.MouseLeftButtonUp += (s, e) =>

@@ -158,6 +158,26 @@ def test_switch_all_tabs_smoothly(app):
         "AdminAutoStartCheckBox should exist in System tab"
 
 
+def test_admin_restart_entry_visibility_without_elevation(app):
+    """
+    「立即以管理员身份重启」入口在非提权态下的可见性口径：入口出现，但提权自启的计划任务在
+    沙箱里不存在，故按钮不可点、旁边写明原因——不是给一个点了没反应的按钮。
+    不提权态下**绝不点击**它：触发会去跑 schtasks，属于 e2e 不触碰的系统副作用。
+    （提权态下入口不出现的口径由 GeneralSettingsViewModelTests 覆盖，e2e 运行环境不提权。）
+    """
+    win, _ = app
+
+    goto(win, 3)
+
+    restart = win.child_window(auto_id="AdminRestartNowButton", control_type="Button")
+    assert restart.exists(timeout=3), "非提权态下「立即以管理员身份重启」入口应当出现"
+    assert not restart.is_enabled(), \
+        "提权自启的任务不存在时入口不可点（须先开启「以管理员身份开机自启」）"
+    # 原因必须写出来：文案随语言变，这里只断言"确实呈现了说明"
+    assert text_of(win, "AdminRestartNowHint", "Text", timeout=3).strip(), \
+        "入口不可点时必须呈现原因，而不是留一个点了没反应的按钮"
+
+
 def test_appearance_shapes_and_geometry_reset(app):
     """
     形状选择、间隙/圆角滑块与"重置尺寸"按钮：数值断言用等值（不再用子串包含），

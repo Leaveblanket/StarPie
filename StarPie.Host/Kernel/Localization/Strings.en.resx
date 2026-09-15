@@ -186,6 +186,9 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>Launches silently with highest privileges via Windows Task Scheduler, with no UAC prompt at sign-in, so gestures work in elevated windows such as Task Manager. The trade-off: StarPie and its in-process plugins then run as administrator at all times.</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>Notice</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>Elevated autostart was not applied — the UAC prompt may have been cancelled, or this account has no administrator credentials. Normal-privilege autostart is kept.</value></data>
+  <data name="AdminRestartNow" xml:space="preserve"><value>Restart as administrator now</value></data>
+  <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>Turn on “Run as administrator at startup” first — restarting elevated reuses the scheduled task it creates, with no separate path.</value></data>
+  <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>Restart as administrator now (turn on “Run as administrator at startup” first)</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>Backup &amp; Reset</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>Export Backup</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>Import Config</value></data>
