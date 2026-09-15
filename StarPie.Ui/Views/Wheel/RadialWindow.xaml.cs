@@ -10,7 +10,9 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using StarPie.Kernel.Localization;
+using StarPie.Services.Icons;
 using StarPie.Services.Wheel;
+using StarPie.Wheel;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
@@ -309,8 +311,14 @@ namespace StarPie.Views.Wheel
             string shape = _viewModel.Config.Shape ?? "Original";
             double gap = Math.Max(0.0, _viewModel.Config.SectorGap);
             double cornerRadius = Math.Max(0.0, _viewModel.Config.SectorCornerRadius);
-            string layoutMode = _viewModel.Config.IconLayoutMode ?? "IconAndText";
-            bool showText = _viewModel.Config.ShowText && layoutMode != "IconOnly";
+
+            // 排版窄字段交给内核；「要不要画文字」也由内核按布局模式判定，本类不再自行组合。
+            var layoutSpec = new WheelSectorLayoutSpec(
+                n,
+                _viewModel.Config.IconLayoutMode,
+                _viewModel.Config.ShowText,
+                _viewModel.Config.SectorIconSize,
+                _viewModel.Config.SectorFontSize);
 
             _sectorPaths.Clear();
             _contentPanels.Clear();
@@ -364,15 +372,27 @@ namespace StarPie.Views.Wheel
                 _sectorTransforms.Add(pathTransform);
                 _sectorAngles.Add(midAngleRad);
 
-                // 用网格容器保证 StackPanel 绝对居中
-                double containerW = n == 12 ? 58.0 : (n == 4 ? 96.0 : 84.0);
-                double containerH = n == 12 ? 48.0 : (n == 4 ? 72.0 : 64.0);
+                // 扇区内容（图标回退链、排版缩放、内置向量）来自共享内核；本类只把纯数据画成元素。
+                WheelSectorViewModel sector = _viewModel.Sectors[i];
+                string actionText = sector.HasAction ? sector.Name : _localization.GetString("WheelSectorEmpty");
 
+                WheelSectorContent content = WheelSectorContentKernel.Build(
+                    new WheelSectorInput(
+                        actionText,
+                        sector.Type,
+                        sector.Parameter,
+                        sector.IconKey,
+                        sector.CustomIconSvg,
+                        ResolveCustomIcon(sector.IconKey)),
+                    layoutSpec,
+                    isParsableSvg: WheelGeometry.IsParsablePathData);
+
+                // 用网格容器保证 StackPanel 绝对居中
                 var containerTransform = new TranslateTransform(0, 0);
                 var container = new Grid
                 {
-                    Width = containerW,
-                    Height = containerH,
+                    Width = content.ContainerWidth,
+                    Height = content.ContainerHeight,
                     RenderTransform = containerTransform
                 };
 
@@ -384,156 +404,28 @@ namespace StarPie.Views.Wheel
                 };
                 container.Children.Add(stackPanel);
 
-                WheelSectorViewModel sector = _viewModel.Sectors[i];
-            string actionText = sector.HasAction ? sector.Name : _localization.GetString("WheelSectorEmpty");
-                string actionType = sector.Type;
-                string parameter = sector.Parameter;
-                string iconKey = sector.IconKey;
-                string customSvg = sector.CustomIconSvg;
-
-                FrameworkElement? iconElement = null;
-
-                if (layoutMode != "TextOnly")
+                // 顺序契约：先图标元素、后 TextBlock——ApplySectorHighlight 按子元素顺序反查这两者，
+                // 顺序颠倒会让高亮静默失效。
+                FrameworkElement? iconElement = CreateIconElement(content);
+                if (iconElement != null)
                 {
-                    double configuredIconSize = _viewModel.Config.SectorIconSize > 0 ? _viewModel.Config.SectorIconSize : 20.0;
-                    double scaleFactor = n == 12 ? 0.82 : (n == 4 ? 1.20 : 1.0);
-                    double baseIconSize = (layoutMode == "IconOnly") ? configuredIconSize * 1.35 : configuredIconSize;
-                    double iconSize = baseIconSize * scaleFactor;
-
-                    if (!string.IsNullOrEmpty(customSvg))
-                    {
-                        try
-                        {
-                            iconElement = new Path
-                            {
-                                Data = Geometry.Parse(customSvg),
-                                Fill = _textColorBrush,
-                                Stretch = Stretch.Uniform,
-                                Width = iconSize,
-                                Height = iconSize,
-                                Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                            };
-                        }
-                        catch { }
-                    }
-
-                    if (iconElement == null && !string.IsNullOrEmpty(iconKey))
-                    {
-                        if (iconKey.StartsWith("custom:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            var custom = _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey);
-                            if (custom != null)
-                            {
-                                if (custom.IsSvg)
-                                {
-                                    iconElement = new Path
-                                    {
-                                        Data = Geometry.Parse(custom.SvgData),
-                                        Fill = _textColorBrush,
-                                        Stretch = Stretch.Uniform,
-                                        Width = iconSize,
-                                        Height = iconSize,
-                                        Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                                    };
-                                }
-                                else
-                                {
-                                    var img = new System.Windows.Controls.Image
-                                    {
-                                        Width = iconSize,
-                                        Height = iconSize,
-                                        Stretch = Stretch.Uniform,
-                                        Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                                    };
-                                    img.Source = _iconAssets.GetCustomImageSource(custom.FilePath);
-                                    iconElement = img;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            string? svgData = IconCatalog.GetSvgPathByKey(iconKey);
-                            if (!string.IsNullOrEmpty(svgData))
-                            {
-                                iconElement = new Path
-                                {
-                                    Data = Geometry.Parse(svgData),
-                                    Fill = _textColorBrush,
-                                    Stretch = Stretch.Uniform,
-                                    Width = iconSize,
-                                    Height = iconSize,
-                                    Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                    HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                                };
-                            }
-                        }
-                    }
-
-                    if (iconElement == null && actionType == "Launch" && !string.IsNullOrEmpty(parameter))
-                    {
-                        System.Windows.Media.Imaging.BitmapSource? iconSrc = _iconAssets.GetIcon(parameter);
-                        if (iconSrc != null)
-                        {
-                            iconElement = new System.Windows.Controls.Image
-                            {
-                                Source = iconSrc,
-                                Width = iconSize + 4,
-                                Height = iconSize + 4,
-                                Stretch = Stretch.Uniform,
-                                Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                            };
-                        }
-                    }
-
-                    if (iconElement == null)
-                    {
-                        string? pathData = GetVectorIconPath(actionType, parameter);
-                        if (!string.IsNullOrEmpty(pathData))
-                        {
-                            iconElement = new Path
-                            {
-                                Data = Geometry.Parse(pathData),
-                                Fill = _textColorBrush,
-                                Stretch = Stretch.Uniform,
-                                Width = iconSize,
-                                Height = iconSize,
-                                Margin = new Thickness(0, 0, 0, showText ? 2 : 0),
-                                HorizontalAlignment = System.Windows.HorizontalAlignment.Center
-                            };
-                        }
-                    }
-
-                    if (iconElement != null)
-                    {
-                        stackPanel.Children.Add(iconElement);
-                    }
+                    stackPanel.Children.Add(iconElement);
                 }
 
-                if (showText && !string.IsNullOrEmpty(actionText))
+                if (content.ShowText)
                 {
-                    double baseFontSize = _viewModel.Config.SectorFontSize > 0 ? _viewModel.Config.SectorFontSize : 10.5;
-                    double actualFontSize = (layoutMode == "TextOnly") ? baseFontSize + 1.0 : baseFontSize;
-                    if (n == 12) actualFontSize = Math.Min(actualFontSize, 9.5);
-                    else if (n == 4) actualFontSize = Math.Max(actualFontSize, 11.5);
-
-                    double textMaxW = n == 12 ? 50.0 : (n == 4 ? 90.0 : 78.0);
-
                     var textBlock = new TextBlock
                     {
-                        Text = actionText,
+                        Text = content.Text,
                         Foreground = _textColorBrush,
-                        FontSize = actualFontSize,
+                        FontSize = content.FontSize,
                         FontWeight = FontWeights.Medium,
                         TextAlignment = TextAlignment.Center,
                         TextWrapping = TextWrapping.Wrap,
                         TextTrimming = TextTrimming.CharacterEllipsis,
-                        MaxWidth = textMaxW,
+                        MaxWidth = content.TextMaxWidth,
                         MaxHeight = 28,
-                        Margin = new Thickness(0, 1, 0, 0),
+                        Margin = new Thickness(0, content.TextTopMargin, 0, 0),
                         Effect = (System.Windows.Media.Effects.Effect)Resources["TextShadow"]
                     };
                     stackPanel.Children.Add(textBlock);
@@ -548,41 +440,6 @@ namespace StarPie.Views.Wheel
                 _contentPanels.Add(stackPanel);
                 _containerTransforms.Add(containerTransform);
             }
-        }
-
-        private string? GetVectorIconPath(string type, string parameter)
-        {
-            if (type == "Folder" || type == "OpenFolder")
-            {
-                return IconCatalog.GetSvgPathByKey("Folder");
-            }
-
-            if (type == "Hotkey")
-            {
-                // 键盘图标
-                return "M19,15H5V5H19M19,3H5C3.89,3 3,3.89 3,5V15C3,16.1 3.89,17 5,17H19C20.1,17 21,16.1 21,15V5C21,3.89 20.1,3 19,3M2,18H22V20H2V18Z";
-            }
-
-            if (type == "System" && !string.IsNullOrEmpty(parameter))
-            {
-                switch (parameter.Trim().ToLower())
-                {
-                    case "lock":
-                        return IconCatalog.GetSvgPathByKey("Lock");
-                    case "volumeup":
-                        return IconCatalog.GetSvgPathByKey("VolumeUp");
-                    case "volumedown":
-                        return IconCatalog.GetSvgPathByKey("VolumeDown");
-                    case "volumemute":
-                        return IconCatalog.GetSvgPathByKey("VolumeMute");
-                    case "showdesktop":
-                        return IconCatalog.GetSvgPathByKey("ShowDesktop");
-                    case "screenshot":
-                        return IconCatalog.GetSvgPathByKey("Screenshot");
-                }
-            }
-
-            return null;
         }
 
         /// <summary>把引擎驱动的状态变更反映到视图（INPC 订阅边界）：窗口只经
@@ -759,6 +616,65 @@ namespace StarPie.Views.Wheel
                 }
             }
         }
+
+        /// <summary>把内核给出的图标内容画成元素：矢量画 Path、自定义位图与程序图标画 Image。
+        /// 内容为 None 或程序图标取不到时返回 null（该扇区不画图标元素）。</summary>
+        private FrameworkElement? CreateIconElement(WheelSectorContent content)
+        {
+            double bottomMargin = content.IconBottomMargin;
+
+            switch (content.Icon.Kind)
+            {
+                case WheelIconKind.SvgPath:
+                    return new Path
+                    {
+                        Data = Geometry.Parse(content.Icon.Data),
+                        Fill = _textColorBrush,
+                        Stretch = Stretch.Uniform,
+                        Width = content.IconSize,
+                        Height = content.IconSize,
+                        Margin = new Thickness(0, 0, 0, bottomMargin),
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center
+                    };
+
+                case WheelIconKind.CustomImageFile:
+                    return new Image
+                    {
+                        Source = _iconAssets.GetCustomImageSource(content.Icon.Data),
+                        Width = content.IconSize,
+                        Height = content.IconSize,
+                        Stretch = Stretch.Uniform,
+                        Margin = new Thickness(0, 0, 0, bottomMargin),
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center
+                    };
+
+                case WheelIconKind.ProgramIcon:
+                    BitmapSource? iconSource = _iconAssets.GetIcon(content.Icon.Data);
+                    if (iconSource == null)
+                    {
+                        return null;
+                    }
+                    return new Image
+                    {
+                        Source = iconSource,
+                        Width = content.IconSize,
+                        Height = content.IconSize,
+                        Stretch = Stretch.Uniform,
+                        Margin = new Thickness(0, 0, 0, bottomMargin),
+                        HorizontalAlignment = System.Windows.HorizontalAlignment.Center
+                    };
+
+                default:
+                    return null;
+            }
+        }
+
+        /// <summary>图标键命中自定义图标目录时的条目；只有 <c>custom:</c> 前缀才查目录
+        /// （目录查询是服务调用，归属消费方；键前缀规则在内核）。</summary>
+        private CustomIconItem? ResolveCustomIcon(string? iconKey)
+            => WheelSectorContentKernel.IsCustomIconKey(iconKey)
+                ? _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey)
+                : null;
 
         private static Stretch ParseStretch(string? str)
         {
