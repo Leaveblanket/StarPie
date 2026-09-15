@@ -15,6 +15,10 @@ M4 按目标归属拆分：主题引擎入宿主内核（`StarPie.Host/Themes/`�
 Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）。
 独立模块程序集 `StarPie.Theme` 与契约工程 `StarPie.Theme.Contracts` 均已撤销：
 
+- `StarPie.Sdk/Services/Themes/AppThemeNames.cs`（界面主题名目录：`System` 与五套具体主题常量、
+  深色集合（窗口暗色判定查表）、已知名规范形查询；配置取值 / 解析分支 / 字典文件名 / 设置面
+  选项目录的单一来源，与轮盘配色的 `WheelPaletteNames` 分列——两处 `System`/`Dark`/`Light`
+  同名不同义）。
 - `StarPie.Host/Themes/ThemeEngine.cs`（主题引擎：请求/有效主题状态、有效主题解析、切换与系统跟随
   重解析；命名空间 `StarPie.Themes`，零 WPF）。
 - `StarPie.Host/Ports/IThemeApplier.cs`（宿主内核 → Ui 的主题应用端口；命名空间 `StarPie.Ports`）。
@@ -23,7 +27,8 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
 - `StarPie.Ui/Services/Shell/ThemeService.cs`（`IThemeService` 实现：透传内核引擎状态，承担窗口
   DWM 标题栏应用与系统深浅色监听；命名空间 `StarPie.Services.Shell`）。
 - `StarPie.Ui/Adapters/AppThemePaletteManager.cs`（主题调色板适配器，实现内核端口
-  `IThemeApplier`：加载/缓存/冻结主题字典，整项替换 Application 合并字典的活动主题槽）。
+  `IThemeApplier`：加载/缓存/冻结主题字典，整项替换 Application 合并字典的活动主题槽；
+  规范名即字典文件名，未知主题名回落 Light）。
 - `StarPie.Ui/Themes/*.xaml`（五套同 key 集主题画刷令牌；App.xaml 静态合并 Light 作设计时/首帧默认）。
 - `StarPie.Ui/ViewModels/Pages/InterfaceThemeSettingsViewModel.cs`（界面主题设置子 VM，ADR-0014 决策 6/7）。
 - `StarPie.Ui/Modules/ThemeContributor.cs`（M4 贡献者：`RegisterServices` 登记
@@ -33,9 +38,10 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
   `StarPie.Sdk/Services/Messages/Messages.cs`，放行共享面，见 [messages.md](messages.md)）。
 
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（ShellHost/SettingsConsole/Composition/MainView/
-DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui）与 S6 对话框侧
-（驻 StarPie.Ui）只经 `StarPie.Sdk.Wpf` 契约边消费 `IThemeService`；**深浅色消费方一律经
-无状态探针 `Func<bool>`**（ADR-0039 决策 3）：M5 托盘由壳层注入探针，外观页实时预览由
+DialogService 装配面）消费 `IThemeService`；S6 对话框侧（驻 `StarPie.Ui`）只经 `StarPie.Sdk.Wpf`
+契约边消费 `IThemeService`；**深浅色消费方一律经无状态探针 `Func<bool>`**（ADR-0039 决策 3）：
+M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/壳层注入探针（M2 侧原经
+`IThemeService` 的允许边已清零），外观页实时预览由
 `ThemeContributor` 登记的 `Func<bool>` 注入外观聚合 VM（页面读 VM 属性取值，不向窗口/壳层绕行，
 也不做服务调用）；Ui → 宿主内核 + Sdk.Wpf 单向，内核不反向引用 Ui。
 
@@ -55,21 +61,28 @@ DialogService 装配面）消费 `IThemeService`；M2 轮盘侧（驻 StarPie.Ui
    设置台会话作用域取），`Run()` 内 `EnableSystemThemeTracking()` 启动系统跟随（进程级主题状态常驻）。
 4. **界面主题设置面（ADR-0014 决策 6/7）**：`InterfaceThemeSettingsViewModel`
    （`StarPie.Ui/ViewModels/Pages`，设置台会话作用域，由 `ThemeContributor.RegisterServices`
-   注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；写穿配置后发布
+   注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；选项目录与常量同源，读值经主题名目录归一
+   （空值、遗留别名、未知名回落 `System`，大小写非规范值归一到常量原形——归一只读、不写盘，
+   保证下拉不空白且界面不会静默停在另一个主题上）。写穿配置后发布
    `AppThemeChangedMessage`，由 `MainView` 壳层 code-behind（文件归属见 [shell.md](shell.md)）订阅执行
    `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径
    同样经该消息由壳层执行。外观聚合 VM 注入两个设置子 VM（另一为轮盘外观设置子 VM
    `WheelAppearanceSettingsViewModel`，见 [wheel.md](wheel.md)）。
 5. **主题引擎与服务**：`ThemeEngine`（宿主内核，零 WPF）持有
-   `RequestedTheme`/`CurrentEffectiveTheme` 状态、`ResolveEffectiveTheme`（`System`/空经注册表探测
+   `RequestedTheme` 与有效主题状态（未应用态为 `null`——不另立状态位，避免两个状态位描述同一件事
+   而漂移）、`ResolveEffectiveTheme`（`System`/空经注册表探测
    实时判定）、`SetTheme`（唯一状态/资源入口，解析→记录→经端口触发调色板替换；同有效主题 no-op、
-   首次应用恒执行）与 `RefreshSystemTheme`（跟随系统下按最新系统状态重解析）。主题
+   首次应用恒执行）与 `RefreshSystemTheme`（跟随系统下按最新系统状态重解析）；分支键与解析结果
+   一律取 `AppThemeNames` 常量。主题
    变更的唯一通知通道是 `AppThemeChangedMessage`（见流程 4）。
-   `ThemeService`（`StarPie.Ui/Services/Shell`，实现 `IThemeService`）把引擎状态透传给消费方，并承担
+   `ThemeService`（`StarPie.Ui/Services/Shell`，实现 `IThemeService`）把引擎状态透传给消费方
+   （未应用态的 `null` 在本边界投影为契约承诺的 `Light`），并承担
    WPF/WinRT 侧效果：`EnableSystemThemeTracking`（`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher
-   封送 → 仅 System/空模式重解析）与 `ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20）。
+   封送 → 仅 System/空模式重解析）与 `ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20；深浅判定查
+   `AppThemeNames.DarkThemes`，未知主题名与 `Light` 一律浅色——与调色板侧对未知名的回落同源，
+   不再出现「浅色画刷配暗色标题栏」）。
 6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView`（Host）与对话框窗口
-   （驻 `StarPie.Ui`）构造注入做白名单应用
+   （驻 `StarPie.Ui`）构造注入做白名单应用（同一查表判定，见流程 5）
    （[ADR-0009](../adr/0009-view-code-behind-whitelist.md)）。
 
 ## 扩展点

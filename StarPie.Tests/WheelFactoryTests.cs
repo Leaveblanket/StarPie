@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using StarPie.Services.Shell;
 using StarPie.Services.Wheel;
 
 namespace StarPie.Tests;
@@ -13,8 +12,8 @@ public sealed class WheelFactoryTests
 {
     private static readonly LocalizationService Localization = new();
 
-    private static WheelFactory Create(TestConfigService config, TestThemeService theme)
-        => new(config, theme, Localization, new TestIconAssetService());
+    private static WheelFactory Create(TestConfigService config, Func<bool> windowsInDarkModeProbe)
+        => new(config, windowsInDarkModeProbe, Localization, new TestIconAssetService());
 
     [Fact]
     public void Warmup_WithGlobalProfileInConfig_AssemblesAndRendersOffscreen()
@@ -22,9 +21,10 @@ public sealed class WheelFactoryTests
         var config = new TestConfigService();
         config.Current.Profiles.Add(new WheelProfile { ProcessName = "Global", SectorCount = 4 });
         config.Current.Profiles.Add(new WheelProfile { ProcessName = "chrome.exe", SectorCount = 12 });
-        var theme = new TestThemeService();
+        int probeCalls = 0;
+        bool Probe() { probeCalls++; return false; }
 
-        var factory = Create(config, theme);
+        var factory = Create(config, Probe);
 
         StaTestHarness.Run(() =>
         {
@@ -33,16 +33,17 @@ public sealed class WheelFactoryTests
         });
 
         // 预热确实走完了「构造窗口 → 初始化样式渲染器」的装配，而不只是空跑。
-        Assert.True(theme.DarkModeProbeCalls > 0, "预热应构造轮盘窗口并经主题服务探测深浅色");
+        Assert.True(probeCalls > 0, "预热应构造轮盘窗口并经深浅色探针取值");
     }
 
     [Fact]
     public void Warmup_WithoutGlobalProfile_StillAssemblesAndRendersOffscreen()
     {
         var config = new TestConfigService();
-        var theme = new TestThemeService();
+        int probeCalls = 0;
+        bool Probe() { probeCalls++; return false; }
 
-        var factory = Create(config, theme);
+        var factory = Create(config, Probe);
 
         StaTestHarness.Run(() =>
         {
@@ -51,6 +52,6 @@ public sealed class WheelFactoryTests
         });
 
         // 配置里没有全局方案：Warmup 以空方案兜底装配，预热路径与有方案时同形。
-        Assert.True(theme.DarkModeProbeCalls > 0, "无全局方案也应完成离屏预热并经主题服务探测深浅色");
+        Assert.True(probeCalls > 0, "无全局方案也应完成离屏预热并经深浅色探针取值");
     }
 }

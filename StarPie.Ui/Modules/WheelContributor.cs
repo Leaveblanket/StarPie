@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using StarPie.Kernel.Configuration;
 using StarPie.Services.Dialogs;
 using StarPie.Kernel.Localization;
-using StarPie.Services.Shell;
 using StarPie.Services.Wheel;
 using StarPie.ViewModels.Pages;
 
@@ -17,11 +16,11 @@ namespace StarPie.Modules
     /// 下放本程序集（组合根仍唯一 BuildServiceProvider，本贡献者只注册不解析）；
     /// 本模块无导航页，<see cref="ICompositionContributor.RegisterNavigation"/> 保持默认空实现。
     /// 轮盘工厂实现（<see cref="WheelFactory"/>）
-    /// 与接口 <see cref="IWheelFactory"/> 契约（ADR-0023/#97 起独立成集，#112 收口入
-    /// StarPie.Sdk）本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
+    /// 与接口 <see cref="IWheelFactory"/> 契约（驻 StarPie.Sdk）
+    /// 本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
     /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 下沉 SDK 面，实现方与消费方
-    /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与 Sdk.Wpf 的
-    /// <see cref="IThemeService"/>（M2→M4 runtime 允许边清零），不反向引用宿主。
+    /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与宿主注入的无状态深浅色探针
+    /// <c>Func&lt;bool&gt;</c>，不反向引用宿主。
     /// </remarks>
     internal sealed class WheelContributor : ICompositionContributor
     {

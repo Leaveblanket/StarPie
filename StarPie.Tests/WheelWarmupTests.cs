@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using StarPie.Services.Shell;
 
 using StarPie.ViewModels.Wheel;
 
@@ -24,7 +23,7 @@ public sealed class WheelWarmupTests
             var profile = new WheelProfile();
             var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, WheelViewData.FromConfig(config), Localization);
 
-            return WheelWarmup.Run(viewModel, new TestThemeService(), Localization, new TestIconAssetService());
+            return WheelWarmup.Run(viewModel, () => false, Localization, new TestIconAssetService());
         });
 
         // 两轮 GC + finalizer 排空：终结器可能复活对象产生新垃圾，排空后再收一次

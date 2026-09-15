@@ -19,11 +19,11 @@ namespace StarPie.Services.Wheel
         /// 窗口与位图在方法返回后即不可达（预热产物不驻留）。</summary>
         public static WeakReference Run(
             WheelViewModel viewModel,
-            IThemeService themeService,
+            Func<bool> windowsInDarkModeProbe,
             ILocalizationService localization,
             IIconAssetService iconAssets)
         {
-            var window = new RadialWindow(viewModel, themeService, localization, iconAssets);
+            var window = new RadialWindow(viewModel, windowsInDarkModeProbe, localization, iconAssets);
 
             // 离屏走一次完整布局与渲染：Measure/Arrange 触发布局与样式查找，
             // RenderTargetBitmap 触发绘制管线；窗口未显示，不创建 HWND、不触发 Loaded。

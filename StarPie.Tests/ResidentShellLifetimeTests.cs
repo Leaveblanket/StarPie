@@ -422,7 +422,7 @@ public sealed class ResidentShellLifetimeTests
                 new WheelProfile(),
                 WheelViewData.FromConfig(new AppConfig()),
                 new LocalizationService());
-            return WheelWarmup.Run(viewModel, new FakeThemeService(), new LocalizationService(), new TestIconAssetService());
+            return WheelWarmup.Run(viewModel, () => false, new LocalizationService(), new TestIconAssetService());
         });
 
         GC.Collect();

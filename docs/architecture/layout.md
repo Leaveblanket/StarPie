@@ -64,7 +64,8 @@ StarPie/
 │   │   ├── Dialogs/               # S6 契约：IDialogService + 6 结果 record
 │   │   ├── Icons/                 # S1 契约件：CustomIconItem/VectorIconItem + .lnk SPI IShortcutTargetResolver
 │   │   ├── Programs/              # M3 契约件：IProgramScanner/ProgramEntry/ProgramCatalog（纯数据，零 WPF）
-│   │   └── Wheel/                 # M2 契约：IWheelFactory
+│   │   ├── Wheel/                 # M2 契约：IWheelFactory
+│   │   └── Themes/                # M4 契约：界面主题名目录 AppThemeNames（System+五套常量、深色集合、规范形查询）
 │   └── ViewModels/
 │       ├── Pages/                 # M1 契约：IProfilePreviewSource
 │       └── Wheel/                 # M2 契约：IWheelViewModel/IWheelAppearanceState
@@ -117,6 +118,7 @@ StarPie/
 | `Kernel/Localization/` | `StarPie.Host/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx`（四语言）；`StarPie.Ui/Services/Localization/` 只余设计期投影 `DesignTimeStrings.xaml`（Page 编译签入生成物）与生成脚本（ADR-0025 例外，源 resx 在内核） | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
 | `Services/Messages/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：`Messages.cs`（IMessenger 消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest`） | 同页状态不得用消息替代绑定 |
 | `Services/Navigation/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
+| `Services/Themes/` | `StarPie.Sdk/Services/Themes/`：界面主题名目录 `AppThemeNames`（`System` 与五套具体主题常量、深色集合、已知名规范形查询）；配置取值、解析分支、字典文件名与设置面选项目录共引之 | 主题名不得在引擎/适配器/VM 各写一遍；界面主题与轮盘配色同名不同义，两套名录分列（见 [interface-theme.md](interface-theme.md)） |
 | `Services/Wheel/` | `StarPie.Ui/Services/Wheel/`：`WheelGeometry`（直构造 WPF `Geometry`）、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Sdk`，P1.3/#112 收口） | 工厂只经 SDK 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
 | `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Ui`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`（M4）、`WheelAppearanceSettingsViewModel`（M2）、`BehaviorSettingsViewModel`/`ProfileListViewModel`（M1）、`GeneralSettingsViewModel`（M5）；`StarPie.Sdk/ViewModels/Pages/`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `StarPie.Ui/ViewModels/Dialogs/`：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |

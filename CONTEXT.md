@@ -83,7 +83,7 @@ _Avoid_: 按需提权、临时提权、提权重启（指 `runas` 重启那一�
 _Avoid_: 抢占、顶替、双开切换
 
 **界面主题 (App Theme)**:
-设置控制台与对话框等窗口的 UI 配色体系：由同 key 令牌集（Light / Dark / MidnightNavy / RoyalViolet / TitaniumGray）加“跟随系统 (System)”模式构成。
+设置控制台与对话框等窗口的 UI 配色体系：由五套同 key 令牌集（主题名名录见代码侧 `AppThemeNames`，本表不重抄）加“跟随系统 (System)”模式构成。
 _Avoid_: 主题、皮肤、配色方案
 
 **轮盘配色 (Wheel Palette)**:

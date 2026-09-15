@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
+using StarPie.Services.Themes;
 using Windows.UI.ViewManagement;
 
 namespace StarPie.Services.Shell
@@ -15,7 +16,8 @@ namespace StarPie.Services.Shell
     /// 主题状态与解析在 <see cref="ThemeEngine"/>（宿主内核，零 WPF）；本服务只承担
     /// WPF/WinRT 侧效果——DWM 标题栏深浅色应用与 <c>UISettings</c> 变化经 UI Dispatcher
     /// 封送后驱动引擎重解析。调色板整项替换经引擎的 <see cref="IThemeApplier"/> 端口由宿主
-    /// 装配（Ui 侧调色板适配器），本服务不触碰视图资源。
+    /// 装配（Ui 侧调色板适配器），本服务不触碰视图资源。契约承诺的「首次应用前为
+    /// <c>Light</c>」在本边界把引擎未应用态的 null 投影出来。
     /// </remarks>
     public sealed class ThemeService : IThemeService
     {
@@ -31,10 +33,7 @@ namespace StarPie.Services.Shell
             _engine = new ThemeEngine(windowsInDarkModeProbe);
         }
 
-        /// <summary>当前请求的主题名（"System"/空 = 跟随系统；固定名 = 不跟随）。</summary>
-        public string RequestedTheme => _engine.RequestedTheme;
-
-        public string CurrentEffectiveTheme => _engine.CurrentEffectiveTheme;
+        public string CurrentEffectiveTheme => _engine.CurrentEffectiveTheme ?? AppThemeNames.Light;
 
         /// <summary>绑定调色板应用端口（宿主装配面）：<see cref="SetTheme"/> 时经该端口整项替换活动主题槽。</summary>
         public void AttachApplier(IThemeApplier applier) => _engine.AttachApplier(applier);
@@ -74,12 +73,14 @@ namespace StarPie.Services.Shell
         }
 
         /// <summary>把当前有效主题应用到窗口 DWM 标题栏（资源已是 App 级，无需重复换入）。
+        /// 深浅判定必须与调色板侧的回落同源：查主题目录的深色集合，未知/遗留主题名与 Light
+        /// 一律浅色——按「非 Light 即暗」判定会配出浅色画刷 + 暗色标题栏。
         /// null root 安全且不改状态；SourceInitialized 前调用经事件兜底重试。</summary>
         public void ApplyWindowTheme(FrameworkElement? rootElement)
         {
             if (rootElement == null) return;
 
-            bool isDark = !string.Equals(CurrentEffectiveTheme, "Light", StringComparison.OrdinalIgnoreCase);
+            bool isDark = AppThemeNames.DarkThemes.Contains(CurrentEffectiveTheme);
             var window = rootElement as Window ?? Window.GetWindow(rootElement);
             if (window != null)
             {

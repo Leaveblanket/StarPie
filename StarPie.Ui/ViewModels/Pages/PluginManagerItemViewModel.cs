@@ -150,8 +150,8 @@ namespace StarPie.ViewModels.Pages
         /// <summary>诊断按钮 AutomationId。</summary>
         public string DiagnosticsAutomationId => $"PluginManagerDiagnostics_{Report.PluginId}";
 
-        /// <summary>状态到本地化键的映射。</summary>
-        internal static string ToStatusKey(PluginRuntimeStatus status) => status switch
+        /// <summary>状态到本地化键的映射（public 供引用侧键守护驱动全枚举值）。</summary>
+        public static string ToStatusKey(PluginRuntimeStatus status) => status switch
         {
             PluginRuntimeStatus.Active => "PluginStatusActive",
             PluginRuntimeStatus.Disabled => "PluginStatusDisabled",
@@ -161,8 +161,8 @@ namespace StarPie.ViewModels.Pages
             _ => "PluginStatusInactive",
         };
 
-        /// <summary>准入四态到本地化键的映射。</summary>
-        internal static string ToAdmissionKey(PluginAdmission admission) => admission switch
+        /// <summary>准入四态到本地化键的映射（public 供引用侧键守护驱动全枚举值）。</summary>
+        public static string ToAdmissionKey(PluginAdmission admission) => admission switch
         {
             PluginAdmission.BuiltIn => "PluginAdmissionBuiltIn",
             PluginAdmission.Reviewed => "PluginAdmissionReviewed",
