@@ -19,11 +19,11 @@ WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer`（UI 线程 `DispatcherTi
 
 ## 生命周期与关键流程
 
-1. 启动：`Composition` 以 `AppDataPaths.GetAppDataFolder()/config.json` 构造 `JsonConfigService`；`Config.Load()` 读取（缺文件播种默认并落盘；损坏回退默认；宽容 JSON）并 `I18n.SetLanguage`。
+1. 启动：`Composition` 以 `AppDataPaths.GetAppDataFolder()/config.json` 构造 `JsonConfigService`；`Config.Load()` 读取（缺文件播种默认并落盘；损坏回退默认；宽容 JSON）并在替换运行态配置后把配置的 `Language` 应用到 `ILocalizationService`。
 2. 运行：VM 修改运行态 `AppConfig` → 发 `DebouncedSaveRequestedMessage.Instance`（连续变更）或 `ImmediateSaveRequestedMessage.Instance`（需立即落盘）。
 3. `SettingsSaveOrchestrator`（单例，组合根解析保活）订阅两类消息：防抖经 `ISaveDebouncer`（实现是 Ui 适配器 `DispatcherSaveDebouncer`，`AutoSaveDelay = 400ms`）折叠；立即请求 `CancelPending + Save`。
 4. 兜底冲刷点（`FlushPendingSave()` = `SaveNow()`）：显式保存、设置窗口隐藏、退出、**导入前**。
-5. 导入/导出保留在具体类 `JsonConfigService.Import/Export`（不在 `IConfigService`），经组合根委托注入 `GeneralSettingsViewModel`；导入前先 `FlushPendingSave()`，再替换运行态配置并广播 `ConfigImportedMessage`/`PageConfigReloadedMessage`。
+5. 导入/导出保留在具体类 `JsonConfigService.Import/Export`（不在 `IConfigService`），经组合根委托注入 `GeneralSettingsViewModel`；导入前先 `FlushPendingSave()`，再替换运行态配置（**替换后立即应用导入配置的 `Language`**——与加载同一条不变式，否则运行态语言停在旧值直到重启）并广播 `ConfigImportedMessage`/`PageConfigReloadedMessage`。
 
 ## 扩展点
 

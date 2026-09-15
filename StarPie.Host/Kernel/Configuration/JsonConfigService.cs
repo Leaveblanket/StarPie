@@ -13,6 +13,10 @@ namespace StarPie.Kernel.Configuration
     /// 读写格式与位置向后兼容既有版本。配置文件路径经构造函数注入——生产路径由组合根经
     /// <see cref="AppDataPaths"/> 计算，测试注入临时路径。加载语义：文件缺失时播种默认配置，
     /// JSON 损坏时回退默认值（不触碰文件），并容忍手工编辑（大小写不敏感、允许注释与尾随逗号）。
+    /// <para>
+    /// 不变式：运行态语言始终跟随当前运行态配置——替换运行态配置的两个入口（加载与导入）都在替换后
+    /// 立即把 <see cref="AppConfig.Language"/> 应用到本地化服务。
+    /// </para>
     /// </remarks>
     public sealed class JsonConfigService : IConfigService
     {
@@ -133,7 +137,7 @@ namespace StarPie.Kernel.Configuration
         }
 
         /// <summary>
-        /// 从指定文件导入配置：反序列化成功后替换当前配置并立即落盘。
+        /// 从指定文件导入配置：反序列化成功后替换当前配置、同步语言状态并立即落盘。
         /// 源文件缺失、JSON 非法或反序列化失败均返回 false（不影响现有配置）。
         /// </summary>
         public bool Import(string sourceFilePath)
@@ -147,6 +151,7 @@ namespace StarPie.Kernel.Configuration
                 {
                     MigrateLegacyKeys(json, imported);
                     _config = imported;
+                    _localization.SetLanguage(_config.Language);
                     Save();
                     return true;
                 }

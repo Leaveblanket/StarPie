@@ -15,15 +15,16 @@ namespace StarPie.ViewModels.Pages
     /// <remarks>
     /// 主题应用到窗口属壳层 View 效果：写穿后发布 <see cref="AppThemeChangedMessage"/>，由
     /// 壳层主窗口（MainView）订阅执行窗口主题应用；配置导入后的重挂路径同样经本消息由壳层
-    /// 执行。本 VM 以 DI 单例注入 <see cref="AppearanceSettingsViewModel"/>（外观页界面主题卡
-    /// DataContext 指向本 VM）；切语重建选项目录，Dispose 成对退订
-    /// （组合根随 Composition.Dispose 释放）。
+    /// 执行。本 VM 由 <c>ThemeContributor</c> 以会话作用域注册（设置台会话内驻留，随设置台关闭
+    /// 释放），外观页的界面主题卡 DataContext 指向它；切语重建选项目录，
+    /// 由 <see cref="ResidentOptionRefresher"/> 管订阅与退订。
     /// </remarks>
     public partial class InterfaceThemeSettingsViewModel : ObservableObject, IDisposable
     {
         private readonly IConfigService _config;
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
+        private readonly ResidentOptionRefresher _residentOptions;
         private bool _disposed;
 
         public InterfaceThemeSettingsViewModel(
@@ -41,8 +42,11 @@ namespace StarPie.ViewModels.Pages
 
             RebuildAppThemeOptions();
 
-            // 主题选项目录标签属驻留文案：语言切换时重建（单例 VM 成对退订）。
-            _localization.LanguageChanged += OnLanguageChanged;
+            // 主题选项目录标签属驻留文案：切语重建目录并补发选中通知（退订随本 VM 释放）。
+            _residentOptions = new ResidentOptionRefresher(
+                _localization,
+                RebuildAppThemeOptions,
+                () => OnPropertyChanged(nameof(AppTheme)));
         }
 
         private AppConfig Config => _config.Current;
@@ -94,13 +98,6 @@ namespace StarPie.ViewModels.Pages
             };
         }
 
-        /// <summary>语言切换后重建界面主题选项目录并补发选中通知，让 ComboBox 从新目录恢复选中。</summary>
-        private void OnLanguageChanged()
-        {
-            RebuildAppThemeOptions();
-            OnPropertyChanged(nameof(AppTheme));
-        }
-
         /// <summary>
         /// 导入配置后从当前配置重挂：透传属性读穿新配置实例，无需状态迁移——补发选中通知
         /// 让绑定拉取新值恢复 ComboBox 选中，并发布 <see cref="AppThemeChangedMessage"/> 由壳层
@@ -112,12 +109,12 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(new AppThemeChangedMessage(AppTheme));
         }
 
-        /// <summary>退订本地化事件与导入广播（页面 VM 随设置台会话释放，成对退订）。</summary>
+        /// <summary>退订本地化事件与导入广播（页面 VM 随设置台会话释放）。</summary>
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
-            _localization.LanguageChanged -= OnLanguageChanged;
+            _residentOptions.Dispose();
             _messenger.UnregisterAll(this);
         }
     }

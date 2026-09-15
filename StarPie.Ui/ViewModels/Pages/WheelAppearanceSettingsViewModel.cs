@@ -27,9 +27,9 @@ namespace StarPie.ViewModels.Pages
     /// 本 VM 实现只读状态接口 <see cref="IWheelAppearanceState"/>——预览渲染器与页面预览
     /// code-behind 只依赖该接口，不以具体聚合 VM 类型为参数；其中预览 Profile 上下文成员
     /// （<see cref="IWheelAppearanceState.PreviewProfile"/>）转发自构造注入的
-    /// <see cref="IProfilePreviewSource"/>。生命周期：DI 单例注入外观聚合 VM
-    /// <see cref="AppearanceSettingsViewModel"/>（暴露为 WheelAppearance），语言订阅成对退订，
-    /// 随容器释放。
+    /// <see cref="IProfilePreviewSource"/>。生命周期：由 <c>WheelContributor</c> 以会话作用域注册，
+    /// 注入外观聚合 VM <see cref="AppearanceSettingsViewModel"/>（暴露为 WheelAppearance）；
+    /// 语言订阅由 <see cref="ResidentOptionRefresher"/> 管，随本 VM 释放。
     /// </remarks>
     public partial class WheelAppearanceSettingsViewModel : ObservableObject, IWheelAppearanceState, IDisposable
     {
@@ -38,6 +38,7 @@ namespace StarPie.ViewModels.Pages
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
         private readonly IProfilePreviewSource _profileSource;
+        private readonly ResidentOptionRefresher _residentOptions;
         private bool _disposed;
 
         // 重入抑制标志：
@@ -77,8 +78,11 @@ namespace StarPie.ViewModels.Pages
             LoadFromConfig();
             _loading = false;
 
-            // 轮盘配色选项标签属驻留文案：随语言切换重建（单例 VM 成对退订）。
-            _localization.LanguageChanged += OnLanguageChanged;
+            // 轮盘配色选项标签属驻留文案：切语重建目录并补发选中通知（退订随本 VM 释放）。
+            _residentOptions = new ResidentOptionRefresher(
+                _localization,
+                RebuildPaletteOptions,
+                () => OnPropertyChanged(nameof(SelectedPalette)));
         }
 
         private AppConfig Config => _config.Current;
@@ -129,20 +133,12 @@ namespace StarPie.ViewModels.Pages
             PaletteOptions = options;
         }
 
-        /// <summary>语言切换后重建轮盘配色下拉选项（固定标签 + 自定义预设后缀均为文案，预设名保持用户数据）。</summary>
-        private void OnLanguageChanged()
-        {
-            RebuildPaletteOptions();
-            // 同 ReloadFromConfig 语义：补发选中通知，让 ComboBox 从新 PaletteOptions 恢复选中。
-            OnPropertyChanged(nameof(SelectedPalette));
-        }
-
-        /// <summary>退订本地化事件（单例 VM 配 IDisposable，随组合根释放调用）。</summary>
+        /// <summary>退订本地化事件（会话作用域 VM 配 IDisposable，随设置台会话释放）。</summary>
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
-            _localization.LanguageChanged -= OnLanguageChanged;
+            _residentOptions.Dispose();
             _messenger.UnregisterAll(this);
         }
 

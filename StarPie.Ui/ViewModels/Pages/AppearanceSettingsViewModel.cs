@@ -24,8 +24,8 @@ namespace StarPie.ViewModels.Pages
     /// 效果；窗口主题应用由 InterfaceTheme 子 VM 发 AppThemeChangedMessage、壳层主窗口订阅执行。
     /// 系统深浅色取值经注入的无状态探针 <see cref="WindowsInDarkMode"/> 暴露给页面：
     /// 页面（View）不得做服务调用，也不得用 messenger 替代同页绑定，故由 VM 取值、页面读属性。
-    /// 释放链：随容器释放时先释放两个子 VM（各自成对退订本地化事件）；
-    /// 幂等——容器随后对子 VM 单例的直接释放亦安全。
+    /// 释放链：随设置台会话释放时先释放两个子 VM（各自退订语言订阅）；
+    /// 幂等——容器随后对子 VM 的直接释放亦安全。
     /// </remarks>
     public partial class AppearanceSettingsViewModel : ObservableObject, IDisposable
     {
@@ -33,11 +33,11 @@ namespace StarPie.ViewModels.Pages
         private readonly Func<bool> _windowsInDarkModeProbe;
         private bool _disposed;
 
-        /// <summary>界面主题设置子 VM 单例（构造注入）：外观页界面主题卡 DataContext 指向
+        /// <summary>界面主题设置子 VM（构造注入；会话作用域注册）：外观页界面主题卡 DataContext 指向
         /// 本属性；AppTheme 透传/选项目录/主题应用消息由该子 VM 独占。</summary>
         public InterfaceThemeSettingsViewModel InterfaceTheme { get; }
 
-        /// <summary>轮盘外观设置子 VM 单例（构造注入）：界面主题卡之外全部设置卡
+        /// <summary>轮盘外观设置子 VM（构造注入；会话作用域注册）：界面主题卡之外全部设置卡
         /// DataContext 指向本属性；轮盘外观状态/命令与预览只读状态接口
         /// <see cref="IWheelAppearanceState"/> 由该子 VM 独占。</summary>
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }

@@ -39,7 +39,7 @@ StarPie/
 │   │   └── Dialogs/               # S6：DialogService（实现 Sdk 的 IDialogService；SetOwner 回填）
 │   ├── Themes/                    # M4：五套同 key 集主题画刷令牌 XAML（App.xaml 静态合并 Light；运行时整项替换）
 │   ├── ViewModels/
-│   │   ├── Pages/                 # Host 外观聚合页 VM：AppearanceSettingsViewModel（单例）；M4：InterfaceThemeSettingsViewModel + AppThemeOptionItem；M2：WheelAppearanceSettingsViewModel；M1：BehaviorSettingsViewModel/ProfileListViewModel；M5：GeneralSettingsViewModel
+│   │   ├── Pages/                 # Host 外观聚合页 VM：AppearanceSettingsViewModel（单例）；驻留文案件 ResidentOptionRefresher（M2/M4 设置页共用）；M4：InterfaceThemeSettingsViewModel + AppThemeOptionItem；M2：WheelAppearanceSettingsViewModel；M1：BehaviorSettingsViewModel/ProfileListViewModel；M5：GeneralSettingsViewModel
 │   │   ├── Wheel/                 # M2：WheelViewModel.cs（实现 Sdk 的 IWheelViewModel；按手势瞬态）
 │   │   ├── Gestures/              # M1：SlotViewModel.cs（方向槽位 VM + SystemPresetItem/ActionTypeOption）
 │   │   ├── Navigation/            # 导航 VM：MainViewModel、NavigationItemViewModel、ShellViewModel（D3 Host 壳层 VM）
@@ -120,7 +120,7 @@ StarPie/
 | `Services/Navigation/` | `StarPie.Sdk/`（P1.3/#112 自 Core 迁入）：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
 | `Services/Themes/` | `StarPie.Sdk/Services/Themes/`：界面主题名目录 `AppThemeNames`（`System` 与五套具体主题常量、深色集合、已知名规范形查询）；配置取值、解析分支、字典文件名与设置面选项目录共引之 | 主题名不得在引擎/适配器/VM 各写一遍；界面主题与轮盘配色同名不同义，两套名录分列（见 [interface-theme.md](interface-theme.md)） |
 | `Services/Wheel/` | `StarPie.Ui/Services/Wheel/`：`WheelGeometry`（直构造 WPF `Geometry`）、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Sdk`，P1.3/#112 收口） | 工厂只经 SDK 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
-| `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Ui`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`（M4）、`WheelAppearanceSettingsViewModel`（M2）、`BehaviorSettingsViewModel`/`ProfileListViewModel`（M1）、`GeneralSettingsViewModel`（M5）；`StarPie.Sdk/ViewModels/Pages/`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
+| `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Ui`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`（M4）、`WheelAppearanceSettingsViewModel`（M2）、`ResidentOptionRefresher`（M2/M4 设置页共用的驻留文案件：切语重建选项目录并补发选中通知）、`BehaviorSettingsViewModel`/`ProfileListViewModel`（M1）、`GeneralSettingsViewModel`（M5）；`StarPie.Sdk/ViewModels/Pages/`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
 | `ViewModels/Dialogs/` | `StarPie.Ui/ViewModels/Dialogs/`：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
 | `ViewModels/Gestures/` | `StarPie.Ui/ViewModels/Gestures/`：`SlotViewModel`（+ `SystemPresetItem`/`ActionTypeOption`） | 不放服务 |
 | `ViewModels/Navigation/` | Host：`NavigationItemViewModel`、`MainViewModel`（目录驱动）、`ShellViewModel` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
