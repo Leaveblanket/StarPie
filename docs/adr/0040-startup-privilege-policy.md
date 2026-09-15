@@ -101,7 +101,8 @@
 - **已定但未落地的行为**（各自独立为后续工作项，不阻塞本 ADR）：
   - 未提权态检测到前台窗口属于更高完整性级别时，报**一次**托盘气泡（每个安装一次，需 `config.json`
     新增标记字段，缺字段按未提示处理）；
-  - 提权态下在插件管理页显示一行警示（当前插件以管理员身份运行）；
+  - ~~提权态下在插件管理页显示一行警示（当前插件以管理员身份运行）~~ 已落地（#164：页首
+    `PluginManagerElevatedNotice` 一行，非提权态不出现；见 [plugins.md](../architecture/plugins.md) §10）；
   - ~~提权态下"启动程序"动作改走 Explorer 中介降权启动~~ 已落地（#163：
     `ExplorerShellLaunch` + `ActionRouting.ResolveLaunchMode` + 动作项显式的"以管理员身份启动"选项；
     见 [shell.md](../architecture/shell.md)、[gestures.md](../architecture/gestures.md)）。

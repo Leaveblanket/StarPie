@@ -178,7 +178,9 @@ namespace StarPie.Modules
                 sp.GetRequiredService<NavigationStore>(),
                 sp.GetRequiredService<ILocalizationService>(),
                 sp.GetRequiredService<PluginUiCoordinator>(),
-                sp.GetService<IDialogService>()));
+                sp.GetService<IDialogService>(),
+                // 提权态探测与壳层托盘入口、高级页卡片同源（共享内核 ProcessElevation），不各留一份实现。
+                isAdministrator: ProcessElevation.IsRunningAsAdministrator));
         }
 
         // 插件槽位导航图标 Path Data（拼图）

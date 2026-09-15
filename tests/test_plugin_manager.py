@@ -43,13 +43,18 @@ def _read_plugin_state(local_app_data, predicate, timeout=5.0):
 
 
 def test_plugin_manager_lists_builtin_plugin(app):
-    """管理页列出内置插件：状态为活动，诊断面板给出报告正文。"""
+    """管理页列出内置插件：状态为活动，诊断面板给出报告正文；非提权态无提权警示行。"""
     win, _ = app
     goto(win, 4)
 
     name = text_of(win, f"PluginManagerName_{PLUGIN_ID}", "Text", timeout=5.0)
     assert name, "插件条目必须有展示名"
     assert_text_contains(win, PLUGIN_STATUS, "Text", "活动")
+
+    # e2e 不提权（tests/conftest.py 直接 Popen，无提权路径）：提权警示行必须整行不出现。
+    assert not win.child_window(
+        auto_id="PluginManagerElevatedNotice", control_type="Text"
+    ).exists(timeout=1.0), "非提权态插件页不得出现提权警示行"
 
     win.child_window(auto_id=PLUGIN_DIAGNOSTICS, control_type="Button").invoke()
 

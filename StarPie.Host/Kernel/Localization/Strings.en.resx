@@ -267,6 +267,7 @@ This cannot be undone.</value></data>
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>Uninstall may fail; a failing plugin is quarantined and needs a restart</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 Plugins</value></data>
     <data name="PluginManagerSubheader" xml:space="preserve"><value>Inspect discovered plugins and their state, then enable, disable, reload, update, retry, diagnose, or remove them.</value></data>
+  <data name="PluginManagerElevatedNotice" xml:space="preserve"><value>⚠️ Running as administrator — every plugin also has administrator privileges.</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>Plugin</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>Version</value></data>
   <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>Effective in this process</value></data>

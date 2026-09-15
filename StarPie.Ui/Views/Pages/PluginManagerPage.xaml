@@ -32,6 +32,14 @@
                            Foreground="{DynamicResource TextPrimaryBrush}"
                            Text="{Binding AdmissionModeText}" />
             </StackPanel>
+            <!--  提权态警示：插件为进程内加载、宿主不承诺沙箱与配额，宿主提权即抬高插件的爆炸半径。
+                  非提权态整行不出现（ADR-0040 决策 6）。  -->
+            <TextBlock AutomationProperties.AutomationId="PluginManagerElevatedNotice"
+                       Margin="0,8,0,0" FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Text="{DynamicResource PluginManagerElevatedNotice}"
+                       TextWrapping="Wrap"
+                       Visibility="{Binding ShowElevatedNotice, Converter={StaticResource BoolToVis}}" />
         </StackPanel>
 
         <Grid Grid.Row="1">

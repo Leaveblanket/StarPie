@@ -267,6 +267,7 @@
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>アンインストールに失敗する可能性があり、失敗したプラグインは隔離され再起動が必要です</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 プラグイン</value></data>
     <data name="PluginManagerSubheader" xml:space="preserve"><value>検出されたプラグインと状態を確認し、有効化・無効化・再読み込み・更新・再試行・診断・完全削除を行います。</value></data>
+  <data name="PluginManagerElevatedNotice" xml:space="preserve"><value>⚠️ 管理者として実行中のため、すべてのプラグインも管理者権限を持ちます。</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>プラグイン</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>バージョン</value></data>
   <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>このプロセスで有効なバージョン</value></data>
