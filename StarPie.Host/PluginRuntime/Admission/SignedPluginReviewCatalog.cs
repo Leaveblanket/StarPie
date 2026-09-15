@@ -33,8 +33,7 @@ namespace StarPie.PluginRuntime.Admission
     /// <remarks>
     /// 清单在宿主启动时读取一次并缓存：撤销通道 = 更新清单文件后重启（与"每次启动按当前清单
     /// 重新判定"的语义一致）。白名单按 (pluginId, version) 精确命中——清单未列入的新版本不会
-    /// 因旧版本已审核而放行，须重新审核。发布密钥建立前（<see cref="FirstPartyPublicKeyPem"/> 为空）
-    /// 任何清单都不予采信。
+    /// 因旧版本已审核而放行，须重新审核。构造入参为 null/空白的公钥将不采信任何清单。
     /// </remarks>
     public sealed class SignedPluginReviewCatalog : IPluginReviewCatalog
     {

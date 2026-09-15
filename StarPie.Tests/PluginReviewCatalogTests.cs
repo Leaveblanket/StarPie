@@ -81,9 +81,13 @@ public sealed class PluginReviewCatalogTests : IDisposable
             catalogPath,
             """{ "Entries": [ { "PluginId": "com.example.a", "Versions": ["1.0.0"] } ] }""");
 
-        var catalog = new SignedPluginReviewCatalog(catalogPath, SignedPluginReviewCatalog.FirstPartyPublicKeyPem);
+        // 命中 LoadVerifiedEntries 的空 pin 短路分支：null / 空串 / 空白一律不读清单。
+        foreach (string? pem in new string?[] { null, "", "   " })
+        {
+            var catalog = new SignedPluginReviewCatalog(catalogPath, pem);
 
-        Assert.False(catalog.IsReviewed("com.example.a", "1.0.0"));
+            Assert.False(catalog.IsReviewed("com.example.a", "1.0.0"));
+        }
     }
 
     [Fact]
