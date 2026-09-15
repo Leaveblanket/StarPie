@@ -227,9 +227,6 @@ public sealed class MarkerStopTestPlugin : IPlugin
 /// </summary>
 public sealed class StubPluginUiCoordinator : IPluginUiCoordinator
 {
-    /// <summary>Attach 被调用的次数。</summary>
-    public int AttachCount { get; private set; }
-
     /// <summary>Release 被调用的次数。</summary>
     public int ReleaseCount { get; private set; }
 
@@ -237,7 +234,6 @@ public sealed class StubPluginUiCoordinator : IPluginUiCoordinator
     public Task<PluginUiAttachResult> AttachAsync(
         PluginUiAttachRequest request, CancellationToken cancellationToken)
     {
-        AttachCount++;
         return Task.FromResult(PluginUiAttachResult.Success);
     }
 

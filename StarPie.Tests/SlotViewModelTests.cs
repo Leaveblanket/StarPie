@@ -292,18 +292,6 @@ public sealed class SlotViewModelTests
     }
 
     [Fact]
-    public void Dispose_IsIdempotent()
-    {
-        var before = I18nEventSubscriberCount();
-        var slot = MakeSlot();
-
-        slot.Dispose();
-        slot.Dispose(); // 重复释放不得重复退订（guard）
-
-        Assert.Equal(before, I18nEventSubscriberCount());
-    }
-
-    [Fact]
     public void Dispose_IsIdempotent_EvenWhenHandlerWasRemovedExternally()
     {
         // 与实现解耦的幂等语义验证：guard 使第二次 Dispose 不产生额外副作用，

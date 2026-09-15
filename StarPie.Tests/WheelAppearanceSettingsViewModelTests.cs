@@ -1038,7 +1038,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void PickCoreIcon_Cancelled_ReturnsFalseAndKeepsConfig()
+    public void PickCoreIcon_Cancelled_KeepsConfig()
     {
         var (vm, config, dialogs, _) = Create();
         config.Current.CoreCustomIconKey = "Copy";
@@ -1052,7 +1052,7 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void PickCoreIcon_Confirmed_WritesIconKeyAndReturnsTrue()
+    public void PickCoreIcon_Confirmed_WritesIconKey()
     {
         var (vm, config, dialogs, _) = Create();
         dialogs.IconToPick = new IconPickResult("custom:star");

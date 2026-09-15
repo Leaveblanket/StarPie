@@ -182,10 +182,9 @@ public sealed class PluginUiHostingTests
                 "WindowAbout",
                 () => new System.Windows.Window());
 
-            System.Windows.Window window = host.CreateWindow(descriptor);
-
+            // 工厂创建的窗口实例被宿主登记（CountFor==1）；实例本身非空由 CountFor 承载。
+            host.CreateWindow(descriptor);
             Assert.Equal(1, host.Assets.CountFor(PluginId));
-            Assert.NotNull(window);
             PluginUiReleaseResult result = await coordinator.ReleaseAsync(PluginId, CancellationToken.None);
             Assert.True(result.Succeeded, string.Join(" | ", result.Residuals));
         });

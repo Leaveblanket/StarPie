@@ -21,8 +21,6 @@ public sealed class WheelPreviewRendererTests
         // 方法组转换继续在编译期钉住公开签名。
         Action<Canvas, IWheelAppearanceState, bool> render = renderer.Render;
         Action<Canvas, MouseEventArgs, IWheelAppearanceState> hover = renderer.HandleMouseMove;
-
-        Assert.NotNull(render);
-        Assert.NotNull(hover);
+        _ = (render, hover);
     }
 }

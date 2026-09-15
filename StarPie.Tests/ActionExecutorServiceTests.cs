@@ -72,7 +72,6 @@ public sealed class ActionExecutorServiceTests
         Assert.Empty(seams.ActionErrors);
     }
 
-    // --- 文件夹与键注入 -------------------------------------------------------
     // --- 热键 ---------------------------------------------------------------
 
     [Fact]

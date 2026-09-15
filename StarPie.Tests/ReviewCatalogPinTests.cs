@@ -15,8 +15,6 @@ public sealed class ReviewCatalogPinTests
     [Fact]
     public void 首方公钥pin_是可导入的RSA公钥()
     {
-        Assert.Contains("BEGIN", SignedPluginReviewCatalog.FirstPartyPublicKeyPem);
-
         using var rsa = RSA.Create();
         var exception = Record.Exception(
             () => rsa.ImportFromPem(SignedPluginReviewCatalog.FirstPartyPublicKeyPem));

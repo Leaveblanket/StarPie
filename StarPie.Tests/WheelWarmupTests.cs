@@ -24,7 +24,7 @@ public sealed class WheelWarmupTests
             var profile = new WheelProfile();
             var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, WheelViewData.FromConfig(config), Localization);
 
-            return WheelWarmup.Run(viewModel, new FakeThemeService(), Localization, new TestIconAssetService());
+            return WheelWarmup.Run(viewModel, new TestThemeService(), Localization, new TestIconAssetService());
         });
 
         // 两轮 GC + finalizer 排空：终结器可能复活对象产生新垃圾，排空后再收一次
@@ -33,19 +33,5 @@ public sealed class WheelWarmupTests
         GC.Collect();
 
         Assert.False(reference.IsAlive, "预热产物（RadialWindow）放弃引用后应可回收，出现滞留");
-    }
-
-    /// <summary><see cref="IThemeService"/> 测试替身：状态无操作，深色探测返回 false。</summary>
-    private sealed class FakeThemeService : IThemeService
-    {
-        public string CurrentEffectiveTheme => "Light";
-
-        public void SetTheme(string themeName) { }
-
-        public void ApplyWindowTheme(FrameworkElement? rootElement) { }
-
-        public string ResolveEffectiveTheme(string themeName) => string.IsNullOrEmpty(themeName) || themeName == "System" ? "Light" : themeName;
-
-        public bool IsWindowsInDarkTheme() => false;
     }
 }

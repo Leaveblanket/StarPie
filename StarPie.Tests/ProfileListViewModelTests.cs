@@ -28,13 +28,6 @@ public sealed class ProfileListViewModelTests
 
     private static TestDialogService Dialogs() => new();
 
-    /// <summary>诊断：LocalizationService 实例 LanguageChanged 字段的委托列表。</summary>
-    private static string I18nHandlersDump()
-        => ((MulticastDelegate?)typeof(LocalizationService)
-            .GetField(nameof(LocalizationService.LanguageChanged), BindingFlags.Instance | BindingFlags.NonPublic)
-            ?.GetValue(Localization)) is { } handlers
-            ? string.Join(" | ", handlers.GetInvocationList().Select(d => d.Method.DeclaringType?.Name + "." + d.Method.Name))
-            : "<null>";
     /// <summary>LocalizationService 实例 LanguageChanged 事件当前订阅者数（反射读 backing field；
     /// 事件是 <see cref="Action"/> 无订阅者时为 null）。</summary>
     private static int I18nEventSubscriberCount()
