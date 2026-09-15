@@ -10,7 +10,8 @@ namespace StarPie.Services.Wheel
     /// <remarks>
     /// 运行态与预览态共用同一个类型与同一个组装入口 <see cref="FromConfig"/>——不给预览侧自建
     /// 「设置页对应物」，否则同一 <c>Initialize</c> 会被两个来源不同的类型各喂一份。
-    /// 组装即复制：持有的是快照，配置后续变更不会回流到已构造的实例（ADR-0044 决策 3）。
+    /// 组装即快照：预设列表整表复制、标量按值携带，配置后续变更不会回流到已构造的实例
+    /// （ADR-0044 决策 3）。预设**元素**仍与配置共享同一实例，消费方只读不写。
     /// 落地在 Sdk 而非宿主内核：样式渲染契约（<c>IRadialStyleRenderer</c>）与只读外观状态接口
     /// （<c>IWheelAppearanceState</c>）都要引用它，而 SDK 是最下层、不能被反向引用。
     /// </remarks>
@@ -28,7 +29,7 @@ namespace StarPie.Services.Wheel
             highlightGlowRadius: 0.0,
             highlightGlowOpacity: -1.0);
 
-        /// <summary>用户保存的自定义配色预设快照（可能为空列表，不为 null）。</summary>
+        /// <summary>用户保存的自定义配色预设（列表已复制；元素与配置共享，只读消费；可能为空列表，不为 null）。</summary>
         public IReadOnlyList<CustomColorPreset> CustomPresets { get; }
 
         public string? CustomSectorBg { get; }

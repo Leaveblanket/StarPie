@@ -48,9 +48,8 @@ namespace StarPie.ViewModels.Pages
         private bool _bulkUpdating;
         private bool _layoutSyncing;
 
-        /// <summary>运行态配置访问：预览渲染初始化等视图层读取；导入后自动取到新实例。</summary>
         /// <summary>样式渲染器的窄配色输入：每次读取取一份配置快照，运行态与预览态同类型、
-        /// 同组装入口（ADR-0044 决策 4）。</summary>
+        /// 同组装入口（ADR-0044 决策 4）；导入后自动取到新实例。</summary>
         public WheelPaletteInput PaletteInput => WheelPaletteInput.FromConfig(_config.Current);
 
         /// <summary>预览渲染所用 Profile 上下文（实现自 <see cref="IWheelAppearanceState"/>，
