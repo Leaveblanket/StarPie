@@ -50,23 +50,38 @@ namespace StarPie
 
                 if (!isNewInstance)
                 {
-                    // 已有实例在运行：向它的常驻消息窗口投递恢复消息——接收端驻常驻壳层，
-                    // 设置台关着时也会创建设置台并显示（纯外部 ShowWindow 不更新 WPF 的
-                    // IsVisible 状态，恢复序列不会触发，故必须经本消息驱动）。
-                    // 按窗口名查找：托盘消息窗口是常驻 HWND（进程存活期内恒在），设置台是瞬态窗口。
-                    try
-                    {
-                        IntPtr hWnd = FindWindow(null, TrayIconManager.WindowName);
-                        if (hWnd != IntPtr.Zero)
-                        {
-                            SingleInstanceRestore.Send(hWnd);
-                        }
-                    }
-                    catch { }
+                    // 处置决策是纯函数（真值表见 SingleInstanceGateTests），闸门只在这一处做该判定。
+                    // 已有实例的权限态此刻无从判别——互斥体打开失败只说明"对方完整性级别更高"，
+                    // 同级别的提权实例与之无从区分；该输入随 #170 的握手信道一并接入。
+                    SingleInstanceGateDecision decision = SingleInstanceGate.Resolve(
+                        newInstanceElevated: ProcessElevation.IsRunningAsAdministrator(),
+                        existingInstanceElevated: false);
 
-                    // 不初始化钩子/托盘，立即结束当前进程
-                    Shutdown(0);
-                    return;
+                    switch (decision)
+                    {
+                        // "请求让位接管"由 #170 接上、"退出并告知提权未生效"由 #172 接上：两态此刻
+                        // 以显式标记落地，与现行的置前并退出等价——本张是纯预重构，可观察行为不变。
+                        case SingleInstanceGateDecision.RequestHandover:
+                        case SingleInstanceGateDecision.ExitAndNotifyElevationFailed:
+                        case SingleInstanceGateDecision.ForegroundAndExit:
+                            // 已有实例在运行：向它的常驻消息窗口投递恢复消息——接收端驻常驻壳层，
+                            // 设置台关着时也会创建设置台并显示（纯外部 ShowWindow 不更新 WPF 的
+                            // IsVisible 状态，恢复序列不会触发，故必须经本消息驱动）。
+                            // 按窗口名查找：托盘消息窗口是常驻 HWND（进程存活期内恒在），设置台是瞬态窗口。
+                            try
+                            {
+                                IntPtr hWnd = FindWindow(null, TrayIconManager.WindowName);
+                                if (hWnd != IntPtr.Zero)
+                                {
+                                    SingleInstanceRestore.Send(hWnd);
+                                }
+                            }
+                            catch { }
+
+                            // 不初始化钩子/托盘，立即结束当前进程
+                            Shutdown(0);
+                            return;
+                    }
                 }
             }
 
