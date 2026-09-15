@@ -12,6 +12,8 @@ using StarPie.Services;
 using StarPie.Services.Shell;
 using StarPie.Views.Navigation;
 
+using StarPie.Services.Wheel;
+
 namespace StarPie
 {
     /// <summary>
@@ -37,8 +39,8 @@ namespace StarPie
         private readonly DialogService _dialogService;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
-        private readonly IConfigService _config;
-        private readonly IIconAssetService _iconAssets;
+        // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型（ADR-0043 决策 4）。
+        private readonly IWheelFactory _wheelFactory;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         // 目录执行缝按槽位导航——壳层不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
@@ -76,8 +78,7 @@ namespace StarPie
             DialogService dialogService,
             ThemeService themeService,
             ILocalizationService localization,
-            IConfigService config,
-            IIconAssetService iconAssets,
+            IWheelFactory wheelFactory,
             SettingsSaveOrchestrator saveOrchestrator,
             INavigationExecutor navigation,
             AppHostDelegates hostDelegates,
@@ -93,8 +94,7 @@ namespace StarPie
             _dialogService = dialogService;
             _themeService = themeService;
             _localization = localization;
-            _config = config;
-            _iconAssets = iconAssets;
+            _wheelFactory = wheelFactory;
             _saveOrchestrator = saveOrchestrator;
             _navigation = navigation;
             _hostDelegates = hostDelegates;
@@ -280,15 +280,13 @@ namespace StarPie
             MemoryOptimizer.CollectGarbage(true);
         }
 
-        /// <summary>轮盘核心路径离屏预热：以全局方案构造视图模型并渲染一次后放弃产物；
-        /// 失败吞异常记调试日志，不影响启动。</summary>
+        /// <summary>轮盘核心路径离屏预热：经工厂契约触发，壳层不构造具体轮盘视图模型、
+        /// 也不知道 Profile 查找与预热装配；失败吞异常记调试日志，不影响启动。</summary>
         private void WarmUpWheelCorePath()
         {
             try
             {
-                WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == "Global") ?? new WheelProfile();
-                var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, _config.Current, _localization);
-                WheelWarmup.Run(viewModel, _themeService, _localization, _iconAssets);
+                _wheelFactory.Warmup();
                 Debug.WriteLine("[Startup] Wheel core path warmed up");
             }
             catch (Exception ex)

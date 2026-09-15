@@ -96,6 +96,10 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
    `DispatchedWheelViewModel` 包装（所有轮盘交互封送回 UI 线程；窗口字段作 GC 根防未显示即回收；
    轮盘 VM/窗口见 [wheel.md](wheel.md)）；`GestureEngine`/`GestureController` 只依赖
    SDK 契约接口 `IWheelFactory`（ADR-0023），不反向组装轮盘。
+   `Warmup`（同一契约的单方法扩展，ADR-0043 决策 4；不另立预热契约）承担启动期核心路径预热：
+   取配置里的全局方案（缺失回落空方案）、装配视图模型并离屏渲染一次；壳层只调本方法，
+   不知道 Profile 查找语义与预热方式。`Warmup` 须在 UI 线程调用（不自行封送，与经钩子线程
+   进入的 `Create` 不同）。
 
 ## 扩展点
 

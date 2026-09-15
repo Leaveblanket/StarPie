@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using StarPie;
 
@@ -467,6 +467,9 @@ internal sealed class FakeWheelFactory : IWheelFactory
     public List<(GesturePoint Center, WheelProfile Profile)> Created { get; } = new();
     public List<FakeWheel> Wheels { get; } = new();
 
+    /// <summary>预热调用次数：壳层不再持有装配细节，只经契约触发（#177）。</summary>
+    public int WarmupCount { get; private set; }
+
     public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
     {
         Created.Add((center, profile));
@@ -474,6 +477,8 @@ internal sealed class FakeWheelFactory : IWheelFactory
         Wheels.Add(wheel);
         return wheel;
     }
+
+    public void Warmup() => WarmupCount++;
 }
 
 internal sealed class FakeWheel : IWheelViewModel

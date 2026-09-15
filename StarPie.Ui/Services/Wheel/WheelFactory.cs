@@ -15,6 +15,12 @@ namespace StarPie.Services.Wheel
     /// </remarks>
     public sealed class WheelFactory : IWheelFactory
     {
+        /// <summary>预热用的全局方案名（无专属方案时的兜底方案）。</summary>
+        private const string GlobalProfileName = "Global";
+
+        /// <summary>预热的虚拟触发点：只用于构造视图模型，不参与窗口定位。</summary>
+        private static readonly GesturePoint WarmupCenter = new GesturePoint(200, 200);
+
         private readonly IConfigService _config;
         private readonly IThemeService _themeService;
         private readonly ILocalizationService _localization;
@@ -43,6 +49,16 @@ namespace StarPie.Services.Wheel
                 window = new RadialWindow(viewModel, _themeService, _localization, _iconAssets);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
+        }
+
+        /// <summary>启动期预热：本方法装配预热所需的一切——取全局方案（缺失即空方案）构造
+        /// 与手势同形的视图模型，再离屏渲染一次。调用方（壳层）不必知道 Profile 查找语义
+        /// 与预热方式（ADR-0043 决策 4）。</summary>
+        public void Warmup()
+        {
+            WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == GlobalProfileName) ?? new WheelProfile();
+            var viewModel = new WheelViewModel(WarmupCenter, profile, _config.Current, _localization);
+            WheelWarmup.Run(viewModel, _themeService, _localization, _iconAssets);
         }
 
         /// <summary>把每次轮盘交互经调度器转发到 UI 线程，落地为视图模型状态变更；
