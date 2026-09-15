@@ -111,6 +111,43 @@ public sealed class JsonConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Load_LegacyConfigWithoutElevatedNoticeFlag_TreatsAsNotShownAndKeepsOtherKeys()
+    {
+        // 旧配置没有"已提示过"键：按未提示处理，且既有键照常读出（ADR-0040 决策 6 的向后兼容硬约束）。
+        File.WriteAllText(_configPath, """
+            {
+              "Language": "en",
+              "DragThreshold": 42.0,
+              "EnableOuterEscapeCancel": false,
+              "Profiles": [ { "ProcessName": "Global", "SectorCount": 8, "Actions": [] } ]
+            }
+            """);
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.False(service.Current.ElevatedWindowNoticeShown);
+        Assert.Equal("en", service.Current.Language);
+        Assert.Equal(42.0, service.Current.DragThreshold);
+        Assert.False(service.Current.EnableOuterEscapeCancel);
+        Assert.Equal(8, Assert.Single(service.Current.Profiles).SectorCount);
+    }
+
+    [Fact]
+    public void Save_PersistsElevatedNoticeFlag_ForNextLoad()
+    {
+        var writer = new JsonConfigService(_configPath, Localization);
+        writer.Load();
+        writer.Current.ElevatedWindowNoticeShown = true;
+
+        writer.Save();
+
+        var reader = new JsonConfigService(_configPath, Localization);
+        reader.Load();
+        Assert.True(reader.Current.ElevatedWindowNoticeShown);
+    }
+
+    [Fact]
     public void Load_ToleratesCommentsTrailingCommasAndCasing()
     {
         File.WriteAllText(_configPath, """

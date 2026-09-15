@@ -20,7 +20,9 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
   `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
   `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
   `StarPie.Host/Kernel/ShellIntegration/ExplorerShellLaunch.cs`（降权启动的 Explorer 中介：
-  提权态下把"拉起子进程"交给已运行的资源管理器，语义见 [gestures.md](gestures.md) 关键流程 4）——
+  提权态下把"拉起子进程"交给已运行的资源管理器，语义见 [gestures.md](gestures.md) 关键流程 4）、
+  `StarPie.Host/Kernel/ShellIntegration/ElevatedWindowNotice.cs`（高权限窗口一次性告知的判据纯决策）、
+  `StarPie.Host/Kernel/ShellIntegration/ProcessElevation.cs`（提权态与前台窗口完整性级别探测）——
   命名空间均为 `StarPie.Kernel.ShellIntegration`。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
@@ -47,10 +49,15 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 1. **托盘**：`TrayIconManager`（驻 `StarPie.Ui/Services/Shell/`，`ShellHost.Run` 创建）持 tooltip
    （暂停态实时文案）、双击直达、
    右键菜单（`ShellHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
-   气泡通知、`Dispose`；tooltip 在语言切换时由壳层 `ShellHost.RefreshTrayTooltip` 按暂停态刷新
+   气泡通知（`ShowBalloonTip` 可选挂点击入口：`NIN_BALLOONUSERCLICK` 触发一次后随回落/超时一并注销）、
+   `Dispose`；tooltip 在语言切换时由壳层 `ShellHost.RefreshTrayTooltip` 按暂停态刷新
    （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
    不反向引用 Host/M4，`ShellHost` 装配时注入 `Func<bool>` 深色探针
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
+   **高权限窗口的一次性告知**（#165）同属壳层：`ForegroundElevationWatcher`（同驻
+   `StarPie.Ui/Services/Shell/`）按 1 秒节拍取前台窗口完整性级别，判据在共享内核
+   `ElevatedWindowNotice`（一次性 / 提权态不报 / 探测未知不报），"已提示过"标记落在 `config.json`；
+   报出走气泡 + 点击即以管理员身份重启。编排与起表门（`ShouldWatch`）见 [host.md](host.md)。
 2. **内存（分层常驻）**：`MemoryOptimizer.CollectGarbage()`（驻
    `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
    （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）

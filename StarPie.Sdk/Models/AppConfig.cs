@@ -86,5 +86,10 @@ namespace StarPie.Models
         public bool DisableOnShift { get; set; } = false; // 按住 Shift 时禁用
         public bool DisableOnAlt { get; set; } = false; // 按住 Alt 时禁用
         public bool DisableOnFullScreen { get; set; } = true; // 前台为全屏窗口时禁用
+
+        // —— 一次性告知标记 ——
+        /// <summary>是否已报过"前台高权限窗口内手势失效"的一次性托盘气泡（每个安装一次）。
+        /// 旧配置缺该键时按 false（未提示）处理，见 ADR-0040 决策 6。</summary>
+        public bool ElevatedWindowNoticeShown { get; set; } = false;
     }
 }

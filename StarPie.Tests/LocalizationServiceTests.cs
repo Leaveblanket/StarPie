@@ -86,6 +86,20 @@ public class LocalizationServiceTests
         Assert.Contains(expectedFragment, service.GetString("PluginManagerElevatedNotice"));
     }
 
+    [Theory]
+    [InlineData("zh-CN", "管理员身份")]
+    [InlineData("zh-TW", "系統管理員身分")]
+    [InlineData("en", "administrator")]
+    [InlineData("ja", "管理者として")]
+    public void GetString_ElevatedWindowNoticeBalloon_TranslatedInEveryLanguage(string code, string expectedFragment)
+    {
+        // 托盘气泡文案是即时取词（壳层每次报出时读当前语言），故四语一致的门落在此处。
+        var service = new LocalizationService();
+        service.SetLanguage(code);
+
+        Assert.Contains(expectedFragment, service.GetString("ElevatedWindowNoticeBalloon"));
+    }
+
     [Fact]
     public void GetString_ReturnsKey_WhenKeyMissingEverywhere()
     {

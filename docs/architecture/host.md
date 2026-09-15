@@ -10,7 +10,8 @@
   `ShellHost`，另交付**设置台会话工厂**（工厂闭包在组合根内构造会话对象图，解析点未离开组合根）；
   不持有托盘/主窗口/语言字典等宿主状态。
 - `ShellHost`（常驻壳层）：进程存活期内一直存在的编排面——鼠标钩子启停、语言字典投影（H1 消费 S3）、
-  托盘创建与菜单、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、设置台的按需创建与释放、
+  托盘创建与菜单、高权限窗口的一次性告知节拍（#165）、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、
+  设置台的按需创建与释放、
   驻留与真退出协调（[ADR-0011](../adr/0011-composition-apphost-split.md)、
   [ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）。
 - `SettingsConsole`（设置台租户）：按需创建、关闭即销毁的设置控制台会话——主窗口（`MainView`）与其
@@ -194,6 +195,12 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
    进托盘的驻留气泡由壳层直接呈现（`MinimizedToTrayMessage` 订阅方在壳层），不寄居设置页 VM。
+
+   高权限窗口的一次性告知（#165 / [ADR-0040](../adr/0040-startup-privilege-policy.md) 决策 6）同归常驻侧：
+   启动编排末尾以 `ElevatedWindowNotice.ShouldWatch` 为门创建 `ForegroundElevationWatcher`（非提权且本安装
+   未提示过才起表，后台静默形态不启——该气泡属产品交互，e2e 覆盖不到也不该被它打扰），按 1 秒节拍取前台窗口
+   完整性级别；命中即报一次托盘气泡（带"点击即以管理员身份重启"入口）并置 `config.json` 的
+   `ElevatedWindowNoticeShown` 后立即落盘，每个安装只报一次。判据三条留在共享内核纯决策里，壳层只做机制。
 
 ## 宿主委托包
 
