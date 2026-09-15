@@ -189,6 +189,7 @@
     <sys:String x:Key="PluginManagerDiagnostics" xml:space="preserve">诊断</sys:String>
     <sys:String x:Key="PluginManagerDiagnosticsTitle" xml:space="preserve">诊断报告</sys:String>
     <sys:String x:Key="PluginManagerDisable" xml:space="preserve">停用</sys:String>
+    <sys:String x:Key="PluginManagerElevatedNotice" xml:space="preserve">⚠️ 当前以管理员身份运行，所有插件同时具有管理员权限。</sys:String>
     <sys:String x:Key="PluginManagerEnable" xml:space="preserve">启用</sys:String>
     <sys:String x:Key="PluginManagerLoadedVersionLabel" xml:space="preserve">本进程生效版本</sys:String>
     <sys:String x:Key="PluginManagerNoPluginSelected" xml:space="preserve">选择一个插件查看诊断报告。</sys:String>

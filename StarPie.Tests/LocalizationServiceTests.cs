@@ -71,6 +71,21 @@ public class LocalizationServiceTests
         Assert.Equal(expected, service.GetString("BtnConfirm"));
     }
 
+    [Theory]
+    [InlineData("zh-CN", "管理员")]
+    [InlineData("zh-TW", "系統管理員")]
+    [InlineData("en", "administrator")]
+    [InlineData("ja", "管理者")]
+    public void GetString_PluginElevatedNotice_TranslatedInEveryLanguage(string code, string expectedFragment)
+    {
+        // 四语一致的门：逐语取词均命中该语自身译文（缺失卫星键会静默回退 zh-CN 中性文案，
+        // 故断言方言特征片段，而不是"非键名"）。
+        var service = new LocalizationService();
+        service.SetLanguage(code);
+
+        Assert.Contains(expectedFragment, service.GetString("PluginManagerElevatedNotice"));
+    }
+
     [Fact]
     public void GetString_ReturnsKey_WhenKeyMissingEverywhere()
     {

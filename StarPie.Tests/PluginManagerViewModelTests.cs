@@ -312,6 +312,28 @@ public sealed class PluginManagerViewModelTests : IDisposable
         Assert.Equal(new[] { PluginId }, _host.ActivePluginIds);
     }
 
+    [Fact]
+    public async Task 提权警示_非提权态整行不出现()
+    {
+        await _host.StartAsync(CancellationToken.None);
+
+        PluginManagerViewModel viewModel = CreateViewModel();
+
+        Assert.False(viewModel.ShowElevatedNotice);
+    }
+
+    [Fact]
+    public async Task 提权警示_提权态出现()
+    {
+        // 探测经构造注入（与壳层托盘入口同源的 ProcessElevation）；提权态页首多出这一行。
+        await _host.StartAsync(CancellationToken.None);
+
+        var viewModel = new PluginManagerViewModel(
+            _host, _navigation, _localization, dialogs: _dialogs, isAdministrator: () => true);
+
+        Assert.True(viewModel.ShowElevatedNotice);
+    }
+
     private PluginManagerViewModel CreateViewModel()
         => new(_host, _navigation, _localization, dialogs: _dialogs);
 

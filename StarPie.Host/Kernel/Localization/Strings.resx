@@ -267,6 +267,7 @@
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸载可能失败；失败的插件会被隔离，需重启处理</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 插件</value></data>
     <data name="PluginManagerSubheader" xml:space="preserve"><value>查看宿主扫描到的插件与状态，执行启用、停用、重载、更新、重试、诊断与彻底移除。</value></data>
+  <data name="PluginManagerElevatedNotice" xml:space="preserve"><value>⚠️ 当前以管理员身份运行，所有插件同时具有管理员权限。</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>插件</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>版本</value></data>
   <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>本进程生效版本</value></data>

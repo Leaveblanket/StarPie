@@ -267,6 +267,7 @@
   <data name="PluginDevModeDisclosureUnload" xml:space="preserve"><value>卸載可能失敗；失敗的外掛會被隔離，需重新啟動處理</value></data>
   <data name="PagePlugins" xml:space="preserve"><value>🧩 外掛</value></data>
     <data name="PluginManagerSubheader" xml:space="preserve"><value>檢視宿主掃描到的外掛與狀態，執行啟用、停用、重新載入、更新、重試、診斷與徹底移除。</value></data>
+  <data name="PluginManagerElevatedNotice" xml:space="preserve"><value>⚠️ 目前以系統管理員身分執行，所有外掛同時具有系統管理員權限。</value></data>
   <data name="PluginManagerPluginIdLabel" xml:space="preserve"><value>外掛</value></data>
   <data name="PluginManagerVersionLabel" xml:space="preserve"><value>版本</value></data>
   <data name="PluginManagerLoadedVersionLabel" xml:space="preserve"><value>本行程生效版本</value></data>

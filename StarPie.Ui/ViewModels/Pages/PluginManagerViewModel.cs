@@ -31,6 +31,7 @@ namespace StarPie.ViewModels.Pages
         private readonly NavigationStore _navigation;
         private readonly ILocalizationService _localization;
         private readonly IDialogService? _dialogs;
+        private readonly Func<bool> _isAdministrator;
 
         /// <summary>插件条目（按宿主报告的稳定序）。</summary>
         public ObservableCollection<PluginManagerItemViewModel> Plugins { get; } = new();
@@ -58,24 +59,34 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private bool _isDeveloperModeEnabled;
 
+        /// <summary>
+        /// 提权态警示行的可见性（ADR-0040 决策 6）：插件为进程内加载、宿主不承诺沙箱与配额
+        /// （ADR-0029），宿主提权即把第三方插件的爆炸半径从用户级抬到机器级。非提权态恒为 false。
+        /// </summary>
+        [ObservableProperty]
+        private bool _showElevatedNotice;
+
         /// <summary>构造页面 VM：宿主运行时、导航状态与本地化服务均为显式依赖。</summary>
         /// <param name="runtime">宿主侧插件运行时。</param>
         /// <param name="navigation">导航状态（页面被导航到时重读宿主报告）。</param>
         /// <param name="localization">本地化服务。</param>
         /// <param name="pluginUi">插件 UI 托管门面；为 null 时不呈现插件设置区块。</param>
         /// <param name="dialogs">对话框服务（彻底移除前的确认）；为 null 时按取消处理，不误删。</param>
+        /// <param name="isAdministrator">提权态探测（与壳层托盘入口、高级页卡片同源）；为 null 时按非提权处理。</param>
         public PluginManagerViewModel(
             PluginRuntimeHost runtime,
             NavigationStore navigation,
             ILocalizationService localization,
             PluginUiCoordinator? pluginUi = null,
-            IDialogService? dialogs = null)
+            IDialogService? dialogs = null,
+            Func<bool>? isAdministrator = null)
         {
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
             _navigation = navigation ?? throw new ArgumentNullException(nameof(navigation));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
             _pluginUi = pluginUi;
             _dialogs = dialogs;
+            _isAdministrator = isAdministrator ?? (static () => false);
 
             _navigation.PropertyChanged += OnNavigationChanged;
             Refresh();
@@ -94,6 +105,7 @@ namespace StarPie.ViewModels.Pages
             SelectedPlugin = Plugins.FirstOrDefault(item => item.PluginId == selectedId)
                 ?? Plugins.FirstOrDefault();
             RefreshAdmissionMode();
+            ShowElevatedNotice = _isAdministrator();
             UpdateDiagnostics();
             RefreshPluginSettingsSections();
         }
