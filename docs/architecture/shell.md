@@ -64,6 +64,12 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    **只在 Debug 构建/附加调试器时可见**（`Debug` 日志调用在 Release 构建被编译期整体移除，
    实测该字面量在 Release 产物中不存在），正式版核对以产物 `StarPie.runtimeconfig.json`
    的 `configProperties` 为准。
+   **收益口径**：这条路线换来的是可达性与释放时机的明确（会话作用域、出账、瞬态租户），不是字节数——
+   关窗出账连同两轮压缩回收实测只释放个位数 MB 工作集，重开的会话再关一次近乎为零；进程内存主体是
+   原生私有分配与 WPF 渲染栈的首启常驻（窗口类注册、渲染线程与 D3D 资源、字体/纹理缓存），
+   不随出账归还、只有进程退出才释放。故对外报内存用**专用工作集**（任务管理器默认「内存」列），
+   不用含共享代码页的总工作集；设置台「关闭即销毁」同样不拿省内存当理由——若将来以首次开台变冷或
+   页内半输入状态丢失为由讨论回退，内存不构成理由。
 3. **自启**：注册表读写收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
