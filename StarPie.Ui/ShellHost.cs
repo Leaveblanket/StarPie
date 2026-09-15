@@ -189,11 +189,6 @@ namespace StarPie
             _localization.LanguageChanged += RefreshTrayTooltip;
             ApplyLanguageDictionary();
 
-            // 托盘驻留气泡：壳层动作（不是设置页职责）——设置台的页面 VM 是会话内的、此刻也可能没开，
-            // 气泡一律由壳层直接呈现。
-            _messenger.Register<MinimizedToTrayMessage>(this, (_, _) =>
-                ShowTrayBalloonTip("StarPie", MinimizedToTrayBalloonText));
-
             // 设置台会话（页面 VM 与设置台 VM 的宿主）先于初始导航建立：
             // 页面 VM 只存在于设置台会话内，导航执行缝在无会话时会拒绝解析。
             SettingsConsole console = EnsureSettingsConsole();
@@ -523,9 +518,6 @@ namespace StarPie
         }
 
         private string DefaultTooltip => _localization.GetString("TrayTooltip") + DevInstance.Suffix;
-
-        /// <summary>最小化到托盘的驻留气泡文案（壳层动作，不经页面 VM）。</summary>
-        private const string MinimizedToTrayBalloonText = "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。";
 
         /// <summary>
         /// 托盘退出：按 <see cref="ShellExitSequence"/> 的固定顺序执行（落盘 → 释壳 → 应用关闭）。
