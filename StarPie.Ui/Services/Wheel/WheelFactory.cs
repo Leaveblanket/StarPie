@@ -46,7 +46,7 @@ namespace StarPie.Services.Wheel
             RadialWindow? window = null;
             dispatcher.Invoke(() =>
             {
-                // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流（ADR-0044 决策 3）。
+                // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流。
                 viewModel = new WheelViewModel(center, profile, WheelViewData.FromConfig(_config.Current), _localization);
                 window = new RadialWindow(viewModel, _themeService, _localization, _iconAssets);
             });
@@ -55,7 +55,7 @@ namespace StarPie.Services.Wheel
 
         /// <summary>启动期预热：本方法装配预热所需的一切——取全局方案（缺失即空方案）构造
         /// 与手势同形的视图模型，再离屏渲染一次。调用方（壳层）不必知道 Profile 查找语义
-        /// 与预热方式（ADR-0043 决策 4）。</summary>
+        /// 与预热方式，调用方不必知道这些装配细节。</summary>
         public void Warmup()
         {
             WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == GlobalProfileName) ?? new WheelProfile();

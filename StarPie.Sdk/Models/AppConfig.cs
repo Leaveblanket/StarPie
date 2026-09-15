@@ -1,6 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text.Json.Nodes;
-using StarPie.Services.Wheel;
 
 namespace StarPie.Models
 {
@@ -19,8 +18,10 @@ namespace StarPie.Models
 
         // —— 主题与 UI 风格 ——
         public string AppTheme { get; set; } = "System"; // 应用界面主题："System" / "Light" / "Dark" / "MidnightNavy" / "RoyalViolet" / "TitaniumGray"
-        public string WheelPalette { get; set; } = WheelPaletteNames.System; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
-        public string WheelStyle { get; set; } = WheelStyleNames.Default; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
+        // 风格名与方案名默认值刻意写在这里而非引常量：模型层不依赖 Services 层（依赖矩阵 Models→Services 为 ✗），
+        // 取值与 WheelStyleNames / WheelPaletteNames 同源，改动须两处同改。
+        public string WheelPalette { get; set; } = "System"; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
+        public string WheelStyle { get; set; } = "ClassicRing"; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
 
         // —— 轮盘几何 ——
         public bool ShowText { get; set; } = true; // 扇区上是否显示文字标签

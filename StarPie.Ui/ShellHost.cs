@@ -39,7 +39,7 @@ namespace StarPie
         private readonly DialogService _dialogService;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
-        // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型（ADR-0043 决策 4）。
+        // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型。
         private readonly IWheelFactory _wheelFactory;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
         // 目录执行缝按槽位导航——壳层不持有任何页面类型。

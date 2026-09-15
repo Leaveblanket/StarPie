@@ -1,4 +1,4 @@
-namespace StarPie.Services.Wheel
+﻿namespace StarPie.Services.Wheel
 {
     /// <summary>
     /// 轮盘配色方案名的唯一来源：解析器分支键、外观设置页固定配色项与配置默认值共用的字面量。
@@ -6,7 +6,7 @@ namespace StarPie.Services.Wheel
     /// <remarks>
     /// 与 <see cref="WheelStyleNames"/> 分列：配色方案是「用哪套色」，主题风格是「画成什么形状」，
     /// 两者取值集合不同、消费方也不同，混成一个类会让 <c>CatPaw</c> 这类同名值再次语义模糊。
-    /// 刻意不用枚举：方案名在 <c>config.json</c> 里是字符串（ADR-0043 决策 3）。
+    /// 刻意不用枚举：方案名在 <c>config.json</c> 里是字符串，枚举会把序列化兼容面绑上类型名。
     /// </remarks>
     public static class WheelPaletteNames
     {

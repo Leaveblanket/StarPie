@@ -1,4 +1,4 @@
-namespace StarPie.Compatibility
+﻿namespace StarPie.Compatibility
 {
     /// <summary>
     /// headless SDK（<c>StarPie.Sdk</c>）的 ABI 政策：插件清单 <c>sdk</c> 声明「主.次」版本，
@@ -11,7 +11,7 @@ namespace StarPie.Compatibility
         public const int MajorVersion = 1;
 
         /// <summary>当前 ABI 次版本；additive 变更时递增。</summary>
-        public const int MinorVersion = 1;
+        public const int MinorVersion = 2;
 
         /// <summary>当前 ABI 版本串（插件清单 <c>sdk</c> 的规范形态："主.次"）。</summary>
         public static string Version => $"{MajorVersion}.{MinorVersion}";

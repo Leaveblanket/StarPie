@@ -56,7 +56,7 @@ namespace StarPie.Modules
         {
             // 手势管线：GestureController 构造即订阅钩子事件，由 CreateAppHost 在 Run 前 eager
             // 解析保活。钩子健康检查失败后的重注册须回 UI 线程执行，调度接缝在此注入——
-            // 适配器因此不引用 UI 框架类型（其类型级声明如此，ADR-0043 决策 4）。
+            // 适配器因此不引用 UI 框架类型（其类型级声明如此）。
             services.AddSingleton(sp => new MouseHook(
                 callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback)));
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();

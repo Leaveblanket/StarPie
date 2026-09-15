@@ -1,10 +1,10 @@
-using StarPie.Icons;
+﻿using StarPie.Icons;
 
 namespace StarPie.Wheel
 {
     /// <summary>
     /// 扇区内置向量图标：动作类型/系统参数到内置矢量目录的映射，以及目录体外的字面量。
-    /// 自 PR #175 起为唯一来源——运行时轮盘与外观页预览原先各持一份，连字面量都逐字符相同。
+    /// 运行时轮盘与外观页预览共用这一份，两侧不再各持实现。
     /// </summary>
     public static class WheelBuiltInIcons
     {

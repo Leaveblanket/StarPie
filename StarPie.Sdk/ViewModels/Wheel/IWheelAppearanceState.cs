@@ -4,10 +4,9 @@ using StarPie.Services.Wheel;
 namespace StarPie.ViewModels.Wheel
 {
     /// <summary>
-    /// 轮盘外观只读状态接口（签名暴露件，随实现方 M2 下沉，ADR-0023/#97；#112 收口入
-    /// <c>StarPie.Sdk</c>）：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/
+    /// 轮盘外观只读状态接口：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/
     /// 配色方案选中与窄配色输入、几何与排版参数、核图标相关、预览所用 Profile 上下文。
-    /// 不暴露整个运行态配置对象：渲染侧取配色数据只经 <see cref="PaletteInput"/>（ADR-0044）。
+    /// 不暴露整个运行态配置对象：渲染侧取配色数据只经 <see cref="PaletteInput"/>。
     /// </summary>
     /// <remarks>
     /// 实现方为轮盘模块外观设置子 VM（WheelAppearanceSettingsViewModel），经外观聚合 VM 的
@@ -63,7 +62,7 @@ namespace StarPie.ViewModels.Wheel
         // ---- 配色解析输入与预览所用 Profile 上下文 --------------------------------
 
         /// <summary>样式渲染器的窄配色输入：只含配色解析与光晕所需字段，
-        /// 与运行态轮盘同类型、同组装入口（ADR-0044 决策 4）。</summary>
+        /// 与运行态轮盘同类型、同组装入口。</summary>
         WheelPaletteInput PaletteInput { get; }
 
         /// <summary>预览渲染所用 Profile（优先选中方案，无选中时回落列表首项；空列表由渲染器兜底）。</summary>

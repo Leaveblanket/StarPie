@@ -26,7 +26,7 @@ namespace StarPie.Views.Renderers
         /// Windows 深色标志解析；方案→色值换算在 <see cref="WheelPaletteParser"/>，
         /// 渲染器只把解析后的 <see cref="WheelPalette"/> 转成画刷。
         /// 输入是只含配色字段的窄类型（<paramref name="paletteInput"/>），
-        /// 运行态与预览态共用同一类型与同一组装入口，不喂整个配置对象（ADR-0044 决策 4）。</summary>
+        /// 运行态与预览态共用同一类型与同一组装入口，不喂整个配置对象。</summary>
         void Initialize(string palette, WheelPaletteInput paletteInput, bool windowsInDarkMode);
 
         /// <summary>绘制当前样式的装饰；轮盘状态（几何、是否显示核图标）由调用方

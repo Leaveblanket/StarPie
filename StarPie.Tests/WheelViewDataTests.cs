@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using StarPie.Services.Wheel;
 using StarPie.ViewModels.Wheel;
 using StarPie.Wheel;
@@ -6,7 +6,7 @@ using StarPie.Wheel;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘瞬态视图投影（ADR-0044）覆盖：只含渲染所需字段的取值映射、缺省回落，
+/// 轮盘瞬态视图投影覆盖：只含渲染所需字段的取值映射、缺省回落，
 /// 以及「投影是快照不是引用」——配置在投影组装后变更不回流到已构造的实例。
 /// </summary>
 public sealed class WheelViewDataTests

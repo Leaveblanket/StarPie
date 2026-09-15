@@ -31,7 +31,7 @@ namespace StarPie.ViewModels.Wheel
         public GesturePoint Center { get; }
 
         /// <summary>瞬态视图数据投影（快照）：只含渲染所需字段，窗口据此绘制；
-        /// 视图因此不可达全局配置对象（ADR-0044）。</summary>
+        /// 视图因此不可达全局配置对象。</summary>
         public WheelViewData ViewData { get; }
 
         /// <summary>每个轮盘扇区一个槽位（按方位角索引）；未绑定动作的槽位 HasAction 为 false。</summary>

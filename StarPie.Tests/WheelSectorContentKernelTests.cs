@@ -221,7 +221,7 @@ public sealed class WheelSectorContentKernelTests
     public void ResolveIcon_SlotWithoutAction_CarriesHotkeyTypeFromCaller()
     {
         // 无动作槽位的 "Hotkey" 由消费方给出（WheelSectorViewModel 的视图默认值），
-        // 内核据此给内置键盘图标——与迁移前逐项一致。
+        // 内核据此给内置键盘图标。
         var content = Build(new WheelSectorInput("", "Hotkey", "", "", ""));
 
         Assert.Equal(WheelIconKind.SvgPath, content.Icon.Kind);
@@ -231,7 +231,7 @@ public sealed class WheelSectorContentKernelTests
     [Fact]
     public void ResolveIcon_BlankType_FindsNoIcon()
     {
-        // 空类型不额外当成 Hotkey：迁移前该分支同样取不到内置向量（回落口径不在内核里重造）。
+        // 空类型不给内置向量：回落口径不在内核里重造，由消费方决定传什么类型。
         var content = Build(new WheelSectorInput("", null, null, null, null));
 
         Assert.Equal(WheelIconKind.None, content.Icon.Kind);

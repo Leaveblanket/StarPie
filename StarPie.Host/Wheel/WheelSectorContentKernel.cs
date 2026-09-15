@@ -5,8 +5,8 @@ using StarPie.Services.Icons;
 namespace StarPie.Wheel
 {
     /// <summary>
-    /// 单个扇区的动作数据（与 <c>ActionItem</c> 同形的窄字段）：内核只认这些字段，
-    /// 不认全局配置——ADR-0043 决策 1 的约束，避免 ADR-0044 收窄配置面时反向逼迫内核改签名。
+    /// 单个扇区的动作数据（与 <c>ActionItem</c> 同形的窄字段）：内核只认这些字段，不认全局配置。
+    /// 配置消费面收窄时不必回头改内核签名。
     /// </summary>
     public readonly struct WheelSectorInput
     {
@@ -136,7 +136,7 @@ namespace StarPie.Wheel
             SectorMetrics metrics = SectorMetrics.For(layout.SectorCount);
             bool textOnly = layout.IconLayoutMode == TextOnlyLayoutMode;
             bool iconOnly = layout.IconLayoutMode == IconOnlyLayoutMode;
-            // 布局级「要不要文字」：文字是否存在不改变图标间距口径（与迁移前一致）。
+            // 布局级「要不要文字」：文字是否非空不改变图标间距口径。
             bool layoutShowsText = layout.ShowText && !iconOnly;
 
             double configuredIconSize = layout.SectorIconSize > 0 ? layout.SectorIconSize : DefaultSectorIconSize;
@@ -178,8 +178,8 @@ namespace StarPie.Wheel
 
         private static WheelIconContent ResolveIcon(WheelSectorInput sector, Func<string, bool>? isParsableSvg)
         {
-            // 动作类型原样参与判定：空类型不额外当成 Hotkey（迁移前即如此）。无动作槽位的
-            // "Hotkey" 由消费方给出（WheelSectorViewModel 的视图默认值），不在内核里再造一份回落。
+            // 类型原样参与判定：空类型不给内置向量；无动作槽位的 "Hotkey" 由消费方给出
+            // （WheelSectorViewModel 的视图默认值），内核不再自造回落。
             string type = sector.Type;
 
             // 1. 动作自带的自定义 SVG

@@ -1,11 +1,11 @@
-using System.Windows;
+﻿using System.Windows;
 using StarPie.Services.Shell;
 using StarPie.Services.Wheel;
 
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘工厂预热契约覆盖（#177）：Profile 查找与离屏预热的装配收在实现内，壳层只经
+/// 轮盘工厂预热契约覆盖：Profile 查找与离屏预热的装配收在实现内，壳层只经
 /// <see cref="IWheelFactory.Warmup"/> 触发；两条路径（配置里有全局方案 / 没有）都不抛，
 /// 失败交由调用方决定是否吞掉。
 /// </summary>

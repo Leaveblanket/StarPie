@@ -25,7 +25,7 @@ namespace StarPie.Views.Renderers
         public double HighlightBorderThickness { get; protected set; } = 1.5;
 
         public bool IsLightPalette { get; protected set; } = false;
-        // 配色微调与光晕的窄输入快照（ADR-0044 决策 4）；未 Initialize 时为 null。
+        // 配色微调与光晕的窄输入快照；未 Initialize 时为 null。
         protected WheelPaletteInput? _paletteInput;
 
         /// <summary>轮盘配色目录中的风格键（与 <see cref="StyleRendererFactory"/> 分支同名），
