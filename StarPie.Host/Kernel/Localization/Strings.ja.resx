@@ -212,6 +212,8 @@
   <data name="SelectedAppPathTooltip" xml:space="preserve"><value>選択したアプリケーションのパス</value></data>
   <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>選択したローカルフォルダーのパス</value></data>
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>起動引数（コマンドライン引数やURLなど）</value></data>
+  <data name="RunAsAdminShort" xml:space="preserve"><value>管理者</value></data>
+  <data name="RunAsAdminTooltip" xml:space="preserve"><value>このプログラムを管理者として起動します（非管理者の場合は UAC の確認が表示されます）</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>インストール済みアプリ一覧から除外するアプリを選択します</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>入力欄のプロセス名を除外ブラックリストに追加します</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>コンソール全体の配色をカスタマイズし、Windows のライト/ダークモードに追従できます。</value></data>

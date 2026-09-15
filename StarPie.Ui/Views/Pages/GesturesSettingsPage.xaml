@@ -127,12 +127,20 @@
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
+                                                            <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                      IsReadOnly="True" Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextSecondaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="{DynamicResource SelectedAppPathTooltip}"/>
                                                         <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="{DynamicResource BrowseAppTooltip}">
                                                             <TextBlock Text="📁" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
+                                                        <!-- 显式提权启动：提权态默认经 Explorer 中介降权，该能力不再随进程权限免费获得。 -->
+                                                        <CheckBox Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Center" FontSize="11"
+                                                                      AutomationProperties.AutomationId="{Binding RunAsAdminAutomationId}"
+                                                                      Content="{DynamicResource RunAsAdminShort}"
+                                                                      Foreground="{DynamicResource TextPrimaryBrush}"
+                                                                      IsChecked="{Binding RunAsAdmin, Mode=TwoWay}"
+                                                                      ToolTip="{DynamicResource RunAsAdminTooltip}" />
                                                     </Grid>
 
                                                     <!-- 3. Open Folder -->

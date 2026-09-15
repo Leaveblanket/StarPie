@@ -232,6 +232,8 @@
     <sys:String x:Key="RenameCustomPresetTitle" xml:space="preserve">重命名配色方案预设</sys:String>
     <sys:String x:Key="RenamePresetTooltip" xml:space="preserve">重命名当前选中的自定义配色方案预设</sys:String>
     <sys:String x:Key="RenameProfileTooltip" xml:space="preserve">重命名选中的配置方案</sys:String>
+    <sys:String x:Key="RunAsAdminShort" xml:space="preserve">管理员</sys:String>
+    <sys:String x:Key="RunAsAdminTooltip" xml:space="preserve">以管理员身份启动此程序（非管理员时弹出 UAC 确认）</sys:String>
     <sys:String x:Key="SaveCustomPresetButton" xml:space="preserve">💾 保存当前颜色为自定义配色预设...</sys:String>
     <sys:String x:Key="SaveCustomPresetPrompt" xml:space="preserve">请输入自定义配色方案名称:</sys:String>
     <sys:String x:Key="SaveCustomPresetSuccess" xml:space="preserve">配色预设【{0}】已成功保存！</sys:String>

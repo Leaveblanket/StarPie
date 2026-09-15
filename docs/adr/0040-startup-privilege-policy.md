@@ -102,11 +102,13 @@
   - 未提权态检测到前台窗口属于更高完整性级别时，报**一次**托盘气泡（每个安装一次，需 `config.json`
     新增标记字段，缺字段按未提示处理）；
   - 提权态下在插件管理页显示一行警示（当前插件以管理员身份运行）；
-  - 提权态下"启动程序"动作改走 Explorer 中介降权启动（`ShellWindows` + `IShellDispatch2::ShellExecute`，
-    保参数；失败回退直接启动），并相应补一个显式的"以管理员身份启动"动作选项——否则该动作形态是纯减法。
+  - ~~提权态下"启动程序"动作改走 Explorer 中介降权启动~~ 已落地（#163：
+    `ExplorerShellLaunch` + `ActionRouting.ResolveLaunchMode` + 动作项显式的"以管理员身份启动"选项；
+    见 [shell.md](../architecture/shell.md)、[gestures.md](../architecture/gestures.md)）。
 - **不可自动化验证的边界**：跨完整性级别行为（消息放行与互斥体分支）无法被不提权的 xUnit/e2e 环境复现，
   其验收只能由一次真实的提权实例 + 非提权双击手动完成；本 ADR 不为此设自动判据。
 - **叶子回填**：`host.md` 单实例段补跨级别行为与失败分类；`shell.md` 高级设置面段补托盘提权入口的可见性口径；
   `CONTEXT.md` 增「提权」「高权限窗口」两词。
 - **边界守护**：新增 public 内核类型 `ProcessElevation` 已登记进 `HostBoundaryTests` 的内核清单
-  （该表为"导出面 = 内核清单"的守护，新增 public 类型须同步）。
+  （该表为"导出面 = 内核清单"的守护，新增 public 类型须同步）；后续落地的
+  `ExplorerShellLaunch` 与 `LaunchMode` 同此登记。
