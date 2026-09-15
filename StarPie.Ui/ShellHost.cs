@@ -214,6 +214,12 @@ namespace StarPie
             // 单实例恢复消息的接收端驻常驻侧：设置台窗口关着时也要能受理"打开设置台"请求。
             _restoreMessageHook = OnResidentWindowMessage;
             _trayIcon.AddHook(_restoreMessageHook);
+            // 提权实例持有托盘窗口时，非提权实例的恢复消息会被 UIPI 按完整性级别拦下：
+            // 接收端显式放行本进程自有的注册消息，双击图标才置得前已运行的提权实例。
+            if (ProcessElevation.IsRunningAsAdministrator())
+            {
+                SingleInstanceRestore.AllowFromLowerIntegrity(_trayIcon.Handle);
+            }
 
             console.Show();
 
@@ -378,7 +384,11 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), ElevateAndRestart));
+            // 提权入口只在非提权态出现（与高级页提权卡片同口径）：已是管理员时该入口无意义。
+            if (!ProcessElevation.IsRunningAsAdministrator())
+            {
+                entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), ElevateAndRestart));
+            }
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 

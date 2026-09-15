@@ -38,8 +38,8 @@ public sealed class HostBoundaryTests
         typeof(AppDataPaths), typeof(SettingsSaveOrchestrator),
         // Kernel/Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
-        // Kernel/ShellIntegration/（开机自启注册表与 GC 内存整理，纯托管）
-        typeof(AutostartRegistry), typeof(MemoryOptimizer), typeof(TrayStateSignal), typeof(TraySignalStep), typeof(TrayStateChange),
+        // Kernel/ShellIntegration/（开机自启注册表、提权态探测与 GC 内存整理，纯托管）
+        typeof(AutostartRegistry), typeof(ProcessElevation), typeof(MemoryOptimizer), typeof(TrayStateSignal), typeof(TraySignalStep), typeof(TrayStateChange),
         typeof(ShellExitSequence), typeof(ShellExitStep),
         // HostServices/（插件服务出口与托盘状态消息泵）
         typeof(IPluginEventSink), typeof(PluginEventPump),
