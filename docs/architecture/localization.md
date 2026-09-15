@@ -28,6 +28,8 @@
    `AliasToCanonical` 表折叠为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），未知码兜底 zh-CN，
    语言状态不再保留自定义枚举中间表示；语言实际变化才触发 `LanguageChanged`。
    静态 `I18n` 已删除，消费点一律注入 `ILocalizationService`。
+   语言状态由配置侧驱动：替换运行态配置的入口在替换后立即应用配置的 `Language`
+   （见 [config.md](config.md)）。
 2. **XAML 声明式文案**：宿主 `ShellHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护
    Application 级静态 `LanguageDictionary`（MergedDictionaries 中仅一份，切语原地 `Clear` 重建，数据源为
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，

@@ -29,6 +29,7 @@
 | 契约缝·对话框 | `IDialogService`/结果 record 驻 `StarPie.Sdk`（纯 C#，ADR-0023 自 Core 迁出，P1.3/#112 随 SDK 收口）← 实现 `DialogService` 驻 Dialogs；M1/M2/M5/Host 经契约边调用 | ADR-0023 |
 | 注册缝 | 统一注册管线：`ICompositionContributor`（`Id`/`Order`/`RegisterServices` + 可选 `RegisterNavigation`）+ `BuiltInContributors` 有序清单（`HostCore`/`HostPage`/Theme/Wheel/Gestures/Shell/Dialogs 七个内置贡献者）下放 DI/导航登记；注册的契约类型驻 `StarPie.Sdk`/`StarPie.Sdk.Wpf`；组合根唯一解析、插件贡献者接同一接口（P2/P3） | ADR-0023；BuiltInContributorsTests |
 | 内核消费缝 | 旧集 runtime 与 Ui 经 `StarPie.Host/Kernel/{Configuration,Localization}` 消费内核件（内核定义、消费方单向；P1.5/#114 起归并期过渡边，模块拆入 Ui 后收敛） | HostBoundaryTests |
+| 内核内互连·配置→本地化（同集，非跨集缝） | `StarPie.Host/Kernel/Configuration` 的 `JsonConfigService` 持同集 `Kernel/Localization` 的 `ILocalizationService`：替换运行态配置的两个入口（加载、导入）都在替换后立即应用配置的 `Language`，把「运行态语言跟随当前配置」收成服务的单一不变式，不留给各调用方自觉 | JsonConfigServiceTests（加载与导入两条路径各一条「语言跟随」用例） |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 `StarPie.Sdk`（可空 Action 单例，P1.3/#112 随 SDK 收口），由 `HostCoreContributor` 登记单例、AppHost 构造后回填 | 无专用机械断言（缝本身无解析时机；注册体由 BuiltInContributorsTests 覆盖） |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004；e2e |
 | 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–3，P1.3/#112 收口入 `StarPie.Sdk`）+ 贡献者 `RegisterNavigation` + 页面模板字典 | NavigationCatalogTests + BuiltInContributorsTests（补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |

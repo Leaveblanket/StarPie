@@ -256,4 +256,54 @@ public sealed class JsonConfigServiceTests : IDisposable
 
         Assert.Equal(25.0, service.Current.DragThreshold);
     }
+
+    /// <summary>
+    /// 加载是替换运行态配置的入口之一，语言状态必须跟着换——用独立实例以免污染本类共享的语言服务。
+    /// </summary>
+    [Fact]
+    public void Load_AppliesConfiguredLanguageToRuntime()
+    {
+        var localization = new LocalizationService();
+        localization.SetLanguage("en");
+        File.WriteAllText(_configPath, """{ "Language": "ja", "Profiles": [] }""");
+        var service = new JsonConfigService(_configPath, localization);
+
+        service.Load();
+
+        Assert.Equal("ja", localization.CurrentLanguage);
+    }
+
+    /// <summary>
+    /// 导入是替换运行态配置的入口之一，语言状态必须跟着换——否则磁盘上的 Language 与运行态语言
+    /// 各说各话，直到下次启动才收敛。用独立实例以免污染本类共享的语言服务。
+    /// </summary>
+    [Fact]
+    public void Import_LanguageDiffersFromRuntime_AppliesImportedLanguage()
+    {
+        var localization = new LocalizationService();
+        localization.SetLanguage("zh-CN");
+        var service = new JsonConfigService(_configPath, localization);
+        string importedPath = Path.Combine(_tempDir, "imported.json");
+        File.WriteAllText(importedPath, """{ "Language": "ja", "Profiles": [] }""");
+
+        bool imported = service.Import(importedPath);
+
+        Assert.True(imported);
+        Assert.Equal("ja", service.Current.Language);
+        Assert.Equal("ja", localization.CurrentLanguage);
+    }
+
+    [Fact]
+    public void Import_SourceMissing_KeepsCurrentConfigAndLanguage()
+    {
+        var localization = new LocalizationService();
+        var service = new JsonConfigService(_configPath, localization);
+        service.Load();
+        string languageAfterLoad = localization.CurrentLanguage;
+
+        bool imported = service.Import(Path.Combine(_tempDir, "absent.json"));
+
+        Assert.False(imported);
+        Assert.Equal(languageAfterLoad, localization.CurrentLanguage);
+    }
 }
