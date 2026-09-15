@@ -40,21 +40,6 @@ namespace StarPie.Actions
     }
 
     /// <summary>
-    /// 启动程序动作的落地形态：直接启动、显式提权启动、经 Explorer 中介降权启动。
-    /// </summary>
-    public enum LaunchMode
-    {
-        /// <summary>直接启动：权限沿用调用方（非提权态=普通权限，提权态=管理员令牌）。</summary>
-        Direct,
-
-        /// <summary>显式提权启动：ShellExecute 的 runas 动词，非提权态由 UAC 决定放行与否。</summary>
-        Elevated,
-
-        /// <summary>经 Explorer 中介降权启动：请已运行的（非提权）explorer.exe 代拉子进程。</summary>
-        ShellMediated,
-    }
-
-    /// <summary>
     /// 动作路由纯函数：动作类型路由、系统命令映射、启动/文件夹 StartInfo 构造、
     /// 热键弦解析与键序生成均为无副作用逻辑；进程启动/键注入等系统调用由
     /// <see cref="ActionExecutorService"/> 执行。大小写规则：类型路由大小写敏感，
@@ -172,21 +157,9 @@ namespace StarPie.Actions
             }
         }
 
-        /// <summary>
-        /// 启动程序动作的落地形态（纯决策）：非提权态维持改动前的行为——默认直接启动，
-        /// 勾选"以管理员身份启动"时经 runas 提权启动；提权态默认改走 Explorer 中介降权
-        /// （否则子进程继承管理员令牌，资源管理器拖拽、映射盘可见性与 Chromium 系启动都出问题），
-        /// 勾选时保持直接启动（本已具管理员身份，无需再跳一跳）。
-        /// </summary>
-        public static LaunchMode ResolveLaunchMode(bool isElevated, bool runAsAdmin)
-        {
-            if (!isElevated) return runAsAdmin ? LaunchMode.Elevated : LaunchMode.Direct;
-            return runAsAdmin ? LaunchMode.Direct : LaunchMode.ShellMediated;
-        }
-
-        /// <summary>启动程序 StartInfo：Arguments 空时归一为空串，WorkingDirectory 保持未设（子进程继承调用方目录）。
-        /// <paramref name="runAsAdmin"/> 为真时挂 runas 动词（须 UseShellExecute，本构造恒为真）。</summary>
-        public static ProcessStartInfo BuildLaunchStartInfo(string path, string? arguments, bool runAsAdmin = false)
+        /// <summary>启动程序 StartInfo：Arguments 空时归一为空串，WorkingDirectory 保持未设
+        /// （子进程继承调用方目录），权限沿用调用方进程的令牌。</summary>
+        public static ProcessStartInfo BuildLaunchStartInfo(string path, string? arguments)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("Launch path is empty", nameof(path));
 
@@ -194,7 +167,6 @@ namespace StarPie.Actions
             {
                 FileName = path,
                 Arguments = arguments ?? string.Empty,
-                Verb = runAsAdmin ? "runas" : string.Empty,
                 UseShellExecute = true
             };
         }

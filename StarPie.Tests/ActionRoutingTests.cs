@@ -177,36 +177,6 @@ public sealed class ActionRoutingTests
     }
 
     [Fact]
-    public void BuildLaunchStartInfo_NotRequested_DoesNotCarryRunasVerb()
-    {
-        // 默认形态不带提权动词：非提权态行为与改动前一致。
-        var startInfo = ActionRouting.BuildLaunchStartInfo("app.exe", "");
-
-        Assert.Equal(string.Empty, startInfo.Verb);
-    }
-
-    [Fact]
-    public void BuildLaunchStartInfo_RunAsAdmin_CarriesRunasVerb()
-    {
-        var startInfo = ActionRouting.BuildLaunchStartInfo(@"C:\Tools\app.exe", "--flag", runAsAdmin: true);
-
-        Assert.Equal("runas", startInfo.Verb);
-        Assert.True(startInfo.UseShellExecute); // runas 动词要求 UseShellExecute。
-    }
-
-    // --- 启动落地形态决策（ADR-0040 决策 6） ---------------------
-
-    [Theory]
-    [InlineData(false, false, LaunchMode.Direct)]        // 非提权 + 未勾提权：与改动前一致
-    [InlineData(false, true, LaunchMode.Elevated)]       // 非提权 + 勾提权：经 runas 弹 UAC
-    [InlineData(true, false, LaunchMode.ShellMediated)]  // 提权 + 未勾：经 Explorer 中介降权
-    [InlineData(true, true, LaunchMode.Direct)]          // 提权 + 勾提权：本已具管理员，直接启动
-    public void ResolveLaunchMode_CoversElevationAndExplicitFlags(bool isElevated, bool runAsAdmin, LaunchMode expected)
-    {
-        Assert.Equal(expected, ActionRouting.ResolveLaunchMode(isElevated, runAsAdmin));
-    }
-
-    [Fact]
     public void BuildFolderStartInfo_ExistingDirectory_OpensFolderInExplorer()
     {
         var startInfo = ActionRouting.BuildFolderStartInfo(@"C:\Tools", isDirectory: true, isFile: false);
