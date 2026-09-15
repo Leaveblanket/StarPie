@@ -38,18 +38,15 @@ namespace StarPie.Modules
 
         /// <summary>
         /// 注册本模块页面 VM（设置台会话作用域）：高级与系统页。工厂经 ServiceProvider
-        /// 惰性解析共享内核件（配置/对话框/本地化/消息与 AppHostDelegates）；开机自启/提权探测
+        /// 惰性解析共享内核件（配置/对话框/本地化/消息与 AppHostDelegates）；开机自启
         /// 等本模块内静态行为在此接线，VM 保持委托注入可测。
-        /// 托盘气泡与提权重启已归壳层：本页只经委托包转发触发提权，故作用域随设置台会话
-        /// （关窗即销毁、重开重建）。
+        /// 托盘气泡归壳层，故作用域随设置台会话（关窗即销毁、重开重建）。
         /// </summary>
         public void RegisterServices(IServiceCollection services)
         {
             services.AddScoped(sp => new GeneralSettingsViewModel(
                 sp.GetRequiredService<IConfigService>().Current,
                 sp.GetRequiredService<IDialogService>(),
-                // 提权是壳层动作，经共享内核委托包转发：壳层回填实现，VM 不反向依赖宿主类。
-                () => sp.GetRequiredService<AppHostDelegates>().ElevateAndRestart?.Invoke(),
                 isAutoStartEnabled: AutostartRegistry.IsAutoStartEnabled,
                 // 自启形态整体落位（注册表 Run 与提权计划任务同源），成败由系统实况回读；
                 // 提权形态需要管理员权限，失败（UAC 取消/无管理员凭据）由 VM 提示并拨回实况。
@@ -64,9 +61,7 @@ namespace StarPie.Modules
                 },
                 currentConfig: () => sp.GetRequiredService<IConfigService>().Current,
                 messenger: sp.GetRequiredService<IMessenger>(),
-                localization: sp.GetRequiredService<ILocalizationService>(),
-                // 提权态探测与壳层托盘入口同源（共享内核 ProcessElevation），不各留一份实现。
-                isAdministrator: ProcessElevation.IsRunningAsAdministrator));
+                localization: sp.GetRequiredService<ILocalizationService>()));
         }
 
         // 导航图标 Path Data（对应本模块页签）。

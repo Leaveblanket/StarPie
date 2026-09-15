@@ -134,42 +134,7 @@
                         </Grid>
                     </Border>
 
-                    <!--  卡片 2：UAC 权限提升  -->
-            <Border x:Name="UacWarningCard" Margin="0,0,0,14" Padding="20" Visibility="{Binding ShowUacWarning, Converter={StaticResource BoolToVis}}"
-                            Background="{DynamicResource CardBackgroundBrush}"
-                            BorderBrush="{DynamicResource CardBorderBrush}"
-                            BorderThickness="1" CornerRadius="12">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="12" Opacity="0.03" ShadowDepth="1"
-                                              Color="#000000" />
-                        </Border.Effect>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Margin="0,0,12,0" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Margin="0,0,6,0" VerticalAlignment="Center" FontSize="14"
-                                               Text="🛡️" />
-                                    <TextBlock VerticalAlignment="Center"
-                                               FontSize="14" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               Text="{DynamicResource ElevateTitle}" />
-                                </StackPanel>
-                                <TextBlock Margin="0,2,0,0" FontSize="12"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Text="{DynamicResource ElevateDesc}"
-                                           TextWrapping="Wrap" />
-                            </StackPanel>
-                            <Button Grid.Column="1" Height="32"
-                                    Padding="14,0" VerticalAlignment="Center"
-                                    Command="{Binding ElevateCommand}" Content="{DynamicResource BtnElevate}"
-                                    Style="{StaticResource ModernButtonStyle}" />
-                        </Grid>
-                    </Border>
-
-                    <!--  卡片 4：配置备份与迁移  -->
+                    <!--  卡片 2：配置备份与迁移  -->
                     <Border Padding="20"
                             Background="{DynamicResource CardBackgroundBrush}"
                             BorderBrush="{DynamicResource CardBorderBrush}"

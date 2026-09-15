@@ -165,7 +165,6 @@ public sealed class MainViewModelTests
             General = new GeneralSettingsViewModel(
                 Config,
                 Dialogs,
-                () => { },
                 () => false,
                 (_, _) => true,
                 _ => true,

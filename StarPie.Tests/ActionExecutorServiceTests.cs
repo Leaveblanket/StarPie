@@ -17,13 +17,10 @@ public sealed class ActionExecutorServiceTests
     {
         public List<ProcessStartInfo> Started { get; } = new();
         public List<IReadOnlyList<KeyStroke>> SentKeyStrokes { get; } = new();
-        public List<(string FileName, string Arguments, string WorkingDirectory)> ShellExecuted { get; } = new();
         public int LockCalls;
         public List<string> ActionErrors { get; } = new();
         public List<string> FolderErrors { get; } = new();
         public bool FailNextStart;
-        public bool IsElevated;
-        public bool ShellExecuteSucceeds = true;
         public Func<string, bool> DirectoryExists { get; set; } = _ => false;
         public Func<string, bool> FileExists { get; set; } = _ => false;
 
@@ -40,18 +37,12 @@ public sealed class ActionExecutorServiceTests
                 lockWorkStation: () => LockCalls++,
                 sendKeyStrokes: strokes => SentKeyStrokes.Add(strokes),
                 showActionError: message => ActionErrors.Add(message),
-                showFolderError: message => FolderErrors.Add(message),
-                isElevated: () => IsElevated,
-                shellExecute: (fileName, arguments, workingDirectory) =>
-                {
-                    ShellExecuted.Add((fileName, arguments, workingDirectory));
-                    return ShellExecuteSucceeds;
-                });
+                showFolderError: message => FolderErrors.Add(message));
         }
     }
 
-    private static ActionItem Action(string type, string parameter, string? arguments = null, bool runAsAdmin = false)
-        => new() { Type = type, Parameter = parameter, Name = "测试动作", Arguments = arguments ?? "", RunAsAdmin = runAsAdmin };
+    private static ActionItem Action(string type, string parameter, string? arguments = null)
+        => new() { Type = type, Parameter = parameter, Name = "测试动作", Arguments = arguments ?? "" };
 
     // --- 启动 ---------------------------------------------------------------
 
@@ -78,85 +69,10 @@ public sealed class ActionExecutorServiceTests
         service.Execute(Action("Launch", ""));
 
         Assert.Empty(seams.Started);
-        Assert.Empty(seams.ShellExecuted);
         Assert.Empty(seams.ActionErrors);
     }
 
-    // --- 提权态降权启动（ADR-0040 决策 6） ---------------------------------
-
-    [Fact]
-    public void Execute_LaunchElevated_GoesThroughExplorerMediation()
-    {
-        // 提权态默认降权：不走直接启动（否则子进程继承管理员令牌），参数原样交给 Explorer。
-        var seams = new FakeSeams { IsElevated = true };
-        var service = seams.BuildService();
-
-        service.Execute(Action("Launch", @"C:\Tools\app.exe", "--flag value"));
-
-        var mediated = Assert.Single(seams.ShellExecuted);
-        Assert.Equal(@"C:\Tools\app.exe", mediated.FileName);
-        Assert.Equal("--flag value", mediated.Arguments);
-        Assert.Empty(seams.Started);
-        Assert.Empty(seams.ActionErrors);
-    }
-
-    [Fact]
-    public void Execute_LaunchElevatedAndRunAsAdmin_StartsDirectlyWithoutMediation()
-    {
-        // 提权态 + 显式提权：本已具管理员身份，勾选即直接启动，不再走 Explorer 一跳。
-        var seams = new FakeSeams { IsElevated = true };
-        var service = seams.BuildService();
-
-        service.Execute(Action("Launch", @"C:\Tools\app.exe", runAsAdmin: true));
-
-        var startInfo = Assert.Single(seams.Started);
-        Assert.Equal(string.Empty, startInfo.Verb);
-        Assert.Empty(seams.ShellExecuted);
-    }
-
-    [Fact]
-    public void Execute_LaunchElevated_MediationUnavailable_FallsBackToDirectStart()
-    {
-        // 结束 explorer.exe 或 COM 调用失败：降权是尽力而为，回退直接启动，不能变成"启动不了"。
-        var seams = new FakeSeams { IsElevated = true, ShellExecuteSucceeds = false };
-        var service = seams.BuildService();
-
-        service.Execute(Action("Launch", @"C:\Tools\app.exe", "--flag value"));
-
-        Assert.Single(seams.ShellExecuted);
-        var startInfo = Assert.Single(seams.Started);
-        Assert.Equal(@"C:\Tools\app.exe", startInfo.FileName);
-        Assert.Equal("--flag value", startInfo.Arguments);
-        Assert.Empty(seams.ActionErrors);
-    }
-
-    [Fact]
-    public void Execute_LaunchNotElevated_StartsDirectlyWithoutMediation()
-    {
-        // 非提权态行为与改动前完全一致：不经 Explorer 中转，也不挂 runas 动词。
-        var seams = new FakeSeams();
-        var service = seams.BuildService();
-
-        service.Execute(Action("Launch", @"C:\Tools\app.exe"));
-
-        var startInfo = Assert.Single(seams.Started);
-        Assert.Equal(string.Empty, startInfo.Verb);
-        Assert.Empty(seams.ShellExecuted);
-    }
-
-    [Fact]
-    public void Execute_LaunchNotElevatedAndRunAsAdmin_UsesRunasVerb()
-    {
-        var seams = new FakeSeams();
-        var service = seams.BuildService();
-
-        service.Execute(Action("Launch", @"C:\Tools\app.exe", runAsAdmin: true));
-
-        var startInfo = Assert.Single(seams.Started);
-        Assert.Equal("runas", startInfo.Verb);
-        Assert.Empty(seams.ShellExecuted);
-    }
-
+    // --- 文件夹与键注入 -------------------------------------------------------
     // --- 热键 ---------------------------------------------------------------
 
     [Fact]

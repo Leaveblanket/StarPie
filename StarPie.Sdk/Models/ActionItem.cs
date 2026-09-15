@@ -18,10 +18,6 @@ namespace StarPie.Models
         /// <summary>启动程序时附加的可选命令行参数。</summary>
         public string Arguments { get; set; } = "";
 
-        /// <summary>启动程序时是否显式要求管理员身份（非提权态经 UAC 提权启动；提权态本已具管理员）。
-        /// 旧配置缺该键时按 false 处理（见 ADR-0040 决策 6）。</summary>
-        public bool RunAsAdmin { get; set; }
-
         /// <summary>矢量图标键、emoji 或为空（不显示图标）。</summary>
         public string IconKey { get; set; } = "";
 

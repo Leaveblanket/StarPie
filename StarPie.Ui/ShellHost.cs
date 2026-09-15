@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
@@ -66,8 +65,6 @@ namespace StarPie
         private bool _isExiting;
         private TrayIconManager? _trayIcon;
         private SettingsConsole? _settingsConsole;
-        // 高权限窗口的一次性告知节拍（#165）：只在"可能报出"时创建（非提权且未提示过）。
-        private ForegroundElevationWatcher? _elevationWatcher;
         // 托盘消息窗口上的恢复消息钩子（常驻；释放时成对摘除）。
         private HwndSourceHook? _restoreMessageHook;
 
@@ -119,7 +116,6 @@ namespace StarPie
             // 退出动作指向本壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
-            _hostDelegates.ElevateAndRestart = ElevateAndRestart;
 
             // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
             _dialogService.SetBackgroundMode(background);
@@ -225,8 +221,6 @@ namespace StarPie
 
             console.Show();
 
-            StartElevatedWindowNoticeWatcher();
-
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
             // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
             // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发（#150）。
@@ -270,10 +264,6 @@ namespace StarPie
             // 成对退订语言字典换入（订阅在 Run()），避免壳层释放后事件仍持有引用。
             _localization.LanguageChanged -= ApplyLanguageDictionary;
             _localization.LanguageChanged -= RefreshTrayTooltip;
-
-            // 告知节拍先停：Dispose 后不再取样，也不再有回调落到已释放的托盘上。
-            _elevationWatcher?.Dispose();
-            _elevationWatcher = null;
 
             if (_trayIcon != null)
             {
@@ -392,11 +382,6 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
-            // 提权入口只在非提权态出现（与高级页提权卡片同口径）：已是管理员时该入口无意义。
-            if (!ProcessElevation.IsRunningAsAdministrator())
-            {
-                entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), ElevateAndRestart));
-            }
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
@@ -435,51 +420,6 @@ namespace StarPie
             _trayIcon?.ShowBalloonTip(title, text);
         }
 
-        /// <summary>
-        /// 启动"高权限窗口内手势失效"的一次性告知节拍（#165 / ADR-0040 决策 6）：
-        /// 仅当<see cref="ElevatedWindowNotice.ShouldWatch"/>成立（非提权且本安装未提示过）时才起表，
-        /// 注定无果时不空转。后台静默形态（e2e）不启——那条气泡属产品交互，e2e 覆盖不到也不该被它打扰。
-        /// </summary>
-        private void StartElevatedWindowNoticeWatcher()
-        {
-            if (_background) return;
-            if (!ElevatedWindowNotice.ShouldWatch(
-                    ProcessElevation.IsRunningAsAdministrator(),
-                    _config.Current.ElevatedWindowNoticeShown))
-            {
-                return;
-            }
-
-            _elevationWatcher = new ForegroundElevationWatcher(
-                ProcessElevation.IsRunningAsAdministrator,
-                ProcessElevation.IsForegroundWindowHigherIntegrity,
-                () => _config.Current.ElevatedWindowNoticeShown,
-                ReportElevatedWindowNotice);
-            _elevationWatcher.Start();
-        }
-
-        /// <summary>
-        /// 报出那一次告知：托盘气泡带"点击即以管理员身份重启"入口，同时置 config 标记并立即落盘
-        /// ——每个安装只报一次，跨会话不再出现（标记没落盘不影响本次告知，下次启动最多再报一次）。
-        /// </summary>
-        private void ReportElevatedWindowNotice()
-        {
-            _trayIcon?.ShowBalloonTip(
-                "StarPie",
-                _localization.GetString("ElevatedWindowNoticeBalloon"),
-                ElevateAndRestart);
-
-            try
-            {
-                _config.Current.ElevatedWindowNoticeShown = true;
-                _saveOrchestrator.SaveNow();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ElevatedWindowNotice] 已提示标记落盘失败: {ex.Message}");
-            }
-        }
-
         private void TogglePauseGestures()
         {
             _mouseHook.IsPaused = !_mouseHook.IsPaused;
@@ -504,33 +444,6 @@ namespace StarPie
 
         /// <summary>最小化到托盘的驻留气泡文案（壳层动作，不经页面 VM）。</summary>
         private const string MinimizedToTrayBalloonText = "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。";
-
-        /// <summary>
-        /// 以管理员身份重启并退出（托盘点选与设置页提权按钮的同一实现）：提权是壳层动作，
-        /// 页面只经 <see cref="AppHostDelegates.ElevateAndRestart"/> 转发触发。
-        /// 失败或用户取消 UAC 时不退出，以托盘气泡提示（无设置台时也可读）。
-        /// </summary>
-        private void ElevateAndRestart()
-        {
-            try
-            {
-                string exePath = Environment.ProcessPath
-                    ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                });
-            }
-            catch (Exception ex)
-            {
-                ShowTrayBalloonTip("StarPie", $"提权重启失败或已取消: {ex.Message}");
-                return;
-            }
-
-            ExitApplication();
-        }
 
         /// <summary>
         /// 托盘退出：按 <see cref="ShellExitSequence"/> 的固定顺序执行（落盘 → 释壳 → 应用关闭）。

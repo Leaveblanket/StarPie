@@ -54,4 +54,33 @@ public sealed class AutostartRegistryTests
         // dev 实例只加后缀，绝不与正式版共用任务（否则 dev 构建会覆盖正式版的自启形态）。
         Assert.StartsWith("StarPie_AdminAutoStart", AutostartRegistry.AdminTaskName);
     }
+
+    // --- 两条权限路线的落位互斥 ---------------------------------------------
+
+    [Theory]
+    [InlineData(false, false, false, false)] // 总开关关：两种形态都不落位
+    [InlineData(true, false, true, false)]   // 普通权限自启：只写注册表键
+    [InlineData(true, true, false, true)]    // 管理员权限静默自启：只留计划任务，注册表键必须缺位
+    public void ResolvePlacement_KeepsExactlyOneRoute(
+        bool enable, bool asAdmin, bool expectedWriteRunKey, bool expectedWantAdminTask)
+    {
+        // 提权形态下注册表键必须缺位：两条自启路径同在登录时触发，同时落位会让非提权实例
+        // 与提权实例抢单实例互斥体，非提权那个赢了就等于提权自启白开。
+        var placement = AutostartRegistry.ResolvePlacement(enable, asAdmin);
+
+        Assert.Equal(expectedWriteRunKey, placement.WriteRunKey);
+        Assert.Equal(expectedWantAdminTask, placement.WantAdminTask);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ResolvePlacement_NeverPlacesBothRoutes(bool enable, bool asAdmin)
+    {
+        var placement = AutostartRegistry.ResolvePlacement(enable, asAdmin);
+
+        Assert.False(placement.WriteRunKey && placement.WantAdminTask);
+    }
 }

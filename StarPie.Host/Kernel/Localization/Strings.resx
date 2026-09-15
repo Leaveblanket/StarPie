@@ -186,9 +186,6 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势。代价是 StarPie 与进程内插件都以管理员身份常驻。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>提示</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>提权自启未生效：可能取消了 UAC，或当前账号没有管理员凭据。已保持普通权限自启。</value></data>
-  <data name="ElevateTitle" xml:space="preserve"><value>管理员权限提升 (Run as Admin)</value></data>
-  <data name="ElevateDesc" xml:space="preserve"><value>以管理员身份重启，可在任务管理器、系统设置等高权限窗口中正常唤起手势。</value></data>
-  <data name="BtnElevate" xml:space="preserve"><value>🛡️ 以管理员身份重启</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>配置备份与恢复 (Backup &amp; Reset)</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>导出配置备份</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>导入配置文件</value></data>
@@ -202,12 +199,10 @@
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好设置 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外观与形态 (Appearance)</value></data>
   <data name="TrayGestures" xml:space="preserve"><value>⚡ 手势与动作 (Mappings)</value></data>
-  <data name="TrayElevate" xml:space="preserve"><value>🛡️ 以管理员身份重启</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 现代化鼠标轮盘笔势</value></data>
-  <data name="ElevatedWindowNoticeBalloon" xml:space="preserve"><value>当前前台窗口以管理员身份运行，其中无法唤起手势。点击此通知以管理员身份重启 StarPie。</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS 同步渲染</value></data>
-  <data name="AdvancedSubheader" xml:space="preserve"><value>管理界面语言、Windows 开机自启、管理员提权与配置文件的导入/导出备份。</value></data>
+  <data name="AdvancedSubheader" xml:space="preserve"><value>管理界面语言、Windows 开机自启（含以管理员身份静默启动）与配置文件的导入/导出备份。</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>从已安装软件或开始菜单中选择程序创建专属配置</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>自定义命名创建新的轮盘配置方案</value></data>
@@ -217,8 +212,6 @@
   <data name="SelectedAppPathTooltip" xml:space="preserve"><value>选择的应用程序路径</value></data>
   <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>选择的本地文件夹路径</value></data>
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>启动参数 (如命令行参数或URL)</value></data>
-  <data name="RunAsAdminShort" xml:space="preserve"><value>管理员</value></data>
-  <data name="RunAsAdminTooltip" xml:space="preserve"><value>以管理员身份启动此程序（非管理员时弹出 UAC 确认）</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>从已安装软件列表中快速选择要排除的程序</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>将输入框中的进程名称加入排除黑名单</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</value></data>

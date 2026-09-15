@@ -145,8 +145,9 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
       ADR-0023；P1.3/#112 收口），M1 不反向引用宿主。
-   - `GeneralSettingsViewModel` 的提权重启经 SDK `AppHostDelegates.ElevateAndRestart` 转发注册，
-     不直接引用宿主类（托盘气泡与退出已归壳层直接呈现/执行）。
+   - `ShellContributor.RegisterServices` 在注册期调用（M5 → Sdk + Host 内核 + Sdk.Wpf
+     契约面），自启注册表经本集 `AutostartRegistry` 静态委托接线，页面 VM 不反向引用宿主类
+     （托盘气泡与退出已归壳层直接呈现/执行）。
    - **Views 不注册**（页面无参构造；`MainView` 由 `SettingsConsole` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。
 3. 阶段 2｜容器构建：唯一 `BuildServiceProvider`，解析点仍只在组合根。
@@ -163,7 +164,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `InterfaceThemeSettingsViewModel`（初始主题），与主题服务、对话框服务、图标资产、导航出账、
      消息总线、锚窗口、会话缓存一起构造 `SettingsConsole`；
    - 构造 `ShellHost`（持有常驻件、设置台工厂与常驻锚窗口）并回填 `AppHostDelegates`
-     （提权重启、托盘气泡、退出）。
+     （托盘气泡、退出）。
 5. `ShellHost.Run`（顺序固定，[ADR-0003](../adr/0003-application-host-restructure.md)）：
    - 插件启动扫描（发现/清单校验/准入 + 宿主状态与启动报告落盘，见 [plugins.md](plugins.md) §3；
      不装载插件代码，失败不阻断启动）→ `_mouseHook.Start()` → 订阅
@@ -195,12 +196,6 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
    进托盘的驻留气泡由壳层直接呈现（`MinimizedToTrayMessage` 订阅方在壳层），不寄居设置页 VM。
-
-   高权限窗口的一次性告知（#165 / [ADR-0040](../adr/0040-startup-privilege-policy.md) 决策 6）同归常驻侧：
-   启动编排末尾以 `ElevatedWindowNotice.ShouldWatch` 为门创建 `ForegroundElevationWatcher`（非提权且本安装
-   未提示过才起表，后台静默形态不启——该气泡属产品交互，e2e 覆盖不到也不该被它打扰），按 1 秒节拍取前台窗口
-   完整性级别；命中即报一次托盘气泡（带"点击即以管理员身份重启"入口）并置 `config.json` 的
-   `ElevatedWindowNoticeShown` 后立即落盘，每个安装只报一次。判据三条留在共享内核纯决策里，壳层只做机制。
 
 ## 宿主委托包
 

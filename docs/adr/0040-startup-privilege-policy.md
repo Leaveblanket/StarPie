@@ -1,6 +1,7 @@
 # 启动权限策略：坚持 asInvoker 与按需提权，强制管理员与偏好持久化记为条件备选
 
-> Status: Active（决策 2 被 [ADR-0041](0041-admin-autostart-opt-in.md) 取代）
+> Status: Active（决策 2 被 [ADR-0041](0041-admin-autostart-opt-in.md) 取代；决策 5、决策 6 被
+> [ADR-0042](0042-privilege-routes-two-only.md) 修订）
 >
 > 本文确立进程启动权限级别与提权入口的长期策略。被否决形态不整体关闭，而是记为带触发条件的备选。
 > 契约正典：`docs/architecture/shell.md`（高级设置面）、`docs/architecture/host.md`（单实例闸门）；
@@ -23,12 +24,12 @@
 ## 取证
 
 - **当前为 asInvoker**：全仓无 `app.manifest`、无 `requestedExecutionLevel`（唯一 `.manifest` 命中是
-  `.vs` 下的测试日志），即 .NET 默认。提权是运行期动作：`ShellHost.ElevateAndRestart`
-  （`Process.Start` + `Verb = "runas"` + 退出自身，失败或取消则气泡提示且不退出），入口为托盘项与
-  高级页 UAC 卡片（`ShowUacWarning => !IsAdministrator`），页面只经 SDK 契约
-  `AppHostDelegates.ElevateAndRestart` 转发。
-- **提权收益的成文口径只有一处**：`ElevateDesc`「以管理员身份重启，可在任务管理器、系统设置等
-  高权限窗口中正常唤起手势」。代码中除提权重启外没有任何需要管理员的能力。
+  `.vs` 下的测试日志），即 .NET 默认。提权的唯一形态是**提权自启**
+  （见 [ADR-0041](0041-admin-autostart-opt-in.md) 与 [ADR-0042](0042-privilege-routes-two-only.md)），
+  不引入清单声明。
+- **提权收益的成文口径只有一处**：`AdminAutoStartDesc`「经 Windows 任务计划程序以最高权限静默启动，
+  登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势」。代码中除提权自启外没有任何
+  需要管理员的能力。
 - **自启只有 HKCU Run**（`AutostartRegistry`）：改强制提权即须改建任务计划程序（最高权限运行）并经一次
   提权引导创建，而分发形态是绿色单文件 exe、无安装器。
 - **单实例握手跨完整性级别不可靠**：互斥体 `Global\StarPie_SingleInstance_Mutex_…` +
@@ -78,8 +79,9 @@
 
 ## Decision
 
-1. **不写 `requestedExecutionLevel`**，保持 .NET 默认 asInvoker 与绿色单文件分发形态；提权维持运行期用户动作
-   （托盘项 + 高级页卡片 + `AppHostDelegates.ElevateAndRestart` 转发），不引入清单声明。
+1. **不写 `requestedExecutionLevel`**，保持 .NET 默认 asInvoker 与绿色单文件分发形态；提权维持运行期
+   用户动作——该动作在 [ADR-0042](0042-privilege-routes-two-only.md) 之后收敛为由用户开关驱动的
+   提权自启（登录时由任务计划程序服务完成），不引入清单声明。
 2. ~~**不提供"始终以管理员身份启动"的偏好持久化**，也不改写自启项为提权形态。~~
    **被 [ADR-0041](0041-admin-autostart-opt-in.md) 取代**：经 Windows 任务计划程序
    （`/rl highest` + `onlogon`）可以在**不弹 UAC** 的前提下取得最高权限自启，
@@ -93,34 +95,19 @@
      使非提权实例的置前请求能送进提权实例；
    - 互斥体**打开失败（`UnauthorizedAccessException`）按"已有实例"处理**并走恢复消息路径，
      不再退回新实例——退回会得到两个托盘图标与两条全局鼠标钩子；
-   - 托盘提权入口**只在非提权态出现**，与高级页提权卡片同口径；
-   - 提权态探测收敛为共享内核单一份实现（`ProcessElevation`），壳层与高级页同源。
-6. **本次不改变的两个已知影响**（记录而非修复）：提权态下"启动程序"动作的子进程继承管理员；
-   提权态下进程内插件随宿主获得机器级权限。
+   - 提权态探测收敛为共享内核单一份实现（`ProcessElevation`），壳层与设置面同源。
+6. ~~**本次不改变的两个已知影响**（记录而非修复）：提权态下"启动程序"动作的子进程继承管理员；
+   提权态下进程内插件随宿主获得机器级权限。~~
+   **被 [ADR-0042](0042-privilege-routes-two-only.md) 修订**：前者被确认为不再缓冲的既定代价
+   （决策 4），后者仍成立且披露点见该文决策 5。
 
 ## Consequences
 
-- 高权限窗口内唤不起手势仍是默认行为，只能由用户主动提权获得；本 ADR 不引入任何运行时告知机制
-  （后续由 #165 补一次性告知，见下）。
-- 强制路线的四笔代价（UAC 常税、自启破裂、子进程继承、插件提权）不落地；提权失败/取消的既有语义
-  （气泡提示且不退出）保持不变。
-- **已定但未落地的行为**（各自独立为后续工作项，不阻塞本 ADR）：
-  - ~~未提权态检测到前台窗口属于更高完整性级别时，报**一次**托盘气泡~~ 已落地（#165：
-    `ProcessElevation.IsForegroundWindowHigherIntegrity` + 纯判据 `ElevatedWindowNotice` +
-    `config.json` 的 `ElevatedWindowNoticeShown` 标记 + 气泡点击即以管理员身份重启；
-    见 [host.md](../architecture/host.md)、[shell.md](../architecture/shell.md)）；
-  - ~~提权态下在插件管理页显示一行警示（当前插件以管理员身份运行）~~ 已落地（#164：页首
-    `PluginManagerElevatedNotice` 一行，非提权态不出现；见 [plugins.md](../architecture/plugins.md) §10）；
-  - ~~提权态下"启动程序"动作改走 Explorer 中介降权启动~~ 已落地（#163：
-    `ExplorerShellLaunch` + `ActionRouting.ResolveLaunchMode` + 动作项显式的"以管理员身份启动"选项；
-    见 [shell.md](../architecture/shell.md)、[gestures.md](../architecture/gestures.md)）。
-- **不可自动化验证的边界**：跨完整性级别行为（消息放行与互斥体分支）无法被不提权的 xUnit/e2e 环境复现，
-  其验收只能由一次真实的提权实例 + 非提权双击手动完成；本 ADR 不为此设自动判据。
-  同上，降权启动的"子进程为普通权限"与一次性告知的"高权限窗口前台时报出"两条也只能手动验收：
-  自动侧覆盖的是判据（`ResolveLaunchMode`/`ElevatedWindowNotice` 纯函数）、配置往返与
-  "非提权态零变化"，探测本身的正确性由 `ProcessElevationTests` 守住数值合法性。
-- **叶子回填**：`host.md` 单实例段补跨级别行为与失败分类；`shell.md` 高级设置面段补托盘提权入口的可见性口径；
-  `CONTEXT.md` 增「提权」「高权限窗口」两词。
-- **边界守护**：新增 public 内核类型 `ProcessElevation` 已登记进 `HostBoundaryTests` 的内核清单
-  （该表为"导出面 = 内核清单"的守护，新增 public 类型须同步）；后续落地的
-  `ExplorerShellLaunch`、`LaunchMode` 与 `ElevatedWindowNotice` 同此登记。
+- 高权限窗口内唤不起手势是普通权限形态下的默认行为，只能由用户选择提权形态获得；两条权限路线的
+  最终形态（互斥、无运行期提权）见 [ADR-0042](0042-privilege-routes-two-only.md)。
+- 强制路线的四笔代价（UAC 常税、自启破裂、子进程继承、插件提权）不落地。
+- 迁移期一度要求的三项行为，最终取舍见 [ADR-0042](0042-privilege-routes-two-only.md)：
+  提权自启的降权启动与动作项提权已取消（子进程继承管理员成为既定代价）；插件管理页的提权警示保留
+  （ADR-0029 的披露落点）；高权限窗口的一次性告知随运行期提权重启一并移除。
+- **跨完整性级别行为无自动覆盖**：单实例恢复消息的放行与互斥体失败分支无法被不提权的 xUnit/e2e
+  环境复现，验收只能由一次真实的提权实例 + 非提权双击手动完成；本 ADR 不为此设自动判据。

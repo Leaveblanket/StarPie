@@ -14,23 +14,20 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 
 - `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
   由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
-- `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态；
-  `[SupportedOSPlatform("windows")]`、public 装配面）、
+- `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态，
+  两者互斥落位——见关键流程 3；`[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
   `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
   `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
-  `StarPie.Host/Kernel/ShellIntegration/ExplorerShellLaunch.cs`（降权启动的 Explorer 中介：
-  提权态下把"拉起子进程"交给已运行的资源管理器，语义见 [gestures.md](gestures.md) 关键流程 4）、
-  `StarPie.Host/Kernel/ShellIntegration/ElevatedWindowNotice.cs`（高权限窗口一次性告知的判据纯决策）、
-  `StarPie.Host/Kernel/ShellIntegration/ProcessElevation.cs`（提权态与前台窗口完整性级别探测）——
+  `StarPie.Host/Kernel/ShellIntegration/ProcessElevation.cs`（当前进程是否以管理员身份运行的探测）——
   命名空间均为 `StarPie.Kernel.ShellIntegration`。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
 - `StarPie.Ui/Modules/ShellContributor.cs` + `ShellPageTemplates.xaml`（M5 贡献者与
   页面模板字典，自报导航项/模板并登记页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
-- SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（提权重启为现役委托面；
-  托盘气泡/退出自 M3 起由壳层直接呈现与执行，属性保留为契约面，P1.3/#112 收口；见 [host.md](host.md)）。
+- SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出自 M3 起由壳层直接
+  呈现与执行，属性保留为契约面，P1.3/#112 收口；见 [host.md](host.md)）。
 
 M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie.Ui/Services/Shell/`
 （命名空间 `StarPie.Services.Shell`；主题引擎 `ThemeEngine` 在宿主内核，见
@@ -49,15 +46,10 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 1. **托盘**：`TrayIconManager`（驻 `StarPie.Ui/Services/Shell/`，`ShellHost.Run` 创建）持 tooltip
    （暂停态实时文案）、双击直达、
    右键菜单（`ShellHost.BuildTrayMenuEntries` 每次打开重建，`ILocalizationService` 即时取词）、
-   气泡通知（`ShowBalloonTip` 可选挂点击入口：`NIN_BALLOONUSERCLICK` 触发一次后随回落/超时一并注销）、
-   `Dispose`；tooltip 在语言切换时由壳层 `ShellHost.RefreshTrayTooltip` 按暂停态刷新
-   （宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
+   气泡通知（`ShowBalloonTip`）、`Dispose`；tooltip 在语言切换时由壳层
+   `ShellHost.RefreshTrayTooltip` 按暂停态刷新（宿主编排见 [host.md](host.md)）。托盘菜单深色配色不直读 M4；Shell
    不反向引用 Host/M4，`ShellHost` 装配时注入 `Func<bool>` 深色探针
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
-   **高权限窗口的一次性告知**（#165）同属壳层：`ForegroundElevationWatcher`（同驻
-   `StarPie.Ui/Services/Shell/`）按 1 秒节拍取前台窗口完整性级别，判据在共享内核
-   `ElevatedWindowNotice`（一次性 / 提权态不报 / 探测未知不报），"已提示过"标记落在 `config.json`；
-   报出走气泡 + 点击即以管理员身份重启。编排与起表门（`ShouldWatch`）见 [host.md](host.md)。
 2. **内存（分层常驻）**：`MemoryOptimizer.CollectGarbage()`（驻
    `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
    （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
@@ -83,10 +75,13 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`applyAutoStart`/`isAdminAutoStartEnabled`），
-   不进 VM/View。形态一 HKCU Run（普通权限自启）；形态二 Windows 任务计划程序任务
-   （`/rl highest /sc onlogon /delay 0000:00`，提权由服务在触发时完成、**不弹 UAC**，见
-   [ADR-0041](../adr/0041-admin-autostart-opt-in.md)）。Run 始终照写——它是关掉提权形态后的回落落点；
-   关总开关时两者一并删除。提权形态的状态读自计划任务的实况（`schtasks /query` 退出码），
+   不进 VM/View。形态一 HKCU Run（路线 A：普通权限自启）；形态二 Windows 任务计划程序任务
+   （路线 B：`/rl highest /sc onlogon /delay 0000:00`，提权由服务在触发时完成、**不弹 UAC**，见
+   [ADR-0041](../adr/0041-admin-autostart-opt-in.md) 与 [ADR-0042](../adr/0042-privilege-routes-two-only.md)）。
+   **两种形态互斥落位**：落位形态由纯决策 `AutostartRegistry.ResolvePlacement(enable, asAdmin)` 给出——
+   提权形态下注册表 Run 键**缺位**（两条自启路径同在登录时触发，同时落位会让非提权实例与提权实例抢
+   单实例闸门，非提权那个赢了就等于提权自启白开），普通形态下计划任务被删除；关总开关时两者一并删除。
+   界面的总开关按"两种形态任一在运行"取值，提权形态的状态读自计划任务的实况（`schtasks /query` 退出码），
    `config.json` 的 `AutoStartAsAdmin` 只记录用户意图；落位失败（UAC 取消、账号无管理员凭据）
    由 VM 提示并把开关拨回实况，不静默。dev 实例的任务名带独立后缀，与配置目录同口径。
 4. **关窗即销毁、托盘驻留、重开重建**（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）：
@@ -99,16 +94,13 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    壳层成员（`WindowTitle`/`Save()`）在 `ShellViewModel`（D3：Host 壳窗口 VM，H1，随设置台会话生灭），
    `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
    `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
-5. **高级设置面**：导入/导出与自启开关在贡献者接线（本模块静态行为）；**托盘气泡与提权重启
-   归壳层**——气泡由壳层在进托盘时报出，提权由壳层执行（`Process.Start runas` + 退出，失败以
-   气泡提示且不退出），页面按钮只经 SDK 契约 `AppHostDelegates.ElevateAndRestart` 转发触发
-   （贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；页面绑定规范见
-   [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
-   提权入口的可见性两处同口径：高级页卡片绑 `ShowUacWarning => !IsAdministrator`，托盘菜单项
-   同样**只在非提权态出现**（提权态下该入口无意义）；两处共用共享内核 `ProcessElevation`
-   的同一探测，不各留一份实现。进程权限级别本身由 [ADR-0040](../adr/0040-startup-privilege-policy.md)
-   固定为 asInvoker + 按需提权（不写清单声明）；"始终以管理员身份"由用户可选的**提权自启**形态表达
-   （见下方关键流程 3）。
+5. **高级设置面**：导入/导出与两个自启开关在贡献者接线（本模块静态行为）；**托盘气泡归壳层**
+   ——气泡由壳层在进托盘时报出（贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
+   页面绑定规范见 [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
+   进程权限级别由 [ADR-0040](../adr/0040-startup-privilege-policy.md) 与
+   [ADR-0042](../adr/0042-privilege-routes-two-only.md) 固定为**两条互斥路线**：普通权限启动
+   （asInvoker，不写清单声明）与管理员权限静默启动（即提权自启，见下方关键流程 3）；
+   不提供运行期提权重启，故没有权限态可见性之类需要同口径的多处入口。
 
 ## 扩展点
 

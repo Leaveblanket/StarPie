@@ -14,7 +14,7 @@
     <sys:String x:Key="AdminAutoStartFailedTitle" xml:space="preserve">提示</sys:String>
     <sys:String x:Key="AdminAutoStartTitle" xml:space="preserve">以管理员身份开机自启</sys:String>
     <sys:String x:Key="AdvancedHeader" xml:space="preserve">系统集成与高级偏好设置</sys:String>
-    <sys:String x:Key="AdvancedSubheader" xml:space="preserve">管理界面语言、Windows 开机自启、管理员提权与配置文件的导入/导出备份。</sys:String>
+    <sys:String x:Key="AdvancedSubheader" xml:space="preserve">管理界面语言、Windows 开机自启（含以管理员身份静默启动）与配置文件的导入/导出备份。</sys:String>
     <sys:String x:Key="AppearanceHeader" xml:space="preserve">轮盘外观与形态定制</sys:String>
     <sys:String x:Key="AppearanceSubheader" xml:space="preserve">自由配置轮盘视觉风格、配色方案、高亮边缘光晕、几何切削、图标排版与中心核圆贴图。</sys:String>
     <sys:String x:Key="AppName" xml:space="preserve">StarPie</sys:String>
@@ -43,7 +43,6 @@
     <sys:String x:Key="BtnDeletePreset" xml:space="preserve">🗑️ 删除预设</sys:String>
     <sys:String x:Key="BtnDeleteProcess" xml:space="preserve">🗑️ 移除选中</sys:String>
     <sys:String x:Key="BtnDeleteProfile" xml:space="preserve">🗑️ 删除当前配置</sys:String>
-    <sys:String x:Key="BtnElevate" xml:space="preserve">🛡️ 以管理员身份重启</sys:String>
     <sys:String x:Key="BtnExportConfig" xml:space="preserve">导出配置备份</sys:String>
     <sys:String x:Key="BtnImportConfig" xml:space="preserve">导入配置文件</sys:String>
     <sys:String x:Key="BtnManualBrowse" xml:space="preserve">手动浏览文件...</sys:String>
@@ -97,9 +96,6 @@
     <sys:String x:Key="DeleteCustomPresetTitle" xml:space="preserve">确认删除配色方案</sys:String>
     <sys:String x:Key="DeletePresetTooltip" xml:space="preserve">删除当前选中的自定义配色方案预设</sys:String>
     <sys:String x:Key="DeleteProfileTooltip" xml:space="preserve">删除选中的配置方案</sys:String>
-    <sys:String x:Key="ElevateDesc" xml:space="preserve">以管理员身份重启，可在任务管理器、系统设置等高权限窗口中正常唤起手势。</sys:String>
-    <sys:String x:Key="ElevateTitle" xml:space="preserve">管理员权限提升 (Run as Admin)</sys:String>
-    <sys:String x:Key="ElevatedWindowNoticeBalloon" xml:space="preserve">当前前台窗口以管理员身份运行，其中无法唤起手势。点击此通知以管理员身份重启 StarPie。</sys:String>
     <sys:String x:Key="Error" xml:space="preserve">错误</sys:String>
     <sys:String x:Key="FullScreenOption" xml:space="preserve">全屏游戏/独占应用自动禁用手势</sys:String>
     <sys:String x:Key="FullScreenOptionDesc" xml:space="preserve">自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。</sys:String>
@@ -238,8 +234,6 @@
     <sys:String x:Key="RenameCustomPresetTitle" xml:space="preserve">重命名配色方案预设</sys:String>
     <sys:String x:Key="RenamePresetTooltip" xml:space="preserve">重命名当前选中的自定义配色方案预设</sys:String>
     <sys:String x:Key="RenameProfileTooltip" xml:space="preserve">重命名选中的配置方案</sys:String>
-    <sys:String x:Key="RunAsAdminShort" xml:space="preserve">管理员</sys:String>
-    <sys:String x:Key="RunAsAdminTooltip" xml:space="preserve">以管理员身份启动此程序（非管理员时弹出 UAC 确认）</sys:String>
     <sys:String x:Key="SaveCustomPresetButton" xml:space="preserve">💾 保存当前颜色为自定义配色预设...</sys:String>
     <sys:String x:Key="SaveCustomPresetPrompt" xml:space="preserve">请输入自定义配色方案名称:</sys:String>
     <sys:String x:Key="SaveCustomPresetSuccess" xml:space="preserve">配色预设【{0}】已成功保存！</sys:String>
@@ -284,7 +278,6 @@
     <sys:String x:Key="ThemeSystem" xml:space="preserve">🌓 跟随系统 (System Auto)</sys:String>
     <sys:String x:Key="ThemeViolet" xml:space="preserve">🔮 暗夜紫罗兰 (Royal Violet)</sys:String>
     <sys:String x:Key="TrayAppearance" xml:space="preserve">🎨 外观与形态 (Appearance)</sys:String>
-    <sys:String x:Key="TrayElevate" xml:space="preserve">🛡️ 以管理员身份重启</sys:String>
     <sys:String x:Key="TrayExit" xml:space="preserve">❌ 退出 StarPie</sys:String>
     <sys:String x:Key="TrayGestures" xml:space="preserve">⚡ 手势与动作 (Mappings)</sys:String>
     <sys:String x:Key="TrayPause" xml:space="preserve">⏸️ 暂停手势</sys:String>

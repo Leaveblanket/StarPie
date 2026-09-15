@@ -21,8 +21,6 @@ namespace StarPie.Services.Actions
         private readonly Action<IReadOnlyList<KeyStroke>> _sendKeyStrokes;
         private readonly Action<string> _showActionError;
         private readonly Action<string> _showFolderError;
-        private readonly Func<bool> _isElevated;
-        private readonly Func<string, string, string, bool> _shellExecute;
 
         public ActionExecutorService(
             Action<ProcessStartInfo>? startProcess = null,
@@ -31,9 +29,7 @@ namespace StarPie.Services.Actions
             Action? lockWorkStation = null,
             Action<IReadOnlyList<KeyStroke>>? sendKeyStrokes = null,
             Action<string>? showActionError = null,
-            Action<string>? showFolderError = null,
-            Func<bool>? isElevated = null,
-            Func<string, string, string, bool>? shellExecute = null)
+            Action<string>? showFolderError = null)
         {
             _startProcess = startProcess ?? (startInfo => Process.Start(startInfo));
             _directoryExists = directoryExists ?? Directory.Exists;
@@ -42,8 +38,6 @@ namespace StarPie.Services.Actions
             _sendKeyStrokes = sendKeyStrokes ?? SendKeyStrokes;
             _showActionError = showActionError ?? (message => MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
             _showFolderError = showFolderError ?? (message => MessageBox.Show(message, "StarPie", MessageBoxButton.OK, MessageBoxImage.Warning));
-            _isElevated = isElevated ?? ProcessElevation.IsRunningAsAdministrator;
-            _shellExecute = shellExecute ?? ExplorerShellLaunch.TryShellExecute;
         }
 
         /// <summary>执行一个动作。类型路由大小写敏感；未知类型静默忽略。</summary>
@@ -81,31 +75,10 @@ namespace StarPie.Services.Actions
             }
         }
 
-        /// <summary>
-        /// 启动动作落地：形态由 <see cref="ActionRouting.ResolveLaunchMode"/> 决策。
-        /// 提权态默认经 Explorer 中介降权（子进程不继承管理员令牌）；中介不可用时回退直接启动
-        /// ——降权是尽力而为，不能变成"启动不了"。工作目录与直接启动同口径（子进程继承调用方目录）。
-        /// </summary>
+        /// <summary>启动动作落地：权限沿用调用方进程的令牌（子进程继承 StarPie 自身的权限级别）。</summary>
         private void ExecuteLaunch(ActionItem action)
         {
-            switch (ActionRouting.ResolveLaunchMode(_isElevated(), action.RunAsAdmin))
-            {
-                case LaunchMode.ShellMediated:
-                    if (_shellExecute(action.Parameter, action.Arguments ?? string.Empty, Environment.CurrentDirectory))
-                    {
-                        return;
-                    }
-
-                    _startProcess(ActionRouting.BuildLaunchStartInfo(action.Parameter, action.Arguments));
-                    break;
-                case LaunchMode.Elevated:
-                    _startProcess(ActionRouting.BuildLaunchStartInfo(action.Parameter, action.Arguments, runAsAdmin: true));
-                    break;
-                case LaunchMode.Direct:
-                default:
-                    _startProcess(ActionRouting.BuildLaunchStartInfo(action.Parameter, action.Arguments));
-                    break;
-            }
+            _startProcess(ActionRouting.BuildLaunchStartInfo(action.Parameter, action.Arguments));
         }
 
         private void ExecuteFolder(string folderPath)

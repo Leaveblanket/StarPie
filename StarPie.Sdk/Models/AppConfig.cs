@@ -87,11 +87,6 @@ namespace StarPie.Models
         public bool DisableOnAlt { get; set; } = false; // 按住 Alt 时禁用
         public bool DisableOnFullScreen { get; set; } = true; // 前台为全屏窗口时禁用
 
-        // —— 一次性告知标记 ——
-        /// <summary>是否已报过"前台高权限窗口内手势失效"的一次性托盘气泡（每个安装一次）。
-        /// 旧配置缺该键时按 false（未提示）处理，见 ADR-0040 决策 6。</summary>
-        public bool ElevatedWindowNoticeShown { get; set; } = false;
-
         // —— 开机自启 ——
         /// <summary>上次成功落位的提权自启偏好（ADR-0041）：为真表示用户选择"以管理员身份开机自启"
         /// （经任务计划程序 `/rl highest` 静默提权启动）。界面状态一律以任务计划程序的实况为准，
