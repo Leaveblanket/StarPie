@@ -212,6 +212,8 @@ This cannot be undone.</value></data>
   <data name="SelectedAppPathTooltip" xml:space="preserve"><value>Path of the selected application</value></data>
   <data name="SelectedFolderPathTooltip" xml:space="preserve"><value>Path of the selected local folder</value></data>
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>Launch arguments (e.g. command-line args or URL)</value></data>
+  <data name="RunAsAdminShort" xml:space="preserve"><value>Admin</value></data>
+  <data name="RunAsAdminTooltip" xml:space="preserve"><value>Launch this program as administrator (prompts for UAC consent when not elevated)</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>Quickly pick an app to exclude from the installed apps list</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>Add the process name in the input box to the exclusion blacklist</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>Customize the console's visual color style and follow Windows light/dark mode.</value></data>

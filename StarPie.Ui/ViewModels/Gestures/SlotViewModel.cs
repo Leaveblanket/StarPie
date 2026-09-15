@@ -97,6 +97,9 @@ namespace StarPie.ViewModels.Gestures
         /// <summary>动作类型 ComboBox 的稳定 AutomationId；e2e/无障碍客户端据此定位（见 #137）。</summary>
         public string ActionTypeAutomationId => $"Slot{SlotIndex}ActionTypeComboBox";
 
+        /// <summary>"以管理员身份启动"勾选框的稳定 AutomationId；e2e 据此定位（见 #137）。</summary>
+        public string RunAsAdminAutomationId => $"Slot{SlotIndex}RunAsAdminCheckBox";
+
         public string Name
         {
             get => Action.Name ?? "";
@@ -157,6 +160,23 @@ namespace StarPie.ViewModels.Gestures
                 {
                     Action.Arguments = value;
                     OnPropertyChanged(nameof(Arguments));
+                }
+            }
+        }
+
+        /// <summary>
+        /// 显式"以管理员身份启动"：非提权态经 UAC 提权启动；提权态本已具管理员，勾选即直接启动。
+        /// 提权态默认改走 Explorer 中介降权后，该能力不再随进程权限免费获得，故须显式可勾。
+        /// </summary>
+        public bool RunAsAdmin
+        {
+            get => Action.RunAsAdmin;
+            set
+            {
+                if (Action.RunAsAdmin != value)
+                {
+                    Action.RunAsAdmin = value;
+                    OnPropertyChanged(nameof(RunAsAdmin));
                 }
             }
         }

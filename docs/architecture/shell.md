@@ -18,7 +18,9 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
   `[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
   `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
-  `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）——
+  `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
+  `StarPie.Host/Kernel/ShellIntegration/ExplorerShellLaunch.cs`（降权启动的 Explorer 中介：
+  提权态下把"拉起子进程"交给已运行的资源管理器，语义见 [gestures.md](gestures.md) 关键流程 4）——
   命名空间均为 `StarPie.Kernel.ShellIntegration`。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
