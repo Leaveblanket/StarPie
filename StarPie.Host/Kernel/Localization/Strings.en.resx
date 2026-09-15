@@ -186,9 +186,6 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>Launches silently with highest privileges via Windows Task Scheduler, with no UAC prompt at sign-in, so gestures work in elevated windows such as Task Manager. The trade-off: StarPie and its in-process plugins then run as administrator at all times.</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>Notice</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>Elevated autostart was not applied — the UAC prompt may have been cancelled, or this account has no administrator credentials. Normal-privilege autostart is kept.</value></data>
-  <data name="ElevateTitle" xml:space="preserve"><value>Run as Administrator</value></data>
-  <data name="ElevateDesc" xml:space="preserve"><value>Relaunch with administrator privileges to interact with elevated windows.</value></data>
-  <data name="BtnElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>Backup &amp; Reset</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>Export Backup</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>Import Config</value></data>
@@ -202,11 +199,10 @@ This cannot be undone.</value></data>
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Preferences (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
   <data name="TrayGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
-  <data name="TrayElevate" xml:space="preserve"><value>🛡️ Restart as Administrator</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS Live Rendering</value></data>
-  <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup, administrator elevation, and config import/export backups.</value></data>
+  <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup (including silent administrator launch), and config import/export backups.</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>Create a dedicated profile by choosing an installed app from the Start menu</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>Create a new wheel profile with a custom name</value></data>

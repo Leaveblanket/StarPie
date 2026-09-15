@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
@@ -117,7 +116,6 @@ namespace StarPie
             // 退出动作指向本壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
-            _hostDelegates.ElevateAndRestart = ElevateAndRestart;
 
             // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
             _dialogService.SetBackgroundMode(background);
@@ -384,11 +382,6 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
-            // 提权入口只在非提权态出现（与高级页提权卡片同口径）：已是管理员时该入口无意义。
-            if (!ProcessElevation.IsRunningAsAdministrator())
-            {
-                entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayElevate"), ElevateAndRestart));
-            }
             entries.Add(TrayMenuEntry.Separator());
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
@@ -451,33 +444,6 @@ namespace StarPie
 
         /// <summary>最小化到托盘的驻留气泡文案（壳层动作，不经页面 VM）。</summary>
         private const string MinimizedToTrayBalloonText = "应用已最小化至系统托盘，将在后台继续运行鼠标笔势监视。";
-
-        /// <summary>
-        /// 以管理员身份重启并退出（托盘点选与设置页提权按钮的同一实现）：提权是壳层动作，
-        /// 页面只经 <see cref="AppHostDelegates.ElevateAndRestart"/> 转发触发。
-        /// 失败或用户取消 UAC 时不退出，以托盘气泡提示（无设置台时也可读）。
-        /// </summary>
-        private void ElevateAndRestart()
-        {
-            try
-            {
-                string exePath = Environment.ProcessPath
-                    ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "StarPie.exe");
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = exePath,
-                    UseShellExecute = true,
-                    Verb = "runas",
-                });
-            }
-            catch (Exception ex)
-            {
-                ShowTrayBalloonTip("StarPie", $"提权重启失败或已取消: {ex.Message}");
-                return;
-            }
-
-            ExitApplication();
-        }
 
         /// <summary>
         /// 托盘退出：按 <see cref="ShellExitSequence"/> 的固定顺序执行（落盘 → 释壳 → 应用关闭）。

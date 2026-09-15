@@ -7,20 +7,18 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 通用分区 ViewModel 的行为覆盖：界面语言切换（写配置 + I18n 切换 +
-/// 落盘请求）、开机自启（注册表读写经注入委托）、退出/提权重启编排、托盘驻留气泡提示
-/// 与配置导入/导出。
+/// 落盘请求）、开机自启（注册表读写经注入委托）与配置导入/导出。
 /// 直接 new 被测对象并注入记录型委托，不触碰任何静态配置状态。
 /// </summary>
 public sealed class GeneralSettingsViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    /// <summary>常用装配：记录型托盘/退出/自启/提权委托（export/import 默认成功）。
+    /// <summary>常用装配：记录型自启/通知委托（export/import 默认成功）。
     /// 自启假体带"任务存在"状态：落位成功才改变它，供 VM 的实况回读断言。</summary>
     private static GeneralSettingsViewModel Create(
         AppConfig config,
         TestDialogService? dialogs = null,
-        List<string>? elevateCalls = null,
         List<(bool Enable, bool AsAdmin)>? applyCalls = null,
         bool autoStartEnabled = false,
         Func<string, bool>? exportConfig = null,
@@ -36,7 +34,6 @@ public sealed class GeneralSettingsViewModelTests
         var vm = new GeneralSettingsViewModel(
             config,
             dialogs ?? new TestDialogService(),
-            () => elevateCalls?.Add("elevate"),
             () => autoStartEnabled,
             (enable, asAdmin) =>
             {
@@ -234,21 +231,6 @@ public sealed class GeneralSettingsViewModelTests
         Assert.False(vm.AdminAutoStartEnabled);
         Assert.False(config.AutoStartAsAdmin);
         Assert.Equal((Enable: false, AsAdmin: false), calls[^1]);
-    }
-
-    // --- 提权重启（壳层动作）---------------------------------------------------------
-
-    [Fact]
-    public void ElevateAndRestart_ForwardsToShellDelegate()
-    {
-        // 提权实现（Process.Start runas + 退出 + 失败提示）在壳层：页面只转发触发，不自行启动进程。
-        var elevateCalls = new List<string>();
-        var vm = Create(MakeConfig(), elevateCalls: elevateCalls);
-
-        vm.ElevateAndRestart();
-        vm.ElevateCommand.Execute(null);
-
-        Assert.Equal(new[] { "elevate", "elevate" }, elevateCalls);
     }
 
     // --- 配置导出/导入 ---------------------------------------------------------------

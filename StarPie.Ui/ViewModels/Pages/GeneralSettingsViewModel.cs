@@ -7,7 +7,7 @@ using StarPie.Services;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启、提权重启与配置导入/导出的状态与编排。
+    /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启（含提权自启形态）与配置导入/导出的状态与编排。
     /// </summary>
     /// <remarks>
     /// 语言切换写入运行态配置并调用 <see cref="ILocalizationService.SetLanguage"/>；界面文本
@@ -16,15 +16,13 @@ namespace StarPie.ViewModels.Pages
     /// 上报组合根编排的订阅者；配置导入成功发布 <see cref="ConfigImportedMessage"/>，各页面 VM
     /// 订阅后自行重挂（本 VM 亦订阅重挂语言码，并经 <see cref="PageConfigReloadedMessage"/>
     /// 通知页面 View 同步控件）。
-    /// 托盘气泡与提权重启都是壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
-    /// 决策 7）：本 VM 只经 <see cref="AppHostDelegates.ElevateAndRestart"/> 转发触发提权，
-    /// 不自行启动进程、不碰托盘。
+    /// 托盘气泡是壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
+    /// 决策 7）：本 VM 不自行启动进程、不碰托盘。
     /// </remarks>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
         private AppConfig _config;
         private readonly IDialogService _dialogs;
-        private readonly Action _elevateAndRestart;
         private readonly Func<bool> _isAutoStartEnabled;
         private readonly Func<bool, bool, bool> _applyAutoStart;
         private readonly Func<bool> _isAdminAutoStartEnabled;
@@ -33,7 +31,6 @@ namespace StarPie.ViewModels.Pages
         private readonly Func<AppConfig> _currentConfig;
         private readonly IMessenger _messenger;
         private readonly ILocalizationService _localization;
-        private readonly Func<bool> _isAdministratorProbe;
 
         /// <summary>开机自启开关状态（读自注册表——经注入委托，组合根接线 AutostartRegistry）。</summary>
         [ObservableProperty]
@@ -50,13 +47,6 @@ namespace StarPie.ViewModels.Pages
         [ObservableProperty]
         private string _languageCode = "Auto";
 
-        [ObservableProperty]
-        private bool _isAdministrator;
-
-        public bool ShowUacWarning => !IsAdministrator;
-
-        partial void OnIsAdministratorChanged(bool value) => OnPropertyChanged(nameof(ShowUacWarning));
-
         /// <summary>落位组合开关时的重入守卫（见 <see cref="SyncProperty"/>）。</summary>
         private bool _applyingAutoStart;
 
@@ -64,7 +54,6 @@ namespace StarPie.ViewModels.Pages
         public GeneralSettingsViewModel(
             AppConfig config,
             IDialogService dialogs,
-            Action elevateAndRestart,
             Func<bool> isAutoStartEnabled,
             Func<bool, bool, bool> applyAutoStart,
             Func<string, bool> exportConfig,
@@ -72,12 +61,10 @@ namespace StarPie.ViewModels.Pages
             Func<AppConfig> currentConfig,
             IMessenger messenger,
             ILocalizationService localization,
-            Func<bool>? isAdministrator = null,
             Func<bool>? isAdminAutoStartEnabled = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
-            _elevateAndRestart = elevateAndRestart ?? throw new ArgumentNullException(nameof(elevateAndRestart));
             _isAutoStartEnabled = isAutoStartEnabled ?? throw new ArgumentNullException(nameof(isAutoStartEnabled));
             _applyAutoStart = applyAutoStart ?? throw new ArgumentNullException(nameof(applyAutoStart));
             _isAdminAutoStartEnabled = isAdminAutoStartEnabled ?? (static () => false);
@@ -86,7 +73,6 @@ namespace StarPie.ViewModels.Pages
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
             _messenger = messenger ?? throw new ArgumentNullException(nameof(messenger));
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
-            _isAdministratorProbe = isAdministrator ?? (() => false);
 
             // 导入成功广播 → 以新配置重挂语言码，并通知页面 View 同步控件。
             messenger.Register<ConfigImportedMessage>(this, (_, msg) =>
@@ -101,7 +87,6 @@ namespace StarPie.ViewModels.Pages
             _adminAutoStartEnabled = _isAdminAutoStartEnabled();
             OnPropertyChanged(nameof(AdminAutoStartEnabled));
             LanguageCode = _config.Language ?? "Auto";
-            IsAdministrator = _isAdministratorProbe();
         }
 
         partial void OnAutoStartEnabledChanged(bool value)
@@ -186,7 +171,6 @@ namespace StarPie.ViewModels.Pages
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             LanguageCode = _config.Language ?? "Auto";
-            IsAdministrator = _isAdministratorProbe();
         }
 
         /// <summary>
@@ -201,17 +185,8 @@ namespace StarPie.ViewModels.Pages
             _messenger.Send(ImmediateSaveRequestedMessage.Instance);
         }
 
-        [RelayCommand]
-        private void Elevate() => ElevateAndRestart();
-
         /// <summary>开机自启切换：等价于写入 <see cref="AutoStartEnabled"/>（落位与落盘由属性变更回调统一处理）。</summary>
         public void SetAutoStart(bool enable) => AutoStartEnabled = enable;
-
-        /// <summary>
-        /// 以管理员身份重启：壳层动作（托盘点选与页面按钮是同一实现），本 VM 只转发触发；
-        /// 失败或用户取消由壳层提示且不退出，故此处无异常分支。
-        /// </summary>
-        public void ElevateAndRestart() => _elevateAndRestart();
 
         /// <summary>导出配置编排：保存对话框 → 导出 → 结果弹窗请求。</summary>
         [RelayCommand]
