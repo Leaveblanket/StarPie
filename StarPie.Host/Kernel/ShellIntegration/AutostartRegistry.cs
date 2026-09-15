@@ -91,6 +91,40 @@ namespace StarPie.Kernel.ShellIntegration
         public static string BuildAdminTaskQueryArguments(string taskName)
             => $"/query /tn \"{taskName}\"";
 
+        /// <summary>按需触发提权自启任务的 schtasks 参数（纯字符串构造，供单测锁定形状）。</summary>
+        /// <remarks>
+        /// <c>/run</c> 无 run level 选项：权限级别是任务自身的属性（<c>/rl highest</c>），触发方只请求运行
+        /// ——这正是"即时提权"复用的东西。带 <c>/tn</c> 指名任务，不带 <c>/i</c>（交互式会话已由任务本身指定）。
+        /// </remarks>
+        public static string BuildAdminTaskRunArguments(string taskName)
+            => $"/run /tn \"{taskName}\"";
+
+        /// <summary>
+        /// 按需触发提权自启任务——路线 B 的**即时形态**：非提权进程触发它，任务计划程序服务拉起一个
+        /// High 完整性级别、同一交互会话的实例，**全程不弹 UAC**（实测见 #167）。触发本身不需要提权
+        /// （建/删任务才需要），故这里不经 <c>runas</c>。
+        /// </summary>
+        /// <remarks>
+        /// 返回值**只表示"任务被受理"**，不表示提权实例已就绪——实测动作为空的任务被 <c>/run</c> 时
+        /// 同样返回成功，而进程根本没启动。就绪判据只认"单实例互斥体已可取得"
+        /// （见 <see cref="InstanceHandover.WaitForSingleInstanceRelease"/>）。
+        /// </remarks>
+        public static bool RunAdminTask()
+            => RunSchtasks(BuildAdminTaskRunArguments(AdminTaskName), elevate: false) == 0;
+
+        /// <summary>
+        /// 「立即以管理员身份重启」入口的可见性与可点性（纯决策，托盘与设置页两处同源）。
+        /// </summary>
+        /// <remarks>
+        /// 入口就是提权自启那颗任务的即时触发，故两条口径都从它直接推出：提权态下入口不出现
+        /// （对提权实例没有意义）；任务不存在时不可点——没有可复用的任务就没有这条路，
+        /// 即时提权不是第三条权限路线，也不做"临时提权、用完删任务"的第三种形态。
+        /// </remarks>
+        /// <param name="elevated">当前实例是否以管理员身份运行。</param>
+        /// <param name="adminTaskExists">提权自启的计划任务是否已注册。</param>
+        public static (bool Visible, bool Enabled) ResolveAdminRestartEntry(bool elevated, bool adminTaskExists)
+            => (Visible: !elevated, Enabled: adminTaskExists);
+
         /// <summary>注册表形态的落位；失败静默（Debug 输出），不抛出。</summary>
         private static void SetRegistryAutoStart(bool enable)
         {

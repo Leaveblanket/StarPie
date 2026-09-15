@@ -52,6 +52,10 @@ namespace StarPie.Modules
                 // 提权形态需要管理员权限，失败（UAC 取消/无管理员凭据）由 VM 提示并拨回实况。
                 applyAutoStart: AutostartRegistry.ApplyAutoStart,
                 isAdminAutoStartEnabled: AutostartRegistry.IsAdminAutoStartEnabled,
+                // 「立即提权」入口只在非提权态出现：提权态探测与壳层同源（ProcessElevation）。
+                isRunningElevated: ProcessElevation.IsRunningAsAdministrator,
+                // 触发经宿主委托包转发（壳层回填实现）：VM 不反依赖宿主类，也不给应用内入口开专用通道。
+                hostDelegates: sp.GetRequiredService<AppHostDelegates>(),
                 exportConfig: path => sp.GetRequiredService<JsonConfigService>().Export(path),
                 importConfig: path =>
                 {

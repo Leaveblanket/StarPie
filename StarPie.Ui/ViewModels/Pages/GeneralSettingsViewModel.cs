@@ -17,7 +17,8 @@ namespace StarPie.ViewModels.Pages
     /// 订阅后自行重挂（本 VM 亦订阅重挂语言码，并经 <see cref="PageConfigReloadedMessage"/>
     /// 通知页面 View 同步控件）。
     /// 托盘气泡是壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
-    /// 决策 7）：本 VM 不自行启动进程、不碰托盘。
+    /// 决策 7）：本 VM 不自行启动进程、不碰托盘。「立即以管理员身份重启」同理——本 VM 只经
+    /// <see cref="AppHostDelegates"/> 的转发委托请求壳层动手，与托盘菜单项共用同一条触发路径。
     /// </remarks>
     public partial class GeneralSettingsViewModel : ObservableObject
     {
@@ -26,6 +27,8 @@ namespace StarPie.ViewModels.Pages
         private readonly Func<bool> _isAutoStartEnabled;
         private readonly Func<bool, bool, bool> _applyAutoStart;
         private readonly Func<bool> _isAdminAutoStartEnabled;
+        private readonly Func<bool> _elevationProbe;
+        private readonly AppHostDelegates _hostDelegates;
         private readonly Func<string, bool> _exportConfig;
         private readonly Func<string, bool> _importConfig;
         private readonly Func<AppConfig> _currentConfig;
@@ -39,9 +42,17 @@ namespace StarPie.ViewModels.Pages
         /// <summary>
         /// 以管理员身份开机自启（任务计划程序 `/rl highest`，ADR-0041）。状态读自计划任务的实况，
         /// 不读配置——用户在任务计划程序里手工删掉任务时，开关必须如实反映"没在跑"。
+        /// 它同时是「立即提权」入口的可点性来源：任务不在就没有可复用的路径。
         /// </summary>
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(CanRestartElevated))]
+        [NotifyPropertyChangedFor(nameof(ShowRestartElevatedHint))]
         private bool _adminAutoStartEnabled;
+
+        /// <summary>当前实例是否已是管理员权限（经注入委托，组合根接线 ProcessElevation）。
+        /// 提权态下「立即提权」入口不出现——对提权实例没有意义。</summary>
+        [ObservableProperty]
+        private bool _isRunningElevated;
 
         /// <summary>当前界面语言码（"Auto"/"zh-CN"/"zh-TW"/"en"/"ja"），窗口据此初始化语言下拉。</summary>
         [ObservableProperty]
@@ -61,13 +72,17 @@ namespace StarPie.ViewModels.Pages
             Func<AppConfig> currentConfig,
             IMessenger messenger,
             ILocalizationService localization,
-            Func<bool>? isAdminAutoStartEnabled = null)
+            Func<bool>? isAdminAutoStartEnabled = null,
+            Func<bool>? isRunningElevated = null,
+            AppHostDelegates? hostDelegates = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _isAutoStartEnabled = isAutoStartEnabled ?? throw new ArgumentNullException(nameof(isAutoStartEnabled));
             _applyAutoStart = applyAutoStart ?? throw new ArgumentNullException(nameof(applyAutoStart));
             _isAdminAutoStartEnabled = isAdminAutoStartEnabled ?? (static () => false);
+            _elevationProbe = isRunningElevated ?? (static () => false);
+            _hostDelegates = hostDelegates ?? new AppHostDelegates();
             _exportConfig = exportConfig ?? throw new ArgumentNullException(nameof(exportConfig));
             _importConfig = importConfig ?? throw new ArgumentNullException(nameof(importConfig));
             _currentConfig = currentConfig ?? throw new ArgumentNullException(nameof(currentConfig));
@@ -89,7 +104,38 @@ namespace StarPie.ViewModels.Pages
             // 直接写后备字段：初始化不触发落位（否则每次开页都会跑一遍注册表/任务计划程序）。
             _adminAutoStartEnabled = adminTaskPresent;
             OnPropertyChanged(nameof(AdminAutoStartEnabled));
+            _isRunningElevated = _elevationProbe();
+            OnPropertyChanged(nameof(IsRunningElevated));
             LanguageCode = _config.Language ?? "Auto";
+        }
+
+        /// <summary>「立即提权」入口的可见性与可点性——纯决策，与托盘菜单项同源（见
+        /// <see cref="AutostartRegistry.ResolveAdminRestartEntry"/>）。</summary>
+        private (bool Visible, bool Enabled) RestartEntry
+            => AutostartRegistry.ResolveAdminRestartEntry(IsRunningElevated, AdminAutoStartEnabled);
+
+        /// <summary>入口是否出现：已是管理员权限运行时不出现（提权入口只在非提权态出现）。</summary>
+        public bool ShowRestartElevated => RestartEntry.Visible;
+
+        /// <summary>入口是否可点：提权自启那颗任务不在时不可点——触发它等于空操作。</summary>
+        public bool CanRestartElevated => RestartEntry.Enabled;
+
+        /// <summary>是否呈现"为什么不可点"的说明（入口出现但任务不在时）。</summary>
+        public bool ShowRestartElevatedHint => RestartEntry.Visible && !RestartEntry.Enabled;
+
+        /// <summary>
+        /// 立即以管理员身份重启：经宿主委托包转发（本 VM 不反依赖宿主类），触发提权自启那颗计划任务，
+        /// 提权新实例按既有单实例判定接管本实例。不可点时不动手——不给"点了没反应"留余地。
+        /// </summary>
+        [RelayCommand]
+        private void RestartElevatedNow()
+        {
+            if (!CanRestartElevated)
+            {
+                return;
+            }
+
+            _hostDelegates.RestartElevated?.Invoke();
         }
 
         partial void OnAutoStartEnabledChanged(bool value)

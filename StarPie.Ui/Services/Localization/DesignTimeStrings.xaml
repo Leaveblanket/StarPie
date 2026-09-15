@@ -13,6 +13,9 @@
     <sys:String x:Key="AdminAutoStartFailed" xml:space="preserve">提权自启未生效：可能取消了 UAC，或当前账号没有管理员凭据。已保持普通权限自启。</sys:String>
     <sys:String x:Key="AdminAutoStartFailedTitle" xml:space="preserve">提示</sys:String>
     <sys:String x:Key="AdminAutoStartTitle" xml:space="preserve">以管理员身份开机自启</sys:String>
+    <sys:String x:Key="AdminRestartNow" xml:space="preserve">立即以管理员身份重启</sys:String>
+    <sys:String x:Key="AdminRestartNowNeedsAutostart" xml:space="preserve">需先开启「以管理员身份开机自启」——立即提权复用的就是它建的那颗计划任务，不另开路径。</sys:String>
+    <sys:String x:Key="AdminRestartNowUnavailable" xml:space="preserve">立即以管理员身份重启（需先开启「以管理员身份开机自启」）</sys:String>
     <sys:String x:Key="AdvancedHeader" xml:space="preserve">系统集成与高级偏好设置</sys:String>
     <sys:String x:Key="AdvancedSubheader" xml:space="preserve">管理界面语言、Windows 开机自启（含以管理员身份静默启动）与配置文件的导入/导出备份。</sys:String>
     <sys:String x:Key="AppearanceHeader" xml:space="preserve">轮盘外观与形态定制</sys:String>

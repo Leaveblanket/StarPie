@@ -186,6 +186,9 @@
   <data name="AdminAutoStartDesc" xml:space="preserve"><value>经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势。代价是 StarPie 与进程内插件都以管理员身份常驻。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>提示</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>提权自启未生效：可能取消了 UAC，或当前账号没有管理员凭据。已保持普通权限自启。</value></data>
+  <data name="AdminRestartNow" xml:space="preserve"><value>立即以管理员身份重启</value></data>
+  <data name="AdminRestartNowNeedsAutostart" xml:space="preserve"><value>需先开启「以管理员身份开机自启」——立即提权复用的就是它建的那颗计划任务，不另开路径。</value></data>
+  <data name="AdminRestartNowUnavailable" xml:space="preserve"><value>立即以管理员身份重启（需先开启「以管理员身份开机自启」）</value></data>
   <data name="BackupTitle" xml:space="preserve"><value>配置备份与恢复 (Backup &amp; Reset)</value></data>
   <data name="BtnExportConfig" xml:space="preserve"><value>导出配置备份</value></data>
   <data name="BtnImportConfig" xml:space="preserve"><value>导入配置文件</value></data>

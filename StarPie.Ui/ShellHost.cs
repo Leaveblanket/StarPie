@@ -114,10 +114,11 @@ namespace StarPie
                 application.MainWindow = _anchor;
             }
 
-            // 回填宿主回调：模块注册器装配页面 VM 时持转发委托，此刻起托盘气泡与
-            // 退出动作指向本壳层实例。
+            // 回填宿主回调：模块注册器装配页面 VM 时持转发委托，此刻起托盘气泡、退出动作与
+            // 立即提权重启指向本壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
+            _hostDelegates.RestartElevated = RestartElevated;
 
             // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
             _dialogService.SetBackgroundMode(background);
@@ -413,10 +414,44 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
             entries.Add(TrayMenuEntry.Separator());
+            AddAdminRestartEntry(entries);
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
 
             // 插件菜单项追加在内置条目之后；无插件菜单项时不追加分隔线（降级不留空壳）。
             return TrayMenuComposer.Compose(entries, _pluginUi, _localization).ToList();
+        }
+
+        /// <summary>
+        /// 托盘上的「立即以管理员身份重启」：与设置页按钮是同一件事（同源决策、同一条触发路径）。
+        /// 提权态下整项不出现；提权自启的任务不在时条目灰显并把原因写在标签里——不给一个点了没反应的按钮。
+        /// </summary>
+        private void AddAdminRestartEntry(List<TrayMenuEntry> entries)
+        {
+            (bool visible, bool enabled) = AutostartRegistry.ResolveAdminRestartEntry(
+                elevated: ProcessElevation.IsRunningAsAdministrator(),
+                adminTaskExists: AutostartRegistry.IsAdminAutoStartEnabled());
+
+            if (!visible)
+            {
+                return;
+            }
+
+            entries.Add(TrayMenuEntry.Item(
+                _localization.GetString(enabled ? "AdminRestartNow" : "AdminRestartNowUnavailable"),
+                RestartElevated,
+                enabled));
+        }
+
+        /// <summary>
+        /// 立即以管理员身份重启：触发提权自启那颗计划任务（非提权进程触发它即可静默得到一个
+        /// High 完整性级别的实例，全程不弹 UAC）。**不给应用内入口开专用通道**——接管由新实例
+        /// 按 <see cref="SingleInstanceGate"/> 的既有判定完成，本动作只是把触发时机从"登录时"
+        /// 扩到"用户要求时"。触发成败不由退出码判定（它只表示"任务被受理"）；本次尝试未生效的
+        /// 告知由 #172 接上。
+        /// </summary>
+        private void RestartElevated()
+        {
+            _ = AutostartRegistry.RunAdminTask();
         }
 
         /// <summary>
