@@ -245,7 +245,8 @@ Services ---> Models
 | 0038 | `docs/adr/0038-dev-instance-no-parallel.md` | dev 实例不与正式版并行（互斥收敛单一名、触发键回归右键） | Active |
 | 0039 | `docs/adr/0039-resident-shell-and-transient-settings-console.md` | 常驻壳层与瞬态设置台租户（托盘态只保留托盘与手势，设置台按需创建并随关闭释放） | Active |
 | 0040 | `docs/adr/0040-startup-privilege-policy.md` | 启动权限策略（坚持 asInvoker 与按需提权；强制管理员与偏好持久化记为条件备选） | Active（决策 2 被 0041 取代；决策 5/6 被 0042 修订） |
-| 0041 | `docs/adr/0041-admin-autostart-opt-in.md` | 以管理员身份开机自启（任务计划程序 `/rl highest` 路径，取代 0040 决策 2） | Active（决策 1 的自启落位被 0042 修订） |
-| 0042 | `docs/adr/0042-privilege-routes-two-only.md` | 权限路线收敛为两条（普通权限启动 / 管理员权限静默启动；移除运行期提权与子进程权限适配） | Active |
+| 0041 | `docs/adr/0041-admin-autostart-opt-in.md` | 以管理员身份开机自启（任务计划程序 `/rl highest` 路径，取代 0040 决策 2） | Active（决策 1 的自启落位被 0042 修订；那颗任务的即时触发形态见 0043） |
+| 0042 | `docs/adr/0042-privilege-routes-two-only.md` | 权限路线收敛为两条（普通权限启动 / 管理员权限静默启动；移除运行期提权与子进程权限适配） | Active（决策 2 的边界被 0043 收窄） |
+| 0043 | `docs/adr/0043-elevated-instance-takeover.md` | 提权实例接管非提权实例（即时提权复用路线 B 的任务；让位严格单向、经命名内核对象握手） | Active |
 
 状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。

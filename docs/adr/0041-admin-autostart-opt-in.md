@@ -1,6 +1,7 @@
 # 以管理员身份开机自启：注册表自启之外补一条任务计划程序路径（取代 ADR-0040 决策 2）
 
-> Status: Active（决策 1 的自启落位被 [ADR-0042](0042-privilege-routes-two-only.md) 修订）
+> Status: Active（决策 1 的自启落位被 [ADR-0042](0042-privilege-routes-two-only.md) 修订；
+> 那颗任务的即时触发形态见 [ADR-0043](0043-elevated-instance-takeover.md)）
 >
 > 本文**取代** [ADR-0040](0040-startup-privilege-policy.md) **决策 2**（"不提供始终以管理员身份启动的偏好持久化"），
 > 其余决策（1 的 asInvoker、3 的备选触发条件、4 的静默自启承诺、5 的边界行为归位、6 的已落地三项）不变。
@@ -58,7 +59,9 @@ ADR-0040 列的另外两笔代价，当时的处理方式是：子进程继承�
    无任务可删时不白弹一次 UAC。
 5. **dev 实例隔离**：dev 的计划任务名带独立后缀（`StarPie_AdminAutoStart_Dev`），
    与配置目录的 dev 分支同口径，绝不与正式版共用。
-6. **不影响 ADR-0040 决策 1**：仍不写 `requestedExecutionLevel`，仍是 asInvoker + 运行期按需提权。
+6. **不影响 ADR-0040 决策 1**：仍不写 `requestedExecutionLevel`，仍是 asInvoker；本任务被触发时
+   由服务完成提权，进程自身不带任何清单声明。这颗任务同时是即时提权的载体
+   （见 [ADR-0043](0043-elevated-instance-takeover.md)）。
 
 ## Consequences
 

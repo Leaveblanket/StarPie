@@ -11,7 +11,7 @@
   不持有托盘/主窗口/语言字典等宿主状态。
 - `ShellHost`（常驻壳层）：进程存活期内一直存在的编排面——鼠标钩子启停、语言字典投影（H1 消费 S3）、
   托盘创建与菜单、高权限窗口的一次性告知节拍（#165）、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、
-  设置台的按需创建与释放、
+  让位请求接收端（非提权首实例上，见 §单实例闸门）、设置台的按需创建与释放、
   驻留与真退出协调（[ADR-0011](../adr/0011-composition-apphost-split.md)、
   [ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）。
 - `SettingsConsole`（设置台租户）：按需创建、关闭即销毁的设置控制台会话——主窗口（`MainView`）与其
@@ -22,6 +22,11 @@
 
 `App.xaml(.cs)`、`Composition.cs`、`ShellHost.cs`、`SettingsConsole.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）、
 `SingleInstanceRestore.cs` 与 `TestInstanceExit.cs`（进程生命周期窗口消息：单实例重激活 / 测试实例退出）。
+
+单实例闸门的判定与握手信道驻宿主内核（`StarPie.Host/Kernel/ShellIntegration/`，命名空间
+`StarPie.Kernel.ShellIntegration`）：`SingleInstanceGate.cs`（处置决策纯函数）、`InstanceHandover.cs`
+（命名内核对象握手：首实例标记/让位请求、提权未生效、就绪判据）、`InstanceHandoverListener.cs`
+（让位请求接收端）。行为规范见 §单实例闸门。
 
 瞬态窗口收尾的**唯一实现**：`Services/Shell/TransientWindowTeardown.cs`（清动画 → 丢弃内容与
 DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWindow`；设置台与轮盘预热共用）；
@@ -50,11 +55,12 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `DialogService` 回填后台模式后提示框不呈现、确认框取"是"，自定义对话框（程序/图标/颜色选择器、
      输入框）仍离屏 + 不可激活。仅影响窗口呈现/激活/命中测试与对话框可见性，导航、配置与渲染语义不变
      （e2e 静默跑用，见 [ADR-0031](../adr/0031-e2e-silent-background-run.md) / [ADR-0032](../adr/0032-e2e-silent-visible-window.md)）。
-   - 非首实例：按托盘消息窗口标题（`TrayIconManager.WindowName` = `StarPieTrayWindow`，进程存活期内恒在的
-     常驻 HWND）找到既有实例并投递单实例恢复消息 `SingleInstanceRestore.Send`——接收端在常驻壳层，
-     设置台关着时也受理（创建设置台并显示）；随后 `Shutdown(0)`。不按设置台窗口标题查找：
-     设置台是瞬态窗口，关闭后该窗口不存在。消息窗口的窗口类名由 WPF 生成（`HwndWrapper[…]`），
-     外部只能按标题定位。
+   - 非首实例：先按纯决策 `SingleInstanceGate.Resolve(本实例是否提权, 既有实例是否提权)` 取处置方式
+     （真值表见 §单实例闸门）。**置前退出**：按托盘消息窗口标题（`TrayIconManager.WindowName` =
+     `StarPieTrayWindow`，进程存活期内恒在的常驻 HWND）找到既有实例并投递单实例恢复消息
+     `SingleInstanceRestore.Send`——接收端在常驻壳层，设置台关着时也受理（创建设置台并显示）；
+     随后 `Shutdown(0)`。不按设置台窗口标题查找：设置台是瞬态窗口，关闭后该窗口不存在。
+     消息窗口的窗口类名由 WPF 生成（`HwndWrapper[…]`），外部只能按标题定位。
    - 跨完整性级别（提权实例在跑）：UIPI 默认拦截值大于 `WM_USER` 的窗口消息，而注册消息必大于之，
      故提权实例在创建托盘窗口后经 `SingleInstanceRestore.AllowFromLowerIntegrity` 放行**本进程自有的
      这一个注册消息**（`ChangeWindowMessageFilterEx`，按窗口生效、只在提权态执行）——否则非提权实例的
@@ -69,8 +75,10 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      留下宿主窗口已失效的死条目（幽灵托盘图标），直到通知区收到鼠标输入才被摘除。注册窗口消息
      全机可投递，故正式实例不受理。
    - 注册全局异常处理器（Dispatcher + AppDomain，均不崩溃）。
+   - 首实例（含接管成功者）发布命名标记与"提权未生效"事件并持有到进程结束：后启动的实例由此读得
+     既有实例的形态与权限态，接管没成时也有地方留话（见 §单实例闸门）。
    - `new Composition()` → `Config.Load()` → `Composition.CreateShellHost()` → `ShellHost.Run()`
-     （启动编排末尾：轮盘预热 → 内存整理兜底 `MemoryOptimizer.CollectGarbage(true)`，
+     （启动编排末尾：轮盘预热 → 内存整理兜底 `MemoryOptimizer.CollectGarbage(true)` → 装让位接收端，
      见 [shell.md](shell.md)）；失败弹错误框并退出。
 2. `Composition` 注册期（**内置贡献者有序清单驱动**，全部单例；注册顺序 ≠ 解析时机）：
    - 阶段 1｜注册期：`BuiltInContributors.CreateAll(_hostDelegates)` 得到按 `Order` 升序的清单
@@ -182,8 +190,8 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    冲刷挂起保存 → 释放托盘（含摘除恢复消息钩子）→ 置退出态并 `Application.Shutdown()`
    （`ShutdownMode=OnExplicitShutdown`，关窗不自行结束进程）。顺序无输入参数即语义：
    退出编排不依赖设置台是否存在（无控制台时同样走完）。
-   `App.OnExit`：`Config.Save()` 兜底 → `ShellHost.Dispose()`（退订语言服务、释放设置台租户、托盘
-   dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体。
+   `App.OnExit`：`Config.Save()` 兜底 → `ShellHost.Dispose()`（退订语言服务、释放让位接收端、释放设置台
+   租户、托盘 dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体与命名标记。
 7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。
    托盘状态信号的输入是**设置台开/关**（不是窗口可见性：新建窗口首次 `Show()` 同样产生可见性变化，
    按可见性判读会把「首次打开」误判成「从托盘恢复」），经 `TrayStateSignal` 有序决策执行：
@@ -200,10 +208,39 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
 ## 宿主委托包
 
 `AppHostDelegates`（SDK 公开契约，`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）承载页面 VM
-注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`。
+注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`、`RestartElevated`。
 组合根持有该实例并由 `HostCoreContributor` 登记单例，`ShellContributor` 装配 `GeneralSettingsViewModel` 时持稳定转发委托，
-`ShellHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication = …`）；VM 不反向依赖宿主类。
+`ShellHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication/RestartElevated = …`）；VM 不反向依赖宿主类。
 委托包名保持 `AppHostDelegates`（SDK 公开契约面，ABI additive-only，改名破坏第三方插件编译兼容）。
+
+## 单实例闸门
+
+闸门只在 `App.OnStartup` 一处做判定（`SingleInstanceGate`，纯函数 + `SingleInstanceGateTests` 真值表）；
+三条来路——应用内「立即以管理员身份重启」、右键 `runas`、`schtasks /run`——共用同一条规则，
+不给应用内入口开专用通道（[ADR-0043](../adr/0043-elevated-instance-takeover.md)）。
+
+| 本实例 | 既有实例 | 处置 |
+|---|---|---|
+| 非提权 | 任意 | 置前退出 |
+| 提权 | 提权 | 置前退出（接管无收益，却要付一次进程交接） |
+| 提权 | 非提权 | 请求让位；等不到就退出并告知未生效 |
+
+判定**严格单向**：接管的目的只有"提升权限"一种，反向让位等于把用户的提权状态交给一次误双击。
+
+- **既有实例的形态与权限态**由它发布的标记事件读得（`InstanceHandover.ProbeOwner`）：名字编码发布者的
+  形态与权限态，存在即"同形态首实例在此"。读不到同形态标记（互斥体被另一形态的实例持有，或对方尚未
+  发布）即按置前退出走——不冒险，也不空等。标记由首实例在拿到互斥体后发布并持有到进程结束，
+  与互斥体同生共死（`App.OnExit` 释放）。
+- **让位握手走命名内核对象**（`Global\` 命名事件，同用户跨完整性级别可开），不用窗口消息——窗口消息只
+  保留既有的置前语义。事件对象归首实例所有，因为置位方向总是"更高的完整性级别写更低的对象"。
+- **就绪判据只有"单实例互斥体已可取得"**（`InstanceHandover.WaitForSingleInstanceRelease`），
+  不取自任何触发命令的退出码——实测 `schtasks /run` 的退出码只表示"任务被受理"，动作为空的任务
+  同样返回成功。等不到时新实例在明确时限内退出、不留残进程。
+- **让位执行**：接收端 `InstanceHandoverListener` 只装在**非提权**首实例上（提权实例永不让位），收到请求
+  即切回 UI 线程走既有退出编排（落盘 → 释托盘 → 关闭）。托盘先于互斥体释放、鼠标钩子在 `ShellHost.Dispose`
+  停止，故新实例接手时不会出现两个图标或两条全局钩子。
+- **失败告知**：新实例退出前经第二个事件留下"这次提权未生效"，首实例经既有气泡通道说明原因与后续动作；
+  连"受理"都失败时由发起方就地告知。成功路径不产生该提示（置位只发生在"请求让位未成"那一格）。
 
 ## 扩展点
 
@@ -218,4 +255,4 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
 
 ## 参见 ADR
 
-[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）、[0039](../adr/0039-resident-shell-and-transient-settings-console.md)（常驻壳层与瞬态设置台租户）。
+[0003](../adr/0003-application-host-restructure.md)（宿主重构）、[0005](../adr/0005-di-container-for-navigation.md)（容器导航）、[0011](../adr/0011-composition-apphost-split.md)（组合根与 AppHost 拆分）、[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：H1/R2/D4）、[0039](../adr/0039-resident-shell-and-transient-settings-console.md)（常驻壳层与瞬态设置台租户）、[0040](../adr/0040-startup-privilege-policy.md)（启动权限策略）、[0043](../adr/0043-elevated-instance-takeover.md)（接管与让位协议）。

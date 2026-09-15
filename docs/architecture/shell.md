@@ -15,12 +15,14 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 - `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
   由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
 - `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态，
-  两者互斥落位——见关键流程 3；`[SupportedOSPlatform("windows")]`、public 装配面）、
+  两者互斥落位，另含提权自启任务的按需触发与「立即提权」入口的可见性决策——见关键流程 3；
+  `[SupportedOSPlatform("windows")]`、public 装配面）、
   `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
   `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
   `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
   `StarPie.Host/Kernel/ShellIntegration/ProcessElevation.cs`（当前进程是否以管理员身份运行的探测）——
-  命名空间均为 `StarPie.Kernel.ShellIntegration`。
+  命名空间均为 `StarPie.Kernel.ShellIntegration`（单实例闸门的判定与握手信道同驻此目录，
+  见 [host.md](host.md) §单实例闸门）。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
   （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
@@ -84,6 +86,11 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    界面的总开关按"两种形态任一在运行"取值，提权形态的状态读自计划任务的实况（`schtasks /query` 退出码），
    `config.json` 的 `AutoStartAsAdmin` 只记录用户意图；落位失败（UAC 取消、账号无管理员凭据）
    由 VM 提示并把开关拨回实况，不静默。dev 实例的任务名带独立后缀，与配置目录同口径。
+   **那颗任务也是即时提权的载体**（[ADR-0043](../adr/0043-elevated-instance-takeover.md)）：
+   `AutostartRegistry.RunAdminTask` 以 `schtasks /run /tn <任务名>` 按需触发它，非提权进程即可静默得到
+   一个 High 完整性级别、同一交互会话的实例，全程不弹 UAC（触发本身不需要提权，建/删任务才需要）；
+   返回值只表示"任务被受理"，**不是就绪判据**——就绪只认"单实例互斥体已可取得"（见
+   [host.md](host.md) §单实例闸门）。
 4. **关窗即销毁、托盘驻留、重开重建**（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）：
    设置台是瞬态租户——关窗销毁窗口与 VM 树（`Window_Closing` 不再取消），托盘驻留由常驻壳层
    （`ShellHost` + 托盘消息窗口）承担，托盘直达/单实例恢复经 `ShellHost.ShowSettingsConsole` 重建。关窗收尾
@@ -99,8 +106,15 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    页面绑定规范见 [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
    进程权限级别由 [ADR-0040](../adr/0040-startup-privilege-policy.md) 与
    [ADR-0042](../adr/0042-privilege-routes-two-only.md) 固定为**两条互斥路线**：普通权限启动
-   （asInvoker，不写清单声明）与管理员权限静默启动（即提权自启，见下方关键流程 3）；
-   不提供运行期提权重启，故没有权限态可见性之类需要同口径的多处入口。
+   （asInvoker，不写清单声明）与管理员权限静默启动（即提权自启，见下方关键流程 3）。
+   **「立即提权」是路线 B 的即时触发形态**（[ADR-0043](../adr/0043-elevated-instance-takeover.md)），
+   不是第三条路线：托盘菜单项与设置页按钮是同一件事，共用纯决策
+   `AutostartRegistry.ResolveAdminRestartEntry(elevated, adminTaskExists)` 的口径——已是管理员权限运行时
+   整块不出现（提权入口只在非提权态出现）；提权自启关闭、任务不存在时不可点并写明原因（需先开启该开关），
+   不给一个点了没反应的按钮。入口挂在「以管理员身份开机自启」卡片内，不单起一张卡片；
+   点击触发的就是关键流程 3 那颗任务（复用路线 B，不给应用内入口开专用通道），
+   页面 VM 经 `AppHostDelegates.RestartElevated` 转发请求、不反向依赖宿主类。
+   接管没成时由既有实例经气泡通道告知「提权未生效」（见 [host.md](host.md) §单实例闸门）。
 
 ## 扩展点
 
@@ -115,4 +129,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 
 [0003](../adr/0003-application-host-restructure.md)（宿主重构）、
 [0009](../adr/0009-view-code-behind-whitelist.md)（壳层 code-behind 白名单）、
-[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：M5 与 R1/R3/R4/D2/D3）。
+[0015](../adr/0015-module-map-and-ownership.md)（12 模块地图：M5 与 R1/R3/R4/D2/D3）、
+[0041](../adr/0041-admin-autostart-opt-in.md)（提权自启）、
+[0042](../adr/0042-privilege-routes-two-only.md)（两条权限路线）、
+[0043](../adr/0043-elevated-instance-takeover.md)（即时提权与接管协议）。
