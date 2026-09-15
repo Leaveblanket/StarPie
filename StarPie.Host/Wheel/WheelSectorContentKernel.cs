@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using StarPie.Icons;
 using StarPie.Services.Icons;
 
@@ -13,7 +13,8 @@ namespace StarPie.Wheel
         /// <summary>扇区显示文字（已由消费方解析，含空扇区占位文案）；空串即不画文字。</summary>
         public string Text { get; }
 
-        /// <summary>动作类型；空值按 "Hotkey" 处理（与无动作槽位的既有回落一致）。</summary>
+        /// <summary>动作类型（原样参与内置向量判定；空类型不给内置向量）。无动作槽位由消费方
+        /// 传 "Hotkey"。</summary>
         public string Type { get; }
 
         public string Parameter { get; }
@@ -97,7 +98,6 @@ namespace StarPie.Wheel
         private const string IconOnlyLayoutMode = "IconOnly";
         private const string TextOnlyLayoutMode = "TextOnly";
         private const string LaunchActionType = "Launch";
-        private const string HotkeyActionType = "Hotkey";
 
         // 未配置时的回落，与配置模型默认值同值。
         private const double DefaultSectorIconSize = 20.0;
@@ -178,7 +178,9 @@ namespace StarPie.Wheel
 
         private static WheelIconContent ResolveIcon(WheelSectorInput sector, Func<string, bool>? isParsableSvg)
         {
-            string type = string.IsNullOrEmpty(sector.Type) ? HotkeyActionType : sector.Type;
+            // 动作类型原样参与判定：空类型不额外当成 Hotkey（迁移前即如此）。无动作槽位的
+            // "Hotkey" 由消费方给出（WheelSectorViewModel 的视图默认值），不在内核里再造一份回落。
+            string type = sector.Type;
 
             // 1. 动作自带的自定义 SVG
             if (!string.IsNullOrEmpty(sector.CustomIconSvg) && IsParsable(isParsableSvg, sector.CustomIconSvg))

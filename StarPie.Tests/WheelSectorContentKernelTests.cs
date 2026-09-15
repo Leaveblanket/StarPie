@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using StarPie.Icons;
 using StarPie.Services.Icons;
 using StarPie.Wheel;
@@ -218,13 +218,23 @@ public sealed class WheelSectorContentKernelTests
     // --- 图标回退链：空值与坏值回落 ------------------------------------
 
     [Fact]
-    public void ResolveIcon_EmptySector_FallsBackToHotkeyVector()
+    public void ResolveIcon_SlotWithoutAction_CarriesHotkeyTypeFromCaller()
     {
-        // 无动作槽位的类型回落为 Hotkey（与 WheelSectorViewModel 的视图默认值一致）。
-        var content = Build(new WheelSectorInput("", null, null, null, null));
+        // 无动作槽位的 "Hotkey" 由消费方给出（WheelSectorViewModel 的视图默认值），
+        // 内核据此给内置键盘图标——与迁移前逐项一致。
+        var content = Build(new WheelSectorInput("", "Hotkey", "", "", ""));
 
         Assert.Equal(WheelIconKind.SvgPath, content.Icon.Kind);
         Assert.Equal(WheelBuiltInIcons.Hotkey, content.Icon.Data);
+    }
+
+    [Fact]
+    public void ResolveIcon_BlankType_FindsNoIcon()
+    {
+        // 空类型不额外当成 Hotkey：迁移前该分支同样取不到内置向量（回落口径不在内核里重造）。
+        var content = Build(new WheelSectorInput("", null, null, null, null));
+
+        Assert.Equal(WheelIconKind.None, content.Icon.Kind);
     }
 
     [Fact]
