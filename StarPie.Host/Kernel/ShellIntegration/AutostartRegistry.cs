@@ -9,8 +9,8 @@ namespace StarPie.Kernel.ShellIntegration
     /// <summary>
     /// 开机自启的两种形态读写：HKCU Run 注册表项（普通权限自启）与 Windows 任务计划程序任务
     /// （<c>/rl highest</c> 提权自启——触发时由任务计划程序服务完成提权，**不弹 UAC**）。
-    /// 提权自启以自启为前提：注册表 Run 始终照写（兜底，且是"关掉提权形态"的回落落点），
-    /// 计划任务是叠加在它之上的一层。
+    /// 两种形态互斥（见 <see cref="ResolvePlacement"/>）：同一时刻只落位一种——两条路径的触发
+    /// 时机相同，同时落位会让两个实例抢单实例闸门。
     /// dev 实例绝不改写正式版自启项——dev 判定读 <see cref="AppDataPaths.IsDevInstance"/>（编译期定死），
     /// 且 dev 的提权自启任务用独立名字，绝不与正式版共用。
     /// 与 <c>MemoryOptimizer</c> 同属无状态系统调用静态工具，经委托由组合根接线进
@@ -23,7 +23,9 @@ namespace StarPie.Kernel.ShellIntegration
         public static string AdminTaskName
             => AppDataPaths.IsDevInstance ? "StarPie_AdminAutoStart_Dev" : "StarPie_AdminAutoStart";
 
-        /// <summary>当前是否已注册开机自启（StarPie 或 legacy WinPieGestures 任一存在即是）。</summary>
+        /// <summary>注册表形态（普通权限）的开机自启是否已注册；StarPie 或 legacy WinPieGestures
+        /// 任一存在即是。提权形态见 <see cref="IsAdminAutoStartEnabled"/>——两条路线互斥，
+        /// 界面的总开关按两者取或。</summary>
         public static bool IsAutoStartEnabled()
         {
             try
@@ -49,14 +51,26 @@ namespace StarPie.Kernel.ShellIntegration
         }
 
         /// <summary>
-        /// 自启形态落位：<paramref name="enable"/> 为假时注册表 Run 与计划任务一并删除；
-        /// 为真时按 <paramref name="asAdmin"/> 决定是否叠加提权计划任务。
+        /// 自启落位的形态决策（纯函数）：两条权限路线互斥，同一时刻只落位一种自启形态。
+        /// 提权形态下注册表 Run 键必须**缺位**——两条自启路径的触发时机相同（都在登录时），
+        /// 同时落位会让非提权实例与提权实例抢单实例互斥体，谁先抢到谁活；非提权那个赢了就等于
+        /// 「以管理员身份开机自启」白开，而界面读计划任务实况仍会显示已开启。
+        /// </summary>
+        /// <param name="enable">总开关「开机自启」。</param>
+        /// <param name="asAdmin">「以管理员身份开机自启」（蕴含总开关）。</param>
+        public static (bool WriteRunKey, bool WantAdminTask) ResolvePlacement(bool enable, bool asAdmin)
+            => (WriteRunKey: enable && !asAdmin, WantAdminTask: enable && asAdmin);
+
+        /// <summary>
+        /// 自启形态落位：按 <see cref="ResolvePlacement"/> 的决策写入——两条路线互斥，
+        /// 提权形态下注册表 Run 键被删除（不留兜底），普通形态下计划任务被删除。
         /// </summary>
         /// <returns>提权形态是否按请求落位（注册表读写失败不影响该返回值）。</returns>
         public static bool ApplyAutoStart(bool enable, bool asAdmin)
         {
-            SetRegistryAutoStart(enable);
-            return asAdmin ? EnableAdminTask() : DisableAdminTask();
+            (bool writeRunKey, bool wantAdminTask) = ResolvePlacement(enable, asAdmin);
+            SetRegistryAutoStart(writeRunKey);
+            return wantAdminTask ? EnableAdminTask() : DisableAdminTask();
         }
 
         /// <summary>建/更新提权自启任务的 schtasks 参数（纯字符串构造，供单测锁定形状）。</summary>

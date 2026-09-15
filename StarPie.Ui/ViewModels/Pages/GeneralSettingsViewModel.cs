@@ -81,10 +81,13 @@ namespace StarPie.ViewModels.Pages
                 _messenger.Send(new PageConfigReloadedMessage(typeof(GeneralSettingsViewModel)));
             });
 
-            _autoStartEnabled = _isAutoStartEnabled();
+            // 总开关的实况按"两种自启形态任一在运行"取值：提权形态下注册表键按设计缺位
+            // （见 AutostartRegistry.ResolvePlacement），只看注册表会让总开关错误地显示为关。
+            bool adminTaskPresent = _isAdminAutoStartEnabled();
+            _autoStartEnabled = _isAutoStartEnabled() || adminTaskPresent;
             OnPropertyChanged(nameof(AutoStartEnabled));
             // 直接写后备字段：初始化不触发落位（否则每次开页都会跑一遍注册表/任务计划程序）。
-            _adminAutoStartEnabled = _isAdminAutoStartEnabled();
+            _adminAutoStartEnabled = adminTaskPresent;
             OnPropertyChanged(nameof(AdminAutoStartEnabled));
             LanguageCode = _config.Language ?? "Auto";
         }
