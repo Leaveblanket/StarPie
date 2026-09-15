@@ -16,6 +16,22 @@ namespace StarPie.Services.Wheel
     /// </remarks>
     public static class WheelGeometry
     {
+        /// <summary>SVG 路径数据可否构造几何（解析失败即不可用）。供扇区内容内核判定用户提供的
+        /// SVG 是否回落下一级图标来源——解析本身是 WPF 面，故接缝留在本几何出口。</summary>
+        public static bool IsParsablePathData(string pathData)
+        {
+            if (string.IsNullOrWhiteSpace(pathData)) return false;
+            try
+            {
+                Geometry.Parse(pathData);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         #region Geometry Creation Helpers for Advanced Shapes
 
         public static Geometry CreateAdvancedSectorGeometry(
