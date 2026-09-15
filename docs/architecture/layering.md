@@ -32,7 +32,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 
 ### 必须遵守的例外与说明
 
-1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。
+1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。深浅色读数走宿主注入的无状态 `Func<bool>` 探针，不是服务依赖（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md) 决策 3：轮盘与托盘消费该探针）。
    - **已批准预览桥例外**：外观页 `WheelPreviewRenderer` 为 View 层
      无 DI 构造对象，经聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露的
      `IIconAssetService` 在页面 `Loaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
