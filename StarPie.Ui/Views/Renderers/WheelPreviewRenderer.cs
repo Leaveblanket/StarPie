@@ -228,13 +228,13 @@ namespace StarPie.Views.Renderers
                             parameter,
                             iconKey,
                             customSvg,
-                            ResolveCustomIcon(iconKey)),
+                            WheelSectorIconFactory.ResolveCustomIcon(iconKey, _iconAssets)),
                         layoutSpec,
                         scale,
                         WheelGeometry.IsParsablePathData);
 
                     // 顺序契约：先图标元素、后 TextBlock，与实轮盘一致。
-                    FrameworkElement? iconElement = CreateIconElement(content, _previewTextBrush);
+                    FrameworkElement? iconElement = WheelSectorIconFactory.Create(content, _previewTextBrush, _iconAssets);
                     if (iconElement != null)
                     {
                         sp.Children.Add(iconElement);
@@ -368,65 +368,6 @@ namespace StarPie.Views.Renderers
                 Debug.WriteLine($"[Canvas MouseMove Error]: {ex}");
             }
         }
-
-        /// <summary>把内核给出的图标内容画成元素：矢量画 Path、自定义位图与程序图标画 Image。
-        /// 内容为 None 或程序图标取不到时返回 null（该扇区不画图标元素）。</summary>
-        private FrameworkElement? CreateIconElement(WheelSectorContent content, Brush? brush)
-        {
-            double bottomMargin = content.IconBottomMargin;
-
-            switch (content.Icon.Kind)
-            {
-                case WheelIconKind.SvgPath:
-                    return new System.Windows.Shapes.Path
-                    {
-                        Data = Geometry.Parse(content.Icon.Data),
-                        Fill = brush,
-                        Width = content.IconSize,
-                        Height = content.IconSize,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 0, 0, bottomMargin)
-                    };
-
-                case WheelIconKind.CustomImageFile:
-                    return new Image
-                    {
-                        Source = _iconAssets.GetCustomImageSource(content.Icon.Data),
-                        Width = content.IconSize,
-                        Height = content.IconSize,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 0, 0, bottomMargin)
-                    };
-
-                case WheelIconKind.ProgramIcon:
-                    BitmapSource? iconSource = _iconAssets.GetIcon(content.Icon.Data);
-                    if (iconSource == null)
-                    {
-                        return null;
-                    }
-                    return new Image
-                    {
-                        Source = iconSource,
-                        Width = content.IconSize,
-                        Height = content.IconSize,
-                        Stretch = Stretch.Uniform,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 0, 0, bottomMargin)
-                    };
-
-                default:
-                    return null;
-            }
-        }
-
-        /// <summary>图标键命中自定义图标目录时的条目；只有 <c>custom:</c> 前缀才查目录
-        /// （目录查询是服务调用，归属消费方；键前缀规则在内核）。</summary>
-        private CustomIconItem? ResolveCustomIcon(string? iconKey)
-            => WheelSectorContentKernel.IsCustomIconKey(iconKey)
-                ? _iconAssets.GetCustomIcons().FirstOrDefault(c => c.Key == iconKey)
-                : null;
 
         public void HandleMouseLeave()
         {
