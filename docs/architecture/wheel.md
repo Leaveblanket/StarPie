@@ -1,4 +1,4 @@
-# 模块：轮盘与渲染
+﻿# 模块：轮盘与渲染
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及轮盘 VM/窗口/渲染样式时读本篇。
 
@@ -13,7 +13,10 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 
 - `StarPie.Sdk/`（M2 出口契约，ADR-0023；命名空间不变；签名依赖 SDK Models 数据，仅零 WPF 零
   第三方包，不引用业务 runtime）：`Services/Wheel/IWheelFactory.cs`（轮盘工厂
-  契约）、`ViewModels/Wheel/IWheelViewModel.cs`、`ViewModels/Wheel/IWheelAppearanceState.cs`
+  契约：`Create` 与启动期 `Warmup`）、`Services/Wheel/WheelStyleNames.cs` /
+  `WheelPaletteNames.cs`（风格名与配色方案名常量）、`Services/Wheel/WheelPaletteInput.cs`
+  （配色解析与样式渲染的窄输入，`FromConfig` 为唯一组装入口）、
+  `ViewModels/Wheel/IWheelViewModel.cs`、`ViewModels/Wheel/IWheelAppearanceState.cs`
   （签名暴露件）。
 - `StarPie.Host/Wheel/`（WPF-free，命名空间 `StarPie.Wheel`，可 headless 直接构造）：
   `WheelPalette.cs`（色值组）、`WheelPaletteCatalog.cs`（唯一 hex 目录，含各风格默认观感/
@@ -23,7 +26,9 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
   几何，R6 三分；直接构造 WPF `Geometry`，故留 Ui）、`WheelFactory.cs`（`IWheelFactory`
   实现，D5；命名空间 `StarPie.Services.Wheel` 与物理目录一致，见
   [gestures.md](gestures.md)/[modules.md](modules.md) §5 D5）。
-- `StarPie.Ui/ViewModels/Wheel/WheelViewModel.cs`（`IWheelViewModel` 实现）、
+- `StarPie.Ui/ViewModels/Wheel/WheelViewModel.cs`（`IWheelViewModel` 实现；持
+  `WheelViewData` 瞬态投影而非全局配置）、`WheelViewData.cs`（轮盘视图数据投影：
+  只含渲染字段，由 `WheelFactory` 每次手势从 `AppConfig` 快照组装，ADR-0044）、
   `StarPie.Ui/ViewModels/Pages/WheelAppearanceSettingsViewModel.cs`（轮盘外观设置子 VM，
   实现 `IWheelAppearanceState`，单例落位页面 VM 目录，ADR-0014 决策 6）。
 - `StarPie.Ui/Views/Wheel/RadialWindow.xaml(.cs)`、`StarPie.Ui/Views/Renderers/`
@@ -78,14 +83,17 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 ## 关键流程
 
 1. `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，DI 注册经 WheelContributor
-   下放；见 [gestures.md](gestures.md) 关键流程 5）按手势创建 `WheelViewModel(center, profile, config.Current)`：
-   从配置/Profile 快照扇区、几何尺寸、主题、样式；`IWheelViewModel` 暴露
+   下放；见 [gestures.md](gestures.md) 关键流程 5）按手势创建
+   `WheelViewModel(center, profile, WheelViewData.FromConfig(config.Current))`：
+   扇区来自 Profile，几何尺寸/样式/排版/核图全部来自**瞬态投影快照**（ADR-0044，
+   视图因此看不见全局配置对象）；`IWheelViewModel` 暴露
    `Show`/`HighlightSector`/`SetOuterEscapeState`/`Close`（经 Dispatcher 包装）。
 2. `RadialWindow` 观察 `WheelViewModel`（`PropertyChanged` 仅驱动纯视觉重绘与窗口生命周期：`IsShown→Show`、`IsClosed→Close`；`Closed` 成对退订，防每手势窗口实例被 VM 事件滞留）。
-3. 样式渲染：`RadialWindow`/`WheelPreviewRenderer` 经 `StyleRendererFactory.CreateRenderer(WheelStyle)` 获取 `IRadialStyleRenderer`（`ClassicRing` 默认；`CatPaw`/`Glassmorphism`/`CleanSectors`），`Initialize(theme, config, windowsInDarkMode)` 后绘制装饰、高亮扇区与外甩图标。画刷数据流唯一路径为 `config → WheelPaletteParser（+ WheelPaletteCatalog）→ 渲染器 Initialize → Brush`：System↔OS 深浅、固定方案、自定义预设（id/name/CustomPreset_ 前缀）与 Custom 微调、坏值/空值回落都在解析层完成，渲染器只消费 `WheelPalette` 色值组并构造画刷。
+3. 样式渲染：`RadialWindow`/`WheelPreviewRenderer` 经 `StyleRendererFactory.CreateRenderer(WheelStyle)` 获取 `IRadialStyleRenderer`（`ClassicRing` 默认；`CatPaw`/`Glassmorphism`/`CleanSectors`），`Initialize(palette, WheelPaletteInput, windowsInDarkMode)` 后绘制装饰、高亮扇区与外甩图标。画刷数据流唯一路径为 `WheelPaletteInput（+ 运行态投影）→ WheelPaletteParser（+ WheelPaletteCatalog）→ 渲染器 Initialize → Brush`：System↔OS 深浅、固定方案、自定义预设（id/name/CustomPreset_ 前缀）与 Custom 微调、坏值/空值回落都在解析层完成，渲染器只消费 `WheelPalette` 色值组并构造画刷。运行态与预览态喂的是**同一个** `WheelPaletteInput` 类型、同一个 `FromConfig` 组装入口（ADR-0044 决策 4）。
 4. `IRadialStyleRenderer` 是纯视觉契约：只消费主题/配置与绘制参数；不订阅事件、不读写 VM、不反向依赖 Composition/服务；实例随窗口/预览随用随建。
-5. 外观页 Canvas 预览走 `WheelPreviewRenderer`（与实轮盘同一渲染契约），保证所见即所得；渲染器输入
-   为 `IWheelAppearanceState`（主题风格与配色、几何/排版、核图标、运行态配置与预览 Profile 上下文），
+5. 外观页 Canvas 预览走 `WheelPreviewRenderer`（与实轮盘同一渲染契约与同一扇区内容内核），保证
+   所见即所得；渲染器输入
+   为 `IWheelAppearanceState`（主题风格与配色方案、窄配色输入、几何/排版、核图标与预览 Profile 上下文），
    不依赖具体聚合 VM 类型；预览 Profile 上下文由外观设置子 VM 经 M1 的 `IProfilePreviewSource`
    转发取值（契约随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023），选中/首项回落
    语义由该来源实现方维护。深浅色探测不以 Host `MainView` 作参数（模块不反向依赖宿主）：

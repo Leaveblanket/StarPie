@@ -1,4 +1,5 @@
-using StarPie.Models;
+﻿using StarPie.Models;
+using StarPie.Services.Wheel;
 
 namespace StarPie.ViewModels.Wheel
 {
@@ -58,9 +59,13 @@ namespace StarPie.ViewModels.Wheel
 
         string CoreCustomImagePath { get; }
 
-        // ---- 当前运行配置与预览所用 Profile 上下文 --------------------------------
+        // ---- 配色解析输入与预览所用 Profile 上下文 --------------------------------
 
-        /// <summary>运行态配置（样式渲染器 Initialize 消费：主题/配色解析与光晕等）。</summary>
+        /// <summary>样式渲染器的窄配色输入：只含配色解析与光晕所需字段，
+        /// 与运行态轮盘同类型、同组装入口（ADR-0044 决策 4）。</summary>
+        WheelPaletteInput PaletteInput { get; }
+
+        /// <summary>运行态配置。渲染侧已改吃 <see cref="PaletteInput"/>，本成员待撤除。</summary>
         AppConfig CurrentConfig { get; }
 
         /// <summary>预览渲染所用 Profile（优先选中方案，无选中时回落列表首项；空列表由渲染器兜底）。</summary>

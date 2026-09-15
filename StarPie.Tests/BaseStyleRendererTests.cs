@@ -1,7 +1,9 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Windows.Media;
 using StarPie.Models;
 using Color = System.Windows.Media.Color;
+
+using StarPie.Wheel;
 
 namespace StarPie.Tests;
 
@@ -31,7 +33,7 @@ public sealed class BaseStyleRendererTests
     {
         var renderer = CreateRenderer("ClassicRing");
 
-        renderer.Initialize("Dark", new AppConfig(), windowsInDarkMode: true);
+        renderer.Initialize("Dark", WheelPaletteInput.FromConfig(new AppConfig()), windowsInDarkMode: true);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#F018181B");
         AssertSolidBrush(renderer.SectorBorderBrush, "#40FFFFFF");
@@ -47,7 +49,7 @@ public sealed class BaseStyleRendererTests
     {
         var renderer = CreateRenderer("ClassicRing");
 
-        renderer.Initialize("Light", new AppConfig(), windowsInDarkMode: false);
+        renderer.Initialize("Light", WheelPaletteInput.FromConfig(new AppConfig()), windowsInDarkMode: false);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#F0F8FAFC");
         AssertSolidBrush(renderer.HighlightSectorBrush, "#FF2563EB");
@@ -59,7 +61,7 @@ public sealed class BaseStyleRendererTests
     {
         var renderer = CreateRenderer("CatPaw");
 
-        renderer.Initialize("MatchaForest", new AppConfig(), windowsInDarkMode: false);
+        renderer.Initialize("MatchaForest", WheelPaletteInput.FromConfig(new AppConfig()), windowsInDarkMode: false);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#E6142E1F");
         AssertSolidBrush(renderer.HighlightSectorBrush, "#FF10B981");
@@ -78,7 +80,7 @@ public sealed class BaseStyleRendererTests
         var config = new AppConfig { CustomColorPresets = new List<CustomColorPreset> { preset } };
         var renderer = CreateRenderer("ClassicRing");
 
-        renderer.Initialize("CustomPreset_p1", config, windowsInDarkMode: false);
+        renderer.Initialize("CustomPreset_p1", WheelPaletteInput.FromConfig(config), windowsInDarkMode: false);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#11223344");
         AssertSolidBrush(renderer.SectorBorderBrush, "#22334455");
@@ -97,7 +99,7 @@ public sealed class BaseStyleRendererTests
         };
         var renderer = CreateRenderer("CleanSectors");
 
-        renderer.Initialize("Custom", config, windowsInDarkMode: false);
+        renderer.Initialize("Custom", WheelPaletteInput.FromConfig(config), windowsInDarkMode: false);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#10203040");
         AssertSolidBrush(renderer.SectorBorderBrush, "#20304050");
@@ -113,7 +115,7 @@ public sealed class BaseStyleRendererTests
         var config = new AppConfig { CustomColorPresets = new List<CustomColorPreset> { preset } };
         var renderer = CreateRenderer("ClassicRing");
 
-        renderer.Initialize("CustomPreset_p1", config, windowsInDarkMode: false);
+        renderer.Initialize("CustomPreset_p1", WheelPaletteInput.FromConfig(config), windowsInDarkMode: false);
 
         AssertSolidBrush(renderer.DefaultSectorBrush, "#E618181B");
         AssertSolidBrush(renderer.SectorBorderBrush, "#35FFFFFF");

@@ -1,7 +1,8 @@
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Threading;
 using StarPie.Kernel.Localization;
+using StarPie.ViewModels.Wheel;
 
 namespace StarPie.Services.Wheel
 {
@@ -45,7 +46,8 @@ namespace StarPie.Services.Wheel
             RadialWindow? window = null;
             dispatcher.Invoke(() =>
             {
-                viewModel = new WheelViewModel(center, profile, _config.Current, _localization);
+                // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流（ADR-0044 决策 3）。
+                viewModel = new WheelViewModel(center, profile, WheelViewData.FromConfig(_config.Current), _localization);
                 window = new RadialWindow(viewModel, _themeService, _localization, _iconAssets);
             });
             return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
@@ -57,7 +59,7 @@ namespace StarPie.Services.Wheel
         public void Warmup()
         {
             WheelProfile profile = _config.Current.Profiles.Find(p => p.ProcessName == GlobalProfileName) ?? new WheelProfile();
-            var viewModel = new WheelViewModel(WarmupCenter, profile, _config.Current, _localization);
+            var viewModel = new WheelViewModel(WarmupCenter, profile, WheelViewData.FromConfig(_config.Current), _localization);
             WheelWarmup.Run(viewModel, _themeService, _localization, _iconAssets);
         }
 

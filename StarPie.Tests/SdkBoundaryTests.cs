@@ -39,6 +39,7 @@ public sealed class SdkBoundaryTests
         typeof(IconPickResult), typeof(ColorPickResult), typeof(EyedropResult), typeof(FilePickResult),
         // Services/Wheel/
         typeof(IWheelFactory), typeof(WheelStyleNames), typeof(WheelPaletteNames),
+        typeof(WheelPaletteInput),
         // Services/Icons/（图标条目与 .lnk 解析 SPI）
         typeof(CustomIconItem), typeof(VectorIconItem), typeof(IShortcutTargetResolver),
         // Services/Programs/（扫描契约与纯规则）

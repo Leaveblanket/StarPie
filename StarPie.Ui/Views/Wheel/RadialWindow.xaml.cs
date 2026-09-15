@@ -85,7 +85,7 @@ namespace StarPie.Views.Wheel
         {
             // 经工厂实例化对应样式渲染器
             _styleRenderer = StyleRendererFactory.CreateRenderer(_viewModel.WheelStyle);
-            _styleRenderer.Initialize(_viewModel.WheelPalette, _viewModel.Config, _themeService.IsWindowsInDarkTheme());
+            _styleRenderer.Initialize(_viewModel.WheelPalette, _viewModel.ViewData.PaletteInput, _themeService.IsWindowsInDarkTheme());
 
             _innerRadius = _viewModel.InnerRadius;
             _outerRadius = _viewModel.OuterRadius;
@@ -144,20 +144,16 @@ namespace StarPie.Views.Wheel
             CoreEllipse.Fill = _coreBgBrush;
             CoreEllipse.Stroke = _coreBorderBrush;
 
-            // 渲染核背景图/头像（如配置）
-            string coreBgPath = _viewModel.Config.CoreBgImagePath ?? "";
-            if (!string.IsNullOrEmpty(coreBgPath) && System.IO.File.Exists(coreBgPath))
+            // 核背景图（如配置）：存在性检查与解码归图标资产服务，视图不读磁盘
+            System.Windows.Media.Imaging.BitmapSource? coreBgImage =
+                _iconAssets.LoadBitmap(_viewModel.ViewData.CoreBgImagePath);
+            if (coreBgImage != null)
             {
-                try
+                CoreEllipse.Fill = new ImageBrush(coreBgImage)
                 {
-                    var coreImg = new System.Windows.Media.Imaging.BitmapImage(new Uri(coreBgPath, UriKind.Absolute));
-                    CoreEllipse.Fill = new ImageBrush(coreImg)
-                    {
-                        Stretch = ParseStretch(_viewModel.Config.CoreBgStretch),
-                        Opacity = _viewModel.Config.CoreBgOpacity
-                    };
-                }
-                catch { }
+                    Stretch = ParseStretch(_viewModel.ViewData.CoreBgStretch),
+                    Opacity = _viewModel.ViewData.CoreBgOpacity
+                };
             }
 
             CoreTitle.Foreground = _textColorBrush;
@@ -170,44 +166,35 @@ namespace StarPie.Views.Wheel
 
             bool isCatPaw = _viewModel.WheelStyle == WheelStyleNames.CatPaw;
             bool showCoreIcon = _viewModel.ShowCoreIcon;
-            string coreType = _viewModel.Config.CoreIconType ?? "Exit";
+            string coreType = _viewModel.ViewData.CoreIconType;
 
             CoreTitle.Visibility = Visibility.Collapsed;
             CoreSubtitle.Visibility = Visibility.Collapsed;
 
             if (showCoreIcon && !isCatPaw)
             {
-                if (coreType == "Image" && !string.IsNullOrEmpty(_viewModel.Config.CoreCustomImagePath) && File.Exists(_viewModel.Config.CoreCustomImagePath))
-                {
-                    try
-                    {
-                        var bmp = new BitmapImage();
-                        bmp.BeginInit();
-                        bmp.UriSource = new Uri(_viewModel.Config.CoreCustomImagePath, UriKind.Absolute);
-                        bmp.CacheOption = BitmapCacheOption.OnLoad;
-                        bmp.EndInit();
+                // 自定义核图的存在性检查与解码同样归图标资产服务；取不到即回落核图标几何。
+                System.Windows.Media.Imaging.BitmapSource? coreCustomImage = coreType == "Image"
+                    ? _iconAssets.LoadBitmap(_viewModel.ViewData.CoreCustomImagePath)
+                    : null;
 
-                        double imgSize = coreRadius * 1.6;
-                        CoreCustomImage.Source = bmp;
-                        CoreCustomImage.Width = imgSize;
-                        CoreCustomImage.Height = imgSize;
-                        CoreCustomImage.Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2);
-                        CoreCustomImage.Visibility = Visibility.Visible;
-                        CoreExitIcon.Visibility = Visibility.Collapsed;
-                    }
-                    catch
-                    {
-                        CoreCustomImage.Visibility = Visibility.Collapsed;
-                        CoreExitIcon.Visibility = Visibility.Collapsed;
-                    }
+                if (coreCustomImage != null)
+                {
+                    double imgSize = coreRadius * 1.6;
+                    CoreCustomImage.Source = coreCustomImage;
+                    CoreCustomImage.Width = imgSize;
+                    CoreCustomImage.Height = imgSize;
+                    CoreCustomImage.Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2);
+                    CoreCustomImage.Visibility = Visibility.Visible;
+                    CoreExitIcon.Visibility = Visibility.Collapsed;
                 }
                 else
                 {
                     CoreCustomImage.Visibility = Visibility.Collapsed;
                     var coreGeom = WheelGeometry.GetCoreIconGeometry(
                         coreType,
-                        _viewModel.Config.CoreCustomIconKey,
-                        _viewModel.Config.CoreCustomIconSvg);
+                        _viewModel.ViewData.CoreCustomIconKey,
+                        _viewModel.ViewData.CoreCustomIconSvg);
                     if (coreGeom != null)
                     {
                         CoreExitIcon.Data = coreGeom;
@@ -308,17 +295,17 @@ namespace StarPie.Views.Wheel
             double cx = winSize / 2.0;
             double cy = winSize / 2.0;
 
-            string shape = _viewModel.Config.Shape ?? "Original";
-            double gap = Math.Max(0.0, _viewModel.Config.SectorGap);
-            double cornerRadius = Math.Max(0.0, _viewModel.Config.SectorCornerRadius);
+            string shape = _viewModel.ViewData.Shape;
+            double gap = Math.Max(0.0, _viewModel.ViewData.SectorGap);
+            double cornerRadius = Math.Max(0.0, _viewModel.ViewData.SectorCornerRadius);
 
             // 排版窄字段交给内核；「要不要画文字」也由内核按布局模式判定，本类不再自行组合。
             var layoutSpec = new WheelSectorLayoutSpec(
                 n,
-                _viewModel.Config.IconLayoutMode,
-                _viewModel.Config.ShowText,
-                _viewModel.Config.SectorIconSize,
-                _viewModel.Config.SectorFontSize);
+                _viewModel.ViewData.IconLayoutMode,
+                _viewModel.ViewData.ShowText,
+                _viewModel.ViewData.SectorIconSize,
+                _viewModel.ViewData.SectorFontSize);
 
             _sectorPaths.Clear();
             _contentPanels.Clear();

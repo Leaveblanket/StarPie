@@ -86,7 +86,7 @@ namespace StarPie.Views.Renderers
                 string shape = state.Shape ?? "Original";
 
                 _previewStyleRenderer = StyleRendererFactory.CreateRenderer(wheelStyle);
-                _previewStyleRenderer.Initialize(palette, state.CurrentConfig, windowsInDarkMode);
+                _previewStyleRenderer.Initialize(palette, state.PaletteInput, windowsInDarkMode);
                 _previewDefaultBrush = _previewStyleRenderer.DefaultSectorBrush;
                 _previewHighlightBrush = _previewStyleRenderer.HighlightSectorBrush;
                 _previewBorderBrush = _previewStyleRenderer.SectorBorderBrush;
@@ -127,19 +127,8 @@ namespace StarPie.Views.Renderers
                         Clip = new EllipseGeometry(new Point(imgSize / 2, imgSize / 2), imgSize / 2, imgSize / 2),
                         Visibility = (state.ShowCoreIcon && state.WheelStyle != WheelStyleNames.CatPaw) ? Visibility.Visible : Visibility.Collapsed
                     };
-                    if (!string.IsNullOrEmpty(state.CoreCustomImagePath) && File.Exists(state.CoreCustomImagePath))
-                    {
-                        try
-                        {
-                            var bmp = new BitmapImage();
-                            bmp.BeginInit();
-                            bmp.UriSource = new Uri(state.CoreCustomImagePath, UriKind.Absolute);
-                            bmp.CacheOption = BitmapCacheOption.OnLoad;
-                            bmp.EndInit();
-                            coreImg.Source = bmp;
-                        }
-                        catch { }
-                    }
+                    // 存在性检查与解码归图标资产服务，视图不读磁盘
+                    coreImg.Source = _iconAssets.LoadBitmap(state.CoreCustomImagePath);
                     previewCoreGrid.Children.Add(coreImg);
                 }
                 else

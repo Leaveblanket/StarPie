@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Windows;
 using StarPie.Services.Shell;
+
+using StarPie.ViewModels.Wheel;
 
 namespace StarPie.Tests;
 
@@ -20,7 +22,7 @@ public sealed class WheelWarmupTests
         {
             var config = new AppConfig();
             var profile = new WheelProfile();
-            var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, config, Localization);
+            var viewModel = new WheelViewModel(new GesturePoint(200, 200), profile, WheelViewData.FromConfig(config), Localization);
 
             return WheelWarmup.Run(viewModel, new FakeThemeService(), Localization, new TestIconAssetService());
         });
