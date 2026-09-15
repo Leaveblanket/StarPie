@@ -13,7 +13,7 @@ public sealed class WheelFactoryTests
 {
     private static readonly LocalizationService Localization = new();
 
-    private static WheelFactory Create(TestConfigService config, FakeThemeService theme)
+    private static WheelFactory Create(TestConfigService config, TestThemeService theme)
         => new(config, theme, Localization, new TestIconAssetService());
 
     [Fact]
@@ -22,7 +22,7 @@ public sealed class WheelFactoryTests
         var config = new TestConfigService();
         config.Current.Profiles.Add(new WheelProfile { ProcessName = "Global", SectorCount = 4 });
         config.Current.Profiles.Add(new WheelProfile { ProcessName = "chrome.exe", SectorCount = 12 });
-        var theme = new FakeThemeService();
+        var theme = new TestThemeService();
 
         var factory = Create(config, theme);
 
@@ -37,10 +37,10 @@ public sealed class WheelFactoryTests
     }
 
     [Fact]
-    public void Warmup_WithoutGlobalProfile_FallsBackToEmptyProfile()
+    public void Warmup_WithoutGlobalProfile_StillAssemblesAndRendersOffscreen()
     {
         var config = new TestConfigService();
-        var theme = new FakeThemeService();
+        var theme = new TestThemeService();
 
         var factory = Create(config, theme);
 
@@ -50,26 +50,7 @@ public sealed class WheelFactoryTests
             return true;
         });
 
-        Assert.True(theme.DarkModeProbeCalls > 0);
-    }
-
-    /// <summary><see cref="IThemeService"/> 测试替身：状态无操作，记录深浅色探测次数。</summary>
-    private sealed class FakeThemeService : IThemeService
-    {
-        public int DarkModeProbeCalls { get; private set; }
-
-        public string CurrentEffectiveTheme => "Light";
-
-        public void SetTheme(string themeName) { }
-
-        public void ApplyWindowTheme(FrameworkElement? rootElement) { }
-
-        public string ResolveEffectiveTheme(string themeName) => string.IsNullOrEmpty(themeName) || themeName == "System" ? "Light" : themeName;
-
-        public bool IsWindowsInDarkTheme()
-        {
-            DarkModeProbeCalls++;
-            return false;
-        }
+        // 配置里没有全局方案：Warmup 以空方案兜底装配，预热路径与有方案时同形。
+        Assert.True(theme.DarkModeProbeCalls > 0, "无全局方案也应完成离屏预热并经主题服务探测深浅色");
     }
 }

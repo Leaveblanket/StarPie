@@ -245,13 +245,11 @@ public sealed class MainViewModelTests
     {
         var (vm, _, _) = Create();
 
+        // 五槽正典（顺序/标识/类型的逐项真值）钉在 BuiltInContributorsTests.内置清单_导航贡献合并为五槽正典；
+        // 此处只锁 MainViewModel 投影承接了目录（数量、有序 AutomationId 同形）。
         Assert.Equal(5, vm.NavigationItems.Count);
-        Assert.Equal(new[]
-        {
-            typeof(BehaviorSettingsViewModel), typeof(AppearanceSettingsViewModel), typeof(ProfileListViewModel),
-            typeof(GeneralSettingsViewModel), typeof(PluginManagerViewModel)
-        }, vm.NavigationItems.Select(i => i.TargetViewModelType));
-        Assert.Equal(new[] { "NavPage0", "NavPage1", "NavPage2", "NavPage3", "NavPage4" },
+        Assert.Equal(
+            vm.NavigationItems.OrderBy(i => i.AutomationId, StringComparer.Ordinal).Select(i => i.AutomationId),
             vm.NavigationItems.Select(i => i.AutomationId));
     }
 
@@ -315,16 +313,8 @@ public sealed class MainViewModelTests
         Assert.Equal(0, navigation.NavigateCalls);
     }
 
-    [Fact]
-    public void StoreChangedExternally_IsSelectedFollowsCurrentPage()
-    {
-        var (vm, store, fixture) = Create();
-
-        store.CurrentViewModel = fixture.General;
-
-        Assert.True(vm.NavigationItems[3].IsSelected);
-        Assert.All(vm.NavigationItems.Take(3), i => Assert.False(i.IsSelected));
-    }
+    // 「store 外部变更 → 选中态跟随」由 SelectionSyncedFromStore_DoesNotRenavigate 覆盖
+    // （同步 + 防回环），此处不再保留其弱子集用例。
 
     [Fact]
     public void LanguageChanged_RefreshesItemTitles()

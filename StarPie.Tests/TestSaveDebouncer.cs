@@ -11,9 +11,6 @@ public sealed class TestSaveDebouncer : ISaveDebouncer
 {
     private Action? _pending;
 
-    /// <summary>累计 Schedule 调用次数。</summary>
-    public int ScheduleCalls { get; private set; }
-
     /// <summary>最近一次 Schedule 收到的延迟。</summary>
     public TimeSpan? LastDelay { get; private set; }
 
@@ -22,7 +19,6 @@ public sealed class TestSaveDebouncer : ISaveDebouncer
 
     public void Schedule(Action action, TimeSpan delay)
     {
-        ScheduleCalls++;
         LastDelay = delay;
         _pending = action;
     }

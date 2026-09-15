@@ -12,12 +12,9 @@ namespace StarPie.Tests;
 /// </summary>
 public sealed class TestIconAssetService : IIconAssetService
 {
-    private readonly List<CustomIconItem> _items;
+    private readonly List<CustomIconItem> _items = [];
 
-    public TestIconAssetService(params CustomIconItem[] items)
-    {
-        _items = new List<CustomIconItem>(items);
-    }
+    public TestIconAssetService() { }
 
     public string GetCustomIconsDirectory()
         => Path.Combine(Path.GetTempPath(), "StarPie-Tests-CustomIcons");

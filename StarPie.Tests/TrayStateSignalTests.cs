@@ -17,18 +17,6 @@ public sealed class TrayStateSignalTests
         Assert.Equal(
             new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.ReleaseIconCaches, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage },
             steps);
-
-        // INV6：释放序列中落盘严格先于任何释放动作（导航出账/图标缓存出账/GC）。
-        int flushIndex = steps.ToList().IndexOf(TraySignalStep.FlushPendingSave);
-        foreach (TraySignalStep releaseStep in new[]
-                 {
-                     TraySignalStep.ReleaseNavigation,
-                     TraySignalStep.ReleaseIconCaches,
-                     TraySignalStep.CollectGarbage,
-                 })
-        {
-            Assert.True(flushIndex < steps.ToList().IndexOf(releaseStep), $"{releaseStep} 出现在落盘之前");
-        }
     }
 
     [Fact]
