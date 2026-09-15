@@ -52,6 +52,12 @@ namespace StarPie.Services.Navigation
         public string? PluginId { get; init; }
 
         /// <summary>
+        /// 插件页的显示名（字面量、语言无关）；空则改用 <see cref="TitleKey"/> 经宿主文案表解析。
+        /// 固定页为 null。
+        /// </summary>
+        public string? DisplayName { get; init; }
+
+        /// <summary>
         /// 插件页的 VM 工厂（宿主在导航时调用，返回值须为 <see cref="ViewModelType"/> 的实例）；
         /// 固定页为 null，改经容器解析 <see cref="ViewModelType"/>。
         /// </summary>
@@ -123,7 +129,8 @@ namespace StarPie.Services.Navigation
         }
 
         /// <summary>
-        /// 注册一个插件页：追加在固定槽位之后，AutomationId 由宿主按 <c>NavPlugin_&lt;插件 id&gt;</c> 签发。
+        /// 注册一个插件页（无显示名：标题全部经宿主文案表解析）：
+        /// 追加在固定槽位之后，AutomationId 由宿主按 <c>NavPlugin_&lt;插件 id&gt;</c> 签发。
         /// </summary>
         /// <param name="pluginId">注册该页的插件 id（非空）。</param>
         /// <param name="identifier">目录内稳定标识（非空；与固定页共用唯一性空间，重复即拒绝）。</param>
@@ -132,6 +139,37 @@ namespace StarPie.Services.Navigation
         /// <param name="iconData">侧边栏图标数据（几何路径串）。</param>
         /// <param name="viewModelType">页面 VM 类型（非 null；工厂返回值的运行时类型，用于导航项识别）。</param>
         /// <param name="viewModelFactory">页面 VM 工厂（非 null；宿主在导航时调用，禁止返回已构造实例的缓存）。</param>
+        /// <returns>目录注册项；摘除经 <see cref="RemovePluginPage"/>。</returns>
+        public NavigationPageRegistration RegisterPluginPage(
+            string pluginId,
+            string identifier,
+            string automationId,
+            string titleKey,
+            string iconData,
+            Type viewModelType,
+            Func<object> viewModelFactory)
+            => RegisterPluginPage(
+                pluginId,
+                identifier,
+                automationId,
+                titleKey,
+                iconData,
+                viewModelType,
+                viewModelFactory,
+                displayName: null);
+
+        /// <summary>
+        /// 注册一个插件页（带显示名）：追加在固定槽位之后，AutomationId 由宿主按
+        /// <c>NavPlugin_&lt;插件 id&gt;</c> 签发。
+        /// </summary>
+        /// <param name="pluginId">注册该页的插件 id（非空）。</param>
+        /// <param name="identifier">目录内稳定标识（非空；与固定页共用唯一性空间，重复即拒绝）。</param>
+        /// <param name="automationId">侧边栏 UIA AutomationId（非空；重复即拒绝）。</param>
+        /// <param name="titleKey">页面标题的文案键（与 <paramref name="displayName"/> 不可同时为空）。</param>
+        /// <param name="iconData">侧边栏图标数据（几何路径串）。</param>
+        /// <param name="viewModelType">页面 VM 类型（非 null；工厂返回值的运行时类型，用于导航项识别）。</param>
+        /// <param name="viewModelFactory">页面 VM 工厂（非 null；宿主在导航时调用，禁止返回已构造实例的缓存）。</param>
+        /// <param name="displayName">页面显示名（字面量、语言无关）；空则改用 <paramref name="titleKey"/>。</param>
         /// <returns>目录注册项；摘除经 <see cref="RemovePluginPage"/>。</returns>
         /// <remarks>
         /// 注册顺序即侧边栏在固定页之后的顺序；插件页摘除后同标识可重新注册。
@@ -144,7 +182,8 @@ namespace StarPie.Services.Navigation
             string titleKey,
             string iconData,
             Type viewModelType,
-            Func<object> viewModelFactory)
+            Func<object> viewModelFactory,
+            string? displayName)
         {
             if (string.IsNullOrWhiteSpace(pluginId))
             {
@@ -158,9 +197,9 @@ namespace StarPie.Services.Navigation
             {
                 throw new ArgumentException("AutomationId 不能为空", nameof(automationId));
             }
-            if (string.IsNullOrWhiteSpace(titleKey))
+            if (string.IsNullOrWhiteSpace(titleKey) && string.IsNullOrWhiteSpace(displayName))
             {
-                throw new ArgumentException("标题键不能为空", nameof(titleKey));
+                throw new ArgumentException("标题键与显示名不能同时为空", nameof(titleKey));
             }
             ArgumentNullException.ThrowIfNull(viewModelType);
             ArgumentNullException.ThrowIfNull(viewModelFactory);
@@ -181,6 +220,7 @@ namespace StarPie.Services.Navigation
             {
                 Identifier = identifier,
                 PluginId = pluginId,
+                DisplayName = displayName,
                 ViewModelFactory = viewModelFactory,
             };
             _byAutomationId[identifier] = entry;

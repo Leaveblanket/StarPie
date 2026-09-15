@@ -48,31 +48,48 @@ namespace StarPie.Plugin.SampleUi
             context.CreateTimer(TimeSpan.FromSeconds(1), tick);
 
             // 固定扩展点：导航页 / 设置区 / 窗口 / 托盘菜单 + 命令。
+            // 本插件没有自有文案表（插件面也没有取词入口），五处标题一律给显示名字面量，
+            // 不占宿主文案表的键位。
             context.RegisterPage(new PluginPageDescriptor(
                 PageNavigationKey,
-                "UI 示例",
+                string.Empty,
                 "M3,3H21V21H3V3M5,5V19H19V5H5Z",
-                () => new SampleUiPageViewModel(context, heartbeat)));
+                () => new SampleUiPageViewModel(context, heartbeat))
+            {
+                DisplayName = "UI 示例",
+            });
             context.RegisterSettingsSection(new PluginSettingsSectionDescriptor(
                 SettingsSectionKey,
-                "UI 示例",
+                string.Empty,
                 Order: 0,
-                () => new SampleUiSettingsViewModel()));
+                () => new SampleUiSettingsViewModel())
+            {
+                DisplayName = "UI 示例",
+            });
             context.RegisterWindow(new PluginWindowDescriptor(
                 WindowKey,
-                "UI 示例窗口",
-                () => CreateWindow(context)));
+                string.Empty,
+                () => CreateWindow(context))
+            {
+                DisplayName = "UI 示例窗口",
+            });
             // 托盘菜单命令：点击经宿主路由回本插件命令体——示例里与页面按钮一样开窗。
             Action greet = () => context.ShowWindow(WindowKey);
             SampleUiProbes.Track("greet-command", greet);
             context.RegisterCommand(new PluginCommandDescriptor(
                 GreetCommandId,
-                "示例问候",
-                greet));
+                string.Empty,
+                greet)
+            {
+                DisplayName = "示例问候",
+            });
             context.RegisterMenuItem(new PluginMenuItemDescriptor(
                 "sample-ui-greet",
-                "UI 示例：问候",
-                GreetCommandId));
+                string.Empty,
+                GreetCommandId)
+            {
+                DisplayName = "UI 示例：问候",
+            });
 
             // 宿主中介事件订阅：宿主吊销即断，处理委托随卸载回收。委托必须带捕获——
             // 无捕获 lambda 会被编译器缓存进 ALC 内的静态字段，探针因此永生（WPF 宿主不回收 ALC）。

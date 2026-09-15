@@ -23,11 +23,15 @@ namespace StarPie.Plugin.MinimalUi
             context.MergeResourceDictionary(ResourceDictionaryUri);
 
             // 导航页：宿主在 UI 线程调用工厂创建 VM；宿主侧边栏出现 NavPlugin_<插件 id> 项。
+            // 标题给显示名字面量——插件没有自有文案表，不占宿主文案表的键位。
             context.RegisterPage(new PluginPageDescriptor(
                 "minimal-main",
-                "最小 UI 示例",
+                string.Empty,
                 "M3,3H21V21H3V3M5,5V19H19V5H5Z",
-                () => new MinimalPageViewModel()));
+                () => new MinimalPageViewModel())
+            {
+                DisplayName = "最小 UI 示例",
+            });
         }
     }
 }

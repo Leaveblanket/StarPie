@@ -39,7 +39,13 @@
    `InterfaceThemeSettingsViewModel.AppPaletteOptions`（界面主题，M4，见 [interface-theme.md](interface-theme.md)）等）/
    即时取词（每次展示读当前语言：通知、对话框标题与系统文件对话框文案、托盘菜单）/
    壳外（托盘 tooltip：宿主 `ShellHost` 订阅 `LanguageChanged` 按暂停态刷新，见 [host.md](host.md)）。
-4. **新增/修改文案后**补齐四语言 resx 键值（新增/修改与盘点登记流程见下方扩展点）。
+4. **插件界面文案**（[ADR-0046](../adr/0046-plugin-surface-copy-source.md)）：插件不持有文案表，
+   也拿不到本服务（`ILocalizationService` 驻宿主集，对插件编译期不可见）。宿主渲染的插件界面标题
+   （导航页 / 设置区块 / 托盘菜单项）按**单一优先级**解析：描述符的 `DisplayName`（字面量、语言无关）
+   优先，否则 `TitleKey` 经本服务的 resx 解析；解析不到即按字面量显示，并在插件**注册期**告警一次
+   （告警经装载结果回传宿主日志，不静默）。插件自持文案表与插件面取词属规划项，
+   见 [plugins.md](plugins.md) §9。
+5. **新增/修改文案后**补齐四语言 resx 键值（新增/修改与盘点登记流程见下方扩展点）。
 
 ## 扩展点
 
@@ -47,6 +53,8 @@
   `AutoCultureRules` 前缀规则按需同步；涉及 CONTEXT/ADR，谨慎）。
 - 新文案键：`Strings*.resx` 四语言同步 + 盘点清单登记（声明式键无需其它接线；
   即时取词/驻留按文案分类落位，见 [ADR-0013](../adr/0013-localization-theme-overhaul.md)）。
+  引用侧键存在性由 `LocalizationKeyCoverageTests` 兜住，其覆盖面**不含插件提供的键**——
+  插件键由插件自行保证，缺键在插件注册期告警（见上第 4 条）。
 - 新消息/通知类型：见 [messages.md](messages.md)（S4 hub，放行共享面）。
 
 ## 参见 ADR

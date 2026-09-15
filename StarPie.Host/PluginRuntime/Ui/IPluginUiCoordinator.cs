@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,13 +53,25 @@ namespace StarPie.PluginRuntime.Ui
         string? UiSdk,
         string UiEntryType);
 
-    /// <summary>UI 装载结果：是否注册完成 + 可读失败原因（装载隔离诊断的事实来源）。</summary>
+    /// <summary>UI 装载结果：是否注册完成 + 可读失败原因 + 注册期告警（装载隔离诊断的事实来源）。</summary>
     /// <param name="Succeeded">UI 入口已解析并在 UI 线程注册完成。</param>
     /// <param name="FailureReason">失败原因（ABI 不兼容 / 入口类型非法 / 注册抛异常）；成功时为 null。</param>
+    /// <remarks>
+    /// 告警不是失败：注册照常完成，只是插件声明的某些内容按降级形态生效（例如标题键不在宿主文案表，
+    /// 该标题会按字面量原样显示）。由调用方写入宿主日志，UI 侧不持日志面。
+    /// </remarks>
     public sealed record PluginUiAttachResult(bool Succeeded, string? FailureReason)
     {
+        /// <summary>注册期告警；无告警时为空。</summary>
+        public IReadOnlyList<string> Warnings { get; init; } = Array.Empty<string>();
+
         /// <summary>注册完成的成功结果。</summary>
         public static PluginUiAttachResult Success { get; } = new(true, null);
+
+        /// <summary>注册完成、但带需宿主记录的告警的成功结果。</summary>
+        /// <param name="warnings">注册期告警（为空时等价于 <see cref="Success"/>）。</param>
+        public static PluginUiAttachResult SuccessWith(IReadOnlyList<string> warnings)
+            => warnings.Count == 0 ? Success : new(true, null) { Warnings = warnings };
 
         /// <summary>带原因的失败结果。</summary>
         /// <param name="reason">可读失败原因（非空）。</param>

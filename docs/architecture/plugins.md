@@ -63,7 +63,7 @@ StarPie/
 │   ├── Events/                           # 宿主事件契约（订阅返回 IDisposable）：卸载即断的实现基础
 │   ├── Manifest/                         # plugin.json 纯数据模型（校验逻辑在 Host，SDK 不做 IO）
 │   └── Compatibility/                    # SDK 版本 / 宿主最低版本 / 能力 ABI 常量：判定集中一处
-├── StarPie.Sdk.Wpf/                      # WPF 类型契约；默认 ALC 统一加载；additive-only（ADR-0028 + §5.1 八条）
+├── StarPie.Sdk.Wpf/                      # WPF 类型契约；默认 ALC 统一加载；additive-only（ADR-0028 + §5.1 九条）
 │   ├── Abstractions/IPluginUiModule.cs, IPluginUiContext.cs    # 插件唯一合法的 UI 注册入口（funnel）
 │   ├── Descriptors/                      # PluginPageDescriptor/PluginWindowDescriptor/PluginMenuItemDescriptor…
 │   │                                     # 只带纯数据 + 工厂 + 类型名 + pack URI，禁内嵌已构造实例（§5.1 约束 5）
@@ -181,7 +181,7 @@ public interface IPluginUiModule
    - 宿主合并插件资源字典必须用 `new ResourceDictionary { Source = packUri }`；`Application.LoadComponent(绝对 pack URI)` 在 .NET Core 抛「无法使用绝对 URI」。
    - 松散 XAML（`XamlReader` 解析含 `assembly=` 类型引用的文本）不在支持面：插件 XAML 一律走编译期 BAML。
 
-### 5.1 `StarPie.Sdk.Wpf` 硬约束（8 条，P2/P3 落地判据）
+### 5.1 `StarPie.Sdk.Wpf` 硬约束（9 条，P2/P3 落地判据）
 
 | # | 约束 | 判据与落点 | 违反时行为 |
 |---|---|---|---|
@@ -193,6 +193,7 @@ public interface IPluginUiModule
 | 6 | 宿主负责创建、记账、显示、清理 | 创建时机由宿主在 UI 线程决定，产物先入 `PluginUiAssetRegistry` 再进视觉树 | 未登记资产 = 泄漏残留 → `Quarantined` |
 | 7 | `StarPie.Host` 不引用 `StarPie.Sdk.Wpf` | Host 工程引用白名单 + `BoundaryTests`；`ui.sdk`/`ui.entryType` 的 **UI ABI 校验归 `StarPie.Ui/PluginHosting`**，Host 侧只做纯字符串/数据校验 | 编译期/边界测试拦截；校验错位 = 装载管线缺陷 |
 | 8 | UI SDK ABI additive-only | 与 `StarPie.Sdk` 同政策：接受同主版本、次版本不高于宿主；破坏性变更 = 新描述符/新接口 | 不匹配 → 拒绝装载 |
+| 9 | 插件界面文案来源与失败可见 | 描述符文案成员按「`DisplayName` 字面量 → `TitleKey` 宿主 resx 键」单一优先级解析（解析点收成一个共用件），两者不可同时为空；解析不到时按字面量显示并在**注册期**告警（告警经 UI 装载结果回传宿主日志，自动带 plugin id） | 解析不到不静默；插件自持文案表与插件面取词属规划（见 §9、[ADR-0046](../adr/0046-plugin-surface-copy-source.md)） |
 
 ### 5.2 受支持特性白名单与不支持列表（卸载判据）
 
@@ -337,14 +338,19 @@ public interface IPluginUiContext
 
 ## 9. 配置、数据、文案、日志
 
-- **配置**：`config.json` 新增 `plugins: { "<id>": { … } }`；旧配置无该段照常加载。该段归插件所有（经 `IPluginConfig` 读写），宿主状态不写这里（Q9b）。
+- **配置**：`config.json` 新增 `plugins: { "<id>": { … } }`；旧配置无该段照常加载。该段归插件所有，宿主状态不写这里（Q9b）。
+  **规划**：插件侧读写面 `IPluginConfig` 尚未落地（配置段本身已在模型里）。
 - **数据**：`%LOCALAPPDATA%\StarPie\plugin-data\<id>\`；卸载默认保留，管理面提供"彻底移除"。
 - **宿主状态**：`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用/停用、已装版本、路径、准入来源（内置/审核清单/开发者模式）、隔离状态、挂起版本；宿主唯一权威，插件不可读写（Q9、Q9b）。
 - **三个动作要分清（Q9）**：**停用** = 安全点卸载（停用插件代码、摘除能力、释放服务作用域与插件对象；WPF 宿主里插件程序集留到重启释放，见 ADR-0035）、保留包与状态；**移除包** = 停用后删插件目录、状态条目保留；**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目，再 `FlushPendingSave()`。
 
   as-built：管理面按插件形态给两条更新路径——无界面插件就地「安全点卸载 + 按新包装载」；界面插件只隔离旧版本，
   把新版本登记为**挂起版本**（宿主状态 `PendingVersion`），页面显式提示「下次启动生效」，重启装载成功后挂起标记清除。
-- **文案**：随包 `strings\<culture>.json` + `IPluginContext.Localization`；宿主渲染的设置表单用插件自报文案。
+- **文案**：宿主渲染的三处标题（导航页 / 设置区块 / 托盘菜单项）按「`DisplayName` 字面量 →
+  `TitleKey` 宿主 resx 键」解析；解析不到时按字面量显示并在注册期告警（[ADR-0046](../adr/0046-plugin-surface-copy-source.md)）。
+  窗口与命令描述符的 `TitleKey` 不由宿主渲染（窗口标题由插件自己的窗口设置、命令标题只作 id 路由），保留为兼容面。
+  **规划**：随包 `strings\<culture>.json` + 插件面取词 `IPluginContext.Localization`；宿主渲染的设置表单用插件自报文案——
+  落地需同步打包链路与 ALC 卫星资源政策，属生态化阶段。
 - **日志**：插件只经 `IPluginContext.Log` 写宿主日志（自动带 plugin id）。
 
 ## 10. 设置面与插件管理面

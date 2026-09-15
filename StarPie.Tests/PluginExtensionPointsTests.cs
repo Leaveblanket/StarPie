@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Abstractions.Ui;
 using StarPie.Kernel.Localization;
@@ -75,6 +76,150 @@ public sealed class PluginExtensionPointsTests
 
             Assert.DoesNotContain(catalog.Entries, entry => entry.AutomationId == AutomationId);
             Assert.Equal(0, coordinator.Assets.CountFor(PluginId));
+        });
+    }
+
+    [Fact]
+    public void 插件标题键不在宿主文案表且未给显示名_注册期告警且取走即清空()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(
+                StaTestHarness.Application,
+                StaTestHarness.Dispatcher,
+                localization: new LocalizationService());
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+
+            host.RegisterPage(new PluginPageDescriptor(
+                "main", "NoSuchPluginPageTitle", "M0 0", () => new PluginPageViewModel()));
+            host.RegisterSettingsSection(new PluginSettingsSectionDescriptor(
+                "options", "NoSuchPluginSectionTitle", 10, () => new PluginPageViewModel()));
+            host.RegisterMenuItem(new PluginMenuItemDescriptor(
+                "about", "NoSuchPluginMenuTitle", "about"));
+
+            IReadOnlyList<string> warnings = host.TakeWarnings();
+
+            Assert.Equal(3, warnings.Count);
+            Assert.Contains(warnings, warning => warning.Contains("NoSuchPluginPageTitle"));
+            Assert.Contains(warnings, warning => warning.Contains("NoSuchPluginSectionTitle"));
+            Assert.Contains(warnings, warning => warning.Contains("NoSuchPluginMenuTitle"));
+            // 取走即清空：同一处缺失不在后续装载里重复告警。
+            Assert.Empty(host.TakeWarnings());
+        });
+    }
+
+    [Fact]
+    public void 插件标题_给了显示名或键落在宿主文案表_均不告警()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(
+                StaTestHarness.Application,
+                StaTestHarness.Dispatcher,
+                localization: new LocalizationService());
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+
+            host.RegisterPage(new PluginPageDescriptor(
+                "main", "NoSuchPluginPageTitle", "M0 0", () => new PluginPageViewModel())
+            {
+                DisplayName = "示例页",
+            });
+            host.RegisterSettingsSection(new PluginSettingsSectionDescriptor(
+                "options", "ThemeLight", 10, () => new PluginPageViewModel()));
+
+            Assert.Empty(host.TakeWarnings());
+        });
+    }
+
+    [Fact]
+    public void 未接文案服务的宿主_不做缺键判定也不告警()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+
+            host.RegisterPage(new PluginPageDescriptor(
+                "main", "NoSuchPluginPageTitle", "M0 0", () => new PluginPageViewModel()));
+
+            Assert.Empty(host.TakeWarnings());
+        });
+    }
+
+    [Fact]
+    public void 插件页显示名_穿透到导航目录登记项()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var (coordinator, catalog) = Create();
+
+            coordinator.GetOrCreateHost(PluginId).RegisterPage(
+                Page() with { DisplayName = "示例页" });
+
+            Assert.Equal("示例页", catalog.GetEntry(AutomationId).DisplayName);
+        });
+    }
+
+    [Fact]
+    public void 插件设置区块显示名_优先于宿主文案键()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            var page = new PluginManagerViewModel(
+                PluginRuntimeHostFixture.Create(),
+                new NavigationStore(),
+                new LocalizationService(),
+                coordinator);
+            coordinator.GetOrCreateHost(PluginId).RegisterSettingsSection(
+                new PluginSettingsSectionDescriptor(
+                    "options", "NoSuchPluginSectionTitle", 10, () => new PluginPageViewModel())
+                {
+                    DisplayName = "示例区块",
+                });
+
+            page.Refresh();
+
+            Assert.Equal("示例区块", Assert.Single(page.PluginSettingsSections).Title);
+        });
+    }
+
+    [Fact]
+    public void 仅给显示名_注册可用且不再占宿主文案键位()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var (coordinator, _) = Create();
+
+            coordinator.GetOrCreateHost(PluginId).RegisterPage(
+                Page() with { TitleKey = string.Empty, DisplayName = "示例页" });
+
+            Assert.Single(coordinator.GetOrCreateHost(PluginId).Pages);
+        });
+    }
+
+    [Fact]
+    public void 标题键与显示名同时为空_注册被拒且不记账()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            PluginUiHost host = coordinator.GetOrCreateHost(PluginId);
+
+            Assert.IsType<ArgumentException>(Record.Exception(() => host.RegisterPage(
+                new PluginPageDescriptor("main", string.Empty, "M0 0", () => new PluginPageViewModel()))));
+            Assert.IsType<ArgumentException>(Record.Exception(() => host.RegisterMenuItem(
+                new PluginMenuItemDescriptor("about", "   ", "about"))));
+            Assert.IsType<ArgumentException>(Record.Exception(() => host.RegisterSettingsSection(
+                new PluginSettingsSectionDescriptor("options", string.Empty, 10, () => new PluginPageViewModel()))));
+            Assert.IsType<ArgumentException>(Record.Exception(() => host.RegisterWindow(
+                new PluginWindowDescriptor("window", string.Empty, () => new Window()))));
+            Assert.IsType<ArgumentException>(Record.Exception(() => host.RegisterCommand(
+                new PluginCommandDescriptor("run", string.Empty, () => { }))));
+
+            Assert.Empty(host.Pages);
+            Assert.Empty(host.MenuItems);
+            Assert.Empty(host.SettingsSections);
         });
     }
 

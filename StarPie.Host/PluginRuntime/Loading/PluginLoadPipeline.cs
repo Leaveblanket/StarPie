@@ -223,6 +223,12 @@ namespace StarPie.PluginRuntime.Loading
 
             if (attach.Succeeded)
             {
+                // 注册期告警随插件 id 写宿主日志：UI 侧不持日志面，降级形态的告知在这里收口。
+                foreach (string warning in attach.Warnings)
+                {
+                    _logSink.Write(PluginLogEntry.Create(pluginId, PluginLogLevel.Warning, warning));
+                }
+
                 return null;
             }
 

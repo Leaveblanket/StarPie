@@ -131,7 +131,10 @@ namespace StarPie.ViewModels.Pages
             {
                 PluginSettingsSections.Add(PluginSettingsSectionViewModel.From(
                     section,
-                    _localization.GetString(section.Descriptor.TitleKey)));
+                    PluginSurfaceTitle.Resolve(
+                        section.Descriptor.DisplayName,
+                        section.Descriptor.TitleKey,
+                        _localization)));
             }
 
             HasPluginSettingsSections = PluginSettingsSections.Count > 0;
