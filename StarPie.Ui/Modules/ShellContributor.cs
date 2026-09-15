@@ -62,22 +62,8 @@ namespace StarPie.Modules
                 currentConfig: () => sp.GetRequiredService<IConfigService>().Current,
                 messenger: sp.GetRequiredService<IMessenger>(),
                 localization: sp.GetRequiredService<ILocalizationService>(),
-                isAdministrator: IsRunningAsAdministrator));
-        }
-
-        /// <summary>当前进程是否以管理员身份运行（Advanced 页提权卡片用）。</summary>
-        private static bool IsRunningAsAdministrator()
-        {
-            try
-            {
-                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                return new System.Security.Principal.WindowsPrincipal(identity)
-                    .IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-            }
-            catch
-            {
-                return false;
-            }
+                // 提权态探测与壳层托盘入口同源（共享内核 ProcessElevation），不各留一份实现。
+                isAdministrator: ProcessElevation.IsRunningAsAdministrator));
         }
 
         // 导航图标 Path Data（对应本模块页签）。

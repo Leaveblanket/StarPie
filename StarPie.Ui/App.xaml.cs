@@ -35,8 +35,16 @@ namespace StarPie
                 {
                     _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out isNewInstance);
                 }
+                catch (UnauthorizedAccessException)
+                {
+                    // 互斥体已存在且由更高完整性级别（提权）实例持有：强制完整性标签使本次打开拿不到
+                    // 写访问，"拿不到"本身即说明实例已存在——按已有实例走恢复消息路径。
+                    // 若在此退回新实例，会得到两个托盘图标与两条全局鼠标钩子。
+                    isNewInstance = false;
+                }
                 catch
                 {
+                    // 其它失败（互斥体被异常占用等）保守退回新实例，不让进程无声不启动。
                     isNewInstance = true;
                 }
 

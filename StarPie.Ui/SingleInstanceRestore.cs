@@ -17,6 +17,12 @@ namespace StarPie
         [DllImport("user32.dll", SetLastError = true)]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool ChangeWindowMessageFilterEx(IntPtr hWnd, uint message, uint action, IntPtr changeFilterStruct);
+
+        /// <summary>MSGFLT_ALLOW：放行指定消息，即使来源是更低完整性级别的进程。</summary>
+        private const uint MsgFilterAllow = 1;
+
         /// <summary>单实例恢复消息 id（全机唯一；两端各自注册同一名称字符串）。</summary>
         public static int MessageId => _messageId ??= RegisterWindowMessage("StarPie_SingleInstance_Restore");
 
@@ -24,6 +30,31 @@ namespace StarPie
         public static void Send(IntPtr mainWindow)
         {
             _ = SendMessage(mainWindow, MessageId, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        /// <summary>
+        /// 让接收窗口放行本恢复消息的跨完整性级别投递。UIPI 只拦截更高完整性级别接收方的
+        /// 窗口消息，而 <see cref="RegisterWindowMessage"/> 的消息值必大于 WM_USER，故提权实例
+        /// 持有托盘窗口时，非提权实例的置前请求会被默认拦下（"双击图标没反应"）。
+        /// 放行按窗口而非进程生效，且只涉及本进程自有的这一个注册消息——同一完整性级别下的
+        /// 投递本就畅通，这里不改动其它消息。
+        /// </summary>
+        /// <returns>放行成功为 true；窗口无效或调用失败为 false（同级别投递不受影响）。</returns>
+        public static bool AllowFromLowerIntegrity(IntPtr window)
+        {
+            if (window == IntPtr.Zero)
+            {
+                return false;
+            }
+
+            try
+            {
+                return ChangeWindowMessageFilterEx(window, (uint)MessageId, MsgFilterAllow, IntPtr.Zero);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
