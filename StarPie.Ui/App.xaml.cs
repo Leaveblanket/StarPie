@@ -10,6 +10,8 @@ namespace StarPie
     public partial class App : System.Windows.Application
     {
         private static Mutex? _singleInstanceMutex;
+        // 首实例标记句柄：必须持有到进程结束（句柄一关，标记对象即销毁），与单实例互斥体同生共死。
+        private static EventWaitHandle? _ownerMarker;
         private Composition? _composition;
         private ShellHost? _shellHost;
 
@@ -31,9 +33,10 @@ namespace StarPie
             if (!testInstance)
             {
                 bool isNewInstance;
+                Mutex? mutex = null;
                 try
                 {
-                    _singleInstanceMutex = new Mutex(true, SingleInstanceMutexName, out isNewInstance);
+                    mutex = new Mutex(true, SingleInstanceMutexName, out isNewInstance);
                 }
                 catch (UnauthorizedAccessException)
                 {
@@ -48,21 +51,46 @@ namespace StarPie
                     isNewInstance = true;
                 }
 
-                if (!isNewInstance)
+                if (isNewInstance)
+                {
+                    _singleInstanceMutex = mutex;
+                }
+                else
                 {
                     // 处置决策是纯函数（真值表见 SingleInstanceGateTests），闸门只在这一处做该判定。
-                    // 已有实例的权限态此刻无从判别——互斥体打开失败只说明"对方完整性级别更高"，
-                    // 同级别的提权实例与之无从区分；该输入随 #170 的握手信道一并接入。
-                    SingleInstanceGateDecision decision = SingleInstanceGate.Resolve(
-                        newInstanceElevated: ProcessElevation.IsRunningAsAdministrator(),
-                        existingInstanceElevated: false);
+                    // 已有实例的形态与权限态由它发布的标记事件读得；读不到同形态标记（互斥体被另一
+                    // 形态的实例持有，或对方尚未发布）即按置前退出走——不冒险，也不空等。
+                    (bool sameInstanceKind, bool ownerElevated) = InstanceHandover.ProbeOwner();
+                    SingleInstanceGateDecision decision = sameInstanceKind
+                        ? SingleInstanceGate.Resolve(
+                            newInstanceElevated: ProcessElevation.IsRunningAsAdministrator(),
+                            existingInstanceElevated: ownerElevated)
+                        : SingleInstanceGateDecision.ForegroundAndExit;
+
+                    if (decision == SingleInstanceGateDecision.RequestHandover)
+                    {
+                        // 请求置位成功不等于让位成立：就绪判据只有"互斥体已可取得"这一个来源
+                        // （见 InstanceHandover），等不到就让本次提权作废。
+                        bool released = mutex != null
+                                        && InstanceHandover.RequestYield()
+                                        && InstanceHandover.WaitForSingleInstanceRelease(mutex, InstanceHandover.YieldTimeout);
+                        decision = SingleInstanceGate.ApplyHandoverOutcome(decision, released);
+                    }
 
                     switch (decision)
                     {
-                        // "请求让位接管"由 #170 接上、"退出并告知提权未生效"由 #172 接上：两态此刻
-                        // 以显式标记落地，与现行的置前并退出等价——本张是纯预重构，可观察行为不变。
                         case SingleInstanceGateDecision.RequestHandover:
+                            // 已接替：互斥体归本实例，按首实例继续启动（下同——发布标记、建托盘与钩子）。
+                            _singleInstanceMutex = mutex;
+                            break;
+
                         case SingleInstanceGateDecision.ExitAndNotifyElevationFailed:
+                            // "本次提权未生效"的告知由 #172 接上（既有实例的气泡通道）；
+                            // 此刻先做到按时限退出、不留残进程。
+                            mutex?.Dispose();
+                            Shutdown(0);
+                            return;
+
                         case SingleInstanceGateDecision.ForegroundAndExit:
                             // 已有实例在运行：向它的常驻消息窗口投递恢复消息——接收端驻常驻壳层，
                             // 设置台关着时也会创建设置台并显示（纯外部 ShowWindow 不更新 WPF 的
@@ -78,11 +106,16 @@ namespace StarPie
                             }
                             catch { }
 
+                            mutex?.Dispose();
                             // 不初始化钩子/托盘，立即结束当前进程
                             Shutdown(0);
                             return;
                     }
                 }
+
+                // 首实例（含接管成功者）发布"我在此"的标记：后启动的实例由此读得既有实例的形态与
+                // 权限态。标记与单实例互斥体同生共死——两者一同在 App.OnExit 释放。
+                _ownerMarker = InstanceHandover.PublishOwnerMarker();
             }
 
             base.OnStartup(e);
@@ -152,6 +185,11 @@ namespace StarPie
                 _singleInstanceMutex.Dispose();
                 _singleInstanceMutex = null;
             }
+
+            // 标记与互斥体同生共死：释放互斥体之后再关标记句柄——声明"我不再是首实例"与"我让出了锁"
+            // 的先后顺序对第二个实例无影响（它看标记决定要不要请求让位，看互斥体决定接管是否成立）。
+            _ownerMarker?.Dispose();
+            _ownerMarker = null;
 
             base.OnExit(e);
         }

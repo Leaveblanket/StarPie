@@ -67,6 +67,8 @@ namespace StarPie
         private SettingsConsole? _settingsConsole;
         // 托盘消息窗口上的恢复消息钩子（常驻；释放时成对摘除）。
         private HwndSourceHook? _restoreMessageHook;
+        // 让位请求接收端（只装在非提权首实例上；见 StartHandoverListener）。
+        private InstanceHandoverListener? _handoverListener;
 
         public ShellHost(
             IMessenger messenger,
@@ -226,6 +228,30 @@ namespace StarPie
             // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发（#150）。
             WarmUpWheelCorePath();
             RunStartupMemoryHousekeeping();
+
+            StartHandoverListener();
+        }
+
+        /// <summary>
+        /// 装上让位接收端：等提权新实例"以管理员身份重启/右键运行"时的让位请求，收到即走既有退出编排
+        /// （落盘 → 释托盘 → 关闭，互斥体由 App.OnExit 释放）——新实例这才接得上手。
+        /// </summary>
+        /// <remarks>
+        /// 只装在**非提权**首实例上：判定严格单向，提权实例永不让位（<see cref="SingleInstanceGate"/>），
+        /// 故它不装接收端，也就不会被任何信号关停；测试实例不持单实例互斥体，同样不装。
+        /// 装在编排末尾：让位请求事件由本进程在拿到互斥体时就已发布，置位会**留存**在事件对象上
+        /// （ManualReset），故启动期间到达的请求在这里被立刻看到，不会丢。
+        /// </remarks>
+        private void StartHandoverListener()
+        {
+            if (_testInstance || !SingleInstanceGate.AcceptsHandoverRequest(ProcessElevation.IsRunningAsAdministrator()))
+            {
+                return;
+            }
+
+            _handoverListener = new InstanceHandoverListener(
+                onYieldRequested: () => _ = Application.Current?.Dispatcher.BeginInvoke(ExitApplication));
+            _handoverListener.Start();
         }
 
         /// <summary>启动兜底内存整理 + 堆硬顶生效值日志（GC.GetConfigurationVariables 为运行时
@@ -264,6 +290,10 @@ namespace StarPie
             // 成对退订语言字典换入（订阅在 Run()），避免壳层释放后事件仍持有引用。
             _localization.LanguageChanged -= ApplyLanguageDictionary;
             _localization.LanguageChanged -= RefreshTrayTooltip;
+
+            // 让位接收端先于托盘释放：退出收尾期间不再受理新的让位请求（进程已经在退出了）。
+            _handoverListener?.Dispose();
+            _handoverListener = null;
 
             if (_trayIcon != null)
             {
