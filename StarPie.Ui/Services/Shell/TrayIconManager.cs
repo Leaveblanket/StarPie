@@ -46,10 +46,6 @@ namespace StarPie.Services.Shell
         private const int WM_RBUTTONUP = 0x0205;
         private const int WM_CONTEXTMENU = 0x007B;
         private const uint NIIF_INFO = 0x01;
-        // 气泡通知的回落消息（Shell_NotifyIcon 以 lParam 通知到回调消息上）。
-        private const int NIN_BALLOONHIDE = 0x0403;
-        private const int NIN_BALLOONTIMEOUT = 0x0404;
-        private const int NIN_BALLOONUSERCLICK = 0x0405;
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct NOTIFYICONDATA
@@ -116,8 +112,6 @@ namespace StarPie.Services.Shell
         private readonly Func<IReadOnlyList<TrayMenuEntry>> _menuProvider;
         private readonly HwndSource _source;
         private readonly int _taskbarCreatedMessage;
-        // 最近一次气泡上挂载的点击入口；气泡回落/超时/被点击后注销（一次性）。
-        private Action? _balloonClick;
         private IntPtr _hIcon;
         private string _currentTip = string.Empty;
         private Window? _menuWindow;
@@ -175,9 +169,8 @@ namespace StarPie.Services.Shell
             Shell_NotifyIcon(NIM_MODIFY, ref data);
         }
 
-        public void ShowBalloonTip(string title, string text, Action? onClick = null)
+        public void ShowBalloonTip(string title, string text)
         {
-            _balloonClick = onClick;
             var data = BaseData();
             data.uFlags = NIF_INFO;
             data.szInfoTitle = Truncate(title, 63);
@@ -264,19 +257,6 @@ namespace StarPie.Services.Shell
                     case WM_RBUTTONUP:
                     case WM_CONTEXTMENU:
                         ShowMenu();
-                        handled = true;
-                        break;
-                    // 气泡上的入口：点了就走挂上的动作（如"以管理员身份重启"），随后注销——
-                    // 气泡是一次性的，回落/超时同样注销，避免下一次点击触发上一次的动作。
-                    case NIN_BALLOONUSERCLICK:
-                        Action? click = _balloonClick;
-                        _balloonClick = null;
-                        click?.Invoke();
-                        handled = true;
-                        break;
-                    case NIN_BALLOONHIDE:
-                    case NIN_BALLOONTIMEOUT:
-                        _balloonClick = null;
                         handled = true;
                         break;
                 }

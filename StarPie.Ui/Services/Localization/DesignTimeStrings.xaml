@@ -99,7 +99,6 @@
     <sys:String x:Key="DeleteProfileTooltip" xml:space="preserve">删除选中的配置方案</sys:String>
     <sys:String x:Key="ElevateDesc" xml:space="preserve">以管理员身份重启，可在任务管理器、系统设置等高权限窗口中正常唤起手势。</sys:String>
     <sys:String x:Key="ElevateTitle" xml:space="preserve">管理员权限提升 (Run as Admin)</sys:String>
-    <sys:String x:Key="ElevatedWindowNoticeBalloon" xml:space="preserve">当前前台窗口以管理员身份运行，其中无法唤起手势。点击此通知以管理员身份重启 StarPie。</sys:String>
     <sys:String x:Key="Error" xml:space="preserve">错误</sys:String>
     <sys:String x:Key="FullScreenOption" xml:space="preserve">全屏游戏/独占应用自动禁用手势</sys:String>
     <sys:String x:Key="FullScreenOptionDesc" xml:space="preserve">自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。</sys:String>

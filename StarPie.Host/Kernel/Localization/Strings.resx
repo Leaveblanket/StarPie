@@ -205,7 +205,6 @@
   <data name="TrayElevate" xml:space="preserve"><value>🛡️ 以管理员身份重启</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 现代化鼠标轮盘笔势</value></data>
-  <data name="ElevatedWindowNoticeBalloon" xml:space="preserve"><value>当前前台窗口以管理员身份运行，其中无法唤起手势。点击此通知以管理员身份重启 StarPie。</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS 同步渲染</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>管理界面语言、Windows 开机自启、管理员提权与配置文件的导入/导出备份。</value></data>
   <data name="GesturesSubheader" xml:space="preserve"><value>支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。</value></data>

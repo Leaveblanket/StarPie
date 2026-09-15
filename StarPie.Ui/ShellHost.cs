@@ -66,8 +66,6 @@ namespace StarPie
         private bool _isExiting;
         private TrayIconManager? _trayIcon;
         private SettingsConsole? _settingsConsole;
-        // 高权限窗口的一次性告知节拍（#165）：只在"可能报出"时创建（非提权且未提示过）。
-        private ForegroundElevationWatcher? _elevationWatcher;
         // 托盘消息窗口上的恢复消息钩子（常驻；释放时成对摘除）。
         private HwndSourceHook? _restoreMessageHook;
 
@@ -225,8 +223,6 @@ namespace StarPie
 
             console.Show();
 
-            StartElevatedWindowNoticeWatcher();
-
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
             // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
             // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发（#150）。
@@ -270,10 +266,6 @@ namespace StarPie
             // 成对退订语言字典换入（订阅在 Run()），避免壳层释放后事件仍持有引用。
             _localization.LanguageChanged -= ApplyLanguageDictionary;
             _localization.LanguageChanged -= RefreshTrayTooltip;
-
-            // 告知节拍先停：Dispose 后不再取样，也不再有回调落到已释放的托盘上。
-            _elevationWatcher?.Dispose();
-            _elevationWatcher = null;
 
             if (_trayIcon != null)
             {
@@ -433,51 +425,6 @@ namespace StarPie
         private void ShowTrayBalloonTip(string title, string text)
         {
             _trayIcon?.ShowBalloonTip(title, text);
-        }
-
-        /// <summary>
-        /// 启动"高权限窗口内手势失效"的一次性告知节拍（#165 / ADR-0040 决策 6）：
-        /// 仅当<see cref="ElevatedWindowNotice.ShouldWatch"/>成立（非提权且本安装未提示过）时才起表，
-        /// 注定无果时不空转。后台静默形态（e2e）不启——那条气泡属产品交互，e2e 覆盖不到也不该被它打扰。
-        /// </summary>
-        private void StartElevatedWindowNoticeWatcher()
-        {
-            if (_background) return;
-            if (!ElevatedWindowNotice.ShouldWatch(
-                    ProcessElevation.IsRunningAsAdministrator(),
-                    _config.Current.ElevatedWindowNoticeShown))
-            {
-                return;
-            }
-
-            _elevationWatcher = new ForegroundElevationWatcher(
-                ProcessElevation.IsRunningAsAdministrator,
-                ProcessElevation.IsForegroundWindowHigherIntegrity,
-                () => _config.Current.ElevatedWindowNoticeShown,
-                ReportElevatedWindowNotice);
-            _elevationWatcher.Start();
-        }
-
-        /// <summary>
-        /// 报出那一次告知：托盘气泡带"点击即以管理员身份重启"入口，同时置 config 标记并立即落盘
-        /// ——每个安装只报一次，跨会话不再出现（标记没落盘不影响本次告知，下次启动最多再报一次）。
-        /// </summary>
-        private void ReportElevatedWindowNotice()
-        {
-            _trayIcon?.ShowBalloonTip(
-                "StarPie",
-                _localization.GetString("ElevatedWindowNoticeBalloon"),
-                ElevateAndRestart);
-
-            try
-            {
-                _config.Current.ElevatedWindowNoticeShown = true;
-                _saveOrchestrator.SaveNow();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[ElevatedWindowNotice] 已提示标记落盘失败: {ex.Message}");
-            }
         }
 
         private void TogglePauseGestures()
