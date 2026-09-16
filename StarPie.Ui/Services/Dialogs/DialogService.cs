@@ -167,7 +167,7 @@ namespace StarPie.Services.Dialogs
             MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // ==== 后台模式对话框形态（#135：v135 程序选择器交互用例的真实打开路径）====
+        // ==== 后台模式对话框形态（程序选择器交互用例的真实打开路径）====
 
         private const int BackgroundCoordinate = -32000;
         private const int GwlExStyle = -20;

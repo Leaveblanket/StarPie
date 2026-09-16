@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 namespace StarPie.Views.DesignTime;
 
 /// <summary>
-/// 设计期样例数据（ADR-0025/#101，仅被 SidebarView 根节点 <c>d:DataContext</c> 消费，
+/// 设计期样例数据（ADR-0025，仅被 SidebarView 根节点 <c>d:DataContext</c> 消费，
 /// 无条件编译、惰性；运行时代码不得引用）：侧边栏导航 4 项。
 /// 顺序/AutomationId/图标 Path Data 与运行时导航贡献者一致（NavPage0..3），标题取 zh-CN 值。
 /// </summary>

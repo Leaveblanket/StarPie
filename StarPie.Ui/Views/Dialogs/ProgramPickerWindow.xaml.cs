@@ -24,7 +24,7 @@ namespace StarPie.Views.Dialogs
         }
 
         /// <summary>
-        /// 设计期专用无参构造（ADR-0025/#101）：仅供 VS 设计器实例化根窗口以预览 L1 样例
+        /// 设计期专用无参构造（ADR-0025）：仅供 VS 设计器实例化根窗口以预览 L1 样例
         /// （d:DataContext 提供 ProgramPickerDesignTimeData）；运行时由
         /// <see cref="DialogService"/> 走带参构造装配，不触碰本构造。
         /// </summary>

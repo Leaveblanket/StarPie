@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 namespace StarPie.Views.DesignTime;
 
 /// <summary>
-/// 手势与动作页设计期样例数据（ADR-0025/#101，仅被 GesturesSettingsPage 根节点
+/// 手势与动作页设计期样例数据（ADR-0025，仅被 GesturesSettingsPage 根节点
 /// <c>d:DataContext</c> 消费，无条件编译、惰性；运行时代码不得引用）：
 /// Profiles（5 项）与 Slots（8 行，方向标签按扇区表）。其余单值/命令绑定按叶子
 /// “未样例清单”留空。

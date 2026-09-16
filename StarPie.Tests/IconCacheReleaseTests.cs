@@ -9,7 +9,7 @@ using StarPie.Services.Icons;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 图标缓存出账测试（#153）：内核侧列表缓存清空幂等、清后重建（条目一致、缓存对象更新）；
+/// 图标缓存出账测试：内核侧列表缓存清空幂等、清后重建（条目一致、缓存对象更新）；
 /// 提取的位图无静态 root（WeakReference 判定可回收）。
 /// </summary>
 public sealed class IconCacheReleaseTests

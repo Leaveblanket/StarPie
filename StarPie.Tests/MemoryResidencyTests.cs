@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 内存分层常驻（#149 起）的机械断言：GC 堆硬顶声明与工作集裁剪能力删除后的零残留。
+/// 内存分层常驻的机械断言：GC 堆硬顶声明与工作集裁剪能力删除后的零残留。
 /// 纯文件级断言，不经容器；运行时生效值口径由启动编排末尾的 GC.GetConfigurationVariables
 /// 记载（Debug 构建可见；Release 构建核对产物 runtimeconfig.json）与编译产物 runtimeconfig.json
 /// 共同承担，本类锁声明面与残留面。

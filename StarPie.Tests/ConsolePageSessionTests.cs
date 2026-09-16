@@ -6,7 +6,7 @@ using StarPie.Services.Programs;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 设置台会话作用域的页面 VM 缓存（#157，ADR-0039 决策 2/4/9）：
+/// 设置台会话作用域的页面 VM 缓存（ADR-0039 决策 2/4/9）：
 /// 同一会话内保留实例（来回切页不丢状态）、重复取同一类型返回同一实例、未开会话取实例抛、
 /// 会话结束整批释放（弱引用判定）、重开会话重建实例（不携带上次会话状态）、
 /// 会话内只读别名（<c>IProfilePreviewSource</c>）与实现 VM 指向同一实例。

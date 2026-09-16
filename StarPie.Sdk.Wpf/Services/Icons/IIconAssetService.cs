@@ -42,7 +42,7 @@ namespace StarPie.Services.Icons
         BitmapSource? GetIcon(string path);
 
         /// <summary>释放瞬态缓存（幂等）：图标列表缓存整体清空、下次消费重建（additive，
-        /// #153 内存分层常驻）。托盘出账路径调用；显示中的位图随导航视图出账自然回收，
+        /// 内存分层常驻）。托盘出账路径调用；显示中的位图随导航视图出账自然回收，
         /// 本服务不长期持有位图。</summary>
         void ReleaseTransientCaches();
     }
