@@ -26,7 +26,7 @@
 | 4 | 插件不直接交出 UI 实例 | `IPluginUiContext` 的签名只接受 Descriptor / `Uri` / `TimeSpan` / 值类型；不存在接收 `FrameworkElement`/`Window`/`ResourceDictionary`/`ICommand` 实例的重载 | 契约层不可表达；越权路径由泄漏扫描兜底 → `Quarantined` |
 | 5 | 插件只提交 Descriptor | Descriptor 只承载纯数据 + 工厂委托 + 类型名 + pack URI，禁止内嵌已构造实例（含 VM）；`RegisterUi` 只注册不创建（§5 步骤 4） | 评审 + 签名约束；命中即拒绝 |
 | 6 | 宿主负责创建、记账、显示、清理 | 创建时机由宿主在 UI 线程决定，产物先入 `PluginUiAssetRegistry` 再进视觉树 | 未登记资产 = 泄漏残留 → `Quarantined` |
-| 7 | `StarPie.Host` 不引用 `StarPie.Sdk.Wpf` | Host 工程引用白名单 + `BoundaryTests`；`ui.sdk`/`ui.entryType` 的 **UI ABI 校验归 `StarPie.Ui/PluginHosting`**，Host 侧只做纯字符串/数据校验 | 编译期/边界测试拦截；校验错位 = 装载管线缺陷 |
+| 7 | `StarPie.Host` 不引用 `StarPie.Sdk.Wpf` | Host 工程引用白名单 + `HostBoundaryTests`；`ui.sdk`/`ui.entryType` 的 **UI ABI 校验归 `StarPie.Ui/PluginHosting`**，Host 侧只做纯字符串/数据校验 | 编译期/边界测试拦截；校验错位 = 装载管线缺陷 |
 | 8 | UI SDK ABI additive-only | 与 `StarPie.Sdk` 同政策：接受同主版本、次版本不高于宿主；破坏性变更 = 新描述符/新接口 | 不匹配 → 拒绝装载 |
 | 9 | 插件界面文案来源与失败可见 | 描述符文案成员按「`DisplayName` 字面量 → `TitleKey` 宿主 resx 键」单一优先级解析（解析点收成一个共用件），两者不可同时为空；解析不到时按字面量显示并在**注册期**告警（告警经 UI 装载结果回传宿主日志，自动带 plugin id） | 解析不到不静默（按字面量显示 + 注册期告警）；插件自持文案表与插件面取词见 §6、[ADR-0046](../adr/0046-plugin-surface-copy-source.md) |
 
@@ -57,7 +57,7 @@
 
 ## 4 HostServices 硬约束（8 条）
 
-HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPluginEvents`/…）。八条都是验收判据：
+HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginEvents`，经 `IPluginContext` 属性取用）。八条都是验收判据：
 
 | # | 约束 | 判据与落点 |
 |---|---|---|

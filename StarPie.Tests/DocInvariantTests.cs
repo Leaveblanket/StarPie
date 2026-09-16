@@ -8,13 +8,16 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 架构文档体系的不变量：把《docs/agents/docs-conventions.md》的口径与入口 §6 的维护义务变成机械断言。
-/// 覆盖六条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
-/// 叶子不残留完成态流水/等号标记与日期快照（模式读文约）、layout 树路径在磁盘存在、
+/// 覆盖十条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
+/// 叶子不残留完成态流水/等号标记与日期快照（模式读文约）、ADR 不残留日期快照与等号标记（模式读文约）、
+/// layout 树路径在磁盘存在、源码根的一级目录反向登记在 layout 树（四集 + <c>plugins/</c>）、
+/// 文档反引号里的类型名在源码命中（豁免与占位口径读文约）、文档声称的常量归属与源码一致、
 /// 源码注释不含变更史编号（见 comments.md 禁止清单）。
 /// </summary>
 /// <remarks>
 /// 断言失败时先修文档，不要放宽断言：这些正是过去靠人记而反复失守的部分
-/// （13 篇 ADR 瘦身后留下 12 处指向不存在决策号的引用、入口附录被删后 <c>agents/domain.md</c> 长期指向不存在的章节）。
+/// （13 篇 ADR 瘦身后留下 12 处指向不存在决策号的引用、入口附录被删后 <c>agents/domain.md</c> 长期指向不存在的章节、
+/// <c>StarPie.Host/HostServices/</c> 等目录实际存在却未登记进目录树）。
 /// </remarks>
 public sealed class DocInvariantTests
 {
@@ -24,20 +27,42 @@ public sealed class DocInvariantTests
     private static string LeafDir => Path.Combine(DocsRoot, "architecture");
     private static string AdrDir => Path.Combine(DocsRoot, "adr");
 
-    /// <summary>源码树扫描时跳过的目录（构建产物、隔离环境与工作区）。</summary>
+    /// <summary>源码树扫描时跳过的目录（构建产物、IDE 工作区与隔离环境）。</summary>
     private static readonly string[] ExcludedDirs =
     {
-        ".git", "bin", "obj", ".venv", ".scratch", ".codegraph", "artifacts", "node_modules", "TestResults",
+        ".git", ".vs", ".vscode", ".codebuddy", "bin", "obj", ".venv", ".scratch",
+        ".codegraph", "artifacts", "node_modules", "TestResults", ".pytest_cache",
+    };
+
+    /// <summary>源码根（四集）——反向登记锁的扫描面：其一级子目录必须在 layout.md §1 树出现。</summary>
+    private static readonly string[] SourceRoots =
+    {
+        "StarPie.Ui", "StarPie.Sdk", "StarPie.Sdk.Wpf", "StarPie.Host",
     };
 
     /// <summary>文约文件：机检口径与豁免清单的正典（入口 §6 指向它；词表增删只改它，不改本文件）。</summary>
     private static string ConventionsFile => Path.Combine(DocsRoot, "agents", "docs-conventions.md");
 
-    /// <summary>文约中承载机检 ERE 模式的小节标题。</summary>
+    /// <summary>文约中承载机检 ERE 模式的小节标题（叶子：完成态流水与日期快照）。</summary>
     private const string PatternsSection = "## 机检口径";
+
+    /// <summary>文约中承载 ADR 机检模式的小节标题（只收在任何体裁下都失真的形态）。</summary>
+    private const string AdrPatternsSection = "## ADR 机检口径";
+
+    /// <summary>文约中承载「类型名机检口径」的小节标题（跳过行标记与占位片段）。</summary>
+    private const string TypeNameSection = "## 类型名机检口径";
+
+    /// <summary>文约中承载「豁免清单」的小节标题。</summary>
+    private const string ExemptionSection = "## 豁免清单";
 
     /// <summary>文约中承载「常量归属断言」的小节标题。</summary>
     private const string OwnershipSection = "## 归属断言";
+
+    /// <summary>内联代码段（单个反引号，不跨行）。</summary>
+    private static readonly Regex InlineCodeSpan = new(@"`([^`\n]+)`", RegexOptions.Compiled);
+
+    /// <summary>整段是 PascalCase 标识符（至少含一个小写字母——排除 `UI`/`WPF` 这类缩写与 `M1`/`S1` 模块代号）。</summary>
+    private static readonly Regex PascalCaseIdentifier = new(@"^[A-Z][A-Za-z0-9]*[a-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 
     private static readonly Regex AdrMarkdownReference =
         new(@"(\d{4})-[a-z0-9][a-z0-9-]*\.md", RegexOptions.Compiled);
@@ -47,6 +72,21 @@ public sealed class DocInvariantTests
 
     private static readonly Regex DateSnapshot =
         new(@"\b20\d{2}-\d{2}-\d{2}\b", RegexOptions.Compiled);
+
+    /// <summary>全仓源码里出现过的标识符集合（<c>*.cs</c>/<c>*.xaml</c>/<c>*.csproj</c>/<c>*.json</c>）——
+    /// 文档类型名机检的命中面。</summary>
+    private static readonly Lazy<HashSet<string>> SourceIdentifiers = new(() =>
+        Regex.Matches(
+                string.Join(
+                    "\n",
+                    EnumerateFiles(RepoRoot, "*.cs")
+                        .Concat(EnumerateFiles(RepoRoot, "*.xaml"))
+                        .Concat(EnumerateFiles(RepoRoot, "*.csproj"))
+                        .Concat(EnumerateFiles(RepoRoot, "*.json"))
+                        .Select(File.ReadAllText)),
+                @"[A-Za-z_][A-Za-z0-9_]*")
+            .Select(match => match.Value)
+            .ToHashSet(StringComparer.Ordinal));
 
     /// <summary>源码注释里的变更史编号：issue 号与批次/阶段编号。ADR 决策引用与模块代号
     /// （`M1`–`M5`/`S1`–`S6`/`H1`）按 comments.md 不属变更史，不在匹配内。</summary>
@@ -165,25 +205,8 @@ public sealed class DocInvariantTests
     [Fact]
     public void 叶子不残留完成态流水与日期快照()
     {
-        string[] patterns = ReadConventionsPatterns();
-        var offenders = new List<string>();
-        foreach (string leaf in Directory.EnumerateFiles(LeafDir, "*.md"))
-        {
-            int lineNumber = 0;
-            foreach (string line in File.ReadLines(leaf))
-            {
-                lineNumber++;
-                foreach (string pattern in patterns.Where(pattern => Regex.IsMatch(line, pattern)))
-                {
-                    offenders.Add($"{Path.GetFileName(leaf)}:{lineNumber} 流水/标记模式「{pattern}」");
-                }
-
-                if (DateSnapshot.IsMatch(line))
-                {
-                    offenders.Add($"{Path.GetFileName(leaf)}:{lineNumber} 日期快照");
-                }
-            }
-        }
+        List<string> offenders = ScanForbiddenPatterns(
+            Directory.EnumerateFiles(LeafDir, "*.md"), ReadConventionsPatterns());
 
         Assert.True(
             offenders.Count == 0,
@@ -194,10 +217,143 @@ public sealed class DocInvariantTests
     [Fact]
     public void layout树中的路径在磁盘存在()
     {
-        string treeFile = Path.Combine(LeafDir, "layout.md");
-        var segments = new List<string>();
+        string[] treePaths = EnumerateTreePaths().ToArray();
+        Assert.True(treePaths.Length > 0, "未能从 layout.md §1 解析出任何路径——树结构或小节标题变了？");
+        string[] offenders = treePaths
+            .Where(path => !File.Exists(Path.Combine(RepoRoot, path)) && !Directory.Exists(Path.Combine(RepoRoot, path)))
+            .ToArray();
+        Assert.True(
+            offenders.Length == 0,
+            "§1 树是物理路径正典：树中路径必须在磁盘存在（文约 §1：失真优先于重复）：" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    [Fact]
+    public void 四集与plugins的一级目录都在layout树登记()
+    {
+        HashSet<string> treePaths = EnumerateTreePaths().ToHashSet(StringComparer.Ordinal);
+        var offenders = new List<string>();
+        foreach (string root in SourceRoots)
+        {
+            string rootPath = Path.Combine(RepoRoot, root);
+            Assert.True(Directory.Exists(rootPath), $"源码根在磁盘不存在：{root}");
+            offenders.AddRange(Directory.EnumerateDirectories(rootPath)
+                .Select(directory => Path.GetFileName(directory))
+                .Where(name => !IsArtifactDirectory(name) && !treePaths.Contains($"{root}/{name}"))
+                .Select(name => $"{root}/{name}"));
+        }
+
+        if (!treePaths.Contains("plugins"))
+        {
+            offenders.Add("plugins");
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "layout.md §1 树是物理路径正典：源码根一级子目录必须登记（新增目录 → 树里补一行，见文约「维护义务」3）："
+                + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    [Fact]
+    public void 文档反引号类型名在源码命中()
+    {
+        string skipMarker = ReadRule(TypeNameSection, "跳过行标记");
+        string placeholder = ReadRule(TypeNameSection, "占位片段");
+        HashSet<string> exempt = ReadConventionsTokens(ExemptionSection);
+        HashSet<string> sourceIdentifiers = SourceIdentifiers.Value;
         var offenders = new List<string>();
         int checkedCount = 0;
+
+        foreach (string file in EnumerateFiles(DocsRoot, "*.md"))
+        {
+            bool insideFence = false;
+            int lineNumber = 0;
+            foreach (string line in File.ReadLines(file))
+            {
+                lineNumber++;
+                if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
+                {
+                    insideFence = !insideFence;
+                    continue;
+                }
+
+                if (insideFence || line.Contains(skipMarker, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                foreach (Match span in InlineCodeSpan.Matches(line))
+                {
+                    string token = span.Groups[1].Value.Trim();
+                    if (!PascalCaseIdentifier.IsMatch(token) || token.Contains(placeholder, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    checkedCount++;
+                    if (!exempt.Contains(token) && !sourceIdentifiers.Contains(token))
+                    {
+                        offenders.Add($"{Path.GetRelativePath(RepoRoot, file)}:{lineNumber} 「{token}」");
+                    }
+                }
+            }
+        }
+
+        Assert.True(checkedCount > 100, "文档里解析出的候选类型名过少——扫描面或提取口径坏了？");
+        Assert.True(
+            offenders.Count == 0,
+            "文档把不存在的名字当类型名用：改为源码里的真名，或用 `Xxx` 占位写法，或把外部框架名／ADR 历史名加进文约「豁免清单」："
+                + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    [Fact]
+    public void ADR不残留日期快照与等号式状态标记()
+    {
+        string[] patterns = ReadConventionsBlock(AdrPatternsSection);
+        string[] notSubset = patterns.Except(ReadConventionsPatterns()).ToArray();
+        Assert.True(
+            notSubset.Length == 0,
+            "ADR 词表须是「机检口径」词表的子集（见文约「ADR 机检口径」）：" + string.Join(", ", notSubset));
+
+        List<string> offenders = ScanForbiddenPatterns(Directory.EnumerateFiles(AdrDir, "*.md"), patterns);
+        Assert.True(
+            offenders.Count == 0,
+            "ADR 不承载时间维度与目标态快照（文约 §6/§7；词表见文约「ADR 机检口径」）：" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    /// <summary>扫描指定 Markdown 文件的禁止模式与日期快照，返回「文件名:行 说明」清单。</summary>
+    private static List<string> ScanForbiddenPatterns(IEnumerable<string> files, string[] patterns)
+    {
+        var offenders = new List<string>();
+        foreach (string file in files)
+        {
+            int lineNumber = 0;
+            foreach (string line in File.ReadLines(file))
+            {
+                lineNumber++;
+                foreach (string pattern in patterns.Where(pattern => Regex.IsMatch(line, pattern)))
+                {
+                    offenders.Add($"{Path.GetFileName(file)}:{lineNumber} 禁止模式「{pattern}」");
+                }
+
+                if (DateSnapshot.IsMatch(line))
+                {
+                    offenders.Add($"{Path.GetFileName(file)}:{lineNumber} 日期快照");
+                }
+            }
+        }
+
+        return offenders;
+    }
+
+    /// <summary>layout.md §1 树里登记的物理路径（相对仓库根，如 <c>StarPie.Ui/Adapters</c>）。</summary>
+    private static IEnumerable<string> EnumerateTreePaths()
+    {
+        string treeFile = Path.Combine(LeafDir, "layout.md");
+        var segments = new List<string>();
         bool inTreeSection = false;
         bool insideFence = false;
 
@@ -244,23 +400,10 @@ public sealed class DocInvariantTests
                     continue;
                 }
 
-                string path = parent.Length == 0 ? name : $"{parent}/{name}";
-                checkedCount++;
-                string fullPath = Path.Combine(RepoRoot, path);
-                if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
-                {
-                    offenders.Add(path);
-                }
-
+                yield return parent.Length == 0 ? name : $"{parent}/{name}";
                 segments.Add(name);
             }
         }
-
-        Assert.True(checkedCount > 0, "未能从 layout.md §1 解析出任何路径——树结构或小节标题变了？");
-        Assert.True(
-            offenders.Count == 0,
-            "§1 树是物理路径正典：树中路径必须在磁盘存在（文约 §1：失真优先于重复）：" + Environment.NewLine
-                + string.Join(Environment.NewLine, offenders));
     }
 
     /// <summary>读文约「机检口径」小节围栏块里的 ERE 模式（<c>#</c> 行为注释）。</summary>
@@ -293,6 +436,30 @@ public sealed class DocInvariantTests
         Assert.True(entries.Count > 0, $"文约「{section}」围栏块为空");
         return entries.ToArray();
     }
+
+    /// <summary>读文约指定小节里的 `<规则名> @ <值>` 规则值（恰好一条，否则断言失败）。</summary>
+    private static string ReadRule(string section, string name)
+    {
+        string[] values = ReadConventionsBlock(section)
+            .Where(entry => entry.Contains(" @ ", StringComparison.Ordinal))
+            .Where(entry => entry[..entry.IndexOf(" @ ", StringComparison.Ordinal)].Trim() == name)
+            .Select(entry => entry[(entry.IndexOf(" @ ", StringComparison.Ordinal) + 3)..].Trim())
+            .ToArray();
+        Assert.True(values.Length == 1, $"文约「{section}」须恰好一条规则「{name}」（格式：`<规则名> @ <值>`）");
+        return values[0];
+    }
+
+    /// <summary>读文约指定小节的 token 清单（`<token>  # <理由>`，取 `#` 之前的部分）。</summary>
+    private static HashSet<string> ReadConventionsTokens(string section) =>
+        ReadConventionsBlock(section)
+            .Select(entry => entry.Split('#')[0].Trim())
+            .Where(token => token.Length > 0)
+            .ToHashSet(StringComparer.Ordinal);
+
+    /// <summary>构建产物与 IDE 工作区目录：不参与「源码根一级子目录」判定。</summary>
+    private static bool IsArtifactDirectory(string name) =>
+        name.StartsWith(".", StringComparison.Ordinal)
+        || ExcludedDirs.Contains(name, StringComparer.OrdinalIgnoreCase);
 
     [Fact]
     public void 文档声称的常量归属与源码一致()

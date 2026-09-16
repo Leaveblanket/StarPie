@@ -4,7 +4,7 @@
 > 那颗任务的即时触发形态见 [ADR-0043](0043-elevated-instance-takeover.md)）
 >
 > 本文**取代** [ADR-0040](0040-startup-privilege-policy.md) **决策 2**（"不提供始终以管理员身份启动的偏好持久化"），
-> 其余决策（1 的 asInvoker、3 的备选触发条件、4 的静默自启承诺、5 的边界行为归位、6 的已落地三项）不变。
+> 其余决策（1 的 asInvoker、3 的备选触发条件、4 的静默自启承诺、5 的边界行为归位、6 的既定影响）不变。
 > 契约正典：`docs/architecture/shell.md`（自启面）、`docs/architecture/config.md`（新字段）；
 > 术语见 `CONTEXT.md`（提权 / 提权自启）。
 
