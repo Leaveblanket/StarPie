@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <!-- 最小 UI 示例（plugins/samples/README.md）：同时引 headless 入口契约与 UI 入口契约。
-         含 XAML 视图与资源字典（编译期 BAML，pack URI 随程序集装载）。 -->
+         含 XAML 视图与资源字典（编译期 BAML，pack URI 随程序集装载）。
+         警告即错误按示例豁免关闭（供第三方插件作者照抄，不加构建摩擦）。 -->
     <UseWPF>true</UseWPF>
     <AssemblyName>StarPie.Plugin.MinimalUi</AssemblyName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

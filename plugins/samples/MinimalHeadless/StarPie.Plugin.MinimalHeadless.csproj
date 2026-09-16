@@ -2,10 +2,12 @@
 
   <PropertyGroup>
     <!-- 最小 headless 示例（plugins/samples/README.md）：TFM 收窄 net10.0 与既有 headless
-         插件形态一致（零 WPF）；其余继承仓库根 Directory.Build.props。
+         插件形态一致（零 WPF）；警告即错误按示例豁免关闭（供第三方插件作者照抄，不加构建摩擦）；
+         其余继承仓库根 Directory.Build.props。
          部署目录名必须等于清单 id：sample.minimal.headless（plugins.md §3）。 -->
     <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>StarPie.Plugin.MinimalHeadless</AssemblyName>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
