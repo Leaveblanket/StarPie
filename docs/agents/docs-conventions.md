@@ -11,7 +11,7 @@
 - **正例**：`layout.md` §1 树与磁盘一致，且由 `DocInvariantTests` 机械守护路径存在性。
 - **反例**：`layout.md` 曾自称「当前代码与正典一致」，而树缺 `StarPie.Host/HostServices/` 等实际目录。
 
-凡可机械核验的失真一律落断言：路径存在性、类型名存在性、常量归属、ADR 头部状态。不可机械核验的（"这段是否重抄了别人的正典"）留给评审。
+凡可机械核验的失真一律落断言：路径存在性（含**反向**：源码根的一级目录必须在 `layout.md` §1 树登记）、类型名存在性、常量归属、ADR 头部状态。不可机械核验的（"这段是否重抄了别人的正典"）留给评审。
 
 ## 2. 零流水
 
@@ -78,7 +78,7 @@ ADR 不适用执行者口径：它是"要不要推翻这个决策"的记录，�
 
 1. 规范变更只改**对应叶子**；新增主题先建叶子，并在入口 §2 路由表登记一行。
 2. 新增决策满足三条件（难逆转 / 无上下文会惊讶 / 真实权衡）时，先新增 ADR 再把结论回填对应叶子；否则只改叶子。
-3. 叶子增删与文件路径变化时同步入口（§1 体系表、§2 路由表）；仓库目录树正典在 `layout.md` §1，入口只留指针。
+3. 叶子增删与文件路径变化时同步入口（§1 体系表、§2 路由表）；仓库目录树正典在 `layout.md` §1，入口只留指针。**源码根新增一级目录（四集与 `plugins/`）必须同步 `layout.md` §1 树**——反向登记锁会拦下未登记的新目录（构建产物与 IDE 工作区目录不在判定面）。
 4. ADR 头部必带状态（`Active` / `Superseded by NNN` / `Active（部分被 NNN 修订）`）与修订指针——状态只写头部，其它文档不复制。
 5. `CONTEXT.md` 只收领域术语；架构词（宿主 / 模块 / 程序集 / M1–M5 等）正典在 `modules.md` 与 `assemblies.md`。
 6. 新增用户可见文案补齐四语言键值（zh-CN / zh-TW / en / ja），见 `localization.md`。
@@ -102,12 +102,66 @@ ADR 不适用执行者口径：它是"要不要推翻这个决策"的记录，�
 
 机检是**代理指标**：它抓得住完成态断言与已知的换皮写法，抓不住语义级的历史叙事与人称化的过程描述——那一半靠评审，判据是本文第 2 条。
 
-## 豁免清单
+## ADR 机检口径
 
-> 一行一条：`<token>  # <理由>`。当前为空——as-built 类型名锁尚未启用（见下节）。
+> 由 `StarPie.Tests/DocInvariantTests.cs` 直接读取（断言 `ADR不残留日期快照与等号式状态标记`）。
+>
+> 只收**在任何体裁下都失真**的形态，是「机检口径」词表的**子集**（叶子是最严体裁，凡在 ADR 里失真的必然也在叶子里失真）。叶子的完成态/换皮流水词表**不适用** ADR：ADR 的动机与代价本就相对决策前状态叙述（§7 四要素），而「历史 ADR-NNNN 已删除」这类死链标记还是 `ADR引用无死链` 断言的逃生阀——扫它只会把正当的决策记录判红。
 
 ```text
-# 一行一条：<token>  # <理由>
+# 等号式状态标记（ERE）
+目标态\s*=|规划\s*=
+```
+
+## 类型名机检口径
+
+> 由 `StarPie.Tests/DocInvariantTests.cs` 直接读取（断言 `文档反引号类型名在源码命中`）。
+>
+> 判据：`docs/**/*.md` 正文里**整段**是 PascalCase 标识符的内联代码，必须作为独立词出现在源码（`*.cs`/`*.xaml`/`*.csproj`/`*.json`，跳过构建与 IDE 产物目录）。无小写字母的名字不参与——那排除了 `UI`/`WPF` 这类缩写与 `M1`–`M5`/`S1`–`S6`/`H1` 模块代号；`ADR-0023` 这类编号与含路径/括号的代码段也不参与。
+>
+> 机检是**代理指标**：它抓得住「文档把类型名写成了不存在的东西」，抓不住「名字存在但描述失真」——那一半靠评审。
+
+```text
+# 一行一条：<规则名> @ <值>
+跳过行标记 @ 规划：
+占位片段 @ Xxx
+```
+
+- **跳过行标记**：该行按 §6 是目标态（`规划：` 是叶子专用行内标记），名字尚未落地属正当，不参与机检。
+- **占位片段**：标识符含该片段即为文档约定的伪代码占位（命名规则表、流程示意），不是类型名。
+
+## 豁免清单
+
+> 一行一条：`<token>  # <理由>`；白名单只住这里（§10），测试代码不硬编码。两类可进：
+> 外部框架/平台 API 名（本仓不定义，源码里当然没有）；ADR 决策叙述中被删除或从未存在的类型名（ADR 是决策记录，§7）。
+> **第二类只在 ADR 正文成立**——同一名字出现在叶子正文里仍算失真（机检放过，评审拦下，判据见 §1 末句）。
+
+```text
+# 外部框架 / 平台 API（非本仓类型）
+Closing  # WPF Window.Closing 事件
+CommandManager  # WPF 命令路由静态类
+ContextMenu  # WPF 控件类
+CreateDesktop  # Win32 API（隐藏桌面）
+DwmFlush  # Win32 dwmapi 调用
+EnterContextualReflection  # AssemblyLoadContext API
+ICommandSource  # WPF 接口
+InternalsVisibleTo  # .NET 程序集特性
+PostMessage  # Win32 API
+PrintWindow  # Win32 API
+RedrawWindow  # Win32 API
+RoutedEvent  # WPF 路由事件基类
+RuntimeType  # .NET 运行时类型
+SetFocus  # Win32 API
+SetProcessWorkingSetSize  # Win32 API
+Toggle  # UIA 控件模式名
+TypeDescriptor  # .NET 组件模型
+XamlReader  # WPF XAML 解析器
+XamlSchemaContext  # System.Xaml 类型
+# ADR 决策叙述中的历史名 / 反事实名
+ConfigureServices  # ADR-0011 取代的组合根方法名（决策记录的对象）
+DevEnvVariable  # ADR-0037 决策删除的环境变量常量名（决策记录的对象）
+IWheelWarmup  # ADR-0045 明确「不另立」的候选契约名，从未存在
+SettingsWindow  # ADR-0003 决策前的设置窗口名（决策记录的对象）
 ```
 
 ## 归属断言
@@ -122,7 +176,4 @@ AutoSaveDelay @ StarPie.Host/Configuration/SettingsSaveOrchestrator.cs
 
 以下口径已定，但落锁需要先完成对应清理，属后续批次：
 
-- 叶子「有 `规划：` 就必须有『目标态与差距』节」的结构要求——待插件簇集中成节后落锁；
-- ADR 正文纳入完成态/流水与日期快照检查（现仅扫叶子）；
-- as-built 段反引号类型名必须在源码命中，并填充「豁免清单」；
-- 反向登记锁：源码根的一级目录必须登记在 `layout.md` §1 树。
+- 叶子「有 `规划：` 就必须有『目标态与差距』节」的结构要求——待插件簇集中成节后落锁。

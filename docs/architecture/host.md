@@ -195,7 +195,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    退出编排不依赖设置台是否存在（无控制台时同样走完）。
    `App.OnExit`：`Config.Save()` 兜底 → `ShellHost.Dispose()`（退订语言服务、释放让位接收端、释放设置台
    租户、托盘 dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体与命名标记。
-7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。
+7. 设置台关闭（`MinimizedToTrayMessage` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。
    托盘状态信号的输入是**设置台开/关**（不是窗口可见性：新建窗口首次 `Show()` 同样产生可见性变化，
    按可见性判读会把「首次打开」误判成「从托盘恢复」），经 `TrayStateSignal` 有序决策执行——
    进托盘与恢复两条序列见 [shell.md](shell.md) 关键流程 2（壳层是这两条序列的正典）。

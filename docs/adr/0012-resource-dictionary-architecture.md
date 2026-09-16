@@ -10,7 +10,7 @@
 
 ## Considered Options
 
-- **最小收敛**（只删两文件重复、保留对话框本地样式拷贝）：被否——键控样式拷贝（IconPicker 复制、ProgramPicker 改名复制）与转换器双名（`BoolToVis`/`BoolToVisibility`）会继续漂移；共享层既然存在就没有理由不让对话框使用。
+- **最小收敛**（只删两文件重复、保留对话框本地样式拷贝）：被否——键控样式拷贝（IconPicker 复制、ProgramPicker 改名复制）与转换器双键（同一 `BooleanToVisibilityConverter` 挂两个资源键）会继续漂移；共享层既然存在就没有理由不让对话框使用。
 - **主题画刷 XAML 静态默认 + 服务运行时写入（C# 双源）**：被否——light 色板仍有两份（XAML/C#），漂移面依旧；选 XAML 化单一来源。
 - **完全删除静态默认、仅运行时注入**：被否——VS 设计器将无任何颜色；保留静态合并 Light 作设计时/首帧默认。
 - **主题服务自行加载主题 XAML**：被否——违反 layering.md「Services → Views ✗」依赖矩阵；换入职责归宿主层（宿主可引用 Views）。
@@ -20,7 +20,7 @@
 ## Decision
 
 1. **主题令牌**：`StarPie.Ui/Themes/{Light,Dark,MidnightNavy,RoyalViolet,TitaniumGray}.xaml`，每文件同一 key 集；`App.xaml` 静态合并 Light 作设计时/首帧默认。
-2. **主题服务瘦身**：只保留有效主题解析、当前主题状态与 DWM 标题栏应用；删除 C# 五套 hex 与写刷子逻辑（色板数据移入 XAML 令牌）。当前接口形态（`SetTheme`/`ThemeChanged` 单一入口）见 ADR-0013 与 `interface-theme.md`。
+2. **主题服务瘦身**：只保留有效主题解析、当前主题状态与 DWM 标题栏应用；删除 C# 五套 hex 与写刷子逻辑（色板数据移入 XAML 令牌）。当前接口形态（`SetTheme` 单一入口 + `CurrentEffectiveTheme` 读数）见 ADR-0013 与 `interface-theme.md`。
 3. **控件样式单点合并**：`StarPie.Ui/Views/Styles/ModernControls.xaml` 承载全部隐式/键控样式与共享模板，仅由 `App.xaml` 合并；主视图/侧栏/页面/对话框不再各自合并。
 4. **默认即现代 + 变体键控**：现代控件外观作隐式默认（含 Button）；变体（PrimaryButton/FlatComboBox/ToggleSwitch/NavTab…）键控显式取用；透明/无边框特例显式 `Style={x:Null}`。转换器统一实例。
 5. **排版与几何令牌**：排版属性归一层；`CornerRadius` 等魔法数令牌化。

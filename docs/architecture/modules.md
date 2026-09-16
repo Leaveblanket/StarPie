@@ -205,8 +205,8 @@
 | R3 | `MemoryOptimizer` | M5 壳层 | `StarPie.Host/ShellIntegration/` |
 | R4 | `MainView.xaml` / `MainView.xaml.cs` | H1 宿主壳（ADR-0016） | `Views/Navigation/` |
 | R5 | `GesturePoint` | 共享值类型（SDK） | `StarPie.Sdk/Models/` |
-| R6 | `IconHelper` | 三分：S1 / M2 / M3 | 见下 |
-| R7 | `ProgramPicker`/`IconPicker` | S6 对话框（通用选择器） | `StarPie.Ui/ViewModels/Dialogs`、`Views/Dialogs/` |
+| R6 | 图标职责三分 | S1 / M2 / M3 | 见下 |
+| R7 | 通用选择器对话框（`ProgramPickerViewModel`、`IconPickerViewModel`） | S6 对话框 | `StarPie.Ui/ViewModels/Dialogs`、`Views/Dialogs/`（配对 Window 见 [layout.md](layout.md) §3.3） |
 | R8 | `Models` 语义归属与物理落位 | M1 / M2 | 见下 |
 | R9 | 导航运行时主体 | H1 宿主壳 | `StarPie.Ui/Services/Navigation/`、`ViewModels/Navigation/` |
 
