@@ -105,7 +105,12 @@ namespace StarPie.PluginRuntime.Admission
         {
             try
             {
+                // 定点豁免 SYSLIB0057：X509CertificateLoader 只读 X.509/PKCS12/PKCS7 内容，
+                // 读不了 Authenticode 签名的 PE（LoadCertificateFromFile 对签名 PE 抛
+                // CryptographicException），此调用是提取签名文件内嵌证书的唯一路径。
+#pragma warning disable SYSLIB0057
                 using X509Certificate2 certificate = new(X509Certificate.CreateFromSignedFile(filePath));
+#pragma warning restore SYSLIB0057
                 return (certificate.Subject, certificate.GetCertHashString(HashAlgorithmName.SHA256));
             }
             catch (Exception exception) when (

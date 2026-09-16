@@ -307,10 +307,14 @@ namespace StarPie.PluginRuntime.Loading
         }
 
         /// <summary>隔离态装载结果：无插件对象与作用域流出（入口对象只在活动态结果携带）。</summary>
+        /// <remarks>
+        /// <paramref name="loadContext"/> 可空：装载在创建 ALC 之前就失败（重校验或入口路径解析抛异常）时
+        /// 没有可回收的现场，null 表示无 ALC 需回收，与拒绝路径同形。
+        /// </remarks>
         private static PluginLoadResult Quarantined(
             string pluginId,
             string reason,
-            PluginLoadContext loadContext,
+            PluginLoadContext? loadContext,
             PluginLifecycleStateMachine lifecycle,
             bool hasUi)
             => new(pluginId, PluginLoadStatus.Quarantined, reason, null, loadContext, lifecycle, null)
