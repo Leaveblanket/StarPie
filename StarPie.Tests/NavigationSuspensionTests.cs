@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 导航视图出账与恢复重放测试（#152）：出账置空当前页并记录槽位；恢复重放按最后
+/// 导航视图出账与恢复重放测试：出账置空当前页并记录槽位；恢复重放按最后
 /// 槽位命中目录回填当前页（选中态随 Store 变更由导航区回灌）；lastSlot 为空不重放；
 /// 重复出账 no-op；插件页 VM（工厂新建型）随出账真实回收（WeakReference 判定）。
 /// </summary>

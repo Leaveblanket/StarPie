@@ -9,10 +9,10 @@ using StarPie.ViewModels.Navigation;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 页面 VM 作用域的 as-built 清点（#157/#158，ADR-0039 决策 2/4）：哪个页面随设置台会话销毁、
+/// 页面 VM 作用域的 as-built 清点（ADR-0039 决策 2/4）：哪个页面随设置台会话销毁、
 /// 哪个页面暂留常驻，由贡献者的注册生命周期表达——本类直接读内置贡献者写入的服务描述符，
 /// 不靠人工核对。会话行为（保留实例/整批释放/只读别名）由 <see cref="ConsolePageSessionTests"/> 锁。
-/// 高级页在壳层接管托盘气泡与提权重启后随会话（#158）：唯一的常驻页面是插件管理页。
+/// 高级页在壳层接管托盘气泡与提权重启后随会话：唯一的常驻页面是插件管理页。
 /// </summary>
 public sealed class PageViewModelScopeTests
 {

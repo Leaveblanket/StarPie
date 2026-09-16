@@ -7,9 +7,9 @@ using System.Text.RegularExpressions;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 架构文档体系的不变量（#195）：把 <c>docs/architecture.md</c> §6 的维护义务变成机械断言。
-/// 覆盖四条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
-/// 叶子不残留完成态流水与日期快照。
+/// 架构文档体系的不变量：把 <c>docs/architecture.md</c> §6 的维护义务变成机械断言。
+/// 覆盖五条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
+/// 叶子不残留完成态流水与日期快照、源码注释不含变更史编号（见 comments.md 禁止清单）。
 /// </summary>
 /// <remarks>
 /// 断言失败时先修文档，不要放宽断言：这四条正是过去靠人记而反复失守的部分
@@ -43,6 +43,44 @@ public sealed class DocInvariantTests
 
     private static readonly Regex DateSnapshot =
         new(@"\b20\d{2}-\d{2}-\d{2}\b", RegexOptions.Compiled);
+
+    /// <summary>源码注释里的变更史编号：issue 号与批次/阶段编号。ADR 决策引用与模块代号
+    /// （`M1`–`M5`/`S1`–`S6`/`H1`）按 comments.md 不属变更史，不在匹配内。</summary>
+    private static readonly Regex ChangeHistoryNumber =
+        new(@"(?<![0-9A-Fa-fx#])#\d{1,4}(?![0-9A-Fa-f])|\b[TPB]\d+(?:\.\d+)?\b", RegexOptions.Compiled);
+
+    [Fact]
+    public void 源码注释不含变更史编号()
+    {
+        var offenders = new List<string>();
+        foreach (string file in EnumerateFiles(RepoRoot, "*.cs").Concat(EnumerateFiles(RepoRoot, "*.xaml")))
+        {
+            int lineNumber = 0;
+            foreach (string line in File.ReadLines(file))
+            {
+                lineNumber++;
+                string trimmed = line.TrimStart();
+                bool isComment = trimmed.StartsWith("///", StringComparison.Ordinal)
+                    || trimmed.StartsWith("//", StringComparison.Ordinal)
+                    || trimmed.StartsWith("<!--", StringComparison.Ordinal);
+                if (!isComment || line.Contains("TODO(#", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                foreach (Match match in ChangeHistoryNumber.Matches(line))
+                {
+                    offenders.Add($"{Path.GetRelativePath(RepoRoot, file)}:{lineNumber} 「{match.Value}」");
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "源码注释不承载变更史：issue 号与批次/阶段编号一律不写（ADR 决策引用与模块代号可以写）；"
+                + "指向未来动作的短待办用 TODO 形式。" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
 
     [Fact]
     public void 路由表与磁盘叶子一一对应_且每个叶子恰好登记一次()

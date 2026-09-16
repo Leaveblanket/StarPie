@@ -15,7 +15,7 @@ namespace StarPie.Tests;
 /// </summary>
 public sealed class SdkBoundaryTests
 {
-    /// <summary>P1.3/#112 迁入 StarPie.Sdk 的全部导出类型（SDK 导出面 = 恰为该清单）。</summary>
+    /// <summary>迁入 StarPie.Sdk 的全部导出类型（SDK 导出面 = 恰为该清单）。</summary>
     private static readonly Type[] MigratedTypes =
     {
         // Models/

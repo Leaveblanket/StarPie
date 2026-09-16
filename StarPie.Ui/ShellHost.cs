@@ -221,7 +221,7 @@ namespace StarPie
 
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
             // 首次手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
-            // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发（#150）。
+            // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发。
             WarmUpWheelCorePath();
             RunStartupMemoryHousekeeping();
 

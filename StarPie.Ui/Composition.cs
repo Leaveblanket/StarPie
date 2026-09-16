@@ -27,7 +27,7 @@ namespace StarPie
     ///（含会话作用域内的页面 VM 与设置子 VM）由组合根交付的工厂在每次开窗时解析——
     /// 页面 VM 不再启动期 eager 解析。</item>
     /// </list>
-    /// 插件贡献者在装载期适配成同一 <see cref="ICompositionContributor"/> 接口追加进同一管线（P2/P3）。
+    /// 插件贡献者在装载期适配成同一 <see cref="ICompositionContributor"/> 接口追加进同一管线。
     /// 运行与退出编排在 <see cref="ShellHost"/>，本类不持有托盘/主窗口/语言字典等宿主状态；
     /// 装配顺序（钩子先启 → 配置加载 → 建窗）由 ShellHost.Run 保持，配置加载由
     /// App.OnStartup 在本组合根创建后驱动。

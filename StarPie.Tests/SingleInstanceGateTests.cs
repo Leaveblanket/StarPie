@@ -3,7 +3,7 @@ using StarPie.ShellIntegration;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 单实例闸门处置决策的真值表（#169）：输入是新实例与既有实例的权限态，输出是闸门的处置方式。
+/// 单实例闸门处置决策的真值表：输入是新实例与既有实例的权限态，输出是闸门的处置方式。
 /// 判定严格单向——只有"新实例提权 + 既有实例非提权"请求让位；其余三格一律置前并退出。
 /// </summary>
 public sealed class SingleInstanceGateTests

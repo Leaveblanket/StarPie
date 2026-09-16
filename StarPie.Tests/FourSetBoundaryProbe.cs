@@ -9,7 +9,7 @@ using System.Xml.Linq;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 应用程序集边界断言（#111 四集 / #112 SDK 收口）的共享探针：仓库根定位、csproj 读取与
+/// 应用程序集边界断言（四集与 SDK 收口）的共享探针：仓库根定位、csproj 读取与
 /// 程序集元数据读取。服务 <see cref="FourSetBoundaryTests"/>、
 /// <see cref="RuntimeNoCrossReferenceTests"/> 与 <see cref="SdkBoundaryTests"/>；
 /// 断言本体留在各测试文件中。
@@ -23,8 +23,8 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 已撤销的旧集程序集名（P1 归并前的 15 集减去四集自身）：它们不得再出现在产物、
-    /// 解决方案或任何工程的引用面里。P1.11/#120 删除设计期投影壳后旧集归零，
+    /// 已撤销的旧集程序集名（归并前的 15 集减去四集自身）：它们不得再出现在产物、
+    /// 解决方案或任何工程的引用面里。删除设计期投影壳后旧集归零，
     /// 本清单在此只作“不得复活”的机械拦截面（XAML/入口同理：不存在即无从携带）。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =

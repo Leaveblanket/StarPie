@@ -5,7 +5,7 @@ using StarPie.ViewModels.Navigation;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 托盘退出的固定顺序（#158，ADR-0039 决策 7/8；INV7）：落盘 → 释壳 → 应用关闭，
+/// 托盘退出的固定顺序（ADR-0039 决策 7/8）：落盘 → 释壳 → 应用关闭，
 /// 且不依赖设置台是否存在（序列无输入参数即"无控制台也要走完"）。
 /// 另锁"退出态归壳层"：退出态不再寄居在设置台会话级的 <see cref="ShellViewModel"/> 上。
 /// </summary>

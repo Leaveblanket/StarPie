@@ -56,7 +56,7 @@ namespace StarPie.Plugin.Programs
         }
 
         /// <summary>释放深扫缓存（幂等）：下次 ScanInstalledPrograms 重新扫描。
-        /// 托盘自治出账示范（#154）：订阅宿主进托盘信号，随宿主分层常驻策略一并出账。</summary>
+        /// 托盘自治出账示范：订阅宿主进托盘信号，随宿主分层常驻策略一并出账。</summary>
         internal void InvalidateCache()
         {
             _cachedEntries = null;

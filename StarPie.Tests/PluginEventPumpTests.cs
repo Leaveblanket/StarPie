@@ -13,7 +13,7 @@ using StarPie.Services.Messages;
 namespace StarPie.Tests;
 
 /// <summary>
-/// headless 插件宿主消息泵测试（#151）：装载即登记（弱引用），宿主 Send 托盘状态消息
+/// headless 插件宿主消息泵测试：装载即登记（弱引用），宿主 Send 托盘状态消息
 /// 经泵同步广播到活动作用域（订阅方在 Send 调用线程执行）；作用域释放后不再投递；
 /// 单插件投递异常被兜底，不沿 Send 传播。
 /// </summary>

@@ -3,7 +3,7 @@ using StarPie.Models;
 namespace StarPie.ViewModels.Pages
 {
     /// <summary>
-    /// 只读「预览 Profile 来源」契约（随实现方 M1 下沉，ADR-0023/#97 Q4 裁决；#112 收口入
+    /// 只读「预览 Profile 来源」契约（随实现方 M1 下沉，ADR-0023；收口入
     /// <c>StarPie.Sdk</c>）：配置方案设置面（手势与动作模块的实现方）对外提供轮盘预览
     /// 所用的 Profile，供轮盘外观设置的预览渲染消费。
     /// </summary>

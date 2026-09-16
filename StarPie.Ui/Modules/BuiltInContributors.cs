@@ -7,8 +7,8 @@ namespace StarPie.Modules
     /// </summary>
     /// <remarks>
     /// 新增内置装配单元 = 在此登记一行（Id/Order/注册体），组合根不做任何逐模块硬编码；
-    /// 插件贡献者在装载期按同一 <see cref="ICompositionContributor"/> 接口追加进同一管线
-    /// （P2/P3）。清单顺序由 <see cref="ICompositionContributor.Order"/> 升序决定，
+    /// 插件贡献者在装载期按同一 <see cref="ICompositionContributor"/> 接口追加进同一管线。
+    /// 清单顺序由 <see cref="ICompositionContributor.Order"/> 升序决定，
     /// <see cref="ICompositionContributor.Id"/> 在清单内唯一。
     /// </remarks>
     public static class BuiltInContributors

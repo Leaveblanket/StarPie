@@ -12,7 +12,7 @@ namespace StarPie.Plugin.Programs
     /// 入口同时是能力实现：<see cref="StartAsync"/> 里经 <see cref="IPluginContext.RegisterCapability{T}"/>
     /// 把自身登记为 <see cref="IProgramScanner"/>；停用即整插件卸载，宿主侧能力条目随作用域释放摘除。
     /// 插件只引 <c>StarPie.Sdk</c>，不引宿主实现，也不随包分发 SDK。
-    /// 内存自治示范（#154）：订阅宿主托盘信号（<see cref="MinimizedToTrayMessage"/>，进托盘方向），
+    /// 内存自治示范：订阅宿主托盘信号（<see cref="MinimizedToTrayMessage"/>，进托盘方向），
     /// 随宿主分层常驻策略释放自身深扫缓存——插件自治出账，宿主不感知插件内部缓存。
     /// </remarks>
     [SupportedOSPlatform("windows")]

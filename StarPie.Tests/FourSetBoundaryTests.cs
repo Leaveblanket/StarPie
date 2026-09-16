@@ -6,11 +6,11 @@ using System.Xml.Linq;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 四集边界基线·工程面（#111；ADR-0027 / plugins.md §2）：
+/// 四集边界基线·工程面（ADR-0027 / plugins.md §2）：
 /// StarPie.Sdk（net10.0，零 WPF 零第三方包）、StarPie.Sdk.Wpf（WPF 类型契约面）、
 /// StarPie.Host（net10.0，零 WPF）、StarPie.Ui（WinExe，程序集名保持 StarPie，
 /// 发布产物 StarPie.exe）。本文件与 <see cref="RuntimeNoCrossReferenceTests"/> 是
-/// P1.3–P1.10 归并搬迁的机械化护栏：故意引入违规（Host 引 WPF / Sdk 引第三方包 /
+/// 归并搬迁的机械化护栏：故意引入违规（Host 引 WPF / Sdk 引第三方包 /
 /// 反向引用 / 发布路径漂移）会被直接测出。
 /// </summary>
 public sealed class FourSetBoundaryTests

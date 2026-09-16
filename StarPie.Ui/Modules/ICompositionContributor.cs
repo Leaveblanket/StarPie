@@ -12,7 +12,7 @@ namespace StarPie.Modules
     /// 解析一律由组合根在容器构建后按目录 eager 驱动（注册顺序 ≠ 解析时机）。
     /// <see cref="Id"/> 是稳定身份（清单内唯一，用于诊断与排序核对），<see cref="Order"/>
     /// 是注册顺序权重（升序执行，仅决定注册序列）；插件装载把插件贡献适配成同一接口后
-    /// 追加进同一管线（P2/P3）。
+    /// 追加进同一管线。
     /// </remarks>
     public interface ICompositionContributor
     {
