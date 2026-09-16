@@ -614,7 +614,7 @@ namespace StarPie.PluginRuntime.Unloading
                 residuals.Add(new PluginResidual
                 {
                     Kind = PluginResidualKind.Assembly,
-                    Detail = $"上下文内程序集 {assemblyName}（{assembly.Location}）",
+                    Detail = $"上下文内程序集 {assemblyName}（{DescribeAssemblyLocation(assembly)}）",
                 });
 
                 // 同一程序集若同时进了默认 ALC，插件 ALC 永远回收不掉——这是可定位的硬证据。
@@ -625,7 +625,7 @@ namespace StarPie.PluginRuntime.Unloading
                     residuals.Add(new PluginResidual
                     {
                         Kind = PluginResidualKind.Assembly,
-                        Detail = $"程序集 {assemblyName} 同时被默认 ALC 加载（位置 {assembly.Location}）",
+                        Detail = $"程序集 {assemblyName} 同时被默认 ALC 加载（位置 {DescribeAssemblyLocation(assembly)}）",
                     });
                 }
 
@@ -664,6 +664,20 @@ namespace StarPie.PluginRuntime.Unloading
                 { } target => target.GetType().FullName ?? target.GetType().Name,
                 null => "已不可达",
             };
+
+        /// <summary>程序集在磁盘上的位置，供残留清单定位"哪个文件还挂着"。</summary>
+        /// <remarks>
+        /// 定点豁免 IL3000：该分析器假定单文件发布，认为 <see cref="Assembly.Location"/> 恒为空串。
+        /// 本方法的入参全部来自 <see cref="PluginLoadContext"/>，其程序集只经
+        /// <see cref="AssemblyLoadContext.LoadFromAssemblyPath"/> 从插件包目录装载，位置必然存在，
+        /// 而分析器建议的 <see cref="AppContext.BaseDirectory"/> 指向宿主目录，在此是错的。
+        /// </remarks>
+        private static string DescribeAssemblyLocation(Assembly assembly)
+        {
+#pragma warning disable IL3000
+            return assembly.Location;
+#pragma warning restore IL3000
+        }
 
         private static string Describe(string what, WeakReference probe)
             => probe.IsAlive ? $"{what}：仍存活（泄漏）" : $"{what}：已回收";
