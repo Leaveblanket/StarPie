@@ -35,8 +35,8 @@ M1 贡献者 `GesturesContributor` 与页面模板字典 `GesturesPageTemplates.
 
 ## 配置方案设置面的对外只读契约
 
-`StarPie.Sdk/ViewModels/Pages/IProfilePreviewSource.cs`（契约原随实现方 M1 独立
-成集——生产方语义 + 避免 Wheel ↔ Gestures runtime 程序集环（D5/ADR-0016 决策 11）；
+`StarPie.Sdk/ViewModels/Pages/IProfilePreviewSource.cs`（契约随实现方 M1 下沉
+（生产方语义 + 避免 Wheel ↔ Gestures runtime 程序集环，D5/ADR-0016）；
 ADR-0023；命名空间 `StarPie.ViewModels.Pages` 不变）：M1 对外只读「预览 Profile 来源」
 契约——实现方为 M1 侧配置方案设置面 VM `ProfileListViewModel`
 （选中/首项回落语义，见 [modules.md](modules.md) §3 M1），被 M2 轮盘外观设置面消费
@@ -110,5 +110,4 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
 
 [0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（模块契约硬边界）、
 [0042](../adr/0042-privilege-routes-two-only.md)（动作落地不做子进程权限适配）、
-[0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（配套修正：`MouseHook`
-去 WPF `Application.Current` 引用、壳层预热改走 `IWheelFactory.Warmup()`，随轮盘内容同源收敛落地）。
+[0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（轮盘预览与运行时内容同源）。

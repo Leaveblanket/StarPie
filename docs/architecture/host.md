@@ -87,14 +87,16 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    - `HostCoreContributor` 基础设施：`JsonConfigService`（具体类，配置路径经内核 `AppDataPaths.GetAppDataFolder()` 构造）+
      `IConfigService` 别名、`IMessenger` = `WeakReferenceMessenger.Default`、
      `NavigationStore` + `INavigationExecutor`→`NavigationExecutor`（导航运行时主体归 Host，
-     目录执行缝为 Host 内部件）以及 `MainViewModel`/`ShellViewModel`。M4 的 `ThemeService`（具体类）+
+     目录执行缝为 Host 内部件）。导航区/壳区 VM（`MainViewModel`/`ShellViewModel`）**不进容器**，
+     由设置台会话工厂构造（见阶段 3）。M4 的 `ThemeService`（具体类）+
      `IThemeService` 别名注册由 `ThemeContributor.RegisterServices` 登记（StarPie.Ui；
      `IThemeService` 契约驻 StarPie.Sdk.Wpf，ADR-0023）；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
      `WheelContributor.RegisterServices` 登记（驻 StarPie.Ui，D5；契约驻 `StarPie.Sdk`，ADR-0023，
      M1 手势侧只经契约接口消费）。
    - 程序扫描由 `HostCoreContributor` 登记——`IShortcutTargetResolver→ShortcutResolver` 与
-     `IProgramScanner→ProgramScanner`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
+     `IProgramScanner→ProgramSourceAggregator`（聚合各程序来源；契约驻
+     `StarPie.Sdk/Services/Programs|Icons/`，
      实现驻宿主内核 `StarPie.Host/Programs/`，ADR-0023；组合根无静态扫描委托行）。
    - 插件运行时首层由 `HostCoreContributor` 登记——`PluginStateStore`（宿主状态）、
      `PluginAdmissionPolicy`（准入判定，审核清单先接入空实现）、`PluginDeveloperModeService`
@@ -107,8 +109,9 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    - 图标资产由 `HostCoreContributor` 登记——内核 `CustomIconStore`（`StarPie.Host/Icons/`，目录默认
      `AppDataPaths.GetAppDataFolder`）与 Ui 侧 `IIconAssetService→IconAssetService`
      （`StarPie.Ui/Services/Icons/`，实现 Sdk.Wpf 契约并惰性解析 `IShortcutTargetResolver`）。
-    - `NavigationCatalog` 由 `HostPageContributor`（槽位 1）、`GesturesContributor`（槽位 0/2）
-     与 `ShellContributor`（槽位 3）各自 `RegisterNavigation` 写入，组合根在清单遍历后
+    - `NavigationCatalog` 由 `GesturesContributor`（槽位 0/2）、`HostPageContributor`（槽位 1）、
+     `ShellContributor`（槽位 3）与 `HostCoreContributor`（槽位 4）各自 `RegisterNavigation` 写入，
+     组合根在清单遍历后
      `Validate()` 并单例注册——导航装配/解析清单不硬编码页面类型（运行时
      类型与执行缝的注册见上段基础设施）。
    - 服务：`DialogService`（构造注入图标资产服务、.lnk 解析契约与程序扫描契约——
@@ -121,22 +124,23 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `MouseHook`/`IActionExecutorService`/`IWindowContext`/`GestureEngine`/`GestureController`
      的注册由 `GesturesContributor.RegisterServices` 登记 Ui 集 M1；`IWheelFactory`
      的注册见 WheelContributor 注。）
-   - 页面 VM 工厂注册（单例）：M4 主题服务与界面主题设置子 VM 由
+   - 页面 VM 与常驻子 VM 工厂注册（页面 VM 为 **scoped**，作用域 = 设置台会话；常驻子 VM 为单例）：
+     M4 主题服务与界面主题设置子 VM 由
      `ThemeContributor.RegisterServices` 登记 `StarPie.Ui`（模块无导航页，只登记 DI
      注册）；M5 页面（`GeneralSettingsViewModel`）由
-     `ShellContributor.RegisterServices` 登记（ADR-0016 决策 8，见
+     `ShellContributor.RegisterServices` 登记（ADR-0016，见
      [assemblies.md](assemblies.md) §6）；M1 两页（`BehaviorSettingsViewModel`/
      `ProfileListViewModel`）由 `GesturesContributor.RegisterServices` 登记
      Ui 集 M1；`AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeContributor 登记）与
      `WheelAppearanceSettingsViewModel`（由 WheelContributor 登记），
-     均另行注册单例）、`MainViewModel`（目录驱动：导航项/选中态全部来自目录注册；运行时主体
-     在 Host `ViewModels/Navigation/`，命名空间不变；页面 VM 的 DI 注册已全部
-     下放所属贡献者，导航 VM 与外观聚合页 VM 分别由 HostCore/HostPage 贡献者登记；
+     均另行注册单例）；页面 VM 的 DI 注册已全部下放所属贡献者；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
      GesturesContributor 登记（契约驻 `StarPie.Sdk`，ADR-0023，
-     供轮盘外观设置子 VM 经契约边消费））、`ShellViewModel`（D3：Host 壳窗口壳层 VM——窗口
-     标题/退出态/保存，主框架分区 DataContext 的壳区，见 [shell.md](shell.md)）。
+     供轮盘外观设置子 VM 经契约边消费）。导航区 VM（`MainViewModel`，目录驱动：导航项/选中态
+     全部来自目录注册，运行时主体在 Host `ViewModels/Navigation/`）与壳区 VM（`ShellViewModel`，
+     D3：Host 壳窗口壳层 VM——窗口标题/退出态/保存，主框架分区 DataContext 的壳区，见
+     [shell.md](shell.md)）**不进容器**，由设置台会话工厂构造（见阶段 3）。
    - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`）并以单例注册进容器，
 `ShellHost` 构造后回填；`ShellContributor` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
     - `ThemeContributor.RegisterServices` 在注册期调用（M4 → Host 内核 + Sdk.Wpf
@@ -202,7 +206,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。
-   进托盘不再弹驻留气泡（该提示已移除）；`MinimizedToTrayMessage` 仍照发，作为出账信号由订阅方消费，不由壳层呈现任何用户可见提示。
+   进托盘不呈现任何用户可见提示；`MinimizedToTrayMessage` 仍照发，作为出账信号由订阅方消费。
 
 ## 宿主委托包
 

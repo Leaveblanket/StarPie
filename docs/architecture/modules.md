@@ -41,12 +41,12 @@
   （两模块无导航页）由 `HostCoreContributor` 登记；Host 外观聚合页 VM 由
   `HostPageContributor` 登记；贡献者清单 + 槽位表 + 模板字典为现状（见 [assemblies.md](assemblies.md) §5/§6））；
 - 「消息与通知」hub 新增消息/通知类型（ADR-0015 决策 7）；
-- 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
+- 共享视图基础设施（放行面不持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
   实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
   `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 M1；
-  共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance 四页 XAML
-  根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
+  页面 XAML 根直承 `UserControl`，不设共享页面基类。
+  扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
 
 ## 3. 模块地图（12 个模块）
@@ -203,9 +203,9 @@
 | R1 | `AutostartRegistry`                                                                                                                    | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
 | R2 | `DevInstance`                                                                                                                          | H1 宿主                                                                                                                                                                                                                                                                                    | `StarPie.Ui/`（工程根）                                                                                                                                                                                                                                                                                                                                                  |
 | R3 | `MemoryOptimizer`                                                                                                                      | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
-| R4 | `MainView.xaml` / `MainView.xaml.cs`                                                                                                 | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已迁出 MainView，模块模板字典随所属模块程序集（见 [assemblies.md](assemblies.md) §5.1）                                                                                                                  | `Views/Navigation/`；exe 仅余 Host 外观页模板                                                                                                                                                                                                                                                                                                                              |
+| R4 | `MainView.xaml` / `MainView.xaml.cs`                                                                                                 | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016）**；xaml.cs 不再归 M5；页面 DataTemplate 已迁出 MainView，模块模板字典随所属模块程序集（见 [assemblies.md](assemblies.md) §5.1）                                                                                                                  | `Views/Navigation/`；exe 仅余 Host 外观页模板                                                                                                                                                                                                                                                                                                                              |
 | R5 | `GesturePoint`                                                                                                                         | 共享值类型（SDK）                                                                                                                                                                                                                                                                             | `StarPie.Sdk/Models/`                                                                                                                                                                                                                                                                                                                                        |
-| R6 | `IconHelper`                                                                                                                           | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3                                                                                                                                            | 原 `IconAssets.cs` 已拆：S1 契约与资产表（`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`，双形拆为静态目录 + 实例服务，见 §3 S1）、M2 `StarPie.Ui/Services/Wheel/WheelGeometry.cs`、M3 `StarPie.Host/Programs/ShortcutResolver.cs`                  |
+| R6 | `IconHelper`                                                                                                                           | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3                                                                                                                                            | 物理：S1 契约与资产表（`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`，双形拆为静态目录 + 实例服务，见 §3 S1）、M2 `StarPie.Ui/Services/Wheel/WheelGeometry.cs`、M3 `StarPie.Host/Programs/ShortcutResolver.cs`                  |
 | R7 | `ProgramPicker`/`IconPicker`                                                                                                         | S6 对话框（通用选择器）                                                                                                                                                                                                                                                                    | `StarPie.Ui/ViewModels/Dialogs` 与 `Views/Dialogs/`                                                                                                                                                                                                                                                                                                                       |
 | R8 | `Models` 语义归属与物理落位                                                                                                            | `WheelProfile`/`ActionItem` → M1（物理 `StarPie.Sdk/Models/`，配置 POCO）；`WheelPalette*` → M2（语义归 M2；物理随归并驻 `StarPie.Host/Wheel/`，WPF-free）；`CustomColorPreset` → M2（语义；物理 `StarPie.Sdk/Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `StarPie.Sdk/Models/` + `StarPie.Host/Wheel/`                                                                                                                                                                                                                                                                                                                            |
 | R9 | 导航运行时主体（`NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`）/`MainViewModel`/`NavigationItemViewModel`） | H1 宿主壳（与 R4/D3 同判据——运行时消费者全部在 Host，模块程序集零引用）                                                                                                                                                                                                                  | `StarPie.Ui/Services/Navigation/` + `StarPie.Ui/ViewModels/Navigation/`（命名空间不变，共享命名空间树）                                                                                                                                                                                                                                                                    |
@@ -222,24 +222,24 @@
 
 ### D3 MainViewModel / ShellViewModel 拆分（ADR-0016）
 
-原登记：主归属 **S5 导航**（导航项/当前页/选中同步），壳层职责成员（`WindowTitle`、`Save()`）借调 M5，类型级双职责例外。
+归属：H1 宿主壳（与 R4/R9 同判据）。此前按"主归属 S5 导航 + 壳层职责成员借调 M5"的类型级双职责处理，该口径已废。
 
-ADR-0016 决策 7：`MainViewModel` 收敛为纯导航；壳成员迁出为
+ADR-0016：`MainViewModel` 收敛为纯导航；壳成员迁出为
 `ShellViewModel`（`WindowTitle`/`Save()`，留 Host 壳窗口，与 R4 同判据；进程退出态归壳层）；
 `MainView` 分区 DataContext（导航区绑导航 VM、壳区绑壳 VM）；目录驱动——MainViewModel
 无页面类型硬编码，导航项来自 `NavigationCatalog` 模块注册。
-**物理落点修订**：ADR-0016 决策 7 中"MainViewModel 随 S5 导航内核进
-Core"的物理落点表述被部分推翻——导航运行时主体（含 `MainViewModel`）迁回 Host
+**物理落点**：导航运行时主体（含 `MainViewModel`）在 Host
 （`StarPie.Ui/Services/Navigation/` 与 `StarPie.Ui/ViewModels/Navigation/`，命名空间
-不变）；职责拆分语义（纯导航 vs 壳层职责）与目录驱动设计全部保留（见 R9）。
+不变）；ADR-0016 中"随 S5 导航内核进 Core"的旧落点表述已不适用；职责拆分语义（纯导航 vs 壳层职责）
+与目录驱动设计全部保留（见 R9）。
 
 ### D4 ShellHost 语言字典投影
 
-`ShellHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属（防旧表述把 ShellHost 列入“组成文件”造成的误解）。
+`ShellHost.cs` 归 H1；其运行时语言字典投影与壳外文案刷新是 H1 消费 S3 的行为，不是双归属。
 
 ### D5 WheelFactory 装配点例外
 
-ADR-0016 决策 11：`WheelFactory` 随 M2 收编
+ADR-0016：`WheelFactory` 随 M2 收编
 `StarPie.Ui/Services/Wheel/`，工厂/轮盘 VM/外观只读状态契约为薄契约程序集（M1→M2 runtime
 允许边清零，M1 手势侧只经契约接口消费），迁入 `StarPie.Sdk/`；
 `IProfilePreviewSource` 随实现方 M1 下沉

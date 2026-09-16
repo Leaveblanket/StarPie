@@ -51,7 +51,7 @@ _Avoid_: 切换Tab、页签切换
 _Avoid_: 主窗口容器、设置对话框
 
 **壳层 (Shell)**:
-应用外壳职责的总称，含两个子域：壳窗口与系统集成。程序集与命名空间中的 Shell（StarPie.Shell、StarPie.Services.Shell）沿用本伞形语义。
+应用外壳职责的总称，含两个子域：壳窗口与系统集成。命名空间中的 Shell（StarPie.Services.Shell、StarPie.ShellIntegration）沿用本伞形语义。
 _Avoid_: 外壳、主窗口容器
 
 **壳窗口 (Shell Window)**:

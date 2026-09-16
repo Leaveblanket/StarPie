@@ -82,7 +82,7 @@ M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集�
   `InterfaceTheme`/`WheelAppearance` 两个子 VM（页面整体 DataContext 仍为聚合 VM；各设置卡
   DataContext 指向对应子 VM，不新增导航页）。预览属性变更（含 `ShowCoreIcon`）经
   `AppearancePreviewInvalidatedMessage` 触发页面重绘；配置导入后子 VM 自订阅重挂、聚合壳广播
-  `PageConfigReloadedMessage` 收尾 View 效果（ShowCoreIconCheckBox 事件处理器已删除）。
+  `PageConfigReloadedMessage` 收尾 View 效果。
 
 ## 关键流程
 
@@ -104,8 +104,8 @@ M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集�
    `WheelPreviewRenderer` 的 `Render` 收 `bool windowsInDarkMode`，由外观页（Host）经壳层
    `MainView.IsWindowsInDarkTheme()` 取值传入。渲染器经**已批准预览桥**取得 `IIconAssetService`
    ：外观聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露该服务，页面在
-   `Loaded` 事件处理器（原基类 virtual 钩子已改为自订阅；方法名 `OnPageLoaded`
-   保留）装配 `new WheelPreviewRenderer(iconAssetService)`（layering Views 例外登记）。
+   `Loaded` 事件处理器（自订阅，方法名 `OnPageLoaded`）
+   装配 `new WheelPreviewRenderer(iconAssetService)`（layering Views 例外登记）。
 
 ## 扩展点
 
@@ -125,6 +125,6 @@ M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集�
 ## 参见 ADR
 
 [0009](../adr/0009-view-code-behind-whitelist.md)（渲染器白名单）、[0014](../adr/0014-wheel-palette-module-boundary-and-appearance-split.md)（轮盘配色模块边界与解析收拢）、
-[0016](../adr/0016-assembly-split-target-and-roadmap.md)（程序集化目标态：M2 StarPie.Wheel、D5 决策 11）、
+[0016](../adr/0016-assembly-split-target-and-roadmap.md)（程序集化目标态：M2 装配点与 D5）、
 [0044](../adr/0044-wheel-config-projection.md)（轮盘配置瞬态投影：收窄宽 AppConfig 耦合）、
 [0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（预览/运行时扇区内容同源：内容构建下沉 Host）。

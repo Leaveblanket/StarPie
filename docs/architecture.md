@@ -32,7 +32,7 @@
 | 程序扫描与目录 | [programs.md](architecture/programs.md) |
 | 界面主题(AppTheme)配置与解析 / XAML 令牌与整项替换 / 主题设置面 | [interface-theme.md](architecture/interface-theme.md) |
 | VS XAML 设计器预览 / Properties/DesignTimeResources.xaml / 设计期资源与视口 | [design-time-preview.md](architecture/design-time-preview.md) |
-| 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级设置面 | [shell.md](architecture/shell.md) |
+| 托盘 / 开机自启 / 内存整理 / 高级设置面 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
 | IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
 | 概念模块（12 模块）划分 / 归属争议 / 加改功能该动哪（扩展点验收） | [modules.md](architecture/modules.md) |
