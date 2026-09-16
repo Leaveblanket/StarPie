@@ -24,7 +24,7 @@ StarPie/
 │   ├── Composition.cs             # DI 组合根（唯一）：三阶段（贡献者有序清单注册 → BuildServiceProvider → 解析 + 设置台会话工厂）
 │   ├── DevInstance.cs             # 开发实例标记：Debug 构建即开发实例（按构建配置编译期定死，判定真相在内核 AppDataPaths）；本类只承担可见标识
 │   ├── SingleInstanceRestore.cs   # 单实例重激活窗口消息：置前实例投递给主框架，由 WndProc 走 WPF 显示路径自恢复（纯 ShowWindow 不更新 IsVisible 状态）
-│   ├── TestInstanceExit.cs        # 测试实例退出窗口消息：e2e 运行器以此请求被测进程走真实退出路径，取代硬杀（避免幽灵托盘图标）
+│   ├── TestInstanceExit.cs        # 测试实例退出窗口消息：e2e 运行器以此请求被测进程走真实退出路径（硬杀进程会留下幽灵托盘图标）
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
 │   ├── PluginHosting/             # 插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
 │   ├── Modules/                   # 统一注册管线：ICompositionContributor + BuiltInContributors（内置有序清单）+ HostCore/HostPage 贡献者；M4：ThemeContributor；M2：WheelContributor；M1：GesturesContributor + GesturesPageTemplates.xaml；M5：ShellContributor + ShellPageTemplates.xaml；HostCore：HostCoreContributor + HostCorePageTemplates.xaml；S6：DialogsContributor
@@ -82,17 +82,17 @@ StarPie/
 │   └── ViewModels/
 │       ├── Pages/                 # M1 契约：IProfilePreviewSource
 │       └── Wheel/                 # M2 契约：IWheelViewModel/IWheelAppearanceState
-│                                  # 迁移期落位：源码镜像旧相对路径、命名空间保持 StarPie.* 不变（零 API 抖动），
+│                                  # 落位：源码镜像旧相对路径、命名空间保持 StarPie.* 不变（零 API 抖动），
 │                                  #   导出面与全仓类型唯一性由 StarPie.Tests/SdkBoundaryTests 收口
 ├── StarPie.Sdk.Wpf/                # SDK 的 WPF 类型契约面（UseWPF）
 │   ├── StarPie.Sdk.Wpf.csproj     # 唯一 ProjectReference 允许指向 StarPie.Sdk（不产出 XAML）
 │   ├── Abstractions/
-│   │   └── Ui/                    # 插件 UI 契约：IPluginUiModule/IPluginUiContext/IUiDispatcher 与注册描述符（P3 起）
+│   │   └── Ui/                    # 插件 UI 契约：IPluginUiModule/IPluginUiContext/IUiDispatcher 与注册描述符
 │   ├── Services/
 │   │   ├── Icons/                 # 图标资产服务契约：IIconAssetService（实现驻 Ui；条目类型在 SDK、目录在 Host）
 │   │   └── Shell/                 # M4 契约：IThemeService.cs
 │   └── Compatibility/             # UiSdkAbi（主次版本/兼容判定）+ DefaultAlcPolicy（默认 ALC 统一加载）政策骨架
-│                                  # 迁移期落位：源码镜像旧相对路径、命名空间保持 StarPie.* 不变（零 API 抖动），
+│                                  # 落位：源码镜像旧相对路径、命名空间保持 StarPie.* 不变（零 API 抖动），
 │                                  #   导出面与 ABI 政策由 StarPie.Tests/SdkWpfBoundaryTests 收口
 ├── StarPie.Host/                   # 宿主内核（net10.0；零 WPF、零 XAML，可 headless 单测）
 │   ├── StarPie.Host.csproj        # ProjectReference 只许 StarPie.Sdk（不引用 StarPie.Sdk.Wpf）
@@ -146,7 +146,7 @@ StarPie/
 | `ViewModels/Wheel/` | 不注册容器；按手势由 `WheelFactory` 瞬态创建 |
 | `Views/Pages/` | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
 | `Views/Dialogs/` | 不放无配对 Window 的散件；配对例外见 §5 |
-| `Views/Navigation/` | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
+| `Views/Navigation/` | 其它窗口/页面不得再合并样式字典（样式在 App 级单点合并） |
 | `Views/Controls/` | 有 `Command`/绑定等价物时不得新增行为；不放对话框专用行为之外的散件 |
 | `Views/Styles/` | 不放主题画刷令牌（`Themes/*.xaml` 属 M4）；`ModernControls.xaml`/`HotkeyRecorderBox.xaml` 由 App.xaml 本地单点合并 |
 | `Views/Converters/` | 转换器保持无状态、可静态复用；不放其它业务模块专用转换器 |
@@ -229,7 +229,7 @@ Ui 集工程根（`StarPie.Ui/`）：
   `Services/Localization/`）。
 - `StarPie.Sdk.csproj`：SDK 集工程入口（net10.0，零 WPF 零第三方包、零 ProjectReference；
   `StarPie.Sdk/` 源码根目录**只允许**
-  `Models/`、`Services/`、`ViewModels/`（迁移期镜像旧相对路径、命名空间保持 `StarPie.*` 不变，
+  `Models/`、`Services/`、`ViewModels/`（源码树镜像旧相对路径、命名空间保持 `StarPie.*` 不变，
   避免 API 抖动；`Services/Icons|Programs/` 分别承载 S1/M3 契约件；导出面与全仓类型唯一性由
    `StarPie.Tests/SdkBoundaryTests.cs` 收口）与插件面落点 `Manifest/`（plugin.json 纯数据模型）、
    `Abstractions/`（`IPlugin` 入口与 `IPluginContext` 宿主服务面）、
@@ -238,8 +238,8 @@ Ui 集工程根（`StarPie.Ui/`）：
    随其余能力启用。
 - `StarPie.Sdk.Wpf.csproj`：SDK 的 WPF 类型契约面工程入口（UseWPF）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；
   `StarPie.Sdk.Wpf/` 源码根目录**只允许** `Services/Icons/`、`Services/Shell/`
-  （迁移期镜像旧相对路径）、`Compatibility/`（UiSdkAbi/DefaultAlcPolicy）与
-  `Abstractions/Ui/`（插件 UI 契约，P3 起）——
+  （源码树镜像旧相对路径）、`Compatibility/`（UiSdkAbi/DefaultAlcPolicy）与
+  `Abstractions/Ui/`（插件 UI 契约）——
   导出面与 ABI 政策由 `StarPie.Tests/SdkWpfBoundaryTests.cs` 收口。
 - `StarPie.Host.csproj` / `GlobalUsings.cs`：宿主内核工程入口（net10.0 零 WPF；ProjectReference
   只许 `StarPie.Sdk`；不引用 `StarPie.Sdk.Wpf`）；`StarPie.Host/` 源码根目录**只允许**
@@ -261,6 +261,6 @@ Ui 集工程根（`StarPie.Ui/`）：
 
 ## 5. 例外登记（长期接受，新代码不得新增同类）
 
-- `InputViewModel ↔ InputDialog`：遗留窗口名未对齐，仅保留不改名。
+- `InputViewModel ↔ InputDialog`：窗口名与 VM 名未同名配对，仅保留不改名。
 - 页面 VM 与页面 View 的领域/区块命名错位（`GeneralSettingsViewModel → AdvancedSettingsPage` 等）：**允许且是正典**（规则见 §3.2）。
-- 外观聚合页留 Host（[assemblies.md](assemblies.md) §5.2 槽位 1）：属正典形态，非待迁出偏差。
+- 外观聚合页留 Host（[assemblies.md](assemblies.md) §5.2 槽位 1）：属正典形态。

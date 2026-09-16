@@ -91,7 +91,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
-- Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具后**经组合根委托注入**给 VM。
+- Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具，**经组合根委托注入**给 VM。
 - **S1 图标资产双形先例**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
@@ -138,7 +138,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
 - 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
-  `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 归并后本地合并；Host 外观
+  `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
   （页面 XAML 根直承 `UserControl`，无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`

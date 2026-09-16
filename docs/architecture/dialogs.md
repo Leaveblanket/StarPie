@@ -28,7 +28,7 @@ VM 层零对话框类型引用的统一模态对话框入口。
 1. `DialogService` 构造注入 `IThemeService`、`ILocalizationService`、图标资产实例服务
    `IIconAssetService`（契约驻 StarPie.Sdk.Wpf）、.lnk 解析契约 `IShortcutTargetResolver` 与程序扫描
    契约 `IProgramScanner`（后两者契约驻 StarPie.Sdk，实现与注册在组合根——ADR-0023，
-   组合根不再直调静态扫描，Dialogs→扫描实现仅经契约边）；`_owner` 由 Host 在设置
+   组合根不直调静态扫描，Dialogs→扫描实现仅经契约边）；`_owner` 由 Host 在设置
    窗口创建后 `DialogService.SetOwner(MainView)` 惰性回填（[ADR-0004](../adr/0004-dialog-service-design.md)，
    化解服务↔窗口循环；SetOwner 为 public 装配面，不泄露进 `IDialogService`）。
 2. `ShowXxx`：`new XxxViewModel(...)`（对话框 VM 每次新建、不注册容器）→ `new XxxWindow(theme, vm)` → `ShowDialog()` → `vm.BuildResult()`；结果 record 定义在 `StarPie.Sdk` 的 `IDialogService` 文件（如 `InputDialogResult`、`ColorPickResult`、`EyedropResult`、`FilePickResult`、`ProgramPickResult`、`IconPickResult`）。程序/图标选择器的领域数据经注入提供者获得：扫描候选经 `IProgramScanner` 注入 `ProgramPickerViewModel`（构造另注入 `IShortcutTargetResolver` 供手动浏览 .lnk 解析、注入 `IIconAssetService` 在后台线程按路径装配图标，列表项为 `ProgramPickerItem`）；图标卡片渲染与存储副作用经共享图标资产实例服务 `IIconAssetService`（`DialogService` 注入后传给选择器 VM/Window）与静态纯目录 `IconCatalog`——对话框模块不直连 Icons/Programs runtime 内部（R6/R7：经注入提供者接 S1/M3 出口；ADR-0023）。
@@ -44,5 +44,5 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 [0004](../adr/0004-dialog-service-design.md)、[0009](../adr/0009-view-code-behind-whitelist.md)、
 [0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（契约随实现方
-下沉独立成集、契约入 `StarPie.Sdk`、WPF 契约件入 `StarPie.Sdk.Wpf`；
-Dialogs→Theme runtime 允许边清零，改经 Sdk.Wpf 契约边）。
+独立成集、契约入 `StarPie.Sdk`、WPF 契约件入 `StarPie.Sdk.Wpf`；
+Dialogs→Theme runtime 允许边清零，只经 Sdk.Wpf 契约边）。

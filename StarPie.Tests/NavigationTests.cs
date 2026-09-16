@@ -319,7 +319,7 @@ public sealed class MainViewModelTests
     }
 
     // 「store 外部变更 → 选中态跟随」由 SelectionSyncedFromStore_DoesNotRenavigate 覆盖
-    // （同步 + 防回环），此处不再保留其弱子集用例。
+    // （同步 + 防回环），本类只留强形态。
 
     [Fact]
     public void LanguageChanged_RefreshesItemTitles()

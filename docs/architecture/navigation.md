@@ -21,9 +21,9 @@ SDK（`StarPie.Sdk/`，仅目录/槽位契约）：
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
   接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [assemblies.md](assemblies.md) §8；
   第二消费方出现时按 ADR-0023 契约归属判据裁决落点——属全局机制入内核、属某模块出口契约
-  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、契约入 `StarPie.Sdk`））。
+  归该模块 Contracts（如 S6 先例：`IDialogService` 归实现方、独立成集、契约入 `StarPie.Sdk`））。
 - `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（目录驱动：导航项顺序/
-  标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责已拆至
+  标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责归
   同目录族的 `ShellViewModel`，见 [shell.md](shell.md)）。
 - `Modules/`：统一注册管线（`ICompositionContributor` + `BuiltInContributors` 有序清单）与
   Host 外观聚合页贡献者 `HostPageContributor`（含
@@ -37,13 +37,13 @@ SDK（`StarPie.Sdk/`，仅目录/槽位契约）：
 M5（驻 `StarPie.Ui/`）：
 
 - `Modules/ShellContributor.cs`（M5 贡献者：`RegisterNavigation(NavigationCatalog)` +
-  `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册随 M5 下放）与 `Modules/ShellPageTemplates.xaml`
+  `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册归 M5）与 `Modules/ShellPageTemplates.xaml`
   （页面模板字典；Ui 集内本地单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
 
 M1（驻 `StarPie.Ui/`）：
 
 - `Modules/GesturesContributor.cs`（M1 贡献者：`RegisterNavigation(NavigationCatalog)` +
-  `RegisterServices(IServiceCollection)`，手势管线与页面 VM 的 DI 注册随 M1 下放，含
+  `RegisterServices(IServiceCollection)`，手势管线与页面 VM 的 DI 注册归 M1，含
   `IProfilePreviewSource` 别名）与 `Modules/GesturesPageTemplates.xaml`（页面模板字典；Host
   App.xaml 本地单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
 
@@ -101,7 +101,7 @@ as-built：
 目录内容变化经 `NavigationCatalog.Changed` 通知消费方；`MainViewModel` 据此重建导航项，
 导航执行按条目 `Identifier` 走同一入口（固定页经容器解析、插件页经注册工厂创建）。
 
-**扩展点降级**：插件缺席或未注册导航页时目录只剩固定页，侧边栏不出现空壳项；
+**扩展点降级**：插件缺席或未注册导航页时目录只有固定页，侧边栏不出现空壳项；
 插件页注册发生在 UI 线程的 `IPluginUiContext.RegisterPage`，随插件卸载的资产清理摘除。
 
 ## 参见 ADR

@@ -12,7 +12,7 @@
 | e2e | `tests/`（pywinauto + pytest） | 钩子、渲染、托盘、对话框的可见行为；导航点击往返；主题选项的目录内容与配置落盘 |
 | 人工验收 | 无载体 | 视觉效果；主题的可见效果（换肤后的窗口 chrome）；跨完整性级别行为（提权实例接管、互斥体失败分支）；系统 `MessageBox` 的呈现 |
 
-主题的可见效果归人工验收：键集与槽位不变式由 `ThemePaletteConsistencyTests` 在静态侧守住，运行时侧只剩像素级判据，自动化会随主题微调持续产生噪音。
+主题的可见效果归人工验收：键集与槽位不变式由 `ThemePaletteConsistencyTests` 在静态侧守住，运行时侧的判据为像素级，自动化会随主题微调持续产生噪音。
 
 边界裁定的出处：钩子/渲染/托盘归 e2e（ADR-0001）；系统 `MessageBox` 与真实鼠标命中路径不在 e2e 覆盖内（ADR-0031）；跨完整性级别行为无自动覆盖（ADR-0040 / ADR-0042 / ADR-0043）；逐原型的测试义务见 [extending.md](extending.md)；`ProgramScanner` 一类集成件不单测见 [programs.md](programs.md)。
 

@@ -2,7 +2,7 @@
 
 > 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：模块清单、职责、归属裁定、扩展点验收与模块化候选。
 
-> **模块口径**：插件化后的模块口径为「宿主内核子域 + 能力插件」，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。
+> **模块口径**：模块为「宿主内核子域 + 能力插件」，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。
 >
 > 本文按 as-built 现状撰写；代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。
 >
@@ -19,10 +19,10 @@
 1. **独立修整单元**：修改或新增一个功能，只动“相关模块的内部”；跨模块只经稳定契约，或触碰 §2.3 放行共享面。
 2. **模块 = 领域能力**：一个模块拥有它的运行态/服务、配置面（设置子 VM/卡片）与领域数据语义；页面是聚合壳（§5 D6），不强行归单一模块。
 3. **契约归属（ADR-0023 修订）**：模块出口契约（接口 + 跨模块 DTO/纯数据）随**实现方模块**
-   下沉其 `*.Contracts` 程序集（取代「第二消费方族 → 上提 Core」的旧执行口径，历史见 ADR-0023 与 git）；共享件出现第二个消费方族时——若属全局
-   机制/数据入 `StarPie.Sdk` 契约与模型面（跨集共享）或宿主内核（运行时设施），若属某模块出口契约下沉该模块 Contracts（单一消费方的能力留在消费
+   驻其 `*.Contracts` 程序集（取代「第二消费方族 → 上提 Core」的旧执行口径，历史见 ADR-0023 与 git）；共享件出现第二个消费方族时——若属全局
+   机制/数据入 `StarPie.Sdk` 契约与模型面（跨集共享）或宿主内核（运行时设施），若属某模块出口契约则归该模块 Contracts（单一消费方的能力留在消费
    模块内部，ADR-0014 消费方判据的推广）。
-4. **无“文档分组惯性”**：没有共享领域上下文、没有耦合、只因“都小/都横切”而并在一起的概念，不得并成一个模块（历史反例：本地化与消息，已拆）。
+4. **无“文档分组惯性”**：没有共享领域上下文、没有耦合、只因“都小/都横切”而并在一起的概念，不得并成一个模块（反例：把本地化与消息并成一个模块）。
 
 ### 2.3 放行共享面清单（不算“其它业务模块内部”）
 
@@ -95,7 +95,7 @@
 - **对外契约**：扫描/过滤数据经 SDK 契约提供给 S6 的程序选择对话框等消费方
   （DI 注册在组合根，消费方只认契约）；.lnk SPI 经 SDK 提供给 S1 图标服务与组合根；
   图标补全不在扫描面——UI 消费方（程序选择器）按路径经 `IIconAssetService` 装配。
-- **扩展局部性**：新增程序来源/目录/过滤规则 → 随包插件 `StarPie.Plugin.Programs`（内置来源只留
+- **扩展局部性**：新增程序来源/目录/过滤规则 → 随包插件 `StarPie.Plugin.Programs`（内置来源只覆盖
   插件缺席时也必须可用的系统工具与快捷方式）；新增扫描/跨模块协议 →
   扩展 `StarPie.Sdk/Services/Programs|Icons/` 契约面（消费方驱动）。
 
@@ -116,7 +116,7 @@
 - **职责**：托盘与气泡、开机自启、内存整理、壳层服务与系统集成、高级设置面。（主窗口壳层行为按 ADR-0016 归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4）
 - **关键内部**：`TrayIconManager`、`AutostartRegistry`（R1）、`MemoryOptimizer`（R3）、
   `GeneralSettingsViewModel`+`AdvancedSettingsPage` 与贡献者/页面模板字典
-  （物理随 M5 归并入 `StarPie.Ui/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
+  （物理驻 `StarPie.Ui/`，见 [layout.md](layout.md)）。（`MainView.xaml.cs`
   不归 M5——R4/ADR-0016 归属 Host 壳窗口）
 - **子职责目录**：见 §5 D2（防“系统集成”垃圾筐）。
 - **扩展局部性**：新托盘菜单项/自启策略/内存策略/系统页设置项 → M5 内部。
@@ -223,13 +223,13 @@
 
 ### D2 M5 子职责目录与护栏
 
-子职责：托盘 / 自启 / 内存 / 高级设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不再属 M5。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
+子职责：托盘 / 自启 / 内存 / 高级设置面。主窗口壳层行为按 ADR-0016 归 H1 宿主壳（Host 壳窗口，见 [assemblies.md](assemblies.md) §4），不在 M5 职责内。护栏：新 OS 集成功能必须先对号入座；放不进任何现有子职责时，须先论证与壳层上下文的共享关系，否则不得并入 M5。
 
 ### D3 MainViewModel / ShellViewModel 拆分（ADR-0016）
 
 归属：H1 宿主壳（与 R4/R9 同判据）。
 
-ADR-0016：`MainViewModel` 收敛为纯导航；壳成员迁出为
+ADR-0016：`MainViewModel` 只承载导航；壳成员在
 `ShellViewModel`（`WindowTitle`/`Save()`，留 Host 壳窗口，与 R4 同判据；进程退出态归壳层）；
 `MainView` 分区 DataContext（导航区绑导航 VM、壳区绑壳 VM）；目录驱动——MainViewModel
 无页面类型硬编码，导航项来自 `NavigationCatalog` 模块注册。
@@ -244,21 +244,21 @@ ADR-0016：`MainViewModel` 收敛为纯导航；壳成员迁出为
 
 ### D5 WheelFactory 装配点例外
 
-ADR-0016：`WheelFactory` 随 M2 收编
+ADR-0016：`WheelFactory` 的实现驻
 `StarPie.Ui/Services/Wheel/`，工厂/轮盘 VM/外观只读状态契约为薄契约程序集（M1→M2 runtime
-允许边清零，M1 手势侧只经契约接口消费），迁入 `StarPie.Sdk/`；
+允许边清零，M1 手势侧只经契约接口消费），契约驻 `StarPie.Sdk/`；
 `IProfilePreviewSource` 随实现方 M1 下沉
 （契约随实现方下沉；实现方 M1 ProfileListViewModel 与消费方 M2
 WheelAppearanceSettingsViewModel 均只依赖契约程序集），同样归属 `StarPie.Sdk/`。
-M2 构造契约变更不再波及 Host/M1
-装配点；M1 手势侧随归并入 Ui 集，仍只经 SDK 契约引用 M2。
+M2 构造契约变更不波及 Host/M1
+装配点；M1 手势侧在 Ui 集内只经 SDK 契约引用 M2。
 
 ### D6 页面壳
 
-- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，随归并入 `StarPie.Ui`：
+- Trigger/Gestures 设置页 = M1 的设置面（整页 VM 属 M1，物理驻 `StarPie.Ui`：
   VM+View+贡献者+模板字典均在 Ui 集内，新增页面不碰 Host）；
 - Appearance 设置页 = M4（界面主题卡）+ M2（轮盘外观卡）的聚合壳；
-- Advanced 设置页 = M5 的设置面（随归并入 `StarPie.Ui`：VM+View+贡献者+模板字典
+- Advanced 设置页 = M5 的设置面（物理驻 `StarPie.Ui`：VM+View+贡献者+模板字典
   均在 Ui 集内，新增页面不碰 Host）；
 - 新增设置页按原型 B 走导航登记，不预设归属模块。
 

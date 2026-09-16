@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- B10/#83 起：源码根命名空间 StarPie 与 AssemblyName 对齐；#111 工程目录/文件更名为
-         StarPie.Ui（四集之一的 Ui 集，ADR-0027），程序集名与发布产物名保持 StarPie；
+    <!-- 源码根命名空间 StarPie 与 AssemblyName 对齐；本工程是 Ui 集（ADR-0027），
+         程序集名与发布产物名保持 StarPie；
          TFM / 可空性 / 隐式 using / 分析器级别 / 根命名空间统一在仓库根 Directory.Build.props -->
     <UseWPF>true</UseWPF>
     <ApplicationIcon>assets\app_icon.ico</ApplicationIcon>
@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- ADR-0025/#101：VS 设计期资源锚（仅设计期合并，运行时不会自动合并）。 -->
+    <!-- ADR-0025：VS 设计期资源锚（仅设计期合并，运行时不会自动合并）。 -->
     <Page Update="Properties\DesignTimeResources.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

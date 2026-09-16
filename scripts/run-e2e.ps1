@@ -51,7 +51,7 @@ $mutexName = 'Global\StarPie_E2E_Runner'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 
 # 解释器解析：优先 -Python 显式指定；其次仓库内隔离 venv（.venv，依赖见 tests/requirements.txt）；
-# 最后回退 PATH 上的 python——回退时显式警告"解释器未锁定"（静默回退正是 #136 的病根）。
+# 最后回退 PATH 上的 python——回退时显式警告"解释器未锁定"（静默回退会让人误以为已锁定）。
 $venvPython = Join-Path $repoRoot '.venv\Scripts\python.exe'
 if (-not $Python) {
     if (Test-Path $venvPython) {

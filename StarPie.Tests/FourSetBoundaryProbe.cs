@@ -23,9 +23,8 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// 已撤销的旧集程序集名（归并前的 15 集减去四集自身）：它们不得再出现在产物、
-    /// 解决方案或任何工程的引用面里。删除设计期投影壳后旧集归零，
-    /// 本清单在此只作“不得复活”的机械拦截面（XAML/入口同理：不存在即无从携带）。
+    /// 旧集程序集名黑名单：这些名字不得出现在产物、解决方案或任何工程的引用面里。
+    /// 本清单是这条约束的机械拦截面（XAML/入口同理：不存在即无从携带）。
     /// </summary>
     internal static readonly string[] LegacyAssemblyNames =
     {
@@ -39,7 +38,7 @@ internal static class FourSetBoundaryProbe
         "StarPie.Wheel", "StarPie.Wheel.Contracts",
     };
 
-    /// <summary>已撤销旧集的工程路径（相对仓库根）——解决方案登记面不得再有它们。</summary>
+    /// <summary>旧集的工程路径（相对仓库根）——解决方案登记面不得有它们。</summary>
     internal static readonly string[] LegacyProjectPaths = LegacyAssemblyNames
         .Select(name => name + "\\" + name + ".csproj")
         .ToArray();
@@ -52,8 +51,8 @@ internal static class FourSetBoundaryProbe
     };
 
     /// <summary>
-    /// Ui 集允许直接引用的全部工程名——四集收缩后只剩 SDK 面与宿主内核；
-    /// 旧集已全部撤销，任何旧集引用（含测试工程与反向引用）都不在白名单内。
+    /// Ui 集允许直接引用的全部工程名——白名单只有 SDK 面与宿主内核；
+    /// 任何旧集引用（含测试工程与反向引用）都不在白名单内。
     /// </summary>
     internal static readonly string[] KnownProjectNames =
     {

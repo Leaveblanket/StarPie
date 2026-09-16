@@ -16,9 +16,7 @@ namespace StarPie.Tests;
 /// 源码注释不含变更史编号（见 comments.md 禁止清单）。
 /// </summary>
 /// <remarks>
-/// 断言失败时先修文档，不要放宽断言：这些正是过去靠人记而反复失守的部分
-/// （13 篇 ADR 瘦身后留下 12 处指向不存在决策号的引用、入口附录被删后 <c>agents/domain.md</c> 长期指向不存在的章节、
-/// <c>StarPie.Host/HostServices/</c> 等目录实际存在却未登记进目录树）。
+/// 断言失败时先修文档，不要放宽断言：这些是文档体系里唯一会被静默忽略的失真面——没有别的层拦得住。
 /// 其他层也不会有落点：<c>docs/</c> 不参与编译与运行——叶子消失、ADR 编号写错或目录未登记，
 /// 都不会让任一编译单元或运行路径失败。
 /// </remarks>
@@ -105,24 +103,21 @@ public sealed class DocInvariantTests
     public void 源码注释不含变更史编号()
     {
         var offenders = new List<string>();
-        foreach (string file in EnumerateFiles(RepoRoot, "*.cs").Concat(EnumerateFiles(RepoRoot, "*.xaml")))
+        foreach (string pattern in CommentScanPatterns)
         {
-            int lineNumber = 0;
-            foreach (string line in File.ReadLines(file))
+            foreach (string file in EnumerateFiles(RepoRoot, pattern))
             {
-                lineNumber++;
-                string trimmed = line.TrimStart();
-                bool isComment = trimmed.StartsWith("///", StringComparison.Ordinal)
-                    || trimmed.StartsWith("//", StringComparison.Ordinal)
-                    || trimmed.StartsWith("<!--", StringComparison.Ordinal);
-                if (!isComment || line.Contains("TODO(#", StringComparison.Ordinal))
+                foreach ((int lineNumber, string line) in CommentLines(file))
                 {
-                    continue;
-                }
+                    if (line.Contains("TODO(#", StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
 
-                foreach (Match match in ChangeHistoryNumber.Matches(line))
-                {
-                    offenders.Add($"{Path.GetRelativePath(RepoRoot, file)}:{lineNumber} 「{match.Value}」");
+                    foreach (Match match in ChangeHistoryNumber.Matches(line))
+                    {
+                        offenders.Add($"{Path.GetRelativePath(RepoRoot, file)}:{lineNumber} 「{match.Value}」");
+                    }
                 }
             }
         }
@@ -132,6 +127,64 @@ public sealed class DocInvariantTests
             "源码注释不承载变更史：issue 号与批次/阶段编号一律不写（ADR 决策引用与模块代号可以写）；"
                 + "指向未来动作的短待办用 TODO 形式。" + Environment.NewLine
                 + string.Join(Environment.NewLine, offenders));
+    }
+
+    // --- 基建：编号禁令的扫描面与注释行判定 -----------------------------------------
+    /// <summary>注释编号禁令的扫描面：C# / XAML 源码与工程、构建属性、脚本。</summary>
+    private static readonly string[] CommentScanPatterns =
+    {
+        "*.cs", "*.xaml", "*.csproj", "*.props", "*.targets", "*.ps1",
+    };
+
+    /// <summary>
+    /// 按后缀枚举注释行：C# 的 <c>//</c>、PowerShell 的 <c>#</c>、XML 的跨行 <c>&lt;!-- --&gt;</c>。
+    /// 三种形态的行首标记不同，只按 <c>//</c> 判定会漏掉脚本与工程文件。
+    /// </summary>
+    private static IEnumerable<(int LineNumber, string Line)> CommentLines(string file)
+    {
+        string suffix = Path.GetExtension(file).ToLowerInvariant();
+        bool inXmlComment = false;
+        int lineNumber = 0;
+        foreach (string line in File.ReadLines(file))
+        {
+            lineNumber++;
+            string trimmed = line.TrimStart();
+            switch (suffix)
+            {
+                case ".cs":
+                    if (trimmed.StartsWith("//", StringComparison.Ordinal))
+                    {
+                        yield return (lineNumber, line);
+                    }
+
+                    break;
+                case ".ps1":
+                    if (trimmed.StartsWith('#'))
+                    {
+                        yield return (lineNumber, line);
+                    }
+
+                    break;
+                default:
+                    bool opened = line.Contains("<!--", StringComparison.Ordinal);
+                    bool closed = line.Contains("-->", StringComparison.Ordinal);
+                    if (inXmlComment || opened)
+                    {
+                        yield return (lineNumber, line);
+                    }
+
+                    if (opened && !closed)
+                    {
+                        inXmlComment = true;
+                    }
+                    else if (inXmlComment && closed)
+                    {
+                        inXmlComment = false;
+                    }
+
+                    break;
+            }
+        }
     }
 
     // --- 入口路由表与磁盘叶子一一对应 -----------------------------------------------

@@ -8,7 +8,7 @@ namespace StarPie.Tests;
 /// 共享「图标资产」静态纯目录（<see cref="IconCatalog"/>）的纯函数覆盖：矢量图标目录
 /// 完整性、SVG 键目录/取值（大小写不敏感）与 SVG 路径数据解析。
 /// 自定义图标存储与文件图标提取属 IO/Win32 集成面（<see cref="IIconAssetService"/>），
-/// 按仓库惯例不在此单测（双形拆分后不变）。
+/// 按仓库惯例不在此单测。
 /// </summary>
 public sealed class IconCatalogTests
 {

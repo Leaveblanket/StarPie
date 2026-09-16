@@ -10,7 +10,7 @@ namespace StarPie.Tests;
 /// StarPie.Sdk（net10.0，零 WPF 零第三方包）、StarPie.Sdk.Wpf（WPF 类型契约面）、
 /// StarPie.Host（net10.0，零 WPF）、StarPie.Ui（WinExe，程序集名保持 StarPie，
 /// 发布产物 StarPie.exe）。本文件与 <see cref="RuntimeNoCrossReferenceTests"/> 是
-/// 归并搬迁的机械化护栏：故意引入违规（Host 引 WPF / Sdk 引第三方包 /
+/// 边界的机械化护栏：故意引入违规（Host 引 WPF / Sdk 引第三方包 /
 /// 反向引用 / 发布路径漂移）会被直接测出。
 /// </summary>
 /// <remarks>
@@ -224,7 +224,7 @@ public sealed class FourSetBoundaryTests
             Assert.DoesNotContain("StarPie.Ui", references);
         }
 
-        // 已撤销旧集不在任何工程的引用面（测试工程同样只引用四集）。
+        // 旧集不在任何工程的引用面（测试工程同样只引用四集）。
         foreach (string project in AllProjects)
         {
             Assert.All(
