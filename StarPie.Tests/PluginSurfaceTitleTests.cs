@@ -5,8 +5,11 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 插件界面标题的解析优先级：显示名字面量优先，未给显示名时经宿主文案表取词；
-/// 文案键不在表内则取词回退成键名，并由注册侧据此告警（本类只判存在性，不含告警）。
+/// 文案键不在表内则取词回退成键名，并由注册侧据此告警。
 /// </summary>
+/// <remarks>
+/// 本类只判存在性，不含告警；缺键回退本身由 <see cref="LocalizationServiceTests"/> 承担。
+/// </remarks>
 public sealed class PluginSurfaceTitleTests
 {
     [Fact]
@@ -47,11 +50,10 @@ public sealed class PluginSurfaceTitleTests
     }
 
     [Fact]
-    public void 文案键不在宿主文案表_判定为不存在且取词回退键名()
+    public void 文案键不在宿主文案表_判定为不存在()
     {
         var localization = new LocalizationService();
 
         Assert.False(PluginSurfaceTitle.ExistsInHostTable("NoSuchPluginTitle", localization));
-        Assert.Equal("NoSuchPluginTitle", PluginSurfaceTitle.Resolve(null, "NoSuchPluginTitle", localization));
     }
 }

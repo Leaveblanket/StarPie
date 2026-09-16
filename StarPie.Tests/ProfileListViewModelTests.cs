@@ -274,13 +274,16 @@ public sealed class ProfileListViewModelTests
     }
 
     [Fact]
-    public void ApplySectorCount_WithoutSelection_FallsBackToFirstProfile()
+    public void ApplySectorCount_OnDefaultSelection_AppliesToFirstProfileAndRebuildsSlots()
     {
         var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("Global", 4), MakeProfile("chrome.exe", 4) }, Dialogs(), TestHub.NewMessenger(), new TestActionExecutor(), Localization, new TestIconAssetService());
 
+        // 前提：构造即默认选中首项。ApplySectorCount 里"未选中兜底首项"那一支本用例走不到，无覆盖。
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile);
+
         Assert.True(vm.ApplySectorCount(8));
 
-        Assert.Same(vm.Profiles[0], vm.SelectedProfile); // 兜底第一方案，不改列表可视选中
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile); // 应用到默认选中的首项，不改列表可视选中
         Assert.Equal(8, vm.SelectedSectorCount);
         Assert.Equal(8, vm.Slots.Count);
     }

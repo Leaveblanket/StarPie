@@ -246,13 +246,14 @@ public sealed class ResidentShellLifetimeTests
         var fixture = StaTestHarness.Run(CreateFixture);
         Window[] before = ResidentWindows();
         Assert.Contains(fixture.View, before);
+        // 锚窗口在基线里先钉住，下面那句"仍在 after 里"才是在说"没被一起关掉"。
+        Assert.Contains(fixture.Anchor, before);
 
         StaTestHarness.Run(fixture.Console.Dispose);
 
         Window[] after = ResidentWindows();
-        Assert.DoesNotContain(fixture.View, after);
         Assert.Contains(fixture.Anchor, after);
-        // 基线差集：关闭前后只差设置台窗口本身（无新增瞬态窗口、无残留）。
+        // 基线差集：关闭前后只差设置台窗口本身（无新增瞬态窗口、无残留；View 离场由差集蕴含）。
         Assert.Equal(before.Where(window => !ReferenceEquals(window, fixture.View)), after);
     }
 

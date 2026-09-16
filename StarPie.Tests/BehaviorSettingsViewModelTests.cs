@@ -53,7 +53,8 @@ public sealed class BehaviorSettingsViewModelTests
     [Fact]
     public void Reload_RebindsToNewConfigInstance()
     {
-        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), TestHub.NewMessenger());
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), messenger);
         var imported = MakeConfig();
         imported.DragThreshold = 40.0;
         imported.DisableOnFullScreen = false;
@@ -70,8 +71,9 @@ public sealed class BehaviorSettingsViewModelTests
         Assert.False(vm.EnableOuterEscapeCancel);
         Assert.Equal(250.0, vm.OuterEscapeDistance);
         Assert.Equal(new[] { "game.exe" }, vm.BlacklistProcesses);
-        // 重挂不回写、不发落盘事件
-        Assert.Equal(40.0, imported.DragThreshold);
+        // 重挂不回写、不发落盘事件：判据是落盘请求为零——值与配置相同，回写与否看不出来。
+        Assert.Equal(0, save.Debounced);
+        Assert.Equal(0, save.Immediate);
     }
 
     // --- live-apply：阈值（防抖落盘） -------------------------------------------------

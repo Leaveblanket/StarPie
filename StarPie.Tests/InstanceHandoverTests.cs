@@ -101,16 +101,24 @@ public sealed class InstanceHandoverTests
     // --- 接收端的降级：让位不可达时静默不等待，收尾可重入 -----------------------------
 
     [Fact]
-    public void Listener_StartAndDispose_AreSafeAndIdempotent()
+    public void Listener_StartAndDispose_DoNotThrowOrFireCallbacks()
     {
-        // 标记未发布（或本进程不是首实例）时 Start 静默降级成"让位不可达"，不抛也不阻塞；
-        // Dispose 可重入——壳层收尾与 App.OnExit 都可能碰到它。
+        // Start 的分支取决于本进程的实况（标记未发布、或本进程不是首实例）——属环境依赖项，
+        // 故这里只守能判别的那两件：重复 Start 与重复 Dispose 都不抛（幂等与可重入；
+        // 壳层收尾与 App.OnExit 都可能碰到它），且收尾唤醒不误触让位与提权未生效两个回调。
+        // 真实让位请求不在此触碰：对全机命名对象置位会误伤同机正在运行的实例。
+        int yieldRequests = 0;
+        int elevationNotified = 0;
         var listener = new InstanceHandoverListener(
-            onYieldRequested: static () => { },
-            onElevationNotApplied: static () => { });
+            onYieldRequested: () => yieldRequests++,
+            onElevationNotApplied: () => elevationNotified++);
 
         listener.Start();
+        listener.Start();     // 重复 Start 直接返回，不起第二路等待
         listener.Dispose();
-        listener.Dispose();
+        listener.Dispose();   // 可重入：重复释放安全
+
+        Assert.Equal(0, yieldRequests);
+        Assert.Equal(0, elevationNotified);
     }
 }

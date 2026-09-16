@@ -33,12 +33,17 @@ public sealed class ResidentOptionRefresherTests
         var localization = new LocalizationService();
         localization.SetLanguage("en");
         int rebuilds = 0;
-        using var refresher = new ResidentOptionRefresher(localization, () => rebuilds++, () => { });
+        int notifications = 0;
+        using var refresher = new ResidentOptionRefresher(
+            localization,
+            () => rebuilds++,
+            () => notifications++);
 
         localization.SetLanguage("en");
         localization.SetLanguage("en-US"); // 别名/区域码折叠回 en，不算变化
 
         Assert.Equal(0, rebuilds);
+        Assert.Equal(0, notifications);
     }
 
     [Fact]
