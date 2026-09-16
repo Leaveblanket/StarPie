@@ -3,6 +3,8 @@
 > Status: Active
 >
 > 本 ADR 推翻并取代：本地化静态方案（“静态 `I18n` 唯一源、不引入 `ILocalizationService`”，历史决策已删除）与 [ADR-0012](./0012-resource-dictionary-architecture.md) 原决策 2（App 直接资源键覆盖）。
+>
+> 现行机制正典：[localization.md](../architecture/localization.md) 与 [interface-theme.md](../architecture/interface-theme.md)；主题引擎与端口的程序集化落点以三集形态为准（ADR-0027 后）。
 
 ## 动机
 
@@ -49,7 +51,7 @@
 1. **本地化数据与取词**：四语言文案迁入 resx + 卫星程序集，配强类型资源类。生成机制选型：内置 `ResXFileCodeGenerator` 在纯 `dotnet build`（无 VS）不执行自定义工具、不产出 Designer.cs，不可用于 agent/CI 工作流；选 NuGet `VocaDb.ResXFileCodeGenerator`（Roslyn source generator，`dotnet build` 直接生成 `internal static class Strings`，拼错键产生 CS0117）。`ILocalizationService` 实例注册为 DI 单例：四语言码、`Auto` 按 `CurrentUICulture` 解析、缺语言回退 zh-CN、再缺回退键名、`LanguageChanged` 事件、`GetString(key)`/`SetLanguage(code)`。配置键 `Language` 与 `config.json` 格式不变（Hard Constraint）。
 2. **声明式介质**：运行时语言字典 + `{DynamicResource}` 投影桥保留，数据由服务从 resx 枚举投影；**不引入每语言 XAML 资产文件**。四类文案（声明式/驻留/即时取词/壳外）分类与生命周期契约维持（分类正典：`docs/architecture/localization.md`），仅取词/订阅入口换为服务。
 3. **静态 `I18n` 删除**：全调用点迁移完成后删除静态类与 C# 键表；订阅者成对退订纪律沿用（容器 Dispose / 瞬态 IDisposable）。
-4. **主题换入**：`AppThemePaletteManager` 自包含加载 `Views/Styles/Themes/*.xaml`、缓存、冻结、**整项替换 MergedDictionaries 活动主题槽**；`App.xaml` 静态合并 Light 仅作设计时/首帧默认；切 Light = 替换回 Light 字典，直接键零残留。
+4. **主题换入**：`AppThemePaletteManager`（现行落点 `StarPie.Ui/Adapters/`，实现内核端口 `IThemeApplier`）加载 `StarPie.Ui/Themes/*.xaml`、缓存、冻结、**整项替换 MergedDictionaries 活动主题槽**；`App.xaml` 静态合并 Light 仅作设计时/首帧默认；切 Light = 替换回 Light 字典，直接键零残留。
 5. **主题门面**：`IThemeService.SetTheme(name)` 为唯一状态入口，配 `ThemeChanged` 事件；`CurrentEffectiveTheme` 仅由 `SetTheme` 更新；窗口 DWM 标题栏应用保持白名单（主窗口/对话框构造注入）；页面仍不持 `IThemeService`（ADR-0009 不变）。
 6. **系统跟随**：`System` 模式监听系统深浅色实时变化并自动 `SetTheme(解析值)`；系统探测保持注入委托，可单测。
 7. **键隔离与一致性**：语言键与主题令牌键命名空间隔离 + 零交集测试；主题各套令牌键集一致测试（缺键即失败）。

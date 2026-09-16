@@ -23,7 +23,7 @@
 - **插件实现（`plugins/src/StarPie.Plugin.Programs/`）**：首个随包 headless 插件，只引
   `StarPie.Sdk`；`ProgramSourcePlugin` 在 `StartAsync` 注册 `IProgramScanner` 能力，
   `InstalledProgramScanner` 提供深扫来源（默认启用、可停用）。
-- **注册（组合根 `StarPie.Ui/Composition.cs`）**：直登记
+- **注册（`StarPie.Ui/Modules/HostCoreContributor.cs`）**：直登记
   `IShortcutTargetResolver→ShortcutResolver`、能力表（声明程序来源契约 + 内置来源）与
   `IProgramScanner→ProgramSourceAggregator`；M3 无导航页故无 `RegisterNavigation`。
   扫描件标注 `[SupportedOSPlatform("windows")]`（宿主内核为平台中立 TFM，扫描来源依赖

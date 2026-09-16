@@ -19,7 +19,7 @@
 
 ## Decision
 
-1. **主题令牌**：`Views/Styles/Themes/{Light,Dark,MidnightNavy,RoyalViolet,TitaniumGray}.xaml`，每文件同一 key 集；`App.xaml` 静态合并 Light 作设计时/首帧默认。
+1. **主题令牌**：`StarPie.Ui/Themes/{Light,Dark,MidnightNavy,RoyalViolet,TitaniumGray}.xaml`，每文件同一 key 集；`App.xaml` 静态合并 Light 作设计时/首帧默认。
 2. **主题服务瘦身**：只保留有效主题解析、当前主题状态与 DWM 标题栏应用；删除 C# 五套 hex 与写刷子逻辑（色板数据移入 XAML 令牌）。当前接口形态（`SetTheme`/`ThemeChanged` 单一入口）见 ADR-0013 与 `interface-theme.md`。
 3. **控件样式单点合并**：`Views/Styles/ModernControls.xaml` 承载全部隐式/键控样式与共享模板，仅由 `App.xaml` 合并；主视图/侧栏/页面/对话框不再各自合并。
 4. **默认即现代 + 变体键控**：现代控件外观作隐式默认（含 Button）；变体（PrimaryButton/FlatComboBox/ToggleSwitch/NavTab…）键控显式取用；透明/无边框特例显式 `Style={x:Null}`。转换器统一实例。

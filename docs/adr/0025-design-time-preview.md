@@ -1,6 +1,6 @@
 # 设计时预览协议：设计期资源注入与运行视口锚定
 
-> Status: Active（字典落点被 0027 修订）
+> Status: Active（字典落点与「含 UI 工程」范围被 0027 修订）
 >
 > 修订指针：[ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 的三集形态收口后，设计期投影壳
 > `StarPie.Core` 撤销，字典与其生成脚本随 Ui 集承载（`StarPie.Ui/Services/Localization/`，pack URI
@@ -52,7 +52,7 @@
 
 ## Decision
 
-1. **每个含 UI 工程建 `Properties/DesignTimeResources.xaml` 设计期资源锚**，仅设计期合并单源设计期
+1. **每个含 UI 工程建 `Properties/DesignTimeResources.xaml` 设计期资源锚**（三集收口后只剩 Ui 集一份，见 [design-time-preview.md](../architecture/design-time-preview.md)），仅设计期合并单源设计期
    字符串字典（zh-CN，派生自 `Strings.resx`）。
 2. **字典单源 = 编译惰性字典 + pack URI 合并**：字典随承载 UI 的工程编译、签入生成物、生成脚本
    同目录——现行落点见 [design-time-preview.md](../architecture/design-time-preview.md) 与
