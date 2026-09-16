@@ -5,7 +5,7 @@
 > 修订：对外契约判据（模块出口契约分散入各 `*.Contracts`）由 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md)
 > 修订为 SDK 单一引用面；内部模块边界判据继续有效。
 >
-> 程序集目标态 = 15：Host/Core + 5 业务 runtime（Programs/Shell/Theme/Wheel/Gestures）+ S6 Dialogs + S1 Icons + 对应 `*.Contracts`。现状正典：`docs/architecture/assemblies.md`（§2/§3）。
+> 现行程序集形态与依赖方向的正典：`docs/architecture/assemblies.md`（§2/§3）。
 
 ## 动机
 
@@ -37,7 +37,7 @@
 
 ## Decision
 
-1. **程序集目标态 = 15**：现 8 + Programs.Contracts / Dialogs.Contracts / Theme.Contracts / Wheel.Contracts / Gestures.Contracts + StarPie.Icons.Contracts / StarPie.Icons。部分推翻早期“7/8 程序集目标态”的物理落点表述（历史见 ADR-0016 及已删除的中间 ADR）；批次历史与分层动机不回开，以本 ADR 与 assemblies.md 为准。
+1. **程序集目标态 = 15**（被 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 决策 7 修订：现行程序集形态见 `assemblies.md` §2）：现 8 + Programs.Contracts / Dialogs.Contracts / Theme.Contracts / Wheel.Contracts / Gestures.Contracts + StarPie.Icons.Contracts / StarPie.Icons。部分推翻早期“7/8 程序集目标态”的物理落点表述（历史见 ADR-0016 及已删除的中间 ADR）；批次历史与分层动机不回开，以本 ADR 与 assemblies.md 为准。
 2. **契约归属判据**：模块出口契约随**实现方模块**入其 `*.Contracts`；共享件出现第二消费方族时——若属全局机制入内核，若属某模块出口契约下沉该模块 Contracts。
 3. **契约归属判据的落地**：模块出口契约随实现方下沉其 `*.Contracts`。各契约具体承载哪些类型、
    现行落在哪个程序集，见 [assemblies.md](../architecture/assemblies.md) §2/§3——本 ADR 不复制类型清单。

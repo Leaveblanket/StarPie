@@ -12,18 +12,26 @@ StarPie/
 ├── StarPie.slnx                   # 解决方案（登记全部工程；构建/测试入口）
 ├── Directory.Build.props          # 统一构建属性（TFM/可空性/隐式 using/分析器级别/根命名空间）
 ├── Directory.Packages.props       # 中央包管理（包版本唯一集中处；csproj 不写版本）
+├── AGENTS.md                      # agent 入口约定（技能、issue、提交、架构文档路由）
+├── CONTEXT.md                     # 领域术语词汇表
+├── CONTRIBUTING.md                # 贡献指南（环境准备、dev 实例、提交流程）
+├── global.json                    # SDK 基线固定 + 测试运行平台（MTP）
+├── scripts/                       # 工具脚本：e2e 运行器 run-e2e.ps1、审核清单签名 sign-review-catalog.ps1
 ├── StarPie.Ui/             # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口）：组合根、宿主壳窗口、导航运行时、外观聚合页
 │   ├── App.xaml / App.xaml.cs     # 宿主生命周期：单实例、异常、启动/退出编排
 │   ├── ShellHost.cs               # 常驻壳层：Run/Dispose、托盘、语言资源、退出协调、设置台按需创建与释放
 │   ├── SettingsConsole.cs         # 设置台租户：按需创建、关闭即销毁（主窗口 + 导航区/壳区 VM 树）
 │   ├── Composition.cs             # DI 组合根（唯一）：三阶段（贡献者有序清单注册 → BuildServiceProvider → 解析 + 设置台会话工厂）
 │   ├── DevInstance.cs             # 开发实例标记：Debug 构建即开发实例（按构建配置编译期定死，判定真相在内核 AppDataPaths）；本类只承担可见标识
+│   ├── SingleInstanceRestore.cs   # 单实例重激活窗口消息：置前实例投递给主框架，由 WndProc 走 WPF 显示路径自恢复（纯 ShowWindow 不更新 IsVisible 状态）
+│   ├── TestInstanceExit.cs        # 测试实例退出窗口消息：e2e 运行器以此请求被测进程走真实退出路径，取代硬杀（避免幽灵托盘图标）
 │   ├── Adapters/                  # Ui 侧 WPF 适配器：DispatcherSaveDebouncer（实现 Host 内核的落盘防抖接缝）、AppThemePaletteManager（实现内核端口 IThemeApplier）
-│   ├── PluginHosting/             # P3：插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
+│   ├── PluginHosting/             # 插件 UI 托管（资产登记表、每插件资源根、视图/窗口/命令/菜单/定时器/动画/订阅托管、UI 线程释放编排、泄漏验证器）
 │   ├── Modules/                   # 统一注册管线：ICompositionContributor + BuiltInContributors（内置有序清单）+ HostCore/HostPage 贡献者；M4：ThemeContributor；M2：WheelContributor；M1：GesturesContributor + GesturesPageTemplates.xaml；M5：ShellContributor + ShellPageTemplates.xaml；HostCore：HostCoreContributor + HostCorePageTemplates.xaml；S6：DialogsContributor
 │   ├── AssemblyInfo.cs            # 程序集元数据
 │   ├── GlobalUsings.cs            # 工程级全局 using
 │   ├── StarPie.Ui.csproj          # Ui 集工程文件（目录/文件名 StarPie.Ui，程序集名仍为 StarPie）
+│   ├── runtimeconfig.template.json # 运行时配置模板：System.GC.HeapHardLimit = 256 MiB（内存常驻约束）
 │   ├── Properties/
 │   │   └── DesignTimeResources.xaml  # 设计期资源锚（仅设计期合并，见 design-time-preview.md）
 │   ├── assets/
@@ -57,6 +65,10 @@ StarPie/
 │       └── Wheel/                 # M2：RadialWindow.xaml(.cs)
 ├── StarPie.Sdk/                    # SDK 集（net10.0；零 WPF 零第三方包）
 │   ├── StarPie.Sdk.csproj         # 零 ProjectReference（引用面只有平台程序集，见 plugins.md §2）
+│   ├── Abstractions/              # 插件入口契约：IPlugin 与 IPluginContext 宿主服务面
+│   ├── Compatibility/             # AbiVersion 版本串解析与 headless SdkAbi
+│   ├── Events/                    # 插件事件契约：IPluginEvents
+│   ├── Manifest/                  # plugin.json 纯数据模型
 │   ├── Models/                    # 稳定 DTO 与 WPF-free 值类型：AppConfig/WheelProfile/ActionItem/CustomColorPreset/ColorMath/GesturePoint
 │   ├── Services/
 │   │   ├── AppHostDelegates.cs    # 宿主回调委托包契约（Host 组合根注册单例、ShellHost 回填；契约名不随类改名）
@@ -94,8 +106,13 @@ StarPie/
 │   ├── Actions/                   # M1 动作路由纯函数：ActionRouting + ActionRoute/KeyStroke/SystemCommand，命名空间 StarPie.Actions
 │   ├── Configuration/             # S2：IConfigService/JsonConfigService、ISaveDebouncer/AppDataPaths、SettingsSaveOrchestrator，命名空间 StarPie.Configuration
 │   ├── Localization/              # S3：ILocalizationService/LocalizationService + Strings*.resx（四语言），命名空间 StarPie.Localization
-│   └── ShellIntegration/          # M5：AutostartRegistry（HKCU Run 注册表，[SupportedOSPlatform("windows")]）+ MemoryOptimizer（纯托管 GC 收敛），命名空间 StarPie.ShellIntegration
-└── StarPie.Tests/          # xUnit 单测（显式引用四集，不依赖传递引用）
+│   ├── ShellIntegration/          # M5：AutostartRegistry（HKCU Run 注册表，[SupportedOSPlatform("windows")]）+ MemoryOptimizer（纯托管 GC 收敛），命名空间 StarPie.ShellIntegration
+│   ├── HostServices/              # 插件可见宿主服务实现：PluginLog/PluginEvents/PluginEventPump/PluginHostContext/PluginServiceScope（每插件一个作用域，见 plugin-contracts.md §4）
+│   └── PluginRuntime/             # 插件运行时：Discovery/Manifest/Admission/State/Hosting/Loading/Unloading/Lifecycle/Registry/Diagnostics/Ui（可 headless 构造，见 plugins.md）
+├── StarPie.Tests/          # xUnit 单测（显式引用四集，不依赖传递引用）
+├── docs/                          # 文档体系：入口 architecture.md、叶子 architecture/、决策记录 adr/、工作流正典 agents/
+├── plugins/                       # 插件包与示例：src/ 随包插件、samples/ 最小示例、review-catalog.json(.sig) 审核清单
+└── tests/                         # pywinauto e2e（不在本文档体系展开；运行器 scripts/run-e2e.ps1）
 ```
 > 程序集归属：目录名在所属工程内各自保持“命名空间 = 物理目录”（跨程序集共享同一棵
 > `StarPie.*` 命名空间树）；各程序集的承载与依赖方向见 [assemblies.md](assemblies.md) §2/§3，
@@ -231,7 +248,7 @@ Ui 集工程根（`StarPie.Ui/`）：
   `CustomIconStore`）、`Programs/`（内置来源 `ProgramScanner`、能力契约/聚合
   `ProgramSourceCapability`/`ProgramSourceAggregator`、`ShortcutResolver`）、`Themes/`（`ThemeEngine`
   主题引擎）、`Ports/`（`IThemeApplier` 等宿主→Ui 端口）、`Wheel/`（`WheelPalette*` 配色目录与
-  解析）、`Gestures/`（手势内核）与 `Actions/`（动作路由纯函数）以及工程级
+  解析）、`Gestures/`（手势内核）、`Actions/`（动作路由纯函数）与 `HostServices/`（插件可见宿主服务实现与每插件作用域）以及工程级
    `GlobalUsings.cs`；插件面落点 `PluginRuntime/`（`Discovery/`、`Manifest/`、`Admission/`、
    `State/`、`Hosting/`、`Loading/`、`Unloading/`、`Lifecycle/`、`Registry/`、`Diagnostics/`——
    插件发现/清单校验/准入/宿主状态/宿主侧运行时（启用装载、停用再启用、重载、更新与彻底移除）/collectible ALC 装载与

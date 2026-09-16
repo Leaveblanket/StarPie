@@ -56,7 +56,7 @@
 
 ## Decision
 
-1. **文档级模块正名**：壳层界面主题子系统在架构文档中称「界面主题模块」；代码标识符（`IThemeService`/`AppThemePaletteManager`/`Services/Shell`/`Views/Styles/Themes/*.xaml`）与 CONTEXT 领域术语不改；不建立「主题配色模块」伞形类别。
+1. **文档级模块正名**：壳层界面主题子系统在架构文档中称「界面主题模块」；代码标识符（`IThemeService`/`AppThemePaletteManager`/`Services/Shell`/`StarPie.Ui/Themes/*.xaml`）与 CONTEXT 领域术语不改；不建立「主题配色模块」伞形类别。
 2. **归类判据**：模块归属 = 运行时效用/消费方；轮盘配色与界面主题各自独立，互不隶属。
 3. **轮盘配色归属**：属轮盘模块；模块级并入、类型级分离——配色目录（系统预设数据）与解析器独立成类型，渲染器工厂与风格渲染器保持独立；不向 `Themes/*.xaml` 添加轮盘 key；不扩展 `IThemeService` 托管轮盘配色状态。
 4. **轮盘配色能力边界**：配置数据 + 解析 + 设置编排；画刷构建留在视图/渲染层，Models 保持 WPF-free，解析输出 hex/`RgbColor` 值。

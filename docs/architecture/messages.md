@@ -17,10 +17,12 @@
 ## 关键流程
 
 1. `Messages.cs` 放跨模块协调消息：`DebouncedSaveRequestedMessage`/`ImmediateSaveRequestedMessage`
-   （保存语义见 [config.md](config.md)）、`ConfigImportedMessage`、`MinimizedToTrayMessage`、
+   （保存语义见 [config.md](config.md)）、`ConfigImportedMessage`、`MinimizedToTrayMessage`/`RestoredFromTrayMessage`、
    `PageConfigReloadedMessage`、`AppThemeChangedMessage`（主题应用语义见
-   [interface-theme.md](interface-theme.md)）。
-2. `Notices.cs` 放非 messenger 的跨层载体（`NoticeKind`/`NoticeRequest`），供托盘气泡等通知使用。
+   [interface-theme.md](interface-theme.md)）、`AppearancePreviewInvalidatedMessage`、
+   `BlacklistEntryAddedMessage` 与 `GeneralNoticeRequestedMessage`。
+2. `Notices.cs` 放非 messenger 的跨层载体（`NoticeKind`/`NoticeRequest`）：由 `GeneralNoticeRequestedMessage`
+   带到设置页并映射为弹窗；托盘气泡走 `AppHostDelegates.ShowTrayBalloonTip`，与本载体无关。
 3. 消息命名遵循 [layout.md](layout.md) §3 的消息命名表（`XxxRequestedMessage`/`XxxChangedMessage`/…）；
    跨页协调走 IMessenger，同页状态不得用 messenger 替代绑定（见 [layering.md](layering.md)）。
 

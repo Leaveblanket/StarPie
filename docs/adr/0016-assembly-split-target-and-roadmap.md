@@ -1,6 +1,6 @@
 # 程序集化目标态与分批执行：Host + Core + 业务模块程序集
 
-> Status: Active（目标态被 0023 演进）
+> Status: Active（目标态被 0023、0027 演进）
 >
 > 程序集目标态历经演进：7 程序集 → 8（`StarPie.Dialogs` 成集）→ 15（契约下沉 `*.Contracts`、S1 成集，[ADR-0023](./0023-module-contracts-hard-boundary-and-core-narrowing.md)）；期间导航运行时归 Host、共享 UI 基建去共享化。**现状程序集地图与依赖方向以 `docs/architecture/assemblies.md` §2/§3 为准**；本 ADR 记录程序集化的起因、基线目标与仍有效原则，中间态细节不回开。
 

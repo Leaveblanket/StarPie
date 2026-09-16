@@ -32,7 +32,7 @@
 | 资源字典（每插件一个资源根） | `IPluginUiContext.MergeResourceDictionary` | plugins.md §7.3 |
 | 定时器 / 动画（宿主签发与中介） | `IPluginUiContext.CreateTimer` / `CreateAnimation` | plugins.md §7.2 |
 | 设置表单 | 清单带 `settings.schema.json`（宿主渲染）或注册设置区块自绘 | plugins.md §10 |
-| 持久化 | 插件配置段经 `IPluginConfig` 读写 `config.json` 的 `plugins.<id>`；插件数据目录由宿主代管 | plugins.md §9 |
+| 持久化 | 插件配置段 `config.json` 的 `plugins.<id>` 与插件数据目录 `plugin-data/<id>/` 均由宿主代管（插件侧读写面 `IPluginConfig` 规划中，尚未落地） | plugins.md §9 |
 
 **不能做什么**（不支持列表，命中即拒绝装载或隔离）、**受支持特性的卸载判据**，以及两组硬约束
 （`StarPie.Sdk.Wpf` / HostServices），都在 [plugin-contracts.md](plugin-contracts.md) §2–§4——
