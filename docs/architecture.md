@@ -74,7 +74,7 @@ StarPie/
 ├── docs/
 │   ├── architecture.md          # 本文（入口）
 │   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0047，编号保留历史断档）
+│   ├── adr/                     # 决策记录（ADR-0001 ~ 0048，编号保留历史断档）
 │   ├── agents/                  # Agent 工作流文档
 ├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
 ├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）

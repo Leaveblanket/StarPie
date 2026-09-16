@@ -1,6 +1,6 @@
 ﻿# 常驻壳层与瞬态设置台租户：托盘态只保留托盘与手势，设置台按需创建并随关闭释放
 
-> Status: Active
+> Status: Active（决策 3 的作用域要求被 [ADR-0048](0048-theme-state-and-language-dictionary-residency.md) 修订）
 >
 > 本文修订 [ADR-0003](0003-application-host-restructure.md) 与
 > [ADR-0011](0011-composition-apphost-split.md) 对宿主编排的单对象假设：`AppHost` 承担的两条生命周期
