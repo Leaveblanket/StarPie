@@ -33,7 +33,8 @@
 2. **XAML 声明式文案**：宿主 `ShellHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护
    Application 级静态 `LanguageDictionary`（MergedDictionaries 中仅一份，切语原地 `Clear` 重建，数据源为
    `EnumerateCurrentEntries()`；键是 `{DynamicResource}` 的源）——**静态文案一律声明式，
-   不 code-behind 回填**。
+   不 code-behind 回填**。该字典维持 Application 级单份、不随设置台作用域
+   （[ADR-0048](../adr/0048-theme-state-and-language-dictionary-residency.md)）。
 3. **文案分类**（术语见 `CONTEXT.md`）：声明式（`{DynamicResource}`）/ 驻留（长期 VM 持有、
    语言切换时刷新：壳层 `ShellViewModel.WindowTitle`（H1 壳窗口，见 [shell.md](shell.md)）/
     导航标题（`MainViewModel`——导航运行时归 Host，见 [navigation.md](navigation.md)）、

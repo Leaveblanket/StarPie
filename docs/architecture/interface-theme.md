@@ -58,7 +58,8 @@ M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/�
 3. **宿主编排（H1 放行面）**：`ShellHost` 只编排（宿主流程见 [host.md](host.md)）：构造时把
    Ui 侧调色板适配器接到主题服务（`AttachApplier`）；初始主题在设置台开窗时经
    `MainView.ApplyAppTheme(interfaceTheme.AppTheme)`（`SetTheme` + 本窗口 DWM 应用，子 VM 从
-   设置台会话作用域取），`Run()` 内 `EnableSystemThemeTracking()` 启动系统跟随（进程级主题状态常驻）。
+   设置台会话作用域取），`Run()` 内 `EnableSystemThemeTracking()` 启动系统跟随（进程级主题状态常驻，
+   作用域判据见 [ADR-0048](../adr/0048-theme-state-and-language-dictionary-residency.md)）。
 4. **界面主题设置面（ADR-0014 决策 6/7）**：`InterfaceThemeSettingsViewModel`
    （`StarPie.Ui/ViewModels/Pages`，设置台会话作用域，由 `ThemeContributor.RegisterServices`
    注册、注入外观聚合 VM 暴露为 `InterfaceTheme`）；选项目录与常量同源，读值经主题名目录归一
