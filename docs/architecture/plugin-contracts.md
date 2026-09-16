@@ -28,7 +28,7 @@
 | 6 | 宿主负责创建、记账、显示、清理 | 创建时机由宿主在 UI 线程决定，产物先入 `PluginUiAssetRegistry` 再进视觉树 | 未登记资产 = 泄漏残留 → `Quarantined` |
 | 7 | `StarPie.Host` 不引用 `StarPie.Sdk.Wpf` | Host 工程引用白名单 + `BoundaryTests`；`ui.sdk`/`ui.entryType` 的 **UI ABI 校验归 `StarPie.Ui/PluginHosting`**，Host 侧只做纯字符串/数据校验 | 编译期/边界测试拦截；校验错位 = 装载管线缺陷 |
 | 8 | UI SDK ABI additive-only | 与 `StarPie.Sdk` 同政策：接受同主版本、次版本不高于宿主；破坏性变更 = 新描述符/新接口 | 不匹配 → 拒绝装载 |
-| 9 | 插件界面文案来源与失败可见 | 描述符文案成员按「`DisplayName` 字面量 → `TitleKey` 宿主 resx 键」单一优先级解析（解析点收成一个共用件），两者不可同时为空；解析不到时按字面量显示并在**注册期**告警（告警经 UI 装载结果回传宿主日志，自动带 plugin id） | 解析不到不静默；插件自持文案表与插件面取词属规划（见 §9、[ADR-0046](../adr/0046-plugin-surface-copy-source.md)） |
+| 9 | 插件界面文案来源与失败可见 | 描述符文案成员按「`DisplayName` 字面量 → `TitleKey` 宿主 resx 键」单一优先级解析（解析点收成一个共用件），两者不可同时为空；解析不到时按字面量显示并在**注册期**告警（告警经 UI 装载结果回传宿主日志，自动带 plugin id） | 解析不到不静默（按字面量显示 + 注册期告警）；插件自持文案表与插件面取词见 §6、[ADR-0046](../adr/0046-plugin-surface-copy-source.md) |
 
 ## 3 受支持特性白名单与不支持列表（卸载判据）
 
@@ -73,12 +73,20 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 ## 5 ABI、版本与信任
 
 - **ABI**：`StarPie.Sdk` 与 `StarPie.Sdk.Wpf` 同政策：主.次版本；宿主接受同主版本且次版本不高于宿主的插件；接口 additive-only，破坏性变更 = 新接口 + 新能力 id/新描述符。
-- **准入（ADR-0029）**：`as-built：` 仅第一方随包插件与**开发者模式**插件放行（默认关闭的显式开关 + 全信任风险披露）；`规划：` 以签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验）作准入判据，未命中即 `Rejected`；不做默认侧载放行。
-  as-built：`WinTrustSignatureVerifier`（WinVerifyTrust）对生效候选包的**入口程序集**做校验——可信链 → 可信；有签名但链不可信 → 提取签名主体与发布者指纹（证书 SHA-256），供「受 pin 的发布者证书」路径判定；无签名/不可解析 → Unsigned；**内容摘要与签名不符（篡改）一律不可信，pin 不救**。WinVerifyTrust 的证书级吊销检查（CRL）按 WTD_REVOKE_NONE 关闭——证书吊销不在撤销通道内，撤销走清单（下条）。内置插件不走签名闸（开发构建无签名）。
-- **审核清单（as-built）**：安装目录 `plugins/` 子目录下 `review-catalog.json` + 分离 RSA-SHA256 签名（`review-catalog.json.sig`，base64），公钥 pin 在宿主侧（`SignedPluginReviewCatalog`），文件可离线校验。白名单按 **(pluginId, version) 精确命中**——清单未列入的新版本不因旧版本已审核而放行。清单被篡改、验签失败、文件对缺失或公钥 pin 为空一律**降级为空清单**：保守拒绝，宁可拒绝不误放行（ADR-0029 降级决策）。更新通道 = 首方私钥重签（`scripts/sign-review-catalog.ps1`，私钥不入仓库）后替换文件对并重启；随仓库清单自带 selfcheck 条目由 xUnit 防漂移。**该清单通道已 as-built 落地**（首期仍无第三方条目——第三方插件一律 `Rejected`，开发者模式为唯一例外）；开发者示例与部署路径见 [plugin-dev-handbook.md](plugin-dev-handbook.md) 与 `plugins/samples/`。
-- **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即拒绝装载（管理面显示 `Rejected` 与撤销原因）。用户启停意图不被翻转——撤销解除后插件自动回到可装载；显式「停用」是用户另做的独立决策。
-- **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。「内置」= 命中宿主内置 id 清单的第一方随包插件，见 §3。签名主体随扫描进宿主状态与启动报告（`SignatureSubject`），供诊断与撤销取证。
+- **准入闸门**：按「内置清单 → 审核清单（含签名）→ 开发者模式 → 拒绝」顺序判定，未命中即 `Rejected`；不做默认侧载放行，也不提供"忽略警告继续"的一次性放行（ADR-0029）。
+  - **内置**：命中宿主内置 id 清单（`PluginAdmissionPolicy.DefaultBuiltInPluginIds`）的第一方随包插件；安装目录位置本身不是信任依据，未登记的包按未审核处理。
+  - **审核清单**：安装目录 `plugins/` 子目录下 `review-catalog.json` + 分离 RSA-SHA256 签名（`review-catalog.json.sig`，base64），公钥 pin 在宿主侧（`SignedPluginReviewCatalog`），文件可离线校验。白名单按 **(pluginId, version) 精确命中**——清单未列入的新版本不因旧版本已审核而放行。清单内容以 `plugins/review-catalog.json` 为准。
+  - **签名校验**：`WinTrustSignatureVerifier`（WinVerifyTrust）对生效候选包的**入口程序集**做校验——可信链 → 可信；有签名但链不可信 → 提取签名主体与发布者指纹（证书 SHA-256），供「受 pin 的发布者证书」路径判定；无签名/不可解析 → Unsigned；**内容摘要与签名不符（篡改）一律不可信，pin 不救**。证书级吊销检查（CRL）按 WTD_REVOKE_NONE 关闭——证书吊销不在撤销通道内，撤销走清单。内置插件不走签名闸（开发构建无签名）。
+  - **清单降级**：清单被篡改、验签失败、文件对缺失或公钥 pin 为空一律**降级为空清单**：保守拒绝，宁可拒绝不误放行（ADR-0029 降级决策）。
+  - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即拒绝装载（管理面显示 `Rejected` 与撤销原因）。用户启停意图不被翻转——撤销解除后插件自动回到可装载；显式「停用」是用户另做的独立决策。
+  - **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态，拒绝原因在管理页诊断面板可查；签名主体随扫描进宿主状态与启动报告（`SignatureSubject`）。
+- **维护者流程（清单更新通道）**：编辑 `plugins/review-catalog.json`（加 (id, version) 或撤销条目）→ `scripts/sign-review-catalog.ps1` 重签（私钥不入仓库，默认 `~/.starpie-keys/review-catalog-private.pem`，用法在脚本头部）→ 替换安装目录 `plugins/` 下的清单文件对 → 重启宿主。旋转密钥 = 新密钥对重签清单 + 更新宿主 pin（`SignedPluginReviewCatalog.FirstPartyPublicKeyPem`，需发布宿主更新）。随仓库清单自带 `starpie.catalog.selfcheck` 条目，xUnit（`ReviewCatalogPinTests`）验证 pin 与清单未漂移；**该 id 是保留标识，不对应真实插件，也不接受插件以它注册**。
 - **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（另起 ADR）。**ALC 也不是 WPF 宿主内任何插件的卸载边界**：宿主框架缓存使程序集留在进程内不可回收，卸载语义见 ADR-0030、ADR-0035 与本文 §3。
+
+## 6 目标态与差距
+
+- `规划：` **审核清单对第三方开放**——列入 (id, version) 且签名可信即放行（闸门与验签的 as-built 现状见 §5）；未命中清单的第三方包在开发者模式关闭时一律 `Rejected`。
+- `规划：` **插件自持文案表与插件面取词**（`strings/<culture>.json` + `IPluginContext.Localization`）——正典在 [plugins.md](plugins.md) §11，本文不复制。
 
 ## 参见
 
