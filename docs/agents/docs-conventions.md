@@ -155,6 +155,7 @@ CommandManager  # WPF 命令路由静态类
 ContextMenu  # WPF 控件类
 CreateDesktop  # Win32 API（隐藏桌面）
 DwmFlush  # Win32 dwmapi 调用
+DynamicProxyGenAssembly2  # Castle DynamicProxy 生成的代理程序集名（mocking 框架内部，非本仓类型）
 EnterContextualReflection  # AssemblyLoadContext API
 ICommandSource  # WPF 接口
 InternalsVisibleTo  # .NET 程序集特性

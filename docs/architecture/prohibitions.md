@@ -9,7 +9,7 @@
 - 不得改变现有 `config.json` 字段语义；新字段必须带默认值。
 - 不得新增“对话框第二种形态”或绕过 `IDialogService` new 对话框；新对话框必须同名配对（`InputDialog` 例外不复制）。
 - 不得在源码根新建未登记的目录/杂项（如根级 `Controls/`、HTML 原型）。
-- 不得引入 `InternalsVisibleTo` 或 mocking 框架作为绕过测试边界的手段。
+- 不得用 `InternalsVisibleTo` 或 mocking 框架绕过测试边界——前者把 internal 暴露给测试，后者用替身顶掉被测对象本身；替身的可用范围见 [testing.md](testing.md)。
 - 不得用 messenger 替代同页绑定；不得把 ADR-0009 白名单 code-behind “好心”迁进 ViewModel（反之亦然）。
 
 分层边界细则见 [layering.md](layering.md)；新功能流程见 [extending.md](extending.md)。

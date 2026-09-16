@@ -41,6 +41,7 @@
 | 插件可用面（SDK.Wpf 硬约束 / 特性白名单与不支持列表 / HostServices 硬约束 / ABI 与信任） | [plugin-contracts.md](architecture/plugin-contracts.md) |
 | 插件开发（开发者视角：示例、准入、上手指引） | [plugin-dev-handbook.md](architecture/plugin-dev-handbook.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
+| 测试分层边界 / 检查分类 / 写作与增删口径 | [testing.md](architecture/testing.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
 ## 3. 技术栈
@@ -53,7 +54,7 @@
 - `CommunityToolkit.Mvvm`：MVVM 唯一框架（`ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`、`WeakReferenceMessenger`）。
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
-- 单元测试：`StarPie.Tests`（xUnit v3，运行平台 Microsoft.Testing.Platform，直接 `new` + 手写替身，不用 mocking 框架）。
+- 单元测试：`StarPie.Tests`（xUnit v3，运行平台 Microsoft.Testing.Platform；mocking 用 NSubstitute）；替身形态与测试写作口径见 [testing.md](architecture/testing.md)。
 - e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务见 [git-commits](agents/git-commits.md)。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
 
@@ -67,7 +68,7 @@
 仓库目录树（物理路径正典）见 [layout.md](architecture/layout.md) §1；程序集地图与依赖方向见
 [assemblies.md](architecture/assemblies.md) §2/§3——本文不复制。
 
-测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
+测试约定（落位与命名、替身形态、分层边界、写作与增删口径）见 [testing.md](architecture/testing.md)——本节不复制。
 
 ## 5. 分层速览
 
