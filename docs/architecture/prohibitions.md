@@ -11,6 +11,5 @@
 - 不得在源码根新建未登记的目录/杂项（如根级 `Controls/`、HTML 原型）。
 - 不得引入 `InternalsVisibleTo` 或 mocking 框架作为绕过测试边界的手段。
 - 不得用 messenger 替代同页绑定；不得把 ADR-0009 白名单 code-behind “好心”迁进 ViewModel（反之亦然）。
-- 不得把 ADR 推理复制进规范文档；规范文档只保留规则与引用。
 
 分层边界细则见 [layering.md](layering.md)；新功能流程见 [extending.md](extending.md)。

@@ -222,7 +222,7 @@
 
 ### D3 MainViewModel / ShellViewModel 拆分（ADR-0016）
 
-归属：H1 宿主壳（与 R4/R9 同判据）。此前按"主归属 S5 导航 + 壳层职责成员借调 M5"的类型级双职责处理，该口径已废。
+归属：H1 宿主壳（与 R4/R9 同判据）。
 
 ADR-0016：`MainViewModel` 收敛为纯导航；壳成员迁出为
 `ShellViewModel`（`WindowTitle`/`Save()`，留 Host 壳窗口，与 R4 同判据；进程退出态归壳层）；

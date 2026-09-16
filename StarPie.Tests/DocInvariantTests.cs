@@ -7,12 +7,13 @@ using System.Text.RegularExpressions;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 架构文档体系的不变量：把 <c>docs/architecture.md</c> §6 的维护义务变成机械断言。
-/// 覆盖五条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
-/// 叶子不残留完成态流水与日期快照、源码注释不含变更史编号（见 comments.md 禁止清单）。
+/// 架构文档体系的不变量：把《docs/agents/docs-conventions.md》的口径与入口 §6 的维护义务变成机械断言。
+/// 覆盖六条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
+/// 叶子不残留完成态流水/等号标记与日期快照（模式读文约）、layout 树路径在磁盘存在、
+/// 源码注释不含变更史编号（见 comments.md 禁止清单）。
 /// </summary>
 /// <remarks>
-/// 断言失败时先修文档，不要放宽断言：这四条正是过去靠人记而反复失守的部分
+/// 断言失败时先修文档，不要放宽断言：这些正是过去靠人记而反复失守的部分
 /// （13 篇 ADR 瘦身后留下 12 处指向不存在决策号的引用、入口附录被删后 <c>agents/domain.md</c> 长期指向不存在的章节）。
 /// </remarks>
 public sealed class DocInvariantTests
@@ -29,11 +30,11 @@ public sealed class DocInvariantTests
         ".git", "bin", "obj", ".venv", ".scratch", ".codegraph", "artifacts", "node_modules", "TestResults",
     };
 
-    /// <summary>叶子不得出现的完成态流水词（§6.7：完成即删，历史归 git 与 issue）。</summary>
-    private static readonly string[] CompletedStateWords =
-    {
-        "已删除", "已移除", "已撤销", "已清零", "已退役", "已落地",
-    };
+    /// <summary>文约文件：机检口径与豁免清单的正典（入口 §6 指向它；词表增删只改它，不改本文件）。</summary>
+    private static string ConventionsFile => Path.Combine(DocsRoot, "agents", "docs-conventions.md");
+
+    /// <summary>文约中承载机检 ERE 模式的小节标题。</summary>
+    private const string PatternsSection = "## 机检口径";
 
     private static readonly Regex AdrMarkdownReference =
         new(@"(\d{4})-[a-z0-9][a-z0-9-]*\.md", RegexOptions.Compiled);
@@ -161,6 +162,7 @@ public sealed class DocInvariantTests
     [Fact]
     public void 叶子不残留完成态流水与日期快照()
     {
+        string[] patterns = ReadConventionsPatterns();
         var offenders = new List<string>();
         foreach (string leaf in Directory.EnumerateFiles(LeafDir, "*.md"))
         {
@@ -168,9 +170,9 @@ public sealed class DocInvariantTests
             foreach (string line in File.ReadLines(leaf))
             {
                 lineNumber++;
-                foreach (string word in CompletedStateWords.Where(word => line.Contains(word, StringComparison.Ordinal)))
+                foreach (string pattern in patterns.Where(pattern => Regex.IsMatch(line, pattern)))
                 {
-                    offenders.Add($"{Path.GetFileName(leaf)}:{lineNumber} 完成态词「{word}」");
+                    offenders.Add($"{Path.GetFileName(leaf)}:{lineNumber} 流水/标记模式「{pattern}」");
                 }
 
                 if (DateSnapshot.IsMatch(line))
@@ -182,8 +184,108 @@ public sealed class DocInvariantTests
 
         Assert.True(
             offenders.Count == 0,
-            "叶子不记录已落地/已清零/批次流水与日期快照（§6.7）：" + Environment.NewLine
+            "叶子不记录完成态流水、等号式状态标记与日期快照（文约 §2）：" + Environment.NewLine
                 + string.Join(Environment.NewLine, offenders));
+    }
+
+    [Fact]
+    public void layout树中的路径在磁盘存在()
+    {
+        string treeFile = Path.Combine(LeafDir, "layout.md");
+        var segments = new List<string>();
+        var offenders = new List<string>();
+        int checkedCount = 0;
+        bool inTreeSection = false;
+        bool insideFence = false;
+
+        foreach (string line in File.ReadLines(treeFile))
+        {
+            if (line.StartsWith("## ", StringComparison.Ordinal))
+            {
+                inTreeSection = line.StartsWith("## 1.", StringComparison.Ordinal);
+                insideFence = false;
+                continue;
+            }
+
+            if (!inTreeSection)
+            {
+                continue;
+            }
+
+            if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
+            {
+                insideFence = !insideFence;
+                continue;
+            }
+
+            if (!insideFence)
+            {
+                continue;
+            }
+
+            Match match = Regex.Match(line, @"^((?:[│ ]   )*)(?:├── |└── )?(.*)$");
+            int depth = match.Groups[1].Value.Length / 4;
+            string namePart = match.Groups[2].Value.Split('#')[0].Trim().TrimEnd('/');
+            if (namePart.Length == 0)
+            {
+                continue;
+            }
+
+            segments = segments.Take(depth).ToList();
+            string parent = string.Join("/", segments);
+            foreach (string rawName in namePart.Split(" / ", StringSplitOptions.RemoveEmptyEntries))
+            {
+                string name = rawName.Trim();
+                if (name == "StarPie")
+                {
+                    continue;
+                }
+
+                string path = parent.Length == 0 ? name : $"{parent}/{name}";
+                checkedCount++;
+                string fullPath = Path.Combine(RepoRoot, path);
+                if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
+                {
+                    offenders.Add(path);
+                }
+
+                segments.Add(name);
+            }
+        }
+
+        Assert.True(checkedCount > 0, "未能从 layout.md §1 解析出任何路径——树结构或小节标题变了？");
+        Assert.True(
+            offenders.Count == 0,
+            "§1 树是物理路径正典：树中路径必须在磁盘存在（文约 §1：失真优先于重复）：" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    /// <summary>读文约「机检口径」小节围栏块里的 ERE 模式（<c>#</c> 行为注释）。</summary>
+    private static string[] ReadConventionsPatterns()
+    {
+        string[] lines = File.ReadAllLines(ConventionsFile);
+        int index = Array.FindIndex(lines, line => line.StartsWith(PatternsSection, StringComparison.Ordinal));
+        Assert.True(index >= 0, $"文约缺少「{PatternsSection}」小节：{Path.GetRelativePath(RepoRoot, ConventionsFile)}");
+
+        while (index < lines.Length && !lines[index].TrimStart().StartsWith("```", StringComparison.Ordinal))
+        {
+            index++;
+        }
+
+        Assert.True(index < lines.Length, "文约「机检口径」小节缺少围栏块");
+        index++;
+        var patterns = new List<string>();
+        for (; index < lines.Length && !lines[index].TrimStart().StartsWith("```", StringComparison.Ordinal); index++)
+        {
+            string line = lines[index].Trim();
+            if (line.Length > 0 && !line.StartsWith('#'))
+            {
+                patterns.Add(line);
+            }
+        }
+
+        Assert.True(patterns.Count > 0, "文约「机检口径」围栏块为空——词表与断言已脱钩");
+        return patterns.ToArray();
     }
 
     /// <summary>现有 ADR 的编号集合（文件名形态为 <c>{编号}-{slug}.md</c>）。</summary>

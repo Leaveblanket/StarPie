@@ -1,4 +1,4 @@
-# 程序集地图与程序集化收尾（目标态 = as-built）
+# 程序集地图（as-built）
 
 > 本文记录程序集化目标态（[ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) +
 > [ADR-0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)）的地图视图：
@@ -10,7 +10,7 @@
 > 注册管线统一为内置贡献者有序清单（§6）；插件面其余能力的推进按 issue 与 [modules.md](modules.md) 跟踪。
 >
 > **程序集现状**：四集（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
-> + 测试工程 + 随包插件工程 `plugins/src/StarPie.Plugin.Programs`（只引 SDK）与 `plugins/src/StarPie.Plugin.SampleUi`（引 SDK + Sdk.Wpf），无旧集残留（划分见 §2）。
+> + 测试工程 + 随包插件工程 `plugins/src/StarPie.Plugin.Programs`（只引 SDK）与 `plugins/src/StarPie.Plugin.SampleUi`（引 SDK + Sdk.Wpf）（划分见 §2）。
 > 代码现状以 §2–§7 与各叶子（`docs/architecture/*.md`）
 > 为准，冲突时叶子优先。概念模块地图与归属裁定见 [modules.md](modules.md)（ADR-0015）。
 
@@ -52,8 +52,8 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   只含平台/WPF 程序集（`SdkWpfBoundaryTests`/`RuntimeNoCrossReferenceTests` 机械断言）。
   本集的导出面是**引用面**（哪些类型可被引用），不等于插件的能力面——插件的可达面定义与守护见
   [plugins.md](plugins.md) §5.1 与 [ADR-0047](../adr/0047-plugin-reachable-surface.md)。
-- 四集不得引用旧集（跨集只经 SDK）：旧 15 集已全部撤销，任何旧集工程引用（含测试工程的
-  传递依赖）都属违规；设计期投影字典随 Ui 集承载（不再有独立壳工程）。
+- 四集不得引用旧集（跨集只经 SDK）：任何旧集工程引用（含测试工程的
+  传递依赖）都属违规；设计期投影字典随 Ui 集承载。
 
 - **归并口径（WPF 亲和件落 Ui）**：`StarPie.Host` 零 WPF 硬约束细化到件——直接构造 WPF 类型
   （如 `WheelGeometry` 的 `Geometry`）、持有 `Application.Current.Dispatcher` 或默认 `MessageBox`
@@ -65,7 +65,7 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   模块 runtime 无跨集过渡边；托底深色探针等宿主能力经组合根注入委托提供，dev 分支等
   构建期判定由内核 `AppDataPaths` 编译期定死（无跨程序集回填）；
   `Ui → 全部`（仅经贡献者清单登记各模块与装配宿主对象，不引用模块内部）。
-- **S1/M3 归并（不再独立成集）**：`IIconAssetService` 驻 `StarPie.Sdk.Wpf`；图标条目类型与
+- **S1/M3 归并**：`IIconAssetService` 驻 `StarPie.Sdk.Wpf`；图标条目类型与
   `.lnk` SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录
   `CustomIconStore` 驻 `StarPie.Host/Icons/`；WPF 图像构造 `IconAssetService` 驻
   `StarPie.Ui/Services/Icons/`（组合内核图标目录与 .lnk 契约）。M3 契约（`IProgramScanner`/
@@ -74,13 +74,13 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   与 `ShortcutResolver` 驻 `StarPie.Host/Programs/`，深扫来源实现驻随包插件
   `plugins/src/StarPie.Plugin.Programs/`。两模块的 DI 注册由 `HostCoreContributor` 登记（无导航页）；
   消费方（Dialogs/Wheel/Gestures）经契约面与内核实现消费，零 runtime 互引。
-- **M1 归并（不再独立成集）**：手势内核（`GestureEngine`/`GestureState`/`GestureReleaseResult`/
+- **M1 归并**：手势内核（`GestureEngine`/`GestureState`/`GestureReleaseResult`/
   `IWindowContext`/`WindowContext`）与动作路由纯函数 `ActionRouting`（+`ActionRoute`/`KeyStroke`/
   `SystemCommand`）分驻 `StarPie.Host/Gestures|Actions/`（零 WPF、可 headless 构造）；
   `MouseHook`/`GestureController`/`ActionExecutorService`/`IActionExecutorService` 驻
   `StarPie.Ui/Services/{Gestures,Actions}/`，两页 VM/View、`SlotViewModel`、热键录制控件与
   `GesturesContributor`+`GesturesPageTemplates.xaml` 驻 Ui；DI 与导航登记随贡献者下放本集。
-- **M4 归并（不再独立成集）**：主题引擎 `ThemeEngine` 与宿主→Ui 端口 `IThemeApplier` 驻
+- **M4 归并**：主题引擎 `ThemeEngine` 与宿主→Ui 端口 `IThemeApplier` 驻
   `StarPie.Host/Themes|Ports/`（零 WPF）；`IThemeService` 实现 `ThemeService`、调色板适配器
   `AppThemePaletteManager`、五套主题字典与主题设置子 VM 驻 `StarPie.Ui`；DI 注册由
   `ThemeContributor` 登记（无导航页）。
