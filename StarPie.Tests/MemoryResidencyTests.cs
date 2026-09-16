@@ -12,6 +12,10 @@ namespace StarPie.Tests;
 /// 记载（Debug 构建可见；Release 构建核对产物 runtimeconfig.json）与编译产物 runtimeconfig.json
 /// 共同承担，本类锁声明面与残留面。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：GC 硬顶是运行期配置，模板写错或产物没并入都不让构建失败，启动也照常成功，
+/// 内存上限只是静默失效；工作集裁剪的符号残留不参与编译与运行，只有全树扫描才看得见。
+/// </remarks>
 public sealed class MemoryResidencyTests
 {
     private static string RepoRoot => FourSetBoundaryProbe.RepoRoot;

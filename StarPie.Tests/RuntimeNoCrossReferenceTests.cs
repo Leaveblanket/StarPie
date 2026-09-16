@@ -14,6 +14,13 @@ namespace StarPie.Tests;
 /// 三集不得引用旧 15 集 runtime（跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核，
 /// 旧集只被 Ui 组合根与测试引用）。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：<see cref="FourSetBoundaryTests"/> 读的是工程文件字面量，而工程文件与实际
+/// 编译产物可以分叉——<c>FrameworkReference</c>、SDK 目标注入的程序集、手抄进 bin 的旧集 DLL
+/// 都不出现在 <c>ProjectReference</c> 里。编译器也只解析「实际用到的类型」：引用一份用不到的
+/// 程序集、产物目录里多一个旧集 DLL、TFM 悄悄加回 windows 平台投影，都照样构建通过，
+/// 只在程序集元数据上留痕。
+/// </remarks>
 public sealed class RuntimeNoCrossReferenceTests
 {
     [Fact]

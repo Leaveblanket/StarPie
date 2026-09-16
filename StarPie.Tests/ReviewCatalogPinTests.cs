@@ -10,6 +10,11 @@ namespace StarPie.Tests;
 /// 首方审核清单的 pin 与随仓库清单的漂移守护：公钥 pin 必须是可用 RSA 公钥，
 /// 随仓库清单必须能用该 pin 验签并命中 selfcheck 条目——清单被篡改或钥匙对漂移时在此失败。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：公钥 pin 与随仓库清单的签名是发布物与消费方之间的约定，没有编译单元承载它；
+/// 且验签失败会降级为空清单（<c>NotListed</c>）而不是抛错——清单被篡改或钥匙对漂移之后，构建、
+/// 启动与准入流程都照常走到「未列名」这条正常分支上，没有一层会报出 pin 已漂。
+/// </remarks>
 public sealed class ReviewCatalogPinTests
 {
     [Fact]

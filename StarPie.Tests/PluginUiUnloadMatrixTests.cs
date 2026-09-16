@@ -50,6 +50,7 @@ public sealed class PluginUiUnloadMatrixTests
 
     private static readonly string PluginPageIdentifier = $"NavPlugin_{PluginId}";
 
+    // --- 装载与登记面 ---------------------------------------------------------------
     [Fact]
     public async Task 装载_四类扩展点与四类中介资产注册就位()
     {
@@ -83,6 +84,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 页与绑定：视图 / 绑定表达式 ------------------------------------------------
     [Fact]
     public async Task 视图_停驻插件页时卸载_回落固定页且视图探针回收()
     {
@@ -170,6 +172,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 窗口与动画：开窗出账 / Storyboard 摘除 -------------------------------------
     [Fact]
     public async Task 窗口_经命令开窗卸载后关闭出账_实例回收()
     {
@@ -243,6 +246,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 资源面：资源字典 / DataTemplate --------------------------------------------
     [Fact]
     public async Task 资源字典_卸载后整根摘除_字典回收()
     {
@@ -317,6 +321,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 运行时资产：定时器 / 事件订阅 ----------------------------------------------
     [Fact]
     public async Task 定时器_先跑后卸_停止且回调与回调目标回收()
     {
@@ -358,6 +363,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 降级判定：ALC 与程序集只记诊断 ---------------------------------------------
     [Fact]
     public async Task ALC存活_降级判定只记诊断不上判()
     {
@@ -396,6 +402,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
+    // --- 负对照：绕过契约的越权注册 -------------------------------------------------
     [Fact]
     public async Task 负对照_绕过契约直并全局资源与自建窗口_隔离并按id摘除()
     {
@@ -454,7 +461,7 @@ public sealed class PluginUiUnloadMatrixTests
         });
     }
 
-    // 装载与导航夹具 ----------------------------------------------------------------------
+    // --- 夹具：真实插件包装载与导航现场 ---------------------------------------------
 
     /// <summary>装载真实 UI 示例插件包：生产清单 → 装载管线（UI 线程注册）→ 活动态。</summary>
     private static async Task<LoadFixture> LoadSampleUiAsync()

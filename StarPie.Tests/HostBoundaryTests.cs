@@ -27,6 +27,11 @@ namespace StarPie.Tests;
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）、<see cref="SdkBoundaryTests"/>（SDK 导出面）
 /// 互补。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：内核导出面白名单与 SDK 面同理，新增 public 类型是 ABI 变更而非编译错误；
+/// 「零旧集 runtime」的签名面、设计期投影字典的落点与资源锚的位置都不参与编译决策——锚多一份、
+/// 指向别处或字典脱离 Ui 集，XAML 都按静默回退处理，只在设计器里悄悄看不到文案。
+/// </remarks>
 public sealed class HostBoundaryTests
 {
     /// <summary>StarPie.Host 的全部导出类型（导出面 = 恰为该清单）。</summary>

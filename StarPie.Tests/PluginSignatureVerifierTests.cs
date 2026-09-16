@@ -7,9 +7,12 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// WinTrustSignatureVerifier 的真实路径：无签名 / 文件缺席的负向结论。
-/// Authenticode 正向路径需真实可信证书签发，CI 无此基建，由受管环境发布流程覆盖；
-/// 判定行为（可信/不可信/pin 的裁决）在 PluginAdmissionPolicyTests 以替身覆盖。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：Authenticode 正向路径需真实可信证书签发，CI 无此基建，由受管环境发布流程
+/// 覆盖；判定行为（可信/不可信/pin 的裁决）在 <see cref="PluginAdmissionPolicyTests"/> 以替身覆盖。
+/// 于是「验签器对真实文件到底返回什么」只剩负向路径能在自动化里钉住。
+/// </remarks>
 public sealed class PluginSignatureVerifierTests : IDisposable
 {
     private readonly string _tempRoot = Directory.CreateTempSubdirectory("starpie-sig-tests").FullName;

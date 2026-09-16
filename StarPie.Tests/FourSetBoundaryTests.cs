@@ -13,6 +13,12 @@ namespace StarPie.Tests;
 /// 归并搬迁的机械化护栏：故意引入违规（Host 引 WPF / Sdk 引第三方包 /
 /// 反向引用 / 发布路径漂移）会被直接测出。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：断言的落点是 csproj 与根 props 的字面量、slnx 的登记行、编译产物形态
+/// （程序集名 / 入口点 / <c>StarPie.exe</c>），以及 CI 工作流与 <c>tests/conftest.py</c> 里的路径串
+/// ——没有一个会被编译单元拒绝。共享属性在工程级复制一份、旧集工程出现在解决方案里、
+/// 发布与 e2e 路径漂移，都能一路构建通过并跑起来，失真的是形态本身，而编译与 CI 只看「过没过」。
+/// </remarks>
 public sealed class FourSetBoundaryTests
 {
     private const string UiProject = @"StarPie.Ui\StarPie.Ui.csproj";

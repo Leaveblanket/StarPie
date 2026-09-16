@@ -5,6 +5,11 @@ using StarPie;
 
 namespace StarPie.Tests;
 
+/// <summary>
+/// 配置持久化的读写边界：加载是「缺文件建默认、损坏文件不覆写、容忍手改的 JSON（注释 / 尾逗号 /
+/// 大小写）、旧键迁到正典键且正典键优先」，保存只写正典键，<c>GetProfileForProcess</c> 不区分大小写
+/// 并回落 Global，导入换配置时连带换运行态语言。
+/// </summary>
 public sealed class JsonConfigServiceTests : IDisposable
 {
     private static readonly LocalizationService Localization = new();
