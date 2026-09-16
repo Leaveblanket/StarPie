@@ -47,13 +47,10 @@ dev 实例与正式版的行为差异：
    ```
 3. **编写与验证代码**：
    - 保持 C# 编码风格与项目现有架构一致；
-   - 新增 UI 字符串请在 `StarPie.Host/Localization/Strings.resx`（及 zh-TW/en/ja 卫星）补四语言键值；声明式文案经 XAML `{DynamicResource}`，动态文案经 `ILocalizationService` 即时取词；
+   - 新增 UI 字符串须补齐四语言键值（规则见 `docs/architecture/localization.md`）；
    - 从仓库根构建全解决方案：`dotnet build StarPie.slnx`；
-   - 运行全量 xUnit：`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`；涉及用户可见 UI 时再运行 e2e
-     （免跑判定见 `docs/agents/git-commits.md`）：
-     `pwsh -File scripts/run-e2e.ps1`（默认静默后台形态：被测应用离屏、不抢前台、不动物理光标，输出落
-     `artifacts/e2e/`；调试用 `-OnScreen` 让窗口正常显示，`-Status` 查最近一次结果）。
-   - 纯文档改动（只改 `docs/**`、`*.md` 等非代码文件）免除上述 build 与测试，直接进第 4 步。
+   - 验证义务与运行器用法（全量 xUnit、e2e 免跑判定与命令、纯非代码改动的免除口径）见
+     `docs/agents/git-commits.md`。
 4. **提交 Commit**：约定式提交、主题用中文；`feat`/`fix`/`refactor` 类工作必须在主题末尾引用未关闭的 issue：
    ```text
    feat: 增加新的轮盘渲染形态 (#123)

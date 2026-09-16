@@ -2,9 +2,11 @@
 
 > **决策依据**：[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（三集形态、ALC 真卸载、SDK 单一引用面）、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)（插件 UI 宿主化与宿主托管生命周期）、[ADR-0029](../adr/0029-plugin-trust-model.md)（信任模型与准入）、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)（UI 插件不承诺 ALC 真卸载，卸载语义降级为托管清理 + 隔离 + 重启生效）、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)（headless 卸载三条款）、[ADR-0035](../adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md)（回收判定按宿主环境分档：WPF 宿主降级为诊断）。
 >
-> **阅读方式**：本文讲插件子系统的边界、物理形态、包与清单、生命周期、装载/卸载管线与设置面；
-> 逐条硬约束、白名单与准入判据（咨询式清单）见 [plugin-contracts.md](plugin-contracts.md)；
-> 开发者上手指引见 [plugin-dev-handbook.md](plugin-dev-handbook.md)；宿主内核子域职责见 [modules.md](modules.md)。
+> **阅读方式与正典分工**：本文是插件子系统**机制与边界**的正典（物理形态、包与清单、生命周期、
+> 装载/卸载管线与设置面）；**可用面与硬约束**的正典是 [plugin-contracts.md](plugin-contracts.md)
+> （`StarPie.Sdk.Wpf` 约束 / 白名单与不支持列表 / HostServices 约束 / ABI 与准入判据）；
+> **上手路径**见 [plugin-dev-handbook.md](plugin-dev-handbook.md)；宿主内核子域职责见 [modules.md](modules.md)。
+> 本文不复制可用面清单，contracts 不复制机制叙事。
 > 正文以 as-built 撰写——各节的「as-built：」标注即现状，未加该标注的条款即现行规范；标记「规划」
 > 的条款与 §2 树中尚未落地的路径属目标态，落地前以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
 
@@ -47,7 +49,7 @@
 5. **跨 ALC 只共享 SDK 与框架程序集**：`StarPie.Sdk`/`StarPie.Sdk.Wpf` 一律从默认 ALC 解析，保证接口与 WPF 类型身份唯一。
 6. **一切装卸发生在安全点**：更新 = 安全点卸载 + 装载新版本；不做无约束即时重载。
 7. **白名单外即不支持**：不受支持的 WPF 特性不进入验收；发现泄漏按隔离流程处理，不降低验证标准。
-8. **两组硬约束是落地判据**：`StarPie.Sdk.Wpf` 见 [plugin-contracts.md](plugin-contracts.md) §2，HostServices 见 §4。违反不是"设计欠佳"，而是拒绝装载、拒绝合并或判定 `Quarantined`。
+8. **两组硬约束是落地判据**：`StarPie.Sdk.Wpf` 见 [plugin-contracts.md](plugin-contracts.md) §2，HostServices 见 [plugin-contracts.md](plugin-contracts.md) §4。违反不是"设计欠佳"，而是拒绝装载、拒绝合并或判定 `Quarantined`。
 
 ## 2. 目标物理形态（三集 + SDK.Wpf + 一等插件）
 

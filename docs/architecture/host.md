@@ -197,12 +197,10 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    租户、托盘 dispose、`_mouseHook.Stop()`）→ `Composition.Dispose()`（容器 dispose）→ 释放互斥体与命名标记。
 7. 设置台关闭（`MinimizedToTray` 语义）：关窗即销毁，托盘驻留由常驻壳层承担。
    托盘状态信号的输入是**设置台开/关**（不是窗口可见性：新建窗口首次 `Show()` 同样产生可见性变化，
-   按可见性判读会把「首次打开」误判成「从托盘恢复」），经 `TrayStateSignal` 有序决策执行：
-   关闭 → 冲刷保存 → 导航视图出账 → 图标缓存出账 → 发 `MinimizedToTrayMessage`（订阅方同步出账）→
-   内存整理 `MemoryOptimizer.CollectGarbage()` 后台执行；重开 → 按最后导航槽位重放导航 → 发
-   `RestoredFromTrayMessage`（见 [shell.md](shell.md)）。关闭序列先于窗口收尾执行（落盘与导航出账
-   都要求会话内页面 VM 还在）；随后走 `TransientWindowTeardown`（清动画 → 丢弃内容与 DataContext →
-   `Close()` → 排空 Dispatcher → `Application.MainWindow` 回退锚窗口）、解绑对话框 Owner、
+   按可见性判读会把「首次打开」误判成「从托盘恢复」），经 `TrayStateSignal` 有序决策执行——
+   进托盘与恢复两条序列见 [shell.md](shell.md) 关键流程 2（壳层是这两条序列的正典）。
+   关闭序列先于窗口收尾执行（落盘与导航出账都要求会话内页面 VM 还在）；随后走
+   `TransientWindowTeardown`（步骤见 [shell.md](shell.md)）、解绑对话框 Owner、
    结束会话作用域（会话内页面 VM 与设置子 VM 整批释放）。
    托盘直达项与单实例恢复都经 `ShellHost.ShowSettingsConsole` 创建设置台；
    托盘直达先开窗（触发重放）再导航到目标槽位，避免重放覆盖用户点选的页。

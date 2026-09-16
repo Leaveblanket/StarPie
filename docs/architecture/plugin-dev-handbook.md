@@ -1,8 +1,8 @@
 # StarPie 插件开发手册
 
-> 面向插件开发者的路由手册。**约束性契约的正典是 [docs/architecture/plugins.md](plugins.md)
-> 与 [docs/adr/0029-plugin-trust-model.md](../adr/0029-plugin-trust-model.md)**——本手册不复制契约细节，
-> 只回答"我要写插件，从哪开始、能做什么、不能做什么"。条文与正典不一致时以正典为准，并请开 issue 指出漂移。
+> 面向插件开发者的路由手册。**正典分工**：插件子系统的机制与边界 = [plugins.md](plugins.md)；
+> 可用面、白名单与硬约束清单 = [plugin-contracts.md](plugin-contracts.md)；决策理由 = [ADR-0029](../adr/0029-plugin-trust-model.md)。
+> 本手册只回答"我要写插件，从哪开始、怎么部署、凭什么被允许装载"，不复制上述清单条目；条文与正典不一致时以正典为准，并请开 issue 指出漂移。
 >
 > 上手示例（可独立构建、部署、运行）见 [plugins/samples/](../../plugins/samples/README.md)。
 
@@ -15,7 +15,7 @@
    - `IPluginUiContext`（UI 面，`StarPie.Sdk.Wpf`，仅清单声明 ui 段的插件可拿）（plugins.md §7）。
 3. 写清单 `plugin.json` 并按 §3 部署包目录（包目录名必须等于清单 id）。
 
-## 受支持特性白名单
+## 按特性查入口
 
 一切宿主交互只走上述两个契约对象；返回的 `IDisposable` 注册句柄进宿主资产登记表，
 插件可自行 Dispose，卸载时宿主仍会强制清理。
@@ -29,27 +29,14 @@
 | 注册能力（宿主须已声明契约；清单声明 capability） | `IPluginContext.RegisterCapability<T>` | plugins.md §6 |
 | 导航页 / 设置区 / 插件窗口 / 托盘菜单 | `IPluginUiContext.Register*`（Descriptor 纯数据 + 工厂） | plugins.md §7.1/§7.2 |
 | 打开自己注册的窗口 | `IPluginUiContext.ShowWindow(windowKey)` | plugins.md §7.2 |
-| 资源字典（每插件一个资源根，卸载整根摘除） | `IPluginUiContext.MergeResourceDictionary` | plugins.md §7.3 |
+| 资源字典（每插件一个资源根） | `IPluginUiContext.MergeResourceDictionary` | plugins.md §7.3 |
 | 定时器 / 动画（宿主签发与中介） | `IPluginUiContext.CreateTimer` / `CreateAnimation` | plugins.md §7.2 |
 | 设置表单 | 清单带 `settings.schema.json`（宿主渲染）或注册设置区块自绘 | plugins.md §10 |
 | 持久化 | 插件配置段经 `IPluginConfig` 读写 `config.json` 的 `plugins.<id>`；插件数据目录由宿主代管 | plugins.md §9 |
 
-## 不支持列表（命中即拒绝装载或隔离）
-
-- **绕过 UI 契约自建 WPF 全局对象**：自建 `Window`、直接 merge `Application.Current.Resources`、
-  自建静态事件/缓存、自建定时器/动画——泄漏扫描命中即隔离（plugins.md §7.2/§7.4）。
-- **Descriptor 内嵌已构造实例**（视图/VM/命令）：只允许纯数据 + 工厂 + 类型名 + pack URI（plugins.md §7.2）。
-- **包内分发宿主/SDK 程序集**：`StarPie.Sdk.dll`、`StarPie.Sdk.Wpf.dll`、`StarPie.Host.dll`、`StarPie.dll`
-  出现在包内即拒绝——共享契约由宿主默认 ALC 统一提供（plugins.md §3）。
-- **清单/包校验违规**：`schemaVersion` 不受支持、字段缺失、id ≠ 包目录名、入口程序集缺席、
-  SDK ABI 不兼容（plugins.md §3 与 plugin-contracts.md §5）。
-- **松散 WPF 资产**：`Popup`/`ContextMenu`/`ToolTip` 不在 `Application.Current.Windows`，
-  必须经宿主契约创建或显式登记；禁止自建 `DependencyProperty`/`RoutedEvent`（plugin-contracts.md §3 与 plugins.md §7.4）。
-- **插件之间互调**：首期不支持，事件由宿主发布、插件只订阅（ADR-0029）。
-- **沙箱承诺**：进程内插件与宿主同权限——可读配置、可执行任意代码、可使进程崩溃。
-  宿主不承诺权限限制或资源配额；不可信插件只能走进程外后端（ADR-0029 决策 6）。
-- **WPF 宿主内 ALC 真卸载**：宿主框架缓存使插件程序集留到重启释放；卸载语义 =
-  托管清理 + 资产清零 + 泄漏隔离（ADR-0030/0035，plugin-contracts.md §3 与 plugins.md §8）。
+**不能做什么**（不支持列表，命中即拒绝装载或隔离）、**受支持特性的卸载判据**，以及两组硬约束
+（`StarPie.Sdk.Wpf` / HostServices），都在 [plugin-contracts.md](plugin-contracts.md) §2–§4——
+本手册只列入口，不列判据。
 
 ## 装载凭什么被允许（准入）
 
