@@ -134,7 +134,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      Ui 集 M1；`AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeContributor 登记）与
      `WheelAppearanceSettingsViewModel`（由 WheelContributor 登记），
-     均另行注册单例）；页面 VM 的 DI 注册已全部下放所属贡献者；
+     均另行注册单例）；页面 VM 的 DI 注册全部归所属贡献者；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
      GesturesContributor 登记（契约驻 `StarPie.Sdk`，ADR-0023，
      供轮盘外观设置子 VM 经契约边消费）。导航区 VM（`MainViewModel`，目录驱动：导航项/选中态
@@ -158,7 +158,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
       ADR-0023），M1 不反向引用宿主。
    - `ShellContributor.RegisterServices` 在注册期调用（M5 → Sdk + Host 内核 + Sdk.Wpf
      契约面），自启注册表经本集 `AutostartRegistry` 静态委托接线，页面 VM 不反向引用宿主类
-     （托盘气泡与退出已归壳层直接呈现/执行）。
+     （托盘气泡与退出归壳层直接呈现/执行）。
    - **Views 不注册**（页面无参构造；`MainView` 由 `SettingsConsole` 显式 `new`；对话框 Window 由
      `DialogService` 在 Ui 集内显式 `new`）。
 3. 阶段 2｜容器构建：唯一 `BuildServiceProvider`，解析点仍只在组合根。

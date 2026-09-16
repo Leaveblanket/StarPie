@@ -13,5 +13,4 @@
 
 - Model 层（AppConfig / WheelProfile / ActionItem）保持纯 POCO；`config.json` 格式向后兼容——已发布版本存在存量用户配置，这是代码里看不见的硬约束。
 - 设置保持“立即生效”语义，不改为编辑副本模式，避免扩大重构的验证面。
-- 迁移期 ViewModel 与 code-behind 共存、每批合入后可运行可发布，避免大爆炸重构。
 - ViewModel 与纯逻辑层补 xUnit 单元测试；钩子、渲染、托盘不纳入单测（由 e2e 覆盖）。

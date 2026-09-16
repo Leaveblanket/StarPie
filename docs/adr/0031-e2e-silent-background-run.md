@@ -7,7 +7,7 @@
 ## 动机
 
 1. **原 e2e 把人赶出电脑**：`tests/test_settings.py`（19 例、每例冷启动）是提交门必跑项，但 27 处 `click_input()` 用 SendInput 真实移动物理光标；主窗口无条件 `Show()` 抢前台；Save 走系统 `MessageBox`——它按显示器居中（不跟随 owner），即使 owner 离屏也弹在屏幕中央并抢前台。
-2. **可行性边界靠实测划定**（一次性探针，未入库）：静态推理给出的两条"无物理输入"路线都不可靠——
+2. **可行性边界靠实测划定**：静态推理给出的两条"无物理输入"路线都不可靠——
    - 投递鼠标消息（`PostMessage`/`SendMessage` 的 `WM_LBUTTONDOWN/UP`，激活/非激活、带/不带 `WM_MOUSEACTIVATE`）**一律不能驱动 WPF 点击**；
    - `SetFocus` + `PostMessage(VK_SPACE)` 能驱动导航（WPF 的 RadioButton 只认 Space，不认 Enter），但 `set_focus` 本身抢前台，`WS_EX_NOACTIVATE` 也压不住；
    - UIA 写调用（`RangeValue.SetValue`/`Toggle`/`Invoke`/`SelectionItem.Select`）在**可激活**窗口上会把窗口顶到前台；
@@ -25,7 +25,7 @@
 
 ## Decision
 
-1. **`--background` 后台模式**（**窗口形态已被 [0032](0032-e2e-silent-visible-window.md) 修订，现行形态见 [host.md](../architecture/host.md)；下列为初版配方记录**）：窗口 `ShowActivated=false` + `ShowInTaskbar=false` + 离屏 `-32000,-32000` + `SourceInitialized` 时挂 `WS_EX_NOACTIVATE`；不建托盘、不启全局鼠标钩子（否则用户操作鼠标时轮盘会弹到屏幕上）。仅影响窗口呈现/激活与这些副作用，导航、配置与渲染语义不变。
+1. **`--background` 后台模式**（**窗口形态已被 [0032](0032-e2e-silent-visible-window.md) 修订，现行形态见 [host.md](../architecture/host.md)**）：窗口 `ShowActivated=false` + `ShowInTaskbar=false` + 离屏 `-32000,-32000` + `SourceInitialized` 时挂 `WS_EX_NOACTIVATE`；不建托盘、不启全局鼠标钩子（否则用户操作鼠标时轮盘会弹到屏幕上）。仅影响窗口呈现/激活与这些副作用，导航、配置与渲染语义不变。
 2. **后台模式的对话框策略**：`DialogService` 回填后台模式后，`ShowInfo` 不呈现、`Confirm` 取"是"（无人应答场景）；自定义对话框（程序/图标/颜色选择器、输入框）离屏 `-32000,-32000` + `ShowActivated=false` + `WS_EX_NOACTIVATE`（与主窗口同配方），真实打开但不占可见屏幕、不抢前台。对话框↔VM 的接线由 xUnit（`TestDialogService` 断言 `InfoCalls`/`ConfirmCalls`）覆盖；e2e 以程序选择器打开/关闭用例断言离屏与干净关闭，系统 `MessageBox` 本身仍不在 e2e 覆盖内。
 3. **导航由"选中态置真"驱动**：`MainViewModel` 订阅各导航项 `IsSelected`，置真且目标页不是当前页时执行导航；点击（`RadioButton.Command`）与 UIA `SelectionItem.Select` 成为等价入口（后者是 e2e 静默导航与无障碍客户端的可用路径）。两条路径幂等——同槽位命中同一页面 VM 单例，`NavigationStore` 对同实例不重发变更；`SyncSelection` 回灌的选中态因指向已停驻页面而短路，不产生回环。
 4. **e2e 侧去物理输入 + 运行器**：`tests/conftest.py` 默认以 `--background` 启动被测应用（`STARPIE_E2E_ONSCREEN=1` 时可见，供调试）；27 处导航 `click_input()` 改为 `select()`；新增 `scripts/run-e2e.ps1` 作为唯一入口——命名 Mutex 串行化（防两个 e2e 互抢桌面对话框/沙盒）、日志与 junitxml 落 `artifacts/e2e/`、`-OnScreen`/`-NoWait`/`-Status`。`docs/agents/git-commits.md` 与 `CONTRIBUTING.md` 的 e2e 命令随之改指向脚本。

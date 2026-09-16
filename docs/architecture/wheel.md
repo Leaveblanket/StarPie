@@ -52,7 +52,7 @@ M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集�
 > `IconCatalog` 取矢量 SVG；实例服务 `IIconAssetService` 取自定义图标存储/位图源/文件图标——
 > RadialWindow 经 WheelFactory 注入、WheelPreviewRenderer 经外观页预览桥装配，见
 > [layout.md](layout.md)/[layering.md](layering.md)）。
-> R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义归 M2、物理随归并驻
+> R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义归 M2、物理驻
 > `StarPie.Host/Wheel/`（WPF-free 配色解析）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理居
 > `StarPie.Sdk/Models/`（`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
 > `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)。
@@ -127,4 +127,4 @@ M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集�
 [0009](../adr/0009-view-code-behind-whitelist.md)（渲染器白名单）、[0014](../adr/0014-wheel-palette-module-boundary-and-appearance-split.md)（轮盘配色模块边界与解析收拢）、
 [0016](../adr/0016-assembly-split-target-and-roadmap.md)（程序集化目标态：M2 装配点与 D5）、
 [0044](../adr/0044-wheel-config-projection.md)（轮盘配置瞬态投影：收窄宽 AppConfig 耦合）、
-[0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（预览/运行时扇区内容同源：内容构建下沉 Host）。
+[0045](../adr/0045-wheel-preview-runtime-shared-content-kernel.md)（预览/运行时扇区内容同源：内容构建在 Host）。

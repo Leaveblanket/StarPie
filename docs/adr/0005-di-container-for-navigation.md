@@ -4,7 +4,7 @@
 >
 > 注册源条款由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可分散（模块注册器），解析点仍集中（Host 组合根）。
 
-设置控制台重构（MainView 主框架 + 左侧导航 + 五页面经 DataTemplate 映射切换）把装配面从“一个根 VM + 一个窗口”扩大到五个页面 ViewModel、NavigationStore、导航服务等十余个解析点。决定：引入 Microsoft.Extensions.DependencyInjection 作为组合根的装配手段，推翻早期“手动组合根、不使用容器”的决定（该历史决策记录已删除）。
+设置控制台重构（MainView 主框架 + 左侧导航 + 五页面经 DataTemplate 映射切换）把装配面从“一个根 VM + 一个窗口”扩大到五个页面 ViewModel、NavigationStore、导航服务等十余个解析点。决定：引入 Microsoft.Extensions.DependencyInjection 作为组合根的装配手段，推翻早期“手动组合根、不使用容器”的决定。
 
 ## 与早期决策的关系
 

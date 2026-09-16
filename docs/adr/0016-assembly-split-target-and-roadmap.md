@@ -19,7 +19,7 @@
 7. **导航架构**：壳集中映射 / 模块自治注册 / ViewLocator / 运行时字典合并——采纳**模块自治注册**（模块注册器自报导航项与页面模板，新增页面不碰 Host）+ **模块模板字典静态合并**；ViewLocator 代码装配与运行时动态字典合并被否（推翻 DataTemplate 呈现正典、模板来源不可静态追踪）。现状见 [navigation.md](../architecture/navigation.md)。
 8. **DI/组合根**：演进式单一组合根（框架维持 MS.DI、注册源下放模块注册器、根对象解析仍集中 Host 组合根）被采纳；模块子容器、去容器纯手动、Generic Host、Autofac、Prism 均否（子容器割裂全应用单例；纯手动在页面导航十余互连点后噪声超过收益且开放泛型无法手写；Generic Host 等触发条件未命中）。**该原则被 ADR-0023 继承；现行注册源形态 = 内置贡献者有序清单（`ICompositionContributor` + `BuiltInContributors`，见 [assemblies.md](../architecture/assemblies.md) §6）。**
 9. **可见性**：无 `InternalsVisibleTo`；模块公开面 = 注册器入口 + 被测 public 类型，内部实现保持 internal；宿主只引用模块注册器，不引用模块内部。**现行入口 = 贡献者清单/接口，注册器实现类为 internal。**
-10. **命名空间策略**：拆分期间命名空间不动，收尾统一为 `StarPie.*`（与程序集对齐但跨集共享命名空间树，不要求命名空间 = 程序集名）。
+10. **命名空间策略**：统一为 `StarPie.*`（与程序集对齐但跨集共享命名空间树，不要求命名空间 = 程序集名）。
 
 ## Decision
 

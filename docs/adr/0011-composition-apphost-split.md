@@ -22,7 +22,7 @@
 - **宿主类持有 `IServiceProvider` 自解析**：被否——会让宿主类成为第二个解析点，
   破坏 ADR-0005“解析点只出现在组合根”的既有边界。
 - **Generic Host / Prism**：不采纳——ADR-0005 已明确引入 Generic Host 需要独立触发
-  （ILogger 生态、多环境/多实例、插件系统），本次只是类级重组。
+  （ILogger 生态、多环境/多实例、插件系统）。
 
 ## Consequences
 

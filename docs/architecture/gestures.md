@@ -35,7 +35,7 @@ M1 贡献者 `GesturesContributor` 与页面模板字典 `GesturesPageTemplates.
 
 ## 配置方案设置面的对外只读契约
 
-`StarPie.Sdk/ViewModels/Pages/IProfilePreviewSource.cs`（契约随实现方 M1 下沉
+`StarPie.Sdk/ViewModels/Pages/IProfilePreviewSource.cs`（契约归实现方 M1
 （生产方语义 + 避免 Wheel ↔ Gestures runtime 程序集环，D5/ADR-0016）；
 ADR-0023；命名空间 `StarPie.ViewModels.Pages` 不变）：M1 对外只读「预览 Profile 来源」
 契约——实现方为 M1 侧配置方案设置面 VM `ProfileListViewModel`
@@ -54,7 +54,7 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
 ### 页面与 VM 组成
 
 - `StarPie.Ui/ViewModels/Pages/ProfileListViewModel.cs`（「手势与动作」导航页 `GesturesSettingsPage` 的
-  DataContext；同文件嵌套 `ProfileItemViewModel` 作单条方案展示包装）。方案列表侧职责全部收编于此
+  DataContext；同文件嵌套 `ProfileItemViewModel` 作单条方案展示包装）。方案列表侧职责全部在此 VM
   （页面 code-behind 无业务）：`Profiles`/`SelectedProfile` 选中态与首项回落
   （`PreviewProfile` = 选中 ?? 首项，实现 `IProfilePreviewSource`）、方案增删改/重命名/导入的
   对话框编排（经 `IDialogService`）、导入后订阅 `ConfigImportedMessage` 自行重挂、扇区数切换

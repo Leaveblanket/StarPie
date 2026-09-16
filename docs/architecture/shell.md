@@ -13,7 +13,7 @@
 
 M5 物理落位（自启注册表与内存整理入宿主内核，托盘与高级设置面入 Ui 集）：
 
-- `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
+- `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为归 Ui 集，
   由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
 - `StarPie.Host/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态，
   两者互斥落位，另含提权自启任务的按需触发与「立即提权」入口的可见性决策——见关键流程 3；
@@ -37,10 +37,10 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 [interface-theme.md](interface-theme.md)），不在 M5；各业务目录不跨模块登记。
 
 - `ViewModels/Navigation/ShellViewModel.cs`（D3：Host 壳窗口壳层 VM——`WindowTitle`/`Save()`；
-  归 H1 留 Host，不随 M5，见 [assemblies.md](assemblies.md) §4。进程退出态归**壳层**
+  归 H1、驻 Host，见 [assemblies.md](assemblies.md) §4。进程退出态归**壳层**
   （`ShellHost`），不寄居在本 VM：退出是壳层编排，设置台只是被关闭）。
 - `Views/Navigation/MainView.xaml(.cs)`（R4/ADR-0016：Host 壳窗口（H1）；`MainView.xaml`
-  为纯壳——页面 DataTemplate 在 App 级模块页面模板字典（M1/M5 随归并入 `StarPie.Ui/Modules/`，
+  为纯壳——页面 DataTemplate 在 App 级模块页面模板字典（M1/M5 归 `StarPie.Ui/Modules/`，
   Host 外观聚合页同在 `StarPie.Ui/Modules/`，见 [navigation.md](navigation.md)），
   分区 DataContext 接线见下关键流程 4）。
 
@@ -93,17 +93,17 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    返回值只表示"任务被受理"，**不是就绪判据**——就绪只认"单实例互斥体已可取得"（见
    [host.md](host.md) §单实例闸门）。
 4. **关窗即销毁、托盘驻留、重开重建**（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）：
-   设置台是瞬态租户——关窗销毁窗口与 VM 树（`Window_Closing` 不再取消），托盘驻留由常驻壳层
+   设置台是瞬态租户——关窗销毁窗口与 VM 树（`Window_Closing` 不取消关闭），托盘驻留由常驻壳层
    （`ShellHost` + 托盘消息窗口）承担，托盘直达/单实例恢复经 `ShellHost.ShowSettingsConsole` 重建。关窗收尾
    走 `Services/Shell/TransientWindowTeardown.cs` 的唯一实现（清动画 → 丢弃内容与 DataContext → `Close()`
    → 排空 Dispatcher → `Application.MainWindow` 回退常驻锚窗口），`SettingsConsole` 另解绑对话框 Owner。
    `App.xaml` 因此设 `ShutdownMode="OnExplicitShutdown"`（关窗不等于退出进程）。
-   `MainView` 壳层 code-behind 只剩淡入`ShowAndActivate`、主题应用与深色探测（ADR-0009 白名单第 3/5 条）；
+   `MainView` 壳层 code-behind 仅有淡入`ShowAndActivate`、主题应用与深色探测（ADR-0009 白名单第 3/5 条）；
    壳层成员（`WindowTitle`/`Save()`）在 `ShellViewModel`（D3：Host 壳窗口 VM，H1，随设置台会话生灭），
    `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
    `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出与两个自启开关在贡献者接线（本模块静态行为）；**托盘气泡归壳层**
-   ——仅剩提权未生效等失败告知（进托盘不呈现任何气泡；贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
+   ——气泡只用于提权未生效等失败告知（进托盘不呈现任何气泡；贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
    页面绑定规范见 [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
    进程权限级别由 [ADR-0040](../adr/0040-startup-privilege-policy.md) 与
    [ADR-0042](../adr/0042-privilege-routes-two-only.md) 固定为**两条互斥路线**：普通权限启动

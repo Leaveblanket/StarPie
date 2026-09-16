@@ -45,7 +45,7 @@
 1. **插件只引用 `StarPie.Sdk` 与 `StarPie.Sdk.Wpf`**；`StarPie.Host`/`StarPie.Ui` 的内部类型不在插件引用面内。
 2. **宿主独占生命周期**：插件可创建 XAML/Window/ResourceDictionary/DataTemplate，但必须经宿主契约注册；宿主登记、跟踪、移除、验证，插件不得自行 merge 全局资源或长期持有 WPF 全局对象。
 3. **宿主内核零 WPF**：`StarPie.Host` 不引用 WPF；一切 WPF 类型与清理在主进程 Ui 层 `PluginHosting` 执行，Host 经 `IPluginUiCoordinator` 端口协调。
-4. **插件缺席是可运行态**：每个扩展点必须定义降级行为（无插件页时导航正常、无程序来源时选择器只剩内置来源）。
+4. **插件缺席是可运行态**：每个扩展点必须定义降级行为（无插件页时导航正常、无程序来源时选择器只有内置来源）。
 5. **跨 ALC 只共享 SDK 与框架程序集**：`StarPie.Sdk`/`StarPie.Sdk.Wpf` 一律从默认 ALC 解析，保证接口与 WPF 类型身份唯一。
 6. **一切装卸发生在安全点**：更新 = 安全点卸载 + 装载新版本；不做无约束即时重载。
 7. **白名单外即不支持**：不受支持的 WPF 特性不进入验收；发现泄漏按隔离流程处理，不降低验证标准。
@@ -208,7 +208,7 @@ public interface IPluginUiModule
 设置区由 `PluginUiCoordinator.SettingsSections` 汇总、在插件管理页的设置区按区块呈现；托盘菜单
 由 `TrayMenuComposer` 在内置条目之后追加并路由到插件命令；插件窗口与内容容器分别经
 `PluginWindowRegistry` 与 `PluginViewHost` 托管。**无插件时每个扩展点都必须为空而非空壳**：
-目录只剩固定页、托盘菜单不追加分隔线、设置区整块隐藏、未注册 UI 资产的插件释放直接成功。
+目录只有固定页、托盘菜单不追加分隔线、设置区整块隐藏、未注册 UI 资产的插件释放直接成功。
 
 ### 7.2 契约funnel：插件只能经 `IPluginUiContext` 注册
 

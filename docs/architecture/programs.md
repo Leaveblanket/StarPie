@@ -62,6 +62,6 @@
 [0015](../adr/0015-module-map-and-ownership.md)（M3/S1 三分归属 R6）、
 [0016](../adr/0016-assembly-split-target-and-roadmap.md)（M3 独立模块程序集）、
 [0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)
-（扫描/SPI 契约随 M3 下沉）、
+（扫描/SPI 契约归实现方 M3）、
 [0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)（插件体系与三集形态）、
 [0033](../adr/0033-plugin-service-scope-without-di-container.md)（能力表与作用域）。
