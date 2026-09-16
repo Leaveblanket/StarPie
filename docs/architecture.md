@@ -54,7 +54,7 @@
 - `Microsoft.Extensions.DependencyInjection`：仅用于 `Composition.cs` 组合根。
 - 本地化：`Strings*.resx`（zh-CN 中性 + zh-TW/en/ja 卫星），`VocaDb.ResXFileCodeGenerator` 强类型 + `ILocalizationService` 实例服务。
 - 单元测试：`StarPie.Tests`（xUnit v3，运行平台 Microsoft.Testing.Platform，直接 `new` + 手写替身，不用 mocking 框架）。
-- e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务分层（提交级全量 xUnit + e2e 免跑判定、合入门全量、纯文档改动免除全部）见 [git-commits](agents/git-commits.md)。
+- e2e 测试：`tests/`（pywinauto，pytest），规范不在此文档体系展开；验证义务见 [git-commits](agents/git-commits.md)。
 - 运行配置：`config.json`（宽松读取：大小写不敏感、允许注释与尾逗号；缺文件自动播种默认值；向后兼容为 Hard Constraint）。
 
 > **本节只列技术栈**：类与文件的物理落点不在本节——模块划分与归属见
@@ -91,17 +91,7 @@ StarPie/
 
 ## 5. 分层速览
 
-```text
-App / ShellHost / SettingsConsole / Composition  # 常驻壳层 + 设置台租户 + 装配与解析（Composition，唯一解析点）
-      |
-      v
-ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
-      |
-      v
-Services ---> Models
-```
-
-完整依赖矩阵、命名空间与可见性、Models/Services/ViewModels/Views 边界见 [layering.md](architecture/layering.md)。
+分层图、依赖矩阵、命名空间与可见性、Models/Services/ViewModels/Views 边界见 [layering.md](architecture/layering.md)——本文不复制。
 
 ## 6. 维护义务
 
@@ -109,10 +99,10 @@ Services ---> Models
 2. 新增决策若满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR，再把结论回填对应叶子；反之只改叶子。**ADR 只记决策理由四要素（问题 / 选择 / 为什么 / 代价）**，禁止写 grill 会话 Q/A 纪要、issue 号、日期、实施批次、回填清单与“已落地”流水——这些归 git 与 issue。
 3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja）——声明式文案经 XAML `{DynamicResource}`、动态文案经 `ILocalizationService` 即时取词（见 [localization.md](architecture/localization.md)）。
 4. 叶子增删、文件路径变化时同步更新本文（文档体系表 + 路由表 + 仓库边界树）。
-5. 验证义务与测试策略分层：提交级 build + 全量 xUnit + e2e 免跑判定；合入 main 前全量 xUnit + 全量 e2e；不涉及代码变动的提交免除全部验证；不按模块拆测试、不移除 e2e 每用例冷启动（见 [git-commits](agents/git-commits.md)）。
+5. 验证义务与测试策略分层（提交级门、合入门与免除口径）见 [git-commits](agents/git-commits.md)——该文是唯一正典，本文与叶子不复制。
 6. ADR 头部必带状态（Active / Superseded by NNN / Active（部分被 NNN 修订））与修订指针——**状态只写头部**，本文与任何叶子都不复制。
 7. 叶子与 ADR 不记录“已落地/已清零/批次流水/日期快照”：完成即删，历史归 git 与 issue。
-8. 程序集地图与依赖方向只许 `assemblies.md` §2/§3 一份正典，其它叶子引用不抄写。
+8. **重复陈述分两级收敛**：**清单型事实**只许一份正典，其它叶子引用不抄写——程序集地图与依赖方向（`assemblies.md` §2/§3）、导航槽位表（`assemblies.md` §5.2）、页面映射表（`layout.md` §3.2）、可见性先例（`assemblies.md` §7）、DI 注册清单（`host.md`）；**约束型规则**（VM 不得引用 WPF 表现类型、Composition 唯一解析点、对话框唯一形态、`config.json` 向后兼容、不得用 messenger 替代同页绑定）正典处写全，他处只留一句摘要加引用。
 9. CONTEXT 只收领域术语；架构词（宿主/模块/程序集/M1–M5 等）正典在 `modules.md`/`assemblies.md`。
 10. 任务型盘点（登记表 / 待清理项 / 进度清单，无论在独立文档还是叶子小节内）必须带“关闭即删”义务：盘点完成即删，留痕挂对应 issue，不驻留规范叶。
 11. 入口不索引 ADR 状态、不复制叶子内容：路由表每行一个文件、每个叶子恰好一行；查状态读 ADR 文件头，查规范读叶子。

@@ -1,6 +1,6 @@
 # 插件契约面（可用面 / 硬约束 / 准入判据）
 
-> 本文是 [plugins.md](plugins.md) 的**咨询式参考面**：插件作者与 ABI/准入评审按需查的清单与判据。
+> 本文是插件**可用面与硬约束的唯一正典**：插件作者与 ABI/准入评审按需查的清单与判据。
 > 插件子系统的叙事、生命周期与落点见 [plugins.md](plugins.md)；开发者上手指引见 [plugin-dev-handbook.md](plugin-dev-handbook.md)；
 > 决策依据 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)、
 > [ADR-0029](../adr/0029-plugin-trust-model.md)、[ADR-0030](../adr/0030-ui-plugin-unload-semantics-downgrade.md)、[ADR-0034](../adr/0034-headless-unload-handover-and-hard-reclaim.md)、
