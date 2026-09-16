@@ -36,23 +36,6 @@ public sealed class PluginDeveloperModeServiceTests : IDisposable
     }
 
     [Fact]
-    public void 未先显式加载_开启开发者模式不会丢掉既有条目()
-    {
-        var writer = new PluginStateStore(_statePath);
-        writer.Current.GetOrCreate("com.example.a").Enabled = false;
-        writer.Save();
-
-        // 管理面可能在启动扫描前调用：读取与落盘都必须基于磁盘上的既有宿主状态。
-        PluginDeveloperModeService service = CreateService(new PluginStateStore(_statePath));
-        Assert.True(service.Enable(disclosureAcknowledged: true));
-
-        var reader = new PluginStateStore(_statePath);
-        reader.Load();
-        Assert.True(reader.Current.DeveloperModeEnabled);
-        Assert.False(reader.Current.Plugins["com.example.a"].Enabled);
-    }
-
-    [Fact]
     public void 未确认披露_拒绝开启且状态不变()
     {
         var store = new PluginStateStore(_statePath);

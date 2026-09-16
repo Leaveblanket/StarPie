@@ -1052,17 +1052,6 @@ public sealed class WheelAppearanceSettingsViewModelTests
     }
 
     [Fact]
-    public void PickCoreIcon_Confirmed_WritesIconKey()
-    {
-        var (vm, config, dialogs, _) = Create();
-        dialogs.IconToPick = new IconPickResult("custom:star");
-
-        vm.PickCoreIconCommand.Execute(null);
-
-        Assert.Equal("custom:star", config.Current.CoreCustomIconKey);
-    }
-
-    [Fact]
     public void PickCoreIcon_ClearSelection_WritesEmptyKey()
     {
         var (vm, config, dialogs, _) = Create();

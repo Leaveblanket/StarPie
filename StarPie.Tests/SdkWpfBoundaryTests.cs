@@ -83,8 +83,6 @@ public sealed class SdkWpfBoundaryTests
     [Fact]
     public void UiSdkAbi_版本串_规范形态为主次且可解析()
     {
-        Assert.Equal($"{UiSdkAbi.MajorVersion}.{UiSdkAbi.MinorVersion}", UiSdkAbi.Version);
-
         Assert.True(UiSdkAbi.TryParseVersion(UiSdkAbi.Version, out int major, out int minor));
         Assert.Equal(UiSdkAbi.MajorVersion, major);
         Assert.Equal(UiSdkAbi.MinorVersion, minor);

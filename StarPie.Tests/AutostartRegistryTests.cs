@@ -69,6 +69,7 @@ public sealed class AutostartRegistryTests
     [InlineData(false, false, false, false)] // 总开关关：两种形态都不落位
     [InlineData(true, false, true, false)]   // 普通权限自启：只写注册表键
     [InlineData(true, true, false, true)]    // 管理员权限静默自启：只留计划任务，注册表键必须缺位
+    [InlineData(false, true, false, false)]  // 总开关关 + 请求提权：两条路线都不落位
     public void ResolvePlacement_KeepsExactlyOneRoute(
         bool enable, bool asAdmin, bool expectedWriteRunKey, bool expectedWantAdminTask)
     {
@@ -78,18 +79,6 @@ public sealed class AutostartRegistryTests
 
         Assert.Equal(expectedWriteRunKey, placement.WriteRunKey);
         Assert.Equal(expectedWantAdminTask, placement.WantAdminTask);
-    }
-
-    [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public void ResolvePlacement_NeverPlacesBothRoutes(bool enable, bool asAdmin)
-    {
-        var placement = AutostartRegistry.ResolvePlacement(enable, asAdmin);
-
-        Assert.False(placement.WriteRunKey && placement.WantAdminTask);
     }
 
     // --- 「立即提权」入口的可见性与可点性 -----------------------------------------

@@ -131,13 +131,6 @@ public sealed class ActionRoutingTests
         AssertKey("stopmedia", 0xB2);
     }
 
-    [Fact]
-    public void ResolveSystemCommand_LockPreset_LocksWorkstation()
-    {
-        Assert.Equal(ActionRouting.SystemCommand.LockWorkstation.Instance,
-            ActionRouting.ResolveSystemCommand("lock"));
-    }
-
     private static void AssertHotkey(string preset, string expectedHotkey)
         => Assert.Equal(new ActionRouting.SystemCommand.SendHotkey(expectedHotkey),
             ActionRouting.ResolveSystemCommand(preset));

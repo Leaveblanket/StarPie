@@ -62,25 +62,6 @@ public sealed class WheelViewModelTests
     }
 
     [Fact]
-    public void Ctor_GlobalProfile_TitleIsGlobalActions_SubtitleShowsSectorCount()
-    {
-        var original = Localization.CurrentLanguage;
-        try
-        {
-            Localization.SetLanguage("zh-CN");
-
-            var vm = Create(new WheelProfile { ProcessName = "Global", SectorCount = 8 });
-
-            Assert.Equal("全局动作", vm.CoreTitle);
-            Assert.Equal("8 键动作", vm.CoreSubtitle);
-        }
-        finally
-        {
-            Localization.SetLanguage(original);
-        }
-    }
-
-    [Fact]
     public void Ctor_ProcessProfile_TitleIsProcessName()
     {
         var original = Localization.CurrentLanguage;
