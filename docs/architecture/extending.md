@@ -1,4 +1,4 @@
-﻿# 新功能添加规范
+# 新功能添加规范
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；加新功能前先读“通用底线”，再按功能原型读对应清单。
 
@@ -71,7 +71,7 @@
 
 ## 原型 E：新增轮盘渲染样式
 
-1. **渲染器**：`StarPie.Ui/Views/Renderers/{Xxx}Renderer.cs`（P1.7/#116 随 M2 归并入 Ui），继承 `BaseStyleRenderer`，实现/覆写 `RenderDecorations`、`GetDefaultColors`、`PostInitialize`、高亮/外甩效果；保持纯视觉、不订阅事件、不反向依赖。
+1. **渲染器**：`StarPie.Ui/Views/Renderers/{Xxx}Renderer.cs`，继承 `BaseStyleRenderer`，实现/覆写 `RenderDecorations`、`GetDefaultColors`、`PostInitialize`、高亮/外甩效果；保持纯视觉、不订阅事件、不反向依赖。
 2. **工厂**：`StarPie.Ui/Views/Renderers/` 内 `StyleRendererFactory.CreateRenderer` 加样式名分支（空/未知 → `ClassicRingRenderer`）；配色目录 `WheelPaletteCatalog` 在 `StarPie.Host/Wheel/`。
 3. **配置/UI**：样式名作为 `AppConfig.WheelStyle` 新值（默认值兜底）；外观页风格下拉加选项（键 + 四语言）。
 4. **预览**：确认 `WheelPreviewRenderer`（`StarPie.Ui/Views/Renderers/`）走同一渲染契约后自动覆盖预览。

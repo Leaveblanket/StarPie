@@ -9,11 +9,11 @@
 
 ## 组成文件
 
-**宿主内核（`StarPie.Host/Kernel/Localization/`，命名空间 `StarPie.Kernel.Localization`）**：
+**宿主内核（`StarPie.Host/Localization/`，命名空间 `StarPie.Localization`）**：
 `ILocalizationService.cs`、`LocalizationService.cs`、`Strings.resx`（中性 = zh-CN）与
 `Strings.zh-TW/en/ja.resx`（卫星，`VocaDb.ResXFileCodeGenerator` 强类型资源——生成器包与
 `EmbeddedResource` 条目配置于 `StarPie.Host.csproj`；`RootNamespace=StarPie`
-使强类型类落在 `StarPie.Kernel.Localization`）。
+使强类型类落在 `StarPie.Localization`）。
 设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`
 （源 resx 在上面的内核目录；见 [design-time-preview.md](design-time-preview.md)）。
 

@@ -30,7 +30,7 @@
 4. **卸载承诺分级**：只对"无 UI、无 OS 句柄、无宿主强引用"的插件承诺真卸载；检测到泄漏即 `Quarantined`（停用、提示重启），不得谎报卸载成功。
 5. **能力契约只加不改**：能力接口带 ABI 号，SDK 同主版本 additive-only；破坏性变更 = 新能力 id + 新接口。宿主拒绝 ABI/主版本不匹配的插件。
 6. **依赖自治**：插件携带私有依赖经 `AssemblyDependencyResolver` 解析；首期不允许插件间互相依赖，避免级联卸载与版本地狱。
-7. **撤销清单**：15 集并入三集 + 插件（映射见 `plugins.md` §12）；`StarPie.Shell`/`StarPie.Theme`/`StarPie.Dialogs`/`StarPie.Icons`/`StarPie.Programs` 与各 `*.Contracts` 均不再作为独立程序集存在。
+7. **撤销清单**：15 集并入三集 + 插件（逐集去向见 [assemblies.md](../architecture/assemblies.md)「旧集撤销 as-built」）；`StarPie.Shell`/`StarPie.Theme`/`StarPie.Dialogs`/`StarPie.Icons`/`StarPie.Programs` 与各 `*.Contracts` 均不再作为独立程序集存在。
 8. **明确不承诺**：进程内安全隔离；插件提供 WPF 视图/XAML/资源字典；插件间依赖；目录监视自动热重载；SDK 跨主版本并行支持。
 
 ## Consequences

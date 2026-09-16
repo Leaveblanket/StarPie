@@ -11,7 +11,7 @@
 
 ## 组成文件
 
-**SDK（`StarPie.Sdk/Services/Messages/`，P1.3/#112 自 Core 迁入）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
+**SDK（`StarPie.Sdk/Services/Messages/`）**：`Messages.cs`（IMessenger 消息，不可变空载体/record）、`Notices.cs`
 （非 messenger 的跨层载体：`NoticeKind`/`NoticeRequest`）。
 
 ## 关键流程

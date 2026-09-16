@@ -1,4 +1,4 @@
-﻿# 模块：导航
+# 模块：导航
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；新增/修改设置页导航时读本篇。
 
@@ -8,7 +8,7 @@
 
 ## 组成文件
 
-SDK（`StarPie.Sdk/`；P1.3/#112 收口，仅目录/槽位契约）：
+SDK（`StarPie.Sdk/`，仅目录/槽位契约）：
 
 - `Services/Navigation/NavigationCatalog.cs`：`NavigationCatalog`/`NavigationSlot`/`NavigationSlots`/
   `NavigationPageRegistration`（全局槽位表 0–4、`NavPage0..4` 正典与缺失/重复/未知槽位收口测试，
@@ -21,7 +21,7 @@ SDK（`StarPie.Sdk/`；P1.3/#112 收口，仅目录/槽位契约）：
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
   接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [seams.md](seams.md)；
   第二消费方出现时按 ADR-0023 契约归属判据裁决落点——属全局机制入内核、属某模块出口契约
-  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、P1.3/#112 收口入 `StarPie.Sdk`））。
+  下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、契约入 `StarPie.Sdk`））。
 - `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（目录驱动：导航项顺序/
   标识/标题键/图标/目标类型全部来自 `NavigationCatalog`，无页面 VM 硬编码；壳层职责已拆至
   同目录族的 `ShellViewModel`，见 [shell.md](shell.md)）。
@@ -34,13 +34,13 @@ SDK（`StarPie.Sdk/`；P1.3/#112 收口，仅目录/槽位契约）：
   DataTemplate 映射**——纯壳；分区 DataContext 与 `MainView.xaml.cs` 壳层 code-behind 见
   [shell.md](shell.md)）。
 
-M5（P1.10/#119 起驻 `StarPie.Ui/`）：
+M5（驻 `StarPie.Ui/`）：
 
 - `Modules/ShellContributor.cs`（M5 贡献者：`RegisterNavigation(NavigationCatalog)` +
   `RegisterServices(IServiceCollection)`，页面 VM 的 DI 注册随 M5 下放）与 `Modules/ShellPageTemplates.xaml`
   （页面模板字典；Ui 集内本地单点合并，见 [assemblies.md](assemblies.md) §5.1/§6）。
 
-M1（P1.6/#115 起驻 `StarPie.Ui/`）：
+M1（驻 `StarPie.Ui/`）：
 
 - `Modules/GesturesContributor.cs`（M1 贡献者：`RegisterNavigation(NavigationCatalog)` +
   `RegisterServices(IServiceCollection)`，手势管线与页面 VM 的 DI 注册随 M1 下放，含

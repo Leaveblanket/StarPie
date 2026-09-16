@@ -1,4 +1,4 @@
-﻿# 模块：壳层与系统集成
+# 模块：壳层与系统集成
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及托盘、开机自启、内存整理、主窗口壳层行为
 > 与高级设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)。
@@ -10,18 +10,18 @@
 
 ## 组成文件
 
-M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内核，托盘与高级设置面入 Ui 集）：
+M5 物理落位（自启注册表与内存整理入宿主内核，托盘与高级设置面入 Ui 集）：
 
 - `StarPie.Ui/Services/Shell/TrayIconManager.cs`（含 `TrayMenuEntry`；托盘类与菜单行为随归并入 Ui，
   由同集 `ShellHost.Run` 装配实例——见下方关键流程 1）。
-- `StarPie.Host/Kernel/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态，
+- `StarPie.Host/ShellIntegration/AutostartRegistry.cs`（R1；HKCU Run 与提权自启计划任务两种形态，
   两者互斥落位，另含提权自启任务的按需触发与「立即提权」入口的可见性决策——见关键流程 3；
   `[SupportedOSPlatform("windows")]`、public 装配面）、
-  `StarPie.Host/Kernel/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
-  `StarPie.Host/Kernel/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
-  `StarPie.Host/Kernel/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
-  `StarPie.Host/Kernel/ShellIntegration/ProcessElevation.cs`（当前进程是否以管理员身份运行的探测）——
-  命名空间均为 `StarPie.Kernel.ShellIntegration`（单实例闸门的判定与握手信道同驻此目录，
+  `StarPie.Host/ShellIntegration/MemoryOptimizer.cs`（R3；零 WPF、纯托管）、
+  `StarPie.Host/ShellIntegration/TrayStateSignal.cs`（托盘状态信号纯决策：输入是**控制台开/关**）、
+  `StarPie.Host/ShellIntegration/ShellExitSequence.cs`（托盘退出固定顺序纯决策）、
+  `StarPie.Host/ShellIntegration/ProcessElevation.cs`（当前进程是否以管理员身份运行的探测）——
+  命名空间均为 `StarPie.ShellIntegration`（单实例闸门的判定与握手信道同驻此目录，
   见 [host.md](host.md) §单实例闸门）。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
@@ -29,7 +29,7 @@ M5 物理落位（P1.10/#119 归并：自启注册表与内存整理入宿主内
 - `StarPie.Ui/Modules/ShellContributor.cs` + `ShellPageTemplates.xaml`（M5 贡献者与
   页面模板字典，自报导航项/模板并登记页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
 - SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出自 M3 起由壳层直接
-  呈现与执行，属性保留为契约面，P1.3/#112 收口；见 [host.md](host.md)）。
+  呈现与执行，属性保留为契约面；见 [host.md](host.md)）。
 
 M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie.Ui/Services/Shell/`
 （命名空间 `StarPie.Services.Shell`；主题引擎 `ThemeEngine` 在宿主内核，见
@@ -53,12 +53,12 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    不反向引用 Host/M4，`ShellHost` 装配时注入 `Func<bool>` 深色探针
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
 2. **内存（分层常驻）**：`MemoryOptimizer.CollectGarbage()`（驻
-   `StarPie.Host/Kernel/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
+   `StarPie.Host/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
    （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
    已整体删除，设置页手动"内存整理"入口与四语言文案已移除（不留"留作诊断"死路径，
    需要时从 git 历史恢复）。自动触发点经 `TrayStateSignal` 有序决策编排（输入是设置台开/关）：App 启动兜底
-   force（轮盘预热之后，#150）与进托盘（非后台）——进托盘固定顺序
-   `FlushPendingSave → 导航视图出账（#152）→ 图标缓存出账（#153）→ 发 MinimizedToTrayMessage →
+   force（轮盘预热之后）与进托盘（非后台）——进托盘固定顺序
+   `FlushPendingSave → 导航视图出账→ 图标缓存出账→ 发 MinimizedToTrayMessage →
    CollectGarbage 后台执行`，恢复按最后导航槽位重放导航后发 `RestoredFromTrayMessage`；
    后台静默形态（e2e）出账动作禁用、消息照发。GC 堆预算由
    `StarPie.Ui/runtimeconfig.template.json` 的 `System.GC.HeapHardLimit`（256 MiB）约束，
@@ -74,7 +74,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    不用含共享代码页的总工作集；设置台「关闭即销毁」同样不拿省内存当理由——若将来以首次开台变冷或
    页内半输入状态丢失为由讨论回退，内存不构成理由。
 3. **自启**：两种形态的读写都收敛于 `AutostartRegistry` 静态工具（与 VM 同驻
-   `StarPie.Host/Kernel/ShellIntegration/`），经同集贡献者
+   `StarPie.Host/ShellIntegration/`），经同集贡献者
    `ShellContributor.RegisterServices` 委托注入
    `GeneralSettingsViewModel`（`isAutoStartEnabled`/`applyAutoStart`/`isAdminAutoStartEnabled`），
    不进 VM/View。形态一 HKCU Run（路线 A：普通权限自启）；形态二 Windows 任务计划程序任务
@@ -119,7 +119,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
 ## 扩展点
 
 - 新壳层行为（如开机自启策略变化）：改 M5 内部（`StarPie.Ui` 的 `TrayIconManager`、
-  `StarPie.Host/Kernel/ShellIntegration/` 的 `AutostartRegistry` 等）并保持委托注入边界；
+  `StarPie.Host/ShellIntegration/` 的 `AutostartRegistry` 等）并保持委托注入边界；
   新增 M5 设置页只动 Ui 内部（贡献者 + 模板字典 +
    VM 注册，见 [navigation.md](navigation.md)），不碰 Host。
 - 新托盘菜单项：在 `ShellHost.BuildTrayMenuEntries` 登记（宿主接线见 [host.md](host.md)）。

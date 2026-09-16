@@ -70,7 +70,7 @@ StarPie/
 │   ├── Resources/                        # 资源字典注册描述（pack URI / 工厂）
 │   └── Compatibility/                    # Ui SDK ABI 常量（与 Sdk 分政策编号）
 ├── StarPie.Host/                         # 零 WPF 引用、零 XAML；可 headless 单测（ADR-0027 决策 1）
-│   ├── Kernel/{Configuration,Localization,Messaging,Navigation,ShellIntegration}
+│   ├── Configuration/  Localization/  Messaging/  Navigation/  ShellIntegration/
 │   │                                     # 配置/文案/消息/页注册表/注册表与进程级壳集成；NavigationCatalog 由封闭槽位改为可增删页注册
 │   ├── Actions/  Gestures/  Wheel/  Icons/  Themes/   # 纯模型与逻辑（动作路由/手势内核/配色解析/资产目录/调色板计算）；几何构造与 WPF 亲和件归 Ui
 │   ├── Ports/                            # Host→Ui 端口：IUiDispatcher/IThemeApplier/IWheelPresenter/IIconImageFactory/IPluginUiCoordinator
@@ -244,7 +244,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 | 3 | 插件只经 `IPluginContext` 取用 | 无静态单例、无服务定位器；`IPluginContext` 的属性即插件的全部可达面 |
 | 4 | 服务按插件作用域隔离 | 每插件一个 `PluginServiceScope`（自持宿主服务实例 + 能力实例 + 句柄账本，不引入 MS.DI 容器，见 [ADR-0033](../adr/0033-plugin-service-scope-without-di-container.md)）；宿主根容器不含任何插件类型 |
 | 5 | 订阅/回调/动作可按 plugin id 注销 | 每次注册返回 `IDisposable` 并登记进该插件的 scope 账本；卸载按 id 强制枚举清理，不依赖插件自觉 Dispose |
-| 5a | 托盘状态消息对插件可见（headless 侧经 `PluginEventPump` 广播、UI 侧经 `PluginUiEvents` 直桥） | 插件经 `IPluginEvents` 订阅 `MinimizedToTrayMessage`（进托盘）/`RestoredFromTrayMessage`（恢复）即收投递——订阅方在宿主 Send 调用线程同步执行，推荐语义是"进托盘释放自身深扫缓存、恢复按需重建"（内存自治出账，示范见随包 Programs 插件 #154；宿主后台静默形态下宿主侧出账禁用但消息照发） |
+| 5a | 托盘状态消息对插件可见（headless 侧经 `PluginEventPump` 广播、UI 侧经 `PluginUiEvents` 直桥） | 插件经 `IPluginEvents` 订阅 `MinimizedToTrayMessage`（进托盘）/`RestoredFromTrayMessage`（恢复）即收投递——订阅方在宿主 Send 调用线程同步执行，推荐语义是"进托盘释放自身深扫缓存、恢复按需重建"（内存自治出账，示范见随包 Programs 插件；宿主后台静默形态下宿主侧出账禁用但消息照发） |
 | 6 | 审计与日志不持有插件对象 | 只记 plugin id + 字符串/值类型字段；插件异常入日志前先转成"类型全名 + message + stack 字符串"的宿主 DTO——**`Exception` 实例与任何插件对象不得存进长生命周期结构（含日志 sink、诊断快照）** |
 | 7 | 卸载前必须释放该插件的作用域 | `PluginServiceScope.Dispose()`（幂等）是 `ALC.Unload()` 的前置；scope 未释放或释放后仍有句柄残留 → `Quarantined`（残留是防御性检查：`Dispose` 先清账本再释放句柄，账本必为零；不为零即说明清账语义被改动） |
 
@@ -382,24 +382,11 @@ public interface IPluginUiContext
 - **准入结果四态**：内置 / 已审核 / 开发者模式 / 拒绝（附原因）；启动报告与插件管理面都要能看出当前处于哪一态。「内置」= 命中宿主内置 id 清单的第一方随包插件，见 §3。签名主体随扫描进宿主状态与启动报告（`SignatureSubject`），供诊断与撤销取证。
 - **ALC 不是安全边界**：进程内插件（含 UI 插件）与宿主同权限——可读配置与插件数据、可执行任意代码、可使进程崩溃。宿主不承诺沙箱、权限限制或资源配额；不可信插件只能走进程外后端（P5，另起 ADR）。**ALC 也不是 WPF 宿主内任何插件的卸载边界**：宿主框架缓存使程序集留在进程内不可回收，卸载语义见 ADR-0030、ADR-0035 与 §5.2。
 
-## 12. 迁移映射（15 集 → 三集 + 插件）
+## 12. 旧集归并去向
 
-| 现程序集 | 目标归属 |
-|---|---|
-| `StarPie`（App/ShellHost/SettingsConsole/Composition/MainView/导航运行时/外观页/共享 UI 基建） | `StarPie.Ui` |
-| `StarPie.Core`（Models/Messages/NavigationCatalog/AppHostDelegates） | 契约/模型 → `StarPie.Sdk`；运行时 → `StarPie.Host` |
-| `StarPie.Core`（Configuration/Localization 实现） | `StarPie.Host.Kernel` |
-| `StarPie.Gestures` | 可 headless 内核（`GestureEngine`/`WindowContext`/`ActionRouting`）→ `StarPie.Host`；WPF 亲和件（`MouseHook`/`GestureController`/`ActionExecutorService`）与 VM/View → `StarPie.Ui` |
-| `StarPie.Wheel` | 配色目录与解析（`WheelPalette*`）→ `StarPie.Host`；几何构造（`WheelGeometry`）/`WheelFactory`/VM/Renderer/RadialWindow → `StarPie.Ui` |
-| `StarPie.Programs` + `StarPie.Programs.Contracts` | 首个 headless 插件（能力契约入 SDK） |
-| `StarPie.Theme` + `StarPie.Theme.Contracts` | 引擎 → `StarPie.Host`；字典/设置 VM → `StarPie.Ui` |
-| `StarPie.Shell` | 自启/内存整理 → `StarPie.Host.Kernel.ShellIntegration`；托盘（`TrayIconManager`）/高级页 → `StarPie.Ui` |
-| `StarPie.Dialogs` | `StarPie.Ui`（宿主对话框）；端口只在 Ui 内部 |
-| `StarPie.Icons` + `StarPie.Icons.Contracts` | 资产目录/降级服务 → `StarPie.Host`；`IconRef` → SDK；图像构造 → Ui |
-
-> **归并口径**：上表按 `StarPie.Host` 零 WPF 硬约束细化——直接构造 WPF
-> 类型（如 `WheelGeometry` 的 `Geometry`）、持有 `Application.Current.Dispatcher` 或默认 `MessageBox`
-> 的 WPF 亲和件一律留 `StarPie.Ui`；端口化推迟到出现真实 headless 需求时再引入（`Ports/` 新增项随需求走）。
+旧 15 集（`StarPie.Core`/`Icons`/`Programs`/`Theme`/`Wheel`/`Gestures`/`Shell`/`Dialogs` 及各自
+`*.Contracts`）已全部撤销，逐集归并去向与 WPF 亲和件的落位口径见
+[assemblies.md](assemblies.md)「旧集撤销 as-built」——程序集地图只此一份正典，本文不重抄。
 
 ## 13. 演进阶段
 

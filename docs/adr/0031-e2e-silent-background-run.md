@@ -2,7 +2,7 @@
 
 > Status: Active（窗口形态与托盘/截图口径被 [0032](0032-e2e-silent-visible-window.md) 修订）
 >
-> 关联：#134。窗口形态登记在 [host.md](../architecture/host.md)，导航语义登记在 [navigation.md](../architecture/navigation.md)。
+> 窗口形态登记在 [host.md](../architecture/host.md)，导航语义登记在 [navigation.md](../architecture/navigation.md)。
 
 ## 动机
 

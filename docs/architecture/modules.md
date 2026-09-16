@@ -1,8 +1,8 @@
-﻿# 模块划分地图（模块地图）
+# 模块划分地图（模块地图）
 
 > 本文记录模块划分共识（[ADR-0015](../adr/0015-module-map-and-ownership.md)）的地图视图：模块清单、职责、归属裁定、扩展点验收与模块化候选。
 
-> **目标态变更（P1 起）**：插件化后模块口径改为「宿主内核子域 + 能力插件」，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)；P1 落地时本文按目标态回填。
+> **模块口径**：插件化后的模块口径为「宿主内核子域 + 能力插件」，见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。
 >
 > 本文按 as-built 现状撰写；代码现状与各叶子（`docs/architecture/*.md`）为准，冲突时叶子优先。
 >
@@ -49,7 +49,7 @@
 - 共享视图基础设施（**已去共享化**，放行面不再持有 UI 实现件）：通用共享转换器与
   全局控件样式字典 `ModernControls.xaml` 落 Host `Views/Converters|Styles/`——App.xaml 仍为单点
   实例化/本地合并，资源 key 不变，Dialogs/Gestures 等模块只经 `{StaticResource}` 运行期消费；
-  `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 M1（P1.6/#115 随归并入 `StarPie.Ui`）；
+  `HotkeyRecorderBox`（控件+样式字典）落唯一编译期消费方 M1；
   共享页面基类 `SettingsPageBase` 已删除（Trigger/Gestures/Advanced/Appearance 四页 XAML
   根直承 `UserControl`）。扩展如需新增通用转换器/全局控件样式，仍属 Host App.xaml 资源缝放行面；
 - 共享「图标资产」（S1）新增资产/能力（单一资产条目，不含业务逻辑）。
@@ -67,7 +67,7 @@
   （`ProfileListViewModel`/`SlotViewModel`/`GesturesSettingsPage`）；物理路径见 [layout.md](layout.md)
   与 [gestures.md](gestures.md)。
 - **对外契约**：经 SDK 契约 `IWheelFactory` 装配 M2 瞬态轮盘（M1→M2 runtime 允许
-  边经契约清零，ADR-0023；P1.3/#112 随 SDK 收口）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读
+  边经契约清零，ADR-0023）；消费 S2 配置模型、S3、S4、S6；向 M2 提供只读
   `IProfilePreviewSource`（预览上下文，实现方为配置方案设置面 VM `ProfileListViewModel`，契约
   随实现方驻 `StarPie.Sdk`）。
 - **扩展局部性**：新增动作类型（原型 D）、新增触发条件/场景规则 → M1 内部；新图标资产 → S1；新文案 → S3。
@@ -79,7 +79,7 @@
   （实现 `IWheelAppearanceState`）、`RadialWindow`、样式渲染器与实时预览、`CoreIcon*` 核图标
   预览转换器、轮盘配色 `WheelPalette*`、视觉几何 `WheelGeometry` 与轮盘工厂 `WheelFactory`
   （出口契约 `IWheelFactory`/`IWheelViewModel`/`IWheelAppearanceState` 驻
-  `StarPie.Sdk`，ADR-0023；P1.3/#112 随 SDK 收口）；物理路径见 [layout.md](layout.md) 与
+  `StarPie.Sdk`，ADR-0023）；物理路径见 [layout.md](layout.md) 与
   [wheel.md](wheel.md)。
 - **对外契约**：由 M1 经 SDK 契约 `IWheelFactory`/`IWheelViewModel` 装配
   （ADR-0023）；动作图标渲染消费 S1；窗口主题应用消费 M4 的 `IThemeService`
@@ -143,7 +143,7 @@
 
 - **职责**：`config.json` 读写/宽松解析/默认播种/向后兼容、运行态配置、防抖与立即保存编排、导入/导出、`AppDataPaths`。
 - **关键内部**：配置服务与保存编排（`IConfigService`/`JsonConfigService`/`ISaveDebouncer`/
-  `SettingsSaveOrchestrator`/`AppDataPaths`，物理居宿主内核 `StarPie.Host/Kernel/Configuration/`；
+  `SettingsSaveOrchestrator`/`AppDataPaths`，物理居宿主内核 `StarPie.Host/Configuration/`；
   不含 `AutostartRegistry`——归 M5，见 §4）；WPF 亲和的 `DispatcherSaveDebouncer` 是
   Ui 适配器（`StarPie.Ui/Adapters/`）；配置 POCO 在 `StarPie.Sdk/Models/`（语义归属见 R8）。
 - **扩展局部性**：加配置字段（原型 A 模型步）→ S2 + 所属模块 VM（放行共享面）。
@@ -151,7 +151,7 @@
 #### S3 本地化
 
 - **职责**：四语言键表与取词、语言状态/切换/回退链、运行时语言字典投影桥、文案分类语义。
-- **关键内部**：宿主内核 `StarPie.Host/Kernel/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`；`ShellHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
+- **关键内部**：宿主内核 `StarPie.Host/Localization/`（`ILocalizationService`/`LocalizationService` + `Strings*.resx`）；设计期投影字典 `DesignTimeStrings.xaml` 与生成脚本在 `StarPie.Ui/Services/Localization/`；`ShellHost` 的语言字典投影是 H1 对本模块的消费（§5 D4）。
 - **扩展局部性**：新语言/新文案键/改回退链 → S3 内部。
 
 #### S4 消息与通知
@@ -167,8 +167,7 @@
   导航运行时主体（当前页状态/执行入口/导航项 VM/主框架 VM）归 H1 宿主壳件
   （与 R4/D3 同判据——单一消费方在 Host，模块对运行时类型零引用）。
 - **关键内部**：`StarPie.Sdk` 含目录/槽位契约 `NavigationCatalog`（`NavigationCatalog`/
-  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——贡献者写、控制台读；
-  P1.3/#112 收口）；
+  `NavigationSlot`/`NavigationSlots`/`NavigationPageRegistration`——贡献者写、控制台读）；
   运行时主体（`NavigationStore`/`NavigationExecutor` 含 `INavigationExecutor`/`MainViewModel`/
   `NavigationItemViewModel`）在 Host（命名空间不变，见
   [host.md](host.md)/[navigation.md](navigation.md)）；`SidebarView` 属 Host。
@@ -182,15 +181,15 @@
 - **职责**：全部对话框唯一形态——`IDialogService`/`DialogService`、VM/Window 配对、结果 record、通用选择器（程序选择、图标选择、取色、文本/热键输入、屏幕取色）。
 - **关键内部**：契约 `IDialogService` + 结果 record 驻 `StarPie.Sdk/Services/Dialogs/`
   （纯 C#，命名空间不变，ADR-0023）；实现与界面
-  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）随 P1.10/#119 驻
+  （`DialogService`、五对对话框 VM/Window、取色行为 `SpectrumCanvasBehavior`）驻
   `StarPie.Ui`（`Services|ViewModels|Views/Dialogs|Controls/`）。
 - **对外契约**：领域数据经注入提供者/模块出口获得——程序扫描候选经 SDK 契约
   `IProgramScanner`（组合出口 `ProgramSourceAggregator` 由 `HostCoreContributor` 登记，内含内置来源与插件来源），
   图标资产/快捷方式解析经 Sdk.Wpf 出口接线；
   窗口主题应用消费 M4 `IThemeService`（经 Sdk.Wpf 契约边，ADR-0023）；不直穿 M3/S1 与 M4 实现内部；消费方
-  （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`（P1.3/#112）。
+  （M1/M2/M5/Host）只显式引用 `StarPie.Sdk` 调 `IDialogService`。
 - **扩展局部性**：新增对话框（原型 C）→ S6 内部 + 调用方一行；新增结果 record/对话框契约 →
-  扩展 `StarPie.Sdk` 的 Dialogs 契约（P1.3/#112 收口）。
+  扩展 `StarPie.Sdk` 的 Dialogs 契约。
 
 ### 宿主（1）
 
@@ -198,8 +197,7 @@
 
 - **职责**：进程生命周期（单实例、全局异常、启动/退出/隐藏协调）、DI 组合根注册与解析、宿主回调委托、开发实例。
 - **关键内部**：`App`/`ShellHost`/`SettingsConsole`/`Composition`/`DevInstance`（R2）；宿主回调委托包
-  `AppHostDelegates` 为 H1 职责——类型本体为 SDK 公开契约（`StarPie.Sdk/Services/`，
-  P1.3/#112 自 Core 收口），
+  `AppHostDelegates` 为 H1 职责——类型本体为 SDK 公开契约（`StarPie.Sdk/Services/`），
   回填实现归 Host（见 [host.md](host.md)/[layering.md](layering.md)）。
 - **扩展局部性**：新服务/页面 VM 注册一行（放行）；不承载业务逻辑。
 
@@ -207,11 +205,11 @@
 
 | #  | 项                                                                                                                                       | 归属                                                                                                                                                                                                                                                                                       | 物理现状                                                                                                                                                                                                                                                                                                                                                                   |
 | -- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1 | `AutostartRegistry`                                                                                                                    | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/Kernel/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
+| R1 | `AutostartRegistry`                                                                                                                    | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
 | R2 | `DevInstance`                                                                                                                          | H1 宿主                                                                                                                                                                                                                                                                                    | `StarPie.Ui/`（工程根）                                                                                                                                                                                                                                                                                                                                                  |
-| R3 | `MemoryOptimizer`                                                                                                                      | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/Kernel/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
+| R3 | `MemoryOptimizer`                                                                                                                      | M5 壳层                                                                                                                                                                                                                                                                                    | `StarPie.Host/ShellIntegration/`                                                                                                                                                                                                                                                                                                                                  |
 | R4 | `MainView.xaml` / `MainView.xaml.cs`                                                                                                 | **全文件 → H1 宿主壳（Host 壳窗口，ADR-0016 决策 6/7）**；xaml.cs 不再归 M5；页面 DataTemplate 已迁出 MainView，模块模板字典随所属模块程序集（见 [assemblies.md](assemblies.md) §5.1）                                                                                                                  | `Views/Navigation/`；exe 仅余 Host 外观页模板                                                                                                                                                                                                                                                                                                                              |
-| R5 | `GesturePoint`                                                                                                                         | 共享值类型（SDK）                                                                                                                                                                                                                                                                             | `StarPie.Sdk/Models/`（P1.3/#112）                                                                                                                                                                                                                                                                                                                                        |
+| R5 | `GesturePoint`                                                                                                                         | 共享值类型（SDK）                                                                                                                                                                                                                                                                             | `StarPie.Sdk/Models/`                                                                                                                                                                                                                                                                                                                                        |
 | R6 | `IconHelper`                                                                                                                           | **三分**：图标资产 → S1；几何（`CreateAdvancedSectorGeometry`/`GetCoreIconGeometry`）→ M2；程序侧（`ResolveShortcutTarget`）→ M3                                                                                                                                            | 原 `IconAssets.cs` 已拆：S1 契约与资产表（`IconCatalog.cs`/`CustomIconItem.cs`/`VectorIconItem.cs`，双形拆为静态目录 + 实例服务，见 §3 S1）、M2 `StarPie.Ui/Services/Wheel/WheelGeometry.cs`、M3 `StarPie.Host/Programs/ShortcutResolver.cs`                  |
 | R7 | `ProgramPicker`/`IconPicker`                                                                                                         | S6 对话框（通用选择器）                                                                                                                                                                                                                                                                    | `StarPie.Ui/ViewModels/Dialogs` 与 `Views/Dialogs/`                                                                                                                                                                                                                                                                                                                       |
 | R8 | `Models` 语义归属与物理落位                                                                                                            | `WheelProfile`/`ActionItem` → M1（物理 `StarPie.Sdk/Models/`，配置 POCO）；`WheelPalette*` → M2（语义归 M2；物理随归并驻 `StarPie.Host/Wheel/`，WPF-free）；`CustomColorPreset` → M2（语义；物理 `StarPie.Sdk/Models/`——`AppConfig.CustomColorPresets` 配置 POCO 引用） | `StarPie.Sdk/Models/` + `StarPie.Host/Wheel/`                                                                                                                                                                                                                                                                                                                            |
@@ -247,11 +245,11 @@ Core"的物理落点表述被部分推翻——导航运行时主体（含 `Main
 ### D5 WheelFactory 装配点例外
 
 ADR-0016 决策 11：`WheelFactory` 随 M2 收编
-`StarPie.Ui/Services/Wheel/`（P1.7/#116 归并入 Ui），工厂/轮盘 VM/外观只读状态契约为薄契约程序集（M1→M2 runtime
-允许边清零，M1 手势侧只经契约接口消费），P1.3/#112 随 SDK 收口迁入 `StarPie.Sdk/`；
+`StarPie.Ui/Services/Wheel/`，工厂/轮盘 VM/外观只读状态契约为薄契约程序集（M1→M2 runtime
+允许边清零，M1 手势侧只经契约接口消费），迁入 `StarPie.Sdk/`；
 `IProfilePreviewSource` 随实现方 M1 下沉
 （契约随实现方下沉；实现方 M1 ProfileListViewModel 与消费方 M2
-WheelAppearanceSettingsViewModel 均只依赖契约程序集），同样 P1.3/#112 收口入 `StarPie.Sdk/`。
+WheelAppearanceSettingsViewModel 均只依赖契约程序集），同样归属 `StarPie.Sdk/`。
 M2 构造契约变更不再波及 Host/M1
 装配点；M1 手势侧随归并入 Ui 集，仍只经 SDK 契约引用 M2。
 

@@ -2,7 +2,7 @@
 
 > Status: Active
 >
-> 关联：#147。修订 [ADR-0037](0037-dev-instance-flag-by-build-config.md)：其「构建配置定死 dev 判定」不变，五个行为分支中的互斥名与触发键两支移除。
+> 修订 [ADR-0037](0037-dev-instance-flag-by-build-config.md)：其「构建配置定死 dev 判定」不变，五个行为分支中的互斥名与触发键两支移除。
 
 ## 动机
 

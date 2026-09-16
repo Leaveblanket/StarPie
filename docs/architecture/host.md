@@ -1,4 +1,4 @@
-﻿# 模块：宿主与组合根（App + ShellHost + SettingsConsole + Composition）
+# 模块：宿主与组合根（App + ShellHost + SettingsConsole + Composition）
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及启动顺序、DI 注册、退出/隐藏流程时读本篇。
 
@@ -10,7 +10,7 @@
   `ShellHost`，另交付**设置台会话工厂**（工厂闭包在组合根内构造会话对象图，解析点未离开组合根）；
   不持有托盘/主窗口/语言字典等宿主状态。
 - `ShellHost`（常驻壳层）：进程存活期内一直存在的编排面——鼠标钩子启停、语言字典投影（H1 消费 S3）、
-  托盘创建与菜单、高权限窗口的一次性告知节拍（#165）、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、
+  托盘创建与菜单、高权限窗口的一次性告知节拍、插件运行时驱动、单实例恢复消息接收（驻常驻侧）、
   让位请求接收端（非提权首实例上，见 §单实例闸门）、设置台的按需创建与释放、
   驻留与真退出协调（[ADR-0011](../adr/0011-composition-apphost-split.md)、
   [ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)）。
@@ -23,8 +23,8 @@
 `App.xaml(.cs)`、`Composition.cs`、`ShellHost.cs`、`SettingsConsole.cs`、`DevInstance.cs`（R2：归 H1，驻工程根）、
 `SingleInstanceRestore.cs` 与 `TestInstanceExit.cs`（进程生命周期窗口消息：单实例重激活 / 测试实例退出）。
 
-单实例闸门的判定与握手信道驻宿主内核（`StarPie.Host/Kernel/ShellIntegration/`，命名空间
-`StarPie.Kernel.ShellIntegration`）：`SingleInstanceGate.cs`（处置决策纯函数）、`InstanceHandover.cs`
+单实例闸门的判定与握手信道驻宿主内核（`StarPie.Host/ShellIntegration/`，命名空间
+`StarPie.ShellIntegration`）：`SingleInstanceGate.cs`（处置决策纯函数）、`InstanceHandover.cs`
 （命名内核对象握手：首实例标记/让位请求、提权未生效、就绪判据）、`InstanceHandoverListener.cs`
 （让位请求接收端）。行为规范见 §单实例闸门。
 
@@ -92,7 +92,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `IThemeService` 契约驻 StarPie.Sdk.Wpf，ADR-0023）；M2 的
      轮盘工厂（`IWheelFactory` → `WheelFactory`）与轮盘外观设置子 VM 注册由
      `WheelContributor.RegisterServices` 登记（驻 StarPie.Ui，D5；契约驻 `StarPie.Sdk`，ADR-0023，
-     P1.3/#112 收口，M1 手势侧只经契约接口消费）。
+     M1 手势侧只经契约接口消费）。
    - 程序扫描由 `HostCoreContributor` 登记——`IShortcutTargetResolver→ShortcutResolver` 与
      `IProgramScanner→ProgramScanner`（契约驻 `StarPie.Sdk/Services/Programs|Icons/`，
      实现驻宿主内核 `StarPie.Host/Programs/`，ADR-0023；组合根无静态扫描委托行）。
@@ -134,11 +134,10 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      在 Host `ViewModels/Navigation/`，命名空间不变；页面 VM 的 DI 注册已全部
      下放所属贡献者，导航 VM 与外观聚合页 VM 分别由 HostCore/HostPage 贡献者登记；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
-     GesturesContributor 登记（契约随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023，
+     GesturesContributor 登记（契约驻 `StarPie.Sdk`，ADR-0023，
      供轮盘外观设置子 VM 经契约边消费））、`ShellViewModel`（D3：Host 壳窗口壳层 VM——窗口
      标题/退出态/保存，主框架分区 DataContext 的壳区，见 [shell.md](shell.md)）。
-   - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112
-     收口）并以单例注册进容器，
+   - `AppHostDelegates` 为 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`）并以单例注册进容器，
 `ShellHost` 构造后回填；`ShellContributor` 的 VM 工厂经容器惰性解析该委托包，只依赖 SDK。
     - `ThemeContributor.RegisterServices` 在注册期调用（M4 → Host 内核 + Sdk.Wpf
       单向），主题服务/主题设置子 VM 的工厂只解析内核/SDK 契约（`IThemeService` 契约驻
@@ -152,7 +151,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
     - `GesturesContributor.RegisterServices` 在注册期调用（M1 → Sdk + Host 内核 + Sdk.Wpf
       契约面），手势管线/页面 VM/`IProfilePreviewSource` 别名的工厂只解析内核/SDK 契约与
       SDK 接口（IWheelFactory/IWheelViewModel，M1→M2 runtime 允许边清零，
-      ADR-0023；P1.3/#112 收口），M1 不反向引用宿主。
+      ADR-0023），M1 不反向引用宿主。
    - `ShellContributor.RegisterServices` 在注册期调用（M5 → Sdk + Host 内核 + Sdk.Wpf
      契约面），自启注册表经本集 `AutostartRegistry` 静态委托接线，页面 VM 不反向引用宿主类
      （托盘气泡与退出已归壳层直接呈现/执行）。
@@ -207,7 +206,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
 
 ## 宿主委托包
 
-`AppHostDelegates`（SDK 公开契约，`StarPie.Sdk/Services/AppHostDelegates.cs`，P1.3/#112 收口）承载页面 VM
+`AppHostDelegates`（SDK 公开契约，`StarPie.Sdk/Services/AppHostDelegates.cs`）承载页面 VM
 注册所需的宿主回调：`ShowTrayBalloonTip`、`ExitApplication`、`RestartElevated`。
 组合根持有该实例并由 `HostCoreContributor` 登记单例，`ShellContributor` 装配 `GeneralSettingsViewModel` 时持稳定转发委托，
 `ShellHost` 构造后回填实现（`_hostDelegates.ShowTrayBalloonTip/ExitApplication/RestartElevated = …`）；VM 不反向依赖宿主类。

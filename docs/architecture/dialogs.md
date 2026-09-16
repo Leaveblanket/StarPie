@@ -12,7 +12,7 @@ VM 层零对话框类型引用的统一模态对话框入口。
   `IDialogService` + 各 `ShowXxx` 的可空结果 record（`InputDialogResult`/`ColorPickResult`/
   `EyedropResult`/`FilePickResult`/`ProgramPickResult`/`IconPickResult`，命名空间
   `StarPie.Services.Dialogs` 不变）。
-- **实现与界面（P1.10/#119 归并入 Ui 集，端口只在 Ui 内部）**：
+- **实现与界面（端口只在 Ui 内部）**：
   `StarPie.Ui/Services/Dialogs/DialogService.cs`、`StarPie.Ui/ViewModels/Dialogs/`、
   `StarPie.Ui/Views/Dialogs/` 与 `StarPie.Ui/Views/Controls/SpectrumCanvasBehavior.cs`
   （契约驻 `StarPie.Sdk`、实现同集，接口稳定）。依赖方向：实现消费 Sdk 契约
@@ -38,11 +38,11 @@ VM 层零对话框类型引用的统一模态对话框入口。
 
 ## 扩展点
 
-新对话框按 [extending.md](extending.md)（原型 C）清单；禁止在 `IDialogService` 之外 new 对话框或新增第二种形态。新增对话框只动 `StarPie.Ui/Services|ViewModels|Views/Dialogs` 内部 + 调用方一行，不碰 Host；新增结果 record/对话框契约 = 扩展 `StarPie.Sdk` 的 Dialogs 契约（P1.3/#112 收口；实现方与消费方同在 Ui 集，端口不外泄）。
+新对话框按 [extending.md](extending.md)（原型 C）清单；禁止在 `IDialogService` 之外 new 对话框或新增第二种形态。新增对话框只动 `StarPie.Ui/Services|ViewModels|Views/Dialogs` 内部 + 调用方一行，不碰 Host；新增结果 record/对话框契约 = 扩展 `StarPie.Sdk` 的 Dialogs 契约（实现方与消费方同在 Ui 集，端口不外泄）。
 
 ## 参见 ADR
 
 [0004](../adr/0004-dialog-service-design.md)、[0009](../adr/0009-view-code-behind-whitelist.md)、
 [0023](../adr/0023-module-contracts-hard-boundary-and-core-narrowing.md)（契约随实现方
-下沉独立成集、P1.3/#112 收口入 `StarPie.Sdk`、WPF 契约件 P1.4/#113 收口入 `StarPie.Sdk.Wpf`；
+下沉独立成集、契约入 `StarPie.Sdk`、WPF 契约件入 `StarPie.Sdk.Wpf`；
 Dialogs→Theme runtime 允许边清零，改经 Sdk.Wpf 契约边）。

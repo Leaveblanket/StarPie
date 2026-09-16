@@ -1,4 +1,4 @@
-﻿# 模块：轮盘与渲染
+# 模块：轮盘与渲染
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及轮盘 VM/窗口/渲染样式时读本篇。
 
@@ -8,7 +8,7 @@
 
 ## 组成文件
 
-M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核，其余入 Ui 集；出口契约驻
+M2 物理落位（配色目录与色值解析入宿主内核，其余入 Ui 集；出口契约驻
 `StarPie.Sdk/`，ADR-0023）：
 
 - `StarPie.Sdk/`（M2 出口契约，ADR-0023；命名空间不变；签名依赖 SDK Models 数据，仅零 WPF 零
@@ -54,11 +54,11 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
 > [layout.md](layout.md)/[layering.md](layering.md)）。
 > R8 语义与物理归属（[modules.md](modules.md) §4）：`WheelPalette*` 语义归 M2、物理随归并驻
 > `StarPie.Host/Wheel/`（WPF-free 配色解析）；`CustomColorPreset`（自定义配色预设）语义归 M2、物理居
-> `StarPie.Sdk/Models/`（P1.3/#112；`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
+> `StarPie.Sdk/Models/`（`AppConfig.CustomColorPresets` 配置 POCO 引用，不得反向依赖模块）；动作侧
 > `ActionItem`/`WheelProfile` 的语义归属见 [gestures.md](gestures.md)。
 
 > `IWheelAppearanceState` 是轮盘模块的预览只读状态接口（ADR-0014 决策 8；驻
-> `StarPie.Sdk`，ADR-0023；P1.3/#112 收口；外观页 code-behind 经 SDK 显式引用
+> `StarPie.Sdk`，ADR-0023；外观页 code-behind 经 SDK 显式引用
 > 消费）：`WheelPreviewRenderer` 只依赖它读取外观状态。实现方为轮盘外观设置子 VM
 > `WheelAppearanceSettingsViewModel`（经外观聚合 VM 的 `WheelAppearance` 暴露给页面），外观
 > 聚合 VM 不实现该接口。接口的预览 Profile 上下文成员转发自 M1 只读 `IProfilePreviewSource`
@@ -74,7 +74,7 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
   实现 `IWheelAppearanceState`；构造注入 M1 只读 `IProfilePreviewSource`（预览 Profile 来源，
   静态已知依赖走接口，不引用具体方案列表 VM 类型）、`IConfigService`/`IDialogService`/
   `IMessenger`/`ILocalizationService`；DI 注册由 `WheelContributor.RegisterServices` 登记
-  模块（`IProfilePreviewSource` 随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`（ADR-0023，
+  模块（`IProfilePreviewSource` 驻 `StarPie.Sdk`（ADR-0023，
   D5——实现方 `ProfileListViewModel` 别名由 GesturesContributor 登记），消费方本子 VM
   只依赖契约程序集）；全部状态写穿运行态配置（立即生效），落盘经防抖/立即消息上报；配色下拉
   选项（`PaletteOptions`）随语言切换重建并补发选中通知，`Dispose` 成对退订。
@@ -99,7 +99,7 @@ M2 物理落位（P1.7/#116 归并：配色目录与色值解析入宿主内核�
    所见即所得；渲染器输入
    为 `IWheelAppearanceState`（主题风格与配色方案、窄配色输入、几何/排版、核图标与预览 Profile 上下文），
    不依赖具体聚合 VM 类型；预览 Profile 上下文由外观设置子 VM 经 M1 的 `IProfilePreviewSource`
-   转发取值（契约随实现方 M1、P1.3/#112 收口入 `StarPie.Sdk`，ADR-0023），选中/首项回落
+   转发取值（契约驻 `StarPie.Sdk`，ADR-0023），选中/首项回落
    语义由该来源实现方维护。深浅色探测不以 Host `MainView` 作参数（模块不反向依赖宿主）：
    `WheelPreviewRenderer` 的 `Render` 收 `bool windowsInDarkMode`，由外观页（Host）经壳层
    `MainView.IsWindowsInDarkTheme()` 取值传入。渲染器经**已批准预览桥**取得 `IIconAssetService`
