@@ -8,8 +8,9 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 架构文档体系的不变量：把《docs/agents/docs-conventions.md》的口径与入口 §6 的维护义务变成机械断言。
-/// 覆盖十条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
+/// 覆盖十一条——路由表与磁盘叶子一一对应、ADR 头部状态合法、全仓 ADR 引用无死链（含源码注释）、
 /// 叶子不残留完成态流水/等号标记与日期快照（模式读文约）、ADR 不残留日期快照与等号标记（模式读文约）、
+/// 叶子的 `规划：` 标记落在「目标态与差距」节内（口径读文约）、
 /// layout 树路径在磁盘存在、源码根的一级目录反向登记在 layout 树（四集 + <c>plugins/</c>）、
 /// 文档反引号里的类型名在源码命中（豁免与占位口径读文约）、文档声称的常量归属与源码一致、
 /// 源码注释不含变更史编号（见 comments.md 禁止清单）。
@@ -51,6 +52,9 @@ public sealed class DocInvariantTests
 
     /// <summary>文约中承载「类型名机检口径」的小节标题（跳过行标记与占位片段）。</summary>
     private const string TypeNameSection = "## 类型名机检口径";
+
+    /// <summary>文约中承载「目标态结构口径」的小节标题。</summary>
+    private const string StructureSection = "## 目标态结构口径";
 
     /// <summary>文约中承载「豁免清单」的小节标题。</summary>
     private const string ExemptionSection = "## 豁免清单";
@@ -347,6 +351,69 @@ public sealed class DocInvariantTests
         }
 
         return offenders;
+    }
+
+    [Fact]
+    public void 叶子的规划标记落在目标态与差距节内()
+    {
+        string sectionKeyword = ReadRule(StructureSection, "目标态节标题");
+        string marker = ReadRule(StructureSection, "目标态行标记");
+        var offenders = new List<string>();
+        foreach (string leaf in Directory.EnumerateFiles(LeafDir, "*.md"))
+        {
+            int lineNumber = 0;
+            bool inTargetSection = false;
+            bool insideFence = false;
+            foreach (string line in File.ReadLines(leaf))
+            {
+                lineNumber++;
+                if (line.TrimStart().StartsWith("```", StringComparison.Ordinal))
+                {
+                    insideFence = !insideFence;
+                    continue;
+                }
+
+                if (insideFence)
+                {
+                    continue;
+                }
+
+                int headingLevel = HeadingLevel(line);
+                if (headingLevel > 0)
+                {
+                    if (line.Contains(sectionKeyword, StringComparison.Ordinal))
+                    {
+                        inTargetSection = true;
+                    }
+                    else if (headingLevel <= 2)
+                    {
+                        inTargetSection = false;
+                    }
+                }
+
+                if (!inTargetSection && line.Contains(marker, StringComparison.Ordinal))
+                {
+                    offenders.Add($"{Path.GetFileName(leaf)}:{lineNumber} 「{marker}」不在含「{sectionKeyword}」的小节内");
+                }
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "叶子只许在「目标态与差距」节承载目标态（文约 §6；口径见文约「目标态结构口径」）：" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
+    }
+
+    /// <summary>Markdown 标题层级（`# ` 为 1、`## ` 为 2…）；非标题行返回 0。</summary>
+    private static int HeadingLevel(string line)
+    {
+        int level = 0;
+        while (level < line.Length && line[level] == '#')
+        {
+            level++;
+        }
+
+        return level > 0 && level < line.Length && line[level] == ' ' ? level : 0;
     }
 
     /// <summary>layout.md §1 树里登记的物理路径（相对仓库根，如 <c>StarPie.Ui/Adapters</c>）。</summary>
