@@ -75,19 +75,24 @@ public sealed class PluginDiscoveryTests : IDisposable
     }
 
     [Fact]
-    public void 包内出现SDK副本_记录发现期违规()
+    public void 包内出现SDK或宿主程序集副本_记录发现期违规()
     {
         string package = PluginTestPackage.Create(_installRoot, "com.example.a");
         string nested = Path.Combine(package, "lib");
         Directory.CreateDirectory(nested);
         File.WriteAllBytes(Path.Combine(nested, "StarPie.Sdk.dll"), new byte[] { 0x4D, 0x5A });
         File.WriteAllBytes(Path.Combine(package, "StarPie.Sdk.Wpf.dll"), new byte[] { 0x4D, 0x5A });
+        File.WriteAllBytes(Path.Combine(package, "StarPie.Host.dll"), new byte[] { 0x4D, 0x5A });
+        File.WriteAllBytes(Path.Combine(nested, "StarPie.dll"), new byte[] { 0x4D, 0x5A });
 
         PluginPackageCandidate candidate = Assert.Single(new PluginDiscovery(_installRoot, _userRoot).Discover());
 
-        Assert.Equal(2, candidate.Violations.Count);
+        // 四项禁名单逐项判定：共享契约与宿主实现（含 Ui 集 StarPie.dll）都不得随包分发。
+        Assert.Equal(4, candidate.Violations.Count);
         Assert.Contains(candidate.Violations, violation => violation.Contains("StarPie.Sdk.dll"));
         Assert.Contains(candidate.Violations, violation => violation.Contains("StarPie.Sdk.Wpf.dll"));
+        Assert.Contains(candidate.Violations, violation => violation.Contains("StarPie.Host.dll"));
+        Assert.Contains(candidate.Violations, violation => violation.Contains("StarPie.dll"));
     }
 
     [Fact]

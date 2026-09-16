@@ -98,6 +98,21 @@ public sealed class InstanceHandoverTests
         Assert.True(acquired);
     }
 
+    [Fact]
+    public void WaitForSingleInstanceRelease_TreatsAbandonedMutexAsOwnerRelease()
+    {
+        using var mutex = new Mutex();
+        var crashed = new Thread(() => mutex.WaitOne()); // 取得后不释放就结束：模拟首实例崩溃
+        crashed.Start();
+        crashed.Join();
+
+        bool acquired = InstanceHandover.WaitForSingleInstanceRelease(mutex, TimeSpan.FromSeconds(2));
+
+        // 锁随进程消失即视为首实例已让位：接管成立，不空等到超时。
+        Assert.True(acquired);
+        mutex.ReleaseMutex(); // 遗弃等待按取得处理，取得方负责释放（此时归本线程）
+    }
+
     // --- 接收端的降级：让位不可达时静默不等待，收尾可重入 -----------------------------
 
     [Fact]

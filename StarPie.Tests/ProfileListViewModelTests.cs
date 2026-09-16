@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using CommunityToolkit.Mvvm.Messaging;
 using StarPie;
 
 namespace StarPie.Tests;
 
 /// <summary>
 /// 配置方案分区列表侧 ViewModel 的行为覆盖：方案列表与选中态、
-/// 扇区数切换、方向槽位集合（方位角标签、缺省动作补齐、扇区数规范化）以及
-/// 槽位名称编辑。直接 new 被测对象，不触碰任何静态配置状态。
+/// 扇区数切换、方向槽位集合（方位角标签、缺省动作补齐、扇区数规范化）、槽位名称编辑
+/// 以及配置导入广播驱动的自订阅重挂。直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class ProfileListViewModelTests
 {
@@ -371,6 +372,22 @@ public sealed class ProfileListViewModelTests
         Assert.Empty(vm.Profiles);
         Assert.Null(vm.SelectedProfile);
         Assert.Empty(vm.Slots);
+    }
+
+    [Fact]
+    public void ConfigImportedMessage_SelfRebindsToImportedProfiles()
+    {
+        var messenger = TestHub.NewMessenger();
+        var vm = new ProfileListViewModel(new List<WheelProfile> { MakeProfile("old.exe") }, Dialogs(), messenger, new TestActionExecutor(), Localization, new TestIconAssetService());
+        var imported = new AppConfig { Profiles = new List<WheelProfile> { MakeProfile("imported.exe", 4) } };
+
+        messenger.Send(new ConfigImportedMessage(imported));
+
+        // 导入广播驱动自订阅重挂：展示列表改挂新配置的方案实例，并按新列表首项重建槽位。
+        Assert.Equal("imported.exe", Assert.Single(vm.Profiles).ProcessName);
+        Assert.Same(imported.Profiles[0], vm.Profiles[0].Model);
+        Assert.Same(vm.Profiles[0], vm.SelectedProfile);
+        Assert.Equal(4, vm.Slots.Count);
     }
 
     // --- 瞬态 VM 生命周期（槽位经本 VM Dispose；Dispose 后订阅清零） -------

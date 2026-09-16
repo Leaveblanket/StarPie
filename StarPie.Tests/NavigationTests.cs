@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
@@ -109,6 +110,14 @@ public sealed class NavigationExecutorTests
     }
 
     [Fact]
+    public void Navigate_UnregisteredIdentifier_Throws()
+    {
+        var (executor, _, _) = Create();
+
+        Assert.Throws<InvalidOperationException>(() => executor.Navigate("NavPage9"));
+    }
+
+    [Fact]
     public void Navigate_UnregisteredSlot_Throws()
     {
         var services = new ServiceCollection();
@@ -129,8 +138,8 @@ public sealed class NavigationExecutorTests
 
 /// <summary>
 /// 主框架 ViewModel 的导航投影：五槽目录 → 导航项（数量、有序 AutomationId、标题随语言刷新）、
-/// 空 store 下的无选中态、条目命令与外部选中的双向同步，以及插件页动态注册 / 摘除时导航项的
-/// 追加 / 移除与当前页回落。
+/// 空 store 下的无选中态、条目命令与外部选中的双向同步、插件页动态注册 / 摘除时导航项的
+/// 追加 / 移除与当前页回落，以及释放时对 store / 目录 / 语言三处常驻事件源的退订。
 /// </summary>
 public sealed class MainViewModelTests
 {
@@ -216,11 +225,11 @@ public sealed class MainViewModelTests
 
     private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture) Create()
     {
-        var (vm, store, fixture, _) = CreateCore();
+        var (vm, store, fixture, _, _) = CreateCore();
         return (vm, store, fixture);
     }
 
-    private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture, FakeNavigationExecutor Navigation) CreateCore()
+    private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture, FakeNavigationExecutor Navigation, NavigationCatalog Catalog) CreateCore()
     {
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
@@ -242,7 +251,24 @@ public sealed class MainViewModelTests
             [NavigationSlot.Advanced] = fixture.General
         });
         var vm = new MainViewModel(store, catalog, navigation, Localization);
-        return (vm, store, fixture, navigation);
+        return (vm, store, fixture, navigation, catalog);
+    }
+
+    /// <summary>事件 backing field 的订阅者数（含继承链，如 <see cref="ObservableObject"/> 的
+    /// <c>PropertyChanged</c>）；无订阅者时为 0。</summary>
+    private static int SubscriberCount(object source, string eventName)
+    {
+        for (Type? type = source.GetType(); type is not null; type = type.BaseType)
+        {
+            FieldInfo? field = type.GetField(
+                eventName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+            if (field?.GetValue(source) is Delegate handler)
+            {
+                return handler.GetInvocationList().Length;
+            }
+        }
+
+        return 0;
     }
 
     [Fact]
@@ -298,7 +324,7 @@ public sealed class MainViewModelTests
     {
         // UIA SelectionItem.Select（e2e 静默导航路径）只置选中态、不产生鼠标输入；
         // 导航由选中态驱动，点击命令与选中态两条路径等价。
-        var (vm, store, fixture, navigation) = CreateCore();
+        var (vm, store, fixture, navigation, _) = CreateCore();
 
         vm.NavigationItems[2].IsSelected = true;
 
@@ -310,7 +336,7 @@ public sealed class MainViewModelTests
     public void SelectionSyncedFromStore_DoesNotRenavigate()
     {
         // SyncSelection 回灌的选中态指向已停驻的页面，不得触发二次导航（防回环）。
-        var (vm, store, fixture, navigation) = CreateCore();
+        var (vm, store, fixture, navigation, _) = CreateCore();
 
         store.CurrentViewModel = fixture.General;
 
@@ -349,6 +375,26 @@ public sealed class MainViewModelTests
 
         Assert.Same(fixture.General, store.CurrentViewModel);
         Assert.True(vm.NavigationItems[3].IsSelected);
+    }
+
+    [Fact]
+    public void Dispose_UnsubscribesFromAllResidentEventSources()
+    {
+        var (vm, store, _, _, catalog) = CreateCore();
+        Assert.Equal(1, SubscriberCount(store, nameof(NavigationStore.PropertyChanged)));
+        Assert.Equal(1, SubscriberCount(catalog, nameof(NavigationCatalog.Changed)));
+        // 语言服务是共享件：源上还挂着夹具里各槽位的订阅，故这里只钉本 VM 那一份出账（差值恰为 1）。
+        int languageSubscribersBefore = SubscriberCount(Localization, nameof(LocalizationService.LanguageChanged));
+
+        vm.Dispose();
+
+        // 三处事件源都是常驻件（store 与 catalog 常驻进程，语言服务是单例）：
+        // 不退订即每次设置台开关泄漏一份本 VM。
+        Assert.Equal(0, SubscriberCount(store, nameof(NavigationStore.PropertyChanged)));
+        Assert.Equal(0, SubscriberCount(catalog, nameof(NavigationCatalog.Changed)));
+        Assert.Equal(
+            languageSubscribersBefore - 1,
+            SubscriberCount(Localization, nameof(LocalizationService.LanguageChanged)));
     }
 }
 

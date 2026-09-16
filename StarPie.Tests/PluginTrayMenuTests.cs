@@ -27,6 +27,13 @@ public sealed class PluginTrayMenuTests
             coordinator,
             new LocalizationService()));
 
+    private static PluginMenuItemDescriptor MenuItem(string itemKey, int order)
+        => new(itemKey, string.Empty, itemKey)
+        {
+            DisplayName = itemKey,
+            Order = order,
+        };
+
     [Fact]
     public void 无插件时_菜单与内置条目一致()
     {
@@ -66,6 +73,31 @@ public sealed class PluginTrayMenuTests
             Assert.Null(entries[1].Label); // 插件条目前的分隔线
             Assert.Equal(new LocalizationService().GetString("PluginOpen"), entries[2].Label);
             Assert.NotNull(entries[2].Callback);
+        });
+    }
+
+    [Fact]
+    public void 多插件多条菜单项_按权重再插件id排序()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            // 先建 B 后建 A：注册顺序与排序结果相反，排序键才是判据。
+            PluginUiHost hostB = coordinator.GetOrCreateHost("com.example.b");
+            PluginUiHost hostA = coordinator.GetOrCreateHost("com.example.a");
+            hostB.RegisterMenuItem(MenuItem("b-early", order: 10));
+            hostA.RegisterMenuItem(MenuItem("a-late", order: 20));
+            hostB.RegisterMenuItem(MenuItem("b-late", order: 20));
+
+            IReadOnlyList<TrayMenuEntry> entries = TrayMenuComposer.Compose(
+                new[] { TrayMenuEntry.Item("Preferences", () => { }) },
+                coordinator,
+                new LocalizationService());
+
+            // 内置条目 + 分隔线之后：权重升序，同权重按插件 id 稳定序（A 在 B 之前）。
+            Assert.Equal(
+                new string?[] { "Preferences", null, "b-early", "a-late", "b-late" },
+                entries.Select(entry => entry.Label));
         });
     }
 

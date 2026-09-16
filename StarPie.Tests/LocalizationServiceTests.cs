@@ -1,10 +1,11 @@
+using System.Globalization;
 using StarPie.Localization;
 
 namespace StarPie.Tests;
 
 /// <summary>
-/// LocalizationService 单测：resx 数据源取词、别名表归一化、事件与当前语言投影。
-/// 全部经服务实例验证，不依赖静态门面。
+/// LocalizationService 单测：resx 数据源取词、别名表归一化、系统跟随（"Auto"）的文化解析、
+/// 事件与当前语言投影。全部经服务实例验证，不依赖静态门面。
 /// </summary>
 public class LocalizationServiceTests
 {
@@ -41,6 +42,29 @@ public class LocalizationServiceTests
         service.SetLanguage(code!);
 
         Assert.Equal("zh-CN", service.CurrentLanguage);
+    }
+
+    [Theory]
+    [InlineData("zh-TW", "zh-TW")]
+    [InlineData("ja-JP", "ja")]
+    [InlineData("fr-FR", "en")]
+    public void SetLanguage_Auto_ResolvesFromCurrentUiCulture(string culture, string expected)
+    {
+        var service = new LocalizationService();
+        CultureInfo original = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
+
+            service.SetLanguage("Auto");
+
+            // 繁体中文地区先于 zh 前缀命中；未命中前缀（fr）时兜底 en。
+            Assert.Equal(expected, service.CurrentLanguage);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = original;
+        }
     }
 
     [Fact]
