@@ -124,7 +124,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      `MouseHook`/`IActionExecutorService`/`IWindowContext`/`GestureEngine`/`GestureController`
      的注册由 `GesturesContributor.RegisterServices` 登记 Ui 集 M1；`IWheelFactory`
      的注册见 WheelContributor 注。）
-   - 页面 VM 与常驻子 VM 工厂注册（页面 VM 为 **scoped**，作用域 = 设置台会话；常驻子 VM 为单例）：
+   - 页面 VM 与设置子 VM 的工厂注册（VM 注册为 **scoped**，作用域 = 设置台会话；暂留常驻的插件管理页为单例）：
      M4 主题服务与界面主题设置子 VM 由
      `ThemeContributor.RegisterServices` 登记 `StarPie.Ui`（模块无导航页，只登记 DI
      注册）；M5 页面（`GeneralSettingsViewModel`）由
@@ -134,7 +134,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
      Ui 集 M1；`AppearanceSettingsViewModel`（薄聚合页壳，构造注入两个
      设置子 VM——`InterfaceThemeSettingsViewModel`（由 ThemeContributor 登记）与
      `WheelAppearanceSettingsViewModel`（由 WheelContributor 登记），
-     均另行注册单例）；页面 VM 的 DI 注册全部归所属贡献者；
+     均注册为 scoped（作用域 = 设置台会话））；页面 VM 的 DI 注册全部归所属贡献者；
      `ProfileListViewModel` 另以 M1 只读 `IProfilePreviewSource` 注册别名的动作由
      GesturesContributor 登记（契约驻 `StarPie.Sdk`，ADR-0023，
      供轮盘外观设置子 VM 经契约边消费）。导航区 VM（`MainViewModel`，目录驱动：导航项/选中态
@@ -166,9 +166,9 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
    - 解析 `IMessenger`、`MouseHook`、`DialogService`、`IThemeService`、`SettingsSaveOrchestrator`、
      `INavigationExecutor`、`NavigationCatalog`、`GestureController`、`NavigationStore`；
    - 页面 VM **不在启动期解析**：它们的作用域是设置台会话，首次进入该页时由导航执行缝经
-     `ConsolePageSession` 构造（scoped 注册，作用域 = 会话；会话结束整批释放）；壳层直持的常驻 VM
-     在此解析（`InterfaceThemeSettingsViewModel` 由设置台会话工厂从会话作用域取，故此处只解析
-     常驻件）；
+     `ConsolePageSession` 构造（scoped 注册，作用域 = 会话；会话结束整批释放）；启动期在此只解析
+     常驻件——设置子 VM（`InterfaceThemeSettingsViewModel`）与会话级 VM 都由设置台会话工厂
+     从会话作用域取（见下条）；
    - 构造并交付**设置台会话工厂** `Func<Window, SettingsConsole>`：每次开窗时开启设置台会话作用域
      （`ConsolePageSession.Begin`：页面 VM 与设置子 VM 的实例边界），新建导航区 `MainViewModel`
      与壳区 `ShellViewModel`（不注册进容器——它们随设置台开关生灭），并从会话作用域解析

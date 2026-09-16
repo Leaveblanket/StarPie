@@ -57,7 +57,7 @@ M1（驻 `StarPie.Ui/`）：
    接线、`IProfilePreviewSource` 别名）；导航运行时（`NavigationStore`/`NavigationExecutor`/
    `ConsolePageSession`）与 Host 外观聚合页 VM 由 `HostCoreContributor`/`HostPageContributor` 登记——
    前者为 Host 内部件，后者为 Host 页。页面 VM 与外观/主题/轮盘外观三个会话级 VM 注册为
-   **scoped**（作用域 = 设置台会话），插件管理页与暂留常驻的高级页注册为 singleton；
+   **scoped**（作用域 = 设置台会话），暂留常驻的插件管理页注册为 singleton；
    `MainViewModel`/`ShellViewModel` 不进容器，由组合根的设置台会话工厂构造。
 2. `MainViewModel`（Host，目录驱动；运行时归 Host）按 `catalog.Entries`
    构造 `NavigationItemViewModel` 列表：`AutomationId`/`TitleKey`/`DisplayName`/`IconData`/`TargetViewModelType`

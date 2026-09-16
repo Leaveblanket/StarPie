@@ -54,9 +54,9 @@ namespace StarPie
 
             var services = new ServiceCollection();
 
-            // 1a 导航目录：各贡献者自报导航页（M1 槽位 0/2、Host 聚合页槽位 1、M5 槽位 3；
-            // 其余贡献者无导航页）。Validate 在 BuildServiceProvider 前收口四个槽位完整，
-            // 供 CreateAppHost 目录驱动 eager 解析与导航 VM/导航执行消费。
+            // 1a 导航目录：各贡献者自报导航页（M1 槽位 0/2、Host 聚合页槽位 1、M5 槽位 3、
+            // 宿主直持的插件管理页槽位 4）。Validate 在 BuildServiceProvider 前收口五槽完整，
+            // 供 CreateShellHost 与导航执行缝消费（页面解析由目录驱动，不硬编码页面类型）。
             var navigationCatalog = new NavigationCatalog();
             foreach (ICompositionContributor contributor in _contributors)
             {
