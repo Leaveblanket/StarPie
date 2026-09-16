@@ -15,6 +15,10 @@
          dotnet test 走 MTP 模式（global.json 的 test.runner 开关）；VS/VS Code 的
          Test Explorer 由 MTP 原生支持接管，无需 VSTest 适配器与数据收集器 -->
     <PackageReference Include="xunit.v3.mtp-v2" />
+    <!-- 替身形态：手写替身与 mocking 框架都可用；断言对象是对象图与生命周期的检查
+         （程序集卸载与回收、弱引用判定、全局根扫描、真实 Application 上的窗口与资源）
+         仍用手写替身，边界见 docs/architecture/testing.md §3.1 -->
+    <PackageReference Include="NSubstitute" />
   </ItemGroup>
 
   <ItemGroup>
