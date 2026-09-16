@@ -41,7 +41,7 @@
 | 插件可用面（SDK.Wpf 硬约束 / 特性白名单与不支持列表 / HostServices 硬约束 / ABI 与信任） | [plugin-contracts.md](architecture/plugin-contracts.md) |
 | 插件开发（开发者视角：示例、准入、上手指引） | [plugin-dev-handbook.md](architecture/plugin-dev-handbook.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
-| 测试分层边界 / 检查分类 / 写作与增删口径 | [testing.md](architecture/testing.md) |
+| 测试分层边界 / 无自动覆盖清单 / 检查分类 / 写作与增删口径 | [testing.md](architecture/testing.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
 ## 3. 技术栈

@@ -10,11 +10,22 @@
 |---|---|---|
 | xUnit | `StarPie.Tests` | ViewModel 与纯逻辑层的决策行为；插件运行时与 UI 托管的生命周期；程序集、资源与文档的机械不变量 |
 | e2e | `tests/`（pywinauto + pytest） | 钩子、渲染、托盘、对话框的可见行为；导航点击往返；主题选项的目录内容与配置落盘 |
-| 人工验收 | 无载体 | 视觉效果；主题的可见效果（换肤后的窗口 chrome）；跨完整性级别行为（提权实例接管、互斥体失败分支）；系统 `MessageBox` 的呈现 |
+| 人工验收 | 无载体 | 视觉效果；无自动覆盖的行为收口在 §1.1（逐项理由与闭环门槛） |
 
-主题的可见效果归人工验收：键集与槽位不变式由 `ThemePaletteConsistencyTests` 在静态侧守住，运行时侧的判据为像素级，自动化会随主题微调持续产生噪音。
+边界裁定的出处：钩子/渲染/托盘归 e2e（ADR-0001）；逐原型的测试义务见 [extending.md](extending.md)；`ProgramScanner` 一类集成件不单测见 [programs.md](programs.md)。
 
-边界裁定的出处：钩子/渲染/托盘归 e2e（ADR-0001）；系统 `MessageBox` 与真实鼠标命中路径不在 e2e 覆盖内（ADR-0031）；跨完整性级别行为无自动覆盖（ADR-0040 / ADR-0042 / ADR-0043）；逐原型的测试义务见 [extending.md](extending.md)；`ProgramScanner` 一类集成件不单测见 [programs.md](programs.md)。
+### 1.1 无自动覆盖清单
+
+下表把散落登记的无自动覆盖行为收口到一处：每条写明为什么自动化够不到、补上自动判据需要先具备什么（**闭环门槛**）；门槛不具备期间，验收按各行写明的兜底方式。
+
+| 行为 | 为什么没有自动覆盖 | 闭环门槛 |
+|---|---|---|
+| 真实鼠标命中路径（物理鼠标输入 → WPF 命中测试） | e2e 由 UIA 模式调用驱动选中态导航，不经过物理输入与命中测试；键盘注入会抢前台，不可用（[ADR-0031](../adr/0031-e2e-silent-background-run.md)） | 隐藏桌面（`CreateDesktop`）、独立会话或 VM（ADR-0031 的升级路径）；未具备前靠 `-OnScreen` 调试形态人工看 |
+| 系统 `MessageBox` 的呈现 | 系统弹层按显示器居中、抢前台，后台窗口形态压不住；`DialogService` 的接线由 xUnit 覆盖，弹层本身的呈现不在 e2e 内（ADR-0031） | 同 ADR-0031 的升级路径；现状靠人工验收 |
+| 单实例恢复消息的放行、互斥体失败分支 | UIPI 按完整性级别拦窗口消息；不提权的 xUnit / e2e 环境里复现不了（[ADR-0040](../adr/0040-startup-privilege-policy.md) 决策 5、[ADR-0042](../adr/0042-privilege-routes-two-only.md) 决策 6） | 真机 VM 或独立会话内驱动「提权实例 + 非提权实例」双实例；现状验收靠一次真实提权实例 + 一次非提权双击 |
+| 提权实例的接管与让位（让位握手、就绪判据、失败告知） | 同上——握手走命名内核对象、跨完整性级别，不提权环境里复现不了（[ADR-0043](../adr/0043-elevated-instance-takeover.md)） | 同上；验收同源（一次真实提权实例 + 一次真实非提权实例） |
+| 壳层轮盘预热的失败路径（预热抛异常后启动编排继续） | `ShellHost` 为 `internal sealed`、`WarmUpWheelCorePath` 为 `private`，可见性纪律（[layering.md](layering.md)）下测试面触达不到；启动编排的后继步骤含真实托盘、启动内存整理与让位接收端 | 门槛在测试面之外：需生产侧开可见性缝（本仓不引 `InternalsVisibleTo`） |
+| 主题的可见效果（窗口 chrome 的换肤） | 运行时判据为像素级，自动化会随主题微调持续产生噪音；键集与槽位不变式由 `ThemePaletteConsistencyTests` 在静态侧守住 | 无——判据本身不适合自动断言，归人工验收 |
 
 ## 2. 检查分类
 
