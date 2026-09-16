@@ -39,25 +39,26 @@ dev 实例与正式版的行为差异：
 ## 🚀 提交流程与规范
 
 1. **Fork 代码库** 并克隆至本地；
-2. **基于 `main` 分支创建特性分支**：
+2. **基于 `main` 分支创建特性分支**，命名 `<type>/#<issue>-<slug>`：
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b feat/#123-my-feature
    # 或修复分支
-   git checkout -b fix/your-bug-fix
+   git checkout -b fix/#124-my-bug-fix
    ```
 3. **编写与验证代码**：
    - 保持 C# 编码风格与项目现有架构一致；
-   - 新增 UI 字符串请在 `StarPie.Host/Kernel/Localization/Strings.resx`（及 zh-TW/en/ja 卫星）补四语言键值；声明式文案经 XAML `{DynamicResource}`，动态文案经 `ILocalizationService` 即时取词；
+   - 新增 UI 字符串请在 `StarPie.Host/Localization/Strings.resx`（及 zh-TW/en/ja 卫星）补四语言键值；声明式文案经 XAML `{DynamicResource}`，动态文案经 `ILocalizationService` 即时取词；
    - 从仓库根构建全解决方案：`dotnet build StarPie.slnx`；
-   - 运行全量 xUnit：`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`；涉及用户可见 UI 时再运行 e2e：
+   - 运行全量 xUnit：`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`；涉及用户可见 UI 时再运行 e2e
+     （免跑判定见 `docs/agents/git-commits.md`）：
      `pwsh -File scripts/run-e2e.ps1`（默认静默后台形态：被测应用离屏、不抢前台、不动物理光标，输出落
      `artifacts/e2e/`；调试用 `-OnScreen` 让窗口正常显示，`-Status` 查最近一次结果）。
-4. **提交 Commit**（推荐采用约定式提交规范）：
+4. **提交 Commit**：约定式提交、主题用中文；`feat`/`fix`/`refactor` 类工作必须在主题末尾引用未关闭的 issue：
    ```text
-   feat: 增加新的轮盘渲染形态
-   fix: 修复高分辨率缩放下的光晕偏移问题
-   docs: 完善多语言配置文档
+   feat: 增加新的轮盘渲染形态 (#123)
+   fix: 修复高分辨率缩放下的光晕偏移问题 (#124)
    ```
+   完整规则（分支与 merge 提交、原子性、验证义务分层）见 `docs/agents/git-commits.md`。
 5. **发起 Pull Request (PR)**：
    - 清晰描述修改的背景、目的与实现细节；
    - 附带必要的界面截图或录屏。

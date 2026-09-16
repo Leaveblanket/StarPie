@@ -1,6 +1,6 @@
 using System;
 using System.Windows.Threading;
-using StarPie.Kernel.Configuration;
+using StarPie.Configuration;
 
 namespace StarPie.Adapters
 {

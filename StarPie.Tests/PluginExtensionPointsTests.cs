@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Abstractions.Ui;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginRuntime;

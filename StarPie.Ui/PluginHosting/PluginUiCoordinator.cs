@@ -8,7 +8,7 @@ using System.Windows.Threading;
 using StarPie.Abstractions.Ui;
 using StarPie.Compatibility;
 using StarPie.Events;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting.Cleanup;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginHosting.Verification;

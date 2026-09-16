@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 
 namespace StarPie.Services.Dialogs
 {

@@ -8,10 +8,10 @@
 
 ## 组成文件
 
-**宿主内核（`StarPie.Host/Kernel/Configuration/`，命名空间 `StarPie.Kernel.Configuration`）**：
+**宿主内核（`StarPie.Host/Configuration/`，命名空间 `StarPie.Configuration`）**：
 `IConfigService`/`JsonConfigService`、`ISaveDebouncer`、`SettingsSaveOrchestrator`、`AppDataPaths`
 （dev 目录分支的实例标记 `AppDataPaths.IsDevInstance` 按构建配置编译期定死，见 [host.md](host.md)；
-自启注册表 `AutostartRegistry` 归 M5，驻 `StarPie.Host/Kernel/ShellIntegration/`，见 [shell.md](shell.md)）；
+自启注册表 `AutostartRegistry` 归 M5，驻 `StarPie.Host/ShellIntegration/`，见 [shell.md](shell.md)）；
 WPF 亲和的落盘防抖器 `DispatcherSaveDebouncer`（UI 线程 `DispatcherTimer`）是 Ui 侧适配器，
 驻 `StarPie.Ui/Adapters/`；保存请求经消息上报，`DebouncedSaveRequestedMessage`/
 `ImmediateSaveRequestedMessage` 定义于 S4 hub（`StarPie.Sdk/Services/Messages/Messages.cs`）（放行共享面，见

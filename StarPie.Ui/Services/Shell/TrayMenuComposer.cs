@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginHosting.Extensions;
 

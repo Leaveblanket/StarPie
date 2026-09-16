@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Threading;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.ViewModels.Wheel;
 
 namespace StarPie.Services.Wheel

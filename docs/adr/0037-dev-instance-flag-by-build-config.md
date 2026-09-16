@@ -2,11 +2,11 @@
 
 > Status: Active（互斥名与触发键两个行为分支被 [0038](0038-dev-instance-no-parallel.md) 移除）
 >
-> 关联：#146。取代 [ADR-0036](0036-dev-instance-flag-via-environment-variable.md) 的环境变量判定；五个行为分支（配置沙箱、互斥名、触发键、自启保护、`(Dev)` 标记）不变。
+> 取代环境变量判定（历史 ADR-0036 已删除）；五个行为分支（配置沙箱、互斥名、触发键、自启保护、`(Dev)` 标记）不变。
 
 ## 动机
 
-ADR-0036 以环境变量 `STARPIE_INSTANCE=dev` 替代 `--dev` 参数后，实际使用中确认两点：不存在 dev 实例与正式版并行运行之外的实例形态需求；「Release 构建 + dev 沙箱」的人工验证场景（发布前性能验证、试用）没有真实发生，且即便出现也可用重定向 `LOCALAPPDATA` 启动覆盖大部分隔离需求（e2e 现成惯用法）。环境变量机制因此成为无消费场景的间接层：求值缓存、「先读后清」顺序约束、App 启动的环境清理代码都是为它支付的复杂度。
+环境变量判定（历史 ADR-0036：`STARPIE_INSTANCE=dev`）替代 `--dev` 参数后，实际使用中确认两点：不存在 dev 实例与正式版并行运行之外的实例形态需求；「Release 构建 + dev 沙箱」的人工验证场景（发布前性能验证、试用）没有真实发生，且即便出现也可用重定向 `LOCALAPPDATA` 启动覆盖大部分隔离需求（e2e 现成惯用法）。环境变量机制因此成为无消费场景的间接层：求值缓存、「先读后清」顺序约束、App 启动的环境清理代码都是为它支付的复杂度。
 
 ## Considered Options
 
@@ -17,7 +17,7 @@ ADR-0036 以环境变量 `STARPIE_INSTANCE=dev` 替代 `--dev` 参数后，实�
 
 1. `AppDataPaths.IsDevInstance` 以 `#if DEBUG` 在编译期定死：Debug 构建为 true（dev 沙箱），Release 构建为 false（正式形态）。
 2. 删除环境变量机制：`DevEnvVariable` 常量、`App.OnStartup` 的求值后清理块、`launchSettings.json`（Dev profile 不再需要）。
-3. `DevInstance` 维持 Ui 侧投影（`Suffix`/`MutexName`），判定唯一真相仍在内核 `AppDataPaths`。
+3. `DevInstance` 维持 Ui 侧投影（`Suffix`），判定唯一真相仍在内核 `AppDataPaths`。
 
 ## Consequences
 

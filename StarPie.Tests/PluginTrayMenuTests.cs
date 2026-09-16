@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using StarPie.Abstractions.Ui;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting;
 using StarPie.Services.Shell;
 using StarPie.ViewModels.Navigation;

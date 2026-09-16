@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using StarPie.Abstractions.Ui;
 using StarPie.Events;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting.Commands;
 using StarPie.PluginHosting.Extensions;
 using StarPie.PluginHosting.Resources;

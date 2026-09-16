@@ -1,4 +1,4 @@
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting.Extensions;
 
 namespace StarPie.Tests;

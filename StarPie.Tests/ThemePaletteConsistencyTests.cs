@@ -20,9 +20,9 @@ public sealed class ThemePaletteConsistencyTests
     private static string ThemesDirectory
         => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "Themes");
 
-    // 四语言 resx 位于宿主内核（StarPie.Host/Kernel/Localization）。
+    // 四语言 resx 位于宿主内核（StarPie.Host/Localization）。
     private static string LanguageResourcesFile
-        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
+        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Localization", "Strings.resx");
 
     private static SortedSet<string> ReadKeys(string theme)
     {

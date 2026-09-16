@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services.Wheel;
 
 namespace StarPie.ViewModels.Wheel

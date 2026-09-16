@@ -29,11 +29,11 @@ csproj `Page Update` 的 `ContainsDesignTimeResources` 元数据），内容为�
 - **单源文件**：`StarPie.Ui/Services/Localization/DesignTimeStrings.xaml`（Ui 集内、Page
   编译、zh-CN 值，**签入仓库**），由同目录生成脚本
   `StarPie.Ui/Services/Localization/GenerateDesignTimeStrings.ps1` 从运行时 resx
-  `StarPie.Host/Kernel/Localization/Strings.resx` 派生；Ui 资源锚以 pack URI 合并
+  `StarPie.Host/Localization/Strings.resx` 派生；Ui 资源锚以 pack URI 合并
   （`pack://application:,,,/StarPie;component/Services/Localization/DesignTimeStrings.xaml`）。
   字典随 Ui 集（程序集名 `StarPie`）承载，是设计期投影而非运行时数据源：编译为惰性 BAML，
   运行时依赖一律经 `StarPie.Host`/`StarPie.Sdk`/`StarPie.Sdk.Wpf`；独立设计期投影壳 `StarPie.Core`
-  已随 P1 收口删除。
+  已删除。
 - **选型说明**：原 (c) 方案（仓库根 `design/DesignTimeStrings.xaml` 松散单源 + 跨工程相对路径
   合并）spike 无法验证——本机无 VS 设计器、且无官方文档支撑跨工程父目录松散合并行为，按
   ADR-0025 契约回退本路径；字典是**设计期投影**而非运行时第二数据源：Page 编译为惰性 BAML，

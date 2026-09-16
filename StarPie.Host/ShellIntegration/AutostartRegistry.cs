@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.Versioning;
-using StarPie.Kernel.Configuration;
+using StarPie.Configuration;
 
-namespace StarPie.Kernel.ShellIntegration
+namespace StarPie.ShellIntegration
 {
     /// <summary>
     /// 开机自启的两种形态读写：HKCU Run 注册表项（普通权限自启）与 Windows 任务计划程序任务

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using StarPie.Kernel.Configuration;
-using StarPie.Kernel.Localization;
+using StarPie.Configuration;
+using StarPie.Localization;
 using StarPie.HostServices;
 using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;
@@ -32,12 +32,12 @@ public sealed class HostBoundaryTests
     /// <summary>StarPie.Host 的全部导出类型（导出面 = 恰为该清单）。</summary>
     private static readonly Type[] KernelTypes =
     {
-        // Kernel/Configuration/
+        // Configuration/
         typeof(IConfigService), typeof(JsonConfigService), typeof(ISaveDebouncer),
         typeof(AppDataPaths), typeof(SettingsSaveOrchestrator),
-        // Kernel/Localization/
+        // Localization/
         typeof(ILocalizationService), typeof(LocalizationService),
-        // Kernel/ShellIntegration/（开机自启注册表、提权态探测与 GC 内存整理，纯托管）
+        // ShellIntegration/（开机自启注册表、提权态探测与 GC 内存整理，纯托管）
         typeof(AutostartRegistry), typeof(ProcessElevation), typeof(MemoryOptimizer), typeof(TrayStateSignal), typeof(TraySignalStep), typeof(TrayStateChange),
         typeof(ShellExitSequence), typeof(ShellExitStep),
         typeof(SingleInstanceGate), typeof(SingleInstanceGateDecision),

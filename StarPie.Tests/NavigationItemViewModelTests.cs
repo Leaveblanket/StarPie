@@ -1,5 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting.Extensions;
 using StarPie.ViewModels.Navigation;
 

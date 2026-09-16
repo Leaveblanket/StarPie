@@ -1,4 +1,4 @@
-﻿# 分层与依赖规范
+# 分层与依赖规范
 
 > 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；写代码前需要核对“谁可以引用谁、类型可见性、Model/Service/VM/View 各自边界”时读本篇。
 
@@ -17,7 +17,7 @@ Services ---> Models
 ## 程序集层
 
 程序集划分、依赖方向与逐程序集职责见 [assemblies.md](assemblies.md) §2/§3。跨程序集回填缝
-（`AppHostDelegates` 为 SDK 公开契约（P1.3/#112 收口）由组合根注册 /
+（`AppHostDelegates` 为 SDK 公开契约由组合根注册 /
 ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下分层规则适用于各程序集内部。
 
 ## 依赖矩阵
@@ -39,7 +39,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
      （layering Views 例外登记，见 [wheel.md](wheel.md)）。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
    子 VM `WheelAppearanceSettingsViewModel` 经 SDK 的 `IProfilePreviewSource`
-   只读契约读方案列表——ADR-0023，D5（P1.3/#112 收口）；不引用具体 VM 类型）；动态/广播协调一律走
+   只读契约读方案列表——ADR-0023，D5；不引用具体 VM 类型）；动态/广播协调一律走
    IMessenger；
    同页状态不得用 messenger 替代绑定。
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
@@ -48,7 +48,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
      [seams.md](seams.md)；开放泛型 `NavigationService<T>` 例外已删除）；
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
-     [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023；P1.3/#112 收口）暴露，
+     [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023）暴露，
      由 WheelContributor 登记。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
 5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0009）。
@@ -59,19 +59,19 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`ShellHost`、
   `Composition`）在 `StarPie`。
 - **命名空间统一为 `StarPie.*`**（ADR-0016 决策 12）：命名空间根是产品名 `StarPie` 而非
-  程序集名，故 `StarPie.Host/Kernel/Configuration/` 内文件声明 `StarPie.Kernel.Configuration`
-  （不是 `StarPie.Host.Kernel.Configuration`）；跨程序集共享同一棵命名空间树。
+  程序集名，故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Configuration`
+  （不是 `StarPie.Host.Configuration`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
     组合根构造配置路径用，dev 实例标记按构建配置编译期定死；内核导出面由 `HostBoundaryTests` 白名单收口）。
   - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
     `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `ShellHost.Run` 负责 `new` 托盘并注入
-    菜单 provider；`AutostartRegistry` 住 `StarPie.Host/Kernel/ShellIntegration/`，由 Ui 侧
+    菜单 provider；`AutostartRegistry` 住 `StarPie.Host/ShellIntegration/`，由 Ui 侧
     贡献者跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
     `AppThemePaletteManager` 回落 internal（装配方 `ShellHost` 与实现同集），
     `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
-    M2 的轮盘工厂与外观设置子 VM 随 P1.7/#116 并入 `StarPie.Ui` 后只经同集贡献者接线/容器解析，维持 public
+    M2 的轮盘工厂与外观设置子 VM 并入 `StarPie.Ui` 后只经同集贡献者接线/容器解析，维持 public
     （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
     不经 Host 直接 new）。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。

@@ -1,6 +1,6 @@
 using System;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.Diagnostics;
 

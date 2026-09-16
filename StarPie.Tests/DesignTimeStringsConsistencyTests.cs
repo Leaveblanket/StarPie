@@ -19,7 +19,7 @@ public sealed class DesignTimeStringsConsistencyTests
 
     /// <summary>运行时本地化源 resx（宿主内核）。</summary>
     private static string ResxDirectory
-        => Path.Combine(RepoRoot, "StarPie.Host", "Kernel", "Localization");
+        => Path.Combine(RepoRoot, "StarPie.Host", "Localization");
 
     /// <summary>设计期投影字典（Page 编译签入生成物，随 Ui 集承载）。</summary>
     private static string DesignTimeDictionaryDirectory

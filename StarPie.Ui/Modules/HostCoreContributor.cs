@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Events;
 using StarPie.HostServices;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginRuntime;
 using StarPie.PluginRuntime.Admission;

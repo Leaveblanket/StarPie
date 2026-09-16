@@ -16,7 +16,7 @@ Single-context layout: one `CONTEXT.md` plus `docs/adr/` at the repo root. See `
 
 ### Architecture docs
 
-现行架构规范已按主题/模块拆分：先读入口 `docs/architecture.md` 按任务路由到 `docs/architecture/` 的对应叶子，只加载当前任务需要的文件。See `docs/agents/architecture.md`.
+现行架构规范已按主题/模块拆分：先读入口 `docs/architecture.md` 按任务路由到 `docs/architecture/` 的对应叶子，只加载当前任务需要的文件。维护义务（叶子增删同步路由表、ADR 只记决策理由四要素、正典不重抄）同在该文。
 
 ### Git commits
 

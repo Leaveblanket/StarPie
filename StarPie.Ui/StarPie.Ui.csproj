@@ -31,7 +31,7 @@
          StarPie.Sdk 与 StarPie.Sdk.Wpf。 -->
     <ProjectReference Include="..\StarPie.Sdk\StarPie.Sdk.csproj" />
     <ProjectReference Include="..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" />
-    <!-- 宿主内核（Kernel/Configuration 配置读写与防抖保存、Kernel/Localization 本地化实现）；
+    <!-- 宿主内核（Configuration/ 配置读写与防抖保存、Localization/ 本地化实现）；
          WPF 适配件（DispatcherSaveDebouncer）驻本集 Adapters/，实现内核防抖接缝 -->
     <ProjectReference Include="..\StarPie.Host\StarPie.Host.csproj" />
   </ItemGroup>

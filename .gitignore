@@ -40,6 +40,7 @@ windowsdesktop-runtime-*.exe
 
 # Temporary & Working Files
 *.tmp
+.tmp-*
 *.log
 .tolaria-rename-txn/
 .scratch/
