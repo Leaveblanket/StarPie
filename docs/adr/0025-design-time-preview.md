@@ -2,15 +2,15 @@
 
 > Status: Active（字典落点与「含 UI 工程」范围被 0027 修订）
 >
-> 修订指针：[ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 的三集形态收口后，设计期投影壳
-> `StarPie.Core` 撤销，字典与其生成脚本随 Ui 集承载（`StarPie.Ui/Services/Localization/`，pack URI
-> 指向程序集 `StarPie`）；机制不变（Page 编译惰性 BAML + 资源锚设计期合并）。现状见
-> [design-time-preview.md](../architecture/design-time-preview.md)。
+> 修订指针：本 ADR 的「每含 UI 工程各建资源锚」前提被 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md)
+> 的三集形态修订——含 UI 工程收敛为 Ui 集一份，字典与其生成脚本随 Ui 集承载
+> （`StarPie.Ui/Services/Localization/`，pack URI 指向程序集 `StarPie`）；机制不变（Page 编译惰性
+> BAML + 资源锚设计期合并）。现状见 [design-time-preview.md](../architecture/design-time-preview.md)。
 
 ## 动机
 
 1. **全量 XAML 声明式文案在设计器为空**：声明式文案经 `{DynamicResource}` 键取自
-   `AppHost.Run` 运行时代码注入的 `LanguageDictionary`（resx 267 键 ×4 语言）；VS 设计器不执行
+   `ShellHost.Run` 运行时代码注入的 `LanguageDictionary`（resx 267 键 ×4 语言）；VS 设计器不执行
    应用代码，且 WPF `DynamicResource` 无 FallbackValue——键缺失即文本为空。
 2. **设计尺寸与运行视口脱节**：页面 `d:Design*`（760×600 等）是近似值；曾以 `d:Height="900"`、
    `d:Background="Yellow"` 等设计期属性伪造内容全高，造成显示不全/截断。
@@ -29,10 +29,9 @@
 - **(c) 仓库根松散单源 + 相对合并**：`design/DesignTimeStrings.xaml` 一份，各工程资源锚以
   `../../design/...` 合并。零编译产物、零 Core 污染；依赖设计器对松散文件的相对路径合并行为 →
   尝试后因 spike 无法验证而回退（无 VS 设计器、无官方文档支撑跨工程父目录松散合并）。
-- **(a) Core 编译惰性字典 + pack URI**：`StarPie.Core/Services/Localization/DesignTimeStrings.xaml`
-  编入 Core、pack URI 合并。机制文档化、稳；代价是 Core 出现首份 XAML 与“运行时永不合并”的
-  惰性 BAML，需与“去共享化 / 不得另建文案字典”划清界限（定位为设计期投影，非运行时第二数据源）→
-  **选此**。
+- **(a) 编译惰性字典 + pack URI**：字典随承载 UI 的工程编译、pack URI 合并。机制文档化、稳；
+  代价是该工程出现首份“运行时永不合并”的惰性 BAML，需与“不得另建文案字典”划清界限
+  （定位为设计期投影，非运行时第二数据源）→ **选此**。
 - 每工程生成副本：N 份 267 键副本与同步护栏，维护负担高 → 否。
 
 ### 设计视口口径

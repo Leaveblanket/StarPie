@@ -6,7 +6,7 @@
 
 ## 动机
 
-设置界面样式资源长期以 `App.xaml` 与 `Views/Styles/SettingsStyles.xaml` 双文件维护：同一批主题画刷在 App.xaml、SettingsStyles.xaml、主题服务（C# 五套 hex）三处重复；`SettingsStyles.xaml` 被主框架、侧栏与五个页面多处合并，页面/侧栏因解析期 `StaticResource` 自足而各自携带静态 light 画刷，按 WPF 就近解析把页面内容钉死在浅色，深色系主题在设置页内容区不生效。
+设置界面样式资源长期以 `App.xaml` 与一份共享控件样式字典双文件维护：同一批主题画刷在 App.xaml、该字典与主题服务（C# 五套 hex）三处重复；该字典被主框架、侧栏与五个页面多处合并，页面/侧栏因解析期 `StaticResource` 自足而各自携带静态 light 画刷，按 WPF 就近解析把页面内容钉死在浅色，深色系主题在设置页内容区不生效。
 
 ## Considered Options
 
@@ -21,7 +21,7 @@
 
 1. **主题令牌**：`StarPie.Ui/Themes/{Light,Dark,MidnightNavy,RoyalViolet,TitaniumGray}.xaml`，每文件同一 key 集；`App.xaml` 静态合并 Light 作设计时/首帧默认。
 2. **主题服务瘦身**：只保留有效主题解析、当前主题状态与 DWM 标题栏应用；删除 C# 五套 hex 与写刷子逻辑（色板数据移入 XAML 令牌）。当前接口形态（`SetTheme`/`ThemeChanged` 单一入口）见 ADR-0013 与 `interface-theme.md`。
-3. **控件样式单点合并**：`Views/Styles/ModernControls.xaml` 承载全部隐式/键控样式与共享模板，仅由 `App.xaml` 合并；主视图/侧栏/页面/对话框不再各自合并。
+3. **控件样式单点合并**：`StarPie.Ui/Views/Styles/ModernControls.xaml` 承载全部隐式/键控样式与共享模板，仅由 `App.xaml` 合并；主视图/侧栏/页面/对话框不再各自合并。
 4. **默认即现代 + 变体键控**：现代控件外观作隐式默认（含 Button）；变体（PrimaryButton/FlatComboBox/ToggleSwitch/NavTab…）键控显式取用；透明/无边框特例显式 `Style={x:Null}`。转换器统一实例。
 5. **排版与几何令牌**：排版属性归一层；`CornerRadius` 等魔法数令牌化。
 

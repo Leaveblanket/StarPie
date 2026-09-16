@@ -19,7 +19,7 @@ ADR-0031 把 `--background` 窗口放到 `-32000,-32000`：对用户完全不可
 
 ## Decision
 
-1. **窗口形态**：`--background` 主窗口定位 `(0,0)`（真实可见、被 DWM 合成），界面按 `0.9` 线性缩放（窗口 954×648——实测 0.5/0.75 会把正文压到 6–9px、失败截图不可读，0.9 保正文 ~11px）；`ShowActivated=false` + `ShowInTaskbar=false` + `WS_EX_NOACTIVATE`；额外 `WS_EX_TRANSPARENT`，并在 `AppHost` 的 HWND hook 中对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`——鼠标点击穿透到下层窗口，键鼠不被打扰。
+1. **窗口形态**：`--background` 主窗口定位 `(0,0)`（真实可见、被 DWM 合成），界面按 `0.9` 线性缩放（窗口 954×648——实测 0.5/0.75 会把正文压到 6–9px、失败截图不可读，0.9 保正文 ~11px）；`ShowActivated=false` + `ShowInTaskbar=false` + `WS_EX_NOACTIVATE`；额外 `WS_EX_TRANSPARENT`，并在 `ShellHost` 的 HWND hook 中对 `WM_NCHITTEST` 返回 `HTTRANSPARENT`——鼠标点击穿透到下层窗口，键鼠不被打扰。
 2. **托盘**：静默形态照常创建 `TrayIconManager`（通知区可见、可退出）；全局鼠标钩子仍不启动（用户真实手势不触发轮盘）。
 3. **对话框**：程序/图标/颜色选择器与输入框保持离屏 + 不可激活（ADR-0031 决策 2 不变）；提示框不呈现、确认框取"是"不变。
 4. **失败截图**：静默形态即可用——`conftest` 用 `PrintWindow(PW_RENDERFULLCONTENT)` 抓真实内容，客户区单色视为未取到内容；仅 pillow 缺件时 `status.json` 记 `screenshotAvailable=false` + `screenshotNote`。

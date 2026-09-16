@@ -29,7 +29,7 @@
 ## Consequences
 
 - `StarPie.Ui` 新增 `PluginHosting` 层（登记表、资源根字典、视图/窗口/命令/菜单/定时器托管、清理与泄漏验证）；`StarPie.Host` 保持零 WPF，经 WPF-free 的 `IPluginUiCoordinator` 端口协调 UI 清理阶段。
-- `NavigationCatalog` 的封闭槽位（0–3）必须改为可动态增删的页面注册，否则插件页无处挂载；`MainViewModel` 与页面 eager 解析清单相应改为动态。
+- `NavigationCatalog` 的封闭槽位必须改为可动态增删的页面注册，否则插件页无处挂载；`MainViewModel` 与页面 eager 解析清单相应改为动态。
 - 卸载测试成为独立验证门：必须覆盖视图、窗口、资源字典、DataTemplate、定时器、动画、事件、绑定，并建立 STA 测试 harness。
 - 插件开发手册必须写清"经宿主契约注册"是唯一合法路径；`StarPie.Sdk.Wpf` 的 ABI 与 `StarPie.Sdk` 同政策（同主版本 additive-only）。
-- 若 P0 打样证明某类 WPF 特性无法可靠卸载，该特性进入"不支持列表"，而不是降低验证标准。
+- 若打样证明某类 WPF 特性无法可靠卸载，该特性进入"不支持列表"，而不是降低验证标准。

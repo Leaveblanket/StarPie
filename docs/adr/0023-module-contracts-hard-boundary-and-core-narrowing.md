@@ -1,4 +1,4 @@
-# 模块契约硬边界与共享内核收窄：模块出口契约入 `*.Contracts`、S1 成集、Core 仅留全局机制/数据
+# 模块契约硬边界与共享内核收窄：模块出口契约入 `*.Contracts`、S1 成集、共享内核仅留全局机制/数据
 
 > Status: Active（部分被 ADR-0027 修订）
 >
@@ -37,15 +37,15 @@
 
 ## Decision
 
-1. **程序集目标态 = 15**（被 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 决策 7 修订：现行程序集形态见 `assemblies.md` §2）：现 8 + Programs.Contracts / Dialogs.Contracts / Theme.Contracts / Wheel.Contracts / Gestures.Contracts + StarPie.Icons.Contracts / StarPie.Icons。部分推翻早期“7/8 程序集目标态”的物理落点表述（历史见 ADR-0016 及已删除的中间 ADR）；批次历史与分层动机不回开，以本 ADR 与 assemblies.md 为准。
+1. **契约化与图标服务成集**（物理落点已被 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md) 决策 7 演进；现行程序集形态见 [assemblies.md](../architecture/assemblies.md) §2/§3）：模块出口契约随实现方下沉薄 `*.Contracts`，图标服务的契约与实现分集；本 ADR 只承载该判据与分层动机，不记录程序集清单。
 2. **契约归属判据**：模块出口契约随**实现方模块**入其 `*.Contracts`；共享件出现第二消费方族时——若属全局机制入内核，若属某模块出口契约下沉该模块 Contracts。
 3. **契约归属判据的落地**：模块出口契约随实现方下沉其 `*.Contracts`。各契约具体承载哪些类型、
    现行落在哪个程序集，见 [assemblies.md](../architecture/assemblies.md) §2/§3——本 ADR 不复制类型清单。
 4. **S1 图标资产按同一判据成集**：契约与无状态纯资产表随集、实现与注册器另集；现行落点同上。
 5. **允许 runtime 边清零**：M1→M2（`IWheelFactory`）、M2→M4（`IThemeService`）、Dialogs→M4（`IThemeService`）三条 runtime 允许边删除，改经 Wheel.Contracts / Theme.Contracts 契约边；接合缝编目允许边档相应改写（[assemblies.md](../architecture/assemblies.md) §8）。Host → 全部 runtime（组合根例外）保留；Host/Tests 直接消费的契约另加显式引用。
-6. **Core 收窄边界**：S1、`Services/Programs/`、`Services/Dialogs/`、预览 Profile 契约迁出后，Core 仅留 Models（config POCO/值类型）、S2 配置、S3 本地化（+resx）、S4 消息 hub、S5 导航目录/槽位契约与 `AppHostDelegates`；S2/S3/S4 作为共享基建例外留 Core（模块引用共享基建 runtime ≠ 模块间互引）。
+6. **共享内核收窄边界**：共享内核只留全局机制/数据与共享基建（配置模型与读写、本地化、消息 hub、导航目录/槽位契约、宿主回调契约），不承载任何模块出口契约；模块引用共享基建 runtime 不算模块间互引（现行落点见 [assemblies.md](../architecture/assemblies.md) §2/§3）。
 7. **命名与命名空间**：程序集/项目名 `<模块>.Contracts`；命名空间维持 `StarPie.*` 树不变（命名空间 ≠ 程序集名），搬迁零 `using` 改动面。
-8. **编译器边界结果**：模块 runtime 之间零 ProjectReference；业务模块可达的模块类型仅限其显式引用的 Contracts（薄、无实现传递依赖）；实现类 public（被测）但不可达性由程序集引用保证；测试工程显式引用全部程序集，`*AssemblyPlacementTests` 断言“接口驻 Contracts”“runtime 互不引用”。
+8. **编译器边界判据**：模块 runtime 之间零 ProjectReference；业务模块可达的模块类型仅限其显式引用的 Contracts（薄、无实现传递依赖）；实现类 public（被测），不可达性由程序集引用保证（现行断言与清单见 [assemblies.md](../architecture/assemblies.md)）。
 
 ## Consequences
 

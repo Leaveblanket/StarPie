@@ -62,7 +62,7 @@
   同步封送意味着每次移动都阻塞钩子线程等 UI 线程往返（低级鼠标钩子有约 300ms 系统超时）。
   改异步涉及手势时序语义（高亮与取消的竞态），作为 known-issue 记入
   `docs/architecture/wheel.md`，单独立项，不随本收敛顺手改。
-- `RadialWindow` 769 行上帝文件与 `WheelViewModel.Config` 宽耦合由
+- `RadialWindow` 与 `WheelViewModel.Config` 的宽耦合由
   [ADR-0044](0044-wheel-config-projection.md) 承载，本文不处理。
 - `IWheelAppearanceState.CurrentConfig`（整个 AppConfig 透传给预览渲染器）的漏口在共享内核
   落地后自然收窄：预览渲染器改吃内核输出的纯数据，不再直读全局配置。
