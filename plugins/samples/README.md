@@ -2,7 +2,7 @@
 
 两个可独立构建、部署、运行的最小插件，覆盖插件开发的全部入口路径。约束性契约以
 [docs/architecture/plugins.md](../../docs/architecture/plugins.md) 为正典；开发者手册见
-[docs/plugin-dev-handbook.md](../../docs/plugin-dev-handbook.md)。
+[docs/architecture/plugin-dev-handbook.md](../../docs/architecture/plugin-dev-handbook.md)。
 
 | 示例 | 路径 | 演示内容 | 清单 id |
 |---|---|---|---|

@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <!-- 跨集只经两个 SDK 面：不引 Host/Ui，也不随包分发 SDK——Private=false 让契约只进编译期
-         引用面（plugins.md §5.1 约束 3：包内出现 StarPie.Sdk.dll/StarPie.Sdk.Wpf.dll 即 Rejected），
+         引用面（plugin-contracts.md §2 约束 3：包内出现 StarPie.Sdk.dll/StarPie.Sdk.Wpf.dll 即 Rejected），
          运行期由宿主默认 ALC 统一提供共享契约（跨 ALC 类型身份唯一）。 -->
     <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
     <ProjectReference Include="..\..\..\StarPie.Sdk.Wpf\StarPie.Sdk.Wpf.csproj" Private="false" />

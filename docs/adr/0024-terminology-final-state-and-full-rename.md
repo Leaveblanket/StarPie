@@ -1,6 +1,6 @@
 # 术语终态与全仓正名：不留历史别名，只留持久化迁移
 
-> Status: Active（终态词表见 `CONTEXT.md` 与 `docs/architecture/naming.md`）
+> Status: Active（终态词表见 `CONTEXT.md` 与 `docs/architecture/layout.md` §3）
 
 ## 动机
 

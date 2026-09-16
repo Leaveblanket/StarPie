@@ -39,7 +39,7 @@ public sealed class RuntimeNoCrossReferenceTests
 
         Assert.All(FourSetBoundaryProbe.WpfAssemblyNames, wpf => Assert.DoesNotContain(wpf, referenced));
         Assert.DoesNotContain("StarPie", referenced);          // Ui 集程序集名（Host ↛ Ui）
-        Assert.DoesNotContain("StarPie.Sdk.Wpf", referenced);  // plugins.md §5.1 约束 7
+        Assert.DoesNotContain("StarPie.Sdk.Wpf", referenced);  // plugin-contracts.md §2 约束 7
         Assert.All(FourSetBoundaryProbe.LegacyAssemblyNames, legacy => Assert.DoesNotContain(legacy, referenced));
 
         // Host 零 WPF 的产物级证据：无 windows 平台投影。

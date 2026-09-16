@@ -1,10 +1,11 @@
-# 目录与文件架构
+# 目录、落位与命名
 
-> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；需要确认“某个路径放什么 / 新增文件落在哪”时读本篇。
+> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；确认「某个路径放什么 / 新增文件落在哪 /
+> 新类型与页面叫什么」时读本篇：物理路径正典在 §1，逐目录禁止项在 §2，命名与映射正典在 §3。
 
-## Canonical 目录树
+## 1. Canonical 目录树
 
-以下为**应然结构**（正典）；当前代码与正典一致（四集 + 测试工程，无旧集与壳工程；见文末“当前登记”）。
+以下为**应然结构**（正典）；当前代码与正典一致（四集 + 测试工程，无旧集与壳工程）。
 
 ```text
 StarPie/
@@ -100,55 +101,84 @@ StarPie/
 > `StarPie.*` 命名空间树）；各程序集的承载与依赖方向见 [assemblies.md](assemblies.md) §2/§3，
 > 本目录树为物理路径正典。
 
-## 各目录职责细则
+## 2. 各目录禁止项
 
-| 目录 | 存放什么 | 不放什么 / 常见违规 |
+逐目录「放什么」见 §1 目录树（物理路径正典）；本表只列**禁止项与常见违规**。
+
+| 目录 | 不放什么 / 常见违规 |
+|---|---|
+| `Adapters/`（Ui） | 不放业务逻辑/VM/View；内核零 WPF，UI 线程亲和只能在本层提供 |
+| `Models/` | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
+| `Services/{Feature}/` | 不放 VM/View；静态工具须符合 [layering.md](layering.md)（Services 判据） |
+| `Services/Actions/` | 路由决策不得散落 VM/View；实现见 [gestures.md](gestures.md) |
+| `Configuration/`（Host） | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；内核不得出现 WPF 类型；实现见 [config.md](config.md) |
+| `Services/Dialogs/` | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View |
+| `Services/Gestures/` | 手势判定纯逻辑不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
+| `Services/Icons/` | 几何/程序解析类入口不在此（归属见 [modules.md](modules.md) §3 S1）；有状态/IO/Win32 面只经实例服务注入 |
+| `Icons/` · `Programs/`（Host） | 不放 WPF 类型/XAML；程序扫描件只经 `StarPie.Sdk` 契约对外 |
+| `Themes/` · `Ports/`（Host） | 不放 XAML/主题字典（在 `StarPie.Ui/Themes/`）；引擎不引用 WPF，效果一律经端口回抛 |
+| `Localization/` | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
+| `Services/Messages/` | 同页状态不得用消息替代绑定 |
+| `Services/Navigation/` | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
+| `Services/Themes/`（SDK） | 主题名不得在引擎/适配器/VM 各写一遍；界面主题与轮盘配色同名不同义，两套名录分列（见 [interface-theme.md](interface-theme.md)） |
+| `Services/Wheel/` | 工厂只经 SDK 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
+| `ViewModels/Pages/` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
+| `ViewModels/Dialogs/` | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
+| `ViewModels/Gestures/` | 不放服务 |
+| `ViewModels/Navigation/` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
+| `ViewModels/Wheel/` | 不注册容器；按手势由 `WheelFactory` 瞬态创建 |
+| `Views/Pages/` | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
+| `Views/Dialogs/` | 不放无配对 Window 的散件；配对例外见 §5 |
+| `Views/Navigation/` | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
+| `Views/Controls/` | 有 `Command`/绑定等价物时不得新增行为；不放对话框专用行为之外的散件 |
+| `Views/Styles/` | 不放主题画刷令牌（`Themes/*.xaml` 属 M4）；`ModernControls.xaml`/`HotkeyRecorderBox.xaml` 由 App.xaml 本地单点合并 |
+| `Views/Converters/` | 转换器保持无状态、可静态复用；不放其它业务模块专用转换器 |
+| `Views/Renderers/` | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；深浅色由调用方以 bool 传入（见 [wheel.md](wheel.md)） |
+| `Views/Wheel/` | 状态决策在 `WheelViewModel`；窗口只做视觉呈现与生命周期 |
+| `Views/DesignTime/` | 不放运行时 VM/服务；运行时代码不得引用 |
+| `Modules/` | 不承载业务；贡献者只登记不解析；Id/Order 唯一、清单按 Order 升序 |
+
+## 3. 命名与映射
+
+### 3.1 命名规则
+
+| 类型 | 规则 | 示例 |
 |---|---|---|
-| `Adapters/` | `StarPie.Ui/Adapters/`：实现 Host 内核接缝/端口的 WPF 适配器——`DispatcherSaveDebouncer` 实现 `ISaveDebouncer`、`AppThemePaletteManager` 实现 `IThemeApplier`（主题字典整项替换） | 不放业务逻辑/VM/View；内核零 WPF，UI 线程亲和只能在本层提供 |
-| `Models/` | `StarPie.Sdk/`：配置 POCO（`AppConfig`/`WheelProfile`/`ActionItem`/`CustomColorPreset`——AppConfig 引用）与 WPF-free 值类型/纯函数（`RgbColor`/`ColorMath`/`GesturePoint`）；`StarPie.Host/Wheel/`：轮盘配色 `WheelPalette`/`WheelPaletteCatalog`/`WheelPaletteParser`（WPF-free、命名空间 `StarPie.Wheel`） | 不引用 WPF 类型、服务、命令、消息、IMessenger；不放可注入服务、文件 IO、静态 Win32 工具 |
-| `Services/{Feature}/` | 该功能的服务接口与实现（同目录）、编排器、纯函数、进程内 DTO | 不放 VM/View；静态工具需符合 [layering.md](layering.md)（Services） |
-| `Services/Actions/` | 路由纯函数 `ActionRouting`（+ `ActionRoute`/`KeyStroke`/`SystemCommand`）驻 `StarPie.Host/Actions/`（WPF-free）；`StarPie.Ui/Services/Actions/`：`IActionExecutorService`/`ActionExecutorService`（系统调用层，默认 MessageBox 上报） | 路由决策不得散落 VM/View；实现见 [gestures.md](gestures.md) |
-| `Configuration/` | `StarPie.Host/`：`IConfigService`/`JsonConfigService`、`ISaveDebouncer`/`AppDataPaths`、`SettingsSaveOrchestrator`（dev 分支按构建配置编译期定死）；`DispatcherSaveDebouncer` 在 `StarPie.Ui/Adapters/` | 页面 VM 不得直接碰配置文件路径或 `JsonSerializer`；内核不得出现 WPF 类型；实现见 [config.md](config.md) |
-| `Services/Dialogs/` | 契约 `IDialogService` + 结果 record 在 `StarPie.Sdk`；实现 `DialogService` 在 `StarPie.Ui/Services/Dialogs/`（S6 归并入 Ui，SetOwner 回填装配面） | 对话框 Window/VM 不在此；文件对话框/MessageBox 不暴露给 VM/View |
-| `Services/Gestures/` | 手势内核 `GestureEngine`（+`GestureState`/`GestureReleaseResult`）与 `IWindowContext`/`WindowContext` 驻 `StarPie.Host/Gestures/`（WPF-free、可 headless 构造）；`StarPie.Ui/Services/Gestures/`：`MouseHook`（Win32 钩子）、`GestureController`（Dispatcher 封送副作用）（`WheelFactory` 属 M2，见 `Services/Wheel/` 行） | 手势判定纯逻辑不得引用 WPF/Win32；实现见 [gestures.md](gestures.md) |
-| `Services/Icons/` | 契约分层：`IIconAssetService` 在 `StarPie.Sdk.Wpf/Services/Icons/`；条目类型 `CustomIconItem`/`VectorIconItem` 与 .lnk SPI 在 `StarPie.Sdk/Services/Icons/`；WPF 图像构造 `IconAssetService` 在 `StarPie.Ui/Services/Icons/` | 几何/程序解析类入口不在此（归属见 [modules.md](modules.md) §3 S1）；有状态/IO/Win32 面只经实例服务注入 |
-| `Icons/` · `Programs/`（Host） | 宿主内核的 WPF-free 模块逻辑：`IconCatalog`（矢量清单/SVG 键目录/路径解析纯表）与 `CustomIconStore`（自定义图标目录，命名空间 `StarPie.Icons`）；`ProgramScanner`（八源扫描编排）与 `ShortcutResolver`（.lnk 解析，命名空间 `StarPie.Programs`） | 不放 WPF 类型/XAML；程序扫描件只经 `StarPie.Sdk` 契约对外 |
-| `Themes/` · `Ports/`（Host） | 宿主内核的 WPF-free 主题引擎 `ThemeEngine`（请求/有效主题状态、解析、切换与系统跟随重解析，命名空间 `StarPie.Themes`）与宿主→Ui 端口 `IThemeApplier`（命名空间 `StarPie.Ports`，Ui 侧适配器实现） | 不放 XAML/主题字典（在 `StarPie.Ui/Themes/`）；引擎不引用 WPF，效果一律经端口回抛 |
-| `Localization/` | `StarPie.Host/`：`ILocalizationService`/`LocalizationService` + `Strings*.resx`（四语言）；`StarPie.Ui/Services/Localization/` 只余设计期投影 `DesignTimeStrings.xaml`（Page 编译签入生成物）与生成脚本（ADR-0025 例外，源 resx 在内核） | VM/View 不得另建文案字典；设计期字典仅由 resx 派生；实现见 [localization.md](localization.md)、[design-time-preview.md](design-time-preview.md) |
-| `Services/Messages/` | `StarPie.Sdk/`：`Messages.cs`（IMessenger 消息）、`Notices.cs`（`NoticeKind`/`NoticeRequest`） | 同页状态不得用消息替代绑定 |
-| `Services/Navigation/` | `StarPie.Sdk/`：目录/槽位契约 `NavigationCatalog`（`NavigationCatalog.cs`）；Host：导航运行时 `NavigationStore`/`NavigationExecutor`（含 `INavigationExecutor`） | 页面状态不得散落导航器之外；实现见 [navigation.md](navigation.md) |
-| `Services/Themes/` | `StarPie.Sdk/Services/Themes/`：界面主题名目录 `AppThemeNames`（`System` 与五套具体主题常量、深色集合、已知名规范形查询）；配置取值、解析分支、字典文件名与设置面选项目录共引之 | 主题名不得在引擎/适配器/VM 各写一遍；界面主题与轮盘配色同名不同义，两套名录分列（见 [interface-theme.md](interface-theme.md)） |
-| `Services/Wheel/` | `StarPie.Ui/Services/Wheel/`：`WheelGeometry`（直构造 WPF `Geometry`）、`WheelFactory`（契约 `IWheelFactory` 驻 `StarPie.Sdk`） | 工厂只经 SDK 契约被 M1 消费；实现见 [wheel.md](wheel.md) |
-| `ViewModels/Pages/` | Host：`AppearanceSettingsViewModel`；`StarPie.Ui`：`InterfaceThemeSettingsViewModel`/`AppThemeOptionItem`（M4）、`WheelAppearanceSettingsViewModel`（M2）、`ResidentOptionRefresher`（M2/M4 设置页共用的驻留文案件：切语重建选项目录并补发选中通知）、`BehaviorSettingsViewModel`/`ProfileListViewModel`（M1）、`GeneralSettingsViewModel`（M5）；`StarPie.Sdk/ViewModels/Pages/`：`IProfilePreviewSource` | 不得引用 WPF 类型；不得出现 `event Action` 临时事件 |
-| `ViewModels/Dialogs/` | `StarPie.Ui/ViewModels/Dialogs/`：`{Dialog}ViewModel`（含 `ScreenEyedropperViewModel`） | 不得持有 Window/MessageBox/对话框类型；形态见 [dialogs.md](dialogs.md) |
-| `ViewModels/Gestures/` | `StarPie.Ui/ViewModels/Gestures/`：`SlotViewModel`（+ `SystemPresetItem`/`ActionTypeOption`） | 不放服务 |
-| `ViewModels/Navigation/` | Host：`NavigationItemViewModel`、`MainViewModel`（目录驱动）、`ShellViewModel` | 导航项文案/图标规则见 [navigation.md](navigation.md) |
-| `ViewModels/Wheel/` | `StarPie.Ui/ViewModels/Wheel/`：`WheelViewModel`（契约 `IWheelViewModel`/`IWheelAppearanceState` 驻 `StarPie.Sdk`） | 不注册容器；按手势由 `WheelFactory` 瞬态创建 |
-| `Views/Pages/` | Host：`AppearanceSettingsPage`、`PluginManagerPage`（插件管理）；`StarPie.Ui`：`TriggerSettingsPage`/`GesturesSettingsPage`（M1）、`AdvancedSettingsPage`（M5）（XAML 根直承 `UserControl`） | 不注册容器；不编排业务/写配置/调服务；页面无参构造 |
-| `Views/Dialogs/` | `StarPie.Ui/Views/Dialogs/`：`{Dialog}Window.xaml(.cs)`（对话框唯一形态） | 例外见 [naming.md](naming.md)；不放无配对 Window 的散件 |
-| `Views/Navigation/` | Host：`MainView`（纯壳）、`SidebarView` | 其它窗口/页面不得再合并样式字典（样式已 App 级单点合并） |
-| `Views/Wheel/` | `StarPie.Ui/Views/Wheel/`：`RadialWindow` | 状态决策在 `WheelViewModel`；窗口只做视觉呈现与生命周期 |
-| `Views/Controls/` | `StarPie.Ui/Views/Controls/`：`HotkeyRecorderBox`（M1，样式字典在 `Views/Styles/`）与 `SpectrumCanvasBehavior`（S6 取色对话框专用） | 有 `Command`/绑定等价物时不得新增行为 |
-| `Views/Converters/` | Host：通用共享转换器（`HexToBrush`/`StringToGeometry`/`IntEquals`/`FilePathToImage`，App.xaml App 级单点持有）；`StarPie.Ui/Views/Converters/`：M2 随归并的 `CoreIconGeometryConverter`/`CoreIconNameConverter` | 转换器保持无状态、可静态复用 |
-| `Views/DesignTime/` | `StarPie.Ui/`（含 M1/S6 样例）：设计期样例类型（命名空间 `StarPie.Views.DesignTime`，仅被根节点 `d:DataContext` 消费，见 design-time-preview.md） | 不放运行时 VM/服务；运行时代码不得引用 |
-| `Views/Renderers/` | `StarPie.Ui/Views/Renderers/`：`IRadialStyleRenderer`/`StyleRendererFactory`/`BaseStyleRenderer`/各风格渲染器/`WheelPreviewRenderer`；渲染器只消费 `WheelPalette` 解析结果构造画刷 | 渲染器不订阅事件、不读写 VM、不反向依赖 Composition/服务；深浅色探测由调用方以 bool 传入（见 [wheel.md](wheel.md)） |
-| `Modules/` | Ui 集内统一注册管线与全部贡献者：`ICompositionContributor`（Id/Order/RegisterServices + 可选 RegisterNavigation）+ `BuiltInContributors` 有序清单、宿主编排 `HostCoreContributor` + `HostCorePageTemplates.xaml`（插件管理页）、Host 外观聚合页 `HostPageContributor` + `HostPageTemplates.xaml`、M4 `ThemeContributor`、M2 `WheelContributor`、S6 `DialogsContributor`（无导航页）、M1 `GesturesContributor` 与 M5 `ShellContributor`（含导航登记，各带页面模板字典） | 不承载业务；贡献者只登记不解析；Id/Order 唯一、清单按 Order 升序 |
+| 服务接口/实现 | `IXxxService` / `XxxService` | `IDialogService` / `DialogService` |
+| 页面 VM | `{Domain}SettingsViewModel`（按设置域） | `BehaviorSettingsViewModel` |
+| 页面 View | `{Page}Page`（按导航区块） | `TriggerSettingsPage` |
+| 对话框 VM / Window | `{Dialog}ViewModel` / `{Dialog}Window`（**必须同名配对**） | `ColorPickerViewModel` + `ColorPickerWindow` |
+| 对话框结果 | `{Dialog}Result`（可空 record，定义在接口文件） | `ColorPickResult` |
+| IMessenger 消息 | `XxxRequestedMessage` / `XxxChangedMessage` / `XxxImportedMessage` / 单例空载体 | `DebouncedSaveRequestedMessage` |
+| 跨层通知载体 | `NoticeKind` / `NoticeRequest`（`Notices.cs`） | — |
+| 转换器 | `XxxToYyyConverter` | `HexToBrushConverter` |
+| 渲染器 | `XxxRenderer`（样式） / `XxxRenderer`（预览） | `GlassmorphismRenderer`、`WheelPreviewRenderer` |
+| 测试 | `{被测类型}Tests.cs`（平铺于测试工程根） | `GestureEngineTests.cs` |
 
+### 3.2 页面映射表（正典）
 
-
-### 共享 UI 基建落点（已去共享化）
-
-> 共享 UI 基建（原设计期投影壳内的 `Views/`：Converters/Controls/Pages/Styles）已随去共享化**整体
-> 清空移除**；资源键集不变——模块 XAML 消费方
-> （`{StaticResource}` 运行期解析）零改动。
-
-| 目录 | 存放什么 | 不放什么 / 常见违规 |
+| ViewModel（设置域命名） | View（导航区块命名） | 说明 |
 |---|---|---|
-| `StarPie.Ui/Views/Converters/` | Host 通用共享转换器：`HexToBrushConverter`（hex→Brush，配 SDK `Models/RgbColor`）、`StringToGeometryConverter`（SVG 路径→Geometry）、`IntEqualsConverter`、`FilePathToImageConverter`（本地图片→缩略图）；实例由 Host `App.xaml` App 级单点持有（ADR-0012 决策 5）；M2 核图标预览转换器随归并同驻本目录（App.xaml 本地实例化） | 不放其它业务模块专用转换器 |
-| `StarPie.Ui/Views/Styles/` | Host `ModernControls.xaml` 全局控件样式字典（隐式默认/键控变体/共享模板；App.xaml **本地合并**；几何令牌经 DynamicResource 供跨字典模板引用）+ M1 `HotkeyRecorderBox.xaml` 热键录制控件隐式默认样式字典（本地单点合并） | 不放主题画刷令牌（`Themes/*.xaml` 属 M4，在 `StarPie.Ui/Themes/`） |
-| `StarPie.Ui/Views/Controls/` | M1：共享自定义控件 `HotkeyRecorderBox.cs`（唯一编译期消费方 `GesturesSettingsPage.xaml`，xmlns 本地引用；隐式默认样式模板在 `StarPie.Ui/Views/Styles/HotkeyRecorderBox.xaml`） | 不放对话框专用行为（`SpectrumCanvasBehavior` 随 S6 归并同驻本目录，`StarPie.Ui/Views/Controls/`） |
+| `BehaviorSettingsViewModel` | `TriggerSettingsPage` | 触发与场景 |
+| `AppearanceSettingsViewModel` | `AppearanceSettingsPage` | 外观与形态 |
+| `ProfileListViewModel` | `GesturesSettingsPage` | 手势与动作 |
+| `GeneralSettingsViewModel` | `AdvancedSettingsPage` | 高级与系统 |
+| `PluginManagerViewModel` | `PluginManagerPage` | 插件管理 |
 
-## 根级文件规则
+规则：VM 名与页面名**允许错位**（VM 按领域、View 按区块），但**新增页面必须在所属贡献者
+`RegisterNavigation`（M5 为 `StarPie.Ui` 的 `ShellContributor`、M1 为
+`StarPie.Ui` 的 `GesturesContributor`，Host 外观聚合页为 `HostPageContributor`，
+宿主直持页为 `HostCoreContributor`）
++ 所属模块页面模板字典 DataTemplate（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
+`StarPie.Ui/Modules/GesturesPageTemplates.xaml`、插件管理在
+`StarPie.Ui/Modules/HostCorePageTemplates.xaml`）+ 本表各登记一行**；映射表是唯一事实来源
+（接线流程见 [navigation.md](navigation.md)）。
+
+### 3.3 对话框配对
+
+正典配对（同名）：`ColorPickerViewModel ↔ ColorPickerWindow`、`IconPickerViewModel ↔ IconPickerWindow`、`ProgramPickerViewModel ↔ ProgramPickerWindow`、`ScreenEyedropperViewModel ↔ ScreenEyedropperWindow`。唯一形态与实现流程见 [dialogs.md](dialogs.md)。
+
+## 4. 根级文件规则
 
 仓库根（仓库级构建入口）：
 
@@ -212,22 +242,8 @@ Ui 集工程根（`StarPie.Ui/`）：
   `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Tests/`
   目录下。
 
-## 现状偏差与待清理项
+## 5. 例外登记（长期接受，新代码不得新增同类）
 
-当前代码与正典目录结构一致；四集之外的旧集（含设计期投影壳 `StarPie.Core`）已全部撤销，
-exe `Modules/` 承载统一注册管线与全部内置贡献者（见下）。
-
-### 当前登记（统一注册管线）
-
-- `StarPie.Ui/Modules/`：注册管线 `ICompositionContributor` + `BuiltInContributors`（`CreateAll`
-  返回按 `Order` 升序的有序清单，Id/Order 唯一）；贡献者 `HostCoreContributor`（宿主编排与内核
-  接入、插件运行时与槽位 4 插件管理页 + `HostCorePageTemplates.xaml`）、
-  `HostPageContributor`（外观聚合页 VM 与槽位 1 + `HostPageTemplates.xaml`）、
-  `ThemeContributor`、`WheelContributor`、`DialogsContributor`（均无导航页）与
-  `GesturesContributor`、`ShellContributor`（含导航登记，各带页面模板字典）。外观聚合页留 Host
-  （[assemblies.md](assemblies.md) §5.2 槽位 1），属正典形态而非待迁出偏差。
-
-长期接受的例外（新代码不得新增同类）：
-
-- `InputViewModel ↔ InputDialog`：遗留命名错位，见 [naming.md](naming.md)。
-- 页面 VM 与页面 View 的领域/区块命名错位（`GeneralSettingsViewModel → AdvancedSettingsPage` 等）：**允许且是正典**，见 [naming.md](naming.md)。
+- `InputViewModel ↔ InputDialog`：遗留窗口名未对齐，仅保留不改名。
+- 页面 VM 与页面 View 的领域/区块命名错位（`GeneralSettingsViewModel → AdvancedSettingsPage` 等）：**允许且是正典**（规则见 §3.2）。
+- 外观聚合页留 Host（[assemblies.md](assemblies.md) §5.2 槽位 1）：属正典形态，非待迁出偏差。

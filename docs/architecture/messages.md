@@ -21,7 +21,7 @@
    `PageConfigReloadedMessage`、`AppThemeChangedMessage`（主题应用语义见
    [interface-theme.md](interface-theme.md)）。
 2. `Notices.cs` 放非 messenger 的跨层载体（`NoticeKind`/`NoticeRequest`），供托盘气泡等通知使用。
-3. 消息命名遵循 [naming.md](naming.md) 的消息命名表（`XxxRequestedMessage`/`XxxChangedMessage`/…）；
+3. 消息命名遵循 [layout.md](layout.md) §3 的消息命名表（`XxxRequestedMessage`/`XxxChangedMessage`/…）；
    跨页协调走 IMessenger，同页状态不得用 messenger 替代绑定（见 [layering.md](layering.md)）。
 
 ## 扩展点

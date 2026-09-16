@@ -8,7 +8,7 @@
 > 见 [ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](plugins.md)。
 > exe 工程目录/文件名为 `StarPie.Ui`（程序集名与发布产物保持 `StarPie`）；旧 15 集**全部撤销**
 > （含设计期投影壳 `StarPie.Core`：设计期字典随 Ui 集承载），注册管线统一为内置贡献者有序清单（§6）；
-> 插件面其余能力按 [plugins.md](plugins.md) §13 的阶段推进。
+> 插件面其余能力的推进按 issue 与 [modules.md](modules.md) 跟踪。
 >
 > **程序集现状**：四集（`StarPie.Sdk`/`StarPie.Sdk.Wpf`/`StarPie.Host` + exe `StarPie.Ui`）
 > + 测试工程 + 随包插件工程 `plugins/src/StarPie.Plugin.Programs`（只引 SDK）与 `plugins/src/StarPie.Plugin.SampleUi`（引 SDK + Sdk.Wpf），无旧集残留（划分见 §2）。
@@ -17,14 +17,9 @@
 
 ## 1. 何时读本文
 
-| 想做什么 | 读哪里 |
-|---|---|
-| 某个类型/文件属于哪个程序集 | 本文 §2–§4 + modules.md §3 |
-| 程序集间依赖是否允许 | 本文 §3 |
-| 导航槽位 / 侧边栏顺序正典 | 本文 §5 |
-| 新增页面/服务要动哪些 | 本文 §5–§6（+ [extending.md](extending.md) 原型 A–F） |
-| 程序集化落地历史与现状 | ADR-0016、ADR-0023 与 git 历史，本文不逐批登记；现状以本文 §2–§7 为准（§2 地图 / §3 依赖规则 / §5 槽位 / §7 可见性）；概念模块归属见 [modules.md](modules.md) |
-| 为什么这样定 | [ADR-0016](../adr/0016-assembly-split-target-and-roadmap.md) |
+> 本文是**程序集物理面正典**：程序集地图（§2）、程序集级依赖规则（§3）、导航与“壳”的分层语义（§4–§5）、
+> DI 与可见性（§6–§7）、接合缝编目（§8）。概念模块（12 模块）的划分、归属裁定与扩展点验收见
+> [modules.md](modules.md)；按任务找文档见入口 [architecture.md](../architecture.md) §2。
 
 ## 2. 程序集地图（as-built）
 
@@ -50,7 +45,7 @@ StarPie.Ui（WinExe，程序集名 StarPie；唯一含 XAML 与入口）
   显式引用四集，不依赖传递引用）；其余工程不得引用 Ui。
 - `StarPie.Sdk` 零 WPF、零第三方包（csproj 无 `PackageReference`，程序集引用面只含平台程序集，
   TFM 为 `net10.0` 无 windows 平台投影）、零 ProjectReference。
-- `StarPie.Host` 零 WPF：TFM `net10.0`，不引用 `StarPie.Sdk.Wpf`（plugins.md §5.1 约束 7），
+- `StarPie.Host` 零 WPF：TFM `net10.0`，不引用 `StarPie.Sdk.Wpf`（plugin-contracts.md §2 约束 7），
   ProjectReference 只许 `StarPie.Sdk`。
 - `StarPie.Sdk.Wpf` 是 WPF 类型契约面（`UseWPF`、windows TFM、带 Windows 平台投影），不产出
   XAML；ProjectReference 只许 `StarPie.Sdk`；承载主题/图标/扫描 WPF 契约件与 ABI/装载政策
@@ -141,7 +136,7 @@ StarPie.Ui (exe) ──→ StarPie.Host → StarPie.Sdk
   追加、`RemovePluginPage(identifier)` 摘除，条目按「固定槽位升序 → 插件页注册顺序」返回，
   目录变更经 `Changed` 通知（纯契约；运行时不居 SDK）。
 - Host 提供导航执行入口（`NavigationExecutor`/`INavigationExecutor`）：随运行时归 H1 后为宿主内部件
-  （不再是跨程序集"已批准解析缝"，见 [seams.md](seams.md)；第二消费方出现时按
+  （不再是跨程序集"已批准解析缝"，见本文 §8；第二消费方出现时按
   ADR-0023 契约归属判据裁决落点——属全局机制/数据入共享内核，属某模块出口契约下沉该模块
   Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、契约入 `StarPie.Sdk`））。
 - 内置贡献者自报导航项与页面模板字典（`DataTemplate DataType=VM → View`）；Host 在 App 资源里**每模块一次** pack URI 静态合并。
@@ -190,7 +185,7 @@ Host、目录契约驻 `StarPie.Sdk`，程序集归属见 §2/§4。
   目录与 `IShortcutTargetResolver`）。
 - **根解析集中**：Host Composition 仍唯一 `BuildServiceProvider` / `CreateShellHost`；贡献者不解析、不持容器。
 - **已批准解析缝**：`WheelFactory`、`DialogService`、贡献者注册体（仅登记不解析）。导航目录执行缝
-  不是跨程序集缝（`INavigationExecutor` 随运行时整体归 Host，为宿主内部件，见 [seams.md](seams.md)）。
+  不是跨程序集缝（`INavigationExecutor` 随运行时整体归 Host，为宿主内部件，见本文 §8）。
 - `AppHostDelegates` 是 SDK 公开契约（`StarPie.Sdk/Services/AppHostDelegates.cs`）；
   Host 组合根持有实例并由 `HostCoreContributor` 登记单例，ShellHost 构造后回填实现（契约名不随类改名）。贡献者只依赖
   SDK/Sdk.Wpf 契约面与 Host 内核面，不在贡献者内引用其它模块 runtime 类型。
@@ -224,6 +219,60 @@ Host、目录契约驻 `StarPie.Sdk`，程序集归属见 §2/§4。
   `SetOwner(MainView)` 惰性回填 Owner（ADR-0004），接口 `IDialogService` 不含 SetOwner（Owner
   是实现内部自由，不泄露进契约）；对话框 VM/Window 与 `SpectrumCanvasBehavior` 维持 public
   （被测/装配类型），无新增 InternalsVisibleTo。
+
+## 8. 接合缝编目（Seams）
+
+> **接合缝（Seam）** = 两个程序集/模块之间一切需要同步、协议或装配的接触点（接口契约、DI 注册、
+> 回填、导航目录、XAML 资源合并、消息、共享数据对象）。
+> **规范内缝** = ADR/叶子登记且由收口测试守护的缝；**需关注缝** = 有意接受但对模块化施加压力的缝
+> （改动前先读裁决）；**残留缝** = 已裁决要清理、待排期的缝。
+> 只收**当前活缝**；历史已归零的缝（WheelFactory 收编、扫描委托、ThemeChanged 死事件、
+> IconAssets 静态回填等）在各 ADR/叶子有记录，不在此重复。
+
+### 8.1 规范内缝（approved，改动受 ADR/收口测试守护）
+
+| 缝 | 载体（契约/实现） | 裁决/守护 |
+|---|---|---|
+| 契约缝·图标资产 | `IIconAssetService` 驻 `StarPie.Sdk.Wpf/Services/Icons/`（实现 `IconAssetService` 驻 `StarPie.Ui/Services/Icons/`）；条目与 .lnk SPI 驻 `StarPie.Sdk/Services/Icons/`；静态纯目录 `IconCatalog` 与自定义图标目录 `CustomIconStore` 驻 `StarPie.Host/Icons/` | ADR-0023；IconCatalogTests |
+| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`（命名空间 `StarPie.Services.Icons` 不变）← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`（图标服务与程序扫描经契约边消费） | ADR-0023 |
+| 契约缝·程序扫描 | `IProgramScanner`/`ProgramEntry`/`ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`（命名空间 `StarPie.Services.Programs` 不变）← 实现 `ProgramScanner` 驻 `StarPie.Host/Programs/`（实例；候选为纯数据，图标由 UI 消费方装配） | ADR-0023 |
+| 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）← 实现 `ThemeService` 驻 `StarPie.Ui/Services/Shell/`（状态/解析在内核 `ThemeEngine`，换肤经端口 `IThemeApplier` 回抛 Ui）；消费方 Host/Dialogs 经契约边（M2 轮盘侧原经本契约的允许边已清零，改经无状态 `Func<bool>` 探针：ADR-0039 决策 3） | ADR-0023；**不构成插件可达面**——插件拿不到本服务实例（无注入边），插件侧深浅色同样走探针（定义与守护见 [plugins.md](plugins.md) §5.1、[ADR-0047](../adr/0047-plugin-reachable-surface.md)） |
+| 契约缝·轮盘工厂 | `IWheelFactory`/`IWheelViewModel` 驻 `StarPie.Sdk`（ADR-0023 自 M2 runtime 迁出）← 实现 `WheelFactory`/`WheelViewModel` 驻 M2；消费方 M1 经契约边（M1→M2 runtime 允许边清零） | D5 + ADR-0023 |
+| 契约缝·预览 Profile | `IProfilePreviewSource` 驻 `StarPie.Sdk`（ADR-0023 自 Core 迁出，生产方语义 + 破 Wheel↔Gestures 环），别名 = M1 `ProfileListViewModel`，消费 M2 经契约边 | D5 + ADR-0023 |
+| 契约缝·轮盘外观只读状态 | `IWheelAppearanceState` 驻 `StarPie.Sdk`（签名暴露件，ADR-0023），实现 = M2 `WheelAppearanceSettingsViewModel`，消费方 = M2 预览渲染器 + Host 外观页 | ADR-0014 决策 8 + ADR-0023 |
+| 契约缝·对话框 | `IDialogService`/结果 record 驻 `StarPie.Sdk`（纯 C#，ADR-0023 自 Core 迁出）← 实现 `DialogService` 驻 Dialogs；M1/M2/M5/Host 经契约边调用 | ADR-0023 |
+| 注册缝 | 统一注册管线：`ICompositionContributor`（`Id`/`Order`/`RegisterServices` + 可选 `RegisterNavigation`）+ `BuiltInContributors` 有序清单（`HostCore`/`HostPage`/Theme/Wheel/Gestures/Shell/Dialogs 七个内置贡献者）下放 DI/导航登记；注册的契约类型驻 `StarPie.Sdk`/`StarPie.Sdk.Wpf`；组合根唯一解析、插件贡献者接同一接口 | ADR-0023；BuiltInContributorsTests |
+| 内核消费缝 | 旧集 runtime 与 Ui 经 `StarPie.Host/{Configuration,Localization}` 消费内核件（内核定义、消费方单向） | HostBoundaryTests |
+| 内核内互连·配置→本地化（同集，非跨集缝） | `StarPie.Host/Configuration` 的 `JsonConfigService` 持同集 `Localization` 的 `ILocalizationService`：替换运行态配置的两个入口（加载、导入）都在替换后立即应用配置的 `Language`，把「运行态语言跟随当前配置」收成服务的单一不变式，不留给各调用方自觉 | JsonConfigServiceTests（加载与导入两条路径各一条「语言跟随」用例） |
+| 回填缝·宿主回调 | `AppHostDelegates` 驻 `StarPie.Sdk`（可空 Action 单例），由 `HostCoreContributor` 登记单例、AppHost 构造后回填 | 无专用机械断言（缝本身无解析时机；注册体由 BuiltInContributorsTests 覆盖） |
+| 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填（public 装配面） | ADR-0004；e2e |
+| 导航缝 | `NavigationCatalog` + `NavigationSlots`（槽位 0–3，驻 `StarPie.Sdk`）+ 贡献者 `RegisterNavigation` + 页面模板字典 | NavigationCatalogTests + BuiltInContributorsTests（补注：导航运行时/执行入口 `INavigationExecutor` 随运行时整体归 Host，为宿主内部件而非跨程序集缝，本表不登记） |
+| XAML 资源缝 | App.xaml 资源单点合并/实例化：页面模板字典、主题字典、ModernControls.xaml 与 HotkeyRecorderBox 样式字典均为 Ui 集内本地合并（归并后无跨集 pack URI），转换器 App 级实例；`Properties/DesignTimeResources.xaml` 设计期资源锚是唯一 pack URI 缝（仅设计期、运行时永不合并，见 design-time-preview.md） | ADR-0012、ADR-0025 |
+| 消息缝 | S4 hub（`Messages.cs`/`Notices.cs`，驻 `StarPie.Sdk`），跨模块广播；新消息 = 放行共享面 | messages.md |
+| 系统调用委托缝（A 类） | 服务构造注入 `Func<bool>`/`Action` 系统探针（`ThemeEngine`/`ActionExecutorService`/VM 委托），生产默认值内建；轮盘扇区内容内核的 SVG 可解析性探针 `WheelSectorContentKernel.Build(..., Func<string,bool> isParsableSvg)` 由 WPF-free 的 Host 内核声明、Ui 侧以 `WheelGeometry.IsParsablePathData` 注入（解析是 WPF 面），省略即视为全部可解析 | layering.md「系统调用接缝模式」；单测替身 |
+| 收口测试缝 | 四集基线：`FourSetBoundaryTests`（解决方案登记 / 根 props 生效值与工程差异 / 跨集依赖方向 / CI 与 e2e 路径）+ `RuntimeNoCrossReferenceTests`（产物恰为四集 / 旧集文件不存在 / 引用面与平台投影 / 入口与 XAML 唯一 / 全类型空壳检查）+ `SdkBoundaryTests`/`SdkWpfBoundaryTests`/`HostBoundaryTests`（导出面白名单 / ABI 与默认 ALC 政策 / 内核零 WPF / 设计期字典随 Ui 编译且资源锚唯一）；`BuiltInContributorsTests` + `NavigationCatalogTests` 收口注册管线与目录 | 测试自身守护 |
+
+> 上表原按模块拆分的 `*AssemblyPlacementTests` 断言族已随四集骨架退役；现行机械守护为四集基线 +
+> 注册管线清单（见“收口测试缝”行），表内其余缝以产物引用面/导出面/行为测试逐条落地。
+
+### 8.2 需关注缝（有意接受，但对模块化施加压力；改动前先读裁决）
+
+| 缝 | 位置 | 压力 | 裁决/触发条件 |
+|---|---|---|---|
+| Host 装配面 | Composition/CreateShellHost 直取 Host 侧可见具体类型（MouseHook/主题服务/两子 VM 等）；ShellHost 把 Ui 侧调色板适配器接到主题服务（内核端口 `IThemeApplier`）/编排托盘菜单/MouseHook 暂停态；Host 聚合页拼装 M2/M4 子 VM | Host 对"哪些装配件可见"有编译期认知；模块不能脱离 Host 决定宿主装配 | ADR-0016 决策 13（组合根集中）；留 Host；不引入子容器/Prism |
+| 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 SDK 槽位枚举 + 收口测试（可能波及 e2e），非"纯模块内部" | 产品页面数封顶 5，改动属放行共享面；navigation.md 登记 |
+| 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`；模块 VM 构造抓引用，导入后消息自挂 | 任何模块可读写任何配置区；模块间经"同一对象 + 广播"隐式协作 | 放行共享面（modules.md §2.3）；config.json 向后兼容 Hard Constraint |
+| Models 物理残留（R8） | `WheelProfile`/`ActionItem` 语义归 M1、物理 `StarPie.Sdk/Models/`；`CustomColorPreset` 语义归 M2、物理 `StarPie.Sdk/Models/`（AppConfig 引用） | 业务领域形状渗入 SDK 模型面 | R8 已登记；迁移触发条件 = 配置模型与模块语义解耦时再议 |
+
+### 8.3 残留缝
+
+当前无残留缝。
+
+### 8.4 维护义务
+
+1. 新增跨程序集接触点时：先判定属哪一档，登记本表并链裁决（ADR/叶子行号）；不满足 ADR 三条件的小改动只改本表与对应叶子。
+2. 缝归零（重构消除）时：从本表移除并在本叶 §8.3 记一行，指向裁决。
+3. 程序集/依赖方向变化先改本文 §3，再同步本表基线。
 
 ## 参见 ADR
 

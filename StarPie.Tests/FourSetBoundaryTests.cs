@@ -180,7 +180,7 @@ public sealed class FourSetBoundaryTests
     [Fact]
     public void 随包界面插件工程_只引SDK与SdkWpf_零第三方包_零Host引用()
     {
-        // UI 插件的引用面比 headless 插件多一个 WPF 契约面（plugins.md §5.1）：SDK + Sdk.Wpf，
+        // UI 插件的引用面比 headless 插件多一个 WPF 契约面（plugin-contracts.md §2）：SDK + Sdk.Wpf，
         // Host/Ui 依旧不可出现；SDK 契约不随包分发（Private=false 只进编译期引用）。
         XDocument csproj = FourSetBoundaryProbe.LoadProject(SampleUiPluginProject);
         Assert.True(FourSetBoundaryProbe.GetEffectiveBoolProperty(SampleUiPluginProject, "UseWPF"));

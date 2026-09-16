@@ -1,6 +1,6 @@
 # 对话框服务设计（IDialogService）
 
-> Status: Active
+> Status: Active（实现落点见 [dialogs.md](../architecture/dialogs.md) 与 [assemblies.md](../architecture/assemblies.md)）
 >
 > 实现落点：实现驻 `StarPie.Ui`（`Services|ViewModels|Views/Dialogs`）、契约 `IDialogService` 与结果 record 驻 `StarPie.Sdk`，见 `docs/architecture/dialogs.md` 与 `assemblies.md`。
 

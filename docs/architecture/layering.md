@@ -45,7 +45,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
      运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
-     [seams.md](seams.md)；开放泛型 `NavigationService<T>` 例外已删除）；
+     [assemblies.md](assemblies.md) §8；开放泛型 `NavigationService<T>` 例外已删除）；
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
      [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023）暴露，

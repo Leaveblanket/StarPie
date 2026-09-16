@@ -46,7 +46,7 @@
    - `Wheel.Contracts`：`IWheelFactory`、`IWheelViewModel`（+ 签名暴露件）；
    - `Gestures.Contracts`：`IProfilePreviewSource`。
 4. **S1 成集**：`StarPie.Icons.Contracts` = `IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`（`IconCatalog` 为无状态纯资产表，作资产目录契约随集）；`StarPie.Icons` = `IconAssetService` + `IconsModuleRegistrar`。
-5. **允许 runtime 边清零**：M1→M2（`IWheelFactory`）、M2→M4（`IThemeService`）、Dialogs→M4（`IThemeService`）三条 runtime 允许边删除，改经 Wheel.Contracts / Theme.Contracts 契约边；seams.md 允许边档相应改写。Host → 全部 runtime（组合根例外）保留；Host/Tests 直接消费的契约另加显式引用。
+5. **允许 runtime 边清零**：M1→M2（`IWheelFactory`）、M2→M4（`IThemeService`）、Dialogs→M4（`IThemeService`）三条 runtime 允许边删除，改经 Wheel.Contracts / Theme.Contracts 契约边；接合缝编目允许边档相应改写（[assemblies.md](../architecture/assemblies.md) §8）。Host → 全部 runtime（组合根例外）保留；Host/Tests 直接消费的契约另加显式引用。
 6. **Core 收窄边界**：S1、`Services/Programs/`、`Services/Dialogs/`、预览 Profile 契约迁出后，Core 仅留 Models（config POCO/值类型）、S2 配置、S3 本地化（+resx）、S4 消息 hub、S5 导航目录/槽位契约与 `AppHostDelegates`；S2/S3/S4 作为共享基建例外留 Core（模块引用共享基建 runtime ≠ 模块间互引）。
 7. **命名与命名空间**：程序集/项目名 `<模块>.Contracts`；命名空间维持 `StarPie.*` 树不变（命名空间 ≠ 程序集名），搬迁零 `using` 改动面。
 8. **编译器边界结果**：模块 runtime 之间零 ProjectReference；业务模块可达的模块类型仅限其显式引用的 Contracts（薄、无实现传递依赖）；实现类 public（被测）但不可达性由程序集引用保证；测试工程显式引用全部程序集，`*AssemblyPlacementTests` 断言“接口驻 Contracts”“runtime 互不引用”。

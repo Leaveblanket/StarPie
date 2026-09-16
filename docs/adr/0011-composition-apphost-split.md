@@ -1,6 +1,6 @@
 # Composition 拆分：组合根与 AppHost 宿主编排分离
 
-> Status: Active（部分被 0016 修订）
+> Status: Active（注册源被 [ADR-0016](0016-assembly-split-target-and-roadmap.md) 修订）
 
 > 注册源由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可下放模块注册器（`RegisterServices`/`RegisterNavigation`），解析点仍集中 Host 组合根。
 

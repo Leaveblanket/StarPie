@@ -1,7 +1,7 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-  插件审核清单签名工具（清单更新通道，ADR-0029 / plugins.md §11）。
+  插件审核清单签名工具（清单更新通道，ADR-0029 / plugin-contracts.md §5）。
 
 .DESCRIPTION
   用首方私钥对 review-catalog.json 做分离 RSA-SHA256 签名，产出 <catalog>.sig（base64）。
@@ -28,7 +28,7 @@ if (-not (Test-Path $CatalogPath)) {
     exit 2
 }
 if (-not (Test-Path $KeyPath)) {
-    Write-Warning "私钥不存在：$KeyPath（生成方式见 docs/plugin-dev-handbook.md 的「审核清单维护」一节）"
+    Write-Warning "私钥不存在：$KeyPath（生成方式见 docs/architecture/plugin-dev-handbook.md 的「审核清单维护」一节）"
     exit 2
 }
 

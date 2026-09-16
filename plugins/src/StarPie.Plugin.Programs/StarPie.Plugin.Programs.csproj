@@ -10,13 +10,13 @@
 
   <ItemGroup>
     <!-- 跨集只经 SDK：插件不引 Host/Ui，也不随包分发 SDK——Private=false 让 SDK 只进编译期
-         引用面（plugins.md §5.1 约束 3：包内出现 StarPie.Sdk.dll 即 Rejected），运行期由宿主
+         引用面（plugin-contracts.md §2 约束 3：包内出现 StarPie.Sdk.dll 即 Rejected），运行期由宿主
          默认 ALC 统一提供共享契约。 -->
     <ProjectReference Include="..\..\..\StarPie.Sdk\StarPie.Sdk.csproj" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 生成即拒绝：SDK 程序集绝不随包分发（plugins.md §5.1 约束 3），复制时排除引用项。 -->
+    <!-- 生成即拒绝：SDK 程序集绝不随包分发（plugin-contracts.md §2 约束 3），复制时排除引用项。 -->
     <None Remove="plugin.json" />
   </ItemGroup>
 

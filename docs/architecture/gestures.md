@@ -49,7 +49,7 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
 
 > 配置方案设置面是 M1 内部三子面之一（触发与场景 / 动作执行 / 配置方案编辑，见
 > [modules.md](modules.md) §5 D1）。页面壳原则见 [modules.md](modules.md) §5 D6；本页导航登记见
-> [naming.md](naming.md) 页面映射表。
+> [layout.md](layout.md) §3 页面映射表。
 
 ### 页面与 VM 组成
 

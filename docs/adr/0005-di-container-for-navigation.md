@@ -1,6 +1,6 @@
 # 视图导航重构引入 DI 容器（ServiceCollection）
 
-> Status: Active（部分被 0016 修订）
+> Status: Active（注册源被 [ADR-0016](0016-assembly-split-target-and-roadmap.md) 修订）
 >
 > 注册源条款由 [ADR-0016](./0016-assembly-split-target-and-roadmap.md) 修订：注册源可分散（模块注册器），解析点仍集中（Host 组合根）。
 

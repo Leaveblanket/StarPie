@@ -19,7 +19,7 @@ SDK（`StarPie.Sdk/`，仅目录/槽位契约）：
 
 - `Services/Navigation/`：`NavigationStore`（当前页状态单一根源）、`NavigationExecutor`（含
   `INavigationExecutor`，目录驱动执行入口——按槽位取目录注册项并惰性解析页面 VM；
-  接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [seams.md](seams.md)；
+  接口随实现整体归 Host，为宿主内部件而非跨程序集解析缝，见 [assemblies.md](assemblies.md) §8；
   第二消费方出现时按 ADR-0023 契约归属判据裁决落点——属全局机制入内核、属某模块出口契约
   下沉该模块 Contracts（如 S6 先例：`IDialogService` 随实现方独立成集、契约入 `StarPie.Sdk`））。
 - `ViewModels/Navigation/`：`NavigationItemViewModel`；`MainViewModel`（目录驱动：导航项顺序/
@@ -82,7 +82,7 @@ M1（驻 `StarPie.Ui/`）：
 ## 扩展点
 
 新增页面 = 页面 VM + 所属贡献者 `RegisterNavigation` 一行（槽位/AutomationId/TitleKey/IconData）
-+ 所属模块页面模板字典 `DataTemplate` 一行 + [naming.md](naming.md) 映射表登记；任何一步缺失都算
++ 所属模块页面模板字典 `DataTemplate` 一行 + [layout.md](layout.md) §3 映射表登记；任何一步缺失都算
 未完成。完整清单见 [extending.md](extending.md)（原型 B）。
 
 as-built：
