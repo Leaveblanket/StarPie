@@ -79,14 +79,14 @@
 
 CI 的构建与测试走 Release，本地约定命令走默认配置，两者都要过。CI 只强制 xUnit，e2e 不在 CI 覆盖内（GitHub runner 上 WPF UI 自动化不可靠）。
 
+分析器与编译器的警告一律视为错误（根 `Directory.Build.props` 的 `TreatWarningsAsErrors`）：新增警告即构建失败。示例工程（`plugins/samples/**`）单独覆盖关闭——它们供第三方插件作者照抄，不给他们加构建摩擦。豁免只此一处，其余工程不得另行关闭；确无替代 API 的定点豁免须就地在代码里写明理由（`WinTrustSignatureVerifier` 的证书提取是唯一存量）。
+
 ## 5. 检查的增删
 
 - **新增**：随被测行为一起加。机械断言类还需在类自述里写明它补的是哪一处缺口（§3.2）。
 - **删除**：满足二者之一才成立——守护对象已不存在（某能力连同它的源码一起不存在了），或同一失效场景已被另一处检查覆盖（跨文件、跨层均可）。删除属独立改动，单独开票执行，不夹在审查或重构里。
 
 ## 目标态与差距
-
-**分析器硬门**：在根 `Directory.Build.props` 打开 `TreatWarningsAsErrors`，对 `plugins/samples/**` 单独覆盖关闭——示例工程供第三方插件作者照抄，不给他们加构建摩擦。开启前需清掉现存两条警告（`WinTrustSignatureVerifier.cs` 的过时证书 API、`PluginLoadPipeline.cs` 的可空实参）。规划：落地时回填本文 §4.2。
 
 **类粒度软上限**：超限文件的处理随各自改动走，不为达标而单独重构。规划：现状有文件超 600 行。
 

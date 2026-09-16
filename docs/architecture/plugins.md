@@ -56,7 +56,7 @@
 ```text
 StarPie/
 ├── StarPie.slnx                          # 解决方案：登记四集 + 随包/示例插件工程 + 测试，一条命令 build/测全套
-├── Directory.Build.props                 # 共享构建属性（TFM/可空性/分析器级别）：四集与插件工程不各写一遍，避免漂移
+├── Directory.Build.props                 # 共享构建属性（TFM/可空性/分析器级别/警告视为错误）：四集与插件工程不各写一遍，避免漂移
 ├── Directory.Packages.props              # 中央包管理（包版本唯一集中处）；「SDK 零第三方包」「Host 零 WPF」两条约束由 StarPie.Tests 的边界测试机械断言
 ├── StarPie.Sdk/                          # net10.0；零 WPF / 零第三方包；headless 唯一引用面（ADR-0027 决策 1）
 │   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginLog：插件眼里「宿主长什么样」的全部

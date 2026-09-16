@@ -10,7 +10,7 @@
 ```text
 StarPie/
 ├── StarPie.slnx                   # 解决方案（登记全部工程；构建/测试入口）
-├── Directory.Build.props          # 统一构建属性（TFM/可空性/隐式 using/分析器级别/根命名空间）
+├── Directory.Build.props          # 统一构建属性（TFM/可空性/隐式 using/分析器级别/警告视为错误/根命名空间）
 ├── Directory.Packages.props       # 中央包管理（包版本唯一集中处；csproj 不写版本）
 ├── AGENTS.md                      # agent 入口约定（技能、issue、提交、架构文档路由）
 ├── CONTEXT.md                     # 领域术语词汇表
@@ -200,7 +200,7 @@ StarPie/
 仓库根（仓库级构建入口）：
 
 - `StarPie.slnx`：解决方案文件——登记全部工程，构建与测试入口（仓库根 `dotnet build StarPie.slnx`）。
-- `Directory.Build.props`：统一构建属性（TFM / 可空性 / 隐式 using / 分析器级别 / 根命名空间）；工程级差异（`UseWPF`/`OutputType`/`AssemblyName` 等）留在各 csproj。
+- `Directory.Build.props`：统一构建属性（TFM / 可空性 / 隐式 using / 分析器级别 / 警告视为错误 / 根命名空间）；工程级差异（`UseWPF`/`OutputType`/`AssemblyName`、示例工程的警告豁免等）留在各 csproj。
 - `Directory.Packages.props`：中央包管理（CPM）——包版本唯一集中处，各 csproj 的 `PackageReference` 不写 `Version`。
 
 Ui 集工程根（`StarPie.Ui/`）：
