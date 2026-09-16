@@ -63,21 +63,15 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   （不是 `StarPie.Host.Configuration`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
-  - 需要被组合根跨程序集装配/消费的共享件显式 `public`（先例：宿主内核的 `AppDataPaths`——
-    组合根构造配置路径用，dev 实例标记按构建配置编译期定死；内核导出面由 `HostBoundaryTests` 白名单收口）。
-  - 需要被 Host 装配的模块公开件显式 `public`（先例：M5 的
-    `TrayIconManager`/`TrayMenuEntry` 随归并入 Ui 后由同集 `ShellHost.Run` 负责 `new` 托盘并注入
-    菜单 provider；`AutostartRegistry` 住 `StarPie.Host/ShellIntegration/`，由 Ui 侧
-    贡献者跨集接线，故为 public 且标注 `[SupportedOSPlatform("windows")]`；M4 并入 Ui 集后
-    `AppThemePaletteManager` 回落 internal（装配方 `ShellHost` 与实现同集），
-    `ThemeService` 维持 public（`IThemeService` 实现与被测类型）；
-    M2 的轮盘工厂与外观设置子 VM 并入 `StarPie.Ui` 后只经同集贡献者接线/容器解析，维持 public
-    （被测类型），无新增 Host 装配面 public 裁决——RadialWindow 由 WheelFactory 在同集内创建，
-    不经 Host 直接 new）。
+  - 需要被组合根跨程序集装配/消费的共享件显式 `public`。
+  - 需要被 Host 装配的模块公开件显式 `public`；与装配方同集、只作容器解析或被测类型的件维持 `public`，装配方与实现同集且无跨集消费的回落 `internal`。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
   - `Composition`、`ShellHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露
   （`SettingsConsole` 为 `public`：被测类型保持 public，见测试约定）。
+
+  既有先例与逐件裁决（`AppDataPaths`/`TrayIconManager`/`AutostartRegistry`/`AppThemePaletteManager`/
+  `WheelFactory` 等）正典在 [assemblies.md](assemblies.md) §7——本叶只写规则，不抄先例。
 - 页面 View 无参构造、不注册容器，因此不需要 public 构造注入（`MainView`、对话框 Window 是仅有的、经组合根/服务显式 `new` 的窗口）。
 
 ## Models

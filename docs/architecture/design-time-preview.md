@@ -32,11 +32,7 @@ csproj `Page Update` 的 `ContainsDesignTimeResources` 元数据），内容为�
   （`pack://application:,,,/StarPie;component/Services/Localization/DesignTimeStrings.xaml`）。
   字典随 Ui 集（程序集名 `StarPie`）承载，是设计期投影而非运行时数据源：编译为惰性 BAML，
   运行时依赖一律经 `StarPie.Host`/`StarPie.Sdk`/`StarPie.Sdk.Wpf`。
-- **选型说明**：仓库根 `design/DesignTimeStrings.xaml` 松散单源 + 跨工程相对路径合并的备选方案
-  无法验证（本机无 VS 设计器、且无官方文档支撑跨工程父目录松散合并行为），故取本路径；
-  字典是**设计期投影**而非运行时第二数据源：Page 编译为惰性 BAML，
-  运行时永不自动合并（资源锚仅被 VS 设计器读取，见
-  [ADR-0025](../adr/0025-design-time-preview.md)）。
+- **选型理由**：被否方案与取舍见 [ADR-0025](../adr/0025-design-time-preview.md)；设计期投影语义见上条。
 - **同步护栏**：新增/修改文案键后必须重跑生成脚本
   （`powershell -ExecutionPolicy Bypass -File StarPie.Ui/Services/Localization/GenerateDesignTimeStrings.ps1`）；
   xUnit 一致性测试锁“键集一致 + zh-CN 值与 resx 一致”（resx 在宿主内核、字典在 Ui 集，

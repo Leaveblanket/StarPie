@@ -75,11 +75,6 @@ Models）；接口只读，轮盘侧不引用具体方案列表 VM 类型（Whee
 - `StarPie.Ui/Views/Pages/GesturesSettingsPage.xaml(.cs)`：聚合壳页面（D6），卡片式承载 Profile 选择/增删改、
   扇区数切换与方向槽位编辑；code-behind 无业务。
 
-### 扩展点
-
-- 新增动作类型 = 新增系统预设条目与槽位编辑 UI 选项（清单见 [extending.md](extending.md) 原型 D）；
-  新图标资产走 S1（放行共享面，见 [modules.md](modules.md) §2.3）。
-
 ## 关键流程
 
 1. `MouseHook`（Win32 钩子线程）产生 `OnRightButtonDown/Up`、`OnMouseMove` 事件 → `GestureController` 订阅并喂给 `GestureEngine`。
