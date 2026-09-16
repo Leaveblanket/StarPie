@@ -9,7 +9,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services.Icons;
 using StarPie.Services.Wheel;
 using StarPie.Views.Renderers;

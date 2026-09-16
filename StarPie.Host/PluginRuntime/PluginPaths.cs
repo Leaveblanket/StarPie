@@ -1,4 +1,4 @@
-using StarPie.Kernel.Configuration;
+using StarPie.Configuration;
 
 namespace StarPie.PluginRuntime
 {

@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services;
 using StarPie.Services.Shell;
 using StarPie.ViewModels.Navigation;

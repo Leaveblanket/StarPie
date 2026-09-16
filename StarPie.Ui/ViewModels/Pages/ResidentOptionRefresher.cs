@@ -1,5 +1,5 @@
 using System;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 
 namespace StarPie.ViewModels.Pages
 {

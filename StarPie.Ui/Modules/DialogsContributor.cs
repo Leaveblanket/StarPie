@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using StarPie.Services.Dialogs;
 using StarPie.Services.Icons;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services.Programs;
 using StarPie.Services.Shell;
 

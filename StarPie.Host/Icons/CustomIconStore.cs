@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using StarPie.Kernel.Configuration;
+using StarPie.Configuration;
 using StarPie.Services.Icons;
 
 namespace StarPie.Icons

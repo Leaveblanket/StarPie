@@ -4,7 +4,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StarPie.Kernel.ShellIntegration
+namespace StarPie.ShellIntegration
 {
     /// <summary>
     /// 内存整理：纯托管 GC 收敛（两轮全量压缩 + finalizer 排空），GC 预算内自我约束。

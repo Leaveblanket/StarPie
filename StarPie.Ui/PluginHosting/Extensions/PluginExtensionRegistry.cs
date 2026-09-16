@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using StarPie.Abstractions.Ui;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services.Navigation;
 
 namespace StarPie.PluginHosting.Extensions

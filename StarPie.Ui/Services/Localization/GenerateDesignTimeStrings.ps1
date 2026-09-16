@@ -7,7 +7,7 @@
     新增/修改文案键后必须重跑本脚本并提交生成的 XAML；一致性由
     StarPie.Tests/DesignTimeStringsConsistencyTests.cs 锁“键集一致 + zh-CN 值与 resx 一致”。
 
-    源 resx：StarPie.Host/Kernel/Localization/Strings.resx（本脚本所在目录由设计期投影
+    源 resx：StarPie.Host/Localization/Strings.resx（本脚本所在目录由设计期投影
     与生成物共用，运行时本地化实现与四语言 resx 在宿主内核）。
     输出文件：本目录 DesignTimeStrings.xaml（Page 编译进 Ui 集 StarPie 的惰性 BAML，
     Ui 工程 Properties/DesignTimeResources.xaml 以 pack URI 在设计期合并）。
@@ -22,7 +22,7 @@ $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
-$resxPath = Join-Path $repoRoot 'StarPie.Host\Kernel\Localization\Strings.resx'
+$resxPath = Join-Path $repoRoot 'StarPie.Host\Localization\Strings.resx'
 $xamlPath = Join-Path $scriptDir 'DesignTimeStrings.xaml'
 
 if (-not (Test-Path -LiteralPath $resxPath)) {

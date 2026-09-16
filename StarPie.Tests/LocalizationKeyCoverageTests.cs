@@ -100,7 +100,7 @@ public sealed class LocalizationKeyCoverageTests
     private static HashSet<string> ResxKeys()
     {
         string path = Path.Combine(
-            FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
+            FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Localization", "Strings.resx");
         Assert.True(File.Exists(path), $"language resource missing: {path}");
 
         var keys = new HashSet<string>(StringComparer.Ordinal);

@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-namespace StarPie.Kernel.Configuration
+namespace StarPie.Configuration
 {
     /// <summary>
     /// 解析应用数据目录：正式实例使用 StarPie，dev 实例使用 StarPie-Dev。

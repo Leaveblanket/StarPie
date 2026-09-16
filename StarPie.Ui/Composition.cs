@@ -7,7 +7,7 @@ using StarPie.PluginHosting;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;
 using StarPie.Services;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.Services.Wheel;
 
 namespace StarPie

@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginHosting;
 using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.Hosting;

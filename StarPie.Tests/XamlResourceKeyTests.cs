@@ -84,7 +84,7 @@ public sealed class XamlResourceKeyTests
             .OrderBy(path => path, StringComparer.Ordinal);
 
     private static string LanguageResourcesFile
-        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Kernel", "Localization", "Strings.resx");
+        => Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Host", "Localization", "Strings.resx");
 
     /// <summary>排除构建产物：<c>obj</c> 下的 <c>*.g.cs</c> 同名 XAML 会重复计数。</summary>
     private static bool IsSourceFile(string path)

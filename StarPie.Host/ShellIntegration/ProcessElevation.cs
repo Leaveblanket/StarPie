@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Versioning;
 
-namespace StarPie.Kernel.ShellIntegration
+namespace StarPie.ShellIntegration
 {
     /// <summary>
     /// 当前进程是否以管理员身份运行的探测。与 <c>AutostartRegistry</c> 同属无状态系统调用静态工具

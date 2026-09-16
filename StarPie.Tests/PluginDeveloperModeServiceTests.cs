@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using StarPie.Kernel.Localization;
+using StarPie.Localization;
 using StarPie.PluginRuntime.Admission;
 using StarPie.PluginRuntime.State;
 
