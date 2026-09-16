@@ -13,7 +13,7 @@
    登记（见 [host.md](host.md)）；导航项经所属贡献者
    `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（M5 在
    `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在 `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，
-   见 [navigation.md](navigation.md)），映射表（[naming.md](naming.md)）同步登记。
+   见 [navigation.md](navigation.md)），映射表（[layout.md](layout.md) §3）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本一律用 i18n 文案键 + 四语言值（新增/修改流程见 [localization.md](localization.md)）。
 7. 新增单测：`StarPie.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
@@ -42,7 +42,7 @@
    Host 页由 `HostPageContributor` → 所属贡献者
    `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/TitleKey/IconData；M5 为
    `StarPie.Ui` 的 ShellContributor、M1 为 `StarPie.Ui` 的 GesturesContributor、
-   Host 为 HostPageContributor）→ 所属模块页面模板字典加 DataTemplate → [naming.md](naming.md) 页面映射表登记。
+   Host 为 HostPageContributor）→ 所属模块页面模板字典加 DataTemplate → [layout.md](layout.md) §3 页面映射表登记。
    会话作用域注册：新增页面的 VM 与同模块设置子 VM 一律注册为 **scoped**（作用域 = 设置台会话；
    暂留常驻的页面才用 singleton）；侧栏导航项与目录取用自动纳入，无需再改组合根清单。
    页面 VM 不在启动期构造：首次进入该页时由导航执行缝经 `ConsolePageSession` 构造。
@@ -58,7 +58,7 @@
 5. **调用方**：VM 只依赖 `IDialogService`；不在 View/其它服务直接 new 对话框。
 6. **i18n**：标题/按钮文案键；`InputDialog` 遗留命名不得复制。
 7. **测试**：对话框 VM 单测 + `TestDialogService`（手写替身）扩展方法；窗口不单测。
-8. **文档**：更新 [naming.md](naming.md) 配对表；若为宿主内覆盖层形态须注释宿主窗口。完整形态见 [dialogs.md](dialogs.md)。
+8. **文档**：更新 [layout.md](layout.md) §3 配对表；若为宿主内覆盖层形态须注释宿主窗口。完整形态见 [dialogs.md](dialogs.md)。
 
 ## 原型 D：新增动作类型
 

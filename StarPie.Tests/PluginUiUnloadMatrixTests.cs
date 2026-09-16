@@ -27,7 +27,7 @@ using StarPie.PluginRuntime.Unloading;
 namespace StarPie.Tests;
 
 /// <summary>
-/// UI 插件 STA 卸载矩阵（plugins.md §5.2/§8 的测试矩阵）：真实 UI 示例插件包在 collectible
+/// UI 插件 STA 卸载矩阵（plugin-contracts.md §3 与 plugins.md §8 的测试矩阵）：真实 UI 示例插件包在 collectible
 /// ALC + STA harness 里装载 → 逐特性驱动 → 安全点卸载 → 逐项断言「探针对象回收 + 资产登记表
 /// 清零 + 全局根扫描无残留」；ALC 与程序集存活只记诊断，不作为 UI 插件的失败判据。
 /// </summary>
@@ -541,7 +541,7 @@ public sealed class PluginUiUnloadMatrixTests
         }
     }
 
-    /// <summary>断言登记表清零 + 全局根扫描无残留（plugins.md §5.2 判据）。</summary>
+    /// <summary>断言登记表清零 + 全局根扫描无残留（plugin-contracts.md §3 判据）。</summary>
     private static void AssertCommonClean(LoadFixture fixture)
     {
         Assert.Equal(0, fixture.Coordinator.Assets.CountFor(PluginId));

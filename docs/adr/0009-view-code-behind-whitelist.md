@@ -1,6 +1,6 @@
 # View code-behind 白名单与输入适配边界
 
-> Status: Active
+> Status: Active（[ADR-0014](0014-wheel-palette-module-boundary-and-appearance-split.md) 补充）
 >
 > **更新（ADR-0014）**：界面主题应用与预览重绘补充消息化驱动（`AppThemeChangedMessage`/`AppearancePreviewInvalidatedMessage`），见 [ADR-0014](./0014-wheel-palette-module-boundary-and-appearance-split.md) 决策 7。
 

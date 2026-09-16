@@ -1,14 +1,14 @@
 # StarPie 插件开发手册
 
-> 面向插件开发者的路由手册。**约束性契约的正典是 [docs/architecture/plugins.md](architecture/plugins.md)
-> 与 [docs/adr/0029-plugin-trust-model.md](adr/0029-plugin-trust-model.md)**——本手册不复制契约细节，
+> 面向插件开发者的路由手册。**约束性契约的正典是 [docs/architecture/plugins.md](plugins.md)
+> 与 [docs/adr/0029-plugin-trust-model.md](../adr/0029-plugin-trust-model.md)**——本手册不复制契约细节，
 > 只回答"我要写插件，从哪开始、能做什么、不能做什么"。条文与正典不一致时以正典为准，并请开 issue 指出漂移。
 >
-> 上手示例（可独立构建、部署、运行）见 [plugins/samples/](../plugins/samples/README.md)。
+> 上手示例（可独立构建、部署、运行）见 [plugins/samples/](../../plugins/samples/README.md)。
 
 ## 从哪开始
 
-1. 跑通最小示例：[plugins/samples/README.md](../plugins/samples/README.md)——
+1. 跑通最小示例：[plugins/samples/README.md](../../plugins/samples/README.md)——
    headless（`IPlugin` 生命周期 + 日志）与 UI（`IPluginUiModule` 导航页）两条路径各一个。
 2. 读一遍 `StarPie.Sdk` / `StarPie.Sdk.Wpf` 的公共接口——插件的全部宿主可达面只有两个对象：
    - `IPluginContext`（headless 面，`StarPie.Sdk`）：日志、事件订阅、能力注册（plugins.md §4）；
@@ -24,8 +24,8 @@
 |---|---|---|
 | 生命周期（启动/停止） | `IPlugin` | plugins.md §4 |
 | 宿主日志（自动带 plugin id） | `IPluginContext.Log` | plugins.md §9 |
-| 订阅宿主事件（卸载即断） | `IPluginContext.Events` / UI 侧 `Subscribe<TEvent>` | plugins.md §6.1/§7.2 |
-| 订阅托盘状态消息自清缓存（内存自治模式） | `Events.Subscribe<MinimizedToTrayMessage>` / `<RestoredFromTrayMessage>` | plugins.md §6.1；示范见随包 Programs 插件 |
+| 订阅宿主事件（卸载即断） | `IPluginContext.Events` / UI 侧 `Subscribe<TEvent>` | plugin-contracts.md §4 与 plugins.md §7.2 |
+| 订阅托盘状态消息自清缓存（内存自治模式） | `Events.Subscribe<MinimizedToTrayMessage>` / `<RestoredFromTrayMessage>` | plugin-contracts.md §4；示范见随包 Programs 插件 |
 | 注册能力（宿主须已声明契约；清单声明 capability） | `IPluginContext.RegisterCapability<T>` | plugins.md §6 |
 | 导航页 / 设置区 / 插件窗口 / 托盘菜单 | `IPluginUiContext.Register*`（Descriptor 纯数据 + 工厂） | plugins.md §7.1/§7.2 |
 | 打开自己注册的窗口 | `IPluginUiContext.ShowWindow(windowKey)` | plugins.md §7.2 |
@@ -42,19 +42,19 @@
 - **包内分发宿主/SDK 程序集**：`StarPie.Sdk.dll`、`StarPie.Sdk.Wpf.dll`、`StarPie.Host.dll`、`StarPie.dll`
   出现在包内即拒绝——共享契约由宿主默认 ALC 统一提供（plugins.md §3）。
 - **清单/包校验违规**：`schemaVersion` 不受支持、字段缺失、id ≠ 包目录名、入口程序集缺席、
-  SDK ABI 不兼容（plugins.md §3/§11）。
+  SDK ABI 不兼容（plugins.md §3 与 plugin-contracts.md §5）。
 - **松散 WPF 资产**：`Popup`/`ContextMenu`/`ToolTip` 不在 `Application.Current.Windows`，
-  必须经宿主契约创建或显式登记；禁止自建 `DependencyProperty`/`RoutedEvent`（plugins.md §5.2/§7.4）。
+  必须经宿主契约创建或显式登记；禁止自建 `DependencyProperty`/`RoutedEvent`（plugin-contracts.md §3 与 plugins.md §7.4）。
 - **插件之间互调**：首期不支持，事件由宿主发布、插件只订阅（ADR-0029）。
 - **沙箱承诺**：进程内插件与宿主同权限——可读配置、可执行任意代码、可使进程崩溃。
   宿主不承诺权限限制或资源配额；不可信插件需进程外后端（P5，另立 ADR）（ADR-0029）。
 - **WPF 宿主内 ALC 真卸载**：宿主框架缓存使插件程序集留到重启释放；卸载语义 =
-  托管清理 + 资产清零 + 泄漏隔离（ADR-0030/0035，plugins.md §5.2/§8）。
+  托管清理 + 资产清零 + 泄漏隔离（ADR-0030/0035，plugin-contracts.md §3 与 plugins.md §8）。
 
 ## 装载凭什么被允许（准入）
 
 按「内置清单 → 审核清单（含签名）→ 开发者模式 → 拒绝」顺序判定，未命中即 `Rejected`。
-判定细则、签名路径与版本级撤销的完整契约见 plugins.md §11 与 ADR-0029；开发者视角速览：
+判定细则、签名路径与版本级撤销的完整契约见 plugin-contracts.md §5 与 ADR-0029；开发者视角速览：
 
 - **内置**：随宿主分发并登记在 `PluginAdmissionPolicy.DefaultBuiltInPluginIds` 的第一方插件。
 - **审核清单 + 签名**（第三方发布路径）：插件 (id, version) 列入首方签名的审核清单，

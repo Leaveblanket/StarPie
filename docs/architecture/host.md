@@ -247,7 +247,7 @@ DataContext → `Close()` → 排空 Dispatcher → 处理 `Application.MainWind
   页面在 `GesturesContributor`（内置贡献者）登记；Host 外观聚合页 VM 在
   `HostPageContributor` 登记，宿主编排/内核件在 `HostCoreContributor` 登记
   （导航项与页面模板一律经所属贡献者 + 模块模板字典，
-  见 [navigation.md](navigation.md)/[naming.md](naming.md)）。
+  见 [navigation.md](navigation.md)/[layout.md](layout.md) §3）。
 - 新托盘入口：在 `ShellHost.BuildTrayMenuEntries` 登记（托盘职责见 [shell.md](shell.md)）。
 - 新增“启动/退出/隐藏”副作用：优先以委托注入页面 VM，不新增服务定位器；常驻编排改 `ShellHost`，
   设置台会话内编排改 `SettingsConsole`，解析面的增删改 `Composition`。

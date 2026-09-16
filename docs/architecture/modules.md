@@ -11,13 +11,8 @@
 
 ## 1. 何时读本文
 
-| 想做什么                            | 读哪里                                                 |
-| ----------------------------------- | ------------------------------------------------------ |
-| 归属争议：某个文件/职责属于哪个模块 | 本文 §4 + ADR-0015                                    |
-| 模块内代码怎么组织、关键流程        | 对应叶子（路由见[architecture.md](../architecture.md)） |
-| 加/改功能应动哪些内部               | 本文 §6 验收表                                        |
-| 程序集化现状 / 依赖方向 / 导航槽位  | [assemblies.md](assemblies.md)                          |
-| 为什么这样划分                      | ADR-0015 + ADR-0016                                    |
+> **路由**：本文只讲**概念模块**（12 模块）的划分、归属裁定与扩展点验收；程序集地图、依赖方向与
+> 接合缝编目见 [assemblies.md](assemblies.md)（物理面正典）；按任务找文档见入口 [architecture.md](../architecture.md) §2。
 
 ## 2. 划分判据
 
@@ -36,7 +31,7 @@
 - `config.json` 模型加字段（带默认值、向后兼容，见 [config.md](config.md)）；
 - i18n 文案键与四语言 resx（见 [localization.md](localization.md)）；
 - `BuiltInContributors` 清单一行 / 导航登记一次：所属贡献者 `RegisterNavigation` + 模块页面模板字典 +
-  [naming.md](naming.md) 映射表（M5：`StarPie.Ui` 的 `ShellContributor`；M1：
+  [layout.md](layout.md) §3 映射表（M5：`StarPie.Ui` 的 `ShellContributor`；M1：
   `StarPie.Ui` 的 `GesturesContributor`；Host 外观聚合页：
   `HostPageContributor`）；页面 VM DI 注册由所属贡献者登记——M5 页面 VM 由
   ShellContributor、M4 主题服务与主题设置子 VM 由 `ThemeContributor`（`StarPie.Ui`，

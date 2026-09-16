@@ -9,12 +9,10 @@
 | 文档 | 内容 | 何时读 |
 |---|---|---|
 | `CONTEXT.md`（仓库根） | 领域术语词汇表 | 术语疑问、新增领域术语时 |
-| `docs/adr/` | 难逆转/令人惊讶/真实权衡的决策理由 | 想了解“为什么这样设计”时 |
+| `docs/adr/` | 难逆转/令人惊讶/真实权衡的决策理由；文件名即主题，**头部 Status 是状态的唯一权威**（编号有历史断档，不再复用） | 想了解“为什么这样设计”、或确认某条决策是否仍现行时 |
 | `docs/architecture.md`（本文） | 架构文档入口与任务路由 | 任何架构问题先读这里 |
-| `docs/architecture/*.md` | 各主题与模块规范（叶子） | 按下表任务跳转 |
-| `docs/architecture/modules.md` | 模块划分地图（12 模块 + 修整单元判据） | 归属争议、扩展点验收时 |
-| `docs/architecture/assemblies.md` | 程序集地图与依赖方向（as-built） | 程序集归属、依赖方向、导航槽位时 |
-| `docs/architecture/design-time-preview.md` | 设计时预览协议（设计期资源注入/视口登记/样例数据） | XAML 设计器预览、DesignTimeResources、设计视口时 |
+| `docs/architecture/*.md` | 各主题与模块规范（叶子；每篇自带维护义务） | 按下表任务跳转 |
+| `docs/agents/*.md` | Agent 工作流文档（issue 查询、提交约定、领域文档布局、triage 标签） | 提交、开票、验收流程有疑问时 |
 
 冲突优先级：叶子规范为准（现行规范）；ADR 解释“为什么”，不推翻现行规范；若需要改变规范且满足 ADR 三条件（难逆转 / 无上下文会惊讶 / 真实权衡），先新增 ADR 再回填叶子。
 
@@ -22,9 +20,8 @@
 
 | 你要做什么 | 读哪个文件 |
 |---|---|
-| 某个路径放什么 / 新增文件落位 | [layout.md](architecture/layout.md) |
+| 某个路径放什么 / 新增文件落位 / 命名规则 / 页面映射表 / 对话框配对 | [layout.md](architecture/layout.md) |
 | 分层依赖矩阵 / 可见性 / Model/Service/VM/View 边界 | [layering.md](architecture/layering.md) |
-| 命名规则 / 页面映射表 / 对话框配对 | [naming.md](architecture/naming.md) |
 | 注释规范（XML 文档注释 / 行注释） | [comments.md](architecture/comments.md) |
 | 启动退出 / 单实例与开发实例 / 壳层与设置台编排 / Composition 注册 / 窗口生命周期 | [host.md](architecture/host.md) |
 | 配置读写 / 防抖保存 / 导入导出 | [config.md](architecture/config.md) |
@@ -38,11 +35,11 @@
 | 托盘 / 开机自启 / 内存整理 / 主窗口壳层行为 / 高级设置面 | [shell.md](architecture/shell.md) |
 | 本地化文案键(resx) / 语言切换与回退链 / 运行时语言字典投影 | [localization.md](architecture/localization.md) |
 | IMessenger 消息 / 弹窗通知载体 | [messages.md](architecture/messages.md) |
-| 模块划分 / 归属争议 / 扩展点验收 | [modules.md](architecture/modules.md) |
-| 程序集地图 / 程序集依赖方向 / 导航槽位 | [assemblies.md](architecture/assemblies.md) |
-| 模块间接合缝编目 / 缝裁决 / 程序集依赖基线 | [seams.md](architecture/seams.md) |
-| 插件体系（目标态）：SDK/SDK.Wpf、装载/卸载、能力、插件 UI 托管、文件架构 | [plugins.md](architecture/plugins.md) |
-| 插件开发（开发者视角：示例/白名单/不支持列表/准入） | [plugin-dev-handbook.md](plugin-dev-handbook.md) |
+| 概念模块（12 模块）划分 / 归属争议 / 加改功能该动哪（扩展点验收） | [modules.md](architecture/modules.md) |
+| 程序集地图 / 程序集依赖方向 / 导航槽位 / 模块间接合缝编目与裁决 | [assemblies.md](architecture/assemblies.md) |
+| 插件体系：运行时装载/卸载/能力/UI 托管与插件包形态 | [plugins.md](architecture/plugins.md) |
+| 插件可用面（SDK.Wpf 硬约束 / 特性白名单与不支持列表 / HostServices 硬约束 / ABI 与信任） | [plugin-contracts.md](architecture/plugin-contracts.md) |
+| 插件开发（开发者视角：示例、准入、上手指引） | [plugin-dev-handbook.md](architecture/plugin-dev-handbook.md) |
 | 新增功能（原型 A–F 清单） | [extending.md](architecture/extending.md) |
 | 动手改代码前的底线（禁止事项） | [prohibitions.md](architecture/prohibitions.md) |
 
@@ -113,50 +110,10 @@ Services ---> Models
 3. 新增用户可见文案时补齐四语言键值（zh-CN / zh-TW / en / ja）——声明式文案经 XAML `{DynamicResource}`、动态文案经 `ILocalizationService` 即时取词（见 [localization.md](architecture/localization.md)）。
 4. 叶子增删、文件路径变化时同步更新本文（文档体系表 + 路由表 + 仓库边界树）。
 5. 验证义务与测试策略分层：提交级 build + 全量 xUnit + e2e 免跑判定；合入 main 前全量 xUnit + 全量 e2e；不按模块拆测试、不移除 e2e 每用例冷启动（见 [git-commits](agents/git-commits.md)）。
-6. ADR 头部必带状态（Active / Superseded by NNN / Active（部分被 NNN 修订））与修订指针；状态速览见附录。
+6. ADR 头部必带状态（Active / Superseded by NNN / Active（部分被 NNN 修订））与修订指针——**状态只写头部**，本文与任何叶子都不复制。
 7. 叶子与 ADR 不记录“已落地/已清零/批次流水/日期快照”：完成即删，历史归 git 与 issue。
 8. 程序集地图与依赖方向只许 `assemblies.md` §2/§3 一份正典，其它叶子引用不抄写。
 9. CONTEXT 只收领域术语；架构词（宿主/模块/程序集/M1–M5 等）正典在 `modules.md`/`assemblies.md`。
-10. 任务型盘点文档必须带“关闭即删”义务，不保留为常驻文档。
+10. 任务型盘点（登记表 / 待清理项 / 进度清单，无论在独立文档还是叶子小节内）必须带“关闭即删”义务：盘点完成即删，留痕挂对应 issue，不驻留规范叶。
+11. 入口不索引 ADR 状态、不复制叶子内容：路由表每行一个文件、每个叶子恰好一行；查状态读 ADR 文件头，查规范读叶子。
 
-## 附录：ADR 索引
-
-| 编号 | 文件 | 主题 | 状态 |
-|---|---|---|---|
-| 0001 | `docs/adr/0001-mvvm-with-communitytoolkit.md` | MVVM 采用 CommunityToolkit | Active |
-| 0003 | `docs/adr/0003-application-host-restructure.md` | 应用宿主重构 | Active（演进见 0011） |
-| 0004 | `docs/adr/0004-dialog-service-design.md` | 对话框服务设计 | Active（实现落点见 dialogs.md/assemblies.md） |
-| 0005 | `docs/adr/0005-di-container-for-navigation.md` | 容器化导航 | Active（注册源被 0016 修订） |
-| 0009 | `docs/adr/0009-view-code-behind-whitelist.md` | View code-behind 白名单 | Active（0014 补充） |
-| 0011 | `docs/adr/0011-composition-apphost-split.md` | Composition 与 AppHost 拆分 | Active（注册源被 0016 修订） |
-| 0012 | `docs/adr/0012-resource-dictionary-architecture.md` | 样式资源架构（主题令牌 XAML 化与单点合并） | Active（决策 2 被 0013 修订） |
-| 0013 | `docs/adr/0013-localization-theme-overhaul.md` | 本地化/主题推翻性重构（resx+强类型+实例服务 / 主题整项替换+实时跟随） | Active |
-| 0014 | `docs/adr/0014-wheel-palette-module-boundary-and-appearance-split.md` | 轮盘配色模块归属与外观 VM 拆分 | Active |
-| 0015 | `docs/adr/0015-module-map-and-ownership.md` | 模块划分共识（12 模块地图、归属裁定与修整单元判据） | Active（决策 3 被 0016、判据被 0023 修订） |
-| 0016 | `docs/adr/0016-assembly-split-target-and-roadmap.md` | 程序集化目标态与分批执行 | Active（目标态被 0023 演进） |
-| 0023 | `docs/adr/0023-module-contracts-hard-boundary-and-core-narrowing.md` | 模块契约硬边界与共享内核收窄（契约入 *.Contracts、S1 成集） | Active（部分被 0027 修订） |
-| 0024 | `docs/adr/0024-terminology-final-state-and-full-rename.md` | 术语终态与全仓正名（WheelPalette/WheelStyle/NavPage/工程名 + config 迁移） | Active |
-| 0025 | `docs/adr/0025-design-time-preview.md` | 设计时预览协议（设计期资源注入与运行视口锚定） | Active（字典落点被 0027 修订） |
-| 0026 | `docs/adr/0026-runtime-baseline-and-windows-sdk-projection.md` | 运行时基线与 Windows SDK 投影版本政策 | Active |
-| 0027 | `docs/adr/0027-plugin-architecture-and-host-sdk-ui-split.md` | 插件体系与三集物理形态（第三方能力插件 / ALC 真卸载 / 宿主独占呈现） | Active（部分被 0028 修订） |
-| 0028 | `docs/adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md` | 插件 UI 宿主化（允许 XAML/Window/资源字典；宿主托管登记、清理与验证） | Active（决策 4/6 被 0030 修订） |
-| 0029 | `docs/adr/0029-plugin-trust-model.md` | 插件信任模型（目标态签名 + 审核白名单；首期开发者模式准入；进程内全信任披露） | Active |
-| 0030 | `docs/adr/0030-ui-plugin-unload-semantics-downgrade.md` | UI 插件不承诺 ALC 真卸载（卸载语义降级为托管清理 + 可验证 + 泄漏隔离 + 重启生效） | Active（决策 1 的 headless 承诺边界被 0035 修订） |
-| 0031 | `docs/adr/0031-e2e-silent-background-run.md` | e2e 静默后台化（`--background` 窗口形态 + 选中态驱动导航 + 运行器脚本） | Active（窗口形态/托盘/截图被 0032 修订） |
-| 0032 | `docs/adr/0032-e2e-silent-visible-window.md` | e2e 静默形态改屏内左上角（点击穿透 + 托盘可见 + 失败截图可用） | Active |
-| 0033 | `docs/adr/0033-plugin-service-scope-without-di-container.md` | 插件服务作用域自持实例与账本（不引入 MS.DI 子容器） | Active |
-| 0034 | `docs/adr/0034-headless-unload-handover-and-hard-reclaim.md` | headless 卸载三条款（交接即清空强引用 / 在途未归零中止于危险区之前 / 硬判 ALC 与程序集回收） | Active（决策 3 的适用范围被 0035 修订） |
-| 0035 | `docs/adr/0035-wpf-host-plugin-assembly-reclaim-downgrade.md` | WPF 宿主降级回收判定（判据按宿主环境分档：headless 硬判 / WPF 宿主只硬判插件自有对象） | Active |
-| 0037 | `docs/adr/0037-dev-instance-flag-by-build-config.md` | dev 实例标记按构建配置定死（Debug=dev，Release=正式） | Active（互斥名与触发键被 0038 移除） |
-| 0038 | `docs/adr/0038-dev-instance-no-parallel.md` | dev 实例不与正式版并行（互斥收敛单一名、触发键回归右键） | Active |
-| 0039 | `docs/adr/0039-resident-shell-and-transient-settings-console.md` | 常驻壳层与瞬态设置台租户（托盘态只保留托盘与手势，设置台按需创建并随关闭释放） | Active |
-| 0040 | `docs/adr/0040-startup-privilege-policy.md` | 启动权限策略（坚持 asInvoker 与按需提权；强制管理员与偏好持久化记为条件备选） | Active（决策 2 被 0041 取代；决策 5/6 被 0042 修订） |
-| 0041 | `docs/adr/0041-admin-autostart-opt-in.md` | 以管理员身份开机自启（任务计划程序 `/rl highest` 路径，取代 0040 决策 2） | Active（决策 1 的自启落位被 0042 修订；那颗任务的即时触发形态见 0043） |
-| 0042 | `docs/adr/0042-privilege-routes-two-only.md` | 权限路线收敛为两条（普通权限启动 / 管理员权限静默启动；移除运行期提权与子进程权限适配） | Active（决策 2 的边界被 0043 收窄） |
-| 0043 | `docs/adr/0043-elevated-instance-takeover.md` | 提权实例接管非提权实例（即时提权复用路线 B 的任务；让位严格单向、经命名内核对象握手） | Active |
-| 0044 | `docs/adr/0044-wheel-config-projection.md` | 轮盘配置投影（瞬态视图数据收窄宽 AppConfig 耦合；核图 I/O 移出视图；窄调色板输入类型） | Active |
-| 0045 | `docs/adr/0045-wheel-preview-runtime-shared-content-kernel.md` | 预览与运行时轮盘同源（扇区内容构建下沉 Host 内核：图标五级回退 + 排版缩放表 + 内置 SVG 字面量） | Active |
-| 0046 | `docs/adr/0046-plugin-surface-copy-source.md` | 插件界面文案来源（描述符加字面量显示名成员、键路径保留宿主 resx、缺键注册期可见；插件自持文案表留待生态化） | Active |
-| 0047 | `docs/adr/0047-plugin-reachable-surface.md` | 插件可达面（导出面≠可达面：以两个上下文的成员签名闭包为准；主题不进可达面、不删成员、不递增主版本） | Active |
-
-状态取值：`Active` 现行；`Superseded by NNN` 被 NNN 整体取代；`Active（被 NNN 修订）` 部分条款被演进。历史决策记录（0002/0006/0007/0008/0010/0017/0018/0019/0020/0021/0022/0036）已删除——其现行规范在对应叶子、历史在 git，编号不再复用。各文件头部 Status 为权威，本表为速览。
