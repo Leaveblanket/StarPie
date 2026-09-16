@@ -18,7 +18,7 @@ namespace StarPie.Modules
     /// 轮盘工厂实现（<see cref="WheelFactory"/>）
     /// 与接口 <see cref="IWheelFactory"/> 契约（驻 StarPie.Sdk）
     /// 本模块实现之，手势侧（Gestures runtime）只经该契约消费，不反向组装瞬态轮盘；
-    /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 下沉 SDK 面，实现方与消费方
+    /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 驻 SDK 面，实现方与消费方
     /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与宿主注入的无状态深浅色探针
     /// <c>Func&lt;bool&gt;</c>，不反向引用宿主。
     /// </remarks>

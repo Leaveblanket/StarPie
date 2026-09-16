@@ -9,7 +9,7 @@ namespace StarPie.Tests;
 /// <summary>
 /// StarPie.Sdk 的导出面白名单基线：SDK 只含纯托管契约/模型/DTO——导出面与白名单双向相等
 /// （少一个或多一个都失败），四集导出类型唯一（不出现同类型双份定义），源码树保持
-/// 「镜像旧相对路径」的过渡形态（旧集已全部撤销，其产物不存在由 RuntimeNoCrossReferenceTests 收口）。与
+/// 「镜像旧相对路径」的过渡形态（旧集产物不存在由 <see cref="RuntimeNoCrossReferenceTests"/> 收口）。与
 /// <see cref="SdkWpfBoundaryTests"/>（WPF 面）、<see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
@@ -18,11 +18,11 @@ namespace StarPie.Tests;
 /// 对编译器完全合法——SDK 本就该产出类型，没有哪个编译单元会把新增导出当成错误。同一类型在 SDK
 /// 与旧集里各留一份定义，两边也各自编译得过，只有在「同一类型名出现在两个程序集」这个产物
 /// 层面才显形。源码树落点同理：新开一个目录放文件不会让构建失败，失真的是「镜像旧相对路径」的
-/// 过渡形态（旧集已不存在于产物，见 <see cref="RuntimeNoCrossReferenceTests"/>）。
+/// 过渡形态（旧集不在产物里，见 <see cref="RuntimeNoCrossReferenceTests"/>）。
 /// </remarks>
 public sealed class SdkBoundaryTests
 {
-    /// <summary>迁入 StarPie.Sdk 的全部导出类型（SDK 导出面 = 恰为该清单）。</summary>
+    /// <summary>StarPie.Sdk 的全部导出类型（SDK 导出面 = 恰为该清单）。</summary>
     private static readonly Type[] MigratedTypes =
     {
         // Models/

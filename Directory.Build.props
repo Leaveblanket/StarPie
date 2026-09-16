@@ -13,7 +13,7 @@
     <!-- 警告即错误：分析器与编译器的警告一律阻断构建。示例工程（plugins/samples）单独关闭——
          它们供第三方插件作者照抄，不给他们加构建摩擦。 -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- B10/#83：命名空间统一为 StarPie.* 前缀（跨程序集共享命名空间树），
+    <!-- 命名空间统一为 StarPie.* 前缀（跨程序集共享命名空间树），
          工程可按需覆盖（StarPie.Tests 用自身命名空间）。 -->
     <RootNamespace>StarPie</RootNamespace>
   </PropertyGroup>

@@ -11,7 +11,7 @@ namespace StarPie.Icons
     /// </summary>
     public static class IconCatalog
     {
-        // —— 内置矢量图标清单（数据保真搬运自原 IconAssets） ——
+        // —— 内置矢量图标清单 ——
         public static readonly List<VectorIconItem> VectorIconList = new List<VectorIconItem>
         {
             // —— 编辑与剪贴板 ——

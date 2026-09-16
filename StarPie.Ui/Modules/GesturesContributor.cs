@@ -49,7 +49,7 @@ namespace StarPie.Modules
         /// 注册本模块手势管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
         /// 引擎/控制器与触发+手势两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
         /// 惰性解析 SDK 契约。<see cref="ProfileListViewModel"/> 另以只读契约
-        /// <see cref="IProfilePreviewSource"/>（ADR-0023；收口入 StarPie.Sdk）
+        /// <see cref="IProfilePreviewSource"/>（ADR-0023；驻 <c>StarPie.Sdk</c>）
         /// 注册别名——消费方轮盘外观设置子 VM 只依赖契约程序集，不引用本集具体 VM。
         /// </summary>
         public void RegisterServices(IServiceCollection services)
@@ -79,7 +79,7 @@ namespace StarPie.Modules
                 sp.GetRequiredService<IIconAssetService>()));
             // 配置方案列表 VM 以只读契约 IProfilePreviewSource 暴露给轮盘侧：
             // 轮盘外观设置子 VM 经接口解析，不引用本集具体 VM 类型
-            //（契约随实现方下沉，ADR-0023；收口入 StarPie.Sdk）。
+            //（契约驻 StarPie.Sdk，ADR-0023）。
             services.AddScoped<IProfilePreviewSource>(sp => sp.GetRequiredService<ProfileListViewModel>());
         }
 

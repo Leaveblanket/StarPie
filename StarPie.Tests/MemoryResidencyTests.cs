@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 内存分层常驻的机械断言：GC 堆硬顶声明与工作集裁剪能力删除后的零残留。
+/// 内存分层常驻的机械断言：GC 堆硬顶声明，与源码树不含工作集裁剪符号的残留面。
 /// 纯文件级断言，不经容器；运行时生效值口径由启动编排末尾的 GC.GetConfigurationVariables
 /// 记载（Debug 构建可见；Release 构建核对产物 runtimeconfig.json）与编译产物 runtimeconfig.json
 /// 共同承担，本类锁声明面与残留面。
@@ -26,7 +26,7 @@ public sealed class MemoryResidencyTests
     /// <summary>GC 堆硬顶预算：256 MiB。</summary>
     private const long GcHeapHardLimitBytes = 268435456;
 
-    /// <summary>工作集裁剪已整体删除：源码树不再出现旧符号名（P/Invoke 与旧方法名）。</summary>
+    /// <summary>源码树不得出现的工作集裁剪符号名（P/Invoke 与旧方法名）。</summary>
     private static readonly string[] ForbiddenSymbols = { "TrimMemory", "EmptyWorkingSet" };
 
     private static readonly string[] ScannedExtensions =

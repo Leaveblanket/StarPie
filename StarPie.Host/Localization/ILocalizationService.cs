@@ -7,8 +7,8 @@ namespace StarPie.Localization
     /// 本地化服务门面：语言状态与取词 API。
     /// </summary>
     /// <remarks>
-    /// 语言状态统一为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），不再保留
-    /// 自定义枚举中间表示；"Auto" 仅在 <see cref="SetLanguage(string)"/> 入口解析。
+    /// 语言状态统一为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），无自定义枚举中间表示；
+    /// "Auto" 仅在 <see cref="SetLanguage(string)"/> 入口解析。
     /// 语言切换是文案的唯一变更源；声明式文案经 AppHost 投影为运行时语言字典（DynamicResource）。
     /// 回退链：目标语言 → zh-CN → 键名。
     /// </remarks>

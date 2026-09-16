@@ -10,9 +10,8 @@ namespace StarPie.Tests;
 /// 元数据级收口——StarPie.Sdk 只含平台程序集引用（零第三方包、零 WPF、非 windows TFM）；
 /// StarPie.Host 零 WPF（无 WPF 程序集、无 windows 平台投影）；StarPie.Sdk.Wpf 带 windows
 /// 平台投影、引用面只含 Sdk 与平台/WPF 程序集，且不反向引用 Host/Ui/旧集；四集唯一入口与
-/// 唯一 XAML 均在 Ui 集（Core 只余设计期投影字典，见 <see cref="HostBoundaryTests"/>）；
-/// 三集不得引用旧 15 集 runtime（跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核，
-/// 旧集只被 Ui 组合根与测试引用）。
+/// 唯一 XAML 均在 Ui 集（设计期投影字典住在 Ui 集，见 <see cref="HostBoundaryTests"/>）；
+/// 三集不得引用旧集 runtime（跨集只经 SDK/Sdk.Wpf 契约面与 Host 内核）。
 /// </summary>
 /// <remarks>
 /// 为什么其他层看不见：<see cref="FourSetBoundaryTests"/> 读的是工程文件字面量，而工程文件与实际

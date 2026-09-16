@@ -23,7 +23,7 @@ namespace StarPie.Tests;
 /// 宿主内核边界基线：内核运行时（配置读写/防抖落盘接缝/本地化实现）归 <see cref="StarPie.Host"/>——
 /// 导出面 = 恰为内核清单（新增 public 类型须同步本表），导出面签名不触碰 WPF 与旧集 runtime，
 /// 核心件在无 WPF 依赖的程序集里可直接构造；设计期投影字典随 Ui 集编译（唯一的资源锚指向它），
-/// 独立的设计期投影壳 <c>StarPie.Core</c> 已删除。与 <see cref="FourSetBoundaryTests"/>（工程面）、
+/// 壳工程不存在。与 <see cref="FourSetBoundaryTests"/>（工程面）、
 /// <see cref="RuntimeNoCrossReferenceTests"/>（引用面）、<see cref="SdkBoundaryTests"/>（SDK 导出面）
 /// 互补。
 /// </summary>
@@ -194,7 +194,7 @@ public sealed class HostBoundaryTests
             DesignTimeDictionaryItem,
             File.ReadAllText(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Ui", "StarPie.Ui.csproj")));
 
-        // 旧设计期投影壳 StarPie.Core 已删除：仓库、解决方案与产物三处都不再存在。
+        // StarPie.Core 不得出现在仓库、解决方案与产物三处。
         Assert.Contains("StarPie.Core", FourSetBoundaryProbe.LegacyAssemblyNames);
         Assert.DoesNotContain("StarPie.Core", FourSetBoundaryProbe.AppAssembliesOnDisk());
         Assert.False(File.Exists(Path.Combine(FourSetBoundaryProbe.RepoRoot, "StarPie.Core", "StarPie.Core.csproj")));
@@ -212,7 +212,7 @@ public sealed class HostBoundaryTests
                 FourSetBoundaryProbe.RepoRoot, project, "Properties", "DesignTimeResources.xaml")))
             .ToArray();
 
-        // 五份旧资源锚随归并收敛为一份：只有 Ui 集持有锚，其余工程不得再起第二份。
+        // 资源锚只许一份，且只许在 Ui 集：其余工程不得持锚。
         Assert.Equal(new[] { "StarPie.Ui" }, anchors);
         Assert.Contains(
             DesignTimeDictionaryPackUri,
