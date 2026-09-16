@@ -35,22 +35,26 @@ public sealed class ResidentShellLifetimeTests
     /// <summary>离屏定位：窗口真实显示，但不闪现在用户屏幕上。</summary>
     private const double OffScreen = -32000;
 
-    /// <summary>App 级资源字典是否已并入测试 Application（进程内一次）。</summary>
-    private static bool _applicationResourcesMerged;
+    /// <summary>
+    /// App 级资源字典并入测试 Application 的一次性动作：首个到达者执行合并并发布结果，其余等待该结果。
+    /// </summary>
+    /// <remarks>
+    /// 取值即确保合并完成。取 <see cref="LazyThreadSafetyMode.ExecutionAndPublication"/>：并发调用只跑一遍合并
+    /// （<see cref="LazyThreadSafetyMode.PublicationOnly"/> 会各跑一遍，把同一批字典重复并入），
+    /// 合并失败则缓存异常、每次取用重现同一失败——好过在「已并入一部分」的状态上重试。
+    /// </remarks>
+    private static readonly Lazy<bool> ApplicationResourcesMerged =
+        new(MergeApplicationResources, LazyThreadSafetyMode.ExecutionAndPublication);
 
     /// <summary>
     /// 把 Ui 集的 App 级资源字典并入测试 Application：壳窗口按 App.xaml 的合并清单取样式
     /// （主题默认画刷 + 全局控件样式 + 热键录制控件样式），裸 <see cref="Application"/>
     /// 下 StaticResource 查找会失败。合并清单与 App.xaml 保持一致。
     /// </summary>
-    private static void EnsureApplicationResources()
+    private static bool MergeApplicationResources()
     {
-        if (_applicationResourcesMerged || Application.Current is not { } application)
-        {
-            return;
-        }
-
-        _applicationResourcesMerged = true;
+        Application application = Application.Current
+            ?? throw new InvalidOperationException("测试 Application 未就绪：App 级资源字典无处并入");
         foreach (string source in new[]
                  {
                      "pack://application:,,,/StarPie;component/Themes/Light.xaml",
@@ -59,6 +63,17 @@ public sealed class ResidentShellLifetimeTests
                  })
         {
             application.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(source) });
+        }
+
+        return true;
+    }
+
+    private static void EnsureApplicationResources()
+    {
+        // Application 未就绪时不消耗一次性合并，留待下一次调用。
+        if (Application.Current is not null)
+        {
+            _ = ApplicationResourcesMerged.Value;
         }
     }
 
