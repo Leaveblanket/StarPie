@@ -40,7 +40,7 @@ namespace StarPie.Services.Messages
         public AppConfig ImportedConfig { get; }
     }
 
-    /// <summary>设置窗口已隐藏到托盘：组合根据此发驻留气泡（托盘气泡由组合根订阅或直调）。</summary>
+    /// <summary>设置窗口已隐藏到托盘：订阅方据此同步出账；宿主不呈现驻留气泡提示。</summary>
     public sealed class MinimizedToTrayMessage
     {
         public static MinimizedToTrayMessage Instance { get; } = new();

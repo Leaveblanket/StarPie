@@ -13,8 +13,8 @@ namespace StarPie.Services.Navigation
     /// 页面 VM 的作用域是**设置台会话**：同一会话内多次导航同一实例（来回切页保留页内状态），
     /// 会话结束整批释放（<see cref="ConsolePageSession"/>）。本执行缝是规范允许的页面 VM 解析例外
     /// （[ADR-0039](docs/adr/0039-resident-shell-and-transient-settings-console.md) 决策 9），
-    /// 缓存由本缝消费，不新增解析点。接口随实现整体归 Host
-    /// （ADR-0021/#92），属宿主内部件而非跨程序集解析缝——消费方（主框架导航项、
+    /// 缓存由本缝消费，不新增解析点。接口随实现整体归 Host，
+    /// 属宿主内部件而非跨程序集解析缝——消费方（主框架导航项、
     /// 托盘直达与初始导航）均在 Host，经本接口按槽位导航，不持有页面类型；
     /// 第二消费方出现时按 <see cref="IDialogService"/> 先例把接口上提共享内核。
     /// </remarks>

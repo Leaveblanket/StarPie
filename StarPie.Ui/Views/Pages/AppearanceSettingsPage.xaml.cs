@@ -18,7 +18,7 @@ namespace StarPie.Views.Pages
     /// 实时预览渲染器（View 层无 DI 构造）经已批准预览桥取得共享图标资产实例服务：
     /// 聚合 VM <see cref="AppearanceSettingsViewModel.IconAssetService"/> 暴露
     /// <see cref="IIconAssetService"/>，页面在 Loaded 阶段读取并装配渲染器
-    /// （ADR-0019/#87 决策 4，layering Views 例外登记）。
+    /// （layering Views 例外登记）。
     /// 界面主题卡 DataContext 指向 <see cref="InterfaceThemeSettingsViewModel"/>（经
     /// <see cref="AppearanceSettingsViewModel.InterfaceTheme"/> 绑定）；主题应用改消息驱动，
     /// 由壳层主窗口订阅 <see cref="AppThemeChangedMessage"/> 执行，本页面不挂主题选择处理器，
@@ -41,7 +41,7 @@ namespace StarPie.Views.Pages
             InitializeComponent();
 
             // ADR-0009 白名单第 1 条（生命周期接线）：页面挂载/卸载成对订阅退订 View 效果
-            // 消息（共享页面基类 SettingsPageBase 随 ADR-0022/#94 删除后改自订阅，
+            // 消息（无共享页面基类，改自订阅，
             // 与 InputDialog/RadialWindow 同款成对纪律）。
             Loaded += OnPageLoaded;
             Unloaded += OnPageUnloaded;
@@ -51,7 +51,7 @@ namespace StarPie.Views.Pages
         {
             // 页面整体 DataContext 是薄聚合 VM；预览状态经其 WheelAppearance 子 VM 取得。
             _previewState = ((AppearanceSettingsViewModel)DataContext).WheelAppearance;
-            // 预览桥（ADR-0019/#87）：聚合 VM 暴露共享图标资产实例服务，页面据此装配
+            // 预览桥：聚合 VM 暴露共享图标资产实例服务，页面据此装配
             // 无 DI 构造的渲染器；DataContext 在 Unloaded 阶段置空前不会再次读取。
             _previewRenderer ??= new WheelPreviewRenderer(((AppearanceSettingsViewModel)DataContext).IconAssetService);
             WeakReferenceMessenger.Default.Register<AppearancePreviewInvalidatedMessage>(this, (_, _) => OnAppearancePreviewInvalidated());
