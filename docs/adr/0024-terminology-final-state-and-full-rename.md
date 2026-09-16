@@ -20,17 +20,9 @@
 
 ### 终态词表（采纳）
 
-终态名本身见 [CONTEXT.md](../../CONTEXT.md) 与 [layout.md](../architecture/layout.md) §3；本 ADR 只记
-**旧名去向**——统一为**加载期迁移 + 单一名义**，不做双名并存：
-
-- 配置键：`Theme` → 轮盘配色 `WheelPalette`；`UiStyle` → `WheelStyle`（均在加载期迁移）。
-- 轮盘配色 VM 表面：`ThemeOptions`/`SelectedTheme`/`ThemeComboBox` →
-  `PaletteOptions`/`SelectedPalette`/`WheelPaletteComboBox`。
-- resx 键与 UI 英文：`WheelTheme*` / “Wheel Theme” → `WheelPalette*` / “Wheel Palette”。
-- 渲染/解析输入：参数 `theme` → `palette`（方案名）。
-- `ThemePaletteManager` → `AppThemePaletteManager`；`AppThemeChangedMessage.Theme` → `.AppTheme`。
-- 页面导航（UIA/resx）：`NavTab0..4`/`TabTrigger..TabAbout` → `NavPage*`/`PageTrigger..PageAdvanced`。
-- 品牌：`WinPieGestures` → `StarPie`（目录/工程/测试工程/自启值/注释/文档）。
+终态名本身见 [CONTEXT.md](../../CONTEXT.md) 与 [layout.md](../architecture/layout.md) §3——本 ADR 不复制词表，
+只记**旧名去向**：统一为**加载期迁移 + 单一名义**，不做双名并存；旧名只存在于加载期迁移读取路径与
+迁移测试中，作为行为而非术语保留（详见下方 Decision 2）。
 
 ### 壳层术语（伞形终态）
 
@@ -41,10 +33,10 @@
 
 ## Decision
 
-1. 按终态词表对全仓（`.cs`/`.xaml`/`.resx`/`.py`/`.csproj`/`.slnx`/CI/`.vscode`/`docs`）执行终态改名；不保留任何“旧名为历史遗留”注记。
-2. `JsonConfigService` 加载/导入实现单次迁移：新键缺失时按旧键读取（`Theme`→`WheelPalette`、`UiStyle`→`WheelStyle`），保存一律写新键；xUnit 覆盖「旧文件读入 → 新键落盘」与「新文件直读」。
-3. 开机自启注册表值名随工程正名写 `StarPie`，启动时清理旧值 `WinPieGestures`，避免旧装机双自启。
-4. 不重命名已发布 config 值（`System`/`Dark`/`ClassicRing`/`MatchaForest` 等），不重排 `StarPie.*` 程序集/命名空间拓扑。
+1. **全仓按终态名书写**：`.cs`/`.xaml`/`.resx`/`.py`/`.csproj`/`.slnx`/CI/`.vscode`/`docs` 不保留任何“旧名为历史遗留”注记（终态词表见 [CONTEXT.md](../../CONTEXT.md) 与 [layout.md](../architecture/layout.md) §3）。
+2. **唯一例外是持久化迁移**：`JsonConfigService` 加载/导入时新键缺失则按旧键读取一次（轮盘配色键与轮盘风格键各一），保存一律写新键；xUnit 覆盖「旧文件读入 → 新键落盘」与「新文件直读」。
+3. **自启注册表值名随工程正名**：写 `StarPie`，启动时清理旧品牌值，避免旧装机双自启。
+4. **不重命名已发布 config 值**（`System`/`Dark`/`ClassicRing`/`MatchaForest` 等），不重排 `StarPie.*` 程序集/命名空间拓扑。
 
 ## Consequences
 

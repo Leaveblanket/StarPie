@@ -21,16 +21,14 @@
 4. **反射清缓存路线已被证否**：ADR-0030 的穷举取证（清 5 处可定位全局缓存后 ALC 与程序集仍存活，
    残余是运行时内部句柄）同样适用于本场景，且缓存布局随框架版本变化，不适合作为产品依赖。
 
-## 取证（.NET 10.0.11，真实 WPF 宿主，dotnet-dump 转储）
+## 取证（结论与判据）
 
-- 隔离现场 `gcroot` 插件 ALC 与入口程序集，唯一托管 root 链为：
-  `WpfSharedBamlSchemaContext._xmlnsInfo`（`ConcurrentDictionary<Assembly, XmlNsInfo>`，强引用键）
-  → 插件 `RuntimeAssembly` → `LoaderAllocator` → `LoaderAllocatorScout`；另有静态程序集名字典与
-  线程栈侧的同等链。
-- 插件侧类型实例（入口实例、扫描器、闭包类）在隔离现场**已全部被回收**：残留的只有 ALC、程序集与
-  框架缓存条目——即插件代码本身没有泄漏，阻碍完全来自宿主框架。
-- 同上流程在 xUnit 与不带 BAML 解析的 WPF Dispatcher 探针中 `Reclaimed=True`，
-  在真实 WPF 进程中恒为 `Reclaimed=False`，差异可归因到 XAML schema 上下文初始化。
+- 隔离现场 `gcroot` 插件 ALC 与入口程序集，唯一托管 root 链落在 XAML schema 上下文的强引用字典
+  （`_xmlnsInfo`）上，下接插件程序集的运行时装配链；BCL 侧另有一处静态程序集名字典同等���引用。
+- 插件侧类型实例（入口实例、扫描器、闭包类）在隔离现场全部不可达：残留的只有 ALC、程序集与框架
+  缓存条目——阻碍完全来自宿主框架，不是插件代码泄漏。
+- 同一停用流程在 xUnit 夹具与不带 BAML 解析的 WPF Dispatcher 探针中可回收，在真实 WPF 进程中恒
+  不可回收，差异可归因到 XAML schema 上下文的初始化。
 
 ## Considered Options
 

@@ -74,4 +74,4 @@
 
 - ADR-0013 决策 8「轮盘配色范围外暂存」由本 ADR 收口。
 - CONTEXT 不收录「界面主题模块」——它是架构模块名而非领域术语（领域词「界面主题/轮盘配色/主题风格」已在词汇表）。
-- 术语终态（WheelPalette/WheelStyle/界面主题）与配置键迁移见 [ADR-0024](./0024-terminology-final-state-and-full-rename.md)。
+- 术语终态（WheelPalette/WheelStyle/界面主题）与配置键迁移（`Theme`→`WheelPalette`、`UiStyle`→`WheelStyle`，加载期单次迁移）见 [ADR-0024](./0024-terminology-final-state-and-full-rename.md)。

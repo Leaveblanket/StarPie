@@ -21,42 +21,24 @@
    四档且不可部分提升，`SeXxxPrivilege` 与输入无关。"按需提权"在机制上也不成立：能力必须在被需要的
    那一刻之前就持有，未越界的进程连"用户在高权限窗口上按下拖动"这一事实都收不到。
 
-## 取证
+## 取证（结论与判据）
 
-- **当前为 asInvoker**：全仓无 `app.manifest`、无 `requestedExecutionLevel`（唯一 `.manifest` 命中是
-  `.vs` 下的测试日志），即 .NET 默认。提权的唯一形态是**提权自启**
-  （见 [ADR-0041](0041-admin-autostart-opt-in.md) 与 [ADR-0042](0042-privilege-routes-two-only.md)），
+- **当前为 asInvoker**：全仓无 `app.manifest`、无 `requestedExecutionLevel`，即 .NET 默认；提权的唯一
+  形态是提权自启（[ADR-0041](0041-admin-autostart-opt-in.md)、[ADR-0042](0042-privilege-routes-two-only.md)），
   不引入清单声明。
-- **提权收益的成文口径只有一处**：`AdminAutoStartDesc`「经 Windows 任务计划程序以最高权限静默启动，
-  登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势」。代码中除提权自启外没有任何
-  需要管理员的能力。
-- **自启只有 HKCU Run**（`AutostartRegistry`）：改强制提权即须改建任务计划程序（最高权限运行）并经一次
-  提权引导创建，而分发形态是绿色单文件 exe、无安装器。
-- **单实例握手跨完整性级别不可靠**：互斥体 `Global\StarPie_SingleInstance_Mutex_…` +
-  `FindWindow`（按标题） + `RegisterWindowMessage` + `SendMessage`。UIPI 默认拦截**值大于 WM_USER**
-  的窗口消息，而注册消息必大于 WM_USER，故提权实例持有托盘窗口时非提权实例的置前请求送不到；
-  互斥体方向则因更高完整性级别对象带"不向上写"强制策略，打开请求含写访问即被拒。
-- **动作层子进程继承**：`ActionRouting.BuildLaunchStartInfo` 用 `UseShellExecute = true` 直接拉目标
-  （仅文件夹动作走 `explorer.exe`），提权态下用户从轮盘启动的每个程序都带管理员令牌。
-- **插件随宿主提权**：插件为进程内加载、宿主不承诺沙箱与配额（[ADR-0029](0029-plugin-trust-model.md)），
-  宿主提权即把第三方插件的爆炸半径从用户级抬到机器级。
-- **e2e 不提权**：`tests/conftest.py` 直接 `subprocess.Popen` 被测 exe 并以 UIA 连接，无任何提权路径。
-- **UIAccess 是唯一"不拿管理员令牌也能跨 UIPI"的机制**，但门槛与边界都已文档化：`uiAccess="true"`
-  的定义即"绕过用户界面保护级别、向更高权限窗口驱动输入"；须 Authenticode 签名
-  （无论"仅提升安全位置 UIAccess 应用"策略开关如何都强制校验）与安全位置安装
-  （`%ProgramFiles%`、`%ProgramFiles(x86)%`、`%SystemRoot%\system32`）；文档明示"不应用于非助残技术应用"；
-  文档同时写明"UIAccess 不足以跨越完整性级别边界"：带 UIAccess 但由**非管理员账号**启动的进程为
-  "medium+" 级别、仍访问不了高完整性级别的 UI。
-- **同类产品的交付形态**：PowerToys 面对同一道题（FancyZones 与键盘重映射在高权限窗口失效）给出的答案是
-  "检测到提权进程 → 提示用户重启为管理员 / `Always run as administrator` 开关"，并明确"除非绝对必要
-  不建议总是以管理员运行"；其子进程继承问题（#43749 / #32206）长期未修，UIAccess 提案（#15241，
-  提出者已实测可行）自 2022 年悬置。VS Code 官方立场是不要提权运行（推荐 user setup；提权时自动更新被禁用）。
-  Everything 用"提权服务 + 非提权客户端"拆分，使客户端可保持标准用户。
-- **降权启动有官方路径**：微软官方示例 Execute In Explorer 的文档原话即"从提权进程启动非提权进程时有用"，
-  实现为 `ShellWindows` + `IShellDispatch2::ShellExecute`（**带 `Args` 与 `Directory` 参数**，故"explorer
-  中转必丢参数"只成立于裸命令行写法）；Raymond Chen 明确反对自制降权令牌（"很难把令牌的提权性质正确地
-  剥掉"）而推荐交 Explorer 代劳；微软自家 nodejstools 用同一技术。该法的主要缺陷（子进程挂 Explorer 名下、
-  拿不到 PID、不能等待、无控制台继承）恰好不落在 StarPie 的动作语义上——动作层本就是点火即忘。
+- **提权收益的成文口径只有一处**：设置页说明「经任务计划程序以最高权限静默启动，登录时不弹 UAC，
+  可在任务管理器等高权限窗口中正常唤起手势」。代码中除提权自启外没有任何需要管理员的能力。
+- **单实例握手跨完整性级别不可靠**：UIPI 默认拦截值大于 `WM_USER` 的窗口消息，而注册消息必大于它——
+  提权实例持有托盘窗口时，非提权实例的置前请求送不到；互斥体方向则因更高完整性级别对象带"不向上写"
+  强制策略，含写访问的打开请求被拒。这是决策 5 两条边界行为的判据。
+- **子进程继承与插件提权**：动作层用 `UseShellExecute = true` 直接拉目标，提权态下从轮盘启动的每个
+  程序都带管理员令牌（[ADR-0042](0042-privilege-routes-two-only.md) 确认为既定代价）；插件为进程内加载、
+  宿主不承诺沙箱与配额（[ADR-0029](0029-plugin-trust-model.md)），宿主提权即把插件爆炸半径抬到机器级。
+- **UIAccess 是唯一"不拿管理员令牌也能跨 UIPI"的机制**，但须 Authenticode 签名 + 安全位置安装，
+  官方定位为助残技术专用，且由非管理员账号启动的进程仍越不过完整性级别边界；同类产品具备全部前置
+  条件仍长期未采纳，或以进程拆分规避——这是决策 3 备选触发条件的判据（门槛细节以官方文档为准）。
+- **降权启动有官方路径**（Explorer 中转，参数可完整传递），但该缓冲已随
+  [ADR-0042](0042-privilege-routes-two-only.md) 取消而不再使用。
 
 ## Considered Options
 
@@ -91,11 +73,10 @@
    安全位置安装时成立；强制提权只在该前提之外才进入讨论。
 4. **约束（排除强制路线的依据之一）**：静默开机自启是既有承诺，不与"每次启动弹 UAC"共存。
 5. **提权态与未提权态的边界行为归位**：
-   - 单实例恢复消息的**接收端放行**本进程自有的注册消息（`ChangeWindowMessageFilterEx`，按窗口、仅在提权态执行），
-     使非提权实例的置前请求能送进提权实例；
-   - 互斥体**打开失败（`UnauthorizedAccessException`）按"已有实例"处理**并走恢复消息路径，
-     不再退回新实例——退回会得到两个托盘图标与两条全局鼠标钩子；
-   - 提权态探测收敛为共享内核单一份实现（`ProcessElevation`），壳层与设置面同源。
+   - 单实例恢复消息的**接收端放行**本进程自有的注册消息，使非提权实例的置前请求能送进提权实例；
+   - 互斥体**打开失败按"已有实例"处理**并走恢复消息路径——退回会得到两个托盘图标与两条全局鼠标钩子；
+   - 提权态探测收敛为共享内核单一份实现，壳层与设置面同源。
+   现行落点与实现见 [host.md](../architecture/host.md) §单实例闸门与 [shell.md](../architecture/shell.md)。
 6. ~~**本次不改变的两个已知影响**（记录而非修复）：提权态下"启动程序"动作的子进程继承管理员；
    提权态下进程内插件随宿主获得机器级权限。~~
    **被 [ADR-0042](0042-privilege-routes-two-only.md) 修订**：前者被确认为不再缓冲的既定代价
