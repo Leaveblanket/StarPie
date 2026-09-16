@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using StarPie.PluginRuntime.Admission;
+using StarPie.PluginRuntime.Diagnostics;
 using StarPie.PluginRuntime.State;
 
 namespace StarPie.Tests;
@@ -76,6 +77,33 @@ public sealed class PluginStateStoreTests : IDisposable
         Assert.Equal("开发者模式放行", actual.AdmissionReason);
         Assert.Equal("卸载资产未清零", actual.Quarantine!.Reason);
         Assert.Equal(entry.Quarantine!.Since, actual.Quarantine!.Since);
+    }
+
+    [Fact]
+    public void 隔离残留_随状态落盘并可往返()
+    {
+        var store = new PluginStateStore(_statePath);
+        store.Load();
+        var since = new DateTimeOffset(2026, 1, 2, 3, 4, 5, TimeSpan.FromHours(8));
+        store.Current.GetOrCreate("com.example.a").Quarantine = new PluginQuarantineState("卸载资产未清零", since)
+        {
+            Residuals = new[]
+            {
+                new PluginResidual { Kind = PluginResidualKind.UiAsset, Detail = "窗口 com.example.a.Main" },
+                new PluginResidual { Kind = PluginResidualKind.LoadContext, Detail = "com.example.a 的 ALC 未回收" },
+            },
+        };
+        store.Save();
+
+        var reloaded = new PluginStateStore(_statePath);
+        reloaded.Load();
+
+        PluginQuarantineState quarantine = reloaded.Current.Plugins["com.example.a"].Quarantine!;
+        Assert.Equal(2, quarantine.Residuals.Count);
+        Assert.Equal(PluginResidualKind.UiAsset, quarantine.Residuals[0].Kind);
+        Assert.Equal("窗口 com.example.a.Main", quarantine.Residuals[0].Detail);
+        Assert.Equal(PluginResidualKind.LoadContext, quarantine.Residuals[1].Kind);
+        Assert.Equal("com.example.a 的 ALC 未回收", quarantine.Residuals[1].Detail);
     }
 
     [Fact]

@@ -149,6 +149,32 @@ public sealed class GestureEngineTests
     }
 
     [Fact]
+    public void Move_BackInsideEscapeDistance_ClearsEscapeStateAndRestoresSelection()
+    {
+        var profile = AddProfile("Global", sectorCount: 8, actionCount: 8); // OuterEscapeDistance defaults to 186
+        _engine.OnTriggerDown(P(100, 100));
+        _engine.OnTriggerMove(P(125, 100)); // activate
+        _engine.OnTriggerMove(P(290, 100)); // 190 > 186: escaped
+
+        _engine.OnTriggerMove(P(160, 100)); // 60: back inside, escape must be lifted
+
+        var wheel = Assert.Single(_wheelFactory.Wheels);
+        Assert.Equal(
+            new[]
+            {
+                "Show", "Escape:False", "Highlight:0",
+                "Highlight:-1", "Escape:True",
+                "Escape:False", "Highlight:0", // 逃逸态复位并重新高亮 0 号扇区
+            },
+            wheel.Calls);
+
+        // 复位不只是显示：释放回到执行语义，而不是停在逃逸的取消语义。
+        var result = _engine.OnTriggerUp(P(160, 100));
+
+        Assert.Same(profile.Actions[0], result.ActionToExecute);
+    }
+
+    [Fact]
     public void Move_EscapeDisabled_KeepsSectorSelectionAndExecutesOnRelease()
     {
         _config.Current.EnableOuterEscapeCancel = false;

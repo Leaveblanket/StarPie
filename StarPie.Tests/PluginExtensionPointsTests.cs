@@ -47,6 +47,12 @@ public sealed class PluginExtensionPointsTests
     private static PluginPageDescriptor Page(string key = "main") => new(
         key, "PluginPageTitle", "M0 0", () => new PluginPageViewModel());
 
+    private static PluginSettingsSectionDescriptor Section(string sectionKey, string displayName, int order)
+        => new(sectionKey, string.Empty, order, () => new PluginPageViewModel())
+        {
+            DisplayName = displayName,
+        };
+
     [Fact]
     public async Task 插件页注册_宿主签发AutomationId并追加在固定页之后()
     {
@@ -294,6 +300,25 @@ public sealed class PluginExtensionPointsTests
             PluginMenuItem item = Assert.Single(coordinator.MenuItems);
             Assert.Equal(PluginId, item.PluginId);
             Assert.Equal("about", item.Descriptor.ItemKey);
+        });
+    }
+
+    [Fact]
+    public void 多插件多区块_按插件id再区块权重排序()
+    {
+        StaTestHarness.Run(() =>
+        {
+            var coordinator = new PluginUiCoordinator(StaTestHarness.Application, StaTestHarness.Dispatcher);
+            // 先建 B 后建 A，且 A 的两个区块按权重倒序注册：注册顺序与排序结果都相反，排序键才是判据。
+            coordinator.GetOrCreateHost("com.example.b").RegisterSettingsSection(
+                Section("b-only", "B 区块", 10));
+            PluginUiHost hostA = coordinator.GetOrCreateHost("com.example.a");
+            hostA.RegisterSettingsSection(Section("a-late", "A 后区块", 30));
+            hostA.RegisterSettingsSection(Section("a-early", "A 前区块", 20));
+
+            Assert.Equal(
+                new[] { "a-early", "a-late", "b-only" },
+                coordinator.SettingsSections.Select(section => section.Descriptor.SectionKey));
         });
     }
 

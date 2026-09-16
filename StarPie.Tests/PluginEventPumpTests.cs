@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.Messaging;
@@ -15,7 +16,7 @@ namespace StarPie.Tests;
 /// <summary>
 /// headless 插件宿主消息泵测试：装载即登记（弱引用），宿主 Send 托盘状态消息
 /// 经泵同步广播到活动作用域（订阅方在 Send 调用线程执行）；作用域释放后不再投递；
-/// 单插件投递异常被兜底，不沿 Send 传播。
+/// 出口被回收后登记自动归零；单插件投递异常被兜底，不沿 Send 传播。
 /// </summary>
 public sealed class PluginEventPumpTests : IDisposable
 {
@@ -76,6 +77,27 @@ public sealed class PluginEventPumpTests : IDisposable
     }
 
     [Fact]
+    public void 出口被回收后_弱引用登记自动归零()
+    {
+        var messenger = new WeakReferenceMessenger();
+        var pump = new PluginEventPump(messenger);
+
+        WeakReference dropped = RegisterTransientSink(pump);
+        Assert.Equal(1, pump.LiveSinkCount);
+
+        for (int i = 0; i < 5 && dropped.IsAlive; i++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        Assert.False(dropped.IsAlive, "测试未丢弃作用域强引用，弱引用登记判定失真");
+        // 登记不持有出口：回收后登记表自行失效，无需成对注销。
+        Assert.Equal(0, pump.LiveSinkCount);
+    }
+
+    [Fact]
     public async Task 单插件投递异常_被兜底_不沿Send传播()
     {
         var messenger = new WeakReferenceMessenger();
@@ -102,6 +124,15 @@ public sealed class PluginEventPumpTests : IDisposable
             entryTypeName: null,
             capabilitiesJson: null,
             priority: 0);
+
+    /// <summary>在独立方法内构造并登记事件出口，令局部强引用随方法返回失效（Debug JIT 保活下仍可回收）。</summary>
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference RegisterTransientSink(PluginEventPump pump)
+    {
+        PluginServiceScope scope = PluginCapabilityTestDoubles.CreateScope(new CapabilityRegistry());
+        pump.Register(scope);
+        return new WeakReference(scope);
+    }
 
     private static int ReadPluginStaticInt(
         PluginLoadResult result,

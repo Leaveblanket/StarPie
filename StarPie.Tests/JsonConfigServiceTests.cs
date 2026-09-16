@@ -8,7 +8,7 @@ namespace StarPie.Tests;
 /// <summary>
 /// 配置持久化的读写边界：加载是「缺文件建默认、损坏文件不覆写、容忍手改的 JSON（注释 / 尾逗号 /
 /// 大小写）、旧键迁到正典键且正典键优先」，保存只写正典键，<c>GetProfileForProcess</c> 不区分大小写
-/// 并回落 Global，导入换配置时连带换运行态语言。
+/// 并回落 Global，导入换配置时连带换运行态语言，导出产物可被导入读回、写失败按 false 上报。
 /// </summary>
 public sealed class JsonConfigServiceTests : IDisposable
 {
@@ -310,5 +310,39 @@ public sealed class JsonConfigServiceTests : IDisposable
 
         Assert.False(imported);
         Assert.Equal(languageAfterLoad, localization.CurrentLanguage);
+    }
+
+    /// <summary>导出产物能被导入读回（导出与导入是同一份 JSON 格式的两端）。</summary>
+    [Fact]
+    public void Export_ThenImport_RoundTripsConfig()
+    {
+        // 接缝两侧各自都有用例，缺口只在接缝上：这条路径断了，"导出备份 → 换机导入"就整条走不通。
+        var service = new JsonConfigService(_configPath, Localization);
+        service.Load();
+        service.Current.DragThreshold = 66.0;
+        service.GetGlobalProfile().SectorCount = 12;
+        string exportedPath = Path.Combine(_tempDir, "exported.json");
+
+        bool exported = service.Export(exportedPath);
+
+        var target = new JsonConfigService(Path.Combine(_tempDir, "target.json"), Localization);
+        bool imported = target.Import(exportedPath);
+
+        Assert.True(exported);
+        Assert.True(imported);
+        Assert.Equal(66.0, target.Current.DragThreshold);
+        Assert.Equal(12, target.Current.Profiles.Find(profile => profile.ProcessName == "Global")!.SectorCount);
+    }
+
+    [Fact]
+    public void Export_UnwritableTarget_ReturnsFalse()
+    {
+        var service = new JsonConfigService(_configPath, Localization);
+        service.Load();
+
+        // 目标目录不存在：导出与 Save 不同，不代建目录，失败按 false 上报。
+        bool exported = service.Export(Path.Combine(_tempDir, "absent-dir", "config.json"));
+
+        Assert.False(exported);
     }
 }

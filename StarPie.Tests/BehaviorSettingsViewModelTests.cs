@@ -9,7 +9,7 @@ namespace StarPie.Tests;
 /// <summary>
 /// 手势行为分区 ViewModel 的行为覆盖：触发阈值、场景隔离（全屏禁用、修饰键旁路）、
 /// 外圈逃逸取消与进程排除黑名单——live-apply 写回运行态配置、防抖/立即落盘事件、
-/// 黑名单归一化规则。
+/// 黑名单归一化规则，以及配置导入广播驱动的自订阅重挂与释放退订。
 /// 直接 new 被测对象，不触碰任何静态配置状态。
 /// </summary>
 public sealed class BehaviorSettingsViewModelTests
@@ -74,6 +74,44 @@ public sealed class BehaviorSettingsViewModelTests
         // 重挂不回写、不发落盘事件：判据是落盘请求为零——值与配置相同，回写与否看不出来。
         Assert.Equal(0, save.Debounced);
         Assert.Equal(0, save.Immediate);
+    }
+
+    [Fact]
+    public void ConfigImportedMessage_SelfRebindsToImportedConfig()
+    {
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), messenger);
+        var imported = MakeConfig();
+        imported.DragThreshold = 40.0;
+        imported.BlacklistedProcesses = new List<string> { "game.exe" };
+
+        messenger.Send(new ConfigImportedMessage(imported));
+
+        Assert.Equal(40.0, vm.DragThreshold);
+        Assert.Equal(new[] { "game.exe" }, vm.BlacklistProcesses);
+        // 重挂不回写、不发落盘事件：判据是落盘请求为零。
+        Assert.Equal(0, save.Debounced);
+        Assert.Equal(0, save.Immediate);
+        // 重挂换的是配置实例本身：后续 live-apply 写向导入的那一份。
+        vm.DragThreshold = 55.0;
+        Assert.Equal(55.0, imported.DragThreshold);
+    }
+
+    [Fact]
+    public void Dispose_UnsubscribesFromImportBroadcast()
+    {
+        var (messenger, _) = SaveSpy.Create();
+        var disposed = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), messenger);
+        var live = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), messenger);
+        disposed.Dispose();
+        var imported = MakeConfig();
+        imported.DragThreshold = 40.0;
+
+        messenger.Send(new ConfigImportedMessage(imported));
+
+        // 同一条广播：活着的实例确实重挂了（判据非空转），已释放的实例不再被触达。
+        Assert.Equal(40.0, live.DragThreshold);
+        Assert.Equal(25.0, disposed.DragThreshold);
     }
 
     // --- live-apply：阈值（防抖落盘） -------------------------------------------------

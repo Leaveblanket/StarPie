@@ -6,8 +6,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 轮盘视觉几何出口的纯几何推导覆盖：
-/// 扇区切削形态（Original 标准扇区 / Circle / HexagonHive / RoundedCapsule 系）与中心核图标几何
-/// （内置类型、Custom 的 SVG 键回退与星形回落）。
+/// 扇区切削形态（Original 标准扇区 / Circle / HexagonHive / RoundedCapsule 系）、中心核图标几何
+/// （内置类型、Custom 的 SVG 键回退与星形回落）与 SVG 路径数据的可解析性判定。
 /// </summary>
 public sealed class WheelGeometryTests
 {
@@ -137,4 +137,17 @@ public sealed class WheelGeometryTests
         AssertBoundsEqual(starSvg, WheelGeometry.GetCoreIconGeometry("Custom", customKey: "NoSuchKey", customSvg: "not-a-path"));
     }
 
+    // --- SVG 路径数据的可解析性判定（扇区内容内核的注入接缝） -------------------------
+
+    [Theory]
+    [InlineData("M0,0 L10,0 L10,10 Z", true)]
+    [InlineData("not-a-path", false)]
+    [InlineData("", false)]
+    [InlineData("   ", false)]
+    [InlineData(null, false)]
+    public void IsParsablePathData_OnlyAcceptsDataGeometryCanParse(string? pathData, bool expected)
+    {
+        // 供扇区内容内核判定用户 SVG 是否回落下一级图标来源：解析失败与空值一律不可用。
+        Assert.Equal(expected, WheelGeometry.IsParsablePathData(pathData!));
+    }
 }
