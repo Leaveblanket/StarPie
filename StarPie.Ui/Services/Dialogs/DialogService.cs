@@ -16,9 +16,9 @@ namespace StarPie.Services.Dialogs
     /// <remarks>
     /// 程序选择器、输入框、图标/颜色选择器与屏上取色均已走 VM 化链路。
     /// 程序扫描候选来源经构造注入的 <see cref="IProgramScanner"/> 契约提供（契约驻共享
-    /// 内核、实现与注册由 M3 下放，ADR-0020/#88），图标资产经注入的
+    /// 内核、实现与注册由 M3 下放），图标资产经注入的
     /// <see cref="IIconAssetService"/> 实例服务与 <see cref="IconCatalog"/> 纯目录
-    /// （ADR-0019/#87：S1 双形，对话框服务不直连业务模块静态内部）。
+    /// （S1 双形，对话框服务不直连业务模块静态内部）。
     /// </remarks>
     public sealed class DialogService : IDialogService
     {

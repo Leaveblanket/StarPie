@@ -60,7 +60,7 @@ public sealed class NavigationStoreTests
 
 /// <summary>
 /// 导航目录执行缝的行为覆盖：按槽位从目录取注册项并惰性解析页面 VM
-/// （容器单例）。微型容器用例覆盖 Host 内部解析缝语义（ADR-0021/#92）。
+/// （容器单例）。微型容器用例覆盖 Host 内部解析缝语义。
 /// </summary>
 public sealed class NavigationExecutorTests
 {

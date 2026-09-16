@@ -96,7 +96,7 @@ namespace StarPie.Modules
             services.AddSingleton<IMessenger>(WeakReferenceMessenger.Default);
             services.AddSingleton<SettingsSaveOrchestrator>();
 
-            // 导航运行时（ADR-0021/#92 起为 Host 内部件，共享内核仅留目录/槽位契约）：
+            // 导航运行时（宿主内部件，共享内核仅留目录/槽位契约）：
             // NavigationStore 单例 + 目录执行缝按槽位注册。页面 VM 的作用域是设置台会话：
             // 会话作用域由组合根交付（本工厂即唯一来源），执行缝经 ConsolePageSession 取实例。
             services.AddSingleton<NavigationStore>();

@@ -42,7 +42,7 @@ namespace StarPie.ViewModels.Pages
         /// <see cref="IWheelAppearanceState"/> 由该子 VM 独占。</summary>
         public WheelAppearanceSettingsViewModel WheelAppearance { get; }
 
-        /// <summary>共享图标资产实例服务（S1，ADR-0019/#87）：外观页实时预览渲染器为
+        /// <summary>共享图标资产实例服务（S1）：外观页实时预览渲染器为
         /// View 层无 DI 构造对象，经本聚合 VM（设置台会话作用域）暴露的已批准预览桥取得服务，
         /// 供页面 OnPageLoaded 装配 <c>WheelPreviewRenderer</c>。</summary>
         public IIconAssetService IconAssetService { get; }

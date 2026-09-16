@@ -16,7 +16,7 @@ namespace StarPie.Views.Pages
             InitializeComponent();
 
             // ADR-0009 白名单第 1 条（生命周期接线）：页面挂载/卸载成对订阅退订 View 效果
-            // 消息（共享页面基类 SettingsPageBase 随 ADR-0022/#94 删除后改自订阅，
+            // 消息（无共享页面基类，改自订阅，
             // 与 InputDialog/RadialWindow 同款成对纪律）。
             Loaded += OnPageLoaded;
             Unloaded += OnPageUnloaded;
