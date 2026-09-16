@@ -39,13 +39,9 @@
 
 1. **程序集目标态 = 15**：现 8 + Programs.Contracts / Dialogs.Contracts / Theme.Contracts / Wheel.Contracts / Gestures.Contracts + StarPie.Icons.Contracts / StarPie.Icons。部分推翻早期“7/8 程序集目标态”的物理落点表述（历史见 ADR-0016 及已删除的中间 ADR）；批次历史与分层动机不回开，以本 ADR 与 assemblies.md 为准。
 2. **契约归属判据**：模块出口契约随**实现方模块**入其 `*.Contracts`；共享件出现第二消费方族时——若属全局机制入内核，若属某模块出口契约下沉该模块 Contracts。
-3. **各 Contracts 承载**：
-   - `Programs.Contracts`（WPF 类库）：`IProgramScanner`、`ProgramEntry`、`ProgramCatalog`、`IShortcutTargetResolver`（SPI 随实现方）；
-   - `Dialogs.Contracts`（纯 C#）：`IDialogService` + 6 结果 record；
-   - `Theme.Contracts`（WPF 类库）：`IThemeService`；
-   - `Wheel.Contracts`：`IWheelFactory`、`IWheelViewModel`（+ 签名暴露件）；
-   - `Gestures.Contracts`：`IProfilePreviewSource`。
-4. **S1 成集**：`StarPie.Icons.Contracts` = `IIconAssetService`/`IconCatalog`/`CustomIconItem`/`VectorIconItem`（`IconCatalog` 为无状态纯资产表，作资产目录契约随集）；`StarPie.Icons` = `IconAssetService` + `IconsModuleRegistrar`。
+3. **契约归属判据的落地**：模块出口契约随实现方下沉其 `*.Contracts`。各契约具体承载哪些类型、
+   现行落在哪个程序集，见 [assemblies.md](../architecture/assemblies.md) §2/§3——本 ADR 不复制类型清单。
+4. **S1 图标资产按同一判据成集**：契约与无状态纯资产表随集、实现与注册器另集；现行落点同上。
 5. **允许 runtime 边清零**：M1→M2（`IWheelFactory`）、M2→M4（`IThemeService`）、Dialogs→M4（`IThemeService`）三条 runtime 允许边删除，改经 Wheel.Contracts / Theme.Contracts 契约边；接合缝编目允许边档相应改写（[assemblies.md](../architecture/assemblies.md) §8）。Host → 全部 runtime（组合根例外）保留；Host/Tests 直接消费的契约另加显式引用。
 6. **Core 收窄边界**：S1、`Services/Programs/`、`Services/Dialogs/`、预览 Profile 契约迁出后，Core 仅留 Models（config POCO/值类型）、S2 配置、S3 本地化（+resx）、S4 消息 hub、S5 导航目录/槽位契约与 `AppHostDelegates`；S2/S3/S4 作为共享基建例外留 Core（模块引用共享基建 runtime ≠ 模块间互引）。
 7. **命名与命名空间**：程序集/项目名 `<模块>.Contracts`；命名空间维持 `StarPie.*` 树不变（命名空间 ≠ 程序集名），搬迁零 `using` 改动面。
