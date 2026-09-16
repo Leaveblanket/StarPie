@@ -2,7 +2,7 @@
 
 > Status: Active
 >
-> 本文收口 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md)「ALC 不是安全边界」与 [ADR-0028](0028-plugin-ui-hosting-and-host-managed-lifecycle.md) 决策 7「信任前置」留下的未决项：**第三方插件凭什么被允许装载**。规范落点见 `docs/architecture/plugins.md` §11。
+> 本文收口 [ADR-0027](0027-plugin-architecture-and-host-sdk-ui-split.md)「ALC 不是安全边界」与 [ADR-0028](0028-plugin-ui-hosting-and-host-managed-lifecycle.md) 决策 7「信任前置」留下的未决项：**第三方插件凭什么被允许装载**。规范落点见 `docs/architecture/plugin-contracts.md` §5。
 
 ## 动机
 
@@ -34,4 +34,4 @@
 - 管理面必须常显当前准入模式；用户可见文案必须写清"插件与 StarPie 同权限"，不得暗示插件被沙箱隔离。
 - 宿主状态需记录准入来源（内置 / 审核清单 / 开发者模式）与签名主体，供诊断与撤销使用。
 - 若进程外后端在复启判据成立后立项（决策 6），本 ADR 的"进程内全信任"条款限定在进程内后端，不自动扩展到新后端。
-- 清单不可得的降级策略取**保守拒绝**（降级为空清单，不沿用上次缓存）；签名校验按包入口程序集，证书级 CRL 吊销检查关闭而"撤销通道"指向清单的版本级黑名单——两条现行落点见 `docs/architecture/plugins.md` §11。
+- 清单不可得的降级策略取**保守拒绝**（降级为空清单，不沿用上次缓存）；签名校验按包入口程序集，证书级 CRL 吊销检查关闭而"撤销通道"指向清单的版本级黑名单——两条现行落点见 `docs/architecture/plugin-contracts.md` §5。

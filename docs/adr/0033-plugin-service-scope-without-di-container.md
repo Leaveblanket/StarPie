@@ -2,7 +2,7 @@
 
 > Status: Active
 >
-> 契约正典：[plugins.md §6/§6.1](../architecture/plugins.md)（§6.1 第 4 条按本 ADR 修订）。
+> 契约正典：[plugins.md §6](../architecture/plugins.md)、[plugin-contracts.md §4](../architecture/plugin-contracts.md)（§4 第 4 条按本 ADR 修订）。
 
 ## 动机
 
