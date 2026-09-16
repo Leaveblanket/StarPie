@@ -36,6 +36,9 @@ public sealed class DocInvariantTests
     /// <summary>文约中承载机检 ERE 模式的小节标题。</summary>
     private const string PatternsSection = "## 机检口径";
 
+    /// <summary>文约中承载「常量归属断言」的小节标题。</summary>
+    private const string OwnershipSection = "## 归属断言";
+
     private static readonly Regex AdrMarkdownReference =
         new(@"(\d{4})-[a-z0-9][a-z0-9-]*\.md", RegexOptions.Compiled);
 
@@ -261,31 +264,69 @@ public sealed class DocInvariantTests
     }
 
     /// <summary>读文约「机检口径」小节围栏块里的 ERE 模式（<c>#</c> 行为注释）。</summary>
-    private static string[] ReadConventionsPatterns()
+    private static string[] ReadConventionsPatterns() => ReadConventionsBlock(PatternsSection);
+
+    /// <summary>读文约指定小节的围栏块（跳过空行与 <c>#</c> 注释行）。</summary>
+    private static string[] ReadConventionsBlock(string section)
     {
         string[] lines = File.ReadAllLines(ConventionsFile);
-        int index = Array.FindIndex(lines, line => line.StartsWith(PatternsSection, StringComparison.Ordinal));
-        Assert.True(index >= 0, $"文约缺少「{PatternsSection}」小节：{Path.GetRelativePath(RepoRoot, ConventionsFile)}");
+        int index = Array.FindIndex(lines, line => line.StartsWith(section, StringComparison.Ordinal));
+        Assert.True(index >= 0, $"文约缺少「{section}」小节：{Path.GetRelativePath(RepoRoot, ConventionsFile)}");
 
         while (index < lines.Length && !lines[index].TrimStart().StartsWith("```", StringComparison.Ordinal))
         {
             index++;
         }
 
-        Assert.True(index < lines.Length, "文约「机检口径」小节缺少围栏块");
+        Assert.True(index < lines.Length, $"文约「{section}」小节缺少围栏块");
         index++;
-        var patterns = new List<string>();
+        var entries = new List<string>();
         for (; index < lines.Length && !lines[index].TrimStart().StartsWith("```", StringComparison.Ordinal); index++)
         {
             string line = lines[index].Trim();
             if (line.Length > 0 && !line.StartsWith('#'))
             {
-                patterns.Add(line);
+                entries.Add(line);
             }
         }
 
-        Assert.True(patterns.Count > 0, "文约「机检口径」围栏块为空——词表与断言已脱钩");
-        return patterns.ToArray();
+        Assert.True(entries.Count > 0, $"文约「{section}」围栏块为空");
+        return entries.ToArray();
+    }
+
+    [Fact]
+    public void 文档声称的常量归属与源码一致()
+    {
+        string[] claims = ReadConventionsBlock(OwnershipSection);
+        var offenders = new List<string>();
+        foreach (string claim in claims)
+        {
+            int separator = claim.IndexOf(" @ ", StringComparison.Ordinal);
+            if (separator <= 0)
+            {
+                offenders.Add($"格式应为 `<名字> @ <源码相对路径>`：{claim}");
+                continue;
+            }
+
+            string name = claim[..separator].Trim();
+            string relativePath = claim[(separator + 3)..].Trim();
+            string fullPath = Path.Combine(RepoRoot, relativePath);
+            if (!File.Exists(fullPath))
+            {
+                offenders.Add($"归属断言指向不存在的文件：{relativePath}");
+                continue;
+            }
+
+            if (!File.ReadAllText(fullPath).Contains(name, StringComparison.Ordinal))
+            {
+                offenders.Add($"{name} 已不在 {relativePath}——文档的归属声称需同步");
+            }
+        }
+
+        Assert.True(
+            offenders.Count == 0,
+            "文约「归属断言」与源码不符（文约 §1：失真优先于重复）：" + Environment.NewLine
+                + string.Join(Environment.NewLine, offenders));
     }
 
     /// <summary>现有 ADR 的编号集合（文件名形态为 <c>{编号}-{slug}.md</c>）。</summary>
