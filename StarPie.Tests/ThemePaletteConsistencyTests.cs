@@ -12,6 +12,12 @@ namespace StarPie.Tests;
 /// 并与主题令牌键零交集；界面主题与轮盘配色两份解析实现必须对同一输入给出同一结论；
 /// App.xaml 的主题槽必须仍是合并字典第 0 项。纯文件级断言，不经容器。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：五套主题是五份手写 XAML，缺键时 <c>DynamicResource</c> 静默解析为 null，
+/// 不报错也不崩，元素只是悄悄裸着；四语言 resx 缺键时本地化服务静默回退成键名。界面主题与轮盘
+/// 配色两份解析实现刻意分列不抽共用函数，「两处必须一致」没有任何编译期约束。App.xaml 的主题槽位
+/// 是 <c>FindThemeSlot</c> 的按 Source 定位不变式，槽位与 Source 形态都不参与编译。
+/// </remarks>
 public sealed class ThemePaletteConsistencyTests
 {
     private static readonly string[] ThemeNames = { "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray" };

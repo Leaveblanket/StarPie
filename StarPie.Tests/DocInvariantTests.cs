@@ -19,9 +19,12 @@ namespace StarPie.Tests;
 /// 断言失败时先修文档，不要放宽断言：这些正是过去靠人记而反复失守的部分
 /// （13 篇 ADR 瘦身后留下 12 处指向不存在决策号的引用、入口附录被删后 <c>agents/domain.md</c> 长期指向不存在的章节、
 /// <c>StarPie.Host/HostServices/</c> 等目录实际存在却未登记进目录树）。
+/// 其他层也不会有落点：<c>docs/</c> 不参与编译与运行——叶子消失、ADR 编号写错或目录未登记，
+/// 都不会让任一编译单元或运行路径失败。
 /// </remarks>
 public sealed class DocInvariantTests
 {
+    // --- 文约小节名与扫描面 ---------------------------------------------------------
     private static string RepoRoot => FourSetBoundaryProbe.RepoRoot;
     private static string DocsRoot => Path.Combine(RepoRoot, "docs");
     private static string EntryFile => Path.Combine(DocsRoot, "architecture.md");
@@ -97,6 +100,7 @@ public sealed class DocInvariantTests
     private static readonly Regex ChangeHistoryNumber =
         new(@"(?<![0-9A-Fa-fx#])#\d{1,4}(?![0-9A-Fa-f])|\b[TPB]\d+(?:\.\d+)?\b", RegexOptions.Compiled);
 
+    // --- 源码注释不含变更史编号 -----------------------------------------------------
     [Fact]
     public void 源码注释不含变更史编号()
     {
@@ -130,6 +134,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 入口路由表与磁盘叶子一一对应 -----------------------------------------------
     [Fact]
     public void 路由表与磁盘叶子一一对应_且每个叶子恰好登记一次()
     {
@@ -161,6 +166,7 @@ public sealed class DocInvariantTests
             $"路由表对同一叶子登记了多行：{string.Join(", ", duplicated)}");
     }
 
+    // --- ADR 头部状态合法 -----------------------------------------------------------
     [Fact]
     public void 每篇ADR头部状态合法()
     {
@@ -183,6 +189,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- ADR 引用无死链 -------------------------------------------------------------
     [Fact]
     public void ADR引用无死链_含源码注释()
     {
@@ -206,6 +213,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 叶子不残留完成态流水与日期快照 ---------------------------------------------
     [Fact]
     public void 叶子不残留完成态流水与日期快照()
     {
@@ -218,6 +226,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- layout 树：路径存在与目录登记 ----------------------------------------------
     [Fact]
     public void layout树中的路径在磁盘存在()
     {
@@ -259,6 +268,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 文档反引号类型名在源码命中 -------------------------------------------------
     [Fact]
     public void 文档反引号类型名在源码命中()
     {
@@ -312,6 +322,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- ADR 不残留日期快照与等号式状态标记 -----------------------------------------
     [Fact]
     public void ADR不残留日期快照与等号式状态标记()
     {
@@ -328,6 +339,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 基建：禁止模式扫描 ---------------------------------------------------------
     /// <summary>扫描指定 Markdown 文件的禁止模式与日期快照，返回「文件名:行 说明」清单。</summary>
     private static List<string> ScanForbiddenPatterns(IEnumerable<string> files, string[] patterns)
     {
@@ -353,6 +365,7 @@ public sealed class DocInvariantTests
         return offenders;
     }
 
+    // --- 叶子的规划标记落在目标态节内 -----------------------------------------------
     [Fact]
     public void 叶子的规划标记落在目标态与差距节内()
     {
@@ -404,6 +417,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 基建：标题层级与 layout 树解析 ---------------------------------------------
     /// <summary>Markdown 标题层级（`# ` 为 1、`## ` 为 2…）；非标题行返回 0。</summary>
     private static int HeadingLevel(string line)
     {
@@ -473,6 +487,7 @@ public sealed class DocInvariantTests
         }
     }
 
+    // --- 基建：文约围栏块与规则读取 -------------------------------------------------
     /// <summary>读文约「机检口径」小节围栏块里的 ERE 模式（<c>#</c> 行为注释）。</summary>
     private static string[] ReadConventionsPatterns() => ReadConventionsBlock(PatternsSection);
 
@@ -528,6 +543,7 @@ public sealed class DocInvariantTests
         name.StartsWith(".", StringComparison.Ordinal)
         || ExcludedDirs.Contains(name, StringComparer.OrdinalIgnoreCase);
 
+    // --- 文档声称的常量归属与源码一致 -----------------------------------------------
     [Fact]
     public void 文档声称的常量归属与源码一致()
     {
@@ -563,6 +579,7 @@ public sealed class DocInvariantTests
                 + string.Join(Environment.NewLine, offenders));
     }
 
+    // --- 基建：ADR 编号集、引用判定与扫描面枚举 -------------------------------------
     /// <summary>现有 ADR 的编号集合（文件名形态为 <c>{编号}-{slug}.md</c>）。</summary>
     private static readonly Lazy<HashSet<string>> ExistingAdrNumbers = new(() =>
         Directory.EnumerateFiles(AdrDir, "*.md")

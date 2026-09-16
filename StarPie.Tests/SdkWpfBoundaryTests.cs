@@ -16,6 +16,12 @@ namespace StarPie.Tests;
 /// 源码树形态可断言。与 <see cref="SdkBoundaryTests"/>（headless 面）、<see cref="FourSetBoundaryTests"/>
 /// （工程面）、<see cref="RuntimeNoCrossReferenceTests"/>（引用面）互补。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：导出面白名单与 <see cref="SdkBoundaryTests"/>（headless 面）同理，新增
+/// public 类型是 ABI 变更而不是错误。<c>UiSdkAbi</c> 的判定表与版本串只被插件运行时消费，本仓没有
+/// 以别的 ABI 版本发布的插件去触发它，改坏了不会让任一编译单元失败；<c>DefaultAlcPolicy</c> 的共享
+/// 契约集与「插件可达面」是跨程序集的成员签名闭包，源码里没有任何一处完整写出它。
+/// </remarks>
 public sealed class SdkWpfBoundaryTests
 {
     /// <summary>StarPie.Sdk.Wpf 的全部导出类型（导出面 = 恰为该清单）。</summary>

@@ -11,6 +11,11 @@ namespace StarPie.Tests;
 /// “键集一致 + 值与 resx 一致”，防止新增/修改文案键后漏再生成。字典随 Ui 集编译
 /// （独立设计期投影壳已删除，Page 编译与资源锚见 HostBoundaryTests）。纯文件级断言，不经容器。
 /// </summary>
+/// <remarks>
+/// 为什么其他层看不见：<c>DesignTimeStrings.xaml</c> 是签入的生成物，再生成脚本不在构建里自动跑
+/// ——新增或改动文案键后忘了再生成，照样构建通过、照常发布；运行期读的是 resx，所以任何运行路径
+/// 都看不见这处漂移，只有设计器里显示成旧文案或键名。
+/// </remarks>
 public sealed class DesignTimeStringsConsistencyTests
 {
     private const string XamlKeyNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";

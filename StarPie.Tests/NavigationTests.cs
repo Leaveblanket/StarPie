@@ -127,6 +127,11 @@ public sealed class NavigationExecutorTests
     }
 }
 
+/// <summary>
+/// 主框架 ViewModel 的导航投影：五槽目录 → 导航项（数量、有序 AutomationId、标题随语言刷新）、
+/// 空 store 下的无选中态、条目命令与外部选中的双向同步，以及插件页动态注册 / 摘除时导航项的
+/// 追加 / 移除与当前页回落。
+/// </summary>
 public sealed class MainViewModelTests
 {
     private static readonly LocalizationService Localization = new();
