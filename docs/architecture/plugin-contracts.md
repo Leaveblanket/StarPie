@@ -73,7 +73,7 @@ HostServices = 插件可见的宿主服务（`IPluginLog`/`IPluginConfig`/`IPlug
 ## 5 ABI、版本与信任
 
 - **ABI**：`StarPie.Sdk` 与 `StarPie.Sdk.Wpf` 同政策：主.次版本；宿主接受同主版本且次版本不高于宿主的插件；接口 additive-only，破坏性变更 = 新接口 + 新能力 id/新描述符。
-- **准入（ADR-0029）**：目标态 = 签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验），未命中即 `Rejected`；首期 = 仅第一方随包插件与**开发者模式**插件（默认关闭的显式开关 + 全信任风险披露）；不做默认侧载放行。
+- **准入（ADR-0029）**：`as-built：` 仅第一方随包插件与**开发者模式**插件放行（默认关闭的显式开关 + 全信任风险披露）；`规划：` 以签名（Authenticode 或受 pin 的发布者证书）+ 审核清单（可离线校验）作准入判据，未命中即 `Rejected`；不做默认侧载放行。
   as-built：`WinTrustSignatureVerifier`（WinVerifyTrust）对生效候选包的**入口程序集**做校验——可信链 → 可信；有签名但链不可信 → 提取签名主体与发布者指纹（证书 SHA-256），供「受 pin 的发布者证书」路径判定；无签名/不可解析 → Unsigned；**内容摘要与签名不符（篡改）一律不可信，pin 不救**。WinVerifyTrust 的证书级吊销检查（CRL）按 WTD_REVOKE_NONE 关闭——证书吊销不在撤销通道内，撤销走清单（下条）。内置插件不走签名闸（开发构建无签名）。
 - **审核清单（as-built）**：安装目录 `plugins/` 子目录下 `review-catalog.json` + 分离 RSA-SHA256 签名（`review-catalog.json.sig`，base64），公钥 pin 在宿主侧（`SignedPluginReviewCatalog`），文件可离线校验。白名单按 **(pluginId, version) 精确命中**——清单未列入的新版本不因旧版本已审核而放行。清单被篡改、验签失败、文件对缺失或公钥 pin 为空一律**降级为空清单**：保守拒绝，宁可拒绝不误放行（ADR-0029 降级决策）。更新通道 = 首方私钥重签（`scripts/sign-review-catalog.ps1`，私钥不入仓库）后替换文件对并重启；随仓库清单自带 selfcheck 条目由 xUnit 防漂移。**该清单通道已 as-built 落地**（首期仍无第三方条目——第三方插件一律 `Rejected`，开发者模式为唯一例外）；开发者示例与部署路径见 [plugin-dev-handbook.md](plugin-dev-handbook.md) 与 `plugins/samples/`。
 - **撤销**：审核清单支持版本级黑名单；每次启动扫描按当前清单重新判定，命中即拒绝装载（管理面显示 `Rejected` 与撤销原因）。用户启停意图不被翻转——撤销解除后插件自动回到可装载；显式「停用」是用户另做的独立决策。
