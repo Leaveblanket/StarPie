@@ -79,7 +79,16 @@
 
 CI 的构建与测试走 Release，本地约定命令走默认配置，两者都要过。CI 只强制 xUnit，e2e 不在 CI 覆盖内（GitHub runner 上 WPF UI 自动化不可靠）。
 
-分析器与编译器的警告一律视为错误（根 `Directory.Build.props` 的 `TreatWarningsAsErrors`）：新增警告即构建失败。示例工程（`plugins/samples/**`）单独覆盖关闭——它们供第三方插件作者照抄，不给他们加构建摩擦。豁免只此一处，其余工程不得另行关闭；确无替代 API 的定点豁免须就地在代码里写明理由（`WinTrustSignatureVerifier` 的证书提取是唯一存量）。
+分析器与编译器的警告一律视为错误（根 `Directory.Build.props` 的 `TreatWarningsAsErrors`）：新增警告即构建失败。示例工程（`plugins/samples/**`）单独覆盖关闭——它们供第三方插件作者照抄，不给他们加构建摩擦。豁免只此一处，其余工程不得另行关闭；确无替代 API 的定点豁免须就地在代码里写明理由（`WinTrustSignatureVerifier` 的证书提取、`PluginUnloadPipeline` 的程序集路径是仅有的两处）。
+
+硬门的覆盖边界按**构建模式**分档，跑单一模式看不见另一种的警告：
+
+| 模式 | 额外激活的分析器 | 命令 |
+|---|---|---|
+| 常规构建 | 编译器与分析器默认集 | `dotnet build StarPie.slnx` |
+| 单文件发布 | 单文件分析器（`IL3000` 一类：单文件下 `Assembly.Location` 恒为空） | `dotnet publish -p:PublishSingleFile=true` |
+
+因此**收到硬门的工程在发布形态下也要过**：CI 的 `dotnet publish` 一步是这道门的一部分，改了会被发布链编译的工程（`StarPie.Ui` 及其依赖）后，只跑 build 不足以判定门已过。`EnableSingleFileAnalyzer` 不提到常规构建——它对从不单文件发布的测试工程会产生误报（`StarPie.Tests` 里自称从磁盘装载程序集的用例）。
 
 ## 5. 检查的增删
 
