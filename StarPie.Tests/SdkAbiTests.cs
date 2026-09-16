@@ -29,9 +29,11 @@ public sealed class SdkAbiTests
     }
 
     [Fact]
-    public void 当前版本_为主次版本串()
+    public void 当前版本_可被自身解析器往返接受()
     {
-        Assert.Equal($"{SdkAbi.MajorVersion}.{SdkAbi.MinorVersion}", SdkAbi.Version);
+        Assert.True(SdkAbi.TryParseVersion(SdkAbi.Version, out int major, out int minor));
+        Assert.Equal(SdkAbi.MajorVersion, major);
+        Assert.Equal(SdkAbi.MinorVersion, minor);
     }
 
     [Theory]

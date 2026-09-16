@@ -8,7 +8,7 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 统一注册管线收口：内置贡献者清单（<see cref="BuiltInContributors"/>）是组合根注册期的
-/// 唯一遍历对象——Id/Order 唯一且升序、每个贡献者都有真实注册体、导航贡献合并为四槽正典。
+/// 唯一遍历对象——Id/Order 唯一且升序、每个贡献者都有真实注册体、导航贡献合并为五槽正典。
 /// 与 <see cref="NavigationTests"/>（目录驱动导航行为）、<see cref="NavigationCatalogTests"/>
 /// （目录自身收口）互补：本文件锁“管线清单本身”。
 /// </summary>
