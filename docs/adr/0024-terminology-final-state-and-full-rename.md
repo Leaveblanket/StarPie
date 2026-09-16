@@ -20,24 +20,24 @@
 
 ### 终态词表（采纳）
 
-| 领域 | 终态 | 旧名去向 |
-|---|---|---|
-| 轮盘配色（领域概念/类型） | Wheel Palette（`WheelPalette*` 类型不变） | — |
-| 轮盘配色选择（config 键/C# 属性） | `WheelPalette` | 旧键 `Theme` 加载期迁移 |
-| 轮盘配色 VM 表面 | `PaletteOptions` / `SelectedPalette` / `WheelPaletteComboBox` | `ThemeOptions` / `SelectedTheme` / `ThemeComboBox` |
-| 轮盘配色 resx 键与 UI 英文 | `WheelPalette*` / “Wheel Palette” | `WheelTheme*` / “Wheel Theme” |
-| 主题风格（config 键/C# 属性/XAML） | `WheelStyle` / “Wheel Style” | `UiStyle` 加载期迁移 / “(UiStyle)” |
-| 渲染/解析输入 | 参数 `palette`（方案名） | `theme` 参数 |
-| 界面主题整项替换管理器 | `AppThemePaletteManager` | `ThemePaletteManager` |
-| 界面主题变更消息成员 | `AppThemeChangedMessage.AppTheme` | `Theme` 属性 |
-| 页面导航（UIA/resx） | `NavPage0..3` / `PageTrigger..PageAdvanced`（`PageAbout`/`NavPage4` 已下线移除） | `NavTab0..4` / `TabTrigger..TabAbout` |
-| 品牌/工程 | `StarPie` | `WinPieGestures`（目录/工程/测试工程/自启值/注释/文档） |
+终态名本身见 [CONTEXT.md](../../CONTEXT.md) 与 [layout.md](../architecture/layout.md) §3；本 ADR 只记
+**旧名去向**——统一为**加载期迁移 + 单一名义**，不做双名并存：
+
+- 配置键：`Theme` → 轮盘配色 `WheelPalette`；`UiStyle` → `WheelStyle`（均在加载期迁移）。
+- 轮盘配色 VM 表面：`ThemeOptions`/`SelectedTheme`/`ThemeComboBox` →
+  `PaletteOptions`/`SelectedPalette`/`WheelPaletteComboBox`。
+- resx 键与 UI 英文：`WheelTheme*` / “Wheel Theme” → `WheelPalette*` / “Wheel Palette”。
+- 渲染/解析输入：参数 `theme` → `palette`（方案名）。
+- `ThemePaletteManager` → `AppThemePaletteManager`；`AppThemeChangedMessage.Theme` → `.AppTheme`。
+- 页面导航（UIA/resx）：`NavTab0..4`/`TabTrigger..TabAbout` → `NavPage*`/`PageTrigger..PageAdvanced`。
+- 品牌：`WinPieGestures` → `StarPie`（目录/工程/测试工程/自启值/注释/文档）。
 
 ### 壳层术语（伞形终态）
 
-「壳层 (Shell)」是应用外壳职责的伞形术语，下分两个子词条（CONTEXT.md 已收录）：
-- **壳窗口 (Shell Window)**：设置控制台主窗口的窗口职责（H1：MainView/ShellViewModel/关窗驻留/界面主题应用）；
-- **系统集成 (System Integration)**：M5 模块（托盘、开机自启、内存整理、高级设置面）；归并后不再独立成集（自启/内存整理驻 `StarPie.Host/ShellIntegration`，托盘/高级页驻 `StarPie.Ui`），伞形语义保留在 `StarPie.Services.Shell`/`StarPie.ShellIntegration` 命名空间中。
+「壳层 (Shell)」是应用外壳职责的伞形术语，下分**壳窗口**与**系统集成**两个子词条——定义见
+[CONTEXT.md](../../CONTEXT.md)，本 ADR 不复制。本 ADR 只记该伞形拆分的决策：此前「Shell」一词同时
+指模块、程序集与窗口职责，改名与拆分同步收口，伞形语义保留在 `StarPie.Services.Shell` /
+`StarPie.ShellIntegration` 命名空间中。
 
 ## Decision
 
