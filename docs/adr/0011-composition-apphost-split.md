@@ -4,7 +4,7 @@
 >
 > 修订指针：本 ADR 记录时该类名为 `AppHost`，现名 `ShellHost`（标题与文件名沿用当时名）。
 
-`Composition.cs` 原���同时承担 DI 组合根与宿主启动/退出编排：`ConfigureServices`、`Run`、
+`Composition.cs` 原本同时承担 DI 组合根与宿主启动/退出编排：`ConfigureServices`、`Run`、
 托盘菜单、语言字典刷新、`ExitApplication`、`Dispose` 全收在一个类里。[ADR-0005](0005-di-container-for-navigation.md)
 引入 `ServiceCollection` 后装配面扩大到十余个解析点，但 `Run` 及其托盘/退出/语言副作用仍
 留在同一类，组合根持续膨胀。决定：`Composition` 收敛为唯一 DI 组合根（注册 + 解析），新增
@@ -20,7 +20,7 @@
 - **新增 `ShellHost` 两层拆分**：采纳——`Composition` 保留 DI；`ShellHost` 承接
   `Run`/`Dispose`/托盘/退出/语言资源等宿主编排。
 - **宿主类持有 `IServiceProvider` 自解析**：被否——会让宿主类成为第二个解析点，
-  破坏 ADR-0005“解析点只��现在组合根”的既有边界。
+  破坏 ADR-0005“解析点只出现在组合根”的既有边界。
 - **Generic Host / Prism**：不采纳——ADR-0005 已明确引入 Generic Host 需要独立触发
   （ILogger 生态、多环境/多实例、插件系统），本次只是类级重组。
 

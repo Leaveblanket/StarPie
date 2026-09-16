@@ -14,7 +14,7 @@
 ## Considered Options
 
 - **Host 引入 MS.DI，每插件 `CreateScope()` 子容器** → 否。容器里没有可注册的东西：实例终究要落在运行期注册表，净增一个依赖与一层间接，隔离语义不增加。
-- **把 `IServiceProvider` 作为插件可见面**（插件自定义服务供宿主解析） → 否。plugin-contracts.md §4 约束 3 明确插件只经 `IPluginContext` 取用；首期也不开放插件间依赖。
+- **把 `IServiceProvider` 作为插件可见面**（插件自定义服务供宿主解析） → 否。plugin-contracts.md §4 约束 3 明确插件只经 `IPluginContext` 取用；也不开放插件间依赖。
 - **每插件一个自持作用域（服务实例 + 能力实例 + 句柄账本）** → 采纳。
 
 ## Decision
@@ -25,6 +25,6 @@
 
 ## Consequences
 
-- 插件暂不获得"自行注册服务"的能力：首期插件可见面只有能力注册与宿主服务；将来若开放，需先设计运行期注册语义，再评估是否引入容器（另立 ADR）。
+- 插件不获得"自行注册服务"的能力：插件可见面只有能力注册与宿主服务；将来若开放，需先设计运行期注册语义，再评估是否引入容器（另立 ADR）。
 - 作用域的账本、幂等释放与异常聚合成为可测单元（`PluginServiceScopeTests`），比容器行为更容易断言。
 - 宿主内部消费能力经 `CapabilityRegistry.GetAll<T>()` 而非 `GetService(Type)`：类型安全留在编译期，装配错误更早暴露。
