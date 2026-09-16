@@ -64,28 +64,8 @@
 
 ## 4. 仓库边界
 
-```text
-StarPie/
-├── CONTEXT.md
-├── AGENTS.md
-├── StarPie.slnx                 # 解决方案（登记全部工程；构建/测试入口，见 layout.md）
-├── Directory.Build.props        # 统一构建属性（TFM/可空性/隐式 using/分析器级别/根命名空间）
-├── Directory.Packages.props     # 中央包管理（包版本唯一集中处，csproj 不写版本）
-├── docs/
-│   ├── architecture.md          # 本文（入口）
-│   ├── architecture/            # 架构叶子文档
-│   ├── adr/                     # 决策记录（ADR-0001 ~ 0048，编号保留历史断档）
-│   ├── agents/                  # Agent 工作流文档
-├── StarPie.Ui/                  # Ui 集（WinExe，程序集名保持 StarPie；唯一含 XAML 与入口；含图标资产 WPF 图像构造）
-├── StarPie.Sdk/                 # SDK 集（net10.0；零 WPF 零第三方包；目标态插件唯一引用面）
-├── StarPie.Sdk.Wpf/             # SDK 的 WPF 类型契约面（UseWPF；不产出 XAML；承载主题/图标资产服务契约与 ABI 政策）
-├── StarPie.Host/                # 宿主内核集（net10.0；零 WPF，可 headless 单测；内核运行时在 Configuration/|Localization/|ShellIntegration/，图标目录/程序扫描在 Icons/|Programs/）
-├── StarPie.Tests/               # xUnit 单元测试（显式引用四集，不依赖传递引用）
-├── plugins/src/StarPie.Plugin.Programs/  # 首个随包 headless 插件（只引 SDK；深扫程序来源，默认启用、可停用）
-└── tests/                       # pywinauto e2e（不在本文档体系展开）
-```
-
-> 插件化形态（`StarPie.Sdk` / `StarPie.Host` / `StarPie.Ui` + `StarPie.Sdk.Wpf` + `plugins/`）见 [ADR-0027](adr/0027-plugin-architecture-and-host-sdk-ui-split.md) 与 [plugins.md](architecture/plugins.md)；旧 15 集已全部撤销（见 [assemblies.md](architecture/assemblies.md)），`plugins/` 的其余落点随插件面建设加入。
+仓库目录树（物理路径正典）见 [layout.md](architecture/layout.md) §1；程序集地图与依赖方向见
+[assemblies.md](architecture/assemblies.md) §2/§3——本文不复制。
 
 测试约定：单测文件平铺于 `StarPie.Tests` 根、命名 `{被测类型}Tests.cs`、命名空间镜像被测类型；测试工程**显式** `ProjectReference` 四集（不依赖传递引用，见 [assemblies.md](architecture/assemblies.md)）；页面/服务/对话框 VM 单测直接构造并注入依赖，不从容器解析；被测类型保持 `public`（不使用 `InternalsVisibleTo`，见 [layering.md](architecture/layering.md)）。
 

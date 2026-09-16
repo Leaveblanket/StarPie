@@ -1,23 +1,28 @@
 # 新功能添加规范
 
-> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；加新功能前先读“通用底线”，再按功能原型读对应清单。
+> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；加新功能前先用下方「先选路线」定落点，再读“通用底线”，最后按功能原型读对应清单。
+
+## 先选路线：内置贡献者 vs 插件
+
+- **内置贡献者**：功能属宿主自身、随宿主发布、不单独装卸 → 走下方「通用底线」与原型 A–F，由内置贡献者登记（服务/导航/页面模板字典）。
+- **插件**：能力要独立分发，或需要在运行期装卸（如程序来源）→ 只引 `StarPie.Sdk` / `StarPie.Sdk.Wpf`，经 `IPluginContext` / `IPluginUiContext` 与宿主交互；可用面与硬约束见 [plugin-contracts.md](plugin-contracts.md)，上手路径见 [plugin-dev-handbook.md](plugin-dev-handbook.md)。
+- 判据是装配形态而非功能大小：宿主独占生命周期与呈现，插件贡献 headless 能力与宿主托管的 UI（[ADR-0027](../adr/0027-plugin-architecture-and-host-sdk-ui-split.md)、[ADR-0028](../adr/0028-plugin-ui-hosting-and-host-managed-lifecycle.md)）；贡献者清单与注册管线见 [assemblies.md](assemblies.md) §6。
 
 ## 通用底线（所有新功能）
 
 1. 先确认功能域、模型与 `config.json` 兼容性（新字段带默认值，不改旧字段语义）。
 2. 纯逻辑放 Services 纯函数/引擎；副作用放可注入服务或组合根注入的委托。
 3. VM 只含状态、命令、消息；View 只含布局与纯 UI 效果；引用遵守 [layering.md](layering.md)（依赖矩阵）。
-4. 服务/页面 VM 注册：M5 在 `StarPie.Ui` 的 `ShellContributor`、M1 在 `StarPie.Ui`
-   的 `GesturesContributor` 内登记（RegisterServices），Host 外观聚合页在
-   `HostPageContributor`、宿主编排/内核件在 `HostCoreContributor`
-   登记（见 [host.md](host.md)）；导航项经所属贡献者
-   `RegisterNavigation`、页面 DataTemplate 收进所属模块页面模板字典（M5 在
-   `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在 `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，
+4. 服务/页面 VM 注册：由所属贡献者 `RegisterServices` 登记（M5 `ShellContributor`、M1
+   `GesturesContributor`、外观聚合页 `HostPageContributor`、宿主编排/内核件
+   `HostCoreContributor`，均驻 `StarPie.Ui`，见 [host.md](host.md)）；导航项经同一贡献者
+   `RegisterNavigation`，页面 DataTemplate 收进所属模块页面模板字典
+   （`StarPie.Ui/Modules/{Shell,Gestures,HostPage,HostCore}PageTemplates.xaml`，
    见 [navigation.md](navigation.md)），映射表（[layout.md](layout.md) §3）同步登记。
 5. 跨页协调用消息；静态已知依赖构造注入；本地状态用绑定，不用 messenger 替代。
 6. 用户可见文本一律用 i18n 文案键 + 四语言值（新增/修改流程见 [localization.md](localization.md)）。
 7. 新增单测：`StarPie.Tests/{被测类型}Tests.cs`，直接构造 + 手写替身。
-8. 目录/注册/映射变化后同步对应叶子文档；满足 ADR 三条件时新增 ADR。
+8. 目录/注册/映射变化后同步对应叶子文档；是否新增 ADR 按三条件判定（维护义务正典见《[文档写作文约](../agents/docs-conventions.md)》，本文不复制）。
 
 ## 原型 A：新增设置项（在现有页面加开关/滑块/输入）
 
@@ -32,17 +37,12 @@
 
 ## 原型 B：新增设置页面
 
-1. **VM**：M5 页面在 `StarPie.Ui/ViewModels/Pages/`、M1 页面在 `StarPie.Ui/ViewModels/Pages/`、
-   Host 页面在 exe `ViewModels/Pages/`（`ObservableObject`；按需注入 `IConfigService`/`IDialogService`/`IMessenger`
-   或组合根/贡献者委托；单例注册）。
-2. **View**：M5 页面在 `StarPie.Ui/Views/Pages/`、M1 页面在 `StarPie.Ui/Views/Pages/`、
-   Host 页面在 exe `Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（页面 XAML 根直承 `UserControl`）。
-3. **注册与接线（目录驱动；贡献者清单统一入口）**：页面 VM 注册——M5 由
-   `ShellContributor.RegisterServices`、M1 由 `GesturesContributor.RegisterServices` 登记，
-   Host 页由 `HostPageContributor` → 所属贡献者
-   `RegisterNavigation(NavigationCatalog)` 加一行（槽位/AutomationId/TitleKey/IconData；M5 为
-   `StarPie.Ui` 的 ShellContributor、M1 为 `StarPie.Ui` 的 GesturesContributor、
-   Host 为 HostPageContributor）→ 所属模块页面模板字典加 DataTemplate → [layout.md](layout.md) §3 页面映射表登记。
+1. **VM**：`StarPie.Ui/ViewModels/Pages/`（Ui 集即 exe，M5/M1/外观聚合页同目录；`ObservableObject`；
+   按需注入 `IConfigService`/`IDialogService`/`IMessenger` 或组合根/贡献者委托）。
+2. **View**：`StarPie.Ui/Views/Pages/`，无参构造；仅布局与 ADR-0009 白名单 code-behind（页面 XAML 根直承 `UserControl`）。
+3. **注册与接线（目录驱动；贡献者清单统一入口）**：页面 VM 由所属贡献者 `RegisterServices` 登记
+   （贡献者与模板字典见「通用底线」第 4 条）→ 该贡献者 `RegisterNavigation(NavigationCatalog)` 加一行
+   （槽位/AutomationId/TitleKey/IconData）→ 所属模块页面模板字典加 DataTemplate → [layout.md](layout.md) §3 页面映射表登记。
    会话作用域注册：新增页面的 VM 与同模块设置子 VM 一律注册为 **scoped**（作用域 = 设置台会话；
    暂留常驻的页面才用 singleton）；侧栏导航项与目录取用自动纳入，无需再改组合根清单。
    页面 VM 不在启动期构造：首次进入该页时由导航执行缝经 `ConsolePageSession` 构造。

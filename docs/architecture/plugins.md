@@ -6,9 +6,9 @@
 > 装载/卸载管线与设置面）；**可用面与硬约束**的正典是 [plugin-contracts.md](plugin-contracts.md)
 > （`StarPie.Sdk.Wpf` 约束 / 白名单与不支持列表 / HostServices 约束 / ABI 与准入判据）；
 > **上手路径**见 [plugin-dev-handbook.md](plugin-dev-handbook.md)；宿主内核子域职责见 [modules.md](modules.md)。
-> 本文不复制可用面清单，contracts 不复制机制叙事。
-> 正文以 as-built 撰写——各节的「as-built：」标注即现状，未加该标注的条款即现行规范；标记「规划」
-> 的条款与 §2 树中尚未落地的路径属目标态，落地前以 [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
+> 本文不复制可用面清单，contracts 不复制机制叙事。**正文为纯 as-built**（标注「as-built：」的条款即现状，
+> 未加标注的条款即现行规范）；尚未落地的目标态集中在 §11「目标态与差距」，落地前以
+> [assemblies.md](assemblies.md) 与 [modules.md](modules.md) 为准。
 
 ## 术语（架构词正典在本文）
 
@@ -51,7 +51,7 @@
 7. **白名单外即不支持**：不受支持的 WPF 特性不进入验收；发现泄漏按隔离流程处理，不降低验证标准。
 8. **两组硬约束是落地判据**：`StarPie.Sdk.Wpf` 见 [plugin-contracts.md](plugin-contracts.md) §2，HostServices 见 [plugin-contracts.md](plugin-contracts.md) §4。违反不是"设计欠佳"，而是拒绝装载、拒绝合并或判定 `Quarantined`。
 
-## 2. 目标物理形态（三集 + SDK.Wpf + 一等插件）
+## 2. 物理形态（三集 + SDK.Wpf + 一等插件）
 
 ```text
 StarPie/
@@ -59,24 +59,20 @@ StarPie/
 ├── Directory.Build.props                 # 共享构建属性（TFM/可空性/分析器级别）：四集与插件工程不各写一遍，避免漂移
 ├── Directory.Packages.props              # 中央包管理（包版本唯一集中处）；「SDK 零第三方包」「Host 零 WPF」两条约束由 StarPie.Tests 的边界测试机械断言
 ├── StarPie.Sdk/                          # net10.0；零 WPF / 零第三方包；headless 唯一引用面（ADR-0027 决策 1）
-│   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginCapability、生命周期：插件眼里「宿主长什么样」的全部
-│   ├── Models/                           # 稳定 DTO：ProgramEntry、IconRef、ActionDescriptor…；跨 ALC 传递的类型必须来自默认 ALC 的 SDK
+│   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginLog：插件眼里「宿主长什么样」的全部
+│   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型：AppConfig/WheelProfile/ActionItem/CustomColorPreset/ColorMath/GesturePoint；跨 ALC 传递的类型必须来自默认 ALC 的 SDK
 │   ├── Services/  ViewModels/            # 非插件面契约与模型（Messages/Navigation/Dialogs/Icons/Programs/Wheel/Themes 契约与界面契约，见 [layout.md](layout.md) §1）
 │   ├── Events/                           # 宿主事件契约（订阅返回 IDisposable）：卸载即断的实现基础
 │   ├── Manifest/                         # plugin.json 纯数据模型（校验逻辑在 Host，SDK 不做 IO）
-│   ├── Compatibility/                    # SDK 版本 / 宿主最低版本 / 能力 ABI 常量：判定集中一处
-│   ├── Capabilities/                     # 规划：能力契约（首期 IProgramSource）：按能力分文件，破坏性变更=加文件而非改文件，additive-only 可机械审
-│   └── Settings/                         # 规划：声明式设置 schema 模型：宿主渲染通用表单的前提（插件不自绘设置）
+│   └── Compatibility/                    # SDK 版本 / 宿主最低版本 / 能力 ABI 常量：判定集中一处
 ├── StarPie.Sdk.Wpf/                      # WPF 类型契约；默认 ALC 统一加载；additive-only（ADR-0028 + [plugin-contracts.md](plugin-contracts.md) §2 九条）
-│   ├── Abstractions/IPluginUiModule.cs, IPluginUiContext.cs    # 插件唯一合法的 UI 注册入口（funnel）
-│   ├── Descriptors/                      # PluginPageDescriptor/PluginWindowDescriptor/PluginMenuItemDescriptor…
-│   │                                     # 只带纯数据 + 工厂 + 类型名 + pack URI，禁内嵌已构造实例（[plugin-contracts.md](plugin-contracts.md) §2 约束 5）
-│   ├── Resources/                        # 资源字典注册描述（pack URI / 工厂）
-│   └── Compatibility/                    # Ui SDK ABI 常量（与 Sdk 分政策编号）
+│   ├── Abstractions/Ui/                  # 插件 UI 契约：IPluginUiModule/IPluginUiContext/IUiDispatcher + 五个注册描述符（页面/设置区/窗口/菜单项/命令）
+│   ├── Services/                         # IIconAssetService 与 IThemeService 的 WPF 契约（条目类型在 SDK、目录在 Host）
+│   └── Compatibility/                    # UiSdkAbi 与 DefaultAlcPolicy（与 Sdk 分政策编号）
 ├── StarPie.Host/                         # 零 WPF 引用、零 XAML；可 headless 单测（ADR-0027 决策 1）
 │   ├── Configuration/  Localization/  Programs/  ShellIntegration/  Icons/  Themes/  Wheel/  Gestures/  Actions/
 │   │                                     # 配置/文案/程序扫描/注册表与进程级壳集成/资产目录/调色板计算/配色解析/手势内核/动作路由（纯模型与逻辑；几何构造与 WPF 亲和件归 Ui）
-│   ├── Ports/                            # Host→Ui 端口：as-built 仅 IThemeApplier；规划：IUiDispatcher/IWheelPresenter/IIconImageFactory 等随真实 headless 需求引入
+│   ├── Ports/                            # Host→Ui 端口：IThemeApplier（Host 零 WPF 只能吃接口；其余端口见 §11）
 │   ├── HostServices/                     # 插件可见宿主服务实现：PluginLog/PluginEvents/PluginEventPump/PluginServiceScope（每插件一个作用域，[plugin-contracts.md](plugin-contracts.md) §4）
 │   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Diagnostics,Ui}
 │                                         # 发现/清单校验/准入判定/宿主状态/启用装载与停用再启用/collectible ALC/安全点卸载/状态机/能力表/诊断报告/插件 UI 协调
@@ -142,8 +138,8 @@ StarPie/
 - 包内**不得**出现 `StarPie.Sdk.dll`/`StarPie.Sdk.Wpf.dll`（共享契约不做随包分发）；命中即 `Rejected`（[plugin-contracts.md](plugin-contracts.md) §2 约束 3）。
 - `capabilities` 是数组：一个插件可声明多个能力，每条各自带 ABI；**卸载粒度仍是整个插件**，不能单摘一个能力。
 - `priority` 可选（默认 0）：只影响插件之间的能力列表顺序（数值小者靠前），内置条目永远最前；插件未声明 `priority` 时按 plugin id 稳定序。
-- 首期**禁止插件间依赖**：插件只依赖 SDK 与框架程序集，包内私有依赖由该插件独占，不跨插件共享。
-- 宿主状态与插件配置分离：宿主状态存 `%LOCALAPPDATA%\StarPie\plugin-state.json`；`规划：` 插件侧读写面 `IPluginConfig` 尚未落地，落地后只读写 `config.json` 的 `plugins.<id>`（ADR-0029）。
+- **禁止插件间依赖**：插件只依赖 SDK 与框架程序集，包内私有依赖由该插件独占，不跨插件共享。
+- 宿主状态与插件配置分离：宿主状态存 `%LOCALAPPDATA%\StarPie\plugin-state.json`；插件配置段归 `config.json` 的 `plugins.<id>`（§9）。
 
 ## 4. 生命周期
 
@@ -296,8 +292,7 @@ public interface IPluginUiContext
 
 ## 9. 配置、数据、文案、日志
 
-- **配置**：`config.json` 新增 `plugins: { "<id>": { … } }`；旧配置无该段照常加载。该段归插件所有，宿主状态不写这里。
-  规划：插件侧读写面 `IPluginConfig` 尚未落地（配置段本身已在模型里）。
+- **配置**：`config.json` 的 `plugins: { "<id>": { … } }` 段（`AppConfig.Plugins`）归插件所有，缺失该段照常加载；宿主状态不写这里，插件侧读写面见 §11。
 - **数据**：`%LOCALAPPDATA%\StarPie\plugin-data\<id>\`；卸载默认保留，管理面提供"彻底移除"。
 - **宿主状态**：`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用/停用、已装版本、路径、准入来源（内置/审核清单/开发者模式）、隔离状态、挂起版本；宿主唯一权威，插件不可读写。
 - **三个动作要分清**：**停用** = 安全点卸载（停用插件代码、摘除能力、释放服务作用域与插件对象；WPF 宿主里插件程序集留到重启释放，见 ADR-0035）、保留包与状态；**移除包** = 停用后删插件目录、状态条目保留；**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目，再 `FlushPendingSave()`。
@@ -306,14 +301,12 @@ public interface IPluginUiContext
   把新版本登记为**挂起版本**（宿主状态 `PendingVersion`），页面显式提示「下次启动生效」，重启装载成功后挂起标记清除。
 - **文案**：宿主渲染的三处标题（导航页 / 设置区块 / 托盘菜单项）按「`DisplayName` 字面量 →
   `TitleKey` 宿主 resx 键」解析；解析不到时按字面量显示并在注册期告警（[ADR-0046](../adr/0046-plugin-surface-copy-source.md)）。
-  窗口与命令描述符的 `TitleKey` 不由宿主渲染（窗口标题由插件自己的窗口设置、命令标题只作 id 路由），保留为兼容面。
-  **规划**：随包 `strings\<culture>.json` + 插件面取词 `IPluginContext.Localization`；宿主渲染的设置表单用插件自报文案——
-  落地需同步打包链路与 ALC 卫星资源政策，属生态化阶段。
+  窗口与命令描述符的 `TitleKey` 不由宿主渲染（窗口标题由插件自己的窗口设置、命令标题只作 id 路由），保留为兼容面；插件自持文案与插件面取词见 §11。
 - **日志**：插件只经 `IPluginContext.Log` 写宿主日志（自动带 plugin id）。
 
 ## 10. 设置面与插件管理面
 
-- 插件不自绘设置表单时，用 `settings.schema.json` 由宿主渲染（bool/数字/字符串/枚举/路径/路径列表）；写了 UI 的插件也可以注册 `PluginSettingsSectionDescriptor` 自绘设置区。
+- 插件设置面：as-built 经 `PluginSettingsSectionDescriptor` 注册自绘设置区；清单可声明 `settingsSchema`（发现期校验为包内文件），宿主的 schema 表单渲染尚未落地（§11）。
 - 宿主必须有 `PluginManagerPage`：列表、状态（Active / 已停用 / Quarantined）、启用/停用、重载/更新、隔离后的**重试**、诊断报告、"彻底移除"；页面常显当前**准入模式**（ADR-0029）。隔离态同时提供**重试**与**停用**两条出口：重试 = 回收续做 + 重新装载，停用 = 落停用意图并尽力回收（隔离原因保持可见，隔离不因停用被抹去）。
 - as-built：列表另有**待重启**态（界面插件的挂起版本）；启停/重载/更新/重试/诊断/彻底移除各有稳定
   `PluginManager*_<plugin-id>` AutomationId；彻底移除前必须经用户确认，未清干净时如实报残余。
@@ -324,6 +317,14 @@ public interface IPluginUiContext
   提权态不拒绝加载插件：准入决策已交给用户（ADR-0029），不因权限级别被二次否决。
 - 首次开启开发者模式必须走确认流程并展示全信任风险披露：可读配置与插件数据、可执行任意代码、可使进程崩溃、卸载可能失败并被隔离。
 
+
+## 11. 目标态与差距
+
+- `规划：` **`StarPie.Sdk/Capabilities/`**——能力契约按能力分文件（首个能力 `IProgramSource`）：破坏性变更 = 加文件而非改文件，additive-only 可机械审。
+- `规划：` **`StarPie.Sdk/Settings/`**——声明式设置 schema 模型与宿主通用表单渲染（插件不自绘设置时按 `settings.schema.json` 渲染 bool/数字/字符串/枚举/路径/路径列表）。
+- `规划：` **`StarPie.Host/Ports/` 其余端口**——`IWheelPresenter`/`IIconImageFactory` 等随真实 headless 需求引入（现仅 `IThemeApplier`）。
+- `规划：` **插件侧配置读写面 `IPluginConfig`**——落地后只读写 `config.json` 的 `plugins.<id>`（ADR-0029）。
+- `规划：` **插件自持文案与插件面取词**——随包 `strings\<culture>.json` + `IPluginContext.Localization`，声明式设置表单用插件自报文案；落地需同步打包链路与 ALC 卫星资源政策。
 
 ## 参见
 

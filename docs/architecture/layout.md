@@ -234,8 +234,8 @@ Ui 集工程根（`StarPie.Ui/`）：
    `StarPie.Tests/SdkBoundaryTests.cs` 收口）与插件面落点 `Manifest/`（plugin.json 纯数据模型）、
    `Abstractions/`（`IPlugin` 入口与 `IPluginContext` 宿主服务面）、
    `Compatibility/`（`AbiVersion` 版本串解析与 headless `SdkAbi`）、
-   `Events/`（`IPluginEvents`）。目标树 `Capabilities/`、`Settings/`（见 [plugins.md](plugins.md) §2）
-   随插件面其余能力落地启用。
+   `Events/`（`IPluginEvents`）。`Capabilities/`、`Settings/` 尚未落地（见 [plugins.md](plugins.md) §11），
+   随其余能力启用。
 - `StarPie.Sdk.Wpf.csproj`：SDK 的 WPF 类型契约面工程入口（UseWPF）；唯一允许的 ProjectReference 是 `StarPie.Sdk`；不产出 XAML；
   `StarPie.Sdk.Wpf/` 源码根目录**只允许** `Services/Icons/`、`Services/Shell/`
   （迁移期镜像旧相对路径）、`Compatibility/`（UiSdkAbi/DefaultAlcPolicy）与
@@ -253,7 +253,7 @@ Ui 集工程根（`StarPie.Ui/`）：
    `State/`、`Hosting/`、`Loading/`、`Unloading/`、`Lifecycle/`、`Registry/`、`Diagnostics/`——
    插件发现/清单校验/准入/宿主状态/宿主侧运行时（启用装载、停用再启用、重载、更新与彻底移除）/collectible ALC 装载与
    安全点卸载管线/生命周期状态机/能力表/启动报告，可 headless 直接构造；随包插件工程落
-   `plugins/src/StarPie.Plugin.Programs/`（首个 headless 插件），目标树见 [plugins.md](plugins.md) §2；
+   `plugins/src/StarPie.Plugin.Programs/`（首个 headless 插件），物理形态见 [plugins.md](plugins.md) §2；
   导出面与零 WPF 由 `StarPie.Tests/HostBoundaryTests.cs` 收口。
 - 各工程源码根目录**只允许**上表与本小节列出的项；原型、HTML、临时脚本不得留在
   `StarPie.Ui/`、`StarPie.Sdk/`、`StarPie.Sdk.Wpf/`、`StarPie.Host/`、`StarPie.Tests/`
