@@ -20,8 +20,11 @@ namespace StarPie.ShellIntegration
     public static class AutostartRegistry
     {
         /// <summary>提权自启的计划任务名；dev 实例带独立后缀，绝不与正式版共用。</summary>
-        public static string AdminTaskName
-            => AppDataPaths.IsDevInstance ? "StarPie_AdminAutoStart_Dev" : "StarPie_AdminAutoStart";
+        public static string AdminTaskName => BuildAdminTaskName(AppDataPaths.IsDevInstance);
+
+        /// <summary>计划任务名的纯构造（供单测逐值锁定形状）：dev 分支只加后缀，前缀恒为正式版名。</summary>
+        public static string BuildAdminTaskName(bool devInstance)
+            => devInstance ? "StarPie_AdminAutoStart_Dev" : "StarPie_AdminAutoStart";
 
         /// <summary>注册表形态（普通权限）的开机自启是否已注册；StarPie 或 legacy WinPieGestures
         /// 任一存在即是。提权形态见 <see cref="IsAdminAutoStartEnabled"/>——两条路线互斥，

@@ -1,3 +1,4 @@
+using StarPie.Configuration;
 using StarPie.ShellIntegration;
 
 namespace StarPie.Tests;
@@ -57,10 +58,17 @@ public sealed class AutostartRegistryTests
     }
 
     [Fact]
-    public void AdminTaskName_KeepsReleaseNamePrefix_DevInstanceOnlyAddsSuffix()
+    public void BuildAdminTaskName_KeepsReleasePrefix_AndDevOnlyAddsSuffix()
     {
         // dev 实例只加后缀，绝不与正式版共用任务（否则 dev 构建会覆盖正式版的自启形态）。
-        Assert.StartsWith("StarPie_AdminAutoStart", AutostartRegistry.AdminTaskName);
+        // 逐值断言两个名字：只判前缀的话，"dev 与正式版同名"这一退化仍会绿。
+        Assert.Equal(TaskName, AutostartRegistry.BuildAdminTaskName(devInstance: false));
+        Assert.Equal(TaskName + "_Dev", AutostartRegistry.BuildAdminTaskName(devInstance: true));
+
+        // 属性本体必须走同一个 dev 标记：只锁纯函数的话，属性写死一个名字仍然全绿。
+        Assert.Equal(
+            AutostartRegistry.BuildAdminTaskName(AppDataPaths.IsDevInstance),
+            AutostartRegistry.AdminTaskName);
     }
 
     // --- 两条权限路线的落位互斥 ---------------------------------------------

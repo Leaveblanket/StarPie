@@ -89,7 +89,7 @@ public sealed class SettingsSaveOrchestratorTests
     }
 
     [Fact]
-    public void FullSequence_DebounceThenExplicitSave_ThenDebounceTick_SavesTwice()
+    public void FullSequence_DebounceThenExplicitSave_ThenDebounceTick_DoesNotSaveTwice()
     {
         var (orchestrator, config, debouncer, messenger) = Create();
 

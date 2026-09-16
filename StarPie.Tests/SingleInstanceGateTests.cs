@@ -22,9 +22,9 @@ public sealed class SingleInstanceGateTests
     [Fact]
     public void DecisionDomain_IsExactlyThreeStates()
     {
-        // 值域三态即闸门的全部出口：置前退出、请求让位接管、退出并告知提权未生效。
-        // 第三态不由 Resolve 产生（它是"已请求让位但没等到"的运行期失败出口），但它是值域的一部分：
-        // 闸门的调用点必须显式列出它，不得靠"其余都当置前退出"的兜底把它吞掉。
+        // 本检查只钉两点：值域恰三态，且声明顺序即文档口径——置前退出、请求让位接管、
+        // 退出并告知提权未生效。第三态不由 Resolve 产生（它是"已请求让位但没等到"的运行期
+        // 失败出口），其并入决策的语义由 ApplyHandoverOutcome 的用例守。
         Assert.Equal(
             new[]
             {

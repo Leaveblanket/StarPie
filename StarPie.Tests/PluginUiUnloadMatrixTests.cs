@@ -367,17 +367,27 @@ public sealed class PluginUiUnloadMatrixTests
 
             PluginUnloadResult unload = await fixture.UnloadAsync();
 
-            // WPF 宿主的降级回收判定：入口实例必须回收，否则状态不是 Unloaded；
+            // 前提先钉住：WPF 宿主（BAML 架构上下文）缓存着插件程序集，此处实测 ALC 与程序集
+            // 确实仍存活。少了这两句，下面"只记诊断不上判"就区分不了降级判定生效与"本来就都回收了"。
+            Assert.Contains("ALC：仍存活（泄漏）", unload.Diagnostics);
+            Assert.Contains("程序集：仍存活（泄漏）", unload.Diagnostics);
+
+            // 降级回收判定：入口实例必须回收，否则状态不是 Unloaded；
             // ALC 与程序集即使存活也只是 Residuals 里的诊断行，不改变 Unloaded 与 Reclaimed。
             Assert.Equal(PluginUnloadStatus.Unloaded, unload.Status);
             Assert.True(unload.Reclaimed);
             Assert.Null(unload.FailureReason);
             Assert.Contains("UI 资产：已清零（登记表清零且全局根无残留）", unload.Diagnostics);
+            Assert.Contains(unload.Diagnostics, line => line.Contains("回收判定（宿主降级）"));
+            Assert.Contains("插件对象：已回收", unload.Diagnostics);
 
-            // 回收判定现场三行诊断：插件对象 / ALC / 程序集。
-            Assert.Contains(unload.Diagnostics, line => line.StartsWith("插件对象：", StringComparison.Ordinal));
-            Assert.Contains(unload.Diagnostics, line => line.StartsWith("ALC：", StringComparison.Ordinal));
-            Assert.Contains(unload.Diagnostics, line => line.StartsWith("程序集：", StringComparison.Ordinal));
+            // 宿主框架缓存的两类只入账、不阻断；插件自有残留才按失败记账。
+            Assert.Contains(
+                unload.Residuals,
+                residual => residual.Kind == PluginResidualKind.LoadContext);
+            Assert.Contains(
+                unload.Residuals,
+                residual => residual.Kind == PluginResidualKind.Assembly);
             Assert.DoesNotContain(
                 unload.Residuals,
                 residual => residual.Kind is PluginResidualKind.PluginObject

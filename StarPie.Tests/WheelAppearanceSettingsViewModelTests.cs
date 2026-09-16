@@ -11,10 +11,14 @@ namespace StarPie.Tests;
 /// <summary>
 /// 轮盘模块外观设置子 ViewModel 的行为覆盖：构造播种（含默认值回落与旧版 Shape 标签映射）、
 /// 立即生效写穿 IConfigService、防抖/立即落盘事件语义、ShowText 与排版模式联动、
-/// 配色预设增删改编排（mock 对话框服务；预设名语义）、实时预览失效事件（含 ShowCoreIcon
-/// 预览消息）、切语重建与导入重挂、Dispose 退订，以及只读状态接口
-/// <see cref="IWheelAppearanceState"/> 的预览取值面。
+/// 配色预设增删改编排（含预设对话框文案随当前语言取词）、实时预览失效事件（含 ShowCoreIcon
+/// 预览消息）、切语重建配色下拉、<see cref="WheelAppearanceSettingsViewModel.ReloadFromConfig"/>
+/// 的配色下拉重建，以及只读状态接口 <see cref="IWheelAppearanceState"/> 的预览取值面。
 /// </summary>
+/// <remarks>
+/// 导入广播的自订阅重挂与 Dispose 退订的守护在 <see cref="AppearanceSettingsViewModelTests"/>
+/// （聚合壳用例经同一总线触达子 VM）；刷新器自身的语义见 <see cref="ResidentOptionRefresherTests"/>。
+/// </remarks>
 public sealed class WheelAppearanceSettingsViewModelTests
 {
     private static readonly LocalizationService Localization = new();
