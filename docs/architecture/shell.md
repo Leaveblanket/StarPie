@@ -1,12 +1,13 @@
 # 模块：壳层与系统集成
 
-> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及托盘、开机自启、内存整理、主窗口壳层行为
-> 与高级设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)。
+> 本文是 [docs/architecture.md](../architecture.md) 的拆分文档；涉及托盘、开机自启、内存整理
+> 与高级设置面时读本篇；界面主题见 [interface-theme.md](interface-theme.md)；主窗口壳层行为
+> （`MainView`/`ShellViewModel`）归 H1 宿主壳，见 [assemblies.md](assemblies.md) §4。
 
 ## 职责
 
-托盘与气泡、开机自启、内存整理、主窗口壳层行为、高级设置面；子职责目录与护栏（D2）见
-[modules.md](modules.md) §5。
+托盘与气泡、开机自启、内存整理、高级设置面；子职责目录与护栏（D2）见
+[modules.md](modules.md) §5（主窗口壳层行为按 ADR-0016 归 H1，不在本模块）。
 
 ## 组成文件
 
@@ -25,7 +26,7 @@ M5 物理落位（自启注册表与内存整理入宿主内核，托盘与高�
   见 [host.md](host.md) §单实例闸门）。
 - `StarPie.Ui/ViewModels/Pages/GeneralSettingsViewModel.cs` 与
   `StarPie.Ui/Views/Pages/AdvancedSettingsPage.xaml(.cs)`
-  （D6：M5 设置面；页面 XAML 根直承 `UserControl`——共享页面基类 `SettingsPageBase` 已删除）。
+  （D6：M5 设置面；页面 XAML 根直承 `UserControl`）。
 - `StarPie.Ui/Modules/ShellContributor.cs` + `ShellPageTemplates.xaml`（M5 贡献者与
   页面模板字典，自报导航项/模板并登记页面 VM 的 DI 注册；见 [navigation.md](navigation.md)）。
 - SDK 同时登记宿主回调契约 `StarPie.Sdk/Services/AppHostDelegates.cs`（托盘气泡/退出自 M3 起由壳层直接
@@ -54,9 +55,9 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    （`ThemeService.IsWindowsInDarkTheme`；该服务驻 `StarPie.Ui`，Host 经 `IThemeService` 契约消费）。
 2. **内存（分层常驻）**：`MemoryOptimizer.CollectGarbage()`（驻
    `StarPie.Host/ShellIntegration/`）是纯托管 GC 收敛——两轮全量压缩 + finalizer
-   （保留 2 秒节流与防重入）；工作集裁剪（EmptyWorkingSet/SetProcessWorkingSetSize P/Invoke）
-   已整体删除，设置页手动"内存整理"入口与四语言文案已移除（不留"留作诊断"死路径，
-   需要时从 git 历史恢复）。自动触发点经 `TrayStateSignal` 有序决策编排（输入是设置台开/关）：App 启动兜底
+   （保留 2 秒节流与防重入）；工作集裁剪（`EmptyWorkingSet`/`SetProcessWorkingSetSize` P/Invoke）与
+   设置页手动"内存整理"入口一概不提供（`MemoryResidencyTests` 以 `TrimMemory`/`EmptyWorkingSet`
+   为禁止符号机械断言）。自动触发点经 `TrayStateSignal` 有序决策编排（输入是设置台开/关）：App 启动兜底
    force（轮盘预热之后）与进托盘（非后台）——进托盘固定顺序
    `FlushPendingSave → 导航视图出账→ 图标缓存出账→ 发 MinimizedToTrayMessage →
    CollectGarbage 后台执行`，恢复按最后导航槽位重放导航后发 `RestoredFromTrayMessage`；
@@ -102,7 +103,7 @@ M4 的主题服务（`IThemeService` 实现 `ThemeService`）在 Ui 集 `StarPie
    `MainView` 分区 DataContext——壳区（窗口标题/底部操作区）绑 `ShellViewModel`、导航区（侧栏/页面）绑
    `MainViewModel`（见 [navigation.md](navigation.md)）；`CloseButton_Click` 纯 UI 取消语义。
 5. **高级设置面**：导入/导出与两个自启开关在贡献者接线（本模块静态行为）；**托盘气泡归壳层**
-   ——仅剩提权未生效等失败告知（进托盘的驻留气泡已移除；贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
+   ——仅剩提权未生效等失败告知（进托盘不呈现任何气泡；贡献者只依赖 SDK，壳层回填实现，见 [host.md](host.md)）；
    页面绑定规范见 [layering.md](layering.md)（`AdvancedSettingsPage` 示例）。
    进程权限级别由 [ADR-0040](../adr/0040-startup-privilege-policy.md) 与
    [ADR-0042](../adr/0042-privilege-routes-two-only.md) 固定为**两条互斥路线**：普通权限启动

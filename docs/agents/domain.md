@@ -7,7 +7,7 @@ This is a **single-context repo**: one `CONTEXT.md` plus `docs/adr/` at the repo
 ## Before exploring, read these
 
 - **`CONTEXT.md`** at the repo root — the domain glossary.
-- **`docs/adr/`** — the ADRs touching the area you're about to work in. The index with per-ADR status lives in the appendix of `docs/architecture.md`.
+- **`docs/adr/`** — the ADRs touching the area you're about to work in. Each ADR's status lives in its own header; there is no separate status index.
 - **`docs/architecture.md`** — when the task is architectural, this is the routing entry to the normative leaves.
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The `/domain-modeling` skill (reached via `/grill-with-docs` and `/improve-codebase-architecture`) creates them lazily when terms or decisions actually get resolved.

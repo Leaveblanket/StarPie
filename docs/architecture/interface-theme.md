@@ -12,8 +12,7 @@
 ## 组成文件
 
 M4 按目标归属拆分：主题引擎入宿主内核（`StarPie.Host/Themes/`，零 WPF），主题字典与设置 VM 入
-Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）。
-独立模块程序集 `StarPie.Theme` 与契约工程 `StarPie.Theme.Contracts` 均已撤销：
+Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.Wpf/Services/Shell/`（ADR-0023）：
 
 - `StarPie.Sdk/Services/Themes/AppThemeNames.cs`（界面主题名目录：`System` 与五套具体主题常量、
   深色集合（窗口暗色判定查表）、已知名规范形查询；配置取值 / 解析分支 / 字典文件名 / 设置面
@@ -40,8 +39,8 @@ Ui 集（`StarPie.Ui`）；出口契约 `IThemeService` 收口于 `StarPie.Sdk.W
 消费接线（方向见 [assemblies.md](assemblies.md) §3）：Host（ShellHost/SettingsConsole/Composition/MainView/
 DialogService 装配面）消费 `IThemeService`；S6 对话框侧（驻 `StarPie.Ui`）只经 `StarPie.Sdk.Wpf`
 契约边消费 `IThemeService`；**深浅色消费方一律经无状态探针 `Func<bool>`**（ADR-0039 决策 3）：
-M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/壳层注入探针（M2 侧原经
-`IThemeService` 的允许边已清零），外观页实时预览由
+M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/壳层注入探针（M2 侧
+不经 `IThemeService`，只经探针），外观页实时预览由
 `ThemeContributor` 登记的 `Func<bool>` 注入外观聚合 VM（页面读 VM 属性取值，不向窗口/壳层绕行，
 也不做服务调用）；Ui → 宿主内核 + Sdk.Wpf 单向，内核不反向引用 Ui。
 
@@ -66,7 +65,7 @@ M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/�
    （空值、遗留别名、未知名回落 `System`，大小写非规范值归一到常量原形——归一只读、不写盘，
    保证下拉不空白且界面不会静默停在另一个主题上）。写穿配置后发布
    `AppThemeChangedMessage`，由 `MainView` 壳层 code-behind（文件归属见 [shell.md](shell.md)）订阅执行
-   `ApplyAppTheme`——外观页不再挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径
+   `ApplyAppTheme`——外观页不挂主题 `SelectionChanged` 处理器；配置导入后的窗口主题应用重挂路径
    同样经该消息由壳层执行。外观聚合 VM 注入两个设置子 VM（另一为轮盘外观设置子 VM
    `WheelAppearanceSettingsViewModel`，见 [wheel.md](wheel.md)）。
 5. **主题引擎与服务**：`ThemeEngine`（宿主内核，零 WPF）持有
@@ -80,8 +79,7 @@ M2 轮盘侧（WheelFactory/RadialWindow/WheelWarmup）与 M5 托盘由容器/�
    （未应用态的 `null` 在本边界投影为契约承诺的 `Light`），并承担
    WPF/WinRT 侧效果：`EnableSystemThemeTracking`（`UISettings.ColorValuesChanged` 后台线程 → UI Dispatcher
    封送 → 仅 System/空模式重解析）与 `ApplyWindowTheme`（DWM 沉浸式暗色，属性 19/20；深浅判定查
-   `AppThemeNames.DarkThemes`，未知主题名与 `Light` 一律浅色——与调色板侧对未知名的回落同源，
-   不再出现「浅色画刷配暗色标题栏」）。
+   `AppThemeNames.DarkThemes`，未知主题名与 `Light` 一律浅色——与调色板侧对未知名的回落同源）。
 6. **窗口白名单应用**：页面不持 `IThemeService`；`MainView`（Host）与对话框窗口
    （驻 `StarPie.Ui`）构造注入做白名单应用（同一查表判定，见流程 5）
    （[ADR-0009](../adr/0009-view-code-behind-whitelist.md)）。

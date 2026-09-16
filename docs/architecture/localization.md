@@ -26,8 +26,8 @@
    取词；回退链为“目标语言 → zh-CN 中性 → 键名”。`SetLanguage(code)` 支持 `Auto`
    （按 `CurrentUICulture` 前缀规则解析 zh-TW/zh/ja/en）与已知码/别名；任意别名/区域码经
    `AliasToCanonical` 表折叠为规范 BCP-47 码（"zh-CN"/"zh-TW"/"en"/"ja"），未知码兜底 zh-CN，
-   语言状态不再保留自定义枚举中间表示；语言实际变化才触发 `LanguageChanged`。
-   静态 `I18n` 已删除，消费点一律注入 `ILocalizationService`。
+   语言状态以规范 BCP-47 码表示（无自定义枚举中间表示）；语言实际变化才触发 `LanguageChanged`。
+   消费点一律注入 `ILocalizationService`。
    语言状态由配置侧驱动：替换运行态配置的入口在替换后立即应用配置的 `Language`
    （见 [config.md](config.md)）。
 2. **XAML 声明式文案**：宿主 `ShellHost.Run`（H1）订阅 `ILocalizationService.LanguageChanged` 并维护

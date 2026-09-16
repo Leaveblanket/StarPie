@@ -45,7 +45,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
      运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
-     [assemblies.md](assemblies.md) §8；开放泛型 `NavigationService<T>` 例外已删除）；
+     [assemblies.md](assemblies.md) §8）；
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
      `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
      [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023）暴露，
@@ -58,7 +58,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 - **命名空间 = 物理目录（全仓统一前缀 `StarPie`）**：`StarPie.Services.Actions`、
   `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`ShellHost`、
   `Composition`）在 `StarPie`。
-- **命名空间统一为 `StarPie.*`**（ADR-0016 决策 12）：命名空间根是产品名 `StarPie` 而非
+- **命名空间统一为 `StarPie.*`**（ADR-0016）：命名空间根是产品名 `StarPie` 而非
   程序集名，故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Configuration`
   （不是 `StarPie.Host.Configuration`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
@@ -112,7 +112,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
   导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按手势创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
-- 主框架 VM 拆分（D3，ADR-0016 决策 7）：`MainViewModel`（导航状态；目录驱动；运行时主体在
+- 主框架 VM 拆分（D3，ADR-0016）：`MainViewModel`（导航状态；目录驱动；运行时主体在
   Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与
   `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区 DataContext 的
   导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
@@ -147,8 +147,8 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 归并后本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
-  （共享页面基类 `SettingsPageBase` 已删除——Trigger/Advanced/Appearance 三页
-  code-behind 以 `Loaded`/`Unloaded` 成对自订阅取代原基类 virtual 钩子）；
+  （页面 XAML 根直承 `UserControl`，无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`
+  成对自订阅，不使用基类 virtual 钩子）；
   页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
 - 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 ADR-0009 输入适配）。
