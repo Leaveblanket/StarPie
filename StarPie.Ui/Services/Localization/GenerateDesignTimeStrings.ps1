@@ -4,8 +4,9 @@
 
 .DESCRIPTION
     设计期字符串字典是签入生成物，定位为设计期投影（非运行时第二数据源）。
-    新增/修改文案键后必须重跑本脚本并提交生成的 XAML；一致性由
-    StarPie.Tests/DesignTimeStringsConsistencyTests.cs 锁“键集一致 + zh-CN 值与 resx 一致”。
+    新增/修改文案键后必须重跑本脚本并提交生成的 XAML；键集与 zh-CN 值的一致性
+    原由 StarPie.Tests/DesignTimeStringsConsistencyTests 机械锁定，该测试已下线，
+    重跑脚本并核对生成物差异是当前唯一手段。
 
     源 resx：StarPie.Host/Localization/Strings.resx（本脚本所在目录由设计期投影
     与生成物共用，运行时本地化实现与四语言 resx 在宿主内核）。

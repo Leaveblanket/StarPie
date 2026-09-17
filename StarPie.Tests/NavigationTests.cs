@@ -276,7 +276,7 @@ public sealed class MainViewModelTests
     {
         var (vm, _, _) = Create();
 
-        // 五槽正典（顺序/标识/类型的逐项真值）钉在 BuiltInContributorsTests.内置清单_导航贡献合并为五槽正典；
+        // 五槽正典（顺序/标识/类型的逐项真值）原由 BuiltInContributorsTests 逐项断言，该测试已下线；
         // 此处只锁 MainViewModel 投影承接了目录（数量、有序 AutomationId 同形）。
         Assert.Equal(5, vm.NavigationItems.Count);
         Assert.Equal(

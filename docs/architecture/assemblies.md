@@ -205,21 +205,21 @@ MainViewModel 按目录注册构造导航项,导航执行走 `INavigationExecuto
 | 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`(命名空间 `StarPie.Services.Icons` 不变)← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`(图标服务与程序扫描经契约边消费) | xUnit |
 | 契约缝·程序扫描 | `IProgramScanner` / `ProgramEntry` / `ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`(命名空间 `StarPie.Services.Programs` 不变)← DI 实现 `ProgramSourceAggregator`、内置来源 `ProgramScanner` 驻 `StarPie.Host/Programs/`(候选为纯数据,图标由 UI 消费方装配) | xUnit |
 | 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/` ← 实现 `ThemeService` 驻 `StarPie.Ui/Services/Shell/`(状态 / 解析在内核 `ThemeEngine`,换肤经端口 `IThemeApplier` 回抛 Ui);消费方 Host / Dialogs 经契约边(M2 轮盘侧不经本契约,改经无状态 `Func<bool>` 探针) | xUnit;**不构成插件可达面**——插件拿不到本服务实例(无注入边),插件侧深浅色同样走探针 |
-| 契约缝·轮盘工厂 | `IWheelFactory` / `IWheelViewModel` 驻 `StarPie.Sdk` ← 实现 `WheelFactory` / `WheelViewModel` 驻 M2;消费方 M1 经契约边(M1→M2 runtime 允许边清零) | D5 + xUnit |
+| 契约缝·轮盘工厂 | `IWheelFactory` / `IWheelViewModel` 驻 `StarPie.Sdk` ← 实现 `WheelFactory` / `WheelViewModel` 驻 M2;消费方 M1 经契约边(M1→M2 runtime 允许边清零) | D5 + xUnit(轮盘 VM 行为;工厂预热契约已随 ADR-0050 下线) |
 | 契约缝·预览 Profile | `IProfilePreviewSource` 驻 `StarPie.Sdk`(生产方语义 + 破 Wheel↔Gestures 环),别名 = M1 `ProfileListViewModel`,消费 M2 经契约边 | D5 + xUnit |
 | 契约缝·轮盘外观只读状态 | `IWheelAppearanceState` 驻 `StarPie.Sdk`(签名暴露件),实现 = M2 `WheelAppearanceSettingsViewModel`,消费方 = M2 预览渲染器 + Host 外观页 | xUnit |
 | 契约缝·对话框 | `IDialogService` / 结果 record 驻 `StarPie.Sdk`(纯 C#)← 实现 `DialogService` 驻 Dialogs;M1 / M2 / M5 / Host 经契约边调用 | xUnit |
-| 注册缝 | 统一注册管线:`ICompositionContributor`(`Id` / `Order` / `RegisterServices` + 可选 `RegisterNavigation`)+ `BuiltInContributors` 有序清单(`HostCoreContributor` / `HostPageContributor` / `ThemeContributor` / `WheelContributor` / `GesturesContributor` / `ShellContributor` / `DialogsContributor` 七个内置贡献者)下放 DI / 导航登记;注册的契约类型驻 `StarPie.Sdk` / `StarPie.Sdk.Wpf`;组合根唯一解析、插件贡献者接同一接口 | xUnit:`BuiltInContributors` |
+| 注册缝 | 统一注册管线:`ICompositionContributor`(`Id` / `Order` / `RegisterServices` + 可选 `RegisterNavigation`)+ `BuiltInContributors` 有序清单(`HostCoreContributor` / `HostPageContributor` / `ThemeContributor` / `WheelContributor` / `GesturesContributor` / `ShellContributor` / `DialogsContributor` 七个内置贡献者)下放 DI / 导航登记;注册的契约类型驻 `StarPie.Sdk` / `StarPie.Sdk.Wpf`;组合根唯一解析、插件贡献者接同一接口 | 原 xUnit:`BuiltInContributors` 已下线(见 ADR-0050) |
 | 内核消费缝 | 模块 runtime 与 Ui 经 `StarPie.Host/{Configuration,Localization}` 消费内核件(内核定义、消费方单向) | xUnit |
 | 内核内互连·配置→本地化(同集,非跨集缝) | `StarPie.Host/Configuration` 的 `JsonConfigService` 持同集 `Localization` 的 `ILocalizationService`:替换运行态配置的两个入口(加载、导入)都在替换后立即应用配置的 `Language`,把「运行态语言跟随当前配置」收成服务的单一不变式,不留给各调用方自觉 | xUnit:JsonConfigServiceTests(加载与导入两条路径各一条「语言跟随」用例) |
 | 回填缝·宿主回调 | `AppHostDelegates` 驻 `StarPie.Sdk`(可空 Action 单例),由 `HostCoreContributor` 登记单例、`ShellHost` 构造后回填 | xUnit |
 | 回填缝·对话框 Owner | `DialogService.SetOwner(MainView)` Host 建窗后回填(public 装配面) | xUnit + e2e |
 | 导航缝 | `NavigationCatalog` + `NavigationSlots`(槽位 0–4,驻 `StarPie.Sdk`)+ 贡献者 `RegisterNavigation` + 页面模板字典 | xUnit(补注:导航运行时 / 执行入口 `INavigationExecutor` 归 Host,为宿主内部件而非跨程序集缝,本表不登记) |
-| XAML 资源缝 | App.xaml 资源单点合并 / 实例化:页面模板字典、主题字典、ModernControls.xaml 与 HotkeyRecorderBox 样式字典均为 Ui 集内本地合并(无跨集 pack URI),转换器 App 级实例;`Properties/DesignTimeResources.xaml` 设计期资源锚是唯一 pack URI 缝(仅设计期、运行时永不合并) | xUnit |
+| XAML 资源缝 | App.xaml 资源单点合并 / 实例化:页面模板字典、主题字典、ModernControls.xaml 与 HotkeyRecorderBox 样式字典均为 Ui 集内本地合并(无跨集 pack URI),转换器 App 级实例;`Properties/DesignTimeResources.xaml` 设计期资源锚是唯一 pack URI 缝(仅设计期、运行时永不合并) | 原 xUnit:XamlResourceKeyTests 已下线(见 ADR-0050) |
 | 消息缝 | S4 hub(`Messages.cs` / `Notices.cs`,驻 `StarPie.Sdk`),跨模块广播;新消息 = 放行共享面 | xUnit |
 | 系统调用委托缝(A 类) | 服务构造注入 `Func<bool>` / `Action` 系统探针(`ThemeEngine` / `ActionExecutorService` / VM 委托),生产默认值内建;轮盘扇区内容内核的 SVG 可解析性探针 `WheelSectorContentKernel.Build(..., Func<string,bool> isParsableSvg)` 由 WPF-free 的 Host 内核声明、Ui 侧以 `WheelGeometry.IsParsablePathData` 注入(解析是 WPF 面),省略即视为全部可解析 | xUnit(layering.md「系统调用接缝模式」;单测替身) |
 
-> 表内各缝的现行机械守护为四集基线 + 注册管线清单 + 各契约的 xUnit 行为测试。其余以产物引用面 / 导出面 / 行为测试逐条落地。
+> 表内各缝的现行守护为各契约的 xUnit 行为测试(范围见 `docs/adr/0050-test-scope.md`)与 e2e;原四集基线 / 导出面白名单 / 注册管线清单等机械断言已下线。其余以产物引用面 / 行为测试逐条落地。
 
 ### 8.2 需关注缝(有意接受,但对模块化施加压力;改动前先读裁决)
 

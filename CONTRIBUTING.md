@@ -41,7 +41,7 @@ dev 实例与正式版的行为差异:
 2. **从 `main` 开分支**,按改动意图命名(`feat-…` / `fix-…` / `chore-…`,扁平名);
 3. **编写与构建**:
    - 仓库根构建:`dotnet build StarPie.slnx`;
-   - 测试:`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`;
+   - 测试:`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`(勿加 `--nologo`:SDK 会把它转发给测试体,而 MTP 不认该参数,表现为「运行了零个测试」+ 退出码 5);
    - 用户可见改动(UI、对话框、配置 schema、本地化键、e2e 本身)再跑 e2e:`pwsh -File scripts/run-e2e.ps1`;
 4. **提交**:清晰写改了什么 + 为什么;`feat` / `fix` / `refactor` 工作引一句 issue 编号即可(不强求);
 5. **开 PR**:背景 / 目的 / 改动摘要 + 必要的界面截图或录屏。

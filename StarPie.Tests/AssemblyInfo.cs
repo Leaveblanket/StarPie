@@ -1,6 +1,6 @@
 using Xunit.Sdk;
 using Xunit.v3;
 
-// 串行执行的约束来自 StaTestHarness 持有的进程内唯一 WPF Application 与 STA 线程：
-// 多个用例读写 Application 的窗口集合与资源字典，带弱引用回收断言的类也经不起并发扰动。
+// 串行执行的约束来自保留用例里的弱引用回收断言（VM / 服务作用域释放后的探针判定）：
+// GC.Collect 与「对象已死」的判定经不起并发用例的分配与保活扰动。
 [assembly: Parallelization(Mode = ParallelMode.None)]

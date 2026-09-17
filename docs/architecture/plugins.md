@@ -1,8 +1,8 @@
 # 插件体系
 
 > **阅读方式与正典分工**:本文是插件子系统**机制与边界**的正典(物理形态、包与清单、生命周期、
-> 装载 / 卸载管线与设置面);**可用面与硬约束**的正典在 `StarPie.Sdk.Wpf` 的契约类型 + xUnit
-> 守护;**上手路径**见 `plugins/samples/README.md` 与各示例工程。
+> 装载 / 卸载管线与设置面);**可用面与硬约束**的正典在 `StarPie.Sdk.Wpf` 的契约类型(原 xUnit
+> 机械断言已下线,测试范围见 `docs/adr/0050-test-scope.md`);**上手路径**见 `plugins/samples/README.md` 与各示例工程。
 > 本文不复制可用面清单。**正文为纯 as-built**(标注「as-built:」的条款即现状,
 > 未加标注的条款即现行规范)。
 
@@ -45,7 +45,7 @@
 5. **跨 ALC 只共享 SDK 与框架程序集**:`StarPie.Sdk` / `StarPie.Sdk.Wpf` 一律从默认 ALC 解析,保证接口与 WPF 类型身份唯一。
 6. **一切装卸发生在安全点**:更新 = 安全点卸载 + 装载新版本;不做无约束即时重载。
 7. **白名单外即不支持**:不受支持的 WPF 特性不进入验收;发现泄漏按隔离流程处理,不降低验证标准。
-8. **两组硬约束是落地判据**:`StarPie.Sdk.Wpf` 九条(见 `Abstractions/Ui/` 与 `Compatibility/` 目录的 xUnit)与 HostServices 八条(见 `StarPie.Host/HostServices/` 的 xUnit)。违反不是"设计欠佳",而是拒绝装载、拒绝合并或判定 `Quarantined`。
+8. **两组硬约束是落地判据**:`StarPie.Sdk.Wpf` 九条(见 `Abstractions/Ui/` 与 `Compatibility/` 的契约类型)与 HostServices 八条(见 `StarPie.Host/HostServices/` 的实现);两组的机械断言已下线(测试范围见 `docs/adr/0050-test-scope.md`)。违反不是"设计欠佳",而是拒绝装载、拒绝合并或判定 `Quarantined`。
 
 ## 2. 物理形态(三集 + SDK.Wpf + 一等插件)
 
@@ -53,7 +53,7 @@
 StarPie/
 ├── StarPie.slnx                          # 解决方案:登记四集 + 随包 / 示例插件工程 + 测试,一条命令 build / 测全套
 ├── Directory.Build.props                 # 共享构建属性(TFM / 可空性 / 分析器级别 / 警告视为错误):四集与插件工程不各写一遍,避免漂移
-├── Directory.Packages.props              # 中央包管理(包版本唯一集中处);「SDK 零第三方包」「Host 零 WPF」两条约束由 xUnit 边界测试机械断言
+├── Directory.Packages.props              # 中央包管理(包版本唯一集中处);「SDK 零第三方包」= SDK csproj 无 PackageReference,「Host 零 WPF」由 TFM 结构性保证(原机械断言已下线)
 ├── StarPie.Sdk/                          # net10.0;零 WPF / 零第三方包;headless 唯一引用面
 │   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginLog:插件眼里「宿主长什么样」的全部
 │   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型:AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / GesturePoint;跨 ALC 传递的类型必须来自默认 ALC 的 SDK
@@ -92,7 +92,7 @@ StarPie/
 │   ├── src/StarPie.Plugin.Programs/      # 首个 headless 插件(只引 StarPie.Sdk;深扫程序来源),默认启用、可停用
 │   ├── src/StarPie.Plugin.SampleUi/      # 首个 UI 示例插件(引 Sdk + Sdk.Wpf;导航页 / 设置区 / 窗口 / 托盘菜单示例)
 │   └── samples/{MinimalHeadless,MinimalUi}/  # 最小示例工程(开发者上手指引见各示例工程 README)
-├── StarPie.Tests/                        # 平铺:Plugin*Tests.cs / AbiTests.cs / BoundaryTests.cs + STA harness
+├── StarPie.Tests/                        # 平铺:纯规则 / VM 状态逻辑 / 插件纯契约;范围见 docs/adr/0050-test-scope.md
 └── tests/                                # pywinauto e2e;程序选择器用例分「启用 / 停用」两态
 ```
 
@@ -177,7 +177,7 @@ public interface IPluginUiModule
    - 宿主合并插件资源字典必须用 `new ResourceDictionary { Source = packUri }`;`Application.LoadComponent(绝对 pack URI)` 在 .NET Core 抛「无法使用绝对 URI」。
    - 松散 XAML(`XamlReader` 解析含 `assembly=` 类型引用的文本)不在支持面:插件 XAML 一律走编译期 BAML。
 
-> 硬约束(`StarPie.Sdk.Wpf` 九条)与「插件可达面」定义见 `StarPie.Sdk.Wpf/Abstractions/Ui/` 的契约类型与对应 xUnit;
+> 硬约束(`StarPie.Sdk.Wpf` 九条)与「插件可达面」定义见 `StarPie.Sdk.Wpf/Abstractions/Ui/` 的契约类型;
 > 受支持特性白名单与不支持列表见 §3。
 
 ## 6. 能力注册与调用代理(headless)
@@ -188,7 +188,7 @@ public interface IPluginUiModule
 - **能力–插件归属**:能力实例活在该插件的 `PluginServiceScope` 内;消费者经 `CapabilityGuard` 短租用,宿主单例不得缓存能力实例。
 - **顺序语义**:`CapabilityRegistry.GetAll<T>()` 返回顺序 = 内置优先(内置不可被插件覆盖)→ 插件清单 `priority` → plugin id 稳定序;用户可调的顺序覆盖存 `plugin-state.json`,避免列表顺序随装载顺序抖动。
 
-> HostServices 八条硬约束见 `StarPie.Host/HostServices/` 的契约与对应 xUnit。
+> HostServices 八条硬约束见 `StarPie.Host/HostServices/` 的契约与实现。
 
 ## 7. 插件 UI 宿主化(宿主托管)
 
@@ -271,7 +271,7 @@ public interface IPluginUiContext
 资产未清零 / 全局根有残留) → Quarantined + 诊断(含残留清单) + 重启提示;不得谎报成功
 ```
 
-**卸载输入是交接对象**:装载结果的入口实例、ALC 与服务作用域经 `PluginUnloadRequest.FromLoaded` 交接给卸载管线,交接即清空装载结果持有的三条强引用——调用方无从再经装载结果持有插件对象;回收判定在请求清空强引用、且 `ALC.Unload()` 的调用帧退出后再做。在途调用未归零时中止于危险区之前:不释放作用域、不卸载 ALC,直接按隔离收口,要收口只能等重启或显式重载时再走一次安全点。已隔离的插件可经同一管线回收资源:结论仍是隔离、不改写既有隔离原因,也不谎报已卸载。这三条款对全部 headless 插件成立;回收判定本身按**宿主环境**分档:`Hard`(纯 headless 宿主,管线缺省)硬判 ALC 与程序集回收,`Diagnostic`(WPF 宿主,Ui 组合根)只硬判插件自有对象、ALC 与程序集存活记诊断且不判隔离——硬判 / 降级判据在源码注释与 xUnit。UI 插件的资产清理与泄漏扫描另按 §7.2 / §7.3 / §7.4 执行。
+**卸载输入是交接对象**:装载结果的入口实例、ALC 与服务作用域经 `PluginUnloadRequest.FromLoaded` 交接给卸载管线,交接即清空装载结果持有的三条强引用——调用方无从再经装载结果持有插件对象;回收判定在请求清空强引用、且 `ALC.Unload()` 的调用帧退出后再做。在途调用未归零时中止于危险区之前:不释放作用域、不卸载 ALC,直接按隔离收口,要收口只能等重启或显式重载时再走一次安全点。已隔离的插件可经同一管线回收资源:结论仍是隔离、不改写既有隔离原因,也不谎报已卸载。这三条款对全部 headless 插件成立;回收判定本身按**宿主环境**分档:`Hard`(纯 headless 宿主,管线缺省)硬判 ALC 与程序集回收,`Diagnostic`(WPF 宿主,Ui 组合根)只硬判插件自有对象、ALC 与程序集存活记诊断且不判隔离——硬判 / 降级判据在 `PluginReclaimPolicy` 与源码注释。UI 插件的资产清理与泄漏扫描另按 §7.2 / §7.3 / §7.4 执行。
 
 **泄漏扫描**(`PluginUiLeakVerifier`,生产诊断 + 测试共用)至少覆盖:
 
@@ -282,7 +282,7 @@ public interface IPluginUiContext
 - 插件服务作用域残留(订阅 / 回调 / 动作句柄),以及日志 / 审计 sink 中的插件对象引用
 - 泄漏对象的程序集归属,输出"哪个插件、哪类资产、哪条引用"
 
-**测试矩阵**(`StarPie.Tests`,STA harness):视图、窗口、资源字典、DataTemplate、定时器、动画、事件、绑定逐项覆盖;每项断言探针对象的 `WeakReference` 均死、资产登记表清零、全局根扫描无残留(ALC / 程序集存活记诊断,不作为 UI 插件的失败判据)。动画一项额外断言用 `Storyboard.Remove(元素)` 摘除后才可清零。另需覆盖 HostServices 侧两项:`PluginServiceScope` 释放后句柄账本清零;插件自定义异常 / 自定义类型经日志与诊断报告后不 root 插件集(对自定义异常实例做 `WeakReference` 判定)。
+**自动化覆盖现状**:UI 插件卸载矩阵的逐项覆盖(视图、窗口、资源字典、DataTemplate、定时器、动画、事件、绑定)已随 `docs/adr/0050-test-scope.md` 下线——真实窗口与 STA 消息循环的复现不在 xUnit 内,该面由 e2e 与人工验收承担;`PluginUiLeakVerifier` 仍是生产诊断的判定入口。HostServices 侧两项仍在 xUnit:`PluginServiceScope` 释放后句柄账本清零;插件自定义异常 / 自定义类型经日志与诊断报告后不 root 插件集(对自定义异常实例做 `WeakReference` 判定)。
 
 ## 9. 配置、数据、文案、日志
 
@@ -321,4 +321,4 @@ public interface IPluginUiContext
 
 ## 参见
 
-程序集物理面见 [assemblies.md](assemblies.md);插件可用面 / 硬约束见 `StarPie.Sdk.Wpf/` 对应契约与 xUnit。
+程序集物理面见 [assemblies.md](assemblies.md);插件可用面 / 硬约束见 `StarPie.Sdk.Wpf/` 对应契约类型。

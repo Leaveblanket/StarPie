@@ -1,7 +1,7 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-  插件审核清单签名工具（清单更新通道，ADR-0029 / plugin-contracts.md §5）。
+  插件审核清单签名工具（清单更新通道，机制见 docs/architecture/plugins.md）。
 
 .DESCRIPTION
   用首方私钥对 review-catalog.json 做分离 RSA-SHA256 签名，产出 <catalog>.sig（base64）。

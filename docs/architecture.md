@@ -18,7 +18,7 @@
 - `CommunityToolkit.Mvvm`(MVVM 唯一框架)
 - `Microsoft.Extensions.DependencyInjection`(仅组合根 `Composition.cs`)
 - 本地化:`Strings*.resx`(zh-CN + zh-TW/en/ja 卫星),`VocaDb.ResXFileCodeGenerator` 强类型
-- xUnit v3 + NSubstitute(`StarPie.Tests`)
+- xUnit v3(`StarPie.Tests`;范围见 [adr/0050-test-scope.md](adr/0050-test-scope.md))
 - e2e:pywinauto(`tests/`)
 
 ## 维护

@@ -14,8 +14,6 @@
     <PackageVersion Include="VocaDb.ResXFileCodeGenerator" Version="3.2.1" />
     <!-- xUnit v3 的 mtp-v2 变体（仅测试工程消费） -->
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.0" />
-    <!-- 替身形态：手写替身与 mocking 框架都可用，边界见 docs/architecture/testing.md §3.1 -->
-    <PackageVersion Include="NSubstitute" Version="6.2.0" />
   </ItemGroup>
 
 </Project>
