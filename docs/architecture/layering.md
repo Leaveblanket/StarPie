@@ -18,7 +18,7 @@ Services ---> Models
 
 程序集划分、依赖方向与逐程序集职责见 [assemblies.md](assemblies.md) §2/§3。跨程序集回填缝
 （`AppHostDelegates` 为 SDK 公开契约由组合根注册 /
-ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以下分层规则适用于各程序集内部。
+ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各程序集内部。
 
 ## 依赖矩阵
 
@@ -32,33 +32,31 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 
 ### 必须遵守的例外与说明
 
-1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（[ADR-0009](../adr/0009-view-code-behind-whitelist.md) 第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。深浅色读数走宿主注入的无状态 `Func<bool>` 探针，不是服务依赖（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md) 决策 3：轮盘与托盘消费该探针）。
+1. **Views → Services 白名单**：View 构造可注入 `IThemeService` 仅用于窗口主题应用（View code-behind 白名单第 5 条）；不得注入业务服务、配置服务或在 View 中调用服务方法。深浅色读数走宿主注入的无状态 `Func<bool>` 探针，不是服务依赖（轮盘与托盘消费该探针）。
    - **已批准预览桥例外**：外观页 `WheelPreviewRenderer` 为 View 层
      无 DI 构造对象，经聚合 VM（`AppearanceSettingsViewModel`，容器单例）暴露的
      `IIconAssetService` 在页面 `Loaded` 阶段装配——仅用于纯视觉渲染装配，不调用业务方法
-     （layering Views 例外登记，见 [wheel.md](wheel.md)）。
+     （layering Views 例外登记）。
 2. **ViewModels 之间**：仅允许静态已知依赖构造注入（如外观聚合 VM → 两个设置子 VM、轮盘外观
-   子 VM `WheelAppearanceSettingsViewModel` 经 SDK 的 `IProfilePreviewSource`
-   只读契约读方案列表——ADR-0023，D5；不引用具体 VM 类型）；动态/广播协调一律走
-   IMessenger；
-   同页状态不得用 messenger 替代绑定。
+  子 VM `WheelAppearanceSettingsViewModel` 经 SDK 的 `IProfilePreviewSource`
+  只读契约读方案列表——模块契约判据 D5；不引用具体 VM 类型）；动态/广播协调一律走
+  IMessenger；
+  同页状态不得用 messenger 替代绑定。
 3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
-     运行时归 Host——宿主内部解析缝而非跨程序集缝，见 [navigation.md](navigation.md)/
-     [assemblies.md](assemblies.md) §8）；
+     运行时归 Host——宿主内部解析缝而非跨程序集缝（见 [assemblies.md](assemblies.md) §8）；
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
-     `WheelViewModel` + `RadialWindow`（as-built 正典，见 [gestures.md](gestures.md) 关键流程 5 与
-     [wheel.md](wheel.md)），仅经 SDK 契约接口 `IWheelFactory`（ADR-0023）暴露，
-     由 WheelContributor 登记。
+        `WheelViewModel` + `RadialWindow`，仅经 SDK 契约接口 `IWheelFactory` 暴露，
+        由 WheelContributor 登记。
 4. **ViewModels 不得引用任何 WPF 类型**（`Window`、`MessageBox`、`Color`、`Brush`、`ICommandSource` 等），颜色一律用 `RgbColor`/hex 字符串，边界由 View 转换器处理。
-5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器（ADR-0009）。
+5. **Views 不得反向依赖 Composition、配置或业务服务**；页面无参构造、不经容器。
 
 ## 命名空间与可见性
 
 - **命名空间 = 物理目录（全仓统一前缀 `StarPie`）**：`StarPie.Services.Actions`、
   `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`ShellHost`、
   `Composition`）在 `StarPie`。
-- **命名空间统一为 `StarPie.*`**（ADR-0016）：命名空间根是产品名 `StarPie` 而非
+- **命名空间统一为 `StarPie.*`**：命名空间根是产品名 `StarPie` 而非
   程序集名，故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Configuration`
   （不是 `StarPie.Host.Configuration`）；跨程序集共享同一棵命名空间树。
 - **可见性**：
@@ -96,8 +94,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
   有状态/IO/Win32 = 实例服务」判据的统一表述。
-- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按手势瞬态创建
-  （见 [gestures.md](gestures.md)/[wheel.md](wheel.md)）。
+- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按手势瞬态创建。
 
 ## ViewModels
 
@@ -106,10 +103,10 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
   导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按手势创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
-- 主框架 VM 拆分（D3，ADR-0016）：`MainViewModel`（导航状态；目录驱动；运行时主体在
+- 主框架 VM 拆分（判据 D3）：`MainViewModel`（导航状态；目录驱动；运行时主体在
   Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与
   `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区 DataContext 的
-  导航区与壳区（见 [navigation.md](navigation.md)/[shell.md](shell.md)）。
+  导航区与壳区。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
@@ -118,7 +115,7 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
   壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
   M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 GesturesContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
-- 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`（[ADR-0004](../adr/0004-dialog-service-design.md)）。
+- 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`MainViewModel.Dispose`/
   `ShellViewModel.Dispose` 模式；页面 VM 随设置台会话释放，退订在 `Dispose` 内执行，
   messenger 侧另有 `UnregisterAll(this)` 显式出账）。
@@ -136,16 +133,16 @@ ShellHost 回填）属 H1 装配职责，见 [host.md](host.md)；本文件以�
 ## Views
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
-- code-behind 只保留 [ADR-0009](../adr/0009-view-code-behind-whitelist.md) 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
+- code-behind 只保留 View code-behind 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
 - 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
   `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
-  （无参构造、不注册容器，见 [navigation.md](navigation.md)）；页面 XAML 根直承 `UserControl`
+  （无参构造、不注册容器）；页面 XAML 根直承 `UserControl`
   （页面 XAML 根直承 `UserControl`，无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`
   成对自订阅，不使用基类 virtual 钩子）；
   页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
-- 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 ADR-0009 输入适配）。
+- 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 View code-behind 输入适配白名单）。
 
 ### `AdvancedSettingsPage` 绑定规范（页面级示例，所有页面同则）
 
