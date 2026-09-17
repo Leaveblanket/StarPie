@@ -27,8 +27,7 @@ namespace StarPie
             // 且测试实例不持有全机互斥——否则 e2e 运行期间会挡住用户正常启动），
             // 并让常驻壳层受理测试实例退出消息（见 TestInstanceExit；正式实例不受理）。
             string cmdLine = Environment.CommandLine;
-            bool testInstance = cmdLine.Contains("--allow-multiple", StringComparison.OrdinalIgnoreCase) ||
-                                cmdLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase);
+            bool testInstance = TestInstanceSwitches.IsTestInstance(cmdLine);
 
             if (!testInstance)
             {

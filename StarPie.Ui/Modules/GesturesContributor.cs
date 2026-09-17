@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using SharpHook;
+using SharpHook.Data;
 using StarPie.Services.Actions;
 using StarPie.Configuration;
 using StarPie.Services.Dialogs;
@@ -27,6 +28,13 @@ namespace StarPie.Modules
     /// </remarks>
     internal sealed class GesturesContributor : ICompositionContributor
     {
+        private readonly MouseButton _triggerButton;
+
+        /// <param name="triggerButton">手势触发键（默认右键；测试实例经命令行覆盖，
+        /// 解析见 <see cref="TestInstanceSwitches"/>——本贡献者只消费结果，不接触命令行）。</param>
+        public GesturesContributor(MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
+            => _triggerButton = triggerButton;
+
         public string Id => "gestures";
 
         public int Order => 40;
@@ -65,7 +73,8 @@ namespace StarPie.Modules
                 new SimpleGlobalHook(),
                 sp.GetRequiredService<GestureEngine>(),
                 sp.GetRequiredService<IActionExecutorService>(),
-                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback)));
+                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
+                triggerButton: _triggerButton));
 
             // 页面 VM 的作用域是设置台会话：同一会话内保留实例（切页保状态），会话结束整批释放；
             // 解析只经导航执行缝（ADR-0039 决策 9）。
