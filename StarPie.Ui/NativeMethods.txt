@@ -1,0 +1,50 @@
+// Win32 互操作声明清单（ADR-0051）：CsWin32 只生成本文件列出的 API/类型/常量。
+// 本集（StarPie.Ui）的清单；新增 API 面 = 在此加一行，不再写手写 DllImport。
+// 枚举成员随其枚举所属 API 自动带出（如 SYSTEM_METRICS_INDEX.SM_CXSMICON），
+// 独立常量与消息号（WM_*/IDI_*）需显式列出。
+
+// —— 手势钩子（MouseHook.cs）
+SetWindowsHookEx
+UnhookWindowsHookEx
+CallNextHookEx
+MSLLHOOKSTRUCT
+WM_MOUSEMOVE
+WM_RBUTTONDOWN
+WM_RBUTTONUP
+GetCursorPos
+mouse_event
+
+// —— 单实例与测试实例消息（App/TestInstanceExit/SingleInstanceRestore）
+FindWindow
+RegisterWindowMessage
+SendMessage
+ChangeWindowMessageFilterEx
+WM_LBUTTONDBLCLK
+WM_CONTEXTMENU
+
+// —— 托盘（TrayIconManager）
+// Shell_NotifyIcon 未列入：元数据标记为架构特定（PInvoke005），AnyCPU 无法生成；
+// 该声明与 NOTIFYICONDATA 结构体暂留手写（白名单，ADR-0051），见 TrayIconManager.cs。
+GetSystemMetrics
+LoadIcon
+IDI_APPLICATION
+MonitorFromPoint
+GetDpiForMonitor
+PrivateExtractIcons
+DestroyIcon
+
+// —— 图标资产（IconAssetService）
+// SHGetFileInfo 同属架构特定（PInvoke005），与 SHFILEINFO 结构体暂留手写（白名单）。
+ExtractIconEx
+
+// —— 窗口主题（ThemeService）
+DwmSetWindowAttribute
+
+// —— 屏上取色（ScreenEyedropperWindow）
+GetDC
+ReleaseDC
+GetPixel
+
+// —— 动作执行：键注入与锁屏（ActionExecutorService）
+SendInput
+LockWorkStation

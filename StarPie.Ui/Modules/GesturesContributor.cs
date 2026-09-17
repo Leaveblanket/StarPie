@@ -47,22 +47,23 @@ namespace StarPie.Modules
 
         /// <summary>
         /// 注册本模块手势管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
-        /// 引擎/控制器与触发+手势两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
+        /// 引擎与触发+手势两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
         /// 惰性解析 SDK 契约。<see cref="ProfileListViewModel"/> 另以只读契约
         /// <see cref="IProfilePreviewSource"/>（ADR-0023；驻 <c>StarPie.Sdk</c>）
         /// 注册别名——消费方轮盘外观设置子 VM 只依赖契约程序集，不引用本集具体 VM。
         /// </summary>
         public void RegisterServices(IServiceCollection services)
         {
-            // 手势管线：GestureController 构造即订阅钩子事件，由 CreateShellHost 在 Run 前 eager
-            // 解析保活。钩子健康检查失败后的重注册须回 UI 线程执行，调度接缝在此注入——
+            // 手势管线：钩子适配器构造注入引擎与动作执行器（事件直连，原控制器薄层已并入）。
+            // 钩子健康检查失败后的重注册与松手副作用都须回 UI 线程执行，调度接缝在此注入——
             // 适配器因此不引用 UI 框架类型（其类型级声明如此）。
-            services.AddSingleton(sp => new MouseHook(
-                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback)));
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<GestureEngine>();
-            services.AddSingleton<GestureController>();
+            services.AddSingleton(sp => new MouseHook(
+                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
+                sp.GetRequiredService<GestureEngine>(),
+                sp.GetRequiredService<IActionExecutorService>()));
 
             // 页面 VM 的作用域是设置台会话：同一会话内保留实例（切页保状态），会话结束整批释放；
             // 解析只经导航执行缝（ADR-0039 决策 9）。

@@ -96,9 +96,6 @@ namespace StarPie
             var wheelFactory = _provider.GetRequiredService<IWheelFactory>();
             var navigationStore = _provider.GetRequiredService<NavigationStore>();
 
-            // 手势控制器需在钩子启动前实例化并保持订阅（构造即接线鼠标事件）。
-            _ = _provider.GetRequiredService<GestureController>();
-
             // 页面 VM 不再在启动期 eager 解析：它们的作用域是设置台会话，首次进入该页时
             // 由导航执行缝经 ConsolePageSession 构造（见 CreateSettingsConsole）。
             // 设置台会话缓存：开/结束会话由设置台租户驱动，实例边界是组合根交付的 DI 作用域。

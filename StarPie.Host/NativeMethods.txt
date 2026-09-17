@@ -1,0 +1,15 @@
+// Win32 互操作声明清单（ADR-0051）：CsWin32 只生成本文件列出的 API/类型/常量。
+// 本集（StarPie.Host，net10.0 跨平台 TFM；Windows 专有的互操作面以
+// [SupportedOSPlatform] 标注换取跨平台可构建）的清单；新增 API 面 = 在此加一行。
+// 注：WinVerifyTrust 与 WinTrust* 结构族保留手写（白名单，见 WinTrustSignatureVerifier.cs）。
+
+// —— 前台窗口与全屏判定（WindowContext.cs）
+GetForegroundWindow
+GetWindowThreadProcessId
+GetShellWindow
+GetDesktopWindow
+GetWindowRect
+MonitorFromWindow
+GetMonitorInfo
+GetAsyncKeyState
+VIRTUAL_KEY

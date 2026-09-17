@@ -1,89 +1,48 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace StarPie.Services.Gestures
 {
     /// <summary>
-    /// 钩子事件参数：原始屏幕坐标，以及事件是否已被手势处理消费。
-    /// 刻意不携带 UI 框架类型，使钩子保持纯适配器。
+    /// 手势触发的 Win32 适配器：低级鼠标钩子把右键按下 / 移动 / 抬起喂入
+    /// <see cref="GestureEngine"/>，按引擎决策拦截事件，并执行引擎交付的副作用——
+    /// 补发被抑制的点击与执行所选动作（两者都调度到 UI 线程落地，不在钩子回调栈内执行）。
+    /// 手势决策全部在引擎内，本类只做事件拦截与副作用。
+    /// Win32 声明来自 CsWin32 源生成（清单为项目根 NativeMethods.txt，ADR-0051），
+    /// 本文件不再持有手写 P/Invoke；消息号与枚举同样取生成面（PInvoke.WM_*）。
+    /// 不加 [SupportedOSPlatform]：本集 TFM 已是 windows10.0.19041，
+    /// 版本号更低的注解会把调用点声明降到生成 API 的 windows5.0 之下而触发 CA1416。
     /// </summary>
-    public class MouseHookEventArgs : EventArgs
-    {
-        public GesturePoint Position { get; }
-        public bool Handled { get; set; }
-
-        public MouseHookEventArgs(GesturePoint position)
-        {
-            Position = position;
-            Handled = false;
-        }
-    }
-
-    public class MouseHook
+    public sealed class MouseHook : IDisposable
     {
 
-        // 低级鼠标钩子类型，作为 SetWindowsHookEx 的 idHook 参数
-        private const int WH_MOUSE_LL = 14;
+        // 钩子回调线程读、UI 线程写（托盘暂停/恢复），须 volatile 保可见性。
+        private volatile bool _isPaused;
 
-        // Windows 鼠标消息号（来自 wParam），用于在回调中区分事件种类
-        private const int WM_MOUSEMOVE = 0x0200;
-        private const int WM_RBUTTONDOWN = 0x0204;
-        private const int WM_RBUTTONUP = 0x0205;
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
+        public bool IsPaused
         {
-            public int x;
-            public int y;
+            get => _isPaused;
+            set => _isPaused = value;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MSLLHOOKSTRUCT
-        {
-            public POINT pt;
-            public uint mouseData;
-            public uint flags;
-            public uint time;
-            public IntPtr dwExtraInfo;
-        }
+        // HOOKPROC 实例须保活到 Unhook 之后：封送为函数指针后若被 GC 回收，
+        // 系统回调会落到已失效的 thunk 上。
+        private readonly HOOKPROC _proc;
+        private HHOOK _hookId;
 
-        private delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+        // 手势引擎（纯决策）与动作执行器（副作用落地）：钩子回调只把事件喂给引擎、
+        // 把执行器调用调度到 UI 线程，二者都由组合根构造注入。
+        private readonly GestureEngine _engine;
+        private readonly IActionExecutorService _actionExecutor;
 
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern IntPtr GetModuleHandle(string lpModuleName);
-
-        [DllImport("user32.dll")]
-        private static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint dwData, uint dwExtraInfo);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetCursorPos(out POINT lpPoint);
-
-        private const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
-        private const uint MOUSEEVENTF_RIGHTUP = 0x0010;
-
-        public bool IsPaused { get; set; } = false;
-
-        public event EventHandler<MouseHookEventArgs>? OnRightButtonDown;
-        public event EventHandler<MouseHookEventArgs>? OnRightButtonUp;
-        public event EventHandler<MouseHookEventArgs>? OnMouseMove;
-
-        private LowLevelMouseProc _proc;
-        private IntPtr _hookId = IntPtr.Zero;
-
-        // 重注册的调度接缝：健康检查计时器跑在线程池线程，重注册（Stop+Start）须回 UI 线程
-        // 执行。接缝由组合根注入，本适配器因此不引用任何 UI 框架类型（与类型级声明一致）。
+        // 调度接缝：健康检查重注册与松手副作用（补发点击 / 执行动作）都须回 UI 线程执行。
+        // 接缝由组合根注入，本适配器因此不引用任何 UI 框架类型（与类型级声明一致）。
         private readonly Action<Action> _postToUiThread;
 
         // Flags to prevent recursive hook interception when we replay right click events
@@ -91,62 +50,67 @@ namespace StarPie.Services.Gestures
         private bool _ignoreNextRButtonUp = false;
 
         // Hook stability and health check variables
-        private System.Threading.Timer? _healthCheckTimer;
-        private POINT _lastSystemCursorPos;
+        private Timer? _healthCheckTimer;
+        private System.Drawing.Point _lastSystemCursorPos;
         private int _hookEventsCountSinceLastCheck = 0;
 
-        public MouseHook(Action<Action> postToUiThread)
+        public MouseHook(Action<Action> postToUiThread, GestureEngine engine, IActionExecutorService actionExecutor)
         {
-            _postToUiThread = postToUiThread ?? throw new ArgumentNullException(nameof(postToUiThread));
+            ArgumentNullException.ThrowIfNull(postToUiThread);
+            ArgumentNullException.ThrowIfNull(engine);
+            ArgumentNullException.ThrowIfNull(actionExecutor);
+            _postToUiThread = postToUiThread;
+            _engine = engine;
+            _actionExecutor = actionExecutor;
             _proc = HookCallback;
         }
 
         public void Start()
         {
-            if (_hookId == IntPtr.Zero)
+            if (_hookId.IsNull)
             {
                 _hookId = SetHook(_proc);
-                if (_hookId == IntPtr.Zero)
+                if (_hookId.IsNull)
                 {
-                    throw new Exception("Failed to set low-level mouse hook.");
+                    // 保留原失败面（启动期抛出、由壳层兜底记日志），补上 Win32 错误码。
+                    throw new Win32Exception(Marshal.GetLastPInvokeError(), "Failed to set low-level mouse hook.");
                 }
 
                 // Initialize health check
                 _hookEventsCountSinceLastCheck = 0;
-                GetCursorPos(out _lastSystemCursorPos);
-                _healthCheckTimer = new System.Threading.Timer(CheckHookHealth, null, 3000, 3000);
+                PInvoke.GetCursorPos(out _lastSystemCursorPos);
+                _healthCheckTimer = new Timer(CheckHookHealth, null, 3000, 3000);
             }
         }
 
         public void Stop()
         {
-            if (_healthCheckTimer != null)
-            {
-                _healthCheckTimer.Dispose();
-                _healthCheckTimer = null;
-            }
+            _healthCheckTimer?.Dispose();
+            _healthCheckTimer = null;
 
-            if (_hookId != IntPtr.Zero)
+            if (!_hookId.IsNull)
             {
-                UnhookWindowsHookEx(_hookId);
-                _hookId = IntPtr.Zero;
+                PInvoke.UnhookWindowsHookEx(_hookId);
+                _hookId = HHOOK.Null;
             }
         }
 
+        /// <summary>与 <see cref="Stop"/> 同义：卸钩子、停健康检查。</summary>
+        public void Dispose() => Stop();
+
         private void CheckHookHealth(object? state)
         {
-            if (_hookId == IntPtr.Zero) return;
+            if (_hookId.IsNull) return;
 
-            POINT currentPos;
-            if (GetCursorPos(out currentPos))
+            if (PInvoke.GetCursorPos(out System.Drawing.Point currentPos))
             {
-                bool mouseMoved = currentPos.x != _lastSystemCursorPos.x || currentPos.y != _lastSystemCursorPos.y;
+                bool mouseMoved = currentPos.X != _lastSystemCursorPos.X || currentPos.Y != _lastSystemCursorPos.Y;
                 _lastSystemCursorPos = currentPos;
 
                 if (mouseMoved)
                 {
                     // If system mouse moved, but we received 0 hook events, hook is likely dead!
-                    if (System.Threading.Interlocked.Exchange(ref _hookEventsCountSinceLastCheck, 0) == 0)
+                    if (Interlocked.Exchange(ref _hookEventsCountSinceLastCheck, 0) == 0)
                     {
                         _postToUiThread(() =>
                         {
@@ -166,89 +130,100 @@ namespace StarPie.Services.Gestures
                 else
                 {
                     // Reset count if mouse did not move to avoid false positive
-                    System.Threading.Interlocked.Exchange(ref _hookEventsCountSinceLastCheck, 0);
+                    Interlocked.Exchange(ref _hookEventsCountSinceLastCheck, 0);
                 }
             }
         }
 
-        private IntPtr SetHook(LowLevelMouseProc proc)
-        {
-            using (Process curProcess = Process.GetCurrentProcess())
-            using (ProcessModule curModule = curProcess.MainModule
-                ?? throw new InvalidOperationException("Failed to retrieve the current process main module."))
-            {
-                return SetWindowsHookEx(WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
-            }
-        }
+        // 低级钩子不做 DLL 注入，hMod 仅为占位：取主程序模块句柄（.NET 内置 API），
+        // 不再走 Process/MainModule/GetModuleHandle 旧模板。
+        private static HHOOK SetHook(HOOKPROC proc)
+            => PInvoke.SetWindowsHookEx(
+                WINDOWS_HOOK_ID.WH_MOUSE_LL,
+                proc,
+                new HINSTANCE(NativeLibrary.GetMainProgramHandle()),
+                dwThreadId: 0);
 
-        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        // CsWin32 的 HOOKPROC 形状：LRESULT (int, WPARAM, LPARAM)。
+        private unsafe LRESULT HookCallback(int nCode, WPARAM wParam, LPARAM lParam)
         {
-            System.Threading.Interlocked.Increment(ref _hookEventsCountSinceLastCheck);
+            Interlocked.Increment(ref _hookEventsCountSinceLastCheck);
 
-            if (IsPaused)
+            if (_isPaused)
             {
-                return CallNextHookEx(_hookId, nCode, wParam, lParam);
+                return PInvoke.CallNextHookEx(_hookId, nCode, wParam, lParam);
             }
 
             if (nCode >= 0)
             {
-                int message = (int)wParam;
-                MSLLHOOKSTRUCT hookStruct = Marshal.PtrToStructure<MSLLHOOKSTRUCT>(lParam);
+                uint message = (uint)wParam.Value;
+                // lParam 在回调期间指向系统持有的 MSLLHOOKSTRUCT：直接解引用，
+                // 免去原 Marshal.PtrToStructure 的逐事件封送。
+                MSLLHOOKSTRUCT hookStruct = *(MSLLHOOKSTRUCT*)lParam.Value;
+                System.Drawing.Point point = hookStruct.pt;
 
-                if (message == WM_RBUTTONDOWN)
+                if (message == PInvoke.WM_RBUTTONDOWN)
                 {
                     if (_ignoreNextRButtonDown)
                     {
                         _ignoreNextRButtonDown = false;
-                        return CallNextHookEx(_hookId, nCode, wParam, lParam);
+                        return PInvoke.CallNextHookEx(_hookId, nCode, wParam, lParam);
                     }
 
-                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
-                    OnRightButtonDown?.Invoke(this, args);
-                    if (args.Handled)
+                    // 引擎决定按下是否被手势接管（接管即拦截，未成手势时松手补发点击）。
+                    if (_engine.OnTriggerDown(new GesturePoint(point.X, point.Y)))
                     {
-                        return (IntPtr)1; // Block the event from propagating
+                        return new LRESULT(1); // Block the event from propagating
                     }
                 }
-                else if (message == WM_RBUTTONUP)
+                else if (message == PInvoke.WM_RBUTTONUP)
                 {
                     if (_ignoreNextRButtonUp)
                     {
                         _ignoreNextRButtonUp = false;
-                        return CallNextHookEx(_hookId, nCode, wParam, lParam);
+                        return PInvoke.CallNextHookEx(_hookId, nCode, wParam, lParam);
                     }
 
-                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
-                    OnRightButtonUp?.Invoke(this, args);
-                    if (args.Handled)
+                    GestureReleaseResult result = _engine.OnTriggerUp(new GesturePoint(point.X, point.Y));
+                    if (!result.Handled)
                     {
-                        return (IntPtr)1; // Block the event from propagating
+                        return PInvoke.CallNextHookEx(_hookId, nCode, wParam, lParam);
                     }
+
+                    if (result.ShouldReplayClick)
+                    {
+                        // Replay off the hook callback so the click is not sent while the hook blocks.
+                        _postToUiThread(ReplayRightClick);
+                    }
+                    else if (result.ActionToExecute != null)
+                    {
+                        ActionItem action = result.ActionToExecute;
+                        _postToUiThread(() => _actionExecutor.Execute(action));
+                    }
+
+                    return new LRESULT(1); // Block the event from propagating
                 }
-                else if (message == WM_MOUSEMOVE)
+                else if (message == PInvoke.WM_MOUSEMOVE)
                 {
-                    var args = new MouseHookEventArgs(new GesturePoint(hookStruct.pt.x, hookStruct.pt.y));
-                    OnMouseMove?.Invoke(this, args);
-                    if (args.Handled)
-                    {
-                        return (IntPtr)1; // Block the event from propagating
-                    }
+                    _engine.OnTriggerMove(new GesturePoint(point.X, point.Y));
                 }
             }
 
-            return CallNextHookEx(_hookId, nCode, wParam, lParam);
+            return PInvoke.CallNextHookEx(_hookId, nCode, wParam, lParam);
         }
 
         /// <summary>
         /// Replays a right mouse click at the current position.
         /// Temporarily ignores our own hook to avoid infinite loop.
         /// </summary>
-        public void ReplayRightClick()
+        private void ReplayRightClick()
         {
             _ignoreNextRButtonDown = true;
             _ignoreNextRButtonUp = true;
-            mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
-            mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+            // 保留 mouse_event（已随 Windows 建议弃用，但与现状行为一致）；
+            // 换 SendInput 属行为面等价替换，单独提交（ADR-0051）。
+            PInvoke.mouse_event(MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+            PInvoke.mouse_event(MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
         }
     }
 }

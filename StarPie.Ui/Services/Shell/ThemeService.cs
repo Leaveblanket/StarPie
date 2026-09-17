@@ -5,6 +5,9 @@ using System.Windows.Interop;
 using System.Windows.Threading;
 using StarPie.Services.Themes;
 using Windows.UI.ViewManagement;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Dwm;
 
 namespace StarPie.Services.Shell
 {
@@ -102,14 +105,13 @@ namespace StarPie.Services.Shell
                 }
 
                 int useDark = isDark ? 1 : 0;
-                // DWMWA_USE_IMMERSIVE_DARK_MODE：20（Win10 18985+ / Win11），19（旧版 Win10）
-                DwmSetWindowAttribute(hwnd, 20, ref useDark, sizeof(int));
-                DwmSetWindowAttribute(hwnd, 19, ref useDark, sizeof(int));
+                ReadOnlySpan<byte> attribute = MemoryMarshal.AsBytes(MemoryMarshal.CreateReadOnlySpan(ref useDark, 1));
+                // DWMWA_USE_IMMERSIVE_DARK_MODE：20（Win10 18985+ / Win11）；19 是 20H1 之前的旧取值，
+                // SDK 枚举未收录，按原行为保留第二次调用（旧系统上生效）。
+                _ = PInvoke.DwmSetWindowAttribute(new HWND(hwnd), DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, attribute);
+                _ = PInvoke.DwmSetWindowAttribute(new HWND(hwnd), (DWMWINDOWATTRIBUTE)19, attribute);
             }
             catch { }
         }
-
-        [DllImport("dwmapi.dll", PreserveSig = true)]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
     }
 }
