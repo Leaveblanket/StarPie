@@ -148,6 +148,11 @@ namespace StarPie.PluginRuntime.Admission
             public IntPtr PSignatureSettings;
         }
 
+        /// <remarks>
+        /// WinVerifyTrust 与 WinTrust* 结构族保留手写（白名单，ADR-0051）：这是准安全路径，
+        /// 结构体经 AllocHGlobal/StructureToPtr 手工封送，调用方还依赖
+        /// DllNotFoundException/EntryPointNotFoundException 的异常面——零行为变化优先于形式统一。
+        /// </remarks>
         [DllImport("wintrust.dll", ExactSpelling = true)]
         private static extern int WinVerifyTrust(
             IntPtr hWnd,

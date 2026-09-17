@@ -1,73 +1,34 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Windows.Win32;
+using Windows.Win32.Foundation;
+using Windows.Win32.Graphics.Gdi;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace StarPie.Gestures
 {
     /// <summary>
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former
     /// ActiveWindowHelper and FullScreenHelper statics plus live modifier-key state.
+    /// Win32 声明来自 CsWin32 源生成（清单为项目根 NativeMethods.txt，ADR-0051）。
     /// </summary>
-    [SupportedOSPlatform("windows")]
+    /// <remarks>
+    /// 平台注解带版本号：生成 API 声明为 windows5.0，无版本号的 "windows" 会被分析器
+    /// 视为低于该要求而触发 CA1416；本集为 net10.0 跨平台 TFM，注解即"这段需要 Windows"的事实声明。
+    /// </remarks>
+    [SupportedOSPlatform("windows10.0.19041.0")]
     public sealed class WindowContext : IWindowContext
     {
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetShellWindow();
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetDesktopWindow();
-
-        [DllImport("user32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
-
-        [DllImport("user32.dll")]
-        private static extern short GetAsyncKeyState(int vKey);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RECT
-        {
-            public int Left;
-            public int Top;
-            public int Right;
-            public int Bottom;
-        }
-
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private struct MONITORINFO
-        {
-            public int cbSize;
-            public RECT rcMonitor;
-            public RECT rcWork;
-            public uint dwFlags;
-        }
-
-        private const uint MONITOR_DEFAULTTONEAREST = 2;
-        private const int VK_CONTROL = 0x11;
-        private const int VK_SHIFT = 0x10;
-        private const int VK_MENU = 0x12;
-
         public string GetForegroundProcessName()
         {
             try
             {
-                IntPtr hWnd = GetForegroundWindow();
-                if (hWnd == IntPtr.Zero)
+                HWND hWnd = PInvoke.GetForegroundWindow();
+                if (hWnd.IsNull)
                     return "unknown.exe";
 
-                GetWindowThreadProcessId(hWnd, out uint processId);
+                _ = PInvoke.GetWindowThreadProcessId(hWnd, out uint processId);
                 if (processId == 0)
                     return "unknown.exe";
 
@@ -89,35 +50,35 @@ namespace StarPie.Gestures
 
         public bool IsForegroundFullScreen()
         {
-            IntPtr hWnd = GetForegroundWindow();
-            if (hWnd == IntPtr.Zero) return false;
+            HWND hWnd = PInvoke.GetForegroundWindow();
+            if (hWnd.IsNull) return false;
 
             // Exclude desktop background and shell manager
-            if (hWnd == GetShellWindow() || hWnd == GetDesktopWindow()) return false;
+            if (hWnd == PInvoke.GetShellWindow() || hWnd == PInvoke.GetDesktopWindow()) return false;
 
-            if (!GetWindowRect(hWnd, out RECT windowRect)) return false;
+            if (!PInvoke.GetWindowRect(hWnd, out RECT windowRect)) return false;
 
-            IntPtr hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-            if (hMonitor == IntPtr.Zero) return false;
+            HMONITOR hMonitor = PInvoke.MonitorFromWindow(hWnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+            if (hMonitor.IsNull) return false;
 
-            MONITORINFO monitorInfo = new MONITORINFO();
-            monitorInfo.cbSize = Marshal.SizeOf(monitorInfo);
+            MONITORINFO monitorInfo = default;
+            monitorInfo.cbSize = (uint)Marshal.SizeOf<MONITORINFO>();
 
-            if (!GetMonitorInfo(hMonitor, ref monitorInfo)) return false;
+            if (!PInvoke.GetMonitorInfo(hMonitor, ref monitorInfo)) return false;
 
             // Full-screen when the window rect covers the entire monitor rect
-            return windowRect.Left <= monitorInfo.rcMonitor.Left &&
-                   windowRect.Top <= monitorInfo.rcMonitor.Top &&
-                   windowRect.Right >= monitorInfo.rcMonitor.Right &&
-                   windowRect.Bottom >= monitorInfo.rcMonitor.Bottom;
+            return windowRect.left <= monitorInfo.rcMonitor.left &&
+                   windowRect.top <= monitorInfo.rcMonitor.top &&
+                   windowRect.right >= monitorInfo.rcMonitor.right &&
+                   windowRect.bottom >= monitorInfo.rcMonitor.bottom;
         }
 
         public GestureModifierKeys GetActiveModifierKeys()
         {
             GestureModifierKeys keys = GestureModifierKeys.None;
-            if ((GetAsyncKeyState(VK_CONTROL) & 0x8000) != 0) keys |= GestureModifierKeys.Control;
-            if ((GetAsyncKeyState(VK_SHIFT) & 0x8000) != 0) keys |= GestureModifierKeys.Shift;
-            if ((GetAsyncKeyState(VK_MENU) & 0x8000) != 0) keys |= GestureModifierKeys.Alt;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_CONTROL) & 0x8000) != 0) keys |= GestureModifierKeys.Control;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_SHIFT) & 0x8000) != 0) keys |= GestureModifierKeys.Shift;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_MENU) & 0x8000) != 0) keys |= GestureModifierKeys.Alt;
             return keys;
         }
     }
