@@ -56,3 +56,6 @@ $RECYCLE.BIN/
 .codegraph/
 .codebuddy/
 .zcode/
+
+# 本地教学资料（teach 工作区，不入库共享）
+.teach/

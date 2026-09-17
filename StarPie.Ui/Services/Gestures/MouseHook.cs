@@ -22,7 +22,11 @@ namespace StarPie.Services.Gestures
 
     public class MouseHook
     {
+
+        // 低级鼠标钩子类型，作为 SetWindowsHookEx 的 idHook 参数
         private const int WH_MOUSE_LL = 14;
+
+        // Windows 鼠标消息号（来自 wParam），用于在回调中区分事件种类
         private const int WM_MOUSEMOVE = 0x0200;
         private const int WM_RBUTTONDOWN = 0x0204;
         private const int WM_RBUTTONUP = 0x0205;

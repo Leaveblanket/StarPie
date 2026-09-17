@@ -18,7 +18,20 @@ namespace StarPie.Tests;
 /// </remarks>
 public sealed class MemoryResidencyTests
 {
-    private static string RepoRoot => FourSetBoundaryProbe.RepoRoot;
+    private static string RepoRoot
+    {
+        get
+        {
+            var dir = new DirectoryInfo(AppContext.BaseDirectory);
+            while (dir is not null)
+            {
+                if (File.Exists(Path.Combine(dir.FullName, "StarPie.slnx")))
+                    return dir.FullName;
+                dir = dir.Parent;
+            }
+            return Directory.GetCurrentDirectory();
+        }
+    }
 
     private static string RuntimeconfigTemplatePath
         => Path.Combine(RepoRoot, "StarPie.Ui", "runtimeconfig.template.json");

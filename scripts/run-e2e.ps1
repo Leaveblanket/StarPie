@@ -22,7 +22,7 @@
   缺 pillow 时 status.json 的 screenshotAvailable=false + screenshotNote 说明，-Status 可见。
 
   并发保护：同一时间只允许一个 e2e（命名 Mutex），避免两个运行互抢桌面对话框与沙盒。
-  详见 docs/architecture/host.md 与 docs/adr/0031-e2e-silent-background-run.md。
+  实现见 `Composition` / 单例 `SingleInstanceGate`，运行形态细节已在代码注释中。
 #>
 [CmdletBinding()]
 param(
