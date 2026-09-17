@@ -138,10 +138,7 @@ namespace StarPie
                 // 经注入的配置服务加载配置
                 _composition.Config.Load();
 
-                // 静默形态（--background）：窗口屏内左上角、不可激活、点击穿透、不进任务栏，托盘保留，
-                // 全局鼠标钩子不启动——e2e 在用户同机工作时无打扰驱动（见 docs/adr/0032）。
-                bool isBackground = cmdLine.Contains("--background", StringComparison.OrdinalIgnoreCase);
-                _shellHost = _composition.CreateShellHost(isBackground, testInstance);
+                _shellHost = _composition.CreateShellHost(testInstance);
                 _shellHost.Run();
                 // 启动兜底内存整理（含 Debug 构建的堆硬顶生效值日志）在 ShellHost 启动编排末尾执行（预热之后）
             }

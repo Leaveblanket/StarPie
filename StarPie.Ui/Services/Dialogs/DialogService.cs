@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Interop;
 using StarPie.Localization;
 
 namespace StarPie.Services.Dialogs
@@ -28,10 +26,6 @@ namespace StarPie.Services.Dialogs
         private readonly IShortcutTargetResolver _shortcutResolver;
         private readonly IProgramScanner _programScanner;
         private Window? _owner;
-        // 后台模式（--background，e2e 静默跑用）：提示类对话框不呈现、确认类取"是"——
-        // 无人在场时不能把系统 MessageBox 弹到用户屏幕上（它不跟随离屏 owner，按显示器居中）。
-        // 对话框↔VM 的接线由 xUnit 的 TestDialogService 覆盖，e2e 不断言弹框本身。
-        private bool _backgroundMode;
 
         public DialogService(
             IThemeService themeService,
@@ -53,13 +47,10 @@ namespace StarPie.Services.Dialogs
         /// <summary>当前 Owner 绑定（装配面只读诊断；不进 <see cref="IDialogService"/> 契约面）。</summary>
         public Window? Owner => _owner;
 
-        /// <summary>宿主启动时按 <c>--background</c> 回填（后台/静默运行语义）。</summary>
-        public void SetBackgroundMode(bool value) => _backgroundMode = value;
-
         public ProgramPickResult? ShowProgramPicker()
         {
             var viewModel = new ProgramPickerViewModel(_programScanner, this, _localization, _shortcutResolver, _iconAssets);
-            var window = PrepareBackgroundDialog(new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner });
+            var window = new ProgramPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             if (window.ShowDialog() != true) return null;
             return window.BuildResult();
         }
@@ -72,7 +63,7 @@ namespace StarPie.Services.Dialogs
         {
             // 确认与验证逻辑在 InputViewModel，窗口只剩布局接线。
             var viewModel = new InputViewModel(title, prompt, this, _localization, defaultText, validator);
-            var dialog = PrepareBackgroundDialog(new InputDialog(_themeService, viewModel) { Owner = _owner });
+            var dialog = new InputDialog(_themeService, viewModel) { Owner = _owner };
             return dialog.ShowDialog() == true ? viewModel.BuildResult() : null;
         }
 
@@ -86,14 +77,14 @@ namespace StarPie.Services.Dialogs
                 currentIconKey,
                 _iconAssets.DeleteCustomIcon,
                 path => _iconAssets.ImportCustomIcon(path));
-            var picker = PrepareBackgroundDialog(new IconPickerWindow(_themeService, viewModel, _localization, _iconAssets) { Owner = _owner });
+            var picker = new IconPickerWindow(_themeService, viewModel, _localization, _iconAssets) { Owner = _owner };
             return picker.ShowDialog() == true ? picker.BuildResult() : null;
         }
 
         public ColorPickResult? ShowColorPicker(string initialHex)
         {
             var viewModel = new ColorPickerViewModel(this, initialHex);
-            var dialog = PrepareBackgroundDialog(new ColorPickerWindow(_themeService, viewModel, _localization) { Owner = _owner });
+            var dialog = new ColorPickerWindow(_themeService, viewModel, _localization) { Owner = _owner };
             return dialog.ShowDialog() == true ? dialog.BuildResult() : null;
         }
 
@@ -146,65 +137,9 @@ namespace StarPie.Services.Dialogs
         }
 
         public bool Confirm(string title, string message)
-        {
-            // 后台模式无人在场应答：按"是"继续，不呈现窗口。
-            if (_backgroundMode)
-            {
-                return true;
-            }
-
-            return MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
-        }
+            => MessageBox.Show(_owner, message, title, MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes;
 
         public void ShowInfo(string title, string message)
-        {
-            // 后台模式不呈现提示框（无人阅读，且会弹到用户屏幕中央并抢前台）。
-            if (_backgroundMode)
-            {
-                return;
-            }
-
-            MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // ==== 后台模式对话框形态（程序选择器交互用例的真实打开路径）====
-
-        private const int BackgroundCoordinate = -32000;
-        private const int GwlExStyle = -20;
-        private const int WsExNoActivate = 0x08000000;
-
-        /// <summary>
-        /// 后台模式下把 WPF 对话框切成离屏 + 不可激活（与 AppHost 设置控制台同配方）：
-        /// e2e 会真实打开对话框（如程序选择器），不得让它出现在用户屏幕上或抢前台。
-        /// 仅改变窗口呈现/激活；对话框内容与交互语义不变。
-        /// </summary>
-        private T PrepareBackgroundDialog<T>(T window) where T : Window
-        {
-            if (!_backgroundMode) return window;
-
-            window.ShowActivated = false;
-            window.ShowInTaskbar = false;
-            window.WindowStartupLocation = WindowStartupLocation.Manual;
-            window.Left = BackgroundCoordinate;
-            window.Top = BackgroundCoordinate;
-            window.SourceInitialized += (_, _) =>
-            {
-                IntPtr hwnd = new WindowInteropHelper(window).Handle;
-                if (hwnd == IntPtr.Zero)
-                {
-                    return;
-                }
-
-                int exStyle = GetWindowLong(hwnd, GwlExStyle);
-                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate);
-            };
-            return window;
-        }
-
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
-        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+            => MessageBox.Show(_owner, message, title, MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

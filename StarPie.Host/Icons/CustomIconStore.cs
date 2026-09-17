@@ -94,7 +94,7 @@ namespace StarPie.Icons
         }
 
         /// <summary>清空图标列表缓存（幂等）：下次 GetCustomIcons 重新扫描目录。
-        /// 托盘出账路径调用——非后台形态进托盘时整体释放，恢复后由消费方按需重建。</summary>
+        /// 托盘出账路径调用——进托盘时整体释放，恢复后由消费方按需重建。</summary>
         public void ClearCache()
         {
             _cachedCustomIcons = null;

@@ -76,7 +76,7 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <ComboBox x:Name="WheelPaletteComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding PaletteOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding SelectedPalette, Mode=TwoWay}"/>
-                                        <Button Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="{DynamicResource RenamePresetTooltip}"/>
+                                        <Button x:Name="RenamePresetButton" Grid.Column="1" Content="{DynamicResource RenameCustomPresetButton}" Style="{StaticResource ModernButtonStyle}" Height="34" Margin="8,0,0,0" Padding="12,0" Visibility="{Binding IsCustomPresetSelected, Converter={StaticResource BoolToVis}}" Command="{Binding RenamePresetCommand}" ToolTip="{DynamicResource RenamePresetTooltip}"/>
                                     </Grid>
 
                                                                     <!--  卡片 1.5：自定义高级配色（可折叠）  -->
@@ -104,10 +104,10 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{DynamicResource CustomSectorBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" AutomationProperties.AutomationId="PickColor_CustomSectorBg" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomSectorBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_CustomSectorBg" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!--  扇区常规边框  -->
@@ -120,10 +120,10 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{DynamicResource CustomSectorBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomSectorBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomSectorBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" AutomationProperties.AutomationId="PickColor_CustomSectorBorder" Command="{Binding PickColorCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomSectorBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomSectorBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_CustomSectorBorder" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomSectorBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!--  扇区高亮颜色  -->
@@ -136,10 +136,10 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{DynamicResource CustomHighlightBgLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBgTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBgText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" AutomationProperties.AutomationId="PickColor_CustomHighlightBg" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomHighlightBgPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBgText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_CustomHighlightBg" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBg" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!--  扇区高亮边框  -->
@@ -152,10 +152,10 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{DynamicResource CustomHighlightBorderLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomHighlightBorderTextBox" Grid.Column="1" Height="28" Text="{Binding CustomHighlightBorderText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" AutomationProperties.AutomationId="PickColor_CustomHighlightBorder" Command="{Binding PickColorCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomHighlightBorderPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomHighlightBorderText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_CustomHighlightBorder" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomHighlightBorder" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <!--  文字颜色  -->
@@ -168,10 +168,10 @@
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{DynamicResource CustomTextColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomTextTextBox" Grid.Column="1" Height="28" Text="{Binding CustomTextText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
+                                            <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickColorTooltip}" AutomationProperties.AutomationId="PickColor_CustomText" Command="{Binding PickColorCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}">
                                                 <Border x:Name="CustomTextPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding CustomTextText, Converter={StaticResource HexToBrushConverter}}"/>
                                             </Button>
-                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
+                                            <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_CustomText" Command="{Binding PickEyedropperCommand}" CommandParameter="CustomText" Style="{StaticResource ModernButtonStyle}"/>
                                         </Grid>
 
                                         <Grid Margin="0,6,0,0">
@@ -210,10 +210,10 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{DynamicResource GlowColorLabel}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                                         <TextBox x:Name="HighlightGlowColorTextBox" Grid.Column="1" Height="28" Text="{Binding HighlightGlowColorText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0"/>
-                                        <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickGlowColorTooltip}" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
+                                        <Button Grid.Column="2" Width="28" Height="28" Padding="0" Margin="0,0,4,0" ToolTip="{DynamicResource PickGlowColorTooltip}" AutomationProperties.AutomationId="PickColor_HighlightGlowColor" Command="{Binding PickColorCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}">
                                             <Border x:Name="HighlightGlowColorPreview" Width="20" Height="20" CornerRadius="3" BorderBrush="{DynamicResource InputBorderBrush}" BorderThickness="1" Background="{Binding HighlightGlowColorText, Converter={StaticResource HexToBrushConverter}}"/>
                                         </Button>
-                                        <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickGlowEyedropperTooltip}" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
+                                        <Button Grid.Column="3" Content="🔍" Width="28" Height="28" Padding="0" ToolTip="{DynamicResource PickGlowEyedropperTooltip}" AutomationProperties.AutomationId="PickEyedropper_HighlightGlowColor" Command="{Binding PickEyedropperCommand}" CommandParameter="HighlightGlowColor" Style="{StaticResource ModernButtonStyle}"/>
                                     </Grid>
 
                                     <!--  高亮光晕模糊半径  -->

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -22,6 +23,9 @@ namespace StarPie.Services.Shell
         public bool IsHeader;
         public Action? Callback;
 
+        /// <summary>菜单行的稳定发布标识（无障碍客户端与 e2e 据此定位条目）；分隔线/无标识条目为 null。</summary>
+        public string? AutomationId;
+
         /// <summary>可点性。为假时条目灰显且不响应点击——用于"此刻不可用，且标签已写明原因"
         /// 的条目（不可用要看得见，不能给一个点了没反应的按钮）。</summary>
         public bool IsEnabled = true;
@@ -31,6 +35,14 @@ namespace StarPie.Services.Shell
         public static TrayMenuEntry Item(string label, Action callback) => new() { Label = label, Callback = callback };
         public static TrayMenuEntry Item(string label, Action callback, bool enabled)
             => new() { Label = label, Callback = callback, IsEnabled = enabled };
+
+        /// <summary>带稳定标识的可点条目（<see cref="AutomationId"/> 同时用于定位与点击目标）。</summary>
+        public static TrayMenuEntry Item(string label, Action callback, string automationId)
+            => new() { Label = label, Callback = callback, AutomationId = automationId };
+
+        /// <summary>带稳定标识的可点条目；<paramref name="enabled"/> 为假时灰显不可点。</summary>
+        public static TrayMenuEntry Item(string label, Action callback, bool enabled, string automationId)
+            => new() { Label = label, Callback = callback, IsEnabled = enabled, AutomationId = automationId };
     }
 
     /// <summary>
@@ -128,6 +140,12 @@ namespace StarPie.Services.Shell
         /// <c>HwndWrapper[...]</c>——外部只能按标题定位。
         /// </summary>
         public const string WindowName = "StarPieTrayWindow";
+
+        /// <summary>
+        /// 托盘上下文菜单窗口的标题（无边框、不入任务栏，标题仅作发布标识/定位面：
+        /// 菜单每次打开新建窗口，UIA 与 e2e 据此按窗口标题定位）。
+        /// </summary>
+        public const string MenuWindowName = "StarPieTrayMenu";
 
         public TrayIconManager(
             Func<bool> windowsInDarkModeProbe,
@@ -309,6 +327,7 @@ namespace StarPie.Services.Shell
 
             var window = new Window
             {
+                Title = MenuWindowName,
                 WindowStyle = WindowStyle.None,
                 AllowsTransparency = true,
                 Background = Brushes.Transparent,
@@ -379,6 +398,13 @@ namespace StarPie.Services.Shell
                         : new SolidColorBrush(Color.FromArgb(0x70, 0x1A, 0x1A, 0x1A))),
                 Margin = new Thickness(14, 7, 18, 7)
             };
+            // 条目标识挂在文本上：菜单行是 Border+TextBlock 组合（非 Control，无 Invoke 模式），
+            // 文本是 UIA 树里的可见落点，点击经冒泡命中行回调。
+            if (!string.IsNullOrEmpty(entry.AutomationId))
+            {
+                AutomationProperties.SetAutomationId(text, entry.AutomationId);
+            }
+
             var row = new Border
             {
                 Child = text,

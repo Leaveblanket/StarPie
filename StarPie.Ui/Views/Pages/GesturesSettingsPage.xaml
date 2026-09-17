@@ -94,7 +94,7 @@
                                                 <TextBlock Text="{Binding DirectionLabel}" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center" FontSize="12"/>
 
                                                 <!-- Col 1: Icon Selector Button -->
-                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" Command="{Binding PickIconCommand}" ToolTip="{DynamicResource PickIconTooltip}">
+                                                <Button Grid.Column="1" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="6,0" Margin="0,0,8,0" AutomationProperties.AutomationId="{Binding IconButtonAutomationId}" Command="{Binding PickIconCommand}" ToolTip="{DynamicResource PickIconTooltip}">
                                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                         <Path Width="14" Height="14" Stretch="Uniform" Fill="{DynamicResource AccentPrimaryBrush}" Margin="0,0,4,0"
                                                               Data="{Binding VectorIconPathData, Converter={StaticResource StringToGeometryConverter}}" Visibility="{Binding HasVectorIcon, Converter={StaticResource BoolToVis}}"/>
@@ -103,7 +103,7 @@
                                                 </Button>
 
                                                 <!-- Col 2: Name Input -->
-                                                <TextBox Grid.Column="2" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" Height="30" FontSize="12" VerticalContentAlignment="Center"/>
+                                                <TextBox Grid.Column="2" AutomationProperties.AutomationId="{Binding NameTextBoxAutomationId}" Text="{Binding Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" Height="30" FontSize="12" VerticalContentAlignment="Center"/>
 
                                                 <!-- Col 3: Type Selector (Dynamic I18n) -->
                                                 <ComboBox Grid.Column="3"
@@ -118,7 +118,8 @@
                                                 <!-- Col 4: Parameter Inputs -->
                                                 <Grid Grid.Column="4" Margin="0,0,8,0">
                                                     <!-- 1. Hotkey Interactive Recorder Box -->
-                                                    <controls:HotkeyRecorderBox HotkeyText="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    <controls:HotkeyRecorderBox AutomationProperties.AutomationId="{Binding HotkeyRecorderAutomationId}"
+                                                                                 HotkeyText="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                                  Placeholder="{DynamicResource BtnRecordHotkey}"
                                                                                  Visibility="{Binding IsHotkeyType, Converter={StaticResource BoolToVis}}" Height="30" FontSize="12"/>
 
@@ -128,9 +129,9 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                        <TextBox AutomationProperties.AutomationId="{Binding ProgramPathTextBoxAutomationId}" Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                      IsReadOnly="True" Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextSecondaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="{DynamicResource SelectedAppPathTooltip}"/>
-                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="{DynamicResource BrowseAppTooltip}">
+                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" AutomationProperties.AutomationId="{Binding BrowseProgramButtonAutomationId}" Command="{Binding BrowseProgramCommand}" Height="30" ToolTip="{DynamicResource BrowseAppTooltip}">
                                                             <TextBlock Text="📁" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </Grid>
@@ -141,15 +142,16 @@
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="Auto"/>
                                                         </Grid.ColumnDefinitions>
-                                                        <TextBox Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                        <TextBox AutomationProperties.AutomationId="{Binding FolderPathTextBoxAutomationId}" Text="{Binding Parameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                                      Background="{DynamicResource InputBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="30" Margin="0,0,4,0" FontSize="11" VerticalContentAlignment="Center" ToolTip="{DynamicResource SelectedFolderPathTooltip}"/>
-                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" Command="{Binding BrowseFolderCommand}" Height="30" ToolTip="{DynamicResource BrowseFolderTooltip}">
+                                                        <Button Grid.Column="1" Width="34" Style="{StaticResource ModernButtonStyle}" AutomationProperties.AutomationId="{Binding BrowseFolderButtonAutomationId}" Command="{Binding BrowseFolderCommand}" Height="30" ToolTip="{DynamicResource BrowseFolderTooltip}">
                                                             <TextBlock Text="📂" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                         </Button>
                                                     </Grid>
 
                                                     <!-- 4. System Preset -->
-                                                    <ComboBox SelectedValue="{Binding SelectedSystemPreset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    <ComboBox AutomationProperties.AutomationId="{Binding SystemPresetComboBoxAutomationId}"
+                                                                  SelectedValue="{Binding SelectedSystemPreset, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                                                   SelectedValuePath="Key" DisplayMemberPath="Value"
                                                                   Style="{StaticResource FlatComboBoxStyle}"
                                                                   ItemsSource="{Binding Source={x:Static vm:SlotViewModel.SystemPresets}}"
@@ -157,11 +159,11 @@
                                                 </Grid>
 
                                                 <!-- Col 5: Launch Arguments -->
-                                                <TextBox Grid.Column="5" Text="{Binding Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                                                <TextBox Grid.Column="5" AutomationProperties.AutomationId="{Binding ArgumentsTextBoxAutomationId}" Text="{Binding Arguments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                                                              IsEnabled="{Binding IsLaunchType}" Margin="0,0,8,0" Height="30" FontSize="11" ToolTip="{DynamicResource LaunchArgsTooltip}" VerticalContentAlignment="Center"/>
 
                                                 <!-- Col 6: Test Button -->
-                                                <Button Grid.Column="6" Content="{Binding TestButtonText}" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="12,0" Command="{Binding TestCommand}"/>
+                                                <Button Grid.Column="6" AutomationProperties.AutomationId="{Binding TestButtonAutomationId}" Content="{Binding TestButtonText}" Style="{StaticResource ModernButtonStyle}" Height="30" Padding="12,0" Command="{Binding ExecuteTestCommand}"/>
                                             </Grid>
                                         </Border>
                                     </DataTemplate>

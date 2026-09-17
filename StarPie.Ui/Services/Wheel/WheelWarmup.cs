@@ -9,7 +9,7 @@ namespace StarPie.Services.Wheel
     /// <summary>
     /// 轮盘核心路径启动预热：离屏构造 <see cref="RadialWindow"/> 并渲染一次，踩热 BAML 装载、
     /// 样式渲染器工厂、调色板与画刷构造路径，使首次手势弹出不再付这些一次性成本。
-    /// 不 Show（静默形态无闪窗）、不 Close（未显示窗口无 HWND）。诚实边界：
+    /// 不 Show（无闪窗）、不 Close（未显示窗口无 HWND）。诚实边界：
     /// <c>RadialWindow_Loaded</c> 挂的绘制路径依赖窗口显示，离屏预热不到，首手势仍付一次该路径成本。
     /// </summary>
     [SupportedOSPlatform("windows")]

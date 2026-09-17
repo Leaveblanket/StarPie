@@ -97,9 +97,9 @@
                                     <StackPanel>
                                         <TextBlock Text="{DynamicResource ModifierPassTitle}" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                                         <WrapPanel>
-                                            <CheckBox Content="{DynamicResource ModifierCtrl}" Margin="0,0,20,8" IsChecked="{Binding DisableOnCtrl, Mode=TwoWay}"/>
-                                            <CheckBox Content="{DynamicResource ModifierShift}" Margin="0,0,20,8" IsChecked="{Binding DisableOnShift, Mode=TwoWay}"/>
-                                            <CheckBox Content="{DynamicResource ModifierAlt}" Margin="0,0,20,8" IsChecked="{Binding DisableOnAlt, Mode=TwoWay}"/>
+                                            <CheckBox x:Name="DisableOnCtrlCheckBox" Content="{DynamicResource ModifierCtrl}" Margin="0,0,20,8" IsChecked="{Binding DisableOnCtrl, Mode=TwoWay}"/>
+                                            <CheckBox x:Name="DisableOnShiftCheckBox" Content="{DynamicResource ModifierShift}" Margin="0,0,20,8" IsChecked="{Binding DisableOnShift, Mode=TwoWay}"/>
+                                            <CheckBox x:Name="DisableOnAltCheckBox" Content="{DynamicResource ModifierAlt}" Margin="0,0,20,8" IsChecked="{Binding DisableOnAlt, Mode=TwoWay}"/>
                                         </WrapPanel>
                                     </StackPanel>
                                 </Border>

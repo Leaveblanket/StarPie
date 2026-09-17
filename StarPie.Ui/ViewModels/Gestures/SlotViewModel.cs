@@ -97,6 +97,18 @@ namespace StarPie.ViewModels.Gestures
         /// <summary>动作类型 ComboBox 的稳定 AutomationId；e2e/无障碍客户端据此定位。</summary>
         public string ActionTypeAutomationId => $"Slot{SlotIndex}ActionTypeComboBox";
 
+        /// <summary>槽位行内其余控件的稳定 AutomationId（无障碍客户端与 e2e 据此定位）。</summary>
+        public string IconButtonAutomationId => $"Slot{SlotIndex}IconButton";
+        public string NameTextBoxAutomationId => $"Slot{SlotIndex}NameTextBox";
+        public string HotkeyRecorderAutomationId => $"Slot{SlotIndex}HotkeyRecorder";
+        public string ProgramPathTextBoxAutomationId => $"Slot{SlotIndex}ProgramPathTextBox";
+        public string BrowseProgramButtonAutomationId => $"Slot{SlotIndex}BrowseProgramButton";
+        public string FolderPathTextBoxAutomationId => $"Slot{SlotIndex}FolderPathTextBox";
+        public string BrowseFolderButtonAutomationId => $"Slot{SlotIndex}BrowseFolderButton";
+        public string SystemPresetComboBoxAutomationId => $"Slot{SlotIndex}SystemPresetComboBox";
+        public string ArgumentsTextBoxAutomationId => $"Slot{SlotIndex}ArgumentsTextBox";
+        public string TestButtonAutomationId => $"Slot{SlotIndex}TestButton";
+
         public string Name
         {
             get => Action.Name ?? "";

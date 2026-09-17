@@ -1,17 +1,16 @@
 import base64
-import os
-import shutil
-import winreg
 
 import pytest
 from conftest import (
-    ONSCREEN,
+    PROBE_PROGRAM_NAME,
     assert_catalog,
     assert_text_contains,
-    dismiss_messagebox,
     goto,
     list_item_texts,
+    plant_probe_program,
     read_config,
+    remove_probe_program,
+    save_settings,
     select_option,
     text_of,
     wait_dialog,
@@ -32,40 +31,8 @@ APP_THEME_CATALOG = ("System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "
 WHEEL_STYLE_CATALOG = ("ClassicRing", "CleanSectors", "Glassmorphism")  # AppearanceSettingsPage.xaml
 WHEEL_PALETTE_CATALOG = ("System", "Dark", "Light", "MatchaForest", "GlacialIce", "MorandiMuted")  # 固定项；自定义预设追加在后
 
-# 随包程序来源插件（plugins/src/StarPie.Plugin.Programs/plugin.json）与探针程序：
-# 探针经 HKCU App Paths 指向仓库 artifacts 下的一个 exe，只有插件的深扫来源（注册表 App Paths）
-# 会发现它——启用/停用两态由此可观察。探针不落沙箱临时目录：产品侧垃圾过滤会排除 temp/tmp 路径，
-# 放临时目录里根本扫不到（过滤器行为本身正确）。
-PROBE_PROGRAM_NAME = "starpie-e2e-probe"
-APP_PATHS_KEY = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"
-PROBE_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-
-def plant_probe_program() -> str:
-    """注册一个只由插件深扫来源（App Paths）发现的程序，返回探针 exe 路径。"""
-    probe_dir = os.path.join(PROBE_PROJECT_ROOT, "artifacts", "e2e", "probe")
-    os.makedirs(probe_dir, exist_ok=True)
-    probe_exe = os.path.join(probe_dir, f"{PROBE_PROGRAM_NAME}.exe")
-    system_root = os.environ.get("SystemRoot", r"C:\Windows")
-    shutil.copyfile(
-        os.path.join(system_root, "System32", "notepad.exe"),
-        probe_exe,
-    )
-    with winreg.CreateKey(
-        winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe"
-    ) as key:
-        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, probe_exe)
-    return probe_exe
-
-
-def remove_probe_program() -> None:
-    """撤销探针注册（用例结束必调，避免污染真实用户注册表）。"""
-    try:
-        winreg.DeleteKey(winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe")
-    except FileNotFoundError:
-        pass
-
-
+# 探针程序（HKCU App Paths 注册的记事本副本）与启停两态的语义见 tests/conftest.py：
+# 只有插件深扫来源会发现它，故"选择器里出现/缺席"是插件真的在跑/已停用的行为证据。
 def open_program_picker(win):
     """从触发与场景页打开程序选择器对话框（真实模态对话框）。"""
     goto(win, 2)
@@ -96,6 +63,9 @@ CORE_ICON_CATALOG = ("Exit", "Crosshair", "Windows", "Dot", "Home", "Power", "Co
 GLOW_PRESET_CATALOG = ("Auto", "Lilac", "Blue", "Emerald", "Rose", "Amber", "Red", "White", "Custom")  # AppearanceSettingsPage.xaml
 LANGUAGE_CATALOG = ("zh-CN", "zh-TW", "en", "ja", "Auto")  # AdvancedSettingsPage.xaml
 SLOT_ACTION_TYPE_CATALOG = ("Hotkey", "Launch", "Folder", "System")  # SlotViewModel.ActionTypes
+ICON_LAYOUT_MODE_CATALOG = ("IconAndText", "IconOnly", "TextOnly")  # AppearanceSettingsPage.xaml
+
+# ==== 基础交互 ====
 
 def test_modify_slider_and_save(app):
     win, local_app_data = app
@@ -113,12 +83,8 @@ def test_modify_slider_and_save(app):
     new_val = float(label.window_text())
     assert new_val != initial_val, f"Slider value should have changed from {initial_val}"
 
-    # 3. Click the SaveButton to persist configurations
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    # 关闭 Save 触发的提示框（仅 -OnScreen 调试形态会出现；静默形态零等待）
-    dismiss_messagebox()
+    # 3. Click the SaveButton to persist configurations（并按掉真实成功提示框）
+    save_settings(win)
 
     # 4. Verify the config file was written correctly in the sandbox（轮询落盘，不靠固定 sleep）
     config = read_config(local_app_data, predicate=lambda c: c.get("DragThreshold") == pytest.approx(new_val))
@@ -158,50 +124,6 @@ def test_switch_all_tabs_smoothly(app):
         "AdminAutoStartCheckBox should exist in System tab"
 
 
-def test_admin_restart_entry_visibility_without_elevation(app):
-    """
-    「立即以管理员身份重启」入口在非提权态下的可见性口径：入口出现，但提权自启的计划任务在
-    沙箱里不存在，故按钮不可点、旁边写明原因——不是给一个点了没反应的按钮。
-    不提权态下**绝不点击**它：触发会去跑 schtasks，属于 e2e 不触碰的系统副作用。
-    （提权态下入口不出现的口径由 GeneralSettingsViewModelTests 覆盖，e2e 运行环境不提权。）
-    """
-    win, _ = app
-
-    goto(win, 3)
-
-    restart = win.child_window(auto_id="AdminRestartNowButton", control_type="Button")
-    assert restart.exists(timeout=3), "非提权态下「立即以管理员身份重启」入口应当出现"
-    assert not restart.is_enabled(), \
-        "提权自启的任务不存在时入口不可点（须先开启「以管理员身份开机自启」）"
-    # 原因必须写出来：文案随语言变，这里只断言"确实呈现了说明"
-    assert text_of(win, "AdminRestartNowHint", "Text", timeout=3).strip(), \
-        "入口不可点时必须呈现原因，而不是留一个点了没反应的按钮"
-
-
-def test_appearance_shapes_and_geometry_reset(app):
-    """
-    形状选择、间隙/圆角滑块与"重置尺寸"按钮：数值断言用等值（不再用子串包含），
-    Reset 按钮缺失时显式失败（不得静默跳过）。
-    """
-    win, local_app_data = app
-
-    goto(win, 1)
-
-    # 1. Test Gap & Corner Radius Sliders
-    gap_slider = win.child_window(auto_id="SectorGapSlider", control_type="Slider")
-    corner_slider = win.child_window(auto_id="SectorCornerRadiusSlider", control_type="Slider")
-
-    gap_slider.set_value(5.0)
-    corner_slider.set_value(8.0)
-    wait_for_label_value(win, "SectorGapLabel", 5.0)
-
-    # 2. Test Reset Dimensions Button（产品默认间隙为 2；缺失即失败，不静默跳过）
-    reset_btn = win.child_window(auto_id="ResetDimensionsButton", control_type="Button")
-    assert reset_btn.exists(timeout=3), "ResetDimensionsButton 必须存在"
-    reset_btn.invoke()
-    wait_for_label_value(win, "SectorGapLabel", 2.0)
-
-
 def test_blacklist_add_and_delete(app):
     """
     Test adding a new process to Blacklist and removing it.
@@ -235,6 +157,30 @@ def test_blacklist_add_and_delete(app):
     assert "testgame.exe" not in items_after, "testgame.exe should have been deleted"
 
 
+def test_appearance_shapes_and_geometry_reset(app):
+    """
+    形状选择、间隙/圆角滑块与"重置尺寸"按钮：数值断言用等值（不再用子串包含），
+    Reset 按钮缺失时显式失败（不得静默跳过）。
+    """
+    win, local_app_data = app
+
+    goto(win, 1)
+
+    # 1. Test Gap & Corner Radius Sliders
+    gap_slider = win.child_window(auto_id="SectorGapSlider", control_type="Slider")
+    corner_slider = win.child_window(auto_id="SectorCornerRadiusSlider", control_type="Slider")
+
+    gap_slider.set_value(5.0)
+    corner_slider.set_value(8.0)
+    wait_for_label_value(win, "SectorGapLabel", 5.0)
+
+    # 2. Test Reset Dimensions Button（产品默认间隙为 2；缺失即失败，不静默跳过）
+    reset_btn = win.child_window(auto_id="ResetDimensionsButton", control_type="Button")
+    assert reset_btn.exists(timeout=3), "ResetDimensionsButton 必须存在"
+    reset_btn.invoke()
+    wait_for_label_value(win, "SectorGapLabel", 2.0)
+
+
 def test_profile_management_ui_and_buttons(app):
     """
     Test existence, states, and accessibility of profile management controls:
@@ -261,6 +207,8 @@ def test_profile_management_ui_and_buttons(app):
     assert any("Global" in it for it in items), f"Global profile must be listed: {items}"
 
 
+# ==== 手势与动作 ====
+
 def test_hotkey_recorder_and_system_presets_catalog(app):
     """
     手势页（NavPage2）的方案/槽位控件存在性 + 保存持久化：
@@ -281,10 +229,7 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     select_option(type_combo, SLOT_ACTION_TYPE_CATALOG, "System", verify_selection=False)
 
     # Save settings and verify config persistence（谓词轮询等改动值落盘）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
+    save_settings(win)
 
     def _first_global_action_is_system(c):
         profiles = c.get("Profiles", [])
@@ -301,6 +246,91 @@ def test_hotkey_recorder_and_system_presets_catalog(app):
     assert actions and actions[0].get("Type") == "System", \
         f"Slot0 动作类型应落盘为 System: {actions[0] if actions else None}"
 
+
+def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
+    """
+    Test v1.3.3 features:
+    1. Verify streamlined shapes (4 items in ShapeComboBox).
+    2. Switch to Gestures & Actions tab (NavPage2).
+    3. Verify 4-key (SectorCount4Radio) and 12-key (SectorCount12Radio) selection works.
+    4. Save settings and verify profile SectorCount is correctly updated and persisted.
+    """
+    win, local_app_data = app
+
+    # 1. Verify streamlined shapes（形状目录固定 4 项：Original/Circle/RoundedCapsule/HexagonHive）
+    goto(win, 1)
+    shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
+    assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
+    assert_catalog(shape_combo, SHAPE_CATALOG)
+
+    # 2. Switch to Gestures & Actions tab
+    goto(win, 2)
+
+    radio4 = win.child_window(auto_id="SectorCount4Radio", control_type="RadioButton")
+    radio8 = win.child_window(auto_id="SectorCount8Radio", control_type="RadioButton")
+    radio12 = win.child_window(auto_id="SectorCount12Radio", control_type="RadioButton")
+
+    assert radio4.exists(timeout=3), "SectorCount4Radio should exist"
+    assert radio8.exists(timeout=3), "SectorCount8Radio should exist"
+    assert radio12.exists(timeout=3), "SectorCount12Radio should exist"
+
+    # 3. Select 12-key sector count
+    radio12.select()
+    wait_until(radio12.is_selected, description="12 键单选已选中")
+
+    # 4. Save and verify persistence in config（显式找 Global，不再用 Profiles[0] 兜底）
+    save_settings(win)
+
+    config = read_config(
+        local_app_data,
+        predicate=lambda c: any(
+            p.get("ProcessName") == "Global" and p.get("SectorCount") == 12
+            for p in c.get("Profiles", [])
+        ),
+    )
+    profiles = config.get("Profiles", [])
+    assert profiles, "Should have at least one profile"
+    global_prof = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
+    assert global_prof is not None, f"缺少 Global 方案: {[p.get('ProcessName') for p in profiles]}"
+    assert global_prof.get("SectorCount") == 12, f"Global profile SectorCount should be 12, got {global_prof.get('SectorCount')}"
+
+
+def test_v139_folder_action_type_and_i18n_consistency(app):
+    """
+    v1.3.9 文件夹动作类型落盘：手势页首个槽位动作类型选 Folder，Save 后断言 Global
+    方案首个动作 Type 落盘为 Folder。（动作类型下拉的本地化文本不在此用例覆盖。）
+    """
+    win, local_app_data = app
+
+    # 1. Switch to Page 2
+    goto(win, 2)
+
+    # 2. Check title text blocks
+    action_list_title = win.child_window(auto_id="SectorActionListTitleText", control_type="Text")
+    assert action_list_title.exists(timeout=3), "SectorActionListTitleText should exist"
+
+    # 3. Locate the first slot's Action Type ComboBox
+    #    （产品侧已补稳定 AutomationId：Slot{索引}ActionTypeComboBox，见 #137；Slot0 即首个槽位。）
+    type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
+    assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
+
+    # 该 ComboBox（Slot0 动作类型）的 UIA 不暴露选中态，落盘值断言即门。
+    select_option(type_combo, SLOT_ACTION_TYPE_CATALOG, "Folder", verify_selection=False)
+
+    # 4. Save configuration（轮询等待 Global 方案首个动作落盘为 Folder）
+    save_settings(win)
+
+    def _first_global_action_is_folder(c):
+        profiles = c.get("Profiles", [])
+        glob = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
+        actions = (glob or {}).get("Actions") or []
+        return bool(actions) and actions[0].get("Type") == "Folder"
+
+    saved_config = read_config(local_app_data, predicate=_first_global_action_is_folder)
+    glob = next(p for p in saved_config["Profiles"] if p.get("ProcessName") == "Global")
+    assert glob["Actions"][0]["Type"] == "Folder", "Action type should persist as Folder"
+
+# ==== 外观与主题 ====
 
 def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
     """
@@ -337,10 +367,7 @@ def test_app_theme_persistence_and_removed_wheel_bg_controls(app):
     select_option(app_theme_combo, APP_THEME_CATALOG, "Dark")
 
     # 5. Save settings and verify config persistence（轮询落盘）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
+    save_settings(win)
 
     config = read_config(local_app_data, predicate=lambda c: c.get("AppTheme") == "Dark")
     assert config.get("AppTheme") == "Dark", f"AppTheme ({config.get('AppTheme')}) should be 'Dark'"
@@ -376,10 +403,7 @@ def test_v130_wheel_themes_and_custom_preset_and_text_sync(app):
     assert layout_mode_combo.exists(timeout=3), "IconLayoutModeComboBox should exist"
 
     # 5. Save settings and verify config persistence（轮询落盘）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
+    save_settings(win)
 
     config = read_config(
         local_app_data,
@@ -425,10 +449,7 @@ def test_shape_selection_and_icon_font_size_persistence(app):
     wait_for_label_value(win, "SectorFontSizeLabel", 13.5)
 
     # 4. Save and verify persistence（轮询落盘）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
+    save_settings(win)
 
     config = read_config(
         local_app_data,
@@ -439,57 +460,6 @@ def test_shape_selection_and_icon_font_size_persistence(app):
     assert abs(config.get("SectorIconSize", 0) - 26) < 1.0, f"Saved SectorIconSize should be 26, got {config.get('SectorIconSize')}"
     assert abs(config.get("SectorFontSize", 0) - 13.5) < 0.1, f"Saved SectorFontSize should be 13.5, got {config.get('SectorFontSize')}"
     assert config.get("Shape") == "RoundedCapsule", f"Saved Shape should be 'RoundedCapsule', got {config.get('Shape')}"
-
-
-def test_v133_sector_count_4_8_12_adaptation_and_streamlined_shapes(app):
-    """
-    Test v1.3.3 features:
-    1. Verify streamlined shapes (4 items in ShapeComboBox).
-    2. Switch to Gestures & Actions tab (NavPage2).
-    3. Verify 4-key (SectorCount4Radio) and 12-key (SectorCount12Radio) selection works.
-    4. Save settings and verify profile SectorCount is correctly updated and persisted.
-    """
-    win, local_app_data = app
-
-    # 1. Verify streamlined shapes（形状目录固定 4 项：Original/Circle/RoundedCapsule/HexagonHive）
-    goto(win, 1)
-    shape_combo = win.child_window(auto_id="ShapeComboBox", control_type="ComboBox")
-    assert shape_combo.exists(timeout=3), "ShapeComboBox should exist"
-    assert_catalog(shape_combo, SHAPE_CATALOG)
-
-    # 2. Switch to Gestures & Actions tab
-    goto(win, 2)
-
-    radio4 = win.child_window(auto_id="SectorCount4Radio", control_type="RadioButton")
-    radio8 = win.child_window(auto_id="SectorCount8Radio", control_type="RadioButton")
-    radio12 = win.child_window(auto_id="SectorCount12Radio", control_type="RadioButton")
-
-    assert radio4.exists(timeout=3), "SectorCount4Radio should exist"
-    assert radio8.exists(timeout=3), "SectorCount8Radio should exist"
-    assert radio12.exists(timeout=3), "SectorCount12Radio should exist"
-
-    # 3. Select 12-key sector count
-    radio12.select()
-    wait_until(radio12.is_selected, description="12 键单选已选中")
-
-    # 4. Save and verify persistence in config（显式找 Global，不再用 Profiles[0] 兜底）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
-
-    config = read_config(
-        local_app_data,
-        predicate=lambda c: any(
-            p.get("ProcessName") == "Global" and p.get("SectorCount") == 12
-            for p in c.get("Profiles", [])
-        ),
-    )
-    profiles = config.get("Profiles", [])
-    assert profiles, "Should have at least one profile"
-    global_prof = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
-    assert global_prof is not None, f"缺少 Global 方案: {[p.get('ProcessName') for p in profiles]}"
-    assert global_prof.get("SectorCount") == 12, f"Global profile SectorCount should be 12, got {global_prof.get('SectorCount')}"
 
 
 def test_v134_memory_autosave_and_theme_persistence(app):
@@ -553,97 +523,6 @@ def test_v135_program_picker_clean_icons_and_core_customization(app):
         f"ShowCoreIcon 应翻转（toggle 前 state={pre_state}），got {config.get('ShowCoreIcon')}"
     assert config.get("CoreIconType") == "Crosshair", \
         f"CoreIconType 应为 'Crosshair'，got {config.get('CoreIconType')}"
-
-
-def test_program_picker_opens_and_cancels_cleanly(app):
-    """
-    程序选择器（真实模态对话框）打开/关闭交互：
-    AddProfileButton 打开对话框，CancelButton 干净关闭；关闭后主窗口仍可用、配置无新增方案。
-    后台形态下对话框必须离屏（静默运行承诺，见 #134/#135）。
-    """
-    win, local_app_data = app
-
-    goto(win, 2)
-
-    profiles_before = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
-
-    add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
-    assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
-    add_btn.invoke()
-
-    picker = wait_dialog("选择程序 - StarPie")
-    if not ONSCREEN:
-        rect = picker.element_info.rectangle
-        assert rect.left <= -1000 and rect.top <= -1000, \
-            f"后台形态下程序选择器必须离屏，got {rect}"
-
-    cancel_btn = picker.child_window(auto_id="CancelButton", control_type="Button")
-    assert cancel_btn.exists(timeout=5), "程序选择器 CancelButton 必须存在"
-    cancel_btn.invoke()
-    wait_dialog_closed(picker)
-
-    # 主窗口仍可用：切页往返，锚点断言
-    goto(win, 3)
-    goto(win, 2)
-
-    profiles_after = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
-    assert profiles_after == profiles_before, f"取消选择不应新增方案: {profiles_before} -> {profiles_after}"
-
-
-def test_program_picker_lists_plugin_program_source(app):
-    """
-    程序来源插件（内置、默认启用）：插件深扫的沙箱程序进入程序选择器列表。
-
-    探针只登记在 HKCU App Paths，宿主内置来源（系统工具 + 快捷方式）扫不到它——
-    因此本用例是"插件确实在跑"的行为证据，而不是配置或日志断言。
-    """
-    win, _local_app_data = app
-    plant_probe_program()
-    try:
-        picker = open_program_picker(win)
-        try:
-            programs = wait_program_picker_listed(picker)
-            filter_program_picker(picker, PROBE_PROGRAM_NAME)
-            wait_until(
-                lambda: any(PROBE_PROGRAM_NAME in text for text in list_item_texts(programs)),
-                description=f"插件来源的程序出现在选择器列表（{PROBE_PROGRAM_NAME}）",
-            )
-        finally:
-            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
-            wait_dialog_closed(picker)
-    finally:
-        remove_probe_program()
-
-@pytest.mark.parametrize("sandbox_seed", ["disabled-program-source"], indirect=True)
-def test_program_picker_degrades_to_builtin_when_plugin_disabled(app):
-    """
-    停用内置程序来源插件：程序选择器降级为只剩内置来源（plugins.md §1 第 4 条）。
-
-    同一探针在停用态不可见，而内置来源条目仍在——降级不是"选择器坏了"。
-    """
-    win, _local_app_data = app
-    plant_probe_program()
-    try:
-        picker = open_program_picker(win)
-        try:
-            programs = wait_program_picker_listed(picker)
-            # 内置来源仍在：按内置条目过滤后列表非空（降级不是"选择器坏了"）。
-            filter_program_picker(picker, "Notepad")
-            wait_until(
-                lambda: list_item_texts(programs) != [],
-                description="内置来源条目（记事本）在选择器里可见",
-            )
-            # 插件来源缺席：按探针名过滤后列表为空（只剩内置来源）。
-            filter_program_picker(picker, PROBE_PROGRAM_NAME)
-            wait_until(
-                lambda: list_item_texts(programs) == [],
-                description="停用后插件来源缺席（过滤探针名后列表为空，只剩内置来源）",
-            )
-        finally:
-            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
-            wait_dialog_closed(picker)
-    finally:
-        remove_probe_program()
 
 
 def test_v136_glow_color_customization_config_memory_and_core_image(app, tmp_path):
@@ -725,97 +604,6 @@ def test_v136_custom_color_preset_deletion_and_management(app):
     read_config(local_app_data)
 
 
-def test_v138_i18n_multilanguage_support(app):
-    """
-    Test v1.3.8 Multi-Language (i18n) Support:
-    1. Navigate to Advanced & System Page (NavPage3).
-    2. Verify LanguageComboBox exists and contains zh-CN, zh-TW, en, ja, and Auto.
-    3. Switch language to English (en).
-    4. Verify UI elements dynamically update to English text.
-    5. Verify config.json persists Language="en".
-    6. Switch language to Japanese (ja), verify Japanese text.
-    7. Switch back to Simplified Chinese (zh-CN).
-    """
-    win, local_app_data = app
-
-    # 1. Advanced & System Page
-    goto(win, 3)
-
-    # 2. Check LanguageComboBox existence
-    lang_combo = win.child_window(auto_id="LanguageComboBox", control_type="ComboBox")
-    assert lang_combo.exists(timeout=3), "LanguageComboBox should exist in Page 3"
-
-    # 语言目录固定 5 项（zh-CN, zh-TW, en, ja, Auto）
-    assert_catalog(lang_combo, LANGUAGE_CATALOG)
-
-    # 3. Select English（目录常量 = 产品下拉项 Tag 顺序）
-    select_option(lang_combo, LANGUAGE_CATALOG, "en")
-
-    # 4. Verify UI elements updated to English（文本刷新用轮询，不靠固定等待）
-    assert_text_contains(win, "SaveButton", "Button", "Save")
-
-    # T19 数据驱动侧边栏:标题是 NavPage0 单选钮的内容文本(不再有独立 NavPage0Text 元素)
-    def _tab0_title():
-        return text_of(win, "NavPage0", "RadioButton", timeout=0.3)
-
-    wait_until(lambda: "Trigger" in _tab0_title() or "🎯" in _tab0_title(), description="侧边栏标题切英文")
-
-    # T24 设置页文本经运行时语言字典 DynamicResource 刷新(页面保持挂载, 无 code-behind 回填)
-    assert_text_contains(win, "AdvancedPageHeader", "Text", "System Integration & Preferences")
-
-    # 5. Check config file persists Language = "en"（轮询等待落盘）
-    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "en")
-    assert config.get("Language") == "en", f"Expected config Language='en', got {config.get('Language')}"
-
-    # 6. Switch to Japanese
-    select_option(lang_combo, LANGUAGE_CATALOG, "ja")
-    assert_text_contains(win, "SaveButton", "Button", "保存")
-    assert_text_contains(win, "AdvancedPageHeader", "Text", "システム統合と高度な設定")
-    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "ja")
-    assert config.get("Language") == "ja", f"Expected config Language='ja', got {config.get('Language')}"
-
-    # 7. Switch back to zh-CN
-    select_option(lang_combo, LANGUAGE_CATALOG, "zh-CN")
-    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "zh-CN")
-    assert config.get("Language") == "zh-CN", f"Expected config Language='zh-CN', got {config.get('Language')}"
-    assert_text_contains(win, "AdvancedPageHeader", "Text", "系统集成与高级偏好设置")
-
-def test_v139_folder_action_type_and_i18n_consistency(app):
-    """
-    v1.3.9 文件夹动作类型落盘：手势页首个槽位动作类型选 Folder，Save 后断言 Global
-    方案首个动作 Type 落盘为 Folder。（动作类型下拉的本地化文本不在此用例覆盖。）
-    """
-    win, local_app_data = app
-
-    # 1. Switch to Page 2
-    goto(win, 2)
-
-    # 2. Check title text blocks
-    action_list_title = win.child_window(auto_id="SectorActionListTitleText", control_type="Text")
-    assert action_list_title.exists(timeout=3), "SectorActionListTitleText should exist"
-
-    # 3. Locate the first slot's Action Type ComboBox
-    #    （产品侧已补稳定 AutomationId：Slot{索引}ActionTypeComboBox，见 #137；Slot0 即首个槽位。）
-    type_combo = win.child_window(auto_id="Slot0ActionTypeComboBox", control_type="ComboBox")
-    assert type_combo.exists(timeout=3), "Slot0ActionTypeComboBox 必须存在（首个槽位动作类型）"
-
-    # 该 ComboBox（Slot0 动作类型）的 UIA 不暴露选中态，落盘值断言即门。
-    select_option(type_combo, SLOT_ACTION_TYPE_CATALOG, "Folder", verify_selection=False)
-
-    # 4. Save configuration（轮询等待 Global 方案首个动作落盘为 Folder）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    def _first_global_action_is_folder(c):
-        profiles = c.get("Profiles", [])
-        glob = next((p for p in profiles if p.get("ProcessName") == "Global"), None)
-        actions = (glob or {}).get("Actions") or []
-        return bool(actions) and actions[0].get("Type") == "Folder"
-
-    saved_config = read_config(local_app_data, predicate=_first_global_action_is_folder)
-    glob = next(p for p in saved_config["Profiles"] if p.get("ProcessName") == "Global")
-    assert glob["Actions"][0]["Type"] == "Folder", "Action type should persist as Folder"
-
 def test_v140_custom_icons_and_appearance_collapsible(app):
     """
     v1.4.0 目录与容器（外观页 + 手势页）：
@@ -877,10 +665,7 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     assert color_expander.exists(timeout=3), "CustomColorExpander should exist"
 
     # 4. Save and verify config（轮询落盘）
-    save_btn = win.child_window(auto_id="SaveButton", control_type="Button")
-    save_btn.invoke()
-
-    dismiss_messagebox()
+    save_settings(win)
 
     config = read_config(
         local_app_data,
@@ -890,6 +675,85 @@ def test_v141_outer_escape_cancel_and_rename_capabilities(app):
     assert config["EnableOuterEscapeCancel"] == (pre_state != 1), \
         f"EnableOuterEscapeCancel 应为 toggle 后的状态（toggle 前 state={pre_state}），got {config.get('EnableOuterEscapeCancel')}"
 
+
+# ==== 高级与系统 ====
+
+def test_admin_restart_entry_visibility_without_elevation(app):
+    """
+    「立即以管理员身份重启」入口在非提权态下的可见性口径：入口出现，但提权自启的计划任务在
+    沙箱里不存在，故按钮不可点、旁边写明原因——不是给一个点了没反应的按钮。
+    不提权态下**绝不点击**它：触发会去跑 schtasks，属于 e2e 不触碰的系统副作用。
+    （提权态下入口不出现的口径由 GeneralSettingsViewModelTests 覆盖，e2e 运行环境不提权。）
+    """
+    win, _ = app
+
+    goto(win, 3)
+
+    restart = win.child_window(auto_id="AdminRestartNowButton", control_type="Button")
+    assert restart.exists(timeout=3), "非提权态下「立即以管理员身份重启」入口应当出现"
+    assert not restart.is_enabled(), \
+        "提权自启的任务不存在时入口不可点（须先开启「以管理员身份开机自启」）"
+    # 原因必须写出来：文案随语言变，这里只断言"确实呈现了说明"
+    assert text_of(win, "AdminRestartNowHint", "Text", timeout=3).strip(), \
+        "入口不可点时必须呈现原因，而不是留一个点了没反应的按钮"
+
+
+# ==== 界面语言 i18n ====
+
+def test_v138_i18n_multilanguage_support(app):
+    """
+    Test v1.3.8 Multi-Language (i18n) Support:
+    1. Navigate to Advanced & System Page (NavPage3).
+    2. Verify LanguageComboBox exists and contains zh-CN, zh-TW, en, ja, and Auto.
+    3. Switch language to English (en).
+    4. Verify UI elements dynamically update to English text.
+    5. Verify config.json persists Language="en".
+    6. Switch language to Japanese (ja), verify Japanese text.
+    7. Switch back to Simplified Chinese (zh-CN).
+    """
+    win, local_app_data = app
+
+    # 1. Advanced & System Page
+    goto(win, 3)
+
+    # 2. Check LanguageComboBox existence
+    lang_combo = win.child_window(auto_id="LanguageComboBox", control_type="ComboBox")
+    assert lang_combo.exists(timeout=3), "LanguageComboBox should exist in Page 3"
+
+    # 语言目录固定 5 项（zh-CN, zh-TW, en, ja, Auto）
+    assert_catalog(lang_combo, LANGUAGE_CATALOG)
+
+    # 3. Select English（目录常量 = 产品下拉项 Tag 顺序）
+    select_option(lang_combo, LANGUAGE_CATALOG, "en")
+
+    # 4. Verify UI elements updated to English（文本刷新用轮询，不靠固定等待）
+    assert_text_contains(win, "SaveButton", "Button", "Save")
+
+    # T19 数据驱动侧边栏:标题是 NavPage0 单选钮的内容文本(不再有独立 NavPage0Text 元素)
+    def _tab0_title():
+        return text_of(win, "NavPage0", "RadioButton", timeout=0.3)
+
+    wait_until(lambda: "Trigger" in _tab0_title() or "🎯" in _tab0_title(), description="侧边栏标题切英文")
+
+    # T24 设置页文本经运行时语言字典 DynamicResource 刷新(页面保持挂载, 无 code-behind 回填)
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "System Integration & Preferences")
+
+    # 5. Check config file persists Language = "en"（轮询等待落盘）
+    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "en")
+    assert config.get("Language") == "en", f"Expected config Language='en', got {config.get('Language')}"
+
+    # 6. Switch to Japanese
+    select_option(lang_combo, LANGUAGE_CATALOG, "ja")
+    assert_text_contains(win, "SaveButton", "Button", "保存")
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "システム統合と高度な設定")
+    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "ja")
+    assert config.get("Language") == "ja", f"Expected config Language='ja', got {config.get('Language')}"
+
+    # 7. Switch back to zh-CN
+    select_option(lang_combo, LANGUAGE_CATALOG, "zh-CN")
+    config = read_config(local_app_data, predicate=lambda c: c.get("Language") == "zh-CN")
+    assert config.get("Language") == "zh-CN", f"Expected config Language='zh-CN', got {config.get('Language')}"
+    assert_text_contains(win, "AdvancedPageHeader", "Text", "系统集成与高级偏好设置")
 
 def test_t28_hardcoded_copy_follows_language(app):
     """
@@ -923,3 +787,174 @@ def test_t28_hardcoded_copy_follows_language(app):
     # --- back to Simplified Chinese ---
     select_option(lang_combo, LANGUAGE_CATALOG, "zh-CN")
     assert_text_contains(win, "AdvancedPageSubheader", "Text", "管理界面语言")
+# ==== 程序选择器与插件来源 ====
+
+def test_program_picker_opens_and_cancels_cleanly(app):
+    """
+    程序选择器（真实模态对话框）打开/关闭交互：
+    AddProfileButton 打开对话框，CancelButton 干净关闭；关闭后主窗口仍可用、配置无新增方案。
+    """
+    win, local_app_data = app
+
+    goto(win, 2)
+
+    profiles_before = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
+
+    add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
+    assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
+    add_btn.invoke()
+
+    picker = wait_dialog("选择程序 - StarPie")
+    # 可见形态承诺：对话框真实呈现在屏幕上（旧的离屏静默坐标不再出现）。
+    rect = picker.element_info.rectangle
+    assert rect.left > -1000 and rect.top > -1000, f"程序选择器必须呈现于屏幕，got {rect}"
+
+    cancel_btn = picker.child_window(auto_id="CancelButton", control_type="Button")
+    assert cancel_btn.exists(timeout=5), "程序选择器 CancelButton 必须存在"
+    cancel_btn.invoke()
+    wait_dialog_closed(picker)
+
+    # 主窗口仍可用：切页往返，锚点断言
+    goto(win, 3)
+    goto(win, 2)
+
+    profiles_after = [p.get("ProcessName") for p in read_config(local_app_data).get("Profiles", [])]
+    assert profiles_after == profiles_before, f"取消选择不应新增方案: {profiles_before} -> {profiles_after}"
+
+
+def test_program_picker_lists_plugin_program_source(app):
+    """
+    程序来源插件（内置、默认启用）：插件深扫的沙箱程序进入程序选择器列表。
+
+    探针只登记在 HKCU App Paths，宿主内置来源（系统工具 + 快捷方式）扫不到它——
+    因此本用例是"插件确实在跑"的行为证据，而不是配置或日志断言。
+    """
+    win, _local_app_data = app
+    plant_probe_program()
+    try:
+        picker = open_program_picker(win)
+        try:
+            programs = wait_program_picker_listed(picker)
+            filter_program_picker(picker, PROBE_PROGRAM_NAME)
+            wait_until(
+                lambda: any(PROBE_PROGRAM_NAME in text for text in list_item_texts(programs)),
+                description=f"插件来源的程序出现在选择器列表（{PROBE_PROGRAM_NAME}）",
+            )
+        finally:
+            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
+            wait_dialog_closed(picker)
+    finally:
+        remove_probe_program()
+
+def test_trigger_modifier_bypass_and_escape_distance_persist(app):
+    """触发页旁路开关与逃逸距离：全屏/修饰键旁路与距离数值一起落盘。"""
+    win, local_app_data = app
+
+    goto(win, 0)
+
+    fullscreen = win.child_window(auto_id="DisableOnFullScreenCheckBox", control_type="CheckBox")
+    ctrl = win.child_window(auto_id="DisableOnCtrlCheckBox", control_type="CheckBox")
+    shift = win.child_window(auto_id="DisableOnShiftCheckBox", control_type="CheckBox")
+    alt = win.child_window(auto_id="DisableOnAltCheckBox", control_type="CheckBox")
+    for box, name in ((fullscreen, "DisableOnFullScreen"), (ctrl, "DisableOnCtrl"),
+                      (shift, "DisableOnShift"), (alt, "DisableOnAlt")):
+        assert box.exists(timeout=3), f"{name} 复选框必须存在"
+
+    pre = {name: box.get_toggle_state() for box, name in
+           ((fullscreen, "DisableOnFullScreen"), (ctrl, "DisableOnCtrl"),
+            (shift, "DisableOnShift"), (alt, "DisableOnAlt"))}
+    for box, _ in ((fullscreen, ""), (ctrl, ""), (shift, ""), (alt, "")):
+        box.toggle()
+
+    escape_slider = win.child_window(auto_id="OuterEscapeDistanceSlider", control_type="Slider")
+    escape_slider.set_value(200.0)
+    wait_for_label_value(win, "OuterEscapeDistanceLabel", 200.0)
+
+    save_settings(win)
+
+    def _toggled(c):
+        return (
+            c.get("DisableOnFullScreen") == (pre["DisableOnFullScreen"] != 1)
+            and c.get("DisableOnCtrl") == (pre["DisableOnCtrl"] != 1)
+            and c.get("DisableOnShift") == (pre["DisableOnShift"] != 1)
+            and c.get("DisableOnAlt") == (pre["DisableOnAlt"] != 1)
+            and abs(c.get("OuterEscapeDistance", 0) - 200) < 0.01
+        )
+
+    config = read_config(local_app_data, predicate=_toggled)
+    for name in ("DisableOnFullScreen", "DisableOnCtrl", "DisableOnShift", "DisableOnAlt"):
+        assert config.get(name) == (pre[name] != 1), f"{name} 应随切换落盘（切换前 state={pre[name]}）"
+    assert abs(config.get("OuterEscapeDistance", 0) - 200) < 0.01, \
+        f"OuterEscapeDistance 应为 200，got {config.get('OuterEscapeDistance')}"
+
+
+def test_appearance_geometry_layout_and_showtext_persist(app):
+    """外观页几何/布局漏项：内半径、核半径、圆角、文字开关与布局模式一起落盘。"""
+    win, local_app_data = app
+
+    goto(win, 1)
+
+    inner = win.child_window(auto_id="InnerRadiusSlider", control_type="Slider")
+    core = win.child_window(auto_id="CoreRadiusSlider", control_type="Slider")
+    corner = win.child_window(auto_id="SectorCornerRadiusSlider", control_type="Slider")
+    inner.set_value(70.0)
+    core.set_value(60.0)
+    corner.set_value(9.0)
+    wait_for_label_value(win, "InnerRadiusLabel", 70.0)
+    wait_for_label_value(win, "CoreRadiusLabel", 60.0)
+    wait_for_label_value(win, "SectorCornerRadiusLabel", 9.0)
+
+    show_text = win.child_window(auto_id="ShowTextCheckBox", control_type="CheckBox")
+    show_text.toggle()
+
+    layout = win.child_window(auto_id="IconLayoutModeComboBox", control_type="ComboBox")
+    select_option(layout, ICON_LAYOUT_MODE_CATALOG, "IconOnly", verify_selection=False)
+
+    save_settings(win)
+
+    config = read_config(
+        local_app_data,
+        predicate=lambda c: abs(c.get("InnerRadius", 0) - 70) < 0.01
+        and abs(c.get("CoreRadius", 0) - 60) < 0.01
+        and abs(c.get("SectorCornerRadius", 0) - 9) < 0.01
+        and c.get("ShowText") is False
+        and c.get("IconLayoutMode") == "IconOnly",
+    )
+    assert abs(config.get("InnerRadius", 0) - 70) < 0.01, f"InnerRadius={config.get('InnerRadius')}"
+    assert abs(config.get("CoreRadius", 0) - 60) < 0.01, f"CoreRadius={config.get('CoreRadius')}"
+    assert abs(config.get("SectorCornerRadius", 0) - 9) < 0.01, f"SectorCornerRadius={config.get('SectorCornerRadius')}"
+    assert config.get("ShowText") is False, f"ShowText={config.get('ShowText')}"
+    assert config.get("IconLayoutMode") == "IconOnly", f"IconLayoutMode={config.get('IconLayoutMode')}"
+
+
+@pytest.mark.parametrize("sandbox_seed", ["disabled-program-source"], indirect=True)
+def test_program_picker_degrades_to_builtin_when_plugin_disabled(app):
+    """
+    停用内置程序来源插件：程序选择器降级为只剩内置来源（plugins.md §1 第 4 条）。
+
+    同一探针在停用态不可见，而内置来源条目仍在——降级不是"选择器坏了"。
+    """
+    win, _local_app_data = app
+    plant_probe_program()
+    try:
+        picker = open_program_picker(win)
+        try:
+            programs = wait_program_picker_listed(picker)
+            # 内置来源仍在：按内置条目过滤后列表非空（降级不是"选择器坏了"）。
+            filter_program_picker(picker, "Notepad")
+            wait_until(
+                lambda: list_item_texts(programs) != [],
+                description="内置来源条目（记事本）在选择器里可见",
+            )
+            # 插件来源缺席：按探针名过滤后列表为空（只剩内置来源）。
+            filter_program_picker(picker, PROBE_PROGRAM_NAME)
+            wait_until(
+                lambda: list_item_texts(programs) == [],
+                description="停用后插件来源缺席（过滤探针名后列表为空，只剩内置来源）",
+            )
+        finally:
+            picker.child_window(auto_id="CancelButton", control_type="Button").invoke()
+            wait_dialog_closed(picker)
+    finally:
+        remove_probe_program()
+

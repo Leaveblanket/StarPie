@@ -262,12 +262,14 @@ namespace StarPie.ViewModels.Pages
             }
         }
 
-        /// <summary>新方案写入运行态配置并进入展示列表；返回其包装项。</summary>
+        /// <summary>新方案写入运行态配置并进入展示列表，随即请求立即落盘；返回其包装项。</summary>
         public ProfileItemViewModel AddProfile(WheelProfile profile)
         {
             var item = new ProfileItemViewModel(profile);
             _sourceProfiles.Add(profile);
             Profiles.Add(item);
+            // 与重命名/删除同一条落盘语义：新增是配置改动，必须写穿磁盘（自动保存语义）。
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
             return item;
         }
 

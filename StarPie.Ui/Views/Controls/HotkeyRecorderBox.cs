@@ -77,6 +77,10 @@ namespace StarPie.Views.Controls
             Cursor = Cursors.Hand;
         }
 
+        /// <summary>发布自动化对等体：无对等体的自定义控件在 UIA 树中不可见（无障碍与 e2e 均无法定位）。</summary>
+        protected override System.Windows.Automation.Peers.AutomationPeer OnCreateAutomationPeer()
+            => new HotkeyRecorderBoxAutomationPeer(this);
+
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();

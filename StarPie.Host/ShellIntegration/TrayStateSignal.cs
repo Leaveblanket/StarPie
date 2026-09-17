@@ -7,8 +7,7 @@ namespace StarPie.ShellIntegration
     /// 主框架可见性 → 托盘状态信号的纯决策：动作序列即语义——
     /// 进托盘按固定顺序 FlushPendingSave → 导航视图出账 → 发 MinimizedToTrayMessage
     /// （订阅方同步出账）→ CollectGarbage 后台执行（出账先于 GC）；恢复按最后导航槽位
-    /// 重放导航重建视图后发 RestoredFromTrayMessage；退出态两者都不发；
-    /// 后台静默形态（--background，e2e）出账动作禁用、消息照发。
+    /// 重放导航重建视图后发 RestoredFromTrayMessage；退出态两者都不发。
     /// </summary>
     public enum TraySignalStep
     {
@@ -38,7 +37,7 @@ namespace StarPie.ShellIntegration
         /// 输入是**控制台开/关**而不是窗口可见性：设置台是瞬态窗口，新建窗口首次 <c>Show()</c>
         /// 同样产生可见性变化，按可见性判读会把"首次打开"误判成"从托盘恢复"。
         /// </remarks>
-        public static IReadOnlyList<TraySignalStep> Resolve(TrayStateChange change, bool isExiting, bool background)
+        public static IReadOnlyList<TraySignalStep> Resolve(TrayStateChange change, bool isExiting)
         {
             if (isExiting)
             {
@@ -48,15 +47,11 @@ namespace StarPie.ShellIntegration
             if (change == TrayStateChange.ConsoleOpened)
             {
                 // 重开：先按最后导航槽位重放导航重建视图（选中态回灌），再发恢复信号。
-                return background
-                    ? new[] { TraySignalStep.SendRestored }
-                    : new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored };
+                return new[] { TraySignalStep.RestoreNavigation, TraySignalStep.SendRestored };
             }
 
-            // 进托盘：固定顺序；后台形态出账动作（落盘/导航出账/图标缓存/GC）禁用，消息照发。
-            return background
-                ? new[] { TraySignalStep.SendMinimized }
-                : new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.ReleaseIconCaches, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
+            // 进托盘：固定顺序。
+            return new[] { TraySignalStep.FlushPendingSave, TraySignalStep.ReleaseNavigation, TraySignalStep.ReleaseIconCaches, TraySignalStep.SendMinimized, TraySignalStep.CollectGarbage };
         }
     }
 }

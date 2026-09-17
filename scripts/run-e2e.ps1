@@ -1,16 +1,14 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-  StarPie pywinauto e2e 运行器（默认静默后台形态）。
+  StarPie pywinauto e2e 运行器（被测应用以真实可见形态启动）。
 
 .DESCRIPTION
-  默认：被测应用以 --background 启动（屏幕左上角、不可激活、点击穿透、不进任务栏、不启全局钩子，
-  托盘可见），键鼠不被打扰、不移动物理光标、不抢前台；pytest 输出落
+  被测应用以真实可见形态启动：窗口真实呈现、Save 等系统提示框真实弹出并由用例应答、
+  托盘序列真实执行；运行期间请勿操作键鼠（全局钩子在跑）。pytest 输出落
   artifacts/e2e/last-run.log，junitxml 落 artifacts/e2e/last-run.xml，
   运行状态落 artifacts/e2e/status.json。
 
-  -OnScreen   调试用：不加 --background，窗口正常显示（Save 会弹系统提示框，
-              用例内的对话框关闭分支此时生效）。
   -NoBuild    跳过 dotnet build（默认先 build Release）。
   -NoWait     不阻塞：后台启动 pytest 后立即返回（用 -Status 查结果；status.json 记 detached=true）。
   -Status     只查状态/结果，不跑测试；退出码：0=最近一次通过，非 0=最近一次失败，
@@ -18,7 +16,7 @@
 
   解释器：默认用仓库内隔离 venv（.venv，依赖锁定在 tests/requirements.txt）；
   解析顺序为 -Python 显式指定 > .venv > PATH 的 python（回退 PATH 时会警告"解释器未锁定"）。
-  失败截图：静默形态窗口在屏内被 DWM 合成，失败时用 PrintWindow 抓真实内容；
+  失败截图：失败时用 PrintWindow 抓窗口真实内容；
   缺 pillow 时 status.json 的 screenshotAvailable=false + screenshotNote 说明，-Status 可见。
 
   并发保护：同一时间只允许一个 e2e（命名 Mutex），避免两个运行互抢桌面对话框与沙盒。
@@ -26,7 +24,6 @@
 #>
 [CmdletBinding()]
 param(
-    [switch]$OnScreen,
     [switch]$NoBuild,
     [switch]$NoWait,
     [switch]$Status,
@@ -67,7 +64,7 @@ if (-not $Python) {
     }
 }
 
-# 失败截图口径：静默形态窗口在屏内，截图可用；仅 PIL 缺件时标记不可用并写明原因。
+# 失败截图口径：PrintWindow 可抓窗口真实内容；仅 PIL 缺件时标记不可用并写明原因。
 $screenshotAvailable = $true
 $screenshotNote = ''
 & $Python -c "import PIL" 2>$null
@@ -89,7 +86,6 @@ function Write-Status {
         pid        = $script:runnerPid
         exitCode   = $ExitCode
         updatedAt  = (Get-Date).ToString('s')
-        onScreen   = [bool]$OnScreen
         detached   = [bool]$script:isDetached
         screenshotAvailable = $ScreenshotAvailable
         screenshotNote = $ScreenshotNote
@@ -165,8 +161,6 @@ try {
         }
     }
 
-    if ($OnScreen) { $env:STARPIE_E2E_ONSCREEN = '1' } else { $env:STARPIE_E2E_ONSCREEN = '0' }
-
     $pytestArgs = @(
         '-m', 'pytest', '-v',
         (Join-Path $repoRoot $TestPath),
@@ -178,7 +172,6 @@ try {
         # 若直接 Start-Process pytest，外层 finally 会先释放 Mutex，-NoWait 的并发保护就失效了。
         $innerArgs = @('-NoProfile', '-File', $PSCommandPath)
         if ($NoBuild) { $innerArgs += '-NoBuild' }
-        if ($OnScreen) { $innerArgs += '-OnScreen' }
         $innerArgs += @('-TestPath', $TestPath)
         $innerArgs += @('-Python', $Python)
         # 外层此刻仍持有 Mutex：置分离标记让子进程等它退出后接管，避免抢跑失败（静默不跑）。

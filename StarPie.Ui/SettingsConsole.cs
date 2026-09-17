@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Localization;
 using StarPie.Services;
@@ -36,7 +34,6 @@ namespace StarPie
         private readonly NavigationSuspension _navigationSuspension;
         private readonly IMessenger _messenger;
         private readonly Window _anchor;
-        private readonly bool _background;
         // 退出态探针：退出态归常驻壳层（设置台只是被关闭；Shutdown 触发的关窗不得走托盘态出账序列）。
         private readonly Func<bool> _isExiting;
         private MainView? _view;
@@ -56,7 +53,6 @@ namespace StarPie
             NavigationSuspension navigationSuspension,
             IMessenger messenger,
             Window anchor,
-            bool background,
             ConsolePageSession pageSession,
             Func<bool> isExiting)
         {
@@ -70,13 +66,12 @@ namespace StarPie
             _navigationSuspension = navigationSuspension;
             _messenger = messenger;
             _anchor = anchor;
-            _background = background;
             _pageSession = pageSession;
             _isExiting = isExiting ?? throw new ArgumentNullException(nameof(isExiting));
         }
 
         /// <summary>
-        /// 创建并显示设置台：建窗 → 静默形态（如启用）→ 托盘状态信号接线 → 初始主题 →
+        /// 创建并显示设置台：建窗 → 托盘状态信号接线 → 初始主题 →
         /// 对话框 Owner 绑定 → 主窗口属性指向本窗口 → 显示并激活。
         /// </summary>
         public void Show()
@@ -120,10 +115,6 @@ namespace StarPie
                 _main ?? throw new InvalidOperationException("设置台已释放，不能再开窗"),
                 _shell ?? throw new InvalidOperationException("设置台已释放，不能再开窗"),
                 _themeService);
-            if (_background)
-            {
-                ConfigureBackgroundWindow(view);
-            }
 
             // 关窗即租户生命期结束：任何关窗路径（关闭按钮、Alt+F4、WM_CLOSE、进程退出）都收敛到 Closed，
             // 在此完成窗口收尾与 VM 树释放——否则壳层持有的设置台引用会停在已关闭窗口上，
@@ -150,13 +141,13 @@ namespace StarPie
 
         /// <summary>
         /// 托盘状态信号：设置台开/关 → 有序动作（关闭走 Flush → 导航出账 → 图标缓存出账 →
-        /// Minimized 消息 → GC；重开按最后导航槽位重放导航；退出态不发；后台形态出账禁用、消息照发）。
+        /// Minimized 消息 → GC；重开按最后导航槽位重放导航；退出态不发）。
         /// 输入是控制台开/关而非窗口可见性：设置台是瞬态窗口，新建窗口首次 Show() 也产生可见性变化，
         /// 按可见性判读会把"首次打开"误判成"从托盘恢复"。
         /// </summary>
         private void RunTraySequence(TrayStateChange change)
         {
-            foreach (TraySignalStep step in TrayStateSignal.Resolve(change, _isExiting(), _background))
+            foreach (TraySignalStep step in TrayStateSignal.Resolve(change, _isExiting()))
             {
                 switch (step)
                 {
@@ -209,7 +200,7 @@ namespace StarPie
             _dialogs.SetOwner(null);
 
             // 关闭序列先于窗口收尾与会话释放执行：落盘冲刷与导航出账都要求会话内页面 VM 还在
-            //（顺序即语义，见 TrayStateSignal）；退出态与后台静默形态不走出账动作，此处兜底出账，
+            //（顺序即语义，见 TrayStateSignal）；退出态不走出账动作，此处兜底出账，
             // 否则导航状态会滞留已随会话释放的页面 VM，重开时"同类型已停驻"短路会让页面渲染已释放实例。
             RunTraySequence(TrayStateChange.ConsoleClosed);
             _navigationSuspension.Release();
@@ -239,65 +230,5 @@ namespace StarPie
             // 结束会话作用域：会话内的页面 VM 与设置子 VM 随作用域释放（成对退订在此执行）。
             _pageSession.End();
         }
-
-        // ==== 后台/静默模式（--background，e2e 用）====
-
-        /// <summary>静默形态主窗口定位：屏幕左上角（窗口真实可见、被 DWM 合成，失败截图可抓真实内容）。</summary>
-        private const int SilentWindowLeft = 0;
-        private const int SilentWindowTop = 0;
-        /// <summary>静默形态界面缩放：0.9 线性 → 窗口 954×648；再小正文会掉到 9px 以下、截图不可读。</summary>
-        private const double SilentWindowScale = 0.9;
-        private const int GwlExStyle = -20;
-        private const int WsExNoActivate = 0x08000000;
-        private const int WsExTransparent = 0x00000020;
-        private const int WmNcHitTest = 0x0084;
-        private const int HtTransparent = -1;
-
-        /// <summary>
-        /// 把设置台窗口切成"静默形态"：屏幕左上角定位、不可激活（WS_EX_NOACTIVATE）、
-        /// 点击穿透（WS_EX_TRANSPARENT + WM_NCHITTEST→HTTRANSPARENT，用户点击落到下层窗口）、
-        /// 不进任务栏。语义只影响窗口呈现/激活/命中测试，不影响导航/配置/渲染，UIA 仍可完整驱动。
-        /// </summary>
-        private static void ConfigureBackgroundWindow(MainView view)
-        {
-            view.ShowActivated = false;
-            view.ShowInTaskbar = false;
-            view.WindowStartupLocation = WindowStartupLocation.Manual;
-            view.ApplyLayoutScale(SilentWindowScale);
-            view.Left = SilentWindowLeft;
-            view.Top = SilentWindowTop;
-
-            // HWND 在 Show 时创建：SourceInitialized 早于窗口出现在屏幕上，此刻挂扩展样式最稳。
-            view.SourceInitialized += (_, _) =>
-            {
-                IntPtr hwnd = new WindowInteropHelper(view).Handle;
-                if (hwnd == IntPtr.Zero)
-                {
-                    return;
-                }
-
-                int exStyle = GetWindowLong(hwnd, GwlExStyle);
-                SetWindowLong(hwnd, GwlExStyle, exStyle | WsExNoActivate | WsExTransparent);
-
-                // 命中测试一律 HTTRANSPARENT：鼠标点击穿透到下层窗口（跨进程亦生效），
-                // 配合 WS_EX_NOACTIVATE 让静默形态对用户键鼠完全无感。
-                HwndSource.FromHwnd(hwnd)?.AddHook((IntPtr h, int msg, IntPtr w, IntPtr l, ref bool handled) =>
-                {
-                    if (msg == WmNcHitTest)
-                    {
-                        handled = true;
-                        return new IntPtr(HtTransparent);
-                    }
-
-                    return IntPtr.Zero;
-                });
-            };
-        }
-
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongW")]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
-
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongW")]
-        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
     }
 }

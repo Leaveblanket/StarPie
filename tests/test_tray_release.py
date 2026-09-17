@@ -3,21 +3,16 @@
 设置台关闭即销毁（不再是隐藏驻留）→ 常驻壳层继续托盘驻留 → 恢复消息发往常驻壳层，
 壳层重建并显示设置台、按最后导航槽位重放页面：UIA invoke 关闭 + 消息级恢复，
 全程零物理键鼠输入。
-
-该用例以可见形态启动（@pytest.mark.onscreen）：后台静默形态下出账动作禁用
-（TrayVisibilitySignal 门控），恢复重放为 no-op，覆盖不到"出账 → 重建"路径。
 出账置空/重放命中/lastSlot 为空/幂等/插件页 VM 回收由 NavigationSuspensionTests 锁；
 窗口生命周期不变量（全局窗口集合只剩锚窗口、主窗口属性指向锚窗口）由
 ResidentShellLifetimeTests 锁。
 """
 
 import win32gui
-import pytest
 
 from conftest import Desktop, find_main_window, goto, wait_until
 
 
-@pytest.mark.onscreen
 def test_tray_release_rebuilds_page(app):
     """关闭设置台触发导航出账，恢复后按最后导航槽位重建新设置台且选中态保持。"""
     win, _ = app

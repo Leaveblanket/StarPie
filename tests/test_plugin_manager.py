@@ -6,7 +6,7 @@ import re
 import time
 
 import pytest
-from conftest import assert_text_contains, goto, text_of, wait_until
+from conftest import assert_text_contains, click_and_confirm_yes, goto, text_of, wait_until
 
 PLUGIN_ID = "starpie.builtin.program-source"
 PLUGIN_STATUS = f"PluginManagerStatus_{PLUGIN_ID}"
@@ -196,7 +196,7 @@ def test_plugin_manager_update_ui_plugin_pending_restart(app):
 
 @pytest.mark.parametrize("sandbox_seed", ["developer-user-plugin"], indirect=True)
 def test_plugin_manager_uninstall_removes_user_plugin(app):
-    """彻底移除用户目录插件：后台形态确认按「是」应答，包与宿主状态离场，内置插件不受波及。"""
+    """彻底移除用户目录插件：真实确认框按「是」应答，包与宿主状态离场，内置插件不受波及。"""
     win, local_app_data = app
     user_package_dir = os.path.join(str(local_app_data), "StarPie", "plugins", USER_PLUGIN_ID)
     goto(win, 4)
@@ -204,7 +204,7 @@ def test_plugin_manager_uninstall_removes_user_plugin(app):
     # 预置为停用：未装载的包没有进程内文件锁，四类产物（包/配置/数据/状态）可全量断言清理。
     assert_text_contains(win, f"PluginManagerStatus_{USER_PLUGIN_ID}", "Text", "已停用")
 
-    win.child_window(auto_id=f"PluginManagerUninstall_{USER_PLUGIN_ID}", control_type="Button").invoke()
+    click_and_confirm_yes(win, f"PluginManagerUninstall_{USER_PLUGIN_ID}")
 
     _wait_absent(win, f"PluginManagerName_{USER_PLUGIN_ID}", "Text")
     _read_plugin_state(local_app_data, lambda state: USER_PLUGIN_ID not in state["Plugins"])

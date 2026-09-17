@@ -36,7 +36,6 @@ namespace StarPie
     {
         private readonly IMessenger _messenger;
         private readonly MouseHook _mouseHook;
-        private readonly DialogService _dialogService;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
         // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型。
@@ -55,9 +54,6 @@ namespace StarPie
         private readonly Func<Window, Func<bool>, SettingsConsole> _createSettingsConsole;
         // 导航视图出账与恢复重放（设置台关闭时出账、重开时按最后导航槽位重放；幂等）。
         private readonly NavigationSuspension _navigationSuspension;
-        // 后台/静默模式（--background，e2e 用）：窗口固定在屏幕左上角 + 不可激活 + 点击穿透 +
-        // 无任务栏项，且不启全局鼠标钩子——用户同机工作时键鼠不受打扰，窗口仍真实可见可截图。
-        private readonly bool _background;
         // 测试实例（命令行 --allow-multiple/--test-instance）：受理测试实例退出消息，
         // 使 e2e 能以真实退出路径收尾——硬杀不执行用户态收尾，托盘图标会以死条目留在通知区。
         private readonly bool _testInstance;
@@ -75,7 +71,6 @@ namespace StarPie
         public ShellHost(
             IMessenger messenger,
             MouseHook mouseHook,
-            DialogService dialogService,
             ThemeService themeService,
             ILocalizationService localization,
             IWheelFactory wheelFactory,
@@ -86,12 +81,10 @@ namespace StarPie
             PluginUiCoordinator pluginUi,
             NavigationSuspension navigationSuspension,
             Func<Window, Func<bool>, SettingsConsole> createSettingsConsole,
-            bool background = false,
             bool testInstance = false)
         {
             _messenger = messenger;
             _mouseHook = mouseHook;
-            _dialogService = dialogService;
             _themeService = themeService;
             _localization = localization;
             _wheelFactory = wheelFactory;
@@ -102,7 +95,6 @@ namespace StarPie
             _pluginUi = pluginUi;
             _navigationSuspension = navigationSuspension;
             _createSettingsConsole = createSettingsConsole;
-            _background = background;
             _testInstance = testInstance;
 
             // 锚窗口在任何其它窗口之前实例化并占住 Application.MainWindow：
@@ -119,9 +111,6 @@ namespace StarPie
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
             _hostDelegates.RestartElevated = RestartElevated;
-
-            // 后台模式回填到对话框服务：提示框不呈现、确认框取"是"（见 DialogService）。
-            _dialogService.SetBackgroundMode(background);
         }
 
         /// <summary>当前设置台租户（未打开时为 null）——仅诊断与测试口径。</summary>
@@ -174,12 +163,7 @@ namespace StarPie
         /// <summary>UI 线程上的启动编排：钩子、语言字典、托盘、设置台与初始导航。</summary>
         private void StartCore()
         {
-            // 后台模式不启全局鼠标钩子：钩子属产品交互，e2e 不覆盖它，
-            // 却可能在用户操作鼠标时把轮盘弹到屏幕上。
-            if (!_background)
-            {
-                _mouseHook.Start();
-            }
+            _mouseHook.Start();
 
             // 语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。
             // 订阅与首次应用先于任何页面创建（语言切换经服务事件同步重建，换入不累积）。
@@ -201,7 +185,7 @@ namespace StarPie
             _themeService.EnableSystemThemeTracking();
 
             // 托盘深色配色由壳层以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
-            // 静默形态也建托盘：通知区入口保留（人工观察/退出），不影响测试侧驱动。
+            // 通知区入口保留（人工观察/退出）；e2e 经托盘消息窗口投递恢复与测试实例退出消息。
             _trayIcon = new TrayIconManager(
                 windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
                 onDoubleClick: () => NavigateAndShow(NavigationSlot.Trigger),
@@ -412,14 +396,14 @@ namespace StarPie
             };
 
             string pauseText = _mouseHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
-            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures));
+            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures, "TrayMenuPause"));
             // 托盘直达项经目录槽位导航（触发/外观/手势）。
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance)));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures)));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger), "TrayMenuPreferences"));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance), "TrayMenuAppearance"));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayGestures"), () => NavigateAndShow(NavigationSlot.Gestures), "TrayMenuGestures"));
             entries.Add(TrayMenuEntry.Separator());
             AddAdminRestartEntry(entries);
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication, "TrayMenuExit"));
 
             // 插件菜单项追加在内置条目之后；无插件菜单项时不追加分隔线（降级不留空壳）。
             return TrayMenuComposer.Compose(entries, _pluginUi, _localization).ToList();
@@ -443,7 +427,8 @@ namespace StarPie
             entries.Add(TrayMenuEntry.Item(
                 _localization.GetString(enabled ? "AdminRestartNow" : "AdminRestartNowUnavailable"),
                 RestartElevated,
-                enabled));
+                enabled,
+                "TrayMenuAdminRestart"));
         }
 
         /// <summary>

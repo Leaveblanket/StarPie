@@ -2,32 +2,24 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
+import threading
 import time
 import warnings
+import winreg
 from ctypes import COMError
 
 import pytest
+import win32api
 import win32gui
 import win32process
 import win32ui
 from pywinauto import Application, Desktop
 from pywinauto.findwindows import ElementNotFoundError
 
-# -OnScreen 调试形态（窗口可见、Save 的系统提示框真实弹出）。
-# 默认（静默形态）被测应用在屏幕左上角且提示框不呈现（ADR-0031/0032），e2e 不应等待任何弹窗。
-ONSCREEN = os.environ.get("STARPIE_E2E_ONSCREEN") == "1"
-
-
-def pytest_configure(config):
-    """注册用例标记：@pytest.mark.onscreen 单用例可见形态（出账重放等后台形态覆盖不到的系统行为）。"""
-    config.addinivalue_line(
-        "markers",
-        "onscreen: 用例以可见形态启动被测应用（非 --background）",
-    )
-
-# 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。静默形态窗口固定在屏幕左上角、
-# 被 DWM 合成，PrintWindow 能抓到真实内容；缺 PIL 时显式告警并把原因写进运行 header。
+# 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。应用以真实可见形态运行，
+# PrintWindow 抓到的即当前真实画面；缺 PIL 时显式告警并把原因写进运行 header。
 try:
     import PIL  # noqa: F401
 
@@ -66,20 +58,99 @@ def pytest_report_header(config):
     return f"失败截图不可用：{reason}" if reason else None
 
 
-def dismiss_messagebox(timeout: float = 3.0) -> None:
-    """关闭 Save 触发的系统提示框（#32770）。
+def _messagebox_hwnd(pid: int) -> int:
+    """被测进程当前可见的系统对话框（#32770）HWND；不存在时为 0。"""
+    for row in _process_windows(pid):
+        if row["class"] == "#32770" and row["visible"]:
+            return row["hwnd"]
+    return 0
 
-    仅 -OnScreen 调试形态会有提示框；静默后台形态下 DialogService 直接不呈现，
-    立即返回，避免每个用例白等 timeout（ADR-0031）。
+
+def answer_messagebox(pid: int, button_id: str = "1", timeout: float = 10.0) -> None:
+    """等待被测进程弹出的系统对话框并按按钮 ID 应答（1=确定、6=是、7=否；与界面语言无关）。
+
+    真实形态下 Save 成功提示与插件卸载确认都是模态 MessageBox：它阻塞产品 UI 线程，
+    不做真实应答会让后续 UIA 调用与退出编排一起挂住。
     """
-    if not ONSCREEN:
-        return
+    deadline = time.time() + timeout
+    dialog = None
+    while True:
+        hwnd = _messagebox_hwnd(pid)
+        if hwnd:
+            dialog = Desktop(backend="uia").window(handle=hwnd)
+            break
+        if time.time() >= deadline:
+            raise AssertionError(f"等待系统对话框超时（{timeout}s，pid={pid}）")
+        time.sleep(0.1)
+
+    # 系统 MessageBox 的按钮 AutomationId 即 Win32 控件 ID（1/2/6/7），与界面语言无关；
+    # 个别风格不暴露 ID 时回退第一个按钮（YesNo 的默认按钮在首位）。
+    button = dialog.child_window(auto_id=button_id, control_type="Button")
+    if not button.exists(timeout=1.0):
+        button = dialog.child_window(control_type="Button", found_index=0)
+    button.invoke()
+    wait_dialog_closed(dialog)
+
+
+def dismiss_residual_messagebox(pid: int) -> None:
+    """收尾兜底：被测进程仍有系统对话框挂着时按第一个按钮应答（尽力而为，不抛错）。
+
+    漏应答的模态框会挡住退出编排（Dispatcher 回调排队但无人处理），使收尾回落硬杀、
+    在 shell 通知区留下幽灵托盘图标。
+    """
     try:
-        dialog = Desktop(backend="uia").window(class_name="#32770")
-        if dialog.exists(timeout=timeout):
-            dialog.child_window(control_type="Button").invoke()
+        hwnd = _messagebox_hwnd(pid)
+        if not hwnd:
+            return
+        dialog = Desktop(backend="uia").window(handle=hwnd)
+        button = dialog.child_window(control_type="Button", found_index=0)
+        if button.exists(timeout=1.0):
+            button.invoke()
     except Exception:
         pass
+
+
+def click_and_answer(
+    win,
+    auto_id: str,
+    button_id: str = "1",
+    control_type: str = "Button",
+    timeout: float = 15.0,
+) -> None:
+    """点击会弹系统对话框的控件，并在弹框出现时按 button_id 应答。
+
+    应答线程先就位再 invoke：invoke 自身也可能被模态框挡在目标进程侧（UIA 跨进程调用要等
+    目标处理完），两条阻塞链各自推进、不互相等待。
+    """
+    pid = win.process_id()
+    outcome: dict = {}
+    done = threading.Event()
+
+    def _respond():
+        try:
+            answer_messagebox(pid, button_id, timeout)
+        except Exception as ex:
+            outcome["error"] = ex
+        finally:
+            done.set()
+
+    worker = threading.Thread(target=_respond, daemon=True, name="e2e-messagebox")
+    worker.start()
+    win.child_window(auto_id=auto_id, control_type=control_type).invoke()
+    assert done.wait(timeout + 5.0), f"等待对话框应答线程超时：{auto_id}"
+    worker.join(timeout=1.0)
+    if "error" in outcome:
+        raise AssertionError(f"应答 {auto_id} 触发的系统对话框失败：{outcome['error']}") from None
+
+
+def save_settings(win) -> None:
+    """点 Save 并按掉真实成功提示框（模态 MessageBox）。"""
+    click_and_answer(win, "SaveButton", button_id="1")
+
+
+def click_and_confirm_yes(win, auto_id: str, control_type: str = "Button") -> None:
+    """点击会弹确认框的控件并按「是」应答（破坏性动作的真实确认路径）。"""
+    click_and_answer(win, auto_id, button_id="6", control_type=control_type)
 
 
 def _process_windows(pid: int) -> list:
@@ -154,7 +225,7 @@ def find_main_window(pid: int, timeout: float = 15.0) -> int:
 def capture_window_image(hwnd: int):
     """PrintWindow(PW_RENDERFULLCONTENT) 抓窗口位图，返回 PIL Image；取不到内容时返回 None。
 
-    静默形态窗口在屏幕内，本函数抓到的即当前真实画面。
+    抓到的即窗口当前真实画面（真实可见形态下与用户所见一致）。
     """
     left, top, right, bottom = win32gui.GetWindowRect(hwnd)
     width, height = right - left, bottom - top
@@ -373,8 +444,8 @@ def select_option(
 def wait_dialog(title: str, timeout: float = 10.0):
     """等待并返回指定标题的顶层对话框（win32 按 HWND 查找 + UIA 包装为 WindowSpecification）。
 
-    后台形态下对话框离屏且为 owned 窗口，pywinauto 的进程/桌面枚举不一定包含它，
-    但 win32 枚举可见；拿到 HWND 后经 handle 绑定，child_window/invoke 与常规 WindowSpecification 一致。
+    产品对话框是 owned 窗口，pywinauto 的进程/桌面枚举不一定包含它，但 win32 枚举可见；
+    拿到 HWND 后经 handle 绑定，child_window/invoke 与常规 WindowSpecification 一致。
     """
     deadline = time.time() + timeout
     while True:
@@ -428,6 +499,122 @@ def find_app_path() -> str:
 TRAY_WINDOW_TITLE = "StarPieTrayWindow"
 TEST_INSTANCE_EXIT_MESSAGE = "StarPie_TestInstance_Exit"
 
+# 托盘菜单窗口标题与托盘回调消息（产品侧见 StarPie.Ui/Services/Shell/TrayIconManager.cs）：
+# 菜单每次打开新建窗口，用例按标题定位；回调消息经 PostMessage 投递即等价于右键点托盘图标。
+TRAY_MENU_WINDOW_TITLE = "StarPieTrayMenu"
+TRAY_CALLBACK_MESSAGE = 0x8001  # WM_APP + 1
+WM_RBUTTONUP = 0x0205
+WM_LBUTTONDBLCLK = 0x0203
+
+# 轮盘窗口标题（产品侧 StarPie.Ui/Views/Wheel/RadialWindow.xaml）：每次手势一个实例，关闭即销毁。
+WHEEL_WINDOW_TITLE = "RadialWindow"
+
+# 程序选择器/动作执行用例共用的探针程序：HKCU App Paths 注册的"记事本副本"——
+# 只有插件的深扫来源（注册表 App Paths）会发现它，启用/停用两态由此可观察；
+# 副本本身又是 Launch 动作的落地目标（动作执行证据只看进程，不看界面）。
+PROBE_PROGRAM_NAME = "starpie-e2e-probe"
+APP_PATHS_KEY = r"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths"
+PROBE_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def plant_probe_executable() -> str:
+    """在仓库 artifacts 落一份 cmd.exe 副本（不写注册表），返回 exe 路径。
+
+    副本要能被 Launch 动作真的启动并作为独立进程存活（动作执行证据按镜像路径判定）：
+    Win11 的 notepad.exe 是应用包入口（副本起不来自己的进程），cmd.exe 副本可稳定启动。
+    """
+    probe_dir = os.path.join(PROBE_PROJECT_ROOT, "artifacts", "e2e", "probe")
+    os.makedirs(probe_dir, exist_ok=True)
+    probe_exe = os.path.join(probe_dir, f"{PROBE_PROGRAM_NAME}.exe")
+    system_root = os.environ.get("SystemRoot", r"C:\Windows")
+    shutil.copyfile(os.path.join(system_root, "System32", "cmd.exe"), probe_exe)
+    return probe_exe
+
+
+def plant_probe_program() -> str:
+    """注册一个只由插件深扫来源（App Paths）发现的程序，返回探针 exe 路径。"""
+    probe_exe = plant_probe_executable()
+    with winreg.CreateKey(
+        winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe"
+    ) as key:
+        winreg.SetValueEx(key, "", 0, winreg.REG_SZ, probe_exe)
+    return probe_exe
+
+
+def remove_probe_program() -> None:
+    """撤销探针注册（用例结束必调，避免污染真实用户注册表）。"""
+    try:
+        winreg.DeleteKey(winreg.HKEY_CURRENT_USER, f"{APP_PATHS_KEY}\\{PROBE_PROGRAM_NAME}.exe")
+    except FileNotFoundError:
+        pass
+
+
+@pytest.fixture(scope="function")
+def probe_program():
+    """预置 App Paths 探针程序；用例结束撤销注册（真实注册表的副作用必须收口）。"""
+    path = plant_probe_program()
+    try:
+        yield path
+    finally:
+        remove_probe_program()
+
+
+def find_wheel_window(pid: int) -> int:
+    """被测进程当前的轮盘窗口 HWND；不存在时为 0（关闭即销毁，不跨手势复用）。"""
+    for row in _process_windows(pid):
+        if row["visible"] and row["title"] == WHEEL_WINDOW_TITLE:
+            return row["hwnd"]
+    return 0
+
+
+def find_process_by_executable(exe_path: str) -> list:
+    """按可执行文件全路径查进程 pid 列表（Launch 动作"真的起了进程"的落地证据）。
+
+    逐进程取镜像路径需要查询权限：打不开/受保护进程跳过（不静默吞掉目标进程——
+    目标是我们自己启动的普通进程，查询一定成功）。
+    """
+    target = os.path.normcase(os.path.abspath(exe_path))
+    found = []
+    for pid in win32process.EnumProcesses():
+        if pid <= 4:
+            continue
+        handle = None
+        try:
+            handle = win32api.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+            image = win32process.GetModuleFileNameEx(handle, 0)
+        except Exception:
+            continue
+        finally:
+            if handle:
+                win32api.CloseHandle(handle)
+        if image and os.path.normcase(os.path.abspath(image)) == target:
+            found.append(pid)
+    return found
+
+
+def wait_process_started(exe_path: str, timeout: float = 10.0) -> list:
+    """轮询等待目标 exe 的进程出现，返回其 pid 列表；超时抛断言。"""
+    deadline = time.time() + timeout
+    while True:
+        pids = find_process_by_executable(exe_path)
+        if pids:
+            return pids
+        if time.time() >= deadline:
+            raise AssertionError(f"等待进程启动超时（{timeout}s）：{exe_path}")
+        time.sleep(0.2)
+
+
+def kill_processes(pids) -> None:
+    """杀掉用例自己拉起的探针进程（不留后台残留）。"""
+    for pid in pids or []:
+        try:
+            handle = win32api.OpenProcess(0x0001, False, pid)  # PROCESS_TERMINATE
+            if handle:
+                win32process.TerminateProcess(handle, 0)
+                win32api.CloseHandle(handle)
+        except Exception:
+            pass
+
 
 def find_tray_window(pid: int) -> int:
     """被测进程的常驻托盘消息窗口 HWND；不存在时为 0。
@@ -439,6 +626,24 @@ def find_tray_window(pid: int) -> int:
     if hwnd and win32process.GetWindowThreadProcessId(hwnd)[1] == pid:
         return hwnd
     return 0
+
+
+def exit_via_test_message(pid: int, timeout: float = 15.0) -> None:
+    """向常驻托盘窗口投递测试实例退出消息并等进程退出（真实退出编排的入口）。
+
+    与 shutdown_app 的差别：只持有 pid、不持有 Popen 句柄，供用例在 fixture 之外
+    驱动退出（如"退出时兜底落盘"类断言要在进程消失后读盘）。
+    """
+    tray = find_tray_window(pid)
+    assert tray, f"常驻托盘消息窗口必须存在（标题 {TRAY_WINDOW_TITLE}）"
+    message = win32gui.RegisterWindowMessage(TEST_INSTANCE_EXIT_MESSAGE)
+    win32gui.PostMessage(tray, message, 0, 0)
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if pid not in win32process.EnumProcesses():
+            return
+        time.sleep(0.1)
+    raise AssertionError(f"退出消息未被受理：{timeout}s 内进程未退出（pid={pid}）")
 
 
 def shutdown_app(proc, timeout: float = 15.0) -> bool:
@@ -513,18 +718,87 @@ def _seed_plugin_state(local_app_data, plugins, developer_mode=False):
     )
 
 
+def write_sandbox_config(local_app_data, config: dict) -> str:
+    """把一份 config.json 预置进沙箱（应用启动前写入即"上次运行留下的配置"）。
+
+    宽松反序列化下缺失键取模型默认值，故只需写本次用例关心的键。
+    """
+    state_dir = local_app_data / "StarPie"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    path = state_dir / "config.json"
+    path.write_text(json.dumps(config, ensure_ascii=False, indent=2), encoding="utf-8")
+    return str(path)
+
+
+def seed_gesture_config(local_app_data, probe_exe: str) -> None:
+    """手势链路用例的配置：Global 4 扇区，仅扇区 0（正右）是探针 exe 的 Launch 动作，
+    其余扇区为空动作（空 Type 在松开时按取消处理，不会误触发别的动作）。"""
+    write_sandbox_config(
+        local_app_data,
+        {
+            "Language": "zh-CN",
+            "DragThreshold": 25,
+            "EnableOuterEscapeCancel": True,
+            "OuterEscapeDistance": 186,
+            "BlacklistedProcesses": [],
+            "Profiles": [
+                {
+                    "ProcessName": "Global",
+                    "SectorCount": 4,
+                    "Actions": [
+                        {
+                            "Type": "Launch",
+                            "Name": "e2e 探针",
+                            "Parameter": probe_exe,
+                            # 保活参数：探针进程要活到用例观察到它（收尾由用例杀进程）。
+                            "Arguments": "/c ping -n 15 127.0.0.1",
+                            "IconKey": "Code",
+                        },
+                        {"Type": "", "Name": "", "Parameter": "", "IconKey": ""},
+                        {"Type": "", "Name": "", "Parameter": "", "IconKey": ""},
+                        {"Type": "", "Name": "", "Parameter": "", "IconKey": ""},
+                    ],
+                }
+            ],
+        },
+    )
+
+
 @pytest.fixture(scope="function")
 def sandbox_seed(request, sandbox_env):
     """
     沙箱预置钩子：在应用启动前向沙箱写入文件，默认不写任何东西。
 
     用例经 `@pytest.mark.parametrize("sandbox_seed", [...], indirect=True)` 取用某个预置形态，
-    只影响该用例的启动环境（如"停用内置程序来源插件"的宿主状态）。
+    只影响该用例的启动环境（如"停用内置程序来源插件"的宿主状态、预置 config.json）。
     """
     env, local_app_data = sandbox_env
     mode = getattr(request, "param", None)
     if mode == "disabled-program-source":
         _seed_plugin_state(local_app_data, {"starpie.builtin.program-source": {"Enabled": False}})
+    elif mode == "gesture-probe":
+        # 手势链路用例：探针 exe 作 Launch 目标（只落文件，不写注册表）。
+        seed_gesture_config(local_app_data, plant_probe_executable())
+    elif mode == "corrupt-config":
+        # 损坏配置的降级路径：文件保留损坏内容，应用须照常可用（回退默认，不触碰文件）。
+        state_dir = local_app_data / "StarPie"
+        state_dir.mkdir(parents=True, exist_ok=True)
+        (state_dir / "config.json").write_text("{ 这不是合法 JSON ", encoding="utf-8")
+    elif mode == "partial-config":
+        # 旧配置缺键：宽松反序列化下缺失键取模型默认值（只写关心的两键）。
+        write_sandbox_config(local_app_data, {"Language": "zh-CN", "DragThreshold": 33})
+    elif mode == "broken-user-plugin":
+        # 开发者模式 + 清单损坏的用户包：发现阶段拒绝它，但不得影响启动与其它插件。
+        _seed_plugin_state(local_app_data, {}, developer_mode=True)
+        package_dir = local_app_data / "StarPie" / "plugins" / "e2e.broken.probe"
+        package_dir.mkdir(parents=True)
+        (package_dir / "plugin.json").write_text("{ 坏清单 ", encoding="utf-8")
+    elif mode == "readonly-config":
+        # 只读配置：合法内容可读可加载，落盘失败不得让应用崩溃或卡死。
+        config_path = write_sandbox_config(
+            local_app_data, {"Language": "zh-CN", "DragThreshold": 30}
+        )
+        os.chmod(config_path, stat.S_IREAD)
     elif mode == "disabled-sample-ui":
         _seed_plugin_state(local_app_data, {"starpie.builtin.sample-ui": {"Enabled": False}})
     elif mode == "developer-user-plugin":
@@ -583,6 +857,37 @@ def sandbox_seed(request, sandbox_env):
     return mode
 
 
+def start_app(env, timeout: float = 15.0):
+    """按沙箱环境启动被测应用并绑定主窗口，返回 (proc, win)。
+
+    与 app fixture 走同一条启动/取窗口路径；供"同一沙箱内重启"类用例在用例体里
+    自己管理第二个进程（进程收尾用 stop_app）。
+    """
+    app_path = find_app_path()
+    # 真实可见形态启动（--allow-multiple：绕过单实例闸门、受理测试实例退出消息）：
+    # 窗口真实呈现、对话框真实弹出、托盘序列真实执行；运行期间请勿操作键鼠（全局钩子在跑）。
+    proc = subprocess.Popen([app_path, "--allow-multiple"], env=env)
+
+    # 主窗口按 HWND 绑定（绕开标题正则的多元素歧义）；启动阶段失败也要留窗口 dump 取证，
+    # 而不是只报一句 "Failed to launch or connect"。
+    try:
+        Application(backend="uia").connect(process=proc.pid, timeout=timeout)
+        hwnd = find_main_window(proc.pid, timeout=timeout)
+        win = Desktop(backend="uia").window(handle=hwnd)
+        win.wait("visible", timeout=timeout)
+    except Exception as ex:
+        dump_process_windows(proc.pid, label="应用启动失败取证")
+        shutdown_app(proc, timeout=5.0)
+        pytest.fail(f"Failed to launch or connect to application window: {type(ex).__name__}: {ex}")
+    return proc, win
+
+
+def stop_app(proc, timeout: float = 15.0) -> bool:
+    """用例内自管进程的收尾：漏应答的模态框先按掉，再走真实退出路径（幂等）。"""
+    dismiss_residual_messagebox(proc.pid)
+    return shutdown_app(proc, timeout)
+
+
 @pytest.fixture(scope="function")
 def app(sandbox_env, sandbox_seed, request):
     env, local_app_data = sandbox_env
@@ -590,32 +895,11 @@ def app(sandbox_env, sandbox_seed, request):
     if not PIL_AVAILABLE:
         warn_screenshot_unavailable("PIL 未安装")
 
-    app_path = find_app_path()
-        
-    # Start the process with sandboxed environment variables.
-    # 默认静默形态（--background：屏幕左上角 + 不可激活 + 点击穿透 + 不进任务栏，键鼠不被打扰）；
-    # ONSCREEN（STARPIE_E2E_ONSCREEN=1，scripts/run-e2e.ps1 -OnScreen）时窗口正常显示，供调试；
-    # @pytest.mark.onscreen 标记的用例单点以可见形态启动（后台形态出账禁用，覆盖不到出账重放）。
-    flags = ["--allow-multiple"]
-    if not (ONSCREEN or request.node.get_closest_marker("onscreen") is not None):
-        flags.append("--background")
-    proc = subprocess.Popen([app_path, *flags], env=env)
-    
-    # 主窗口按 HWND 绑定（绕开标题正则的多元素歧义）；setup 阶段失败也要留窗口 dump 取证，
-    # 而不是只报一句 "Failed to launch or connect"。
-    try:
-        pw_app = Application(backend="uia").connect(process=proc.pid, timeout=15)
-        hwnd = find_main_window(proc.pid, timeout=15)
-        win = Desktop(backend="uia").window(handle=hwnd)
-        win.wait("visible", timeout=15)
-    except Exception as ex:
-        dump_process_windows(proc.pid, label="fixture setup 失败取证")
-        shutdown_app(proc, timeout=5.0)
-        pytest.fail(f"Failed to launch or connect to application window: {type(ex).__name__}: {ex}")
-        
+    proc, win = start_app(env)
+
     yield win, local_app_data
     
-    # 失败取证：窗口 dump 覆盖 setup/call 两个阶段；截图在静默形态下即可用（窗口屏内被合成）。
+    # 失败取证：窗口 dump 覆盖 setup/call 两个阶段；截图抓窗口当前真实画面。
     failed_phase = next(
         (
             phase
@@ -643,8 +927,9 @@ def app(sandbox_env, sandbox_seed, request):
             except Exception as ex:
                 warn_screenshot_unavailable(f"截图异常：{type(ex).__name__}: {ex}")
             
-    # 收尾走被测应用的真实退出路径（硬杀会在 shell 通知区留下幽灵托盘图标）
-    shutdown_app(proc)
+    # 收尾兜底：漏应答的模态框会挡住退出编排，先按掉再走真实退出路径
+    #（硬杀会在 shell 通知区留下幽灵托盘图标）
+    stop_app(proc)
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
