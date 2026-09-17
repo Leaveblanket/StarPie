@@ -5,7 +5,7 @@ global using StarPie.Services.Actions;
 global using StarPie.Configuration;
 global using StarPie.ShellIntegration;
 global using StarPie.Services.Dialogs;
-global using StarPie.Services.Gestures;
+global using StarPie.Services.Input;
 global using StarPie.Icons;
 global using StarPie.Gestures;
 global using StarPie.Ports;

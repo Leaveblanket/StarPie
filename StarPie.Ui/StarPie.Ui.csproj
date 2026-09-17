@@ -30,6 +30,9 @@
     <!-- Win32 互操作源生成（ADR-0051）：声明清单为 NativeMethods.txt，生成物构建期产生、不入库；
          不加 IncludeAssets，让生成器拿到传递依赖 System.Memory。 -->
     <PackageReference Include="Microsoft.Windows.CsWin32" />
+    <!-- 输入捕获（ADR-0052）：捕获换 SharpHook，抑制决策/回放窗口/看门狗仍在本集自研侧。
+         测试替身包（SharpHook.Testing）不进本集，只进 StarPie.Tests。 -->
+    <PackageReference Include="SharpHook" />
   </ItemGroup>
 
   <ItemGroup>
@@ -60,6 +63,13 @@
        输出目录的 plugins/<清单 id>/（PluginPaths.InstallDirectory 的落点）。 -->
   <Import Project="..\plugins\src\StarPie.Plugin.Programs\Package.targets" />
   <Import Project="..\plugins\src\StarPie.Plugin.SampleUi\Package.targets" />
+
+  <!-- 第三方许可声明随发布物分发（ADR-0052）：SharpHook(MIT) 与随包的 libuiohook(LGPL-3.0)；
+       动态装载形态满足可替换性要求，声明与许可正文一并落到输出目录（publish 形态同此）。 -->
+  <ItemGroup>
+    <None Include="..\THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" Link="THIRD-PARTY-NOTICES.md" />
+    <None Include="..\licenses\**" CopyToOutputDirectory="PreserveNewest" LinkBase="licenses" />
+  </ItemGroup>
 
   <!-- 签名审核清单随宿主分发（PluginPaths.InstallDirectory 的落点）：
        清单文件对由 scripts/sign-review-catalog.ps1 用首方私钥签发，私钥不入仓库。 -->

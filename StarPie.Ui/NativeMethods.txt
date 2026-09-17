@@ -3,16 +3,9 @@
 // 枚举成员随其枚举所属 API 自动带出（如 SYSTEM_METRICS_INDEX.SM_CXSMICON），
 // 独立常量与消息号（WM_*/IDI_*）需显式列出。
 
-// —— 手势钩子（MouseHook.cs）
-SetWindowsHookEx
-UnhookWindowsHookEx
-CallNextHookEx
-MSLLHOOKSTRUCT
-WM_MOUSEMOVE
-WM_RBUTTONDOWN
-WM_RBUTTONUP
+// —— 输入栈看门狗（HookWatchdog/SystemCursor）：光标位移探针
+// 钩子安装/回调/消息与 mouse_event 已随 ADR-0052 交给 SharpHook（含回放注入），不再声明。
 GetCursorPos
-mouse_event
 
 // —— 单实例与测试实例消息（App/TestInstanceExit/SingleInstanceRestore）
 FindWindow

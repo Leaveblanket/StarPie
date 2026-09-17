@@ -1,9 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
+using SharpHook;
 using StarPie.Services.Actions;
 using StarPie.Configuration;
 using StarPie.Services.Dialogs;
-using StarPie.Services.Gestures;
+using StarPie.Services.Input;
 using StarPie.Localization;
 using StarPie.Services.Navigation;
 using StarPie.ViewModels.Pages;
@@ -17,7 +18,7 @@ namespace StarPie.Modules
     /// <see cref="RegisterNavigation"/> 把本模块页面（触发与场景 / 手势与动作）写入
     /// <see cref="NavigationCatalog"/>（槽位/标题键/图标/目标类型），页面 DataTemplate 收进
     /// GesturesPageTemplates.xaml（宿主 App.xaml 经跨程序集 pack URI 每模块一次静态合并）。
-    /// <see cref="RegisterServices"/> 把本模块手势管线服务、页面 VM 与只读预览契约
+    /// <see cref="RegisterServices"/> 把本模块输入栈（捕获/看门狗）、页面 VM 与只读预览契约
     /// <see cref="IProfilePreviewSource"/> 别名的 DI 注册下放本程序集（组合根仍唯一
     /// BuildServiceProvider，本贡献者只注册不解析）。新增页面/动作/触发规则只动本模块内部。
     /// 依赖方向：本模块依赖共享内核契约，仅经 SDK 的
@@ -54,16 +55,17 @@ namespace StarPie.Modules
         /// </summary>
         public void RegisterServices(IServiceCollection services)
         {
-            // 手势管线：钩子适配器构造注入引擎与动作执行器（事件直连，原控制器薄层已并入）。
-            // 钩子健康检查失败后的重注册与松手副作用都须回 UI 线程执行，调度接缝在此注入——
-            // 适配器因此不引用 UI 框架类型（其类型级声明如此）。
+            // 输入栈（ADR-0052）：捕获走 SharpHook 的 SimpleGlobalHook——只有它支持与钩子
+            // 同线程同步设置抑制；抑制决策、回放窗口与看门狗留在本集自研侧。
+            // 钩子独占专用线程，松手副作用经调度接缝回 UI 线程——适配器不引用 UI 框架类型。
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<GestureEngine>();
-            services.AddSingleton(sp => new MouseHook(
-                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
+            services.AddSingleton(sp => new MouseInputHook(
+                new SimpleGlobalHook(),
                 sp.GetRequiredService<GestureEngine>(),
-                sp.GetRequiredService<IActionExecutorService>()));
+                sp.GetRequiredService<IActionExecutorService>(),
+                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback)));
 
             // 页面 VM 的作用域是设置台会话：同一会话内保留实例（切页保状态），会话结束整批释放；
             // 解析只经导航执行缝（ADR-0039 决策 9）。

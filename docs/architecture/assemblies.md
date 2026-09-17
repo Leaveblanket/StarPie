@@ -35,7 +35,7 @@
     - S1 图标资产的 WPF 图像构造(`Services/Icons/IconAssetService`)与 M3 的扫描消费端;
     - M4:`Services/Shell/`(`IThemeService` 实现 `ThemeService`)、`Adapters/`(调色板适配器 `AppThemePaletteManager`)、`Themes/`(五套主题字典)、主题设置子 VM 与 `ThemeContributor`;
     - M2:`Services/Wheel/`(WheelGeometry / WheelFactory)、`ViewModels/Wheel|Pages/`(WheelViewModel / WheelAppearanceSettingsViewModel)、`Views/Wheel|Renderers/`(RadialWindow / 样式渲染器与预览)、`Views/Converters/`(核图标预览转换器)与 `WheelContributor`;
-    - M1:`Services/Gestures/`(MouseHook)、`Services/Actions/`(IActionExecutorService / ActionExecutorService)、`ViewModels/Pages|Gestures/`(BehaviorSettingsViewModel / ProfileListViewModel / SlotViewModel)、`Views/Pages|Controls|Styles|DesignTime/`(触发 + 手势页、热键录制控件与样式字典)与 `GesturesContributor` + `GesturesPageTemplates.xaml`;
+    - M1:`Services/Input/`(MouseInputHook 捕获与抑制 / ReplayWindow 回放窗口 / HookWatchdog 看门狗 / SystemCursor 探针;ADR-0052)、`Services/Actions/`(IActionExecutorService / ActionExecutorService)、`ViewModels/Pages|Gestures/`(BehaviorSettingsViewModel / ProfileListViewModel / SlotViewModel)、`Views/Pages|Controls|Styles|DesignTime/`(触发 + 手势页、热键录制控件与样式字典)与 `GesturesContributor` + `GesturesPageTemplates.xaml`;
     - M5:`Services/Shell/`(TrayIconManager / TrayMenuEntry 与插件菜单合成 `TrayMenuComposer`)、`ViewModels/Pages/`(GeneralSettingsViewModel)、`Views/Pages/`(AdvancedSettingsPage)与 `ShellContributor` + `ShellPageTemplates.xaml`;
     - S6:`Services/Dialogs/`(DialogService)、`ViewModels/Dialogs/`(五对对话框 VM)、`Views/Dialogs|Controls/`(五对对话框 Window 与 SpectrumCanvasBehavior)与 `DialogsContributor`。
   - **插件 UI 托管**:`PluginHosting/`(资产登记表、每插件资源根、视图 / 窗口 / 命令 / 菜单 / 定时器 / 动画 / 订阅托管、UI 线程释放编排与泄漏验证器)与固定扩展点 `PluginHosting/Extensions/`(插件页 `PluginPage`、设置区块 `PluginSettingsSection`、托盘菜单项 `PluginMenuItem` 的登记与出账,导航页经宿主签发的 `NavPlugin_<插件 id>` 进目录);宿主装配面为 `DialogService.SetOwner` 绑定 / 解绑等。
@@ -225,7 +225,7 @@ MainViewModel 按目录注册构造导航项,导航执行走 `INavigationExecuto
 
 | 缝 | 位置 | 压力 | 裁决 / 触发条件 |
 |---|---|---|---|
-| Host 装配面 | Composition / CreateShellHost 直取 Host 侧可见具体类型(MouseHook / 主题服务 / 两子 VM 等);ShellHost 把 Ui 侧调色板适配器接到主题服务(内核端口 `IThemeApplier`)/ 编排托盘菜单 / MouseHook 暂停态;Host 聚合页拼装 M2 / M4 子 VM | Host 对"哪些装配件可见"有编译期认知;模块不能脱离 Host 决定宿主装配 | 留 Host;不引入子容器 / Prism |
+| Host 装配面 | Composition / CreateShellHost 直取 Host 侧可见具体类型(MouseInputHook / 主题服务 / 两子 VM 等);ShellHost 把 Ui 侧调色板适配器接到主题服务(内核端口 `IThemeApplier`)/ 编排托盘菜单 / MouseInputHook 暂停态;Host 聚合页拼装 M2 / M4 子 VM | Host 对"哪些装配件可见"有编译期认知;模块不能脱离 Host 决定宿主装配 | 留 Host;不引入子容器 / Prism |
 | 导航槽位容量 | `NavigationSlot` 固定 0–4 + Validate + e2e `NavPage0..4` | 新增第 6 页需改 SDK 槽位枚举 + 收口测试(可能波及 e2e),非"纯模块内部" | 产品页面数封顶 5,改动属放行共享面 |
 | 共享配置对象 | `IConfigService.Current` 单例可变 `AppConfig`;模块 VM 构造抓引用,导入后消息自挂 | 任何模块可读写任何配置区;模块间经"同一对象 + 广播"隐式协作 | 放行共享面;config.json 向后兼容 Hard Constraint |
 | Models 物理残留(R8) | `WheelProfile` / `ActionItem` 语义归 M1、物理 `StarPie.Sdk/Models/`;`CustomColorPreset` 语义归 M2、物理 `StarPie.Sdk/Models/`(`AppConfig` 引用) | 业务领域形状渗入 SDK 模型面 | R8 已登记;迁移触发条件 = 配置模型与模块语义解耦时再议 |
