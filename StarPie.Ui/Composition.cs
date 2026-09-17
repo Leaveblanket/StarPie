@@ -84,7 +84,7 @@ namespace StarPie
             // 阶段 3｜解析：时机在配置加载后、ShellHost.Run 前，与贡献者注册顺序无关
             //（页面清单由导航目录驱动，不逐个硬编码页面类型）。
             var messenger = _provider.GetRequiredService<IMessenger>();
-            var mouseHook = _provider.GetRequiredService<MouseHook>();
+            var inputHook = _provider.GetRequiredService<MouseInputHook>();
             var dialogService = _provider.GetRequiredService<DialogService>();
             var themeService = _provider.GetRequiredService<ThemeService>();
             var localization = _provider.GetRequiredService<ILocalizationService>();
@@ -131,7 +131,7 @@ namespace StarPie
 
             return new ShellHost(
                 messenger,
-                mouseHook,
+                inputHook,
                 themeService,
                 localization,
                 wheelFactory,

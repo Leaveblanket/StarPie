@@ -35,7 +35,8 @@ namespace StarPie
     internal sealed class ShellHost : IDisposable
     {
         private readonly IMessenger _messenger;
-        private readonly MouseHook _mouseHook;
+        // 输入栈捕获侧（ADR-0052）：钩子 + 回放窗口 + 看门狗；启停与暂停态由本壳层编排。
+        private readonly MouseInputHook _inputHook;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
         // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型。
@@ -70,7 +71,7 @@ namespace StarPie
 
         public ShellHost(
             IMessenger messenger,
-            MouseHook mouseHook,
+            MouseInputHook inputHook,
             ThemeService themeService,
             ILocalizationService localization,
             IWheelFactory wheelFactory,
@@ -84,7 +85,7 @@ namespace StarPie
             bool testInstance = false)
         {
             _messenger = messenger;
-            _mouseHook = mouseHook;
+            _inputHook = inputHook;
             _themeService = themeService;
             _localization = localization;
             _wheelFactory = wheelFactory;
@@ -163,7 +164,7 @@ namespace StarPie
         /// <summary>UI 线程上的启动编排：钩子、语言字典、托盘、设置台与初始导航。</summary>
         private void StartCore()
         {
-            _mouseHook.Start();
+            _inputHook.Start();
 
             // 语言资源字典换入——页面 XAML DynamicResource 的运行时数据源。
             // 订阅与首次应用先于任何页面创建（语言切换经服务事件同步重建，换入不累积）。
@@ -293,7 +294,7 @@ namespace StarPie
             _settingsConsole?.Dispose();
             _settingsConsole = null;
 
-            _mouseHook.Stop();
+            _inputHook.Stop();
         }
 
         /// <summary>释放托盘与挂在其消息窗口上的常驻钩子（成对摘除；幂等）。</summary>
@@ -395,7 +396,7 @@ namespace StarPie
                 TrayMenuEntry.Separator()
             };
 
-            string pauseText = _mouseHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
+            string pauseText = _inputHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
             entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseGestures, "TrayMenuPause"));
             // 托盘直达项经目录槽位导航（触发/外观/手势）。
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger), "TrayMenuPreferences"));
@@ -484,14 +485,14 @@ namespace StarPie
 
         private void TogglePauseGestures()
         {
-            _mouseHook.IsPaused = !_mouseHook.IsPaused;
+            _inputHook.IsPaused = !_inputHook.IsPaused;
             _trayIcon?.SetTooltip(CurrentTooltip());
         }
 
         /// <summary>当前暂停态对应的托盘 tooltip；语言切换时由壳层按暂停态刷新。</summary>
         private string CurrentTooltip()
         {
-            return _mouseHook.IsPaused ? $"StarPie ({_localization.GetString("TrayPause")})" : DefaultTooltip;
+            return _inputHook.IsPaused ? $"StarPie ({_localization.GetString("TrayPause")})" : DefaultTooltip;
         }
 
         private void RefreshTrayTooltip()

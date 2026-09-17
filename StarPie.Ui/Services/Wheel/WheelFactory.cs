@@ -7,11 +7,13 @@ using StarPie.ViewModels.Wheel;
 namespace StarPie.Services.Wheel
 {
     /// <summary>
-    /// 轮盘工厂：在 UI 线程构建每次手势的视图模型与窗口，再返回线程安全句柄——
-    /// 引擎的每次调用都经调度器转发，落地为窗口观察的视图模型状态变更。
+    /// 轮盘工厂：每次手势交给引擎一个句柄，句柄把这手势的视图模型与窗口的构建、
+    /// 显示与状态变更依次排进 UI 线程队列。
     /// </summary>
     /// <remarks>
-    /// 实现方负责 UI 线程调度，调用方可能位于钩子线程；消费方（手势引擎）只依赖
+    /// 调用方就是钩子线程（ADR-0052）：钩子线程只做抑制决策，因此这里一律异步投放、
+    /// 绝不阻塞等待 UI 线程。同一轮盘的构建与各次状态变更落在同一队列上，FIFO 保序
+    /// （构建先于显示；关闭先于紧随其后的动作执行）。消费方（手势引擎）只依赖
     /// <see cref="IWheelFactory"/> 接口。
     /// </remarks>
     public sealed class WheelFactory : IWheelFactory
@@ -42,15 +44,12 @@ namespace StarPie.Services.Wheel
         public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
         {
             Dispatcher dispatcher = Application.Current.Dispatcher;
-            WheelViewModel? viewModel = null;
-            RadialWindow? window = null;
-            dispatcher.Invoke(() =>
-            {
-                // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流。
-                viewModel = new WheelViewModel(center, profile, WheelViewData.FromConfig(_config.Current), _localization);
-                window = new RadialWindow(viewModel, _windowsInDarkModeProbe, _localization, _iconAssets);
-            });
-            return new DispatchedWheelViewModel(viewModel!, window!, dispatcher);
+            // 构建延后到 UI 线程队列的队首工作项：本方法由钩子线程调用，不能在这里等 UI 线程。
+            // 每次手势从运行态配置快照组装投影：轮盘弹出期间改配置不回流。
+            return new DispatchedWheelViewModel(
+                dispatcher,
+                () => new WheelViewModel(center, profile, WheelViewData.FromConfig(_config.Current), _localization),
+                viewModel => new RadialWindow(viewModel, _windowsInDarkModeProbe, _localization, _iconAssets));
         }
 
         /// <summary>启动期预热：本方法装配预热所需的一切——取全局方案（缺失即空方案）构造
@@ -63,32 +62,50 @@ namespace StarPie.Services.Wheel
             WheelWarmup.Run(viewModel, _windowsInDarkModeProbe, _localization, _iconAssets);
         }
 
-        /// <summary>把每次轮盘交互经调度器转发到 UI 线程，落地为视图模型状态变更；
-        /// 窗口自行响应状态变化。</summary>
+        /// <summary>把一轮手势的构建与状态变更按序排进 UI 线程队列；
+        /// 构建延后到第一个工作项，因此从钩子线程调用也不阻塞。</summary>
         private sealed class DispatchedWheelViewModel : IWheelViewModel
         {
-            private readonly WheelViewModel _viewModel;
-            // GC 根：在 Create 与首次 Show 派发之间保持尚未显示的窗口可达
-            // （视图模型不引用窗口）。
-            private readonly RadialWindow _window;
             private readonly Dispatcher _dispatcher;
+            private readonly Func<WheelViewModel> _createViewModel;
+            private readonly Func<WheelViewModel, RadialWindow> _createWindow;
 
-            public DispatchedWheelViewModel(WheelViewModel viewModel, RadialWindow window, Dispatcher dispatcher)
+            // 只在 UI 线程读写（构建与使用都排在同一队列里）。窗口随本字段存活：
+            // 它是这一轮手势的 GC 根，构建与首次 Show 之间窗口不会被回收。
+            private (WheelViewModel ViewModel, RadialWindow Window)? _wheel;
+
+            public DispatchedWheelViewModel(
+                Dispatcher dispatcher,
+                Func<WheelViewModel> createViewModel,
+                Func<WheelViewModel, RadialWindow> createWindow)
             {
-                _viewModel = viewModel;
-                _window = window;
                 _dispatcher = dispatcher;
+                _createViewModel = createViewModel;
+                _createWindow = createWindow;
             }
 
-            public void Show() => _dispatcher.Invoke(_viewModel.Show);
+            public void Show() => Post(viewModel => viewModel.Show());
 
             public void HighlightSector(int sectorIndex) =>
-                _dispatcher.Invoke(() => _viewModel.HighlightSector(sectorIndex));
+                Post(viewModel => viewModel.HighlightSector(sectorIndex));
 
             public void SetOuterEscapeState(bool isEscaped) =>
-                _dispatcher.Invoke(() => _viewModel.SetOuterEscapeState(isEscaped));
+                Post(viewModel => viewModel.SetOuterEscapeState(isEscaped));
 
-            public void Close() => _dispatcher.Invoke(_viewModel.Close);
+            public void Close() => Post(viewModel => viewModel.Close());
+
+            private void Post(Action<WheelViewModel> work) =>
+                _dispatcher.BeginInvoke(() =>
+                {
+                    if (_wheel is not { } wheel)
+                    {
+                        var viewModel = _createViewModel();
+                        wheel = (viewModel, _createWindow(viewModel));
+                        _wheel = wheel;
+                    }
+
+                    work(wheel.ViewModel);
+                });
         }
     }
 }

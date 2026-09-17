@@ -19,6 +19,8 @@
 - `Microsoft.Extensions.DependencyInjection`(仅组合根 `Composition.cs`)
 - Win32 互操作:`Microsoft.Windows.CsWin32` 源生成(各消费集 `NativeMethods.txt` 为唯一声明清单;
   基线见 [adr/0051-cswin32-interop-baseline.md](adr/0051-cswin32-interop-baseline.md))
+- 输入捕获:`SharpHook`(Windows 后端为包内自带的 libuiohook 原生库;捕获/抑制/回放窗口/看门狗的分工见
+  [adr/0052-input-stack-sharphook.md](adr/0052-input-stack-sharphook.md))
 - 本地化:`Strings*.resx`(zh-CN + zh-TW/en/ja 卫星),`VocaDb.ResXFileCodeGenerator` 强类型
 - xUnit v3(`StarPie.Tests`;范围见 [adr/0050-test-scope.md](adr/0050-test-scope.md))
 - e2e:pywinauto(`tests/`)

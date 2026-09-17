@@ -36,4 +36,8 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: StarPie-Standalone-win-x64
-        path: bin/Standalone/StarPie.exe
+        # 许可声明随发布物分发（ADR-0052：SharpHook(MIT) + 包内 libuiohook(LGPL-3.0)）
+        path: |
+          bin/Standalone/StarPie.exe
+          bin/Standalone/THIRD-PARTY-NOTICES.md
+          bin/Standalone/licenses/**
