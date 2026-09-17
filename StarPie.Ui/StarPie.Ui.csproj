@@ -17,11 +17,19 @@
     <FileVersion>1.4.1.0</FileVersion>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <!-- ADR-0051：CsWin32 生成的互操作代码需要 unsafe；与 StarPie.Host 同授权范围。 -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Win32 互操作源生成（ADR-0051）：声明清单为 NativeMethods.txt，生成物构建期产生、不入库；
+         不加 IncludeAssets，让生成器拿到传递依赖 System.Memory。 -->
+    <PackageReference Include="Microsoft.Windows.CsWin32" />
   </ItemGroup>
 
   <ItemGroup>

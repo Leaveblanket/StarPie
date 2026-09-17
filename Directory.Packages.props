@@ -12,6 +12,9 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
     <!-- resx 强类型资源生成（ADR-0013；仅共享内核消费） -->
     <PackageVersion Include="VocaDb.ResXFileCodeGenerator" Version="3.2.1" />
+    <!-- Win32 互操作源生成（ADR-0051；仅 StarPie.Ui 与 StarPie.Host 消费）：
+         pre-1.0 但由 win32metadata 驱动，锁版本升级 -->
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.3.333" />
     <!-- xUnit v3 的 mtp-v2 变体（仅测试工程消费） -->
     <PackageVersion Include="xunit.v3.mtp-v2" Version="4.0.0" />
   </ItemGroup>
