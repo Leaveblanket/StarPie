@@ -10,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using StarPie.Icons;
 using StarPie.Services.Icons;
+using Windows.Win32;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace StarPie.Services.Icons
 {
@@ -112,6 +114,11 @@ namespace StarPie.Services.Icons
         }
 
         /// <summary>SHGetFileInfo 输出结构（Win32 Shell API）：承载图标句柄、显示名与类型名。</summary>
+        /// <remarks>
+        /// SHGetFileInfo 与 SHFILEINFO 保留手写：元数据将其标记为架构特定（PInvoke005），
+        /// AnyCPU 下 CsWin32 无法生成（白名单，ADR-0051）；如日后设为 PlatformTarget=x64 可回收。
+        /// 其余声明来自 CsWin32 源生成（ADR-0051）。
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct SHFILEINFO
         {
@@ -132,14 +139,6 @@ namespace StarPie.Services.Icons
         /// <summary>Win32 shell32!SHGetFileInfo：按路径/属性取系统图标句柄。</summary>
         [DllImport("shell32.dll", CharSet = CharSet.Auto)]
         private static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHFILEINFO psfi, uint cbFileInfo, uint uFlags);
-
-        /// <summary>Win32 shell32!ExtractIconEx：从可执行/图标文件提取大小图标句柄。</summary>
-        [DllImport("shell32.dll", CharSet = CharSet.Auto)]
-        private static extern uint ExtractIconEx(string szFileName, int nIconIndex, out IntPtr phiconLarge, out IntPtr phiconSmall, uint nIcons);
-
-        /// <summary>Win32 user32!DestroyIcon：释放由上述 API 取得的图标句柄，防止 GDI 泄漏。</summary>
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
 
         /// <summary>
         /// 提取干净的高分辨率程序/文件图标（不含 Windows 快捷方式的小箭头角标叠加）。
@@ -199,7 +198,7 @@ namespace StarPie.Services.Icons
                     }
                     finally
                     {
-                        DestroyIcon(shinfoAttr.hIcon);
+                        _ = PInvoke.DestroyIcon(new HICON(shinfoAttr.hIcon));
                     }
                 }
             }
@@ -217,13 +216,15 @@ namespace StarPie.Services.Icons
             try
             {
                 // 优先用 ExtractIconEx 取大尺寸无角标图标。
-                uint count = ExtractIconEx(filePath, iconIndex, out IntPtr hIconLarge, out IntPtr hIconSmall, 1);
-                if (count > 0 && hIconLarge != IntPtr.Zero)
+                Span<HICON> largeIcons = stackalloc HICON[1];
+                Span<HICON> smallIcons = stackalloc HICON[1];
+                uint count = PInvoke.ExtractIconEx(filePath, iconIndex, largeIcons, smallIcons);
+                if (count > 0 && !largeIcons[0].IsNull)
                 {
                     try
                     {
                         BitmapSource bmpSrc = Imaging.CreateBitmapSourceFromHIcon(
-                            hIconLarge,
+                            largeIcons[0],
                             Int32Rect.Empty,
                             BitmapSizeOptions.FromEmptyOptions()
                         );
@@ -232,16 +233,16 @@ namespace StarPie.Services.Icons
                     }
                     finally
                     {
-                        DestroyIcon(hIconLarge);
-                        if (hIconSmall != IntPtr.Zero) DestroyIcon(hIconSmall);
+                        _ = PInvoke.DestroyIcon(largeIcons[0]);
+                        if (!smallIcons[0].IsNull) _ = PInvoke.DestroyIcon(smallIcons[0]);
                     }
                 }
-                else if (count > 0 && hIconSmall != IntPtr.Zero)
+                else if (count > 0 && !smallIcons[0].IsNull)
                 {
                     try
                     {
                         BitmapSource bmpSrc = Imaging.CreateBitmapSourceFromHIcon(
-                            hIconSmall,
+                            smallIcons[0],
                             Int32Rect.Empty,
                             BitmapSizeOptions.FromEmptyOptions()
                         );
@@ -250,7 +251,7 @@ namespace StarPie.Services.Icons
                     }
                     finally
                     {
-                        DestroyIcon(hIconSmall);
+                        _ = PInvoke.DestroyIcon(smallIcons[0]);
                     }
                 }
 
@@ -271,7 +272,7 @@ namespace StarPie.Services.Icons
                     }
                     finally
                     {
-                        DestroyIcon(shinfo.hIcon);
+                        _ = PInvoke.DestroyIcon(new HICON(shinfo.hIcon));
                     }
                 }
             }

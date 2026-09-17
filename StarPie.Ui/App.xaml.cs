@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace StarPie
 {
@@ -16,9 +17,6 @@ namespace StarPie
         private static EventWaitHandle? _elevationFailedEvent;
         private Composition? _composition;
         private ShellHost? _shellHost;
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
 
         // 单实例闸门：全机命名互斥，dev 与正式实例同闸（不并行运行，后启动方按已有实例路径置前退出）。
         private const string SingleInstanceMutexName = @"Global\StarPie_SingleInstance_Mutex_9B8A7C";
@@ -101,8 +99,8 @@ namespace StarPie
                             // 按窗口名查找：托盘消息窗口是常驻 HWND（进程存活期内恒在），设置台是瞬态窗口。
                             try
                             {
-                                IntPtr hWnd = FindWindow(null, TrayIconManager.WindowName);
-                                if (hWnd != IntPtr.Zero)
+                                HWND hWnd = PInvoke.FindWindow(null, TrayIconManager.WindowName);
+                                if (!hWnd.IsNull)
                                 {
                                     SingleInstanceRestore.Send(hWnd);
                                 }

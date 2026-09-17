@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
+using Windows.Win32;
+using Windows.Win32.UI.Input.KeyboardAndMouse;
 
 namespace StarPie.Services.Actions
 {
@@ -153,83 +155,30 @@ namespace StarPie.Services.Actions
             {
                 inputs[i] = CreateInput(strokes[i]);
             }
-            SendInput((uint)inputs.Length, inputs, Marshal.SizeOf(typeof(INPUT)));
+            _ = PInvoke.SendInput(inputs, Marshal.SizeOf<INPUT>());
         }
 
         private static INPUT CreateInput(KeyStroke stroke)
         {
-            var input = new INPUT { type = INPUT_KEYBOARD };
-            input.U.ki = new KEYBDINPUT
+            INPUT input = default;
+            input.type = INPUT_TYPE.INPUT_KEYBOARD;
+            input.ki = new KEYBDINPUT
             {
-                wVk = stroke.VirtualKey,
+                wVk = (VIRTUAL_KEY)stroke.VirtualKey,
                 wScan = 0,
-                dwFlags = (uint)(stroke.KeyDown ? 0 : KEYEVENTF_KEYUP),
+                dwFlags = stroke.KeyDown ? 0 : KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP,
                 time = 0,
-                dwExtraInfo = IntPtr.Zero
+                dwExtraInfo = 0
             };
             if (stroke.Extended)
             {
-                input.U.ki.dwFlags |= KEYEVENTF_EXTENDEDKEY;
+                input.ki.dwFlags |= KEYBD_EVENT_FLAGS.KEYEVENTF_EXTENDEDKEY;
             }
             return input;
         }
 
-        // --- Win32 键注入与锁屏互操作 ---
+        // --- Win32 键注入与锁屏互操作（声明来自 CsWin32 源生成，ADR-0051） ---
 
-        [DllImport("user32.dll")]
-        private static extern bool LockWorkStation();
-
-        private static void LockWorkStationViaInterop() => LockWorkStation();
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MOUSEINPUT
-        {
-            public int dx;
-            public int dy;
-            public uint mouseData;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr dwExtraInfo;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct KEYBDINPUT
-        {
-            public ushort wVk;
-            public ushort wScan;
-            public uint dwFlags;
-            public uint time;
-            public IntPtr dwExtraInfo;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct HARDWAREINPUT
-        {
-            public uint uMsg;
-            public ushort wParamL;
-            public ushort wParamH;
-        }
-
-        [StructLayout(LayoutKind.Explicit)]
-        private struct InputUnion
-        {
-            [FieldOffset(0)] public MOUSEINPUT mi;
-            [FieldOffset(0)] public KEYBDINPUT ki;
-            [FieldOffset(0)] public HARDWAREINPUT hi;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct INPUT
-        {
-            public uint type;
-            public InputUnion U;
-        }
-
-        private const uint INPUT_KEYBOARD = 1;
-        private const uint KEYEVENTF_KEYUP = 0x0002;
-        private const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
-
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+        private static void LockWorkStationViaInterop() => PInvoke.LockWorkStation();
     }
 }

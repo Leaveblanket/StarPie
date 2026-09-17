@@ -10,6 +10,10 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
+using Windows.Win32;
+using Windows.Win32.Graphics.Gdi;
+using Windows.Win32.UI.HiDpi;
+using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace StarPie.Services.Shell
 {
@@ -65,6 +69,11 @@ namespace StarPie.Services.Shell
         private const int WM_CONTEXTMENU = 0x007B;
         private const uint NIIF_INFO = 0x01;
 
+        /// <remarks>
+        /// Shell_NotifyIcon 与 NOTIFYICONDATA 保留手写：元数据将其标记为架构特定（PInvoke005），
+        /// AnyCPU 下 CsWin32 无法生成（白名单，ADR-0051）；如日后设为 PlatformTarget=x64 可回收。
+        /// 其余声明来自 CsWin32 源生成（ADR-0051）。
+        /// </remarks>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private struct NOTIFYICONDATA
         {
@@ -85,45 +94,9 @@ namespace StarPie.Services.Shell
             public IntPtr hBalloonIcon;
         }
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct POINT
-        {
-            public int x;
-            public int y;
-        }
-
         [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool Shell_NotifyIcon(int dwMessage, ref NOTIFYICONDATA lpData);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool GetCursorPos(out POINT lpPoint);
-
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(int nIndex);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        private static extern uint PrivateExtractIcons(string lpszFile, int nIconIndex, int cxIcon, int cyIcon, [Out] IntPtr[] phicon, [Out] uint[] piconid, uint nIcons, uint nFlags);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr LoadIcon(IntPtr hInstance, IntPtr lpIconName);
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
-
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int RegisterWindowMessage(string lpString);
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromPoint(POINT pt, uint uFlags);
-
-        [DllImport("shcore.dll")]
-        private static extern int GetDpiForMonitor(IntPtr hMonitor, int dpiType, out uint dpiX, out uint dpiY);
-
-        private const int SM_CXSMICON = 49;
-        private const int IDI_APPLICATION = 32512;
 
         private readonly Func<bool> _windowsInDarkModeProbe;
         private readonly Action _onDoubleClick;
@@ -157,7 +130,7 @@ namespace StarPie.Services.Shell
             _menuProvider = menuProvider;
 
             // Explorer 崩溃/重启后重新注册图标
-            _taskbarCreatedMessage = RegisterWindowMessage("TaskbarCreated");
+            _taskbarCreatedMessage = (int)PInvoke.RegisterWindowMessage("TaskbarCreated");
 
             // 隐藏弹出窗口，用于接收托盘图标回调
             var parameters = new HwndSourceParameters(WindowName, 0, 0)
@@ -214,7 +187,7 @@ namespace StarPie.Services.Shell
             catch { }
             if (_hIcon != IntPtr.Zero)
             {
-                DestroyIcon(_hIcon);
+                _ = PInvoke.DestroyIcon(new HICON(_hIcon));
                 _hIcon = IntPtr.Zero;
             }
             _source.RemoveHook(WndProc);
@@ -246,20 +219,20 @@ namespace StarPie.Services.Shell
 
         private static IntPtr LoadTrayIcon()
         {
-            int size = GetSystemMetrics(SM_CXSMICON);
+            int size = PInvoke.GetSystemMetrics(SYSTEM_METRICS_INDEX.SM_CXSMICON);
             if (size <= 0) size = 16;
             try
             {
                 string? exePath = Environment.ProcessPath;
                 if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
                 {
-                    var icons = new IntPtr[1];
-                    uint extracted = PrivateExtractIcons(exePath, 0, size, size, icons, new uint[1], 1, 0);
-                    if (extracted > 0 && icons[0] != IntPtr.Zero) return icons[0];
+                    Span<HICON> icons = stackalloc HICON[1];
+                    uint extracted = PInvoke.PrivateExtractIcons(exePath, 0, size, size, icons, out _, 0);
+                    if (extracted > 0 && !icons[0].IsNull) return icons[0];
                 }
             }
             catch { }
-            return LoadIcon(IntPtr.Zero, (IntPtr)IDI_APPLICATION);
+            return PInvoke.LoadIcon(default, PInvoke.IDI_APPLICATION);
         }
 
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -435,12 +408,12 @@ namespace StarPie.Services.Shell
 
         private static void PositionAtCursor(Window window, double width, double height)
         {
-            GetCursorPos(out POINT pt);
-            double scale = GetCursorMonitorScale(pt) / 96.0;
+            PInvoke.GetCursorPos(out System.Drawing.Point cursor);
+            double scale = GetCursorMonitorScale(cursor) / 96.0;
             if (scale <= 0) scale = 1.0;
 
-            double x = pt.x / scale + 2;
-            double y = pt.y / scale - height + 2; // 向上弹出（托盘通常在底部）
+            double x = cursor.X / scale + 2;
+            double y = cursor.Y / scale - height + 2; // 向上弹出（托盘通常在底部）
 
             var area = SystemParameters.WorkArea;
             if (x + width > area.Right + 4) x = area.Right - width + 2;
@@ -452,12 +425,12 @@ namespace StarPie.Services.Shell
             window.Top = y;
         }
 
-        private static uint GetCursorMonitorScale(POINT pt)
+        private static uint GetCursorMonitorScale(System.Drawing.Point cursor)
         {
             try
             {
-                IntPtr monitor = MonitorFromPoint(pt, 2 /* MONITOR_DEFAULTTONEAREST */);
-                if (monitor != IntPtr.Zero && GetDpiForMonitor(monitor, 0 /* MDT_EFFECTIVE_DPI */, out uint dpiX, out _) == 0)
+                HMONITOR monitor = PInvoke.MonitorFromPoint(cursor, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+                if (!monitor.IsNull && PInvoke.GetDpiForMonitor(monitor, MONITOR_DPI_TYPE.MDT_EFFECTIVE_DPI, out uint dpiX, out _).Value == 0)
                 {
                     return dpiX;
                 }
