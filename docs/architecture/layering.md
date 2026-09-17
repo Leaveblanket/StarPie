@@ -90,6 +90,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
 - Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具，**经组合根委托注入**给 VM。
+- **Win32 互操作基线（ADR-0051）**：声明统一走 CsWin32 源生成（各集 `NativeMethods.txt` 为唯一声明清单），不再新增手写 `DllImport`/`LibraryImport`；白名单例外在代码处注明，回流由 `StarPie.Tests` 的源码扫描断言拦下。
 - **S1 图标资产双形先例**：有状态/IO/Win32 面（自定义图标存储缓存、文件/程序
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；

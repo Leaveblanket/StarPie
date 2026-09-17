@@ -17,6 +17,8 @@
 - 形态:`StarPie.Sdk` / `StarPie.Host` / `StarPie.Sdk.Wpf` + `StarPie.Ui`(WinExe,程序集名 `StarPie`) + 能力插件
 - `CommunityToolkit.Mvvm`(MVVM 唯一框架)
 - `Microsoft.Extensions.DependencyInjection`(仅组合根 `Composition.cs`)
+- Win32 互操作:`Microsoft.Windows.CsWin32` 源生成(各消费集 `NativeMethods.txt` 为唯一声明清单;
+  基线见 [adr/0051-cswin32-interop-baseline.md](adr/0051-cswin32-interop-baseline.md))
 - 本地化:`Strings*.resx`(zh-CN + zh-TW/en/ja 卫星),`VocaDb.ResXFileCodeGenerator` 强类型
 - xUnit v3(`StarPie.Tests`;范围见 [adr/0050-test-scope.md](adr/0050-test-scope.md))
 - e2e:pywinauto(`tests/`)
