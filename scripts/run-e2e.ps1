@@ -13,6 +13,11 @@
   -NoWait     不阻塞：后台启动 pytest 后立即返回（用 -Status 查结果；status.json 记 detached=true）。
   -Status     只查状态/结果，不跑测试；退出码：0=最近一次通过，非 0=最近一次失败，
               2=最近一次 build 失败，3=仍在运行/未产出结果，4=无运行记录。
+  -Smoke      巡检快检（tests/test_smoke.py）：日常/迭代首轮用，失败报告带复审判例节点。
+  -Full       全量门禁（tests/）：收尾/提交前用；无档位参数时的默认档。
+  -TestPath   单例节点复审（按巡检报告的节点），如 tests/test_settings.py::test_xxx。
+
+  档位参数 -Smoke / -Full 与显式 -TestPath 互斥；两者都省时按全量口径跑。
 
   解释器：默认用仓库内隔离 venv（.venv，依赖锁定在 tests/requirements.txt）；
   解析顺序为 -Python 显式指定 > .venv > PATH 的 python（回退 PATH 时会警告"解释器未锁定"）。
@@ -27,11 +32,25 @@ param(
     [switch]$NoBuild,
     [switch]$NoWait,
     [switch]$Status,
+    [switch]$Smoke,
+    [switch]$Full,
     [string]$Python = '',
     [string]$TestPath = 'tests'
 )
 
 $ErrorActionPreference = 'Stop'
+
+# 档位参数是语义糖：-Smoke 巡检快检 / -Full 全量门禁；与显式 -TestPath（节点复审）互斥。
+if ($Smoke -and $Full) {
+    Write-Warning '-Smoke 与 -Full 互斥：巡检快检与全量门禁只能选一档。'
+    exit 2
+}
+if (($Smoke -or $Full) -and $PSBoundParameters.ContainsKey('TestPath')) {
+    Write-Warning '-Smoke / -Full 与 -TestPath 互斥：档位已隐含目标路径，节点复审才用 -TestPath。'
+    exit 2
+}
+if ($Smoke) { $TestPath = 'tests/test_smoke.py' }
+elseif ($Full) { $TestPath = 'tests' }
 
 # -NoWait 的分离子进程由环境标记识别（外层启动时置位并随进程继承，不对外暴露参数）；
 # 它决定 Mutex 是等待接管还是立即失败，以及 status.json 的 detached 口径。
@@ -188,7 +207,7 @@ try {
     }
 
     $script:runnerPid = $PID
-    Write-Status -State 'running' -Note 'foreground' `
+    Write-Status -State 'running' -Note ("foreground: {0}" -f $TestPath) `
         -ScreenshotAvailable $screenshotAvailable -ScreenshotNote $screenshotNote
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & $Python @pytestArgs 2>&1 | Tee-Object -FilePath $logPath
