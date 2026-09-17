@@ -4,13 +4,12 @@
 壳层重建并显示设置台、按最后导航槽位重放页面：UIA invoke 关闭 + 消息级恢复，
 全程零物理键鼠输入。
 出账置空/重放命中/lastSlot 为空/幂等/插件页 VM 回收由 NavigationSuspensionTests 锁；
-窗口生命周期不变量（全局窗口集合只剩锚窗口、主窗口属性指向锚窗口）由
-ResidentShellLifetimeTests 锁。
+窗口生命周期不变量（全局窗口集合只剩锚窗口、主窗口属性指向锚窗口）由 ResidentShellLifetimeTests 锁。
 """
 
 import win32gui
 
-from conftest import Desktop, find_main_window, goto, wait_until
+from conftest import TRAY_WINDOW_TITLE, Desktop, close_console, find_main_window, goto, wait_until
 
 
 def test_tray_release_rebuilds_page(app):
@@ -26,18 +25,10 @@ def test_tray_release_rebuilds_page(app):
     first_handle = win.handle
 
     # UIA invoke 关闭按钮：设置台关闭即销毁（不隐藏驻留），进托盘序列执行导航出账
-    close_btn = win.child_window(auto_id="CloseButton", control_type="Button")
-    assert close_btn.exists(timeout=3), "CloseButton 必须存在"
-    close_btn.invoke()
-
-    wait_until(
-        lambda: not win32gui.IsWindow(first_handle),
-        timeout=8,
-        description="设置台窗口已销毁（关闭即销毁、托盘驻留）",
-    )
+    close_console(win)
 
     # 常驻壳层仍在：托盘消息窗口的存活即进程仍驻留托盘的证据。
-    tray_handle = win32gui.FindWindow(None, "StarPieTrayWindow")
+    tray_handle = win32gui.FindWindow(None, TRAY_WINDOW_TITLE)
     assert tray_handle, "常驻托盘消息窗口必须存在（常驻壳层承担恢复消息接收）"
 
     # 消息级恢复：单实例重激活的恢复管道（App.OnStartup 置前分支 → 常驻壳层 WndProc →

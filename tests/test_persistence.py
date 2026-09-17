@@ -1,16 +1,20 @@
-"""配置持久化 e2e：防抖落盘不丢改动、同沙箱重启回读、损坏/缺键降级、导入导出真实对话框。
+"""配置持久化 e2e：防抖落盘不丢改动、同沙盒重启回读、损坏/缺键降级、导入导出真实对话框。
 
 xUnit 锁的是配置服务的读写边界；这里锁的是真实进程生命周期上的持久化语义——
 "改了就关/就退"不能丢数据，重启后必须读回，坏配置不能让应用起不来。
+
+本文件是落盘链路的专验所在（显式 Save / 防抖自动保存 / 关窗冲刷 / 退出冲刷 / 重启回读 /
+导入导出 / 落盘失败），其余交互用例的落盘断言按分层口径收敛到这些路径上。
 """
 
 import os
 import time
 
 import pytest
-import win32gui
+from catalogs import APP_THEME_CATALOG, EXPORT_DIALOG_TITLE, IMPORT_DIALOG_TITLE
 from conftest import (
     answer_messagebox,
+    close_console,
     exit_via_test_message,
     goto,
     label_value,
@@ -24,21 +28,6 @@ from conftest import (
     wait_for_label_value,
     wait_until,
 )
-
-APP_THEME_CATALOG = ("System", "Light", "Dark", "MidnightNavy", "RoyalViolet", "TitaniumGray")
-EXPORT_DIALOG_TITLE = "导出配置文件"
-IMPORT_DIALOG_TITLE = "选择要导入的配置文件"
-
-
-def close_console(win, timeout: float = 8.0) -> None:
-    """点 CloseButton 关闭设置台（关闭即销毁、托盘驻留），等窗口句柄失效。"""
-    handle = win.handle
-    win.child_window(auto_id="CloseButton", control_type="Button").invoke()
-    wait_until(
-        lambda: not win32gui.IsWindow(handle),
-        timeout=timeout,
-        description="设置台窗口已销毁（关闭即销毁、托盘驻留）",
-    )
 
 
 def _wait_file_dialog_edit(dialog, timeout: float = 10.0):
@@ -90,7 +79,11 @@ def test_pending_save_flushed_when_console_closes(app):
 
     # 不等防抖窗口，直接关窗：关闭序列的 FlushPendingSave 步骤必须把改动写盘
     close_console(win)
-    read_config(local_app_data, predicate=lambda c: abs(c.get("DragThreshold", 0) - 33) < 0.01)
+    read_config(
+        local_app_data,
+        predicate=lambda c: abs(c.get("DragThreshold", 0) - 33) < 0.01,
+        message="关窗冲刷应把 DragThreshold=33 落盘",
+    )
 
 
 def test_pending_save_flushed_when_process_exits(app):
@@ -104,11 +97,15 @@ def test_pending_save_flushed_when_process_exits(app):
 
     # 退出走测试实例退出消息（真实退出路径：落盘 → 释托盘 → 关应用）；不点 Save、不等防抖
     exit_via_test_message(win.process_id())
-    read_config(local_app_data, predicate=lambda c: abs(c.get("DragThreshold", 0) - 44) < 0.01)
+    read_config(
+        local_app_data,
+        predicate=lambda c: abs(c.get("DragThreshold", 0) - 44) < 0.01,
+        message="退出冲刷应把 DragThreshold=44 落盘",
+    )
 
 
 def test_settings_survive_restart(sandbox_env):
-    """同一沙箱内重启：改动落盘后新进程读回（真实启动加载路径）。"""
+    """同一沙盒内重启：改动落盘后新进程读回（真实启动加载路径）。"""
     env, local_app_data = sandbox_env
 
     proc, win = start_app(env)
@@ -126,6 +123,7 @@ def test_settings_survive_restart(sandbox_env):
         read_config(
             local_app_data,
             predicate=lambda c: c.get("AppTheme") == "Dark" and c.get("ShowText") is False,
+            message="重启前 AppTheme=Dark、ShowText=false 应已落盘",
         )
     finally:
         stop_app(proc)
@@ -197,7 +195,11 @@ def test_export_and_import_dialog_roundtrip(app, tmp_path):
     win.child_window(auto_id="ThresholdSlider", control_type="Slider").set_value(52.0)
     wait_for_label_value(win, "ThresholdValueLabel", 52.0)
     save_settings(win)
-    read_config(local_app_data, predicate=lambda c: abs(c.get("DragThreshold", 0) - 52) < 0.01)
+    read_config(
+        local_app_data,
+        predicate=lambda c: abs(c.get("DragThreshold", 0) - 52) < 0.01,
+        message="导入前 DragThreshold=52 应已落盘",
+    )
 
     goto(win, 3)  # 回到高级页：导入入口在此页
     win.child_window(auto_id="ImportConfigButton", control_type="Button").invoke()
@@ -208,4 +210,8 @@ def test_export_and_import_dialog_roundtrip(app, tmp_path):
     # 导入成功后各页重挂：切回触发页读阈值，应回到导出时的 25
     goto(win, 0)
     wait_for_label_value(win, "ThresholdValueLabel", 25.0)
-    read_config(local_app_data, predicate=lambda c: abs(c.get("DragThreshold", 0) - 25) < 0.01)
+    read_config(
+        local_app_data,
+        predicate=lambda c: abs(c.get("DragThreshold", 0) - 25) < 0.01,
+        message="导入应把 DragThreshold 回退到导出时的 25",
+    )

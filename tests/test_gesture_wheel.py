@@ -19,7 +19,7 @@ from conftest import (
     find_process_by_executable,
     find_wheel_window,
     kill_processes,
-    read_config,
+    probe_exe_from_config,
     wait_process_started,
     wait_until,
 )
@@ -35,12 +35,6 @@ SECTOR_DRAG = 110
 ESCAPE_DRAG = 240
 # 中心死区（阈值 25 × 0.6 = 15px）以内即取消选中；这里先外拖再拖回起点。
 CENTER_RETURN_DRAG = 110
-
-
-def _probe_exe(local_app_data) -> str:
-    """从沙箱配置读回预置的探针 exe 路径（同时验证预置真的落到了运行态配置）。"""
-    config = read_config(local_app_data)
-    return config["Profiles"][0]["Actions"][0]["Parameter"]
 
 
 @pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
@@ -69,7 +63,7 @@ def test_gesture_drag_pops_wheel_and_executes_sector_action(app):
     """过阈拖动弹出轮盘、松手收起，并执行正右扇区 0 绑定的 Launch 动作。"""
     win, local_app_data = app
     pid = win.process_id()
-    probe_exe = _probe_exe(local_app_data)
+    probe_exe = probe_exe_from_config(local_app_data)
 
     press_right_at(*START)
     drag_right(20, steps=2)  # 未越阈值：此时轮盘不该出现
@@ -110,7 +104,7 @@ def test_gesture_outer_escape_cancels_without_executing(app):
     """外甩越过逃逸距离：松手按取消处理，不执行任何动作。"""
     win, local_app_data = app
     pid = win.process_id()
-    probe_exe = _probe_exe(local_app_data)
+    probe_exe = probe_exe_from_config(local_app_data)
 
     press_right_at(*START)
     drag_right(ESCAPE_DRAG)
@@ -135,7 +129,7 @@ def test_gesture_return_to_center_cancels_without_executing(app):
     """弹出后拖回中心死区：取消选中，松手不执行动作。"""
     win, local_app_data = app
     pid = win.process_id()
-    probe_exe = _probe_exe(local_app_data)
+    probe_exe = probe_exe_from_config(local_app_data)
 
     press_right_at(*START)
     drag_right(CENTER_RETURN_DRAG)

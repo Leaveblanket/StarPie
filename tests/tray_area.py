@@ -9,6 +9,7 @@ TRAYDATA，**首字段是图标的宿主 HWND**（布局无歧义，其余字段
 """
 
 import ctypes
+import time
 from ctypes import wintypes
 
 import win32api
@@ -150,3 +151,24 @@ def _read(process, address, target, what: str) -> None:
 def find_icon(host_hwnd: int):
     """通知区里宿主窗口为 `host_hwnd` 的图标条目；不存在时为 None。"""
     return next((icon for icon in icons() if icon["hwnd"] == host_hwnd), None)
+
+
+def wait_icon(host_hwnd: int, present: bool, timeout: float = 5.0):
+    """轮询通知区直到 `host_hwnd` 的条目出现（present=True）/摘除（present=False）；超时抛断言。
+
+    读取失败（icons() 抛 RuntimeError，通知区不可读）直接向上抛、不折算成"条目不存在"——
+    "不存在"方向上的假绿代价最高（残留判定天然成立会掩盖 NIM_DELETE 未执行）。
+    本模块不依赖 pytest 夹具模块，故等待循环自带（语义与 conftest.wait_until 一致：异常即失败）。
+    """
+    deadline = time.time() + timeout
+    last = None
+    while True:
+        last = find_icon(host_hwnd)
+        if (last is not None) == present:
+            return last
+        if time.time() >= deadline:
+            state = "出现" if present else "摘除"
+            raise AssertionError(
+                f"通知区条目未在 {timeout}s 内{state}（host={host_hwnd:#x}，最后取值: {last}）"
+            )
+        time.sleep(0.1)

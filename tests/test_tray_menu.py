@@ -8,22 +8,22 @@
 运行期间请勿操作键鼠（全局钩子在跑）。
 """
 
-import time
-
 import win32gui
 import win32process
 from conftest import (
+    PAGE_ANCHORS,
     TRAY_CALLBACK_MESSAGE,
     TRAY_MENU_WINDOW_TITLE,
     TRAY_WINDOW_TITLE,
     WM_LBUTTONDBLCLK,
     WM_RBUTTONUP,
+    close_console,
     find_tray_window,
     wait_dialog,
     wait_dialog_closed,
     wait_until,
 )
-from tray_area import find_icon
+from tray_area import wait_icon
 
 # 菜单条目 id 与产品发布面一致（StarPie.Ui/ShellHost.cs）
 PAUSE_ITEM = "TrayMenuPause"
@@ -33,12 +33,6 @@ NAV_ITEMS = {
     "TrayMenuGestures": 2,  # 手势与动作
 }
 EXIT_ITEM = "TrayMenuExit"
-
-PAGE_ANCHORS = {
-    0: ("EnableOuterEscapeCheckBox", "CheckBox"),
-    1: ("AppearancePageSubheader", "Text"),
-    2: ("GesturesPageSubheader", "Text"),
-}
 
 
 def _post_tray_command(pid: int, lparam: int) -> None:
@@ -118,12 +112,7 @@ def test_tray_double_click_reopens_console(app):
     pid = win.process_id()
 
     handle = win.handle
-    win.child_window(auto_id="CloseButton", control_type="Button").invoke()
-    wait_until(
-        lambda: not win32gui.IsWindow(handle),
-        timeout=8.0,
-        description="设置台窗口已销毁（关闭即销毁、托盘驻留）",
-    )
+    close_console(win)
 
     _post_tray_command(pid, WM_LBUTTONDBLCLK)
 
@@ -161,11 +150,11 @@ def test_tray_menu_exit_terminates_without_residue(app):
     assert tray_hwnd, f"常驻托盘消息窗口必须存在（标题 {TRAY_WINDOW_TITLE}）"
 
     # 观察图标是否真的落进通知区（explorer 偶发不落条目，此时残留判定天然成立）
-    deadline = time.time() + 5.0
-    registered = False
-    while time.time() < deadline and not registered:
-        registered = find_icon(tray_hwnd) is not None
-        time.sleep(0.1)
+    try:
+        wait_icon(tray_hwnd, present=True, timeout=5.0)
+        registered = True
+    except AssertionError:
+        registered = False
     print(f"托盘图标登记观察：{'已登记' if registered else '未登记（explorer 未落进按钮表）'}")
 
     menu = open_tray_menu(pid)
@@ -177,9 +166,4 @@ def test_tray_menu_exit_terminates_without_residue(app):
         description="菜单退出后进程结束（真实退出编排）",
     )
 
-    deadline = time.time() + 5.0
-    residue = find_icon(tray_hwnd)
-    while residue is not None and time.time() < deadline:
-        time.sleep(0.1)
-        residue = find_icon(tray_hwnd)
-    assert residue is None, f"通知区残留托盘条目（NIM_DELETE 未执行）：{residue}"
+    wait_icon(tray_hwnd, present=False, timeout=5.0)

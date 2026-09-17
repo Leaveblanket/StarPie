@@ -12,14 +12,16 @@ import warnings
 
 import pytest
 import win32api
-import win32gui
 import win32process
+from catalogs import BROKEN_PLUGIN_ID, PROGRAM_SOURCE_PLUGIN_ID
 from conftest import (
     assert_text_contains,
+    close_console,
     exit_via_test_message,
     find_wheel_window,
     goto,
     kill_processes,
+    probe_exe_from_config,
     read_config,
     save_settings,
     wait_for_label_value,
@@ -28,9 +30,7 @@ from conftest import (
 )
 from mouse_input import drag_right, press_right_at, release_right
 
-PLUGIN_ID = "starpie.builtin.program-source"
-PLUGIN_STATUS = f"PluginManagerStatus_{PLUGIN_ID}"
-BROKEN_PLUGIN_ID = "e2e.broken.probe"
+PLUGIN_STATUS = f"PluginManagerStatus_{PROGRAM_SOURCE_PLUGIN_ID}"
 
 START = (600, 400)
 SECTOR_DRAG = 110
@@ -94,9 +94,10 @@ def test_readonly_config_degrades_without_crash(app):
         # 应用仍可用：导航往返 + 磁盘保持只读前的原值
         goto(win, 3)
         goto(win, 0)
-        config = read_config(local_app_data)
-        assert abs(config.get("DragThreshold", 0) - 30) < 0.01, (
-            f"只读文件不得被改写: DragThreshold={config.get('DragThreshold')}"
+        read_config(
+            local_app_data,
+            predicate=lambda c: abs(c.get("DragThreshold", 0) - 30) < 0.01,
+            message="只读文件不得被改写（DragThreshold 应保持 30）",
         )
     finally:
         try:
@@ -116,13 +117,7 @@ def test_residency_after_console_close_and_gesture_still_works(app):
 
     before = _process_stats(pid)
 
-    handle = win.handle
-    win.child_window(auto_id="CloseButton", control_type="Button").invoke()
-    wait_until(
-        lambda: not win32gui.IsWindow(handle),
-        timeout=8.0,
-        description="设置台窗口已销毁",
-    )
+    close_console(win)
 
     after = _process_stats(pid)
     growth_mb = (after["working_set"] - before["working_set"]) / 1024 / 1024
@@ -144,7 +139,7 @@ def test_residency_after_console_close_and_gesture_still_works(app):
     assert after["handles"] <= before["handles"] + 200, f"关闭后句柄异常膨胀: {before} -> {after}"
 
     # 壳层仍活着：设置台关着也能完成一次手势并执行动作
-    probe_exe = read_config(local_app_data)["Profiles"][0]["Actions"][0]["Parameter"]
+    probe_exe = probe_exe_from_config(local_app_data)
     press_right_at(*START)
     drag_right(SECTOR_DRAG)
     wait_until(lambda: find_wheel_window(pid), timeout=3.0, description="关闭设置台后轮盘仍能弹出")

@@ -1,45 +1,32 @@
-"""插件最小管理面 e2e：列表/状态、经产品路径的启停往返、隔离态重试与诊断入口。"""
+"""插件最小管理面 e2e：列表/状态、经产品路径的启停往返、隔离态重试与诊断入口。
 
-import json
+宿主状态文件（plugin-state.json）是启停 / 隔离 / 挂起版本的权威意图，且没有对应的 UI 回读面，
+故状态断言保留读盘（read_plugin_state 一处谓词即断言）；界面状态本身走文本断言。
+"""
+
 import os
 import re
-import time
 
 import pytest
-from conftest import assert_text_contains, click_and_confirm_yes, goto, text_of, wait_until
+from catalogs import PROGRAM_SOURCE_PLUGIN_ID, SAMPLE_UI_PLUGIN_ID, USER_PLUGIN_ID
+from conftest import (
+    assert_text_contains,
+    click_and_confirm_yes,
+    goto,
+    read_plugin_state,
+    text_of,
+    wait_until,
+)
 
-PLUGIN_ID = "starpie.builtin.program-source"
-PLUGIN_STATUS = f"PluginManagerStatus_{PLUGIN_ID}"
-PLUGIN_TOGGLE = f"PluginManagerToggle_{PLUGIN_ID}"
-PLUGIN_RETRY = f"PluginManagerRetry_{PLUGIN_ID}"
-PLUGIN_DIAGNOSTICS = f"PluginManagerDiagnostics_{PLUGIN_ID}"
+PLUGIN_STATUS = f"PluginManagerStatus_{PROGRAM_SOURCE_PLUGIN_ID}"
+PLUGIN_TOGGLE = f"PluginManagerToggle_{PROGRAM_SOURCE_PLUGIN_ID}"
+PLUGIN_RETRY = f"PluginManagerRetry_{PROGRAM_SOURCE_PLUGIN_ID}"
+PLUGIN_DIAGNOSTICS = f"PluginManagerDiagnostics_{PROGRAM_SOURCE_PLUGIN_ID}"
 
-SAMPLE_UI_ID = "starpie.builtin.sample-ui"
-SAMPLE_UI_STATUS = f"PluginManagerStatus_{SAMPLE_UI_ID}"
-SAMPLE_UI_NAV = f"NavPlugin_{SAMPLE_UI_ID}"
-SAMPLE_UI_UPDATE = f"PluginManagerUpdate_{SAMPLE_UI_ID}"
+SAMPLE_UI_STATUS = f"PluginManagerStatus_{SAMPLE_UI_PLUGIN_ID}"
+SAMPLE_UI_NAV = f"NavPlugin_{SAMPLE_UI_PLUGIN_ID}"
+SAMPLE_UI_UPDATE = f"PluginManagerUpdate_{SAMPLE_UI_PLUGIN_ID}"
 SAMPLE_UI_SETTINGS_SECTION = "SampleUiSettingsGreeting"
-
-USER_PLUGIN_ID = "e2e.user.probe"
-
-
-def _read_plugin_state(local_app_data, predicate, timeout=5.0):
-    """轮询读取沙箱 plugin-state.json，直到 predicate 成立（宿主落盘稍慢时不误判）。"""
-    path = os.path.join(str(local_app_data), "StarPie", "plugin-state.json")
-    deadline = time.time() + timeout
-    last = None
-    while True:
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                last = json.load(f)
-            if predicate(last):
-                return last
-        except (FileNotFoundError, json.JSONDecodeError):
-            last = None
-        if time.time() >= deadline:
-            break
-        time.sleep(0.1)
-    raise AssertionError(f"等待 plugin-state.json 超时（{timeout}s）。最后内容: {last}")
 
 
 def test_plugin_manager_lists_builtin_plugin(app):
@@ -47,7 +34,7 @@ def test_plugin_manager_lists_builtin_plugin(app):
     win, _ = app
     goto(win, 4)
 
-    name = text_of(win, f"PluginManagerName_{PLUGIN_ID}", "Text", timeout=5.0)
+    name = text_of(win, f"PluginManagerName_{PROGRAM_SOURCE_PLUGIN_ID}", "Text", timeout=5.0)
     assert name, "插件条目必须有展示名"
     assert_text_contains(win, PLUGIN_STATUS, "Text", "活动")
 
@@ -59,7 +46,7 @@ def test_plugin_manager_lists_builtin_plugin(app):
     win.child_window(auto_id=PLUGIN_DIAGNOSTICS, control_type="Button").invoke()
 
     diagnostics = assert_text_contains(win, "PluginDiagnosticsText", "Edit", "内置", timeout=5.0)
-    assert PLUGIN_ID in diagnostics
+    assert PROGRAM_SOURCE_PLUGIN_ID in diagnostics
 
 
 def test_plugin_manager_toggle_roundtrip(app):
@@ -71,9 +58,10 @@ def test_plugin_manager_toggle_roundtrip(app):
     win.child_window(auto_id=PLUGIN_TOGGLE, control_type="Button").invoke()
 
     assert_text_contains(win, PLUGIN_STATUS, "Text", "已停用")
-    _read_plugin_state(
+    read_plugin_state(
         local_app_data,
-        lambda state: state["Plugins"][PLUGIN_ID]["Enabled"] is False,
+        predicate=lambda state: state["Plugins"][PROGRAM_SOURCE_PLUGIN_ID]["Enabled"] is False,
+        message="停用意图应写入宿主状态文件",
     )
 
     # 停用后的诊断面板给出降级回收说明：WPF 宿主里程序集留到重启释放，不谎报完全回收。
@@ -84,9 +72,10 @@ def test_plugin_manager_toggle_roundtrip(app):
     win.child_window(auto_id=PLUGIN_TOGGLE, control_type="Button").invoke()
 
     assert_text_contains(win, PLUGIN_STATUS, "Text", "活动")
-    _read_plugin_state(
+    read_plugin_state(
         local_app_data,
-        lambda state: state["Plugins"][PLUGIN_ID]["Enabled"] is True,
+        predicate=lambda state: state["Plugins"][PROGRAM_SOURCE_PLUGIN_ID]["Enabled"] is True,
+        message="启用意图应写入宿主状态文件",
     )
 
 
@@ -140,8 +129,7 @@ def test_plugin_page_navigation_and_interaction(app):
         match = re.search(r"(\d+) 次", text_of(win, "SampleUiHeartbeatTicks", timeout=0.5))
         return int(match.group(1)) if match else None
 
-    ticks = wait_until(_ticks, timeout=5.0, description="定时器心跳计数 > 0")
-    assert ticks > 0
+    wait_until(_ticks, timeout=5.0, description="定时器心跳计数 > 0")
 
     # 双向绑定交互：编辑框回写 VM，回显行同步更新——插件页绑定面在真实进程工作。
     editor = win.child_window(auto_id="SampleUiMessageInput", control_type="Edit")
@@ -181,12 +169,13 @@ def test_plugin_manager_update_ui_plugin_pending_restart(app):
 
     assert_text_contains(win, SAMPLE_UI_STATUS, "Text", "待重启")
     pending = assert_text_contains(
-        win, f"PluginManagerPendingRestart_{SAMPLE_UI_ID}", "Text", "下次启动生效"
+        win, f"PluginManagerPendingRestart_{SAMPLE_UI_PLUGIN_ID}", "Text", "下次启动生效"
     )
     assert "1.0.0" in pending, f"挂起说明必须带待装载版本：{pending}"
-    _read_plugin_state(
+    read_plugin_state(
         local_app_data,
-        lambda state: state["Plugins"][SAMPLE_UI_ID].get("PendingVersion") == "1.0.0",
+        predicate=lambda state: state["Plugins"][SAMPLE_UI_PLUGIN_ID].get("PendingVersion") == "1.0.0",
+        message="挂起版本应写入宿主状态文件",
     )
 
     # 界面插件更新语义 = 旧实例即刻卸载、新版本下次启动装载：导航项与设置区块随资产出账。
@@ -207,6 +196,10 @@ def test_plugin_manager_uninstall_removes_user_plugin(app):
     click_and_confirm_yes(win, f"PluginManagerUninstall_{USER_PLUGIN_ID}")
 
     _wait_absent(win, f"PluginManagerName_{USER_PLUGIN_ID}", "Text")
-    _read_plugin_state(local_app_data, lambda state: USER_PLUGIN_ID not in state["Plugins"])
+    read_plugin_state(
+        local_app_data,
+        predicate=lambda state: USER_PLUGIN_ID not in state["Plugins"],
+        message="彻底移除后插件应从宿主状态文件移除",
+    )
     assert not os.path.exists(user_package_dir), "用户包目录必须随彻底移除删除"
     assert_text_contains(win, PLUGIN_STATUS, "Text", "活动")

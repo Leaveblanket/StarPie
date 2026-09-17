@@ -18,6 +18,8 @@ import win32ui
 from pywinauto import Application, Desktop
 from pywinauto.findwindows import ElementNotFoundError
 
+from catalogs import PROGRAM_PICKER_TITLE
+
 # 失败截图依赖 PIL（依赖清单见 tests/requirements.txt）。应用以真实可见形态运行，
 # PrintWindow 抓到的即当前真实画面；缺 PIL 时显式告警并把原因写进运行 header。
 try:
@@ -289,6 +291,41 @@ def goto(win, slot: int, timeout: float = 5.0):
     return anchor
 
 
+# 各页"就绪控件"清单：goto 已断言锚点，这里覆盖本页其余稳定控件（页面真实挂载即全部就位）。
+# 只用被多个用例重复检查过的控件，避免把条件可见的控件写进来造成假红；
+# 存在性用例（如 test_profile_management_ui_and_buttons）自带清单，不走这里。
+PAGE_READY_CONTROLS = {
+    0: (("ThresholdSlider", "Slider"), ("ThresholdValueLabel", "Text"),
+        ("NewBlacklistProcessTextBox", "Edit"), ("BlacklistListBox", "List"),
+        ("OuterEscapeDistanceSlider", "Slider")),
+    1: (("AppThemeComboBox", "ComboBox"), ("WheelPaletteComboBox", "ComboBox"),
+        ("WheelStyleComboBox", "ComboBox"), ("ShapeComboBox", "ComboBox"),
+        ("ShowTextCheckBox", "CheckBox"), ("IconLayoutModeComboBox", "ComboBox"),
+        ("WheelRadiusSlider", "Slider"), ("SectorGapSlider", "Slider"),
+        ("SectorCornerRadiusSlider", "Slider")),
+    2: (("ProfilesListBox", "List"), ("SectorActionListTitleText", "Text"),
+        ("Slot0ActionTypeComboBox", "ComboBox")),
+    3: (("LanguageComboBox", "ComboBox"), ("AutoStartCheckBox", "CheckBox"),
+        ("ExportConfigButton", "Button"), ("ImportConfigButton", "Button")),
+}
+
+
+def assert_page_ready(win, slot: int, timeout: float = 3.0) -> None:
+    """断言某页的稳定控件全部就位（整组共用 timeout 预算；失败一次列出缺失项）。"""
+    deadline = time.time() + timeout
+    while True:
+        missing = tuple(
+            auto_id
+            for auto_id, ctype in PAGE_READY_CONTROLS[slot]
+            if not win.child_window(auto_id=auto_id, control_type=ctype).exists(timeout=0.2)
+        )
+        if not missing:
+            return
+        if time.time() >= deadline:
+            raise AssertionError(f"NavPage{slot} 缺少控件: {missing}")
+        time.sleep(0.1)
+
+
 def wait_until(predicate, timeout: float = 5.0, interval: float = 0.1, description: str = "条件成立"):
     """轮询 predicate 直到返回真值；超时抛带最后取值的断言（替代固定 sleep）。
 
@@ -330,12 +367,13 @@ def assert_text_contains(win, auto_id: str, control_type: str, expected: str, ti
     return seen["text"]
 
 
-def read_config(local_app_data, predicate=None, timeout: float = 5.0):
-    """轮询读取沙盒 config.json：等文件出现、可选等 predicate 成立；超时抛带诊断信息的断言。
+def read_json_file(path: str, predicate=None, timeout: float = 5.0, message: str = ""):
+    """轮询读取 JSON 文件：等文件出现、可选等 predicate 成立；到超时仍未成立即失败。
 
     替代"固定 sleep 后直接 open/json.load"——落盘稍慢时不再读到旧值或抛 FileNotFoundError。
+    等待与断言收在一处：predicate 即本次要验的条件（用例不必读出文件后再把同一条件断言一遍），
+    message 给业务文案——超时报告 = 业务文案 + 最后内容，条件只写一处且可诊断。
     """
-    path = os.path.join(str(local_app_data), "StarPie", "config.json")
     deadline = time.time() + timeout
     last = None
     last_err = ""
@@ -346,13 +384,47 @@ def read_config(local_app_data, predicate=None, timeout: float = 5.0):
             if predicate is None or predicate(last):
                 return last
         except FileNotFoundError:
-            last_err = f"config.json 不存在: {path}"
+            last_err = f"文件不存在: {path}"
         except json.JSONDecodeError as ex:
-            last_err = f"config.json 解析失败: {ex}"
+            last_err = f"JSON 解析失败: {ex}"
         if time.time() >= deadline:
             break
         time.sleep(0.1)
-    raise AssertionError(f"等待 config.json 超时（{timeout}s）。{last_err} 最后内容: {last}")
+    what = message or f"等待 {os.path.basename(path)} 的目标状态"
+    raise AssertionError(f"{what}（{timeout}s 内未成立）。{last_err} 最后内容: {last}")
+
+
+def read_config(local_app_data, predicate=None, timeout: float = 5.0, message: str = ""):
+    """轮询读取沙盒 config.json；predicate 成立即返回（到超时仍未成立即失败）。"""
+    return read_json_file(
+        os.path.join(str(local_app_data), "StarPie", "config.json"), predicate, timeout, message
+    )
+
+
+def read_plugin_state(local_app_data, predicate=None, timeout: float = 5.0, message: str = ""):
+    """轮询读取沙盒宿主状态文件 plugin-state.json（启停 / 隔离 / 挂起版本等权威意图）。"""
+    return read_json_file(
+        os.path.join(str(local_app_data), "StarPie", "plugin-state.json"), predicate, timeout, message
+    )
+
+
+def probe_exe_from_config(local_app_data) -> str:
+    """从沙箱配置读回预置的探针 exe 路径（gesture-probe 预置的 Global 扇区 0 Launch 参数）。
+
+    动作执行类用例的落地证据按镜像路径判定，路径来源只此一处（预置见 seed_gesture_config）。
+    """
+    return read_config(local_app_data)["Profiles"][0]["Actions"][0]["Parameter"]
+
+
+def global_action_type_is(config: dict, expected: str) -> bool:
+    """配置里 Global 方案首个动作的类型是否为 expected。
+
+    槽位动作类型下拉的 UIA 不暴露选中态时，配置里该字段是唯一观察面——
+    本 predicate 供落盘断言复用（条件只写一处）。
+    """
+    glob = next((p for p in config.get("Profiles", []) if p.get("ProcessName") == "Global"), None)
+    actions = (glob or {}).get("Actions") or []
+    return bool(actions) and actions[0].get("Type") == expected
 
 
 def label_value(win, auto_id: str, timeout: float = 3.0) -> float:
@@ -474,6 +546,74 @@ def wait_dialog_closed(dialog, timeout: float = 5.0) -> None:
         if time.time() >= deadline:
             raise AssertionError(f"等待对话框关闭超时（{timeout}s）")
         time.sleep(0.1)
+
+
+def close_console(win, timeout: float = 8.0) -> None:
+    """点 CloseButton 关闭设置台（关闭即销毁、托盘驻留），等窗口句柄失效。
+
+    设置台关闭走真实关闭序列（导航出账 + 冲刷挂起落盘 + 托盘驻留），
+    窗口销毁是"关闭即销毁"语义的观察面；重开走托盘双击/恢复消息（用例各自驱动）。
+    """
+    handle = win.handle
+    win.child_window(auto_id="CloseButton", control_type="Button").invoke()
+    wait_until(
+        lambda: not win32gui.IsWindow(handle),
+        timeout=timeout,
+        description="设置台窗口已销毁（关闭即销毁、托盘驻留）",
+    )
+
+
+def open_program_picker(win, nav_slot: int = 2):
+    """从手势页（NavPage2）经 AddProfileButton 打开程序选择器（真实模态对话框）。"""
+    goto(win, nav_slot)
+    add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
+    assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
+    add_btn.invoke()
+    return wait_dialog(PROGRAM_PICKER_TITLE)
+
+
+def picker_filter(picker, text: str) -> None:
+    """在程序选择器搜索框输入过滤词（ListView 虚拟化，只有过滤后目标项才被实例化）。"""
+    search = picker.child_window(auto_id="SearchTextBox", control_type="Edit")
+    assert search.exists(timeout=5), "程序选择器搜索框必须存在"
+    search.set_edit_text(text)
+
+
+def picker_programs(picker, timeout: float = 30.0):
+    """等选择器列表首次填充出条目（扫描 + 逐条图标提取完成后才填充），返回列表控件。"""
+    programs = picker.child_window(auto_id="ProgramsListView", control_type="List")
+    wait_until(
+        lambda: list_item_texts(programs) != [],
+        timeout=timeout,
+        description="程序选择器列表填充出条目",
+    )
+    return programs
+
+
+def pick_program(picker, filter_text: str) -> None:
+    """在程序选择器里过滤、选中目标条目并确认真实关闭（选中路径的统一实现）。"""
+    picker_filter(picker, filter_text)
+    programs = picker.child_window(auto_id="ProgramsListView", control_type="List")
+    wait_until(
+        lambda: any(filter_text in text for text in list_item_texts(programs)),
+        timeout=30.0,
+        description=f"程序选择器列出 {filter_text}",
+    )
+    for item in programs.children(control_type="ListItem"):
+        if filter_text in item.window_text():
+            item.select()
+            break
+    else:
+        raise AssertionError(f"程序选择器没有可选的 {filter_text} 条目")
+
+    picker.child_window(auto_id="OkButton", control_type="Button").invoke()
+    wait_dialog_closed(picker)
+
+
+def cancel_dialog(dialog) -> None:
+    """点 CancelButton 关闭对话框并等关闭（取消路径的统一收尾）。"""
+    dialog.child_window(auto_id="CancelButton", control_type="Button").invoke()
+    wait_dialog_closed(dialog)
 
 
 def find_app_path() -> str:
