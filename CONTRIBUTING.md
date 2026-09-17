@@ -43,5 +43,7 @@ dev 实例与正式版的行为差异:
    - 仓库根构建:`dotnet build StarPie.slnx`;
    - 测试:`dotnet test --project StarPie.Tests/StarPie.Tests.csproj`(勿加 `--nologo`:SDK 会把它转发给测试体,而 MTP 不认该参数,表现为「运行了零个测试」+ 退出码 5);
    - 用户可见改动(UI、对话框、配置 schema、本地化键、e2e 本身)再跑 e2e:`pwsh -File scripts/run-e2e.ps1`;
+   - e2e 两档:日常快检走巡检层 `pwsh -File scripts/run-e2e.ps1 -NoBuild -TestPath tests/test_smoke.py`
+     (少量实例覆盖页面/控件/目录/i18n;失败报告附带复审判例节点,按节点 `-TestPath <文件>::<用例>` 单跑);提交前跑全量(默认 `tests`);
 4. **提交**:清晰写改了什么 + 为什么;`feat` / `fix` / `refactor` 工作引一句 issue 编号即可(不强求);
 5. **开 PR**:背景 / 目的 / 改动摘要 + 必要的界面截图或录屏。
