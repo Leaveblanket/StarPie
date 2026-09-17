@@ -5,6 +5,7 @@
 拖动用相对位移，避免多显示器/DPI 下的绝对坐标换算。
 """
 
+import math
 import time
 
 import win32api
@@ -56,3 +57,24 @@ def drag_right(distance: int, steps: int = 8, step_delay: float = 0.04, hold: fl
 def release_right(settle: float = 0.2) -> None:
     right_up()
     time.sleep(settle)
+
+
+def drag_circle(center, radius: float, steps: int, interval: float = 0.001, revolutions: float = 2.5) -> None:
+    """按住状态下沿圆周分步扫掠（约 1/interval 的事件率，逼近高回报率鼠标的密集拖动）。
+
+    以忙等定拍：Windows 上 time.sleep 的最小间隔受系统时钟粒度限制（常见 15.6ms），
+    达不到"高回报率鼠标"的事件率，而密集事件正是拖动路径的负载形态。
+    步进角按 revolutions 摊平，结束角 = revolutions × 360°（默认 2.5 圈即正左，
+    避开预置配置里绑定了动作的正右扇区）。调用前需已按下触发键；起点即圆心。
+    """
+    step_angle = (revolutions * 2 * math.pi) / steps
+    next_at = time.perf_counter()
+    for index in range(steps):
+        angle = (index + 1) * step_angle
+        x = center[0] + radius * math.cos(angle)
+        y = center[1] + radius * math.sin(angle)
+        cur = win32api.GetCursorPos()
+        next_at += interval
+        while time.perf_counter() < next_at:
+            pass
+        win32api.mouse_event(_MOVE, int(x - cur[0]), int(y - cur[1]), 0, 0)

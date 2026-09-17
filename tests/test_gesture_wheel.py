@@ -23,7 +23,14 @@ from conftest import (
     wait_process_started,
     wait_until,
 )
-from mouse_input import drag_right, move_by, move_to, press_right_at, release_right
+from mouse_input import (
+    drag_circle,
+    drag_right,
+    move_by,
+    move_to,
+    press_right_at,
+    release_right,
+)
 from win32_probe import RightClickProbeWindow
 
 # 手势起点：默认设置台窗口覆盖区内的固定点（远离任务栏/托盘，避免注入点击命中系统 UI）。
@@ -35,6 +42,12 @@ SECTOR_DRAG = 110
 ESCAPE_DRAG = 240
 # 中心死区（阈值 25 × 0.6 = 15px）以内即取消选中；这里先外拖再拖回起点。
 CENTER_RETURN_DRAG = 110
+
+# 密集拖动（≈1000Hz 鼠标节奏）的注入规模：足以让"逐事件全量重绘高亮"的实现
+# 在 UI 线程上积压出数百毫秒的待办工作。
+DENSE_SWEEP_STEPS = 600
+DENSE_SWEEP_INTERVAL = 0.001
+DENSE_SWEEP_RADIUS = 110
 
 
 @pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
@@ -97,6 +110,49 @@ def test_gesture_drag_pops_wheel_and_executes_sector_action(app):
     pids = wait_process_started(probe_exe, timeout=10.0)
     print(f"扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
     kill_processes(pids)
+
+
+@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
+def test_gesture_dense_drag_keeps_close_prompt(app):
+    """密集拖动后松手：轮盘收起时延不随拖动事件数增长（拖动工作不在 UI 线程积压）。
+
+    观察面取「松手 → 轮盘窗口销毁」：轮盘收起排在已排队的拖动工作项之后，因此这条
+    时延即 UI 线程上的积压深度。高亮更新若逐事件全量重绘，数百次密集拖动会积压出
+    数百毫秒、收起明显滞后；拖动工作合并为「最新态覆盖」后队列里至多一个待应用项，
+    收起时延回落到与拖动事件数无关的基线。
+    """
+    win, _ = app
+    pid = win.process_id()
+
+    press_right_at(*START)
+    move_by(45, 0)  # 单次移动越过 DragThreshold(25)，弹出轮盘
+    wait_until(
+        lambda: find_wheel_window(pid),
+        timeout=3.0,
+        interval=0.02,
+        description="越过阈值后轮盘窗口弹出",
+    )
+
+    drag_circle(START, DENSE_SWEEP_RADIUS, DENSE_SWEEP_STEPS, DENSE_SWEEP_INTERVAL)
+
+    release_t0 = time.perf_counter()
+    release_right(settle=0.0)
+    wait_until(
+        lambda: find_wheel_window(pid) == 0,
+        timeout=3.0,
+        interval=0.005,
+        description="松手后轮盘窗口收起",
+    )
+    close_ms = (time.perf_counter() - release_t0) * 1000
+
+    if close_ms > 60:
+        warnings.warn(f"密集拖动后轮盘收起偏慢：{close_ms:.0f}ms（松手→窗口销毁）", stacklevel=2)
+    else:
+        warnings.warn(f"密集拖动后轮盘收起 {close_ms:.0f}ms（松手→窗口销毁，观测值）", stacklevel=2)
+    assert close_ms < 400, (
+        f"密集拖动后轮盘收起过长（{close_ms:.0f}ms）：拖动事件的工作项在 UI 线程上积压，"
+        "检查高亮更新是否仍在逐事件全量重绘"
+    )
 
 
 @pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)

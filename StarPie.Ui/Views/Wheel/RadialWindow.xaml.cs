@@ -36,8 +36,18 @@ namespace StarPie.Views.Wheel
         private readonly List<StackPanel> _contentPanels = new List<StackPanel>();
         private readonly List<TranslateTransform> _sectorTransforms = new List<TranslateTransform>();
         private readonly List<TranslateTransform> _containerTransforms = new List<TranslateTransform>();
-        private readonly List<double> _sectorAngles = new List<double>();
         private IRadialStyleRenderer _styleRenderer = null!;
+
+        // 高亮的应用记忆点（哨兵表示尚无应用）：只重绘发生变化的那两个扇区，
+        // 重复索引与重复移动直接跳过——单次高亮成本与扇区数无关。
+        private const int NoAppliedHighlight = int.MinValue;
+        private int _appliedHighlight = NoAppliedHighlight;
+
+        // 磁性弹出/回落的平移动画：目标沿径向固定、时长与缓动一致，渲染期冻结后跨属性复用，
+        // 拖动路径上不再逐个扇区新建动画对象。
+        private readonly List<DoubleAnimation> _sectorPopOutX = new List<DoubleAnimation>();
+        private readonly List<DoubleAnimation> _sectorPopOutY = new List<DoubleAnimation>();
+        private DoubleAnimation _sectorSettle = null!;
 
         // 样式画刷与尺寸（动态实例化）
         private Brush _defaultSectorBrush = Brushes.Transparent;
@@ -45,6 +55,7 @@ namespace StarPie.Views.Wheel
         private Brush _sectorBorderBrush = Brushes.Transparent;
         private Brush _highlightBorderBrush = Brushes.Transparent;
         private Brush _textColorBrush = Brushes.Transparent;
+        private Brush _dimTextBrush = Brushes.Transparent;
         private Brush _coreBgBrush = Brushes.Transparent;
         private Brush _coreBorderBrush = Brushes.Transparent;
 
@@ -101,6 +112,31 @@ namespace StarPie.Views.Wheel
             _coreBorderBrush = _styleRenderer.CoreBorderBrush;
             _borderThickness = _styleRenderer.BorderThickness;
             _highlightBorderThickness = _styleRenderer.HighlightBorderThickness;
+
+            // 未选中扇区的压暗文字/图标画刷与回落动画按窗口生命周期只生成一次。
+            if (_textColorBrush is SolidColorBrush textColor)
+            {
+                var dim = new SolidColorBrush(Color.FromArgb(170, textColor.Color.R, textColor.Color.G, textColor.Color.B));
+                dim.Freeze();
+                _dimTextBrush = dim;
+            }
+            else
+            {
+                _dimTextBrush = _textColorBrush;
+            }
+
+            _sectorSettle = CreateSectorShiftAnimation(0.0);
+        }
+
+        /// <summary>磁性平移动画：冻结后可跨属性与多次应用复用（每次应用各自成钟）。</summary>
+        private static DoubleAnimation CreateSectorShiftAnimation(double to)
+        {
+            var animation = new DoubleAnimation(to, new Duration(TimeSpan.FromMilliseconds(80)))
+            {
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            animation.Freeze();
+            return animation;
         }
 
         private void RadialWindow_Loaded(object sender, RoutedEventArgs e)
@@ -312,7 +348,8 @@ namespace StarPie.Views.Wheel
             _contentPanels.Clear();
             _sectorTransforms.Clear();
             _containerTransforms.Clear();
-            _sectorAngles.Clear();
+            _sectorPopOutX.Clear();
+            _sectorPopOutY.Clear();
 
             // 清除 Canvas 上之前的扇区绘制
             var toRemove = new List<UIElement>();
@@ -358,7 +395,8 @@ namespace StarPie.Views.Wheel
                 _styleRenderer?.ApplySectorHighlight(path, false);
                 _sectorPaths.Add(path);
                 _sectorTransforms.Add(pathTransform);
-                _sectorAngles.Add(midAngleRad);
+                _sectorPopOutX.Add(CreateSectorShiftAnimation(Math.Cos(midAngleRad) * 5.5));
+                _sectorPopOutY.Add(CreateSectorShiftAnimation(Math.Sin(midAngleRad) * 5.5));
 
                 // 扇区内容（图标回退链、排版缩放、内置向量）来自共享内核；本类只把纯数据画成元素。
                 WheelSectorViewModel sector = _viewModel.Sectors[i];
@@ -428,6 +466,15 @@ namespace StarPie.Views.Wheel
                 _contentPanels.Add(stackPanel);
                 _containerTransforms.Add(containerTransform);
             }
+
+            // 扇区重绘后已应用的高亮记号作废（列表刚被重建）：渲染期（Loaded）之前到达的
+            // 选中通知落在空列表上，这里对真实扇区补应用一次；-1（中心取消）不补，
+            // 打开瞬间维持默认核观感。
+            _appliedHighlight = NoAppliedHighlight;
+            if (_viewModel.SelectedSectorIndex >= 0)
+            {
+                ApplySectorHighlight(_viewModel.SelectedSectorIndex);
+            }
         }
 
         /// <summary>把引擎驱动的状态变更反映到视图（INPC 订阅边界）：窗口只经
@@ -467,140 +514,129 @@ namespace StarPie.Views.Wheel
             this.BeginAnimation(UIElement.OpacityProperty, anim);
         }
 
+        /// <summary>把选中索引的变更落到视图：只重绘真正换过状态的扇区（上一选中与新选中）
+        /// 与中心取消反馈；重复索引直接跳过——单次高亮成本因此与扇区数无关。</summary>
         private void ApplySectorHighlight(int index)
         {
-            // 中心退出悬停反馈
-            if (index == -1)
+            if (index == _appliedHighlight)
+            {
+                return;
+            }
+
+            int previous = _appliedHighlight;
+            bool wasCancelled = previous == -1;
+            bool isCancelled = index == -1;
+            if (wasCancelled != isCancelled)
+            {
+                ApplyCoreCancelFeedback(isCancelled);
+            }
+
+            ApplySectorVisual(previous, false);
+            ApplySectorVisual(index, true);
+            _appliedHighlight = index;
+        }
+
+        /// <summary>中心退出悬停反馈：取消态（红）与常态（文字色）之间的过场。</summary>
+        private void ApplyCoreCancelFeedback(bool isCancelled)
+        {
+            if (isCancelled)
             {
                 CoreExitIcon.Fill = new SolidColorBrush(Color.FromRgb(244, 63, 94)); // Warm rose cancel
-                if (_styleRenderer != null)
-                {
-                    _styleRenderer.ApplyExitHighlight(CoreExitIcon, true);
-                }
-
-                var scaleAnim = new DoubleAnimation(1.12, new Duration(TimeSpan.FromMilliseconds(90)))
-                {
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-                CoreScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-                CoreScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+                _styleRenderer?.ApplyExitHighlight(CoreExitIcon, true);
             }
             else
             {
                 CoreExitIcon.Fill = _textColorBrush;
-                if (_styleRenderer != null)
-                {
-                    _styleRenderer.ApplyExitHighlight(CoreExitIcon, false);
-                }
-
-                var scaleAnim = new DoubleAnimation(1.0, new Duration(TimeSpan.FromMilliseconds(90)))
-                {
-                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-                };
-                CoreScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
-                CoreScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+                _styleRenderer?.ApplyExitHighlight(CoreExitIcon, false);
             }
 
-            var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
-            var animDuration = new Duration(TimeSpan.FromMilliseconds(80));
-
-            for (int i = 0; i < _sectorPaths.Count; i++)
+            var scaleAnim = new DoubleAnimation(isCancelled ? 1.12 : 1.0, new Duration(TimeSpan.FromMilliseconds(90)))
             {
-                var path = _sectorPaths[i];
-                var panel = i < _contentPanels.Count ? _contentPanels[i] : null;
-                var pTransform = i < _sectorTransforms.Count ? _sectorTransforms[i] : null;
-                var cTransform = i < _containerTransforms.Count ? _containerTransforms[i] : null;
-                double angleRad = i < _sectorAngles.Count ? _sectorAngles[i] : 0;
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+            };
+            CoreScale.BeginAnimation(ScaleTransform.ScaleXProperty, scaleAnim);
+            CoreScale.BeginAnimation(ScaleTransform.ScaleYProperty, scaleAnim);
+        }
 
-                TextBlock? textBlock = panel?.Children.OfType<TextBlock>().FirstOrDefault();
-                Path? vectorIcon = panel?.Children.OfType<Path>().FirstOrDefault();
+        /// <summary>把单个扇区落到选中态或回落态；索引超出已绘制扇区（含哨兵与取消值）时跳过。</summary>
+        private void ApplySectorVisual(int index, bool selected)
+        {
+            if (index < 0 || index >= _sectorPaths.Count)
+            {
+                return;
+            }
 
-                if (i == index)
+            Path path = _sectorPaths[index];
+            StackPanel? panel = index < _contentPanels.Count ? _contentPanels[index] : null;
+            TranslateTransform? pTransform = index < _sectorTransforms.Count ? _sectorTransforms[index] : null;
+            TranslateTransform? cTransform = index < _containerTransforms.Count ? _containerTransforms[index] : null;
+
+            TextBlock? textBlock = panel?.Children.OfType<TextBlock>().FirstOrDefault();
+            Path? vectorIcon = panel?.Children.OfType<Path>().FirstOrDefault();
+
+            if (selected)
+            {
+                path.Fill = _highlightSectorBrush;
+                path.Stroke = _highlightBorderBrush;
+                path.StrokeThickness = _highlightBorderThickness;
+                System.Windows.Controls.Panel.SetZIndex(path, 5);
+
+                // 磁性弹出：沿径向向量向外平移 5.5px（目标在渲染期已折进动画）
+                DoubleAnimation popOutX = index < _sectorPopOutX.Count ? _sectorPopOutX[index] : _sectorSettle;
+                DoubleAnimation popOutY = index < _sectorPopOutY.Count ? _sectorPopOutY[index] : _sectorSettle;
+
+                if (pTransform != null)
                 {
-                    path.Fill = _highlightSectorBrush;
-                    path.Stroke = _highlightBorderBrush;
-                    path.StrokeThickness = _highlightBorderThickness;
-                    System.Windows.Controls.Panel.SetZIndex(path, 5);
-
-                    // 磁性弹出：沿径向向量向外平移 5.5px
-                    double targetX = Math.Cos(angleRad) * 5.5;
-                    double targetY = Math.Sin(angleRad) * 5.5;
-
-                    if (pTransform != null)
-                    {
-                        pTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(targetX, animDuration) { EasingFunction = ease });
-                        pTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(targetY, animDuration) { EasingFunction = ease });
-                    }
-                    if (cTransform != null)
-                    {
-                        cTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(targetX, animDuration) { EasingFunction = ease });
-                        cTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(targetY, animDuration) { EasingFunction = ease });
-                    }
-
-                    if (textBlock != null)
-                    {
-                        textBlock.Foreground = Brushes.White;
-                        textBlock.FontWeight = FontWeights.Bold;
-                    }
-                    if (vectorIcon != null)
-                    {
-                        vectorIcon.Fill = Brushes.White;
-                    }
-
-                    if (_styleRenderer != null)
-                    {
-                        _styleRenderer.ApplySectorHighlight(path, true);
-                    }
+                    pTransform.BeginAnimation(TranslateTransform.XProperty, popOutX);
+                    pTransform.BeginAnimation(TranslateTransform.YProperty, popOutY);
                 }
-                else
+                if (cTransform != null)
                 {
-                    path.Fill = _defaultSectorBrush;
-                    path.Stroke = _sectorBorderBrush;
-                    path.StrokeThickness = _borderThickness;
-                    System.Windows.Controls.Panel.SetZIndex(path, 1);
+                    cTransform.BeginAnimation(TranslateTransform.XProperty, popOutX);
+                    cTransform.BeginAnimation(TranslateTransform.YProperty, popOutY);
+                }
 
-                    // 弹性回到 (0,0)
-                    if (pTransform != null)
-                    {
-                        pTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
-                        pTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
-                    }
-                    if (cTransform != null)
-                    {
-                        cTransform.BeginAnimation(TranslateTransform.XProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
-                        cTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0.0, animDuration) { EasingFunction = ease });
-                    }
+                if (textBlock != null)
+                {
+                    textBlock.Foreground = Brushes.White;
+                    textBlock.FontWeight = FontWeights.Bold;
+                }
+                if (vectorIcon != null)
+                {
+                    vectorIcon.Fill = Brushes.White;
+                }
 
-                    if (_styleRenderer != null)
-                    {
-                        _styleRenderer.ApplySectorHighlight(path, false);
-                    }
+                _styleRenderer?.ApplySectorHighlight(path, true);
+            }
+            else
+            {
+                path.Fill = _defaultSectorBrush;
+                path.Stroke = _sectorBorderBrush;
+                path.StrokeThickness = _borderThickness;
+                System.Windows.Controls.Panel.SetZIndex(path, 1);
 
-                    if (_textColorBrush is SolidColorBrush sc)
-                    {
-                        var dimColor = new SolidColorBrush(Color.FromArgb(170, sc.Color.R, sc.Color.G, sc.Color.B));
-                        if (textBlock != null)
-                        {
-                            textBlock.Foreground = dimColor;
-                            textBlock.FontWeight = FontWeights.Medium;
-                        }
-                        if (vectorIcon != null)
-                        {
-                            vectorIcon.Fill = dimColor;
-                        }
-                    }
-                    else
-                    {
-                        if (textBlock != null)
-                        {
-                            textBlock.Foreground = _textColorBrush;
-                            textBlock.FontWeight = FontWeights.Medium;
-                        }
-                        if (vectorIcon != null)
-                        {
-                            vectorIcon.Fill = _textColorBrush;
-                        }
-                    }
+                // 弹性回到 (0,0)
+                if (pTransform != null)
+                {
+                    pTransform.BeginAnimation(TranslateTransform.XProperty, _sectorSettle);
+                    pTransform.BeginAnimation(TranslateTransform.YProperty, _sectorSettle);
+                }
+                if (cTransform != null)
+                {
+                    cTransform.BeginAnimation(TranslateTransform.XProperty, _sectorSettle);
+                    cTransform.BeginAnimation(TranslateTransform.YProperty, _sectorSettle);
+                }
+
+                _styleRenderer?.ApplySectorHighlight(path, false);
+
+                if (textBlock != null)
+                {
+                    textBlock.Foreground = _dimTextBrush;
+                    textBlock.FontWeight = FontWeights.Medium;
+                }
+                if (vectorIcon != null)
+                {
+                    vectorIcon.Fill = _dimTextBrush;
                 }
             }
         }
