@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Media.Animation;
 using StarPie.Abstractions.Ui;
+using StarPie.Plugin.SampleUi.Views;
 using StarPie.Services.Messages;
 
 namespace StarPie.Plugin.SampleUi
