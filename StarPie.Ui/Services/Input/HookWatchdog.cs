@@ -63,26 +63,27 @@ namespace StarPie.Ui.Services.Input
         }
 
         /// <summary>
-        /// 单次探测（定时器每到一个周期调用一次）：光标动过但零事件 → 判失效并重注册；
-        /// 光标没动 → 清零计数防误报（没有输入就没有事件，不是死亡证据）。
-        /// 测试经假时钟推进周期驱动同一入口，不需要公开它。
+        /// 单次探测（定时器每到一个周期调用一次）
         /// </summary>
         private void CheckOnce()
         {
             if (_timer == null) return;
 
+            // 读光标位置，判定是否动过。
             GesturePoint? current = _cursorProbe();
             if (current is null) return;
 
             bool moved = _lastCursor is not { } last || current.Value.X != last.X || current.Value.Y != last.Y;
             _lastCursor = current;
 
+            // 光标没动 → 清零计数防误报（没有输入就没有事件，不是死亡证据）。
             if (!moved)
             {
                 Interlocked.Exchange(ref _eventsSinceLastCheck, 0);
                 return;
             }
 
+            // 光标动过但零事件 → 判失效并重注册。
             if (Interlocked.Exchange(ref _eventsSinceLastCheck, 0) == 0)
             {
                 _recover();

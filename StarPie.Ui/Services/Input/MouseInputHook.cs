@@ -87,9 +87,8 @@ namespace StarPie.Ui.Services.Input
 
             _hook.MousePressed += OnMousePressed;
             _hook.MouseReleased += OnMouseReleased;
-            _hook.MouseMoved += OnMouseMoved;
-            // 触发键按住期间，移动在钩子层是 MouseDragged 而非 MouseMoved（掩码含按键）。
-            _hook.MouseDragged += OnMouseMoved;
+            _hook.MouseMoved += OnMouseMoved; //为看门狗计数，触发键按住期间，移动在钩子层是 MouseDragged 而非 MouseMoved（掩码含按键）。
+            _hook.MouseDragged += OnMouseMoved;  // 触发键按住期间，移动在钩子层是 MouseDragged 而非 MouseMoved（掩码含按键）。
         }
 
         /// <summary>暂停开关：暂停只是放行全部事件，钩子仍挂着（托盘"暂停/恢复手势"）。</summary>
@@ -190,7 +189,7 @@ namespace StarPie.Ui.Services.Input
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
 
             // 引擎决定按下是否被手势接管（接管即抑制；未成手势时松手补发点击）。
-            if (_engine.OnTriggerDown(ToPoint(e)))
+            if (_engine.OnTriggerDown(new(e.Data.X, e.Data.Y)))
             {
                 e.SuppressEvent = true;
             }
@@ -204,7 +203,7 @@ namespace StarPie.Ui.Services.Input
             if (e.Data.Button != _triggerButton) return;
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
 
-            GestureReleaseResult result = _engine.OnTriggerUp(ToPoint(e));
+            GestureReleaseResult result = _engine.OnTriggerUp(new(e.Data.X, e.Data.Y));
             if (!result.Handled) return;
 
             if (result.ShouldReplayClick)
@@ -226,22 +225,20 @@ namespace StarPie.Ui.Services.Input
 
             if (_isPaused) return;
 
-            _engine.OnTriggerMove(ToPoint(e));
+            _engine.OnTriggerMove(new(e.Data.X, e.Data.Y));
         }
-
-        private static GesturePoint ToPoint(MouseHookEventArgs e) => new(e.Data.X, e.Data.Y);
 
         /// <summary>补发一次完整的触发键点击，并先开回放窗口——注入事件回到捕获侧时被放行。</summary>
         private void ReplayTriggerClick()
         {
-            // 必须是 fire-and-forget 投放里唯一不许抛异常的路径（旧实现的 mouse_event 不抛）：
+            // 必须是 fire-and-forget 投放里唯一不许抛异常的路径,因为这里是 UI 线程，抛了就挂了。
             // 模拟器创建或注入失败只记调试日志，不能让 UI 线程上的这条续接把进程带走。
             try
             {
                 _replayWindow.Open();
 
                 IEventSimulator simulator = _simulator ??= _simulatorFactory();
-                // 位置无关：在系统当前光标处补发（与旧实现 mouse_event 的语义一致）。
+                // 位置无关：在系统当前光标处补发。
                 UioHookResult press = simulator.SimulateMousePress(_triggerButton);
                 UioHookResult release = simulator.SimulateMouseRelease(_triggerButton);
                 if (press != UioHookResult.Success || release != UioHookResult.Success)
