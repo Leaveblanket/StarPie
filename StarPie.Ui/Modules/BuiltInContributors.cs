@@ -1,3 +1,4 @@
+using SharpHook.Data;
 using StarPie.Services;
 
 namespace StarPie.Modules
@@ -17,7 +18,12 @@ namespace StarPie.Modules
         /// 构造内置贡献者有序清单。宿主回调委托包由组合根持有并注入（宿主状态不归贡献者），
         /// 其余贡献者无状态。
         /// </summary>
-        public static IReadOnlyList<ICompositionContributor> CreateAll(AppHostDelegates hostDelegates)
+        /// <param name="hostDelegates">宿主回调委托包。</param>
+        /// <param name="triggerButton">手势触发键（默认右键；测试实例可经命令行覆盖，解析见
+        /// <see cref="TestInstanceSwitches"/>）。</param>
+        public static IReadOnlyList<ICompositionContributor> CreateAll(
+            AppHostDelegates hostDelegates,
+            MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
         {
             ICompositionContributor[] contributors =
             {
@@ -30,7 +36,7 @@ namespace StarPie.Modules
                 // M2 轮盘与渲染（无导航页）。
                 new WheelContributor(),
                 // M1 手势与动作（槽位 0/2）。
-                new GesturesContributor(),
+                new GesturesContributor(triggerButton),
                 // M5 壳层与系统设置面（槽位 3）。
                 new ShellContributor(),
                 // S6 对话框（无导航页）。

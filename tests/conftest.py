@@ -997,16 +997,24 @@ def sandbox_seed(request, sandbox_env):
     return mode
 
 
-def start_app(env, timeout: float = 15.0):
+def start_app(env, timeout: float = 15.0, trigger_button: int | None = None):
     """按沙箱环境启动被测应用并绑定主窗口，返回 (proc, win)。
 
     与 app fixture 走同一条启动/取窗口路径；供"同一沙箱内重启"类用例在用例体里
     自己管理第二个进程（进程收尾用 stop_app）。
+
+    trigger_button 非空时追加 `--trigger-button=<n>`：把触发键换成 SharpHook MouseButton
+    的第 n 个按键（4/5 即鼠标侧键 XBUTTON1/XBUTTON2）。侧键未被抑制时不弹上下文菜单，
+    手势链路的外部观测不必先收菜单——注入面见 tests/mouse_input.py 的 side_down/side_up。
     """
+
     app_path = find_app_path()
     # 真实可见形态启动（--allow-multiple：绕过单实例闸门、受理测试实例退出消息）：
     # 窗口真实呈现、对话框真实弹出、托盘序列真实执行；运行期间请勿操作键鼠（全局钩子在跑）。
-    proc = subprocess.Popen([app_path, "--allow-multiple"], env=env)
+    command = [app_path, "--allow-multiple"]
+    if trigger_button is not None:
+        command.append(f"--trigger-button={trigger_button}")
+    proc = subprocess.Popen(command, env=env)
 
     # 主窗口按 HWND 绑定（绕开标题正则的多元素歧义）；启动阶段失败也要留窗口 dump 取证，
     # 而不是只报一句 "Failed to launch or connect"。
@@ -1029,13 +1037,25 @@ def stop_app(proc, timeout: float = 15.0) -> bool:
 
 
 @pytest.fixture(scope="function")
-def app(sandbox_env, sandbox_seed, request):
+def trigger_button(request):
+    """启动期触发键（SharpHook MouseButton 编号）：默认 None 即产品默认右键。
+
+    用例经 `@pytest.mark.parametrize("trigger_button", [4], indirect=True)` 取用（与
+    sandbox_seed 同一模式）。4/5 是鼠标侧键（XBUTTON1/XBUTTON2）：侧键未被抑制时不弹
+    上下文菜单，手势链路的外部观测不必先收菜单——本 fixture 只决定启动参数，
+    注入面须同步用侧键（tests/mouse_input.py 的 side_down/side_up）。
+    """
+    return getattr(request, "param", None)
+
+
+@pytest.fixture(scope="function")
+def app(sandbox_env, sandbox_seed, trigger_button, request):
     env, local_app_data = sandbox_env
 
     if not PIL_AVAILABLE:
         warn_screenshot_unavailable("PIL 未安装")
 
-    proc, win = start_app(env)
+    proc, win = start_app(env, trigger_button=trigger_button)
 
     yield win, local_app_data
     
