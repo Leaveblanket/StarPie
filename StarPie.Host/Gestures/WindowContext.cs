@@ -56,6 +56,11 @@ namespace StarPie.Host.Gestures
             // Exclude desktop background and shell manager
             if (hWnd == PInvoke.GetShellWindow() || hWnd == PInvoke.GetDesktopWindow()) return false;
 
+            // 桌面图标宿主同属桌面（Win11 上 SHELLDLL_DefView 常挂在一个覆盖整屏的 WorkerW 下，
+            // 它不是 GetShellWindow() 返回的 Progman）：桌面铺满整屏但不是全屏应用，
+            // 漏排会让桌面上的手势被全屏隔离误伤（点击/框选桌面后右键直通系统原生）。
+            if (HostsDesktopIconView(hWnd)) return false;
+
             if (!PInvoke.GetWindowRect(hWnd, out RECT windowRect)) return false;
 
             HMONITOR hMonitor = PInvoke.MonitorFromWindow(hWnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
@@ -71,6 +76,15 @@ namespace StarPie.Host.Gestures
                    windowRect.top <= monitorInfo.rcMonitor.top &&
                    windowRect.right >= monitorInfo.rcMonitor.right &&
                    windowRect.bottom >= monitorInfo.rcMonitor.bottom;
+        }
+
+        /// <summary>前台窗口是否承载桌面图标区（SHELLDLL_DefView）：即"桌面"而非"全屏应用"。
+        /// Progman 布局（DefView 挂在 shell 窗口下）已由 GetShellWindow() 排除；
+        /// Win11 常见的 WorkerW 布局由这里兜住。动态壁纸等无 DefView 子窗口的 WorkerW 层
+        /// 不受影响（保持既有全屏语义）。</summary>
+        private static bool HostsDesktopIconView(HWND hWnd)
+        {
+            return !PInvoke.FindWindowEx(hWnd, HWND.Null, "SHELLDLL_DefView", null).IsNull;
         }
 
         public GestureModifierKeys GetActiveModifierKeys()

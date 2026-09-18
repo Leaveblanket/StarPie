@@ -16,6 +16,8 @@ import win32api
 import win32con
 
 _MOVE = win32con.MOUSEEVENTF_MOVE
+_LEFT_DOWN = win32con.MOUSEEVENTF_LEFTDOWN
+_LEFT_UP = win32con.MOUSEEVENTF_LEFTUP
 _RIGHT_DOWN = win32con.MOUSEEVENTF_RIGHTDOWN
 _RIGHT_UP = win32con.MOUSEEVENTF_RIGHTUP
 _XDOWN = win32con.MOUSEEVENTF_XDOWN
@@ -40,6 +42,19 @@ def move_to(x: int, y: int) -> None:
 def move_by(dx: int, dy: int) -> None:
     """相对移动光标（产生 WM_MOUSEMOVE 链）。"""
     win32api.mouse_event(_MOVE, int(dx), int(dy), 0, 0)
+
+
+def left_click_at(x: int, y: int, settle: float = 0.15) -> None:
+    """在指定屏幕坐标左键单击（不拖动）：把前台焦点交给光标下的窗口（如桌面壳窗口）。
+
+    用单击而非拖动：桌面场景下拖动可能拖拽起点处的图标；单击最轻（空白处无副作用）。
+    """
+    move_to(x, y)
+    time.sleep(settle)
+    win32api.mouse_event(_LEFT_DOWN, 0, 0, 0, 0)
+    time.sleep(0.05)
+    win32api.mouse_event(_LEFT_UP, 0, 0, 0, 0)
+    time.sleep(settle)
 
 
 def right_down() -> None:

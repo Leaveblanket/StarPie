@@ -881,6 +881,8 @@ def seed_gesture_config(local_app_data, probe_exe: str) -> None:
             "EnableOuterEscapeCancel": True,
             "OuterEscapeDistance": 186,
             "BlacklistedProcesses": [],
+            # 显式开启全屏隔离（与模型默认值一致）：桌面壳窗口误判为全屏的回归用例依赖它。
+            "DisableOnFullScreen": True,
             "Profiles": [
                 {
                     "ProcessName": "Global",

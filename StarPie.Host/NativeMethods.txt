@@ -13,3 +13,4 @@ MonitorFromWindow
 GetMonitorInfo
 GetAsyncKeyState
 VIRTUAL_KEY
+FindWindowEx

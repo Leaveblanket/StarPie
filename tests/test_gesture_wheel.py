@@ -19,6 +19,9 @@ import time
 import warnings
 
 import pytest
+import win32api
+import win32con
+import win32gui
 from conftest import (
     find_process_by_executable,
     find_wheel_window,
@@ -31,6 +34,7 @@ from mouse_input import (
     XBUTTON1,
     drag_circle,
     drag_right,
+    left_click_at,
     move_by,
     move_to,
     press_right_at,
@@ -284,3 +288,107 @@ def test_gesture_side_button_drag_pops_wheel_and_executes_sector_action(app):
     pids = wait_process_started(probe_exe, timeout=10.0)
     print(f"侧键手势的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
     kill_processes(pids)
+
+
+# --- 桌面壳窗口场景（全屏误判回归） ----------------------------------------------
+# Win11 上桌面图标区（SHELLDLL_DefView）常挂在一个覆盖整屏的 WorkerW 下；前台为桌面时
+# IsForegroundFullScreen 的排除清单若只含 Progman（GetShellWindow）/窗口站桌面（GetDesktopWindow），
+# 会把桌面壳窗口误判成"全屏应用"，手势被 DisableOnFullScreen 隔离、右键直通系统原生。
+# 本用例把前台焦点切到桌面后再做手势：修复前轮盘不弹（红），修复后照常弹出（绿）。
+
+def _is_desktop_host(hwnd) -> bool:
+    """窗口是否是桌面宿主：Progman（shell 窗口），或承载 SHELLDLL_DefView 的 WorkerW。
+
+    与产品侧隔离判定的修复同构：这样"点击后前台是桌面宿主"的断言既排除无 DefView 的
+    WorkerW（如壁纸层，不属于桌面），也防止用例在错误的前台上给出假红/假绿。
+    """
+    if not hwnd:
+        return False
+    cls = win32gui.GetClassName(hwnd)
+    if cls == "Progman":
+        return True
+    return cls == "WorkerW" and bool(win32gui.FindWindowEx(hwnd, 0, "SHELLDLL_DefView", None))
+
+
+def _desktop_point() -> tuple:
+    """找一个"点击后激活桌面宿主"的注入点：右下优先（图标默认自左上排布）。
+
+    桌面点上 WindowFromPoint 命中的通常是 SysListView32（图标列表，铺满整屏）等子窗口，
+    故取命中窗口的顶层祖先（点击会激活的前台窗口）判定是否为桌面宿主；
+    候选点被任务栏/其它窗口覆盖时继续找，全部落空时抛断言——wait_until 调用时按"尚未成立"轮询。
+    """
+    width, height = win32api.GetSystemMetrics(0), win32api.GetSystemMetrics(1)
+    for fx, fy in ((0.76, 0.72), (0.68, 0.78), (0.84, 0.62), (0.58, 0.8), (0.44, 0.76)):
+        x, y = int(width * fx), int(height * fy)
+        hit = win32gui.WindowFromPoint((x, y))
+        if hit and _is_desktop_host(win32gui.GetAncestor(hit, win32con.GA_ROOT)):
+            return x, y
+    raise AssertionError("找不到落在桌面宿主上的注入点（候选点均被任务栏或其它窗口覆盖）")
+
+
+def _toggle_show_desktop(settle: float = 0.4) -> None:
+    """Win+D：显示桌面 / 再按一次还原（用例先腾出桌面、结束后恢复原窗口布局）。"""
+    win32api.keybd_event(win32con.VK_LWIN, 0, 0, 0)
+    win32api.keybd_event(ord("D"), 0, 0, 0)
+    win32api.keybd_event(ord("D"), 0, win32con.KEYEVENTF_KEYUP, 0)
+    win32api.keybd_event(win32con.VK_LWIN, 0, win32con.KEYEVENTF_KEYUP, 0)
+    time.sleep(settle)
+
+
+def _press_escape() -> None:
+    """注入一次 Esc：收拾失败路径上未被抑制的右键可能弹出的桌面原生菜单。"""
+    win32api.keybd_event(win32con.VK_ESCAPE, 0, 0, 0)
+    win32api.keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+
+@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
+def test_gesture_on_desktop_pops_wheel(app):
+    """桌面宿主窗口上的右键拖动照常弹出轮盘（全屏误判回归）。
+
+    前置：显示桌面后单击桌面点，把前台焦点切到桌面宿主（Win11 上常为承载
+    SHELLDLL_DefView 的 WorkerW）。该窗口覆盖整屏但不是全屏应用，隔离判定必须排除它——
+    修复前轮盘不弹（红），修复后照常弹出（绿）。
+    用例先按 Win+D 腾出桌面（用户桌面可能被最大化窗口盖住），收尾再按一次还原；
+    点位假设：桌面右下为空白区域（图标自左上排布）；e2e 运行期间请勿操作键鼠。
+    """
+    win, _ = app
+    pid = win.process_id()
+    win.minimize()  # 让出桌面区域，注入点落位更可控
+    _toggle_show_desktop()  # 隐藏其它窗口，保证桌面点可见
+
+    try:
+        point = wait_until(
+            _desktop_point,
+            timeout=5.0,
+            description="显示桌面后出现可注入的桌面宿主点",
+        )
+        left_click_at(*point)
+        wait_until(
+            lambda: _is_desktop_host(win32gui.GetForegroundWindow()),
+            timeout=3.0,
+            description="单击桌面点后前台焦点变为桌面宿主（Progman / 带 DefView 的 WorkerW）",
+        )
+
+        press_right_at(*point)
+        move_by(0, -45)  # 单次移动越过 DragThreshold(25)；向上落空扇区，避免命中探针动作
+        try:
+            wait_until(
+                lambda: find_wheel_window(pid),
+                timeout=3.0,
+                interval=0.02,
+                description="桌面上的右键拖动越过阈值后轮盘窗口弹出",
+            )
+        finally:
+            # 拖回按下点（中心死区内）→ 取消选中，松开不执行动作；失败路径同样收尾。
+            move_by(0, 45)
+            release_right(settle=0.0)
+            time.sleep(0.2)
+            _press_escape()
+    finally:
+        _toggle_show_desktop()  # 还原 Win+D 之前的最小化状态
+
+    wait_until(
+        lambda: find_wheel_window(pid) == 0,
+        timeout=3.0,
+        description="松手后轮盘窗口收起",
+    )
