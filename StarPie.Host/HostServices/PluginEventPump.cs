@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Services.Messages;
+using StarPie.Sdk.Services.Messages;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 单个插件事件出口的最小契约：宿主消息泵只经它投递，不感知作用域实现（internal）。

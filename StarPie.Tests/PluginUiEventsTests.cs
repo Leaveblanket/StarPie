@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.PluginHosting;
+using StarPie.Ui.PluginHosting;
 using Xunit;
 
 namespace StarPie.Tests

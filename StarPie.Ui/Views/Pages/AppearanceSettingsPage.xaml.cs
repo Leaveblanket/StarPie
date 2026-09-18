@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.Views.Pages
+namespace StarPie.Ui.Views.Pages
 {
     /// <summary>
     /// 外观与形态页面：页面整体 DataContext 是薄聚合

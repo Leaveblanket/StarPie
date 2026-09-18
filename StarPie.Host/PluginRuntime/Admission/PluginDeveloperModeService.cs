@@ -1,7 +1,7 @@
-using StarPie.Localization;
-using StarPie.PluginRuntime.State;
+using StarPie.Host.Localization;
+using StarPie.Host.PluginRuntime.State;
 
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 开发者模式开关：默认关闭，开启须显式确认全信任风险披露。

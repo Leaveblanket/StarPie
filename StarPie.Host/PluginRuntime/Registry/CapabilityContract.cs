@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginRuntime.Registry
+namespace StarPie.Host.PluginRuntime.Registry
 {
     /// <summary>
     /// 宿主声明的能力契约：能力 id + 接口 ABI 号 + 接口类型 + 手写守卫适配器工厂。

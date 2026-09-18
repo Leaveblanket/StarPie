@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.ViewModels.Navigation
+namespace StarPie.Ui.ViewModels.Navigation
 {
     /// <summary>
     /// 主框架壳层 ViewModel：承接主窗口壳层职责——窗口标题（<see cref="WindowTitle"/>，

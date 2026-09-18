@@ -1,8 +1,8 @@
 using System;
 using System.Windows.Threading;
-using StarPie.Configuration;
+using StarPie.Host.Configuration;
 
-namespace StarPie.Adapters
+namespace StarPie.Ui.Adapters
 {
     /// <summary>
     /// <see cref="ISaveDebouncer"/> 的 WPF 适配实现：用 DispatcherTimer 承载计时。

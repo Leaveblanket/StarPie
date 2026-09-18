@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 
 namespace StarPie.Tests;
 

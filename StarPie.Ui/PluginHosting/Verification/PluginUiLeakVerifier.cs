@@ -5,9 +5,9 @@ using System.Runtime.Loader;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Markup;
-using StarPie.PluginRuntime.Loading;
+using StarPie.Host.PluginRuntime.Loading;
 
-namespace StarPie.PluginHosting.Verification
+namespace StarPie.Ui.PluginHosting.Verification
 {
     /// <summary>
     /// 泄漏验证器：生产诊断与测试共用同一套判定——资产登记表清零 + 全局根扫描无插件残留。

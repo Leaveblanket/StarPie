@@ -1,4 +1,4 @@
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>UI 资产类别：决定清理编排的执行顺序与诊断文案。</summary>
     /// <remarks>

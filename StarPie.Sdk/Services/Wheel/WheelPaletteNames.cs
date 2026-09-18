@@ -1,4 +1,4 @@
-﻿namespace StarPie.Services.Wheel
+﻿namespace StarPie.Sdk.Services.Wheel
 {
     /// <summary>
     /// 轮盘配色方案名的唯一来源：解析器分支键、外观设置页固定配色项与配置默认值共用的字面量。

@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 包签名校验缝：对包内单个文件给出签名校验结论。

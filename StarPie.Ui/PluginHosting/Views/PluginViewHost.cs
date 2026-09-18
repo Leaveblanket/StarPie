@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace StarPie.PluginHosting.Views
+namespace StarPie.Ui.PluginHosting.Views
 {
     /// <summary>
     /// 视图托管：把插件视图挂进宿主容器并记账（容器 ↔ 视图 ↔ plugin id），

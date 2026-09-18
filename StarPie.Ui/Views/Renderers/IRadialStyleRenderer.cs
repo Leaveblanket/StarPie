@@ -2,10 +2,11 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 using Brush = System.Windows.Media.Brush;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>纯视觉渲染契约：渲染器只消费主题/配置与绘制参数,
     /// 不订阅事件、不读写 VM、不反向依赖 Composition/服务; 实例按窗口/预览随用随建。</summary>

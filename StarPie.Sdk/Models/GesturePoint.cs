@@ -1,4 +1,4 @@
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>与 UI 框架无关的屏幕坐标点，沿手势识别管线流转。</summary>
     public readonly struct GesturePoint

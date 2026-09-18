@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace StarPie.Views.Navigation
+namespace StarPie.Ui.Views.Navigation
 {
     /// <summary>
     /// 常驻锚窗口：永不显示的隐藏窗口，长期持有 <see cref="Application.MainWindow"/>。

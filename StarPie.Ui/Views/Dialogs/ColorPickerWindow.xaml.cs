@@ -4,7 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
-namespace StarPie.Views.Dialogs
+namespace StarPie.Ui.Views.Dialogs
 {
     using Button = System.Windows.Controls.Button;
     using Color = System.Windows.Media.Color;

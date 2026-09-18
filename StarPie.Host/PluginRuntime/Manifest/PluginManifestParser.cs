@@ -1,7 +1,7 @@
 using System.Text.Json;
-using StarPie.Manifest;
+using StarPie.Sdk.Manifest;
 
-namespace StarPie.PluginRuntime.Manifest
+namespace StarPie.Host.PluginRuntime.Manifest
 {
     /// <summary>
     /// plugin.json 的反序列化：JSON 语法与字段类型问题在此收口，语义规则归

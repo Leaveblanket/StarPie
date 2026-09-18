@@ -1,4 +1,4 @@
-namespace StarPie.Abstractions
+namespace StarPie.Sdk.Abstractions
 {
     /// <summary>
     /// 插件入口契约：宿主装载入口类型后调用其生命周期方法。

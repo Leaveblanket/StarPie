@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 窗口描述符：只注册工厂，宿主创建、显示、跟踪窗口实例并在卸载时关闭清理。

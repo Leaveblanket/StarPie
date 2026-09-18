@@ -2,9 +2,9 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using StarPie.ViewModels.Dialogs;
+using StarPie.Ui.ViewModels.Dialogs;
 
-namespace StarPie.Views.Controls
+namespace StarPie.Ui.Views.Controls
 {
     /// <summary>
     /// 色盘取点附加行为：Canvas 没有 Command 属性，鼠标按下/拖动属原始输入——

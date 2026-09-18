@@ -1,4 +1,4 @@
-﻿namespace StarPie.Services.Wheel
+﻿namespace StarPie.Sdk.Services.Wheel
 {
     /// <summary>
     /// 轮盘主题风格名的唯一来源：配置值、渲染器自报名与工厂分派共用的字面量集中于此。

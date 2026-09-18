@@ -1,6 +1,6 @@
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Sdk.ViewModels.Pages
 {
     /// <summary>
     /// 只读「预览 Profile 来源」契约（ADR-0023；驻 <c>StarPie.Sdk</c>）：配置方案设置面

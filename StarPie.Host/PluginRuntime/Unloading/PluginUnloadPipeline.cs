@@ -6,14 +6,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Loading;
-using StarPie.PluginRuntime.Ui;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Loading;
+using StarPie.Host.PluginRuntime.Ui;
 
-namespace StarPie.PluginRuntime.Unloading
+namespace StarPie.Host.PluginRuntime.Unloading
 {
     /// <summary>
     /// 安全点卸载管线：配置落盘 → 拒绝新调用 → 能力摘除 → 在途归零 → StopAsync →

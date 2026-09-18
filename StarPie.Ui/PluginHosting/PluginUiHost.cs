@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
-using StarPie.Abstractions.Ui;
-using StarPie.Events;
-using StarPie.Localization;
-using StarPie.PluginHosting.Commands;
-using StarPie.PluginHosting.Extensions;
-using StarPie.PluginHosting.Resources;
-using StarPie.PluginHosting.Timers;
-using StarPie.PluginHosting.Views;
-using StarPie.PluginHosting.Windows;
-using StarPie.Services.Navigation;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
+using StarPie.Sdk.Events;
+using StarPie.Host.Localization;
+using StarPie.Ui.PluginHosting.Commands;
+using StarPie.Ui.PluginHosting.Extensions;
+using StarPie.Ui.PluginHosting.Resources;
+using StarPie.Ui.PluginHosting.Timers;
+using StarPie.Ui.PluginHosting.Views;
+using StarPie.Ui.PluginHosting.Windows;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>
     /// 单插件的 UI 托管上下文：实现 <see cref="IPluginUiContext"/>，把插件的每次注册分派给

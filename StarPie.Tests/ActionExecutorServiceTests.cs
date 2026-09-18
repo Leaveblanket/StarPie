@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using StarPie;
+using StarPie.Ui;
 
 namespace StarPie.Tests;
 

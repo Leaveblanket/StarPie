@@ -1,11 +1,15 @@
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services.Dialogs;
-using StarPie.Services.Icons;
-using StarPie.Localization;
-using StarPie.Services.Programs;
-using StarPie.Services.Shell;
+using StarPie.Sdk.Services.Dialogs;
+using StarPie.Ui.Services.Dialogs;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Programs;
+using StarPie.Sdk.Wpf.Services.Shell;
+using StarPie.Ui.Services.Shell;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// S6 对话框贡献者：实现的模块侧注册自治（无导航页）。

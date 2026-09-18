@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>装载尝试的结果三态。</summary>
     public enum PluginLoadStatus

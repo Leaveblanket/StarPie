@@ -1,9 +1,9 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.PluginHosting.Extensions;
+using StarPie.Ui.PluginHosting.Extensions;
 
-namespace StarPie.ViewModels.Navigation
+namespace StarPie.Ui.ViewModels.Navigation
 {
     /// <summary>
     /// 侧边栏导航项 ViewModel：数据驱动——图标、标题、目标页面类型与选中态。

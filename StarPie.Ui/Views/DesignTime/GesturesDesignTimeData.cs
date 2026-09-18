@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace StarPie.Views.DesignTime;
+namespace StarPie.Ui.Views.DesignTime;
 
 /// <summary>
 /// 手势与动作页设计期样例数据（ADR-0025，仅被 GesturesSettingsPage 根节点

@@ -4,7 +4,7 @@ using System.Windows.Media;
 using Point = System.Windows.Point;
 using Size = System.Windows.Size;
 
-namespace StarPie.Services.Wheel
+namespace StarPie.Ui.Services.Wheel
 {
     /// <summary>
     /// 轮盘视觉几何出口：扇区切削几何（<c>CreateAdvancedSectorGeometry</c>）与

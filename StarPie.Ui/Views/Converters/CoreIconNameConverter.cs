@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>核圆自定义图标展示名：优先图标键，其次 SVG，缺省提示默认五角星。</summary>
     public sealed class CoreIconNameConverter : IMultiValueConverter

@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Unloading
+namespace StarPie.Host.PluginRuntime.Unloading
 {
     /// <summary>
     /// 卸载回收判定策略：判据随宿主环境分级，而不是随插件形态分级。

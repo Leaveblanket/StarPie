@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.State
+namespace StarPie.Host.PluginRuntime.State
 {
     /// <summary>
     /// 宿主插件状态文档：开发者模式开关 + 按插件 id 索引的条目表。

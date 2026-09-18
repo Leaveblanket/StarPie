@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>插件准入结果四态：插件被允许装载的依据，或拒绝。</summary>
     public enum PluginAdmission

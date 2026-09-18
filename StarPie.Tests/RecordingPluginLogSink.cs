@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using StarPie.HostServices;
+using StarPie.Host.HostServices;
 
 namespace StarPie.Tests;
 

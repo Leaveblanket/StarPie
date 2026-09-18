@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.ShellIntegration
+namespace StarPie.Host.ShellIntegration
 {
     /// <summary>托盘退出的编排步骤。</summary>
     public enum ShellExitStep

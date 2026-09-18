@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 设置页区块描述符：宿主把区块排在宿主设置区之内，工厂在 UI 线程创建区块 VM。

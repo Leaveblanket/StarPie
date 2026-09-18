@@ -2,15 +2,18 @@
 using Microsoft.Extensions.DependencyInjection;
 using SharpHook;
 using SharpHook.Data;
-using StarPie.Services.Actions;
-using StarPie.Configuration;
-using StarPie.Services.Dialogs;
-using StarPie.Services.Input;
-using StarPie.Localization;
-using StarPie.Services.Navigation;
-using StarPie.ViewModels.Pages;
+using StarPie.Ui.Services.Actions;
+using StarPie.Host.Configuration;
+using StarPie.Sdk.Services.Dialogs;
+using StarPie.Ui.Services.Dialogs;
+using StarPie.Ui.Services.Input;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Pages;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// M1 手势与动作贡献者：模块侧注册自治。

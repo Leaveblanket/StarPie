@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 轮盘配置方案：绑定到某个前台进程（或 "Global" 全局方案）的一组扇区与动作，

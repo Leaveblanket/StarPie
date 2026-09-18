@@ -1,5 +1,6 @@
 using System;
-using StarPie.Services.Dialogs;
+using StarPie.Sdk.Services.Dialogs;
+using StarPie.Ui.Services.Dialogs;
 
 namespace StarPie.Tests;
 

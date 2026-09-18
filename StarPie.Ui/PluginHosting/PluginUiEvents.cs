@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Events;
+using StarPie.Sdk.Events;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>
     /// UI 插件的应用级事件中介：把宿主消息总线（<see cref="IMessenger"/>）桥接为

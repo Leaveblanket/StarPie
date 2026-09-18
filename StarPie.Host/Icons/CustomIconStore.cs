@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using StarPie.Configuration;
-using StarPie.Services.Icons;
+using StarPie.Host.Configuration;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Icons
+namespace StarPie.Host.Icons
 {
     /// <summary>
     /// 「图标资产」的自定义图标存储：目录扫描/列表缓存、导入与删除。

@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Simulation;
-using StarPie.Gestures;
-using StarPie.Models;
+using StarPie.Host.Gestures;
+using StarPie.Sdk.Models;
 
-namespace StarPie.Services.Input
+namespace StarPie.Ui.Services.Input
 {
     /// <summary>
     /// 输入栈的捕获侧：全局鼠标钩子把触发键的按下 / 移动 / 抬起喂入 <see cref="GestureEngine"/>，

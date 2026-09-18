@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 空审核清单：任何插件版本都不命中。

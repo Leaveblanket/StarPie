@@ -2,9 +2,9 @@ using System;
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using System.Threading;
-using StarPie.Configuration;
+using StarPie.Host.Configuration;
 
-namespace StarPie.ShellIntegration
+namespace StarPie.Host.ShellIntegration
 {
     /// <summary>
     /// 提权实例接管非提权实例的握手信道：**命名内核对象**（同用户跨完整性级别可开），

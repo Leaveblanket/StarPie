@@ -1,6 +1,6 @@
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting.Extensions
+namespace StarPie.Ui.PluginHosting.Extensions
 {
     /// <summary>托盘菜单内的一个插件菜单项：描述符 + 所属插件 id。</summary>
     /// <param name="PluginId">注册该菜单项的插件 id。</param>

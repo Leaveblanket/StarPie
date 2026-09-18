@@ -1,6 +1,6 @@
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>
     /// 插件启动报告：每次启动扫描的可见结果——扫描目录、开发者模式开关、逐插件准入结果与四态计数。

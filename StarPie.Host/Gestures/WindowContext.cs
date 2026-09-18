@@ -6,7 +6,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-namespace StarPie.Gestures
+namespace StarPie.Host.Gestures
 {
     /// <summary>
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former

@@ -6,7 +6,7 @@ using System.Windows.Threading;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     public partial class App : System.Windows.Application
     {

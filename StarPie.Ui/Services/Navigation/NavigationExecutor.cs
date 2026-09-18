@@ -2,8 +2,9 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
+using StarPie.Sdk.Services.Navigation;
 
-namespace StarPie.Services.Navigation
+namespace StarPie.Ui.Services.Navigation
 {
     /// <summary>
     /// 目录驱动导航执行入口：按 <see cref="NavigationSlot"/> 从

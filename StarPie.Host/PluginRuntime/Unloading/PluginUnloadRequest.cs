@@ -1,11 +1,11 @@
 using System;
 using System.Linq;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Loading;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Loading;
 
-namespace StarPie.PluginRuntime.Unloading
+namespace StarPie.Host.PluginRuntime.Unloading
 {
     /// <summary>
     /// 卸载请求：从装载结果交接而来的插件对象所有权（入口实例、ALC、服务作用域）。

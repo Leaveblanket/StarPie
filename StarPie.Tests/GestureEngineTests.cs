@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using StarPie;
+using StarPie.Ui;
 
 namespace StarPie.Tests;
 

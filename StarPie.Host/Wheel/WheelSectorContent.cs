@@ -1,4 +1,4 @@
-namespace StarPie.Wheel
+namespace StarPie.Host.Wheel
 {
     /// <summary>扇区图标的内容形态：决定消费方把 <see cref="WheelIconContent.Data"/> 交给谁去取图。</summary>
     public enum WheelIconKind

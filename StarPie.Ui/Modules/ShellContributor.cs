@@ -1,11 +1,13 @@
 ﻿using System;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services;
-using StarPie.Services.Navigation;
-using StarPie.ViewModels.Pages;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Pages;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// M5 壳层与系统集成贡献者：模块侧注册自治。<see cref="RegisterNavigation"/> 自报本模块

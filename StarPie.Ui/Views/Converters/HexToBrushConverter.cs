@@ -2,9 +2,9 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>把 ViewModel 提供的 "#AARRGGBB" 颜色字符串转为 WPF 画刷；解析失败回退透明画刷。</summary>
     public sealed class HexToBrushConverter : IValueConverter

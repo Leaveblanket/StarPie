@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
 namespace StarPie.Plugin.SampleUi
 {

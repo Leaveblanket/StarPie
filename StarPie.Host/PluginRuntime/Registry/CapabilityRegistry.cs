@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StarPie.HostServices;
+using StarPie.Host.HostServices;
 
-namespace StarPie.PluginRuntime.Registry
+namespace StarPie.Host.PluginRuntime.Registry
 {
     /// <summary>
     /// 能力表：宿主声明的契约 + 内置条目 + 各插件经 <see cref="PluginServiceScope"/> 注册的条目。

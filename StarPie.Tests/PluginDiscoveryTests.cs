@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using StarPie.PluginRuntime.Discovery;
+using StarPie.Host.PluginRuntime.Discovery;
 
 namespace StarPie.Tests;
 

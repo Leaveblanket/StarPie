@@ -7,7 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-namespace StarPie.Views.Dialogs
+namespace StarPie.Ui.Views.Dialogs
 {
     using Brush = System.Windows.Media.Brush;
     using Color = System.Windows.Media.Color;

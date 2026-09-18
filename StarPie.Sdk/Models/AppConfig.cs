@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Nodes;
 
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 应用运行配置模型：与 config.json 一一对应的持久化数据（语言、手势行为、轮盘外观与

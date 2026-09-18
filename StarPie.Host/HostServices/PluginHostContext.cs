@@ -1,7 +1,7 @@
-using StarPie.Abstractions;
-using StarPie.Events;
+using StarPie.Sdk.Abstractions;
+using StarPie.Sdk.Events;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 宿主内部的最小插件上下文：插件唯一的宿主可达面（实现类型 internal，插件只拿到 SDK 接口）。

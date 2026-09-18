@@ -3,9 +3,10 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 清爽扇区风格：瑞士现代极简——纯几何负空间、哑光卡片与锐利的祖母绿高亮。

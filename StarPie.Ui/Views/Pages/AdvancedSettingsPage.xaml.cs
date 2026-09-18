@@ -1,9 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Services.Messages;
+using StarPie.Sdk.Services.Messages;
 
-namespace StarPie.Views.Pages
+namespace StarPie.Ui.Views.Pages
 {
     /// <summary>
     /// 高级与系统页面：语言切换/自启/提权/导入导出编排已住 VM（容器单例），本视图只做

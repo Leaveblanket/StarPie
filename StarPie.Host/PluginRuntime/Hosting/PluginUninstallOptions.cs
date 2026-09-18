@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginRuntime.Hosting
+namespace StarPie.Host.PluginRuntime.Hosting
 {
     /// <summary>
     /// 彻底移除的三条宿主侧接缝：配置段删除、插件数据根目录与配置落盘冲刷。

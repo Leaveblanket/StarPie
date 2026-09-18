@@ -1,6 +1,7 @@
 ﻿using System;
+using StarPie.Sdk.Compatibility;
 
-namespace StarPie.Compatibility
+namespace StarPie.Sdk.Wpf.Compatibility
 {
     /// <summary>
     /// UI SDK（<c>StarPie.Sdk.Wpf</c>）的 ABI 政策：插件清单 <c>ui.sdk</c> 声明「主.次」版本，

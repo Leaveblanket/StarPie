@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
-using StarPie.Services.Icons;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
 
 namespace StarPie.Tests;
 

@@ -2,9 +2,9 @@ using System;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting.Timers
+namespace StarPie.Ui.PluginHosting.Timers
 {
     /// <summary>
     /// 定时器与动画托管：宿主签发 <see cref="DispatcherTimer"/>（可整体停止）；

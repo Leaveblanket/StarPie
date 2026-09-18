@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Threading;
-using StarPie.Localization;
-using StarPie.ViewModels.Wheel;
+using StarPie.Host.Localization;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Wheel;
+using StarPie.Sdk.Services.Wheel;
 
-namespace StarPie.Services.Wheel
+namespace StarPie.Ui.Services.Wheel
 {
     /// <summary>
     /// 轮盘工厂：每次手势交给引擎一个句柄，句柄把这手势的视图模型与窗口的构建、

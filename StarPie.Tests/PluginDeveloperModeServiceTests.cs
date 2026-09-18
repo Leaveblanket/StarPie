@@ -1,9 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using StarPie.Localization;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.State;
+using StarPie.Host.Localization;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.State;
 
 namespace StarPie.Tests;
 

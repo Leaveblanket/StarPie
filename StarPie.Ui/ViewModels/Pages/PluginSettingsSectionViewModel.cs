@@ -1,6 +1,6 @@
-using StarPie.PluginHosting.Extensions;
+using StarPie.Ui.PluginHosting.Extensions;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>设置面里的一个插件区块：已本地化的标题 + 区块 VM（由插件描述符工厂创建）。</summary>
     /// <param name="PluginId">贡献该区块的插件 id。</param>

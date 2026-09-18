@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace StarPie.Actions
+namespace StarPie.Host.Actions
 {
     /// <summary>动作执行的路由种类：类型按原值大小写敏感匹配。</summary>
     public enum ActionRoute

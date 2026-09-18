@@ -1,10 +1,10 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Registry;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Registry;
 
 namespace StarPie.Tests;
 

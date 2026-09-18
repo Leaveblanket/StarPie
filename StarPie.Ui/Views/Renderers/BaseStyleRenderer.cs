@@ -3,12 +3,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using ColorConverter = System.Windows.Media.ColorConverter;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     public abstract class BaseStyleRenderer : IRadialStyleRenderer
     {

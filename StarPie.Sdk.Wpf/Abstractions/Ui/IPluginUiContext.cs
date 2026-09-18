@@ -2,7 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Media.Animation;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 宿主交给 UI 插件的注册上下文：插件的全部 UI 资产只经本接口进入宿主资产登记表。

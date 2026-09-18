@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Localization;
-using StarPie.Services.Wheel;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Sdk.ViewModels.Wheel;
 
-namespace StarPie.ViewModels.Wheel
+namespace StarPie.Ui.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘 ViewModel：持有轮盘视图状态——选中扇区、外围逃逸状态、扇区集合与中心点——

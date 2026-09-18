@@ -3,13 +3,14 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using StarPie.Services.Themes;
+using StarPie.Sdk.Services.Themes;
 using Windows.UI.ViewManagement;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
+using StarPie.Sdk.Wpf.Services.Shell;
 
-namespace StarPie.Services.Shell
+namespace StarPie.Ui.Services.Shell
 {
     /// <summary>
     /// 界面主题服务（<see cref="IThemeService"/> 实现）：把内核主题引擎的有效主题应用到

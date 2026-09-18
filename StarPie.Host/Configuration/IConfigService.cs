@@ -1,4 +1,4 @@
-namespace StarPie.Configuration
+namespace StarPie.Host.Configuration
 {
     /// <summary>
     /// 配置服务接缝：负责 config.json 的加载与保存，以及配置方案查找

@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 一次准入判定的结果：四态之一 + 可读原因（拒绝时即拒绝理由）。

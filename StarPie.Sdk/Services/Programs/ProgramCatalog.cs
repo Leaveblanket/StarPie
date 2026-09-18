@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace StarPie.Services.Programs
+namespace StarPie.Sdk.Services.Programs
 {
     /// <summary>
     /// 程序目录的纯规则函数：垃圾可执行判定、跨源去重、显示名升级与搜索过滤。

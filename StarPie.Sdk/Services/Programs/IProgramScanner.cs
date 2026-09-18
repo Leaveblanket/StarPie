@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using StarPie.Services.Icons;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Services.Programs
+namespace StarPie.Sdk.Services.Programs
 {
     /// <summary>
     /// 已安装程序扫描契约（能力 <c>program-source@1</c>）：返回一份可用程序来源的候选列表，

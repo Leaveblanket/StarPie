@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 导航页描述符：纯数据 + VM 工厂，宿主在 UI 线程调用工厂创建实例并挂进导航容器。

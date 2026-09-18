@@ -1,10 +1,10 @@
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Discovery;
-using StarPie.PluginRuntime.Manifest;
-using StarPie.PluginRuntime.State;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Discovery;
+using StarPie.Host.PluginRuntime.Manifest;
+using StarPie.Host.PluginRuntime.State;
 
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>
     /// 插件启动扫描：读宿主状态 → 发现 → 解析/校验 → 签名校验 → 准入判定 → 状态刷新 → 启动报告落盘。

@@ -1,7 +1,9 @@
 ﻿using System;
-using StarPie.Icons;
-using StarPie.Services.Icons;
-using StarPie.Wheel;
+using StarPie.Host.Icons;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
+using StarPie.Host.Wheel;
 
 namespace StarPie.Tests;
 

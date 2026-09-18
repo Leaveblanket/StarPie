@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.Services.Wheel
+namespace StarPie.Sdk.Services.Wheel
 {
     /// <summary>
     /// 配色解析与样式渲染的窄输入：只含解析方案名与自定义预调味所需的配置字段，

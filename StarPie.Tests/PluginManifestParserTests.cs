@@ -1,5 +1,5 @@
 using System.Linq;
-using StarPie.PluginRuntime.Manifest;
+using StarPie.Host.PluginRuntime.Manifest;
 
 namespace StarPie.Tests;
 

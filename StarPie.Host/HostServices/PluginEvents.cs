@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using StarPie.Abstractions;
-using StarPie.Events;
+using StarPie.Sdk.Abstractions;
+using StarPie.Sdk.Events;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 单插件事件中介实现（插件只看到 <see cref="IPluginEvents"/>）：订阅句柄进作用域账本，

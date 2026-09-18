@@ -1,7 +1,7 @@
 using System;
-using StarPie.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Lifecycle;
 
-namespace StarPie.PluginRuntime.Registry
+namespace StarPie.Host.PluginRuntime.Registry
 {
     /// <summary>能力调用被守卫拒绝：插件不处于活动态（尚未启动完成、已开始卸载或已隔离）。</summary>
     public sealed class CapabilityUnavailableException : InvalidOperationException

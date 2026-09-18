@@ -1,6 +1,6 @@
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.Services.Messages
+namespace StarPie.Sdk.Services.Messages
 {
     /// <summary>
     /// 设置域跨页协调消息：页面 ViewModel 发，组合根订阅者或页面自身收。
@@ -56,7 +56,7 @@ namespace StarPie.Services.Messages
     }
 
     /// <summary>
-    /// 界面主题（AppTheme）变更消息：<see cref="StarPie.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
+    /// 界面主题（AppTheme）变更消息：<see cref="StarPie.Sdk.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
     /// 写穿运行态配置后发布，由壳层主窗口（MainView）订阅执行窗口主题应用（<c>ApplyAppTheme</c>）；
     /// 配置导入后的重挂路径同样经本消息触发壳层执行。
     /// </summary>

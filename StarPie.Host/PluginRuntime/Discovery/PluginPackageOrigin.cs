@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Discovery
+namespace StarPie.Host.PluginRuntime.Discovery
 {
     /// <summary>插件包的发现来源目录。</summary>
     public enum PluginPackageOrigin

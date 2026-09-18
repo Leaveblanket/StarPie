@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie;
-using StarPie.Services;
+using StarPie.Ui;
+using StarPie.Sdk.Services;
 
 namespace StarPie.Tests;
 

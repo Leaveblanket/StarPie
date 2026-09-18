@@ -1,4 +1,4 @@
-namespace StarPie.Abstractions
+namespace StarPie.Sdk.Abstractions
 {
     /// <summary>插件日志级别（由低到高）。</summary>
     public enum PluginLogLevel

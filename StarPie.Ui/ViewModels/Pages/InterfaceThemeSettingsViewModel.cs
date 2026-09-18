@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Services;
-using StarPie.Services.Themes;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.Services.Themes;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 界面主题（AppTheme）设置子 ViewModel：独占软件界面主题的透传——读直取运行态配置、

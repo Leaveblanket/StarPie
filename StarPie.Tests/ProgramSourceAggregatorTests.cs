@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StarPie.HostServices;
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Registry;
-using StarPie.Programs;
-using StarPie.Services.Programs;
+using StarPie.Host.HostServices;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Registry;
+using StarPie.Host.Programs;
+using StarPie.Sdk.Services.Programs;
 
 namespace StarPie.Tests;
 

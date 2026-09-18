@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace StarPie.Views.Pages
+namespace StarPie.Ui.Views.Pages
 {
     /// <summary>
     /// 手势与动作页面：方案增删改与扇区数切换编排在 <see cref="ProfileListViewModel"/>，

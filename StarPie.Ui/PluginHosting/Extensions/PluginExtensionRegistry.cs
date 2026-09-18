@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using StarPie.Abstractions.Ui;
-using StarPie.Localization;
-using StarPie.Services.Navigation;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.PluginHosting.Extensions
+namespace StarPie.Ui.PluginHosting.Extensions
 {
     /// <summary>
     /// 固定扩展点托管：导航页（进宿主导航目录）、设置区（进宿主设置区块清单）、托盘菜单

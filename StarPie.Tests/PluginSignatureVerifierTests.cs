@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 using Xunit;
 
 namespace StarPie.Tests;

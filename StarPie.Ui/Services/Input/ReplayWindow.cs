@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-namespace StarPie.Services.Input
+namespace StarPie.Ui.Services.Input
 {
     /// <summary>
     /// 回放窗口（CONTEXT.md 术语）：补发的点击由本进程注入，注入事件会再回到输入栈；

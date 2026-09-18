@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Discovery
+namespace StarPie.Host.PluginRuntime.Discovery
 {
     /// <summary>
     /// 一个候选插件包：已定位包目录与 plugin.json 原文，尚未解析与校验。

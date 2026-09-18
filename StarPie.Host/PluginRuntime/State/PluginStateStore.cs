@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace StarPie.PluginRuntime.State
+namespace StarPie.Host.PluginRuntime.State
 {
     /// <summary>
     /// 宿主插件状态存储：独占 <c>plugin-state.json</c> 的读写。

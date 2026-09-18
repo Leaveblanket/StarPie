@@ -2,7 +2,7 @@ using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace StarPie.ViewModels.Dialogs
+namespace StarPie.Ui.ViewModels.Dialogs
 {
     /// <summary>
     /// 输入对话框 ViewModel：确认逻辑全部在此——去除首尾空白、空输入拦截（固定文案）、

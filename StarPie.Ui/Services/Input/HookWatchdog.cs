@@ -1,8 +1,8 @@
 using System;
 using System.Threading;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.Services.Input
+namespace StarPie.Ui.Services.Input
 {
     /// <summary>
     /// 钩子看门狗（CONTEXT.md 术语）：周期比对「钩子事件计数」与「系统光标位移」——

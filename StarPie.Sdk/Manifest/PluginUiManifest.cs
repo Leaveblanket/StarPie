@@ -1,4 +1,4 @@
-namespace StarPie.Manifest
+namespace StarPie.Sdk.Manifest
 {
     /// <summary>
     /// 清单的 ui 段：插件含 UI 时声明 UI 侧 SDK ABI 与 <c>IPluginUiModule</c> 入口类型。

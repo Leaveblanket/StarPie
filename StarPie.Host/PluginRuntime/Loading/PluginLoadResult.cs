@@ -1,8 +1,8 @@
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Lifecycle;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Lifecycle;
 
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>
     /// 一次装载尝试的结果：结果三态、失败原因、入口实例与本次装载的 ALC 和生命周期机。

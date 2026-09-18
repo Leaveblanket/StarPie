@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 
 namespace StarPie.Tests;
 

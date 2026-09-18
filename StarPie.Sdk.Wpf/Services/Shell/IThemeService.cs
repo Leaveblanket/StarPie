@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace StarPie.Services.Shell
+namespace StarPie.Sdk.Wpf.Services.Shell
 {
     /// <summary>
     /// 界面主题服务接缝（驻 <c>StarPie.Sdk.Wpf</c>）：

@@ -1,4 +1,4 @@
-namespace StarPie.Compatibility
+namespace StarPie.Sdk.Compatibility
 {
     /// <summary>
     /// ABI 版本串（"主.次"）的解析：headless 与 WPF 两条 ABI 政策共用同一文本形态判定。

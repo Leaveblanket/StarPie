@@ -1,5 +1,5 @@
-using StarPie.Configuration;
-using StarPie.ShellIntegration;
+using StarPie.Host.Configuration;
+using StarPie.Host.ShellIntegration;
 
 namespace StarPie.Tests;
 

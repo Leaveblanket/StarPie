@@ -27,7 +27,7 @@
 | `StarPie.Host` | 类库(net10.0) | 宿主内核:配置 / 本地化 / 壳集成、图标与程序扫描、主题引擎、手势与动作、插件运行时 |
 
 - **`StarPie`(项目 `StarPie.Ui`,WinExe)**:
-  - **入口与壳**:`App` / `ShellHost` / `SettingsConsole` / `Composition` / `DevInstance`;Host 壳窗口(`MainView` 全文件 + `ShellViewModel`);导航运行时主体(`Services/Navigation/`:NavigationStore / NavigationExecutor(含 INavigationExecutor);`ViewModels/Navigation/`:MainViewModel / NavigationItemViewModel,命名空间不变)。
+  - **入口与壳**:`App` / `ShellHost` / `SettingsConsole` / `Composition` / `DevInstance`;Host 壳窗口(`MainView` 全文件 + `ShellViewModel`);导航运行时主体(`Services/Navigation/`:NavigationStore / NavigationExecutor(含 INavigationExecutor);`ViewModels/Navigation/`:MainViewModel / NavigationItemViewModel,命名空间 `StarPie.Ui.ViewModels.Navigation`)。
   - **注册管线**:`Modules/` ——`ICompositionContributor` + `BuiltInContributors` 有序清单 + 宿主编排贡献者 `HostCoreContributor` 与外观页 `HostPageContributor`。
   - **页面**:Appearance 聚合页与插件管理页(`PluginManagerPage` / `PluginManagerViewModel` + 插件设置区块 `PluginSettingsSectionViewModel`,模板字典 `Modules/HostCorePageTemplates.xaml`);设计期投影字典 `Services/Localization/DesignTimeStrings.xaml`(Page 编译惰性 BAML)与生成脚本。
   - **共享 UI 基建**:通用转换器 `Views/Converters/` + `ModernControls.xaml`(`Views/Styles/`;App.xaml 本地单点实例化 / 合并、资源 key 不变)。
@@ -39,9 +39,9 @@
     - M5:`Services/Shell/`(TrayIconManager / TrayMenuEntry 与插件菜单合成 `TrayMenuComposer`)、`ViewModels/Pages/`(GeneralSettingsViewModel)、`Views/Pages/`(AdvancedSettingsPage)与 `ShellContributor` + `ShellPageTemplates.xaml`;
     - S6:`Services/Dialogs/`(DialogService)、`ViewModels/Dialogs/`(五对对话框 VM)、`Views/Dialogs|Controls/`(五对对话框 Window 与 SpectrumCanvasBehavior)与 `DialogsContributor`。
   - **插件 UI 托管**:`PluginHosting/`(资产登记表、每插件资源根、视图 / 窗口 / 命令 / 菜单 / 定时器 / 动画 / 订阅托管、UI 线程释放编排与泄漏验证器)与固定扩展点 `PluginHosting/Extensions/`(插件页 `PluginPage`、设置区块 `PluginSettingsSection`、托盘菜单项 `PluginMenuItem` 的登记与出账,导航页经宿主签发的 `NavPlugin_<插件 id>` 进目录);宿主装配面为 `DialogService.SetOwner` 绑定 / 解绑等。
-- **`StarPie.Sdk`(类库,net10.0)**:`Models/`(AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / GesturePoint);`Services/`(AppHostDelegates、Messages、Navigation 目录与槽位契约、Dialogs 契约与 6 结果 record、IWheelFactory、Themes 界面主题名目录 AppThemeNames、Icons 条目类型与 .lnk SPI、Programs 扫描契约与纯规则);`ViewModels/`(Pages 预览源接口、Wheel 轮盘只读接口)。源码树镜像旧相对路径、命名空间保持 `StarPie.*` 不变。
+- **`StarPie.Sdk`(类库,net10.0)**:`Models/`(AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / GesturePoint);`Services/`(AppHostDelegates、Messages、Navigation 目录与槽位契约、Dialogs 契约与 6 结果 record、IWheelFactory、Themes 界面主题名目录 AppThemeNames、Icons 条目类型与 .lnk SPI、Programs 扫描契约与纯规则);`ViewModels/`(Pages 预览源接口、Wheel 轮盘只读接口)。命名空间根为工程名（`StarPie.Sdk.*`）。
 - **`StarPie.Sdk.Wpf`(WPF 类库)**:`Services/Icons/`(IIconAssetService)、`Services/Shell/`(IThemeService)、`Abstractions/Ui/`(插件 UI 契约:IPluginUiModule / IPluginUiContext / IUiDispatcher 与注册描述符)、`Compatibility/`(UiSdkAbi 主次版本 / 兼容判定 + DefaultAlcPolicy 默认 ALC 统一加载政策)。
-- **`StarPie.Host`(类库,net10.0)**:宿主内核(零 WPF、零 XAML)——`Configuration`(S2 配置读写 / 防抖落盘接缝 / AppDataPaths)、`Localization`(S3 本地化实现 + `Strings*.resx` 四语言)、`ShellIntegration`(M5 开机自启注册表 + 内存整理,命名空间 `StarPie.ShellIntegration`)、`Icons/`(`IconCatalog` 静态纯目录 + `CustomIconStore` 自定义图标目录,命名空间 `StarPie.Icons`)、`Programs/`(内置来源 `ProgramScanner` + 程序来源能力契约 / 聚合 + `ShortcutResolver`,命名空间 `StarPie.Programs`)、`Themes/`(`ThemeEngine`,命名空间 `StarPie.Themes`)、`Ports/`(`IThemeApplier`,命名空间 `StarPie.Ports`)、`Wheel/`(`WheelPalette` / `WheelPaletteCatalog` / `WheelPaletteParser`,命名空间 `StarPie.Wheel`)、`Gestures/`(`GestureEngine` / `GestureState` / `GestureReleaseResult` / `IWindowContext` / `WindowContext`,命名空间 `StarPie.Gestures`)、`Actions/`(`ActionRouting` + `ActionRoute` / `KeyStroke` / `SystemCommand`,命名空间 `StarPie.Actions`)、`HostServices/`(插件可见宿主服务与每插件作用域)、`PluginRuntime/`(插件发现 / 清单 / 准入 / 状态 / 运行时 / 装载 / 卸载 / 生命周期 / 能力表 / 诊断)。件件可 headless 直接构造(Windows-only 项以 `[SupportedOSPlatform]` 标注)。
+- **`StarPie.Host`(类库,net10.0)**:宿主内核(零 WPF、零 XAML)——`Configuration`(S2 配置读写 / 防抖落盘接缝 / AppDataPaths)、`Localization`(S3 本地化实现 + `Strings*.resx` 四语言)、`ShellIntegration`(M5 开机自启注册表 + 内存整理,命名空间 `StarPie.Host.ShellIntegration`)、`Icons/`(`IconCatalog` 静态纯目录 + `CustomIconStore` 自定义图标目录,命名空间 `StarPie.Host.Icons`)、`Programs/`(内置来源 `ProgramScanner` + 程序来源能力契约 / 聚合 + `ShortcutResolver`,命名空间 `StarPie.Host.Programs`)、`Themes/`(`ThemeEngine`,命名空间 `StarPie.Host.Themes`)、`Ports/`(`IThemeApplier`,命名空间 `StarPie.Host.Ports`)、`Wheel/`(`WheelPalette` / `WheelPaletteCatalog` / `WheelPaletteParser`,命名空间 `StarPie.Host.Wheel`)、`Gestures/`(`GestureEngine` / `GestureState` / `GestureReleaseResult` / `IWindowContext` / `WindowContext`,命名空间 `StarPie.Host.Gestures`)、`Actions/`(`ActionRouting` + `ActionRoute` / `KeyStroke` / `SystemCommand`,命名空间 `StarPie.Host.Actions`)、`HostServices/`(插件可见宿主服务与每插件作用域)、`PluginRuntime/`(插件发现 / 清单 / 准入 / 状态 / 运行时 / 装载 / 卸载 / 生命周期 / 能力表 / 诊断)。件件可 headless 直接构造(Windows-only 项以 `[SupportedOSPlatform]` 标注)。
 
 ## 3. 程序集级依赖规则
 
@@ -90,7 +90,7 @@ StarPie.Ui(WinExe,程序集名 StarPie;唯一含 XAML 与入口)
 | 层 | 归属 | 程序集 | 内容 |
 |---|---|---|---|
 | 导航目录 / 槽位契约 | S5(纯契约共享模块) | `StarPie.Sdk` | NavigationCatalog、NavigationSlot / NavigationSlots、NavigationPageRegistration |
-| 导航运行时 / 状态 | H1(宿主壳,与 R4 / D3 同判据——单一消费方在 Host) | StarPie(exe) | NavigationStore、NavigationExecutor(含 INavigationExecutor)、MainViewModel、NavigationItemViewModel(命名空间不变) |
+| 导航运行时 / 状态 | H1(宿主壳,与 R4 / D3 同判据——单一消费方在 Host) | StarPie(exe) | NavigationStore、NavigationExecutor(含 INavigationExecutor)、MainViewModel、NavigationItemViewModel(命名空间 `StarPie.Ui.*`) |
 | 壳层服务与系统集成 | M5 | `StarPie.Ui`(+ `StarPie.Host/ShellIntegration`) | 托盘、自启、内存、Advanced 设置面 |
 | Host 壳窗口 | H1(宿主壳) | StarPie(exe) | MainView 全文件、ShellViewModel、SettingsConsole / ShellHost / App / Composition(导航 VM 与主框架同窗,物理同居 Host) |
 
@@ -202,8 +202,8 @@ MainViewModel 按目录注册构造导航项,导航执行走 `INavigationExecuto
 | 缝 | 载体(契约 / 实现) | 守护 |
 |---|---|---|
 | 契约缝·图标资产 | `IIconAssetService` 驻 `StarPie.Sdk.Wpf/Services/Icons/`(实现 `IconAssetService` 驻 `StarPie.Ui/Services/Icons/`);条目与 .lnk SPI 驻 `StarPie.Sdk/Services/Icons/`;静态纯目录 `IconCatalog` 与自定义图标目录 `CustomIconStore` 驻 `StarPie.Host/Icons/` | xUnit:IconCatalogTests |
-| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`(命名空间 `StarPie.Services.Icons` 不变)← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`(图标服务与程序扫描经契约边消费) | xUnit |
-| 契约缝·程序扫描 | `IProgramScanner` / `ProgramEntry` / `ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`(命名空间 `StarPie.Services.Programs` 不变)← DI 实现 `ProgramSourceAggregator`、内置来源 `ProgramScanner` 驻 `StarPie.Host/Programs/`(候选为纯数据,图标由 UI 消费方装配) | xUnit |
+| 契约缝·.lnk 解析 | `IShortcutTargetResolver` 驻 `StarPie.Sdk/Services/Icons/`(命名空间 `StarPie.Sdk.Services.Icons`)← 实现 `ShortcutResolver` 驻 `StarPie.Host/Programs/`(图标服务与程序扫描经契约边消费) | xUnit |
+| 契约缝·程序扫描 | `IProgramScanner` / `ProgramEntry` / `ProgramCatalog` 驻 `StarPie.Sdk/Services/Programs/`(命名空间 `StarPie.Sdk.Services.Programs`)← DI 实现 `ProgramSourceAggregator`、内置来源 `ProgramScanner` 驻 `StarPie.Host/Programs/`(候选为纯数据,图标由 UI 消费方装配) | xUnit |
 | 契约缝·主题 | `IThemeService` 驻 `StarPie.Sdk.Wpf/Services/Shell/` ← 实现 `ThemeService` 驻 `StarPie.Ui/Services/Shell/`(状态 / 解析在内核 `ThemeEngine`,换肤经端口 `IThemeApplier` 回抛 Ui);消费方 Host / Dialogs 经契约边(M2 轮盘侧不经本契约,改经无状态 `Func<bool>` 探针) | xUnit;**不构成插件可达面**——插件拿不到本服务实例(无注入边),插件侧深浅色同样走探针 |
 | 契约缝·轮盘工厂 | `IWheelFactory` / `IWheelViewModel` 驻 `StarPie.Sdk` ← 实现 `WheelFactory` / `WheelViewModel` 驻 M2;消费方 M1 经契约边(M1→M2 runtime 允许边清零) | D5 + xUnit(轮盘 VM 行为;工厂预热契约已随 ADR-0050 下线) |
 | 契约缝·预览 Profile | `IProfilePreviewSource` 驻 `StarPie.Sdk`(生产方语义 + 破 Wheel↔Gestures 环),别名 = M1 `ProfileListViewModel`,消费 M2 经契约边 | D5 + xUnit |

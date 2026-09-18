@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 宿主 UI 线程端口：插件的后台线程只经本端口触碰 WPF 对象，不直接调用 Dispatcher。

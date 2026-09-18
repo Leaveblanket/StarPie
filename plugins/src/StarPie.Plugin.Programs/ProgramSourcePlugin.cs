@@ -1,6 +1,6 @@
-using StarPie.Abstractions;
-using StarPie.Services.Messages;
-using StarPie.Services.Programs;
+using StarPie.Sdk.Abstractions;
+using StarPie.Sdk.Services.Messages;
+using StarPie.Sdk.Services.Programs;
 using System.Runtime.Versioning;
 
 namespace StarPie.Plugin.Programs

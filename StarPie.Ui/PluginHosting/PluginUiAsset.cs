@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>
     /// 资产登记表条目：一项 UI 资产的身份、类别、可读描述与摘除动作。

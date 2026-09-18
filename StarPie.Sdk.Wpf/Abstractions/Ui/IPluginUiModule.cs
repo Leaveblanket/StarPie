@@ -1,4 +1,4 @@
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// UI 插件入口契约：宿主解析清单 <c>ui.entryType</c> 指向的类型后，在 UI 线程调用一次

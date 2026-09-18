@@ -1,8 +1,8 @@
 using System.Collections.ObjectModel;
-using StarPie.Services.Programs;
-using StarPie.ViewModels.Dialogs;
+using StarPie.Sdk.Services.Programs;
+using StarPie.Ui.ViewModels.Dialogs;
 
-namespace StarPie.Views.DesignTime;
+namespace StarPie.Ui.Views.DesignTime;
 
 /// <summary>
 /// 程序选择器设计期样例数据（仅被 ProgramPickerWindow 根节点

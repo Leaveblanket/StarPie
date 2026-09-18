@@ -9,9 +9,10 @@ using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using HorizontalAlignment = System.Windows.HorizontalAlignment;
 using Point = System.Windows.Point;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 猫爪风格：可爱粉彩樱花观感、俏皮猫耳与 3D Q 弹中心肉垫。

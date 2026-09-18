@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Lifecycle
+namespace StarPie.Host.PluginRuntime.Lifecycle
 {
     /// <summary>
     /// 插件实例的生命周期状态：从发现到活动的装载链、从停止到已卸载的卸载链，

@@ -1,10 +1,10 @@
 using System;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Localization;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Diagnostics;
+using StarPie.Host.Localization;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Diagnostics;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 插件管理页的单个条目：把宿主诊断报告的只读快照投影为状态/准入文案与操作命令。

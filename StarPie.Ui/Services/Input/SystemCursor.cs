@@ -1,8 +1,8 @@
 using System.Drawing;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 using Windows.Win32;
 
-namespace StarPie.Services.Input
+namespace StarPie.Ui.Services.Input
 {
     /// <summary>
     /// 系统光标位置的只读探针：看门狗的系统调用接缝（可注入假体），读不到时返回 null，

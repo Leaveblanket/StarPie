@@ -3,10 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using StarPie.Services.Icons;
-using StarPie.Wheel;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
+using StarPie.Host.Wheel;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 扇区图标的两处机械映射（内容 → 元素、图标键 → 自定义图标条目）：运行时轮盘与外观页预览

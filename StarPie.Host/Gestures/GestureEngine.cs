@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace StarPie.Gestures
+namespace StarPie.Host.Gestures
 {
     /// <summary>States of the gesture state machine: idle → press and wait for threshold → drag-select.</summary>
     public enum GestureState

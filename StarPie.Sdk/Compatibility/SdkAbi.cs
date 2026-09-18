@@ -1,4 +1,4 @@
-﻿namespace StarPie.Compatibility
+﻿namespace StarPie.Sdk.Compatibility
 {
     /// <summary>
     /// headless SDK（<c>StarPie.Sdk</c>）的 ABI 政策：插件清单 <c>sdk</c> 声明「主.次」版本，

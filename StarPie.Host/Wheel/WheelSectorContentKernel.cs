@@ -1,8 +1,8 @@
 ﻿using System;
-using StarPie.Icons;
-using StarPie.Services.Icons;
+using StarPie.Host.Icons;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Wheel
+namespace StarPie.Host.Wheel
 {
     /// <summary>
     /// 单个扇区的动作数据（与 <c>ActionItem</c> 同形的窄字段）：内核只认这些字段，不认全局配置。

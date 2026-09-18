@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using StarPie.Wheel;
+using StarPie.Host.Wheel;
 
 namespace StarPie.Tests;
 

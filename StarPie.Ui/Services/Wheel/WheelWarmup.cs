@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace StarPie.Services.Wheel
+namespace StarPie.Ui.Services.Wheel
 {
     /// <summary>
     /// 轮盘核心路径启动预热：离屏构造 <see cref="RadialWindow"/> 并渲染一次，踩热 BAML 装载、

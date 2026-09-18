@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 不依赖 WPF 的颜色值（ARGB 字节结构）。ViewModel 与纯逻辑层使用该类型而非

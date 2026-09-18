@@ -1,4 +1,4 @@
-namespace StarPie.Services.Icons
+namespace StarPie.Sdk.Services.Icons
 {
     /// <summary>矢量图标条目：键、分类、显示名与 SVG 路径数据，是「图标资产」静态纯目录清单的条目类型。</summary>
     public class VectorIconItem

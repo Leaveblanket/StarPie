@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using StarPie.Localization;
-using StarPie.PluginHosting;
-using StarPie.PluginHosting.Extensions;
+using StarPie.Host.Localization;
+using StarPie.Ui.PluginHosting;
+using StarPie.Ui.PluginHosting.Extensions;
 
-namespace StarPie.Services.Shell
+namespace StarPie.Ui.Services.Shell
 {
     /// <summary>
     /// 托盘菜单合成：内置条目之后追加插件菜单项（权重升序、插件 id 稳定序），

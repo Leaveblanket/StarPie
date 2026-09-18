@@ -1,9 +1,9 @@
 ﻿using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Services;
+using StarPie.Sdk.Services;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 外观设置页聚合 ViewModel：页面整体 DataContext 的薄页壳——不持有任何轮盘外观

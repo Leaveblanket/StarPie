@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>包签名校验结论三态。</summary>
     public enum PluginSignatureStatus

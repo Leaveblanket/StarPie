@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie;
+using StarPie.Ui;
 
 namespace StarPie.Tests;
 

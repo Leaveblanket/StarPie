@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using StarPie.Localization;
+using StarPie.Host.Localization;
 
-namespace StarPie.Configuration
+namespace StarPie.Host.Configuration
 {
     /// <summary>
     /// <see cref="IConfigService"/> 的 JSON 文件实现：独占 config.json 的读写。

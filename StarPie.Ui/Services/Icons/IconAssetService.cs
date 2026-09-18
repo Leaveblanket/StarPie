@@ -8,12 +8,14 @@ using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using StarPie.Icons;
-using StarPie.Services.Icons;
+using StarPie.Host.Icons;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
 using Windows.Win32;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace StarPie.Services.Icons
+namespace StarPie.Ui.Services.Icons
 {
     /// <summary>
     /// 「图标资产」实例服务（Ui 侧）：在宿主内核的自定义图标目录之上做 WPF 图像构造——

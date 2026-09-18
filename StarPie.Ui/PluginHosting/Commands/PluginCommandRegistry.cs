@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting.Commands
+namespace StarPie.Ui.PluginHosting.Commands
 {
     /// <summary>命令托管：登记插件命令（含可选举措），按命令 id 供宿主调用；卸载注销时从登记表出账。</summary>
     internal sealed class PluginCommandRegistry

@@ -3,12 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using StarPie.ViewModels.Dialogs;
+using StarPie.Ui.ViewModels.Dialogs;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 
-namespace StarPie.Views.Dialogs
+namespace StarPie.Ui.Views.Dialogs
 {
     /// <summary>
     /// 屏上取色覆盖层窗口：全屏置顶、无 Owner。

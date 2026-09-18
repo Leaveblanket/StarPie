@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Media;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 using Color = System.Windows.Media.Color;
 
-using StarPie.Wheel;
+using StarPie.Host.Wheel;
 
 namespace StarPie.Tests;
 

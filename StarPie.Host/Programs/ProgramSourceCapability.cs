@@ -1,7 +1,7 @@
-using StarPie.PluginRuntime.Registry;
-using StarPie.Services.Programs;
+using StarPie.Host.PluginRuntime.Registry;
+using StarPie.Sdk.Services.Programs;
 
-namespace StarPie.Programs
+namespace StarPie.Host.Programs
 {
     /// <summary>
     /// 宿主声明的能力契约「程序来源」（<c>program-source@1</c>）：契约实例与消费者侧守卫适配器。

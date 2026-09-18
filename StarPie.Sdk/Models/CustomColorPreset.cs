@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 自定义配色预设：用户在轮盘外观设置中保存/切换的一套颜色方案。

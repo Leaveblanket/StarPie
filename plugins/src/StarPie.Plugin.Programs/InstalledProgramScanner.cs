@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 using Microsoft.Win32;
-using StarPie.Services.Programs;
+using StarPie.Sdk.Services.Programs;
 
 namespace StarPie.Plugin.Programs
 {

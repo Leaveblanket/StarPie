@@ -1,7 +1,7 @@
 using System;
 using System.Windows;
 
-namespace StarPie.PluginHosting.Resources
+namespace StarPie.Ui.PluginHosting.Resources
 {
     /// <summary>
     /// 每插件一个资源根容器：插件的资源字典全部并入本容器，卸载时宿主整根摘除。

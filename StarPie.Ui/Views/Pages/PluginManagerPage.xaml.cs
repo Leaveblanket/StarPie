@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 
-namespace StarPie.Views.Pages
+namespace StarPie.Ui.Views.Pages
 {
     /// <summary>
     /// 插件管理页：插件列表、状态与启停/重试/诊断入口。

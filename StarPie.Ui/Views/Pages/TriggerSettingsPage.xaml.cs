@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.Views.Pages
+namespace StarPie.Ui.Views.Pages
 {
     /// <summary>
     /// 触发与场景页面：全部状态经 Binding 直连 <see cref="BehaviorSettingsViewModel"/>

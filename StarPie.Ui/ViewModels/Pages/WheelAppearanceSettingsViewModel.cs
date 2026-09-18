@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Services;
-using StarPie.Services.Wheel;
-using StarPie.Wheel;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Host.Wheel;
+using StarPie.Sdk.ViewModels.Pages;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——主题风格

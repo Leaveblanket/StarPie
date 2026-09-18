@@ -1,11 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Lifecycle;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Lifecycle;
 
-namespace StarPie.PluginRuntime.Registry
+namespace StarPie.Host.PluginRuntime.Registry
 {
     /// <summary>
     /// 单插件的全部能力调用守卫：状态检查、在途计数、超时、异常捕获、连续失败熔断与隔离。

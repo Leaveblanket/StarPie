@@ -1,7 +1,7 @@
 using System;
-using StarPie.Abstractions;
+using StarPie.Sdk.Abstractions;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 宿主日志与诊断的唯一载体：只含 plugin id、级别、文本与异常的三段字符串。

@@ -1,4 +1,4 @@
-namespace StarPie.Services.Actions
+namespace StarPie.Ui.Services.Actions
 {
     /// <summary>
     /// 动作执行服务：启动程序 / 热键 / 系统命令三类动作的唯一执行入口。

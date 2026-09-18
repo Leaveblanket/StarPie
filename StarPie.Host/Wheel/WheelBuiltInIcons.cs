@@ -1,6 +1,6 @@
-﻿using StarPie.Icons;
+﻿using StarPie.Host.Icons;
 
-namespace StarPie.Wheel
+namespace StarPie.Host.Wheel
 {
     /// <summary>
     /// 扇区内置向量图标：动作类型/系统参数到内置矢量目录的映射，以及目录体外的字面量。

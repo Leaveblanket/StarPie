@@ -1,6 +1,6 @@
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting.Extensions
+namespace StarPie.Ui.PluginHosting.Extensions
 {
     /// <summary>设置区内的一个插件区块：描述符 + 所属插件 id。</summary>
     /// <param name="PluginId">注册该区块的插件 id。</param>

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using StarPie.Services.Icons;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Icons
+namespace StarPie.Host.Icons
 {
     /// <summary>
     /// 「图标资产」的无状态纯目录：内置矢量图标清单与键目录、SVG 路径数据解析。

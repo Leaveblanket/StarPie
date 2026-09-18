@@ -5,9 +5,9 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Services;
+using StarPie.Sdk.Services;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 触发与场景页面 ViewModel：触发阈值、场景隔离（全屏禁用、修饰键旁路）、外圈逃逸

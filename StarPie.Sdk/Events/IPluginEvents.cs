@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Events
+namespace StarPie.Sdk.Events
 {
     /// <summary>
     /// 宿主中介事件面：插件订阅宿主公开的事件，宿主登记订阅句柄并在卸载时强制断开。

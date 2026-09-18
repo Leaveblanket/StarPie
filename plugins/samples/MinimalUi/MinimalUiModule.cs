@@ -1,6 +1,6 @@
 using System;
 using System.Windows;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
 namespace StarPie.Plugin.MinimalUi
 {

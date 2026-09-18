@@ -1,6 +1,6 @@
-using StarPie.Configuration;
+using StarPie.Host.Configuration;
 
-namespace StarPie.PluginRuntime
+namespace StarPie.Host.PluginRuntime
 {
     /// <summary>
     /// 插件子系统的默认落盘位置：随包插件目录、用户插件目录、宿主状态与启动报告。

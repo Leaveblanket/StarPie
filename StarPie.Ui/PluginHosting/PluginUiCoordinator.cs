@@ -5,18 +5,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using StarPie.Abstractions.Ui;
-using StarPie.Compatibility;
-using StarPie.Events;
-using StarPie.Localization;
-using StarPie.PluginHosting.Cleanup;
-using StarPie.PluginHosting.Extensions;
-using StarPie.PluginHosting.Verification;
-using StarPie.PluginRuntime.Loading;
-using StarPie.PluginRuntime.Ui;
-using StarPie.Services.Navigation;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
+using StarPie.Sdk.Compatibility;
+using StarPie.Sdk.Wpf.Compatibility;
+using StarPie.Sdk.Events;
+using StarPie.Host.Localization;
+using StarPie.Ui.PluginHosting.Cleanup;
+using StarPie.Ui.PluginHosting.Extensions;
+using StarPie.Ui.PluginHosting.Verification;
+using StarPie.Host.PluginRuntime.Loading;
+using StarPie.Host.PluginRuntime.Ui;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>
     /// UI 托管门面：为每个插件创建 <see cref="PluginUiHost"/>，并把宿主侧的释放请求封送到 UI 线程，

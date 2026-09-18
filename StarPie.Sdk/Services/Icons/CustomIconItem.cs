@@ -1,4 +1,4 @@
-namespace StarPie.Services.Icons
+namespace StarPie.Sdk.Services.Icons
 {
     /// <summary>自定义图标条目：自用户图标目录导入的 SVG 路径数据或位图文件的描述。</summary>
     public class CustomIconItem

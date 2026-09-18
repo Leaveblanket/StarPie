@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>
     /// 单个插件的 collectible ALC：共享契约与框架程序集回退默认 ALC，

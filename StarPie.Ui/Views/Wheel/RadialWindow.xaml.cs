@@ -9,18 +9,21 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using StarPie.Localization;
-using StarPie.Services.Icons;
-using StarPie.Services.Wheel;
-using StarPie.Views.Renderers;
-using StarPie.Wheel;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Wpf.Services.Icons;
+using StarPie.Ui.Services.Icons;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Ui.Views.Renderers;
+using StarPie.Host.Wheel;
 using Point = System.Windows.Point;
 using Brush = System.Windows.Media.Brush;
 using Color = System.Windows.Media.Color;
 using Brushes = System.Windows.Media.Brushes;
 using Path = System.Windows.Shapes.Path;
 
-namespace StarPie.Views.Wheel
+namespace StarPie.Ui.Views.Wheel
 {
     /// <summary>
     /// 轮盘窗口：全部视图状态位于每次手势的 <see cref="WheelViewModel"/>——本类观察其

@@ -7,9 +7,10 @@ using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 经典圆环风格：Vision Pro 空间圆环 HUD——同心空间轨道、几何罗盘刻度与高对比蓝宝石弹出。

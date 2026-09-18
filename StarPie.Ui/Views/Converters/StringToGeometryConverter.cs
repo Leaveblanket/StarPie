@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>把 ViewModel 提供的 SVG 路径数据（d 字符串）解析为 WPF Geometry；解析失败回退空几何。</summary>
     public sealed class StringToGeometryConverter : IValueConverter

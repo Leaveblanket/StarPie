@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>
     /// 跨 ALC 共享程序集的判定：只有 SDK 共享契约与框架程序集允许由默认 ALC 解析，

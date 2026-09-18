@@ -1,7 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services.Navigation;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// 组合贡献者：内置模块与后续插件贡献者共用的一条注册管线入口。

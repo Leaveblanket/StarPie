@@ -1,6 +1,6 @@
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 
-namespace StarPie.PluginRuntime.State
+namespace StarPie.Host.PluginRuntime.State
 {
     /// <summary>
     /// 宿主状态里的单个插件条目：用户在宿主侧的权威记录，与插件自己的配置段分离。

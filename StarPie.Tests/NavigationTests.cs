@@ -4,10 +4,16 @@ using System.Reflection;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie;
-using StarPie.Modules;
-using StarPie.Services;
-using StarPie.ViewModels;
+using StarPie.Ui;
+using StarPie.Ui.Modules;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Dialogs;
+using StarPie.Ui.ViewModels.Gestures;
+using StarPie.Ui.ViewModels.Navigation;
+using StarPie.Ui.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Wheel;
 
 namespace StarPie.Tests;
 

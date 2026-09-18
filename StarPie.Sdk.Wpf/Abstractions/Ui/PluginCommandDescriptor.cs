@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 命令描述符：宿主记入资产登记表，卸载时注销；命令体由插件提供，在 UI 线程执行。

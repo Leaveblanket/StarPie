@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>
     /// 按插件 id 分组的 UI 资产登记表：可枚举、可按 id 整体摘除，是"卸载是否真的完成"的唯一账本。

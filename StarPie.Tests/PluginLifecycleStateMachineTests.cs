@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StarPie.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Lifecycle;
 
 namespace StarPie.Tests;
 

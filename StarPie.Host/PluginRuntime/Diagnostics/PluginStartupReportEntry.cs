@@ -1,7 +1,7 @@
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.State;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.State;
 
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>
     /// 启动报告里的单个插件条目：准入结果四态、原因、启用意图、隔离状态与全部候选包路径。

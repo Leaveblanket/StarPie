@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// Authenticode 签名校验（WinVerifyTrust）：可信链 → <see cref="PluginSignatureStatus.Valid"/>；

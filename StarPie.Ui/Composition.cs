@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Modules;
-using StarPie.PluginHosting;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Hosting;
-using StarPie.Services;
-using StarPie.Localization;
-using StarPie.Services.Wheel;
+using StarPie.Ui.Modules;
+using StarPie.Ui.PluginHosting;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Hosting;
+using StarPie.Sdk.Services;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>
     /// 组合根：容器装配与解析集中在本类——注册期遍历内置贡献者有序清单（导航目录 +

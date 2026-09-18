@@ -1,7 +1,7 @@
 using SharpHook.Data;
-using StarPie.Services;
+using StarPie.Sdk.Services;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// 内置贡献者清单：组合根注册期唯一遍历的有序列表。

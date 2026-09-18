@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Modules;
-using StarPie.Services;
-using StarPie.ViewModels.Navigation;
+using StarPie.Ui.Modules;
+using StarPie.Sdk.Services;
+using StarPie.Ui.ViewModels.Navigation;
 
 namespace StarPie.Tests;
 

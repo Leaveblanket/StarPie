@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using StarPie;
+using StarPie.Ui;
 
-using StarPie.ViewModels.Wheel;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Wheel;
 
 namespace StarPie.Tests;
 

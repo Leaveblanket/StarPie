@@ -2,7 +2,7 @@ using System;
 using System.Runtime.Versioning;
 using System.Threading;
 
-namespace StarPie.ShellIntegration
+namespace StarPie.Host.ShellIntegration
 {
     /// <summary>
     /// 接管握手的接收端（常驻）：在后台线程上等提权新实例的两个信号——让位请求与"提权未生效"——

@@ -1,7 +1,7 @@
 using System;
-using StarPie.Localization;
+using StarPie.Host.Localization;
 
-namespace StarPie.PluginHosting.Extensions
+namespace StarPie.Ui.PluginHosting.Extensions
 {
     /// <summary>
     /// 插件界面标题的解析：显示名字面量与宿主文案键二选一，按单一优先级取词。

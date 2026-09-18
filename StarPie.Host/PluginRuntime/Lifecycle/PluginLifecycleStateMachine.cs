@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Lifecycle
+namespace StarPie.Host.PluginRuntime.Lifecycle
 {
     /// <summary>
     /// 单个插件的生命周期状态机：只接受规范允许的相邻转移，失败统一经

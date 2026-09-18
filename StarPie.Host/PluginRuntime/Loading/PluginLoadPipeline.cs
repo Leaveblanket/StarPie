@@ -1,13 +1,13 @@
 using System.Reflection;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Manifest;
-using StarPie.PluginRuntime.Registry;
-using StarPie.PluginRuntime.Ui;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Manifest;
+using StarPie.Host.PluginRuntime.Registry;
+using StarPie.Host.PluginRuntime.Ui;
 
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>
     /// 插件装载管线：准入/校验 → 建 collectible ALC → 载入入口程序集并实例化入口类型 → 启动。

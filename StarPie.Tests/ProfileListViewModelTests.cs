@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie;
+using StarPie.Ui;
 
 namespace StarPie.Tests;
 

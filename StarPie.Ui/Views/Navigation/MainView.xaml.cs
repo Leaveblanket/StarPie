@@ -2,9 +2,15 @@
 using System.Windows;
 using System.Windows.Media.Animation;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.ViewModels;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Dialogs;
+using StarPie.Ui.ViewModels.Gestures;
+using StarPie.Ui.ViewModels.Navigation;
+using StarPie.Ui.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Wheel;
 
-namespace StarPie.Views.Navigation
+namespace StarPie.Ui.Views.Navigation
 {
     /// <summary>
     /// 设置控制台主框架：独立承担窗口职责——淡入淡出动画与界面主题应用；

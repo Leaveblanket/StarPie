@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using StarPie.PluginRuntime.Registry;
-using StarPie.Services.Programs;
+using StarPie.Host.PluginRuntime.Registry;
+using StarPie.Sdk.Services.Programs;
 
-namespace StarPie.Programs
+namespace StarPie.Host.Programs
 {
     /// <summary>
     /// 程序来源聚合：把能力表里的内置来源与各插件来源合成一份候选程序列表，供程序选择器消费。

@@ -7,9 +7,10 @@ using System.Windows.Shapes;
 using Color = System.Windows.Media.Color;
 using Panel = System.Windows.Controls.Panel;
 using Point = System.Windows.Point;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 玻璃拟态风格：Apple Liquid Glass 与 Windows Fluent Acrylic/Mica 悬浮轮盘——

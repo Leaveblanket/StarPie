@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
-using StarPie.Compatibility;
-using StarPie.Manifest;
+using StarPie.Sdk.Compatibility;
+using StarPie.Sdk.Manifest;
 
-namespace StarPie.PluginRuntime.Manifest
+namespace StarPie.Host.PluginRuntime.Manifest
 {
     /// <summary>
     /// 清单与包的语义校验：字段规则、SDK ABI 兼容、包目录一致性、清单声明文件的存在性。

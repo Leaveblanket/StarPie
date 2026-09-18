@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie;
-using StarPie.Views.Converters;
+using StarPie.Ui;
+using StarPie.Ui.Views.Converters;
 using Brush = System.Windows.Media.Brush;
 
 namespace StarPie.Tests;

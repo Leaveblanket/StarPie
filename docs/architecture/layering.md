@@ -53,12 +53,17 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 
 ## 命名空间与可见性
 
-- **命名空间 = 物理目录（全仓统一前缀 `StarPie`）**：`StarPie.Services.Actions`、
-  `StarPie.ViewModels.Dialogs`、`StarPie.Views.Navigation`；根级类型（`App`、`ShellHost`、
-  `Composition`）在 `StarPie`。
-- **命名空间统一为 `StarPie.*`**：命名空间根是产品名 `StarPie` 而非
-  程序集名，故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Configuration`
-  （不是 `StarPie.Host.Configuration`）；跨程序集共享同一棵命名空间树。
+- **命名空间 = 工程名 + 工程内相对目录**：命名空间根是**工程名**（即 csproj 文件名），
+  故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Host.Configuration`、
+  `StarPie.Ui/Services/Input/HookWatchdog.cs` 声明 `StarPie.Ui.Services.Input`；
+  根级类型（`App`、`ShellHost`、`Composition`、`DevInstance`）在 `StarPie.Ui`。
+  插件工程同理以自身工程名起根（`StarPie.Plugin.SampleUi/Views/` → `StarPie.Plugin.SampleUi.Views`）。
+- **命名空间根跟随工程，不跟随产品名**：每个工程自成一棵命名空间树，同名命名空间
+  不再跨程序集合并——`StarPie.Ui.Services.Wheel` 与 `StarPie.Sdk.Services.Wheel`
+  是两个不同的命名空间，各自只承载本集的类型。消费跨集类型必须显式 `using` 目标集。
+- **工程名即根**由仓库根 `Directory.Build.props` 的
+  `<RootNamespace>$(MSBuildProjectName)</RootNamespace>` 统一落地（resx 强类型资源类
+  的命名空间也由它决定）；工程级覆盖仅测试工程（`StarPie.Tests` 平铺于工程根）。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`。

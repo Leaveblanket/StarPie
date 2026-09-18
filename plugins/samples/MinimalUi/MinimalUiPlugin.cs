@@ -1,4 +1,4 @@
-using StarPie.Abstractions;
+using StarPie.Sdk.Abstractions;
 
 namespace StarPie.Plugin.MinimalUi
 {

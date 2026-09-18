@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Localization;
-using StarPie.ViewModels.Navigation;
+using StarPie.Host.Localization;
+using StarPie.Ui.ViewModels.Navigation;
 
 namespace StarPie.Tests;
 

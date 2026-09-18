@@ -1,7 +1,7 @@
 ﻿using System;
 using SharpHook.Data;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>
     /// 测试实例的触发键覆盖：命令行 <c>--trigger-button=&lt;n&gt;</c> 令本次实例的手势触发键取

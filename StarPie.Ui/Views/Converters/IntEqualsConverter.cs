@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>
     /// 整数相等转换器：把绑定值与参数（均按整数解析）比较是否相等。

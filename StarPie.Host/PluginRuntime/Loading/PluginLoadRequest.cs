@@ -1,7 +1,7 @@
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Admission;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Admission;
 
-namespace StarPie.PluginRuntime.Loading
+namespace StarPie.Host.PluginRuntime.Loading
 {
     /// <summary>
     /// 一次插件装载请求：已解析的清单、包目录与发现期准入结果。

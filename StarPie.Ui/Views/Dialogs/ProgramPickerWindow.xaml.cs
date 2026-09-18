@@ -2,7 +2,7 @@
 using System.Windows;
 using System.ComponentModel;
 
-namespace StarPie.Views.Dialogs
+namespace StarPie.Ui.Views.Dialogs
 {
     /// <summary>
     /// 程序选择器窗口：逻辑全部在 <see cref="ProgramPickerViewModel"/>——扫描编排、

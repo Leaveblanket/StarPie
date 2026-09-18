@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace StarPie.Views.DesignTime;
+namespace StarPie.Ui.Views.DesignTime;
 
 /// <summary>
 /// 设计期样例数据（ADR-0025，仅被 SidebarView 根节点 <c>d:DataContext</c> 消费，

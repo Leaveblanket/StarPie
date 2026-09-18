@@ -8,7 +8,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
-namespace StarPie.ViewModels.Dialogs
+namespace StarPie.Ui.ViewModels.Dialogs
 {
     /// <summary>程序选择器列表条目：扫描候选（纯数据 <see cref="ProgramEntry"/>）与按路径装配的图标。</summary>
     public sealed record ProgramPickerItem(ProgramEntry Program, ImageSource? IconSource)

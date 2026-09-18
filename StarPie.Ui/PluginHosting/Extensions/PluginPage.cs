@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginHosting.Extensions
+namespace StarPie.Ui.PluginHosting.Extensions
 {
     /// <summary>导航区内的一个插件页：宿主签发的目录标识 + 页面标题键、图标与 VM 工厂。</summary>
     /// <param name="PluginId">注册该页的插件 id。</param>

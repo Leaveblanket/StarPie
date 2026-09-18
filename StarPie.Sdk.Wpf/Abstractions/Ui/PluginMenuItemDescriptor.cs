@@ -1,4 +1,4 @@
-namespace StarPie.Abstractions.Ui
+namespace StarPie.Sdk.Wpf.Abstractions.Ui
 {
     /// <summary>
     /// 菜单项描述符：纯数据，宿主在对应菜单入口渲染并把点击路由到命令 id。

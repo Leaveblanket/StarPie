@@ -1,7 +1,7 @@
 ﻿using System;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services.Programs;
+using StarPie.Sdk.Services.Programs;
 
 namespace StarPie.Tests;
 

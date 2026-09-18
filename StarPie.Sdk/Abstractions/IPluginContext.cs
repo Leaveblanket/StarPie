@@ -1,6 +1,6 @@
-using StarPie.Events;
+using StarPie.Sdk.Events;
 
-namespace StarPie.Abstractions
+namespace StarPie.Sdk.Abstractions
 {
     /// <summary>
     /// 宿主交给插件的运行上下文：插件的全部宿主服务都从本对象取用。

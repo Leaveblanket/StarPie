@@ -6,16 +6,18 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Localization;
-using StarPie.PluginHosting;
-using StarPie.PluginHosting.Extensions;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Hosting;
-using StarPie.Services.Dialogs;
-using StarPie.Services.Navigation;
+using StarPie.Host.Localization;
+using StarPie.Ui.PluginHosting;
+using StarPie.Ui.PluginHosting.Extensions;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Hosting;
+using StarPie.Sdk.Services.Dialogs;
+using StarPie.Ui.Services.Dialogs;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 插件管理页 ViewModel：列出宿主扫描到的插件与状态，提供启用/停用、重试与诊断入口。

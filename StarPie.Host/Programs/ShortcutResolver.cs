@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using StarPie.Services.Icons;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Programs
+namespace StarPie.Host.Programs
 {
     [ComImport]
     [Guid("00021401-0000-0000-C000-000000000046")]

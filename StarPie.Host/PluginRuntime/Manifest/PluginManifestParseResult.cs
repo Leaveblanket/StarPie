@@ -1,6 +1,6 @@
-using StarPie.Manifest;
+using StarPie.Sdk.Manifest;
 
-namespace StarPie.PluginRuntime.Manifest
+namespace StarPie.Host.PluginRuntime.Manifest
 {
     /// <summary>
     /// 清单解析结果：<see cref="Errors"/> 非空即解析失败，<see cref="Manifest"/> 为 null。

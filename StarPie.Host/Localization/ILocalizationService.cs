@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.Localization
+namespace StarPie.Host.Localization
 {
     /// <summary>
     /// 本地化服务门面：语言状态与取词 API。

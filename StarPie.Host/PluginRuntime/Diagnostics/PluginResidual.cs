@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>残留类别：定位"哪一类东西还活着"。</summary>
     public enum PluginResidualKind

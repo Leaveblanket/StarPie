@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
 
-namespace StarPie.Wheel
+namespace StarPie.Host.Wheel
 {
     /// <summary>
     /// 轮盘配色解析器：输入配色方案名（System/Dark/Light/

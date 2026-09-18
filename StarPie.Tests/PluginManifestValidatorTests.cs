@@ -1,8 +1,9 @@
 using System;
 using System.IO;
-using StarPie.Compatibility;
-using StarPie.PluginRuntime.Manifest;
-using StarPie.PluginRuntime.Discovery;
+using StarPie.Sdk.Compatibility;
+using StarPie.Sdk.Wpf.Compatibility;
+using StarPie.Host.PluginRuntime.Manifest;
+using StarPie.Host.PluginRuntime.Discovery;
 
 namespace StarPie.Tests;
 

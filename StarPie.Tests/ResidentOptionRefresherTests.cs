@@ -1,5 +1,6 @@
-using StarPie.Localization;
-using StarPie.ViewModels.Pages;
+using StarPie.Host.Localization;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Pages;
 
 namespace StarPie.Tests;
 

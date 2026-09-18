@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
-namespace StarPie.Services.Navigation
+namespace StarPie.Sdk.Services.Navigation
 {
     /// <summary>
     /// 导航槽位：全局槽位表 0–4，枚举顺序即侧边栏顺序正典（触发/外观/手势/高级/插件）。

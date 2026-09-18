@@ -1,5 +1,6 @@
 using System;
 using SharpHook.Data;
+using StarPie.Ui;
 
 namespace StarPie.Tests;
 

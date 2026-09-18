@@ -1,5 +1,5 @@
 using System.Globalization;
-using StarPie.Localization;
+using StarPie.Host.Localization;
 
 namespace StarPie.Tests;
 

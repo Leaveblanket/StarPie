@@ -1,7 +1,7 @@
-﻿using StarPie.Models;
-using StarPie.ViewModels.Wheel;
+﻿using StarPie.Sdk.Models;
+using StarPie.Sdk.ViewModels.Wheel;
 
-namespace StarPie.Services.Wheel
+namespace StarPie.Sdk.Services.Wheel
 {
     /// <summary>
     /// 每次手势创建全新瞬态轮盘（视图模型 + 窗口）的工厂接口。

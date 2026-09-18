@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using StarPie.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Admission;
 
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>插件在宿主侧的运行状态（管理面列表与诊断报告共用）。</summary>
     public enum PluginRuntimeStatus

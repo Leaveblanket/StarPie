@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 默认日志落点：写 <see cref="Debug"/> 输出。

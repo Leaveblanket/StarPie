@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using StarPie.Sdk.Services.Icons;
 
-namespace StarPie.Services.Icons
+namespace StarPie.Sdk.Wpf.Services.Icons
 {
     /// <summary>
     /// 「图标资产」实例服务契约：自定义图标存储（目录/列表缓存/导入/删除/图像源）与

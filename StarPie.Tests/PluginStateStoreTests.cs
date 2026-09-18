@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.State;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.State;
 
 namespace StarPie.Tests;
 

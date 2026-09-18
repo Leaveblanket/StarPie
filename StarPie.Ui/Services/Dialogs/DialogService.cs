@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using StarPie.Localization;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Dialogs;
 
-namespace StarPie.Services.Dialogs
+namespace StarPie.Ui.Services.Dialogs
 {
     /// <summary>
     /// 对话框服务实现。Owner 采用按设置台开关绑定的惰性回填：组合根先建服务、后建设置窗口，

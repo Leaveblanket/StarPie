@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
-using StarPie.Services.Wheel;
-using StarPie.ViewModels.Wheel;
-using StarPie.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Wheel;
+using StarPie.Host.Wheel;
 
 namespace StarPie.Tests;
 

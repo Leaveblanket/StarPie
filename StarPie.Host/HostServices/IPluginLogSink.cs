@@ -1,4 +1,4 @@
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 宿主日志落点：插件日志与能力守卫日志都经本接缝写宿主侧诊断。

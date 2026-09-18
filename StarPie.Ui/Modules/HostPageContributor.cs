@@ -1,9 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Services.Navigation;
-using StarPie.ViewModels.Pages;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Pages;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// Host 外观聚合页贡献者：注册仍留宿主的聚合页壳（槽位 1 外观与形态）。

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using StarPie.PluginHosting.Verification;
-using StarPie.PluginRuntime.Ui;
+using StarPie.Ui.PluginHosting.Verification;
+using StarPie.Host.PluginRuntime.Ui;
 
-namespace StarPie.PluginHosting.Cleanup
+namespace StarPie.Ui.PluginHosting.Cleanup
 {
     /// <summary>
     /// UI 线程上的有序清理编排：先执行该插件的资产摘除（登记表按类别顺序出账），

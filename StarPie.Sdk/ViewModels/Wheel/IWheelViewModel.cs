@@ -1,4 +1,4 @@
-namespace StarPie.ViewModels.Wheel
+namespace StarPie.Sdk.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘 ViewModel 对外表面（ADR-0023；驻 <c>StarPie.Sdk</c>；由手势引擎驱动）：

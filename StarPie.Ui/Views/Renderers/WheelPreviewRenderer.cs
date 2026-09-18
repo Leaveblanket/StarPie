@@ -9,15 +9,17 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using StarPie.ViewModels.Wheel;
-using StarPie.Services.Wheel;
-using StarPie.Wheel;
+using StarPie.Sdk.ViewModels.Wheel;
+using StarPie.Ui.ViewModels.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Host.Wheel;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using Color = System.Windows.Media.Color;
 using Point = System.Windows.Point;
 
-namespace StarPie.Views.Renderers
+namespace StarPie.Ui.Views.Renderers
 {
     /// <summary>
     /// 绘制 60FPS 实时轮盘预览。页面只持有 Canvas 并转发鼠标事件；全部视觉状态与

@@ -1,4 +1,4 @@
-namespace StarPie.Models
+namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 单个轮盘动作项：配置方案（<see cref="WheelProfile"/>）中每个扇区对应的一条动作。

@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
-using StarPie.HostServices;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Registry;
+using StarPie.Host.HostServices;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Registry;
 
 namespace StarPie.Tests;
 

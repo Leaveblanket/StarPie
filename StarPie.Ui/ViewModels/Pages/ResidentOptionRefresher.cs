@@ -1,7 +1,7 @@
 using System;
-using StarPie.Localization;
+using StarPie.Host.Localization;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 驻留文案的固定选项目录：语言切换时重建目录并补发选中通知，释放时成对退订。

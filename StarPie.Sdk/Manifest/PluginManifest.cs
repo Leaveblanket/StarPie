@@ -1,4 +1,4 @@
-namespace StarPie.Manifest
+namespace StarPie.Sdk.Manifest
 {
     /// <summary>
     /// plugin.json 的纯数据模型；解析与校验归宿主，SDK 不做 IO。

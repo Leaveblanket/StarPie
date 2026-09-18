@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Unloading
+namespace StarPie.Host.PluginRuntime.Unloading
 {
     /// <summary>一次卸载尝试的结果。</summary>
     public enum PluginUnloadStatus

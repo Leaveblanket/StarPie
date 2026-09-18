@@ -1,4 +1,4 @@
-namespace StarPie.Ports
+namespace StarPie.Host.Ports
 {
     /// <summary>
     /// 主题应用端口（宿主内核 → Ui）：把有效主题应用为界面呈现所需的调色板。

@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using StarPie.Abstractions;
-using StarPie.Events;
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Registry;
+using StarPie.Sdk.Abstractions;
+using StarPie.Sdk.Events;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Registry;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 每插件一个的服务作用域：宿主服务的实例边界、句柄账本与释放前的前置条件。

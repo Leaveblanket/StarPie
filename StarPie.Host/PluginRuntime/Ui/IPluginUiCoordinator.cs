@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StarPie.PluginRuntime.Ui
+namespace StarPie.Host.PluginRuntime.Ui
 {
     /// <summary>
     /// 宿主侧 UI 托管端口：Host 零 WPF，UI 插件的入口调用、资产清理与泄漏验证经本端口封送到 Ui 层执行。

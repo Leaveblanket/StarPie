@@ -3,9 +3,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.PluginHosting.Extensions;
+using StarPie.Ui.PluginHosting.Extensions;
 
-namespace StarPie.ViewModels.Navigation
+namespace StarPie.Ui.ViewModels.Navigation
 {
     /// <summary>
     /// 主框架导航区 ViewModel：设置控制台窗口导航区（导航栏与页面内容区）的 DataContext。

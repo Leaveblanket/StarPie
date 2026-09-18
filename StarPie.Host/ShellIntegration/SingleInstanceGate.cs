@@ -1,4 +1,4 @@
-namespace StarPie.ShellIntegration
+namespace StarPie.Host.ShellIntegration
 {
     /// <summary>新实例发现已有实例在运行时的处置方式（值域三态）。</summary>
     public enum SingleInstanceGateDecision

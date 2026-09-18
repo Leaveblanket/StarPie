@@ -4,17 +4,19 @@ using System.Diagnostics;
 using System.Windows;
 using System.Windows.Interop;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Localization;
-using StarPie.PluginHosting;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Hosting;
-using StarPie.Services;
-using StarPie.Services.Shell;
-using StarPie.Views.Navigation;
+using StarPie.Host.Localization;
+using StarPie.Ui.PluginHosting;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Hosting;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.Wpf.Services.Shell;
+using StarPie.Ui.Services.Shell;
+using StarPie.Ui.Views.Navigation;
 
-using StarPie.Services.Wheel;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>
     /// 常驻壳层：进程存活期内一直存在的编排面——鼠标钩子、语言资源字典、托盘、插件运行时、

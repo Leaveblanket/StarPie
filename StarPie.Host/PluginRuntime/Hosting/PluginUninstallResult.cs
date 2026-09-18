@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.PluginRuntime.Hosting
+namespace StarPie.Host.PluginRuntime.Hosting
 {
     /// <summary>
     /// 彻底移除的结果：四类产物（包 / 配置段 / 插件数据 / 宿主状态）是否全部离场。

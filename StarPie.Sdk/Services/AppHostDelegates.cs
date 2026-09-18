@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.Services
+namespace StarPie.Sdk.Services
 {
     /// <summary>
     /// 宿主回调委托包：承载页面 VM 所需的宿主动作回调——托盘气泡

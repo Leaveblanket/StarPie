@@ -13,9 +13,10 @@
     <!-- 警告即错误：分析器与编译器的警告一律阻断构建。示例工程（plugins/samples）单独关闭——
          它们供第三方插件作者照抄，不给他们加构建摩擦。 -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <!-- 命名空间统一为 StarPie.* 前缀（跨程序集共享命名空间树），
-         工程可按需覆盖（StarPie.Tests 用自身命名空间）。 -->
-    <RootNamespace>StarPie</RootNamespace>
+    <!-- 命名空间根 = 工程名（layering.md「命名空间与可见性」）：每个工程自成一棵
+         命名空间树，同名命名空间不跨程序集合并；resx 强类型资源类的命名空间同样由它决定。
+         工程可按需覆盖（StarPie.Tests 平铺于工程根，用自身命名空间）。 -->
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
 
 </Project>

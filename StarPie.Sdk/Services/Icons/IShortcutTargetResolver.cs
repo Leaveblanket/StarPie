@@ -1,4 +1,4 @@
-namespace StarPie.Services.Icons
+namespace StarPie.Sdk.Services.Icons
 {
     /// <summary>
     /// Windows 快捷方式（.lnk）目标解析契约：实现驻宿主内核（<c>StarPie.Host</c> 的程序扫描件），

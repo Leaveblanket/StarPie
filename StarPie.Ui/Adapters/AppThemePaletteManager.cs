@@ -3,9 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Media;
-using StarPie.Services.Themes;
+using StarPie.Sdk.Services.Themes;
 
-namespace StarPie.Adapters
+namespace StarPie.Ui.Adapters
 {
     /// <summary>
     /// 主题调色板适配器（实现内核主题应用端口）：自包含"加载 Themes/*.xaml → 缓存/冻结 →

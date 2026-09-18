@@ -4,10 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Versioning;
-using StarPie.Services.Icons;
-using StarPie.Services.Programs;
+using StarPie.Sdk.Services.Icons;
+using StarPie.Sdk.Services.Programs;
 
-namespace StarPie.Programs
+namespace StarPie.Host.Programs
 {
     /// <summary>
     /// 内置程序来源：系统自带工具与开始菜单 / 桌面快捷方式。文件存在性 / 扩展名 / 大小检查在此

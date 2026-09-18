@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Lifecycle;
 
-namespace StarPie.PluginRuntime.Unloading
+namespace StarPie.Host.PluginRuntime.Unloading
 {
     /// <summary>卸载结果：终态、失败原因（可读文本）与诊断清单（回收判定与残留线索）。</summary>
     /// <param name="PluginId">插件 id。</param>

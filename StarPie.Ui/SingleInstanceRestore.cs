@@ -3,7 +3,7 @@ using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>单实例重激活的窗口消息：置前实例经 <see cref="PInvoke.RegisterWindowMessage"/> 解析
     /// 同一消息 id 后投递给主框架，主框架 WndProc 收到后走 WPF 显示路径自恢复

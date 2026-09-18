@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginRuntime.Registry
+namespace StarPie.Host.PluginRuntime.Registry
 {
     /// <summary>能力守卫阈值：单次调用超时与连续失败熔断阈值。</summary>
     public sealed record CapabilityGuardOptions

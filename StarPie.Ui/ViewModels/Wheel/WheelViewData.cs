@@ -1,12 +1,13 @@
-﻿using StarPie.Models;
-using StarPie.Services.Wheel;
-using StarPie.Wheel;
+﻿using StarPie.Sdk.Models;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Host.Wheel;
 
-namespace StarPie.ViewModels.Wheel
+namespace StarPie.Ui.ViewModels.Wheel
 {
     /// <summary>
     /// 运行时轮盘的瞬态视图数据投影：只含渲染真正需要的轮盘外观字段，由
-    /// <see cref="StarPie.Services.Wheel.WheelFactory"/> 在每次手势创建轮盘时从运行态配置
+    /// <see cref="StarPie.Ui.Services.Wheel.WheelFactory"/> 在每次手势创建轮盘时从运行态配置
     /// <b>快照组装</b>，生命周期与轮盘窗口一致。
     /// </summary>
     /// <remarks>

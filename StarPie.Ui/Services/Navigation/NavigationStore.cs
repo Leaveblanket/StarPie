@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace StarPie.Services.Navigation
+namespace StarPie.Ui.Services.Navigation
 {
     /// <summary>
     /// 导航状态单一根源：持当前页面 ViewModel（容器单例引用，切换只换引用不重建状态）。

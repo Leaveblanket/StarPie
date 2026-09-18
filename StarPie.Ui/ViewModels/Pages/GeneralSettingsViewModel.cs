@@ -2,9 +2,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Services;
+using StarPie.Sdk.Services;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 设置窗口通用分区 ViewModel：界面语言切换、开机自启（含提权自启形态）与配置导入/导出的状态与编排。

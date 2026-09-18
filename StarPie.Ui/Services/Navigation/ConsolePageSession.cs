@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace StarPie.Services.Navigation
+namespace StarPie.Ui.Services.Navigation
 {
     /// <summary>
     /// 设置台会话作用域的页面 VM 缓存：同一会话内保留实例（来回切页不丢页内状态），

@@ -1,7 +1,7 @@
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 
-namespace StarPie.Views.Controls
+namespace StarPie.Ui.Views.Controls
 {
     /// <summary>
     /// 热键录制框的自动化对等体：自定义 Control 不提供对等体时对 UIA 完全不可见，

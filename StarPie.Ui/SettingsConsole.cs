@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
-using StarPie.Localization;
-using StarPie.Services;
-using StarPie.Services.Shell;
-using StarPie.ViewModels.Navigation;
-using StarPie.Views.Navigation;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.Wpf.Services.Shell;
+using StarPie.Ui.Services.Shell;
+using StarPie.Ui.ViewModels.Navigation;
+using StarPie.Ui.Views.Navigation;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>
     /// 设置台租户：按需创建、关闭即销毁的设置控制台会话——主窗口（<see cref="MainView"/>）

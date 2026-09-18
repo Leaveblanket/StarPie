@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>按核图标类型/自定义图标键/SVG 路径解析核圆预览 Geometry。</summary>
     /// <remarks>纯视觉几何解析：经轮盘视觉几何出口 <see cref="WheelGeometry"/> 取值，

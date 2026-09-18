@@ -1,7 +1,7 @@
 using System;
-using StarPie.Abstractions;
+using StarPie.Sdk.Abstractions;
 
-namespace StarPie.HostServices
+namespace StarPie.Host.HostServices
 {
     /// <summary>
     /// 单插件日志实现（插件只看到 <see cref="IPluginLog"/>）：自动带 plugin id，

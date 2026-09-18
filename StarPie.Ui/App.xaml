@@ -1,8 +1,8 @@
 <Application
-    x:Class="StarPie.App"
+    x:Class="StarPie.Ui.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:converters="clr-namespace:StarPie.Views.Converters"
+    xmlns:converters="clr-namespace:StarPie.Ui.Views.Converters"
     ShutdownMode="OnExplicitShutdown">
 
     <Application.Resources>

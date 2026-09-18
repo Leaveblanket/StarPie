@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace StarPie.Compatibility
+namespace StarPie.Sdk.Wpf.Compatibility
 {
     /// <summary>
     /// 共享契约集的装载政策：<c>StarPie.Sdk</c> 与 <c>StarPie.Sdk.Wpf</c> 必须由默认 ALC 统一加载，

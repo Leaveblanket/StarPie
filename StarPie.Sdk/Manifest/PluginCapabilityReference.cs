@@ -1,4 +1,4 @@
-namespace StarPie.Manifest
+namespace StarPie.Sdk.Manifest
 {
     /// <summary>
     /// 清单里的一条能力引用：能力 id + 该能力接口的 ABI 号。

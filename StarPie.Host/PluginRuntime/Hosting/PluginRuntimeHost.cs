@@ -5,16 +5,16 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Admission;
-using StarPie.PluginRuntime.Diagnostics;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Loading;
-using StarPie.PluginRuntime.Manifest;
-using StarPie.PluginRuntime.State;
-using StarPie.PluginRuntime.Unloading;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Admission;
+using StarPie.Host.PluginRuntime.Diagnostics;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Loading;
+using StarPie.Host.PluginRuntime.Manifest;
+using StarPie.Host.PluginRuntime.State;
+using StarPie.Host.PluginRuntime.Unloading;
 
-namespace StarPie.PluginRuntime.Hosting
+namespace StarPie.Host.PluginRuntime.Hosting
 {
     /// <summary>
     /// 宿主侧插件运行时：启动扫描之后装载「启用且准入通过」的 headless 插件，并提供停用与再启用入口。

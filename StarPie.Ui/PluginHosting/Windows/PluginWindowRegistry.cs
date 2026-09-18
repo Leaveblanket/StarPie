@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting.Windows
+namespace StarPie.Ui.PluginHosting.Windows
 {
     /// <summary>
     /// 窗口托管：登记插件窗口描述符（纯数据）并保留其工厂，宿主按窗口键创建实例、显示并记账；

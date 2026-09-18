@@ -1,6 +1,6 @@
 using System;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>插件侧注销句柄：Dispose 即执行摘除动作并从登记表出账（幂等）。</summary>
     internal sealed class PluginUiAssetHandle : IDisposable

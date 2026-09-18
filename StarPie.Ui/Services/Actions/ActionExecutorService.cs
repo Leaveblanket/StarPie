@@ -7,7 +7,7 @@ using System.Windows;
 using Windows.Win32;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-namespace StarPie.Services.Actions
+namespace StarPie.Ui.Services.Actions
 {
     /// <summary>
     /// 动作执行服务实现：进程启动、文件夹存在性探测、SendInput 键注入、

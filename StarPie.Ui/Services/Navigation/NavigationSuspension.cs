@@ -1,9 +1,10 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
-using StarPie.Services.Navigation;
+using StarPie.Sdk.Services.Navigation;
+using StarPie.Ui.Services.Navigation;
 
-namespace StarPie.Services.Navigation
+namespace StarPie.Ui.Services.Navigation
 {
     /// <summary>
     /// 导航视图出账与恢复重放：进托盘时把当前页视图出容器（当前页 VM 置空 →

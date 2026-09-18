@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Lifecycle
+namespace StarPie.Host.PluginRuntime.Lifecycle
 {
     /// <summary>一次已完成的生命周期转移（诊断与测试的观察面）。</summary>
     /// <param name="From">转移前状态。</param>

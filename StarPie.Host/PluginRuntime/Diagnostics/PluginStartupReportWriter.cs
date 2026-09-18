@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace StarPie.PluginRuntime.Diagnostics
+namespace StarPie.Host.PluginRuntime.Diagnostics
 {
     /// <summary>
     /// 启动报告落盘：把 <see cref="PluginStartupReport"/> 写为缩进 JSON，供诊断与问题定位。

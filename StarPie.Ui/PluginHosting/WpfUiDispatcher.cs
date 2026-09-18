@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using StarPie.Abstractions.Ui;
+using StarPie.Sdk.Wpf.Abstractions.Ui;
 
-namespace StarPie.PluginHosting
+namespace StarPie.Ui.PluginHosting
 {
     /// <summary>WPF 适配的 UI 线程端口：包 <see cref="Dispatcher"/> 的线程亲缘判定与排队调用。</summary>
     public sealed class WpfUiDispatcher : IUiDispatcher

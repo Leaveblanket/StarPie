@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 
-namespace StarPie.Views.DesignTime;
+namespace StarPie.Ui.Views.DesignTime;
 
 /// <summary>
 /// 触发与场景页设计期样例数据（ADR-0025，仅被 TriggerSettingsPage 根节点

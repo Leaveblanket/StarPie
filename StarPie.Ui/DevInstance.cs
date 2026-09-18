@@ -1,6 +1,6 @@
-using StarPie.Configuration;
+using StarPie.Host.Configuration;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>
     /// 开发实例标记：Debug 构建即开发实例（判定唯一真相在共享内核

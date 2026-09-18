@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows.Data;
 using System.Windows.Media.Imaging;
 
-namespace StarPie.Views.Converters
+namespace StarPie.Ui.Views.Converters
 {
     /// <summary>本地图片路径 → 缩略图；路径为空或文件缺失返回 null（不破坏绑定）。</summary>
     public sealed class FilePathToImageConverter : IValueConverter

@@ -1,4 +1,4 @@
-﻿namespace StarPie.Models
+﻿namespace StarPie.Sdk.Models
 {
     /// <summary>
     /// 轮盘几何默认值的唯一来源：配置模型默认值与外观设置页「一键重置几何」同源。

@@ -1,7 +1,7 @@
-﻿using StarPie.Models;
-using StarPie.Services.Wheel;
+﻿using StarPie.Sdk.Models;
+using StarPie.Sdk.Services.Wheel;
 
-namespace StarPie.ViewModels.Wheel
+namespace StarPie.Sdk.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘外观只读状态接口：外观页实时预览渲染器 WheelPreviewRenderer 的唯一输入契约——主题风格/

@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 准入判定：按「内置清单 → 审核清单（含签名）→ 开发者模式 → 拒绝」顺序给出准入结果。

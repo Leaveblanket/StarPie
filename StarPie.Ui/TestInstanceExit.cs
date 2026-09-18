@@ -1,6 +1,6 @@
 using Windows.Win32;
 
-namespace StarPie
+namespace StarPie.Ui
 {
     /// <summary>测试实例退出的窗口消息：测试运行器以此请求被测进程走真实退出路径
     /// （<see cref="ShellHost.ExitApplication"/> 的落盘 → 释放托盘 → 应用关闭），取代硬杀进程。</summary>

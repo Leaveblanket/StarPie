@@ -1,8 +1,8 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
-using StarPie.Models;
+using StarPie.Sdk.Models;
 
-namespace StarPie.ViewModels.Dialogs
+namespace StarPie.Ui.ViewModels.Dialogs
 {
     /// <summary>
     /// 屏上取色器 ViewModel：拾取颜色 → 十六进制换算、放大镜文案/色块与

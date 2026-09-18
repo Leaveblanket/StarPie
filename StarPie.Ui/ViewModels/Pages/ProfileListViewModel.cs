@@ -7,9 +7,10 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Input;
-using StarPie.Services;
+using StarPie.Sdk.Services;
+using StarPie.Sdk.ViewModels.Pages;
 
-namespace StarPie.ViewModels.Pages
+namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
     /// 配置方案分区列表侧 ViewModel：方案列表与选中态、扇区数切换与方向槽位集合的

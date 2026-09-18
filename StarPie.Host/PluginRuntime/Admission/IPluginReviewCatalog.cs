@@ -1,4 +1,4 @@
-namespace StarPie.PluginRuntime.Admission
+namespace StarPie.Host.PluginRuntime.Admission
 {
     /// <summary>
     /// 审核清单判定缝：插件（id + 版本）是否命中当前审核清单，含版本级撤销。

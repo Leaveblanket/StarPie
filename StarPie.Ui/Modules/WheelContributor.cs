@@ -1,12 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using StarPie.Configuration;
-using StarPie.Services.Dialogs;
-using StarPie.Localization;
-using StarPie.Services.Wheel;
-using StarPie.ViewModels.Pages;
+using StarPie.Host.Configuration;
+using StarPie.Sdk.Services.Dialogs;
+using StarPie.Ui.Services.Dialogs;
+using StarPie.Host.Localization;
+using StarPie.Sdk.Services.Wheel;
+using StarPie.Ui.Services.Wheel;
+using StarPie.Sdk.ViewModels.Pages;
+using StarPie.Ui.ViewModels.Pages;
 
-namespace StarPie.Modules
+namespace StarPie.Ui.Modules
 {
     /// <summary>
     /// M2 轮盘与渲染贡献者：模块侧注册自治（无导航页）。

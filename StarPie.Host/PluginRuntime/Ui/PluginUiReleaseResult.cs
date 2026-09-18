@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.PluginRuntime.Ui
+namespace StarPie.Host.PluginRuntime.Ui
 {
     /// <summary>UI 释放结果：是否全部摘除 + 可定位残留清单（隔离诊断的事实来源）。</summary>
     /// <param name="Succeeded">资产登记表清零且泄漏扫描无残留。</param>

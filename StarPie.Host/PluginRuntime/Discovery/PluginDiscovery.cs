@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace StarPie.PluginRuntime.Discovery
+namespace StarPie.Host.PluginRuntime.Discovery
 {
     /// <summary>
     /// 插件包发现：按「安装目录 → 用户目录」顺序扫描两处的候选包目录，并做发现期包内容检查。

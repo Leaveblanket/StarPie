@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Frozen;
 
-namespace StarPie.Services.Themes
+namespace StarPie.Sdk.Services.Themes
 {
     /// <summary>
     /// 界面主题名（AppTheme）的唯一来源：配置取值、解析分支、主题字典文件名与设置面选项目录
     /// 共用的字面量。
     /// </summary>
     /// <remarks>
-    /// 与 <see cref="StarPie.Services.Wheel.WheelPaletteNames"/> 分列：<c>System</c>/<c>Dark</c>/<c>Light</c>
+    /// 与 <see cref="StarPie.Sdk.Services.Wheel.WheelPaletteNames"/> 分列：<c>System</c>/<c>Dark</c>/<c>Light</c>
     /// 在界面主题与轮盘配色两边同名不同义（CONTEXT.md 两词条互标 <c>_Avoid_</c>），混成一个类会让这三个值
     /// 再次语义模糊。刻意不用枚举：主题名在 <c>config.json</c> 里是字符串，枚举会把序列化兼容面绑上类型名。
     /// </remarks>

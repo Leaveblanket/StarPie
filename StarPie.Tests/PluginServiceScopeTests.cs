@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using StarPie.Abstractions;
-using StarPie.HostServices;
-using StarPie.Manifest;
-using StarPie.PluginRuntime.Lifecycle;
-using StarPie.PluginRuntime.Registry;
+using StarPie.Sdk.Abstractions;
+using StarPie.Host.HostServices;
+using StarPie.Sdk.Manifest;
+using StarPie.Host.PluginRuntime.Lifecycle;
+using StarPie.Host.PluginRuntime.Registry;
 
 namespace StarPie.Tests;
 

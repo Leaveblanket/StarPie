@@ -1,7 +1,7 @@
 using System;
-using StarPie.Services.Themes;
+using StarPie.Sdk.Services.Themes;
 
-namespace StarPie.Themes
+namespace StarPie.Host.Themes
 {
     /// <summary>
     /// 界面主题引擎：持有当前请求/有效主题，提供有效主题解析与状态切换。
