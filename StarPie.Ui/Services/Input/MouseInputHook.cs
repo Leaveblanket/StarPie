@@ -16,7 +16,7 @@ namespace StarPie.Ui.Services.Input
     /// 手势决策全部在引擎内，本类只做事件捕获、抑制与副作用投放。
     /// </summary>
     /// <remarks>
-    /// 线程模型（ADR-0052）：钩子独占专用线程（<c>RunAsync(..., useBackgroundThread: true)</c>），
+    /// 线程模型：钩子独占专用线程（<c>RunAsync(..., useBackgroundThread: true)</c>），
     /// 线程上只做「喂坐标 + 拿抑制结论」——抑制必须与钩子同线程同步设置（SharpHook 只有
     /// <c>SimpleGlobalHook</c> 满足），其余工作一律卸载到 UI 线程：低级钩子回调超时会被
     /// 系统静默移除，不能把窗口创建与渲染留在钩子路径上。
@@ -45,6 +45,7 @@ namespace StarPie.Ui.Services.Input
         private readonly MouseButton _triggerButton;
         private readonly Func<IEventSimulator> _simulatorFactory;
         private readonly ReplayWindow _replayWindow = new();
+        private readonly HookWatchdog _watchdog;
 
         private IEventSimulator? _simulator;
         private Task? _runTask;
@@ -79,7 +80,7 @@ namespace StarPie.Ui.Services.Input
             _postToUiThread = postToUiThread;
             _triggerButton = triggerButton;
             _simulatorFactory = simulatorFactory ?? (() => EventSimulator.Create(SimulatorApplicationName));
-            Watchdog = new HookWatchdog(
+            _watchdog = new HookWatchdog(
                 watchdogPeriod ?? HookWatchdog.DefaultPeriod,
                 cursorProbe ?? SystemCursor.TryGetPosition,
                 Restart);
@@ -97,9 +98,6 @@ namespace StarPie.Ui.Services.Input
             get => _isPaused;
             set => _isPaused = value;
         }
-
-        /// <summary>健康探针：测试可直接驱动 <see cref="HookWatchdog.CheckOnce"/> 判定失效。</summary>
-        public HookWatchdog Watchdog { get; }
 
         /// <summary>启动捕获：钩子独占专用线程跑起来，看门狗随之起探；重复调用无副作用。</summary>
         public void Start()
@@ -127,7 +125,7 @@ namespace StarPie.Ui.Services.Input
                     TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                     TaskScheduler.Default);
 
-                Watchdog.Start();
+                _watchdog.Start();
             }
         }
 
@@ -139,7 +137,7 @@ namespace StarPie.Ui.Services.Input
                 if (!_isRunning) return;
 
                 _isRunning = false;
-                Watchdog.Stop();
+                _watchdog.Stop();
                 _hook.Stop();
 
                 Task? run = _runTask;
@@ -185,7 +183,7 @@ namespace StarPie.Ui.Services.Input
 
         private void OnMousePressed(object? sender, MouseHookEventArgs e)
         {
-            Watchdog.CountEvent();
+            _watchdog.CountEvent();
 
             if (_isPaused) return;
             if (e.Data.Button != _triggerButton) return;
@@ -200,7 +198,7 @@ namespace StarPie.Ui.Services.Input
 
         private void OnMouseReleased(object? sender, MouseHookEventArgs e)
         {
-            Watchdog.CountEvent();
+            _watchdog.CountEvent();
 
             if (_isPaused) return;
             if (e.Data.Button != _triggerButton) return;
@@ -224,7 +222,7 @@ namespace StarPie.Ui.Services.Input
 
         private void OnMouseMoved(object? sender, MouseHookEventArgs e)
         {
-            Watchdog.CountEvent();
+            _watchdog.CountEvent();
 
             if (_isPaused) return;
 

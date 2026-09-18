@@ -4,7 +4,7 @@ using System.Threading;
 namespace StarPie.Ui.Services.Input
 {
     /// <summary>
-    /// 回放窗口（CONTEXT.md 术语）：补发的点击由本进程注入，注入事件会再回到输入栈；
+    /// 回放窗口：补发的点击由本进程注入，注入事件会再回到输入栈；
     /// 窗口内到达的注入事件不参与手势，直接放行。
     /// </summary>
     /// <remarks>

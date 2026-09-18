@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Time.Testing;
 using SharpHook.Data;
 using SharpHook.Testing;
 
@@ -181,19 +182,24 @@ public sealed class InputStackTests : IDisposable
 
 /// <summary>
 /// 看门狗的失效判定（ADR-0052）：光标动过却零事件 = 钩子被系统静默移除、需要就地重注册。
-/// 直接驱动 <see cref="HookWatchdog.CheckOnce"/>，不依赖真实时钟与真实钩子。
+/// 周期探针由注入的 <see cref="FakeTimeProvider"/> 推进时钟驱动（判定入口不开公开面），
+/// 不依赖真实时钟与真实钩子。
 /// </summary>
 public sealed class HookWatchdogTests
 {
+    /// <summary>探针周期：测试里每次推进假时钟的长度。</summary>
+    private static readonly TimeSpan Period = TimeSpan.FromSeconds(30);
+
     [Fact]
     public void CursorMoved_WithoutAnyEvents_Recovers()
     {
         var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(10, 10));
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
         watchdog.Start();
 
-        watchdog.CheckOnce();
+        time.Advance(Period);
 
         Assert.Equal(1, recovered);
     }
@@ -203,11 +209,12 @@ public sealed class HookWatchdogTests
     {
         var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(10, 10));
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
         watchdog.Start();
         watchdog.CountEvent();
 
-        watchdog.CheckOnce();
+        time.Advance(Period);
 
         Assert.Equal(0, recovered);
     }
@@ -217,14 +224,15 @@ public sealed class HookWatchdogTests
     {
         var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(0, 0), new GesturePoint(5, 5));
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
         watchdog.Start();
         watchdog.CountEvent();
 
-        watchdog.CheckOnce(); // 光标没动 → 清零计数，不判定
+        time.Advance(Period); // 光标没动 → 清零计数，不判定
         Assert.Equal(0, recovered);
 
-        watchdog.CheckOnce(); // 光标动过且期间零事件 → 判定失效
+        time.Advance(Period); // 光标动过且期间零事件 → 判定失效
         Assert.Equal(1, recovered);
     }
 
@@ -233,11 +241,14 @@ public sealed class HookWatchdogTests
     {
         var probe = new CursorProbe(new GesturePoint(0, 0), null);
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
         watchdog.Start();
 
-        watchdog.CheckOnce();
+        time.Advance(Period);
 
+        // 探测确实发生过、只是无结论：Start 取基线一次 + 周期到点一次。
+        Assert.Equal(2, probe.Calls);
         Assert.Equal(0, recovered);
     }
 
@@ -246,9 +257,10 @@ public sealed class HookWatchdogTests
     {
         var probe = new CursorProbe(new GesturePoint(0, 0));
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
 
-        watchdog.CheckOnce();
+        time.Advance(Period); // 未 Start，无定时器可触发
 
         Assert.Equal(0, probe.Calls);
         Assert.Equal(0, recovered);
@@ -259,19 +271,20 @@ public sealed class HookWatchdogTests
     {
         var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(9, 9));
         int recovered = 0;
-        using var watchdog = NewWatchdog(probe.Read, () => recovered++);
+        var time = new FakeTimeProvider();
+        using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
         watchdog.Start();
         watchdog.Stop();
         int probesAfterStop = probe.Calls;
 
-        watchdog.CheckOnce();
+        time.Advance(Period); // 停表后时钟再推进也不该触发
 
         Assert.Equal(probesAfterStop, probe.Calls);
         Assert.Equal(0, recovered);
     }
 
-    private static HookWatchdog NewWatchdog(Func<GesturePoint?> probe, Action recover)
-        => new(TimeSpan.FromHours(1), probe, recover);
+    private static HookWatchdog NewWatchdog(Func<GesturePoint?> probe, Action recover, TimeProvider time)
+        => new(Period, probe, recover, time);
 
     /// <summary>按序吐出预置光标位置的探针（取尽后返回 null），并记录被调用次数。</summary>
     private sealed class CursorProbe

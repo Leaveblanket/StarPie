@@ -66,6 +66,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
   的命名空间也由它决定）；工程级覆盖仅测试工程（`StarPie.Tests` 平铺于工程根）。
 - **可见性**：
   - 需要被测试工程引用的类型显式 `public`：Models 值类型、Services 接口与实现、页面/对话框 VM、消息与结果 record、导航件。
+  - 类型可因被测保持 `public`，但**成员级不为测试开公开面**——测试驱动面走构造注入的设计缝（时钟/探针/委托），判定入口保持私有（ADR-0053）。
   - 需要被组合根跨程序集装配/消费的共享件显式 `public`。
   - 需要被 Host 装配的模块公开件显式 `public`；与装配方同集、只作容器解析或被测类型的件维持 `public`，装配方与实现同集且无跨集消费的回落 `internal`。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
@@ -92,7 +93,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - **只由组合根注册（经内置贡献者 RegisterServices 登记）**；View/ViewModel 不自行 `new` 服务、
   不使用服务定位器（导航执行入口 `NavigationExecutor` 例外见上——Host 内部解析缝）。
 - 服务负责可注入、可 mock 的副作用：文件 IO、注册表、进程启动、SendInput、MessageBox、托盘等。
-- **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托，输入栈捕获侧注入 `IGlobalHook`/注入器工厂/光标探针——生产为 SharpHook 与系统光标、测试为 `TestGlobalHook`），测试注入假体即可全量验证路由决策。
+- **系统调用接缝模式**：实现类构造注入委托/接口并带生产默认值（如 `ActionExecutorService` 注入 `startProcess`/`sendKeyStrokes`/`lockWorkStation` 等，`ThemeEngine` 注入系统深浅色探测委托，输入栈捕获侧注入 `IGlobalHook`/注入器工厂/光标探针/时钟（`TimeProvider`）——生产为 SharpHook、系统光标与系统时钟，测试为 `TestGlobalHook` 与假时钟），测试注入假体即可全量验证路由决策。
 - **纯决策提炼为静态纯函数**：与 IO/系统调用分开（如 `ActionRouting`、`ProgramCatalog`），直接单测。
 - Win32 静态工具仅限无状态、无需 mock 的调用，并注释记录原因；有状态系统互操作（注册表自启、程序扫描）收敛为服务/静态工具，**经组合根委托注入**给 VM。
 - **Win32 互操作基线（ADR-0051）**：声明统一走 CsWin32 源生成（各集 `NativeMethods.txt` 为唯一声明清单），不再新增手写 `DllImport`/`LibraryImport`；白名单例外在代码处注明，回流由 `StarPie.Tests` 的源码扫描断言拦下。输入捕获与鼠标回放注入不在该声明面内——它们走 `SharpHook`（ADR-0052），声明面只留看门狗的系统光标探针。

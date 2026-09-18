@@ -18,6 +18,8 @@
     <!-- 输入栈测试替身（ADR-0052）：TestGlobalHook 同时是 IGlobalHook 与 IEventSimulator，
          注入-回放-抑制闭环可在 xUnit 内断言（仍在 ADR-0050 域内，不碰真实钩子/STA/ALC）。 -->
     <PackageReference Include="SharpHook.Testing" />
+    <!-- 假时钟：看门狗的周期探针经 TimeProvider 注入，测试推进时钟驱动判定，不依赖真实定时器 -->
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
 
   <ItemGroup>

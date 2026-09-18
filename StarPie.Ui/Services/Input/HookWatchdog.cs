@@ -5,36 +5,39 @@ using StarPie.Sdk.Models;
 namespace StarPie.Ui.Services.Input
 {
     /// <summary>
-    /// 钩子看门狗（CONTEXT.md 术语）：周期比对「钩子事件计数」与「系统光标位移」——
-    /// 光标动过却一个事件都没收到，说明钩子已被系统静默移除（Windows 不提供任何通知），
+    /// 钩子看门狗：周期比对「钩子事件计数」与「系统光标位移」——
+    /// 光标动过却一个事件都没收到，说明钩子已被系统静默移除，
     /// 立刻交 <c>recover</c> 就地重注册。
     /// </summary>
     /// <remarks>
-    /// 判定在定时器线程上跑，探测本身是只读的；<see cref="CheckOnce"/> 公开是为了让测试
-    /// 直接驱动一次判定，不依赖真实时钟。计数由捕获侧经 <see cref="CountEvent"/> 递交
-    /// （暂停态同样计数：暂停只是放行事件，不代表钩子还活着）。
+    /// 判定在定时器线程上跑，探测本身是只读的；周期由注入的 <see cref="TimeProvider"/> 驱动
+    /// （生产为系统时钟；测试注入假时钟推进周期），判定入口不开公开面。计数由捕获侧经
+    /// <see cref="CountEvent"/> 递交（暂停态同样计数：暂停只是放行事件，不代表钩子还活着）。
     /// </remarks>
     public sealed class HookWatchdog : IDisposable
     {
-        /// <summary>默认探针周期（ADR-0052 口径：3 秒）。</summary>
+        /// <summary>默认探针周期（3 秒）。</summary>
         public static readonly TimeSpan DefaultPeriod = TimeSpan.FromSeconds(3);
 
         private readonly TimeSpan _period;
+        private readonly TimeProvider _timeProvider;
         private readonly Func<GesturePoint?> _cursorProbe;
         private readonly Action _recover;
 
         private int _eventsSinceLastCheck;
         private GesturePoint? _lastCursor;
-        private Timer? _timer;
+        private ITimer? _timer;
 
         /// <param name="period">探针周期。</param>
         /// <param name="cursorProbe">系统光标位置探针（读不到返回 null）。</param>
         /// <param name="recover">判定失效时的重注册动作（由捕获侧提供）。</param>
-        public HookWatchdog(TimeSpan period, Func<GesturePoint?> cursorProbe, Action recover)
+        /// <param name="timeProvider">时钟（默认系统时钟；测试注入假时钟以确定性推进周期探针）。</param>
+        public HookWatchdog(TimeSpan period, Func<GesturePoint?> cursorProbe, Action recover, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(cursorProbe);
             ArgumentNullException.ThrowIfNull(recover);
             _period = period;
+            _timeProvider = timeProvider ?? TimeProvider.System;
             _cursorProbe = cursorProbe;
             _recover = recover;
         }
@@ -49,7 +52,7 @@ namespace StarPie.Ui.Services.Input
 
             _lastCursor = _cursorProbe();
             Interlocked.Exchange(ref _eventsSinceLastCheck, 0);
-            _timer = new Timer(_ => CheckOnce(), null, _period, _period);
+            _timer = _timeProvider.CreateTimer(_ => CheckOnce(), null, _period, _period);
         }
 
         /// <summary>停周期探针；重复调用无副作用。</summary>
@@ -60,10 +63,11 @@ namespace StarPie.Ui.Services.Input
         }
 
         /// <summary>
-        /// 单次探测：光标动过但零事件 → 判失效并重注册；光标没动 → 清零计数防误报
-        /// （没有输入就没有事件，不是死亡证据）。
+        /// 单次探测（定时器每到一个周期调用一次）：光标动过但零事件 → 判失效并重注册；
+        /// 光标没动 → 清零计数防误报（没有输入就没有事件，不是死亡证据）。
+        /// 测试经假时钟推进周期驱动同一入口，不需要公开它。
         /// </summary>
-        public void CheckOnce()
+        private void CheckOnce()
         {
             if (_timer == null) return;
 
