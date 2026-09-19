@@ -12,7 +12,7 @@ using StarPie.Sdk.ViewModels.Pages;
 namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
-    /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——主题风格
+    /// 轮盘模块外观设置子 ViewModel：外观页除界面主题外的全部轮盘外观设置——轮盘风格
     /// （WheelStyle）、轮盘配色方案与自定义配色预设、高亮边缘光晕、几何尺寸、排版与文字显示、
     /// 中心核图标。全部设置改动即时写穿 <see cref="IConfigService.Current"/>（立即生效）；
     /// 落盘请求经 <see cref="IMessenger"/> 上报组合根编排的订阅者（防抖/立即两类消息）。
@@ -156,9 +156,9 @@ namespace StarPie.Ui.ViewModels.Pages
             }
         }
 
-        // ---- 主题风格 & 配色方案 -------------------------------------------------
+        // ---- 轮盘风格 & 配色方案 -------------------------------------------------
 
-        /// <summary>轮盘主题风格（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
+        /// <summary>轮盘风格（ClassicRing / CleanSectors / Glassmorphism / CatPaw）。切换只重绘预览，不主动请求落盘。</summary>
         [ObservableProperty]
         private string _wheelStyle = WheelStyleNames.Default;
 
@@ -395,7 +395,7 @@ namespace StarPie.Ui.ViewModels.Pages
         {
             if (_loading) return;
             Config.WheelStyle = value;
-            // 主题风格切换只重绘预览，不请求落盘
+            // 轮盘风格切换只重绘预览，不请求落盘
             _messenger.Send(AppearancePreviewInvalidatedMessage.Instance);
         }
 

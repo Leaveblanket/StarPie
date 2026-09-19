@@ -137,7 +137,7 @@ namespace StarPie.Ui.Services.Wheel
 
         /// <summary>中心核图标几何：入参为核图标类型（<c>AppConfig.CoreIconType</c>）。</summary>
         /// <remarks>
-        /// 下方 <c>CatPaw</c> 分支是<b>核图标类型</b>，与轮盘主题风格同名值 <c>WheelStyleNames.CatPaw</c>
+        /// 下方 <c>CatPaw</c> 分支是<b>核图标类型</b>，与轮盘风格同名值 <c>WheelStyleNames.CatPaw</c>
         /// 不是同一概念（前者画核里的猫爪图案，后者切整套皮肤），勿合并取值来源。
         /// </remarks>
         public static Geometry GetCoreIconGeometry(string? coreIconType, string? customKey = null, string? customSvg = null)

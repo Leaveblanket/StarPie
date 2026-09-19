@@ -228,7 +228,7 @@
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>從已安裝軟體清單中快速選擇要排除的程式</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>將輸入框中的處理程序名稱加入排除黑名單</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>自訂 StarPie 設定台整體介面的視覺色彩風格，支援跟隨 Windows 系統深淺色切換。</value></data>
-<data name="StyleTypeLabel" xml:space="preserve"><value>主題風格 (Wheel Style):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>輪盤風格 (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>重新命名目前選取的自訂配色方案預設</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>自訂十六進位色彩 (色盤調色 / 螢幕吸色):</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>扇區底色:</value></data>

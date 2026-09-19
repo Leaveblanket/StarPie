@@ -228,7 +228,7 @@ This cannot be undone.</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>Quickly pick an app to exclude from the installed apps list</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>Add the process name in the input box to the exclusion blacklist</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>Customize the settings console's visual color style and follow Windows light/dark mode.</value></data>
-<data name="StyleTypeLabel" xml:space="preserve"><value>Renderer Style (Wheel Style):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>Wheel Style:</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>Rename the currently selected custom color preset</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>Custom hex colors (color wheel / screen picker):</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>Sector fill:</value></data>

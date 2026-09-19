@@ -228,7 +228,7 @@
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>从已安装软件列表中快速选择要排除的程序</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>将输入框中的进程名称加入排除黑名单</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>定制 StarPie 设置台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</value></data>
-<data name="StyleTypeLabel" xml:space="preserve"><value>主题风格 (Wheel Style):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>轮盘风格 (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>重命名当前选中的自定义配色方案预设</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>自定义十六进制色彩 (色盘调色 / 屏幕吸色):</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>扇区底色:</value></data>

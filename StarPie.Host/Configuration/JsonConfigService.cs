@@ -174,7 +174,7 @@ namespace StarPie.Host.Configuration
         }
 
         /// <summary>
-        /// 终态键单次迁移：config.json 可能来自旧版本（轮盘配色旧键 Theme / 主题风格旧键
+        /// 终态键单次迁移：config.json 可能来自旧版本（轮盘配色旧键 Theme / 轮盘风格旧键
         /// UiStyle）。终态键缺失时按旧键读取一次，保存统一写终态键；旧键是持久化兼容行为，
         /// 不出现在新代码与新文档。
         /// </summary>
