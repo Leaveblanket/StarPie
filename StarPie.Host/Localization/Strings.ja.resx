@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -41,6 +41,14 @@
   <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ カスタム設定を追加</value></data>
   <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ 名前を変更</value></data>
   <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ 設定を削除</value></data>
+    <data name="DirectionRight" xml:space="preserve"><value>右</value></data>
+  <data name="DirectionDownRight" xml:space="preserve"><value>右下</value></data>
+  <data name="DirectionDown" xml:space="preserve"><value>下</value></data>
+  <data name="DirectionDownLeft" xml:space="preserve"><value>左下</value></data>
+  <data name="DirectionLeft" xml:space="preserve"><value>左</value></data>
+  <data name="DirectionUpLeft" xml:space="preserve"><value>左上</value></data>
+  <data name="DirectionUp" xml:space="preserve"><value>上</value></data>
+  <data name="DirectionUpRight" xml:space="preserve"><value>右上</value></data>
   <data name="SectorCountOptionTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
   <data name="SectorCountOptionDesc" xml:space="preserve"><value>セクター数を切り替えます。4キー（誤操作防止）、8キー（標準全方位）、12キー（高密度機能）。</value></data>
   <data name="SectorActionListTitle" xml:space="preserve"><value>セクターアクションマッピング</value></data>
@@ -65,24 +73,24 @@
   <data name="Notice" xml:space="preserve"><value>お知らせ</value></data>
   <data name="Error" xml:space="preserve"><value>エラー</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
-  <data name="AppSubtitle" xml:space="preserve"><value>次世代マウスラジアルジェスチャー</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>次世代マウスラジアルホイール</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie 環境設定コンソール</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 トリガーとシーン</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
-  <data name="PageGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
+  <data name="PageWheelActions" xml:space="preserve"><value>⚡ ホイールと動作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更はメモリ上で即座に有効になります。[変更を保存] で設定ファイルに永続化されます。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>変更を保存</value></data>
   <data name="BtnClose" xml:space="preserve"><value>閉じて隠す</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>トリガーとシーンの分離設定</value></data>
-  <data name="TriggerSubheader" xml:space="preserve"><value>マウスジェスチャーの感度、フルスクリーンゲームでの自動回避、除外プロセスを設定します。</value></data>
-  <data name="SensitivityTitle" xml:space="preserve"><value>ジェスチャー起動感度</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>ホイールの感度、フルスクリーンゲームでの自動回避、除外プロセスを設定します。</value></data>
+  <data name="SensitivityTitle" xml:space="preserve"><value>ホイール起動感度</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>右クリックを押しながら指定ピクセル以上移動するとホイールを呼び出します。値が小さいほど高感度です。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>シーン分離と誤操作防止</value></data>
   <data name="SceneIsolationDesc" xml:space="preserve"><value>特定の環境や修飾キー操作時にホイールを無効化し、通常の右クリックを通過させます。</value></data>
-  <data name="FullScreenOption" xml:space="preserve"><value>全画面ゲーム/専用アプリでジェスチャーを自動無効化</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>全画面ゲーム/専用アプリでホイールを自動無効化</value></data>
   <data name="FullScreenOptionDesc" xml:space="preserve"><value>アクティブなウィンドウが全画面かどうかを検知し、ゲームの照準等の右クリック操作を邪魔しません。</value></data>
-  <data name="ModifierPassTitle" xml:space="preserve"><value>修飾キーバイパス (押下中はジェスチャーを無効化):</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>修飾キーバイパス (押下中はホイールを無効化):</value></data>
   <data name="ModifierCtrl" xml:space="preserve"><value>Ctrl 押下時にバイパス</value></data>
   <data name="ModifierShift" xml:space="preserve"><value>Shift 押下時にバイパス</value></data>
   <data name="ModifierAlt" xml:space="preserve"><value>Alt 押下時にバイパス</value></data>
@@ -146,14 +154,14 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 ミッドナイトネイビー</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 ロイヤルバイオレット</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ チタングレー</value></data>
-  <data name="WheelPaletteSystem" xml:space="preserve"><value>システム自動</value></data>
+  <data name="WheelPaletteSystem" xml:space="preserve"><value>システム自動（ホイール）</value></data>
   <data name="WheelPaletteLight" xml:space="preserve"><value>ライト</value></data>
   <data name="WheelPaletteDark" xml:space="preserve"><value>ダーク</value></data>
   <data name="WheelPaletteMatchaForest" xml:space="preserve"><value>抹茶フォレスト</value></data>
   <data name="WheelPaletteGlacialIce" xml:space="preserve"><value>グレイシャルアイス</value></data>
   <data name="WheelPaletteMorandiMuted" xml:space="preserve"><value>モランディミュート</value></data>
   <data name="WheelPaletteCustomPreset" xml:space="preserve"><value>🎨 {0} (カスタムプリセット)</value></data>
-  <data name="GesturesHeader" xml:space="preserve"><value>セクター配置とアクション設定</value></data>
+  <data name="WheelActionsHeader" xml:space="preserve"><value>セクター配置とアクション設定</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>セクター数（キー数）</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4キー (十字方向)</value></data>
   <data name="SectorCount8" xml:space="preserve"><value>8キー (全方向8方位)</value></data>
@@ -183,7 +191,7 @@
   <data name="StartupTitle" xml:space="preserve"><value>Windows起動時に自動起動</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>Windows起動時に自動でタスクトレイに常駐します。</value></data>
   <data name="AdminAutoStartTitle" xml:space="preserve"><value>管理者として自動起動</value></data>
-  <data name="AdminAutoStartDesc" xml:space="preserve"><value>Windows タスクスケジューラ経由で最高権限のままサイレント起動し、サインイン時に UAC を表示しません。タスクマネージャーなどの管理者ウィンドウでもジェスチャーを使えます。代わりに StarPie とインプロセスプラグインは常に管理者として動作します。</value></data>
+  <data name="AdminAutoStartDesc" xml:space="preserve"><value>Windows タスクスケジューラ経由で最高権限のままサイレント起動し、サインイン時に UAC を表示しません。タスクマネージャーなどの管理者ウィンドウでもホイールを使えます。代わりに StarPie とインプロセスプラグインは常に管理者として動作します。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>通知</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>管理者としての自動起動を設定できませんでした。UAC をキャンセルしたか、このアカウントに管理者資格情報がない可能性があります。通常権限の自動起動を維持します。</value></data>
   <data name="AdminRestartNow" xml:space="preserve"><value>今すぐ管理者として再起動</value></data>
@@ -199,16 +207,16 @@
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>このカラープリセット「{0}」を削除してもよろしいですか？
 削除後は復元できません。</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>工場出荷時の初期設定に戻してもよろしいですか？すべてのカスタム設定がリセットされます。</value></data>
-  <data name="TrayPause" xml:space="preserve"><value>⏸️ ジェスチャーを一時停止</value></data>
-  <data name="TrayResume" xml:space="preserve"><value>▶️ ジェスチャーを再開</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ 一時停止</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ 再開</value></data>
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 環境設定 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
-  <data name="TrayGestures" xml:space="preserve"><value>⚡ ジェスチャーと動作</value></data>
+  <data name="TrayWheelActions" xml:space="preserve"><value>⚡ ホイールと動作</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ StarPie を終了</value></data>
-  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルジェスチャー</value></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 次世代マウスラジアルホイール</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS ライブレンダリング</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>インターフェース言語、Windows 自動起動（管理者としてのサイレント起動を含む）、設定のインポート/エクスポートを管理します。</value></data>
-  <data name="GesturesSubheader" xml:space="preserve"><value>フォアグラウンドアプリごとに専用の多方向ジェスチャーホイール、キー操作、ベクターアイコンを設定できます。</value></data>
+  <data name="WheelActionsSubheader" xml:space="preserve"><value>フォアグラウンドアプリごとに専用の多方向ホイール、キー操作、ベクターアイコンを設定できます。</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>スタートメニューのインストール済みアプリから専用プロファイルを作成します</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>任意の名前で新しいホイールプロファイルを作成します</value></data>
   <data name="RenameProfileTooltip" xml:space="preserve"><value>選択中のプロファイル名を変更します</value></data>

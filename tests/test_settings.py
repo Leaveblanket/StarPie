@@ -1,4 +1,4 @@
-"""设置台交互 e2e（触发 / 外观 / 手势 / 高级四页）。
+﻿"""设置台交互 e2e（触发 / 外观 / 轮盘交互 / 高级四页）。
 
 断言分层口径（本文件）：
 - 交互用例只验"运行态即时生效"（live-apply：改动写穿运行态配置、绑定即时刷新）——
@@ -80,7 +80,7 @@ def test_switch_all_tabs_smoothly(app):
     """依次切到各页并断言页面就绪（导航由选中态驱动，UIA Select 即真导航）。"""
     win, _ = app
 
-    # 0: 触发与场景 / 1: 外观与形态 / 2: 手势与动作 / 3: 高级与系统
+    # 0: 触发与场景 / 1: 外观与形态 / 2: 轮盘与动作 / 3: 高级与系统
     for slot in range(4):
         goto(win, slot)
         assert_page_ready(win, slot)
@@ -142,7 +142,7 @@ def test_profile_management_ui_and_buttons(app):
     assert any("Global" in item for item in items), f"Global 兜底方案必须列出: {items}"
 
 
-# ==== 手势与动作 ====
+# ==== 轮盘与动作 ====
 
 def test_hotkey_recorder_and_system_presets_catalog(app):
     """槽位动作类型切 System 后落盘（Slot0 类型下拉 UIA 不暴露选中态，读盘是唯一观察面）。"""
@@ -337,7 +337,7 @@ def test_v136_custom_color_preset_deletion_and_management(app):
 
 
 def test_v140_custom_icons_and_appearance_collapsible(app):
-    """v1.4.0 目录与容器：轮盘风格固定 3 项，外观页/手势页容器就位。"""
+    """v1.4.0 目录与容器：轮盘风格固定 3 项，外观页/轮盘页容器就位。"""
     win, _ = app
 
     goto(win, 1)
@@ -438,7 +438,7 @@ def test_t28_hardcoded_copy_follows_language(app):
     assert_text_contains(win, "AdvancedPageSubheader", "Text", "Manage interface language")
 
     goto(win, 2)
-    assert_text_contains(win, "GesturesPageSubheader", "Text", "Set dedicated multi-directional gesture wheels")
+    assert_text_contains(win, "WheelActionsPageSubheader", "Text", "Set dedicated multi-directional wheel profiles")
 
     goto(win, 1)
     assert_text_contains(win, "AppearancePageSubheader", "Text", "Customize visual styles")

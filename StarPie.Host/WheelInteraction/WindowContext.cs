@@ -6,7 +6,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-namespace StarPie.Host.Gestures
+namespace StarPie.Host.WheelInteraction
 {
     /// <summary>
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former
@@ -58,7 +58,7 @@ namespace StarPie.Host.Gestures
 
             // 桌面图标宿主同属桌面（Win11 上 SHELLDLL_DefView 常挂在一个覆盖整屏的 WorkerW 下，
             // 它不是 GetShellWindow() 返回的 Progman）：桌面铺满整屏但不是全屏应用，
-            // 漏排会让桌面上的手势被全屏隔离误伤（点击/框选桌面后右键直通系统原生）。
+            // 漏排会让桌面上的轮盘交互被全屏隔离误伤（点击/框选桌面后右键直通系统原生）。
             if (HostsDesktopIconView(hWnd)) return false;
 
             if (!PInvoke.GetWindowRect(hWnd, out RECT windowRect)) return false;
@@ -87,12 +87,12 @@ namespace StarPie.Host.Gestures
             return !PInvoke.FindWindowEx(hWnd, HWND.Null, "SHELLDLL_DefView", null).IsNull;
         }
 
-        public GestureModifierKeys GetActiveModifierKeys()
+        public HeldModifierKeys GetActiveModifierKeys()
         {
-            GestureModifierKeys keys = GestureModifierKeys.None;
-            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_CONTROL) & 0x8000) != 0) keys |= GestureModifierKeys.Control;
-            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_SHIFT) & 0x8000) != 0) keys |= GestureModifierKeys.Shift;
-            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_MENU) & 0x8000) != 0) keys |= GestureModifierKeys.Alt;
+            HeldModifierKeys keys = HeldModifierKeys.None;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_CONTROL) & 0x8000) != 0) keys |= HeldModifierKeys.Control;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_SHIFT) & 0x8000) != 0) keys |= HeldModifierKeys.Shift;
+            if ((PInvoke.GetAsyncKeyState((int)VIRTUAL_KEY.VK_MENU) & 0x8000) != 0) keys |= HeldModifierKeys.Alt;
             return keys;
         }
     }

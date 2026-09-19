@@ -19,7 +19,7 @@ namespace StarPie.Ui.Modules
         /// 其余贡献者无状态。
         /// </summary>
         /// <param name="hostDelegates">宿主回调委托包。</param>
-        /// <param name="triggerButton">手势触发键（默认右键；测试实例可经命令行覆盖，解析见
+        /// <param name="triggerButton">轮盘触发键（默认右键；测试实例可经命令行覆盖，解析见
         /// <see cref="TestInstanceSwitches"/>）。</param>
         public static IReadOnlyList<ICompositionContributor> CreateAll(
             AppHostDelegates hostDelegates,
@@ -35,8 +35,8 @@ namespace StarPie.Ui.Modules
                 new ThemeContributor(),
                 // M2 轮盘与渲染（无导航页）。
                 new WheelContributor(),
-                // M1 手势与动作（槽位 0/2）。
-                new GesturesContributor(triggerButton),
+                // M1 轮盘与动作（槽位 0/2）。
+                new WheelInteractionContributor(triggerButton),
                 // M5 壳层与系统设置面（槽位 3）。
                 new ShellContributor(),
                 // S6 对话框（无导航页）。

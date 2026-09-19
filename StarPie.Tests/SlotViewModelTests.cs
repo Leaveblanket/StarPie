@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using CommunityToolkit.Mvvm.Messaging;
@@ -28,7 +28,7 @@ public sealed class SlotViewModelTests
         TestDialogService? dialogs = null,
         WeakReferenceMessenger? messenger = null)
         => new(
-            "右 (E / 0°)",
+            new DirectionCatalog.Direction("DirectionRight", "E / 0°"),
             action ?? new ActionItem(),
             dialogs ?? new TestDialogService(),
             new TestActionExecutor(),
@@ -179,7 +179,7 @@ public sealed class SlotViewModelTests
         var dialogs = new TestDialogService { FolderToPick = new FilePickResult(@"C:\Users\me\Documents") };
         var (messenger, save) = SaveSpy.Create();
         var slot = new SlotViewModel(
-            "右 (E / 0°)",
+            new DirectionCatalog.Direction("DirectionRight", "E / 0°"),
             new ActionItem { Type = "Folder", Name = "快捷动作 1" },
             dialogs,
             new TestActionExecutor(),
@@ -214,7 +214,7 @@ public sealed class SlotViewModelTests
         var dialogs = new TestDialogService { FolderToPick = null };
         var (messenger, save) = SaveSpy.Create();
         var slot = new SlotViewModel(
-            "右 (E / 0°)",
+            new DirectionCatalog.Direction("DirectionRight", "E / 0°"),
             new ActionItem { Name = "动作 1", Parameter = "old" },
             dialogs,
             new TestActionExecutor(),

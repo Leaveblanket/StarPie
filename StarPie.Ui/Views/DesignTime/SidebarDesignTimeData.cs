@@ -13,18 +13,18 @@ public sealed class SidebarDesignTimeData
     {
         new() { AutomationId = "NavPage0", Title = "🎯 触发与场景", IconData = IconTrigger, IsSelected = true },
         new() { AutomationId = "NavPage1", Title = "🎨 外观与形态", IconData = IconAppearance },
-        new() { AutomationId = "NavPage2", Title = "⚡ 手势与动作", IconData = IconGestures },
+        new() { AutomationId = "NavPage2", Title = "⚡ 轮盘与动作", IconData = IconWheelInteraction },
         new() { AutomationId = "NavPage3", Title = "⚙️ 高级与系统", IconData = IconAdvanced },
     };
 
-    // 图标 Path Data 与 HostPageContributor/ShellContributor/GesturesContributor 一致。
+    // 图标 Path Data 与 HostPageContributor/ShellContributor/WheelInteractionContributor 一致。
     private const string IconTrigger =
         "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z";
 
     private const string IconAppearance =
         "M12,3C7.03,3 3,7.03 3,12C3,16.97 7.03,21 12,21C12.83,21 13.5,20.33 13.5,19.5C13.5,19.11 13.35,18.76 13.11,18.49C12.88,18.23 12.73,17.88 12.73,17.5A1.5,1.5 0 0,1 14.23,16H16C18.76,16 21,13.76 21,11C21,6.58 16.97,3 12,3M6.5,12A1.5,1.5 0 0,1 5,10.5A1.5,1.5 0 0,1 6.5,9A1.5,1.5 0 0,1 8,10.5A1.5,1.5 0 0,1 6.5,12M9.5,8A1.5,1.5 0 0,1 8,6.5A1.5,1.5 0 0,1 9.5,5A1.5,1.5 0 0,1 11,6.5A1.5,1.5 0 0,1 9.5,8M14.5,8A1.5,1.5 0 0,1 13,6.5A1.5,1.5 0 0,1 14.5,5A1.5,1.5 0 0,1 16,6.5A1.5,1.5 0 0,1 14.5,8M17.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,9A1.5,1.5 0 0,1 19,10.5A1.5,1.5 0 0,1 17.5,12Z";
 
-    private const string IconGestures =
+    private const string IconWheelInteraction =
         "M4,6c0-1.1,0.9-2,2-2h12c1.1,0,2,0.9,2,2v12c0,1.1-0.9,2-2,2H6c-1.1,0-2-0.9-2-2V6z M6,8h12V6H6V8z M6,12h12v-2H6V12z M6,16h6v-2H6V16z";
 
     private const string IconAdvanced =

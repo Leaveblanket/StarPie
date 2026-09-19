@@ -42,7 +42,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
   只读契约读方案列表——模块契约判据 D5；不引用具体 VM 类型）；动态/广播协调一律走
   IMessenger；
   同页状态不得用 messenger 替代绑定。
-3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`GestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
+3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`WheelInteractionEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationExecutor` 持有 `IServiceProvider`（目录驱动惰性解析入口；随
      运行时归 Host——宿主内部解析缝而非跨程序集缝（见 [assemblies.md](assemblies.md) §8）；
     - `WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`，D5）在服务内组合
@@ -120,7 +120,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
 - 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡与退出是
   壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
-  M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 GesturesContributor 登记）；
+  M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 WheelInteractionContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`MainViewModel.Dispose`/
@@ -142,7 +142,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 View code-behind 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
 - 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
-  `StarPie.Ui/Modules/GesturesPageTemplates.xaml`，M1/M5 本地合并；Host 外观
+  `StarPie.Ui/Modules/WheelInteractionPageTemplates.xaml`，M1/M5 本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器）；页面 XAML 根直承 `UserControl`
   （页面 XAML 根直承 `UserControl`，无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`

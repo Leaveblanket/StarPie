@@ -25,27 +25,27 @@ namespace StarPie.Ui.ViewModels.Pages
         private readonly IDialogService _dialogs;
         private readonly IMessenger _messenger;
 
-        /// <summary>手势触发阈值（像素）。变更即时写回运行态配置。</summary>
+        /// <summary>轮盘触发阈值（像素）。变更即时写回运行态配置。</summary>
         [ObservableProperty]
         private double _dragThreshold;
 
-        /// <summary>全屏游戏/独占应用自动禁用手势。</summary>
+        /// <summary>全屏游戏/独占应用自动禁用轮盘交互。</summary>
         [ObservableProperty]
         private bool _disableOnFullScreen;
 
-        /// <summary>按住 Ctrl 键时旁路手势。</summary>
+        /// <summary>按住 Ctrl 键时旁路轮盘交互。</summary>
         [ObservableProperty]
         private bool _disableOnCtrl;
 
-        /// <summary>按住 Shift 键时旁路手势。</summary>
+        /// <summary>按住 Shift 键时旁路轮盘交互。</summary>
         [ObservableProperty]
         private bool _disableOnShift;
 
-        /// <summary>按住 Alt 键时旁路手势。</summary>
+        /// <summary>按住 Alt 键时旁路轮盘交互。</summary>
         [ObservableProperty]
         private bool _disableOnAlt;
 
-        /// <summary>启用向外顺势甩出取消手势。</summary>
+        /// <summary>启用向外顺势甩出取消轮盘交互。</summary>
         [ObservableProperty]
         private bool _enableOuterEscapeCancel;
 

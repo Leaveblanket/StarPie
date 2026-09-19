@@ -1,7 +1,7 @@
 """槽位动作编辑与试运行 e2e：热键录制、参数编辑、图标选取，以及"试运行"真的执行动作。
 
 动作执行器（ActionExecutorService）在真实进程里的执行面只能在这里验：
-试运行按钮走的是与手势松开时同一条 `Execute` 路径，落地证据是探针 exe 的进程出现。
+试运行按钮走的是与轮盘交互松开时同一条 `Execute` 路径，落地证据是探针 exe 的进程出现。
 
 断言分层：录制框/编辑框这类可回读的写回走"控件回读 + 切页往返保持"（View 重建后仍成立，
 是运行态已接受的强证据）；图标键没有 UI 观察面，保留落盘断言；动作执行以进程证据为准。
@@ -105,7 +105,7 @@ def test_slot_icon_picker_writes_icon_key(app):
     )
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
 def test_slot_test_button_executes_action(app):
     """「试运行」按钮：真实执行槽位动作（预置的 Launch 探针），进程出现即证据。"""
     win, local_app_data = app

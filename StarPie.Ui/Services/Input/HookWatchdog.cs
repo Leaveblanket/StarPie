@@ -21,18 +21,18 @@ namespace StarPie.Ui.Services.Input
 
         private readonly TimeSpan _period;
         private readonly TimeProvider _timeProvider;
-        private readonly Func<GesturePoint?> _cursorProbe;
+        private readonly Func<ScreenPoint?> _cursorProbe;
         private readonly Action _recover;
 
         private int _eventsSinceLastCheck;
-        private GesturePoint? _lastCursor;
+        private ScreenPoint? _lastCursor;
         private ITimer? _timer;
 
         /// <param name="period">探针周期。</param>
         /// <param name="cursorProbe">系统光标位置探针（读不到返回 null）。</param>
         /// <param name="recover">判定失效时的重注册动作（由捕获侧提供）。</param>
         /// <param name="timeProvider">时钟（默认系统时钟；测试注入假时钟以确定性推进周期探针）。</param>
-        public HookWatchdog(TimeSpan period, Func<GesturePoint?> cursorProbe, Action recover, TimeProvider? timeProvider = null)
+        public HookWatchdog(TimeSpan period, Func<ScreenPoint?> cursorProbe, Action recover, TimeProvider? timeProvider = null)
         {
             ArgumentNullException.ThrowIfNull(cursorProbe);
             ArgumentNullException.ThrowIfNull(recover);
@@ -70,7 +70,7 @@ namespace StarPie.Ui.Services.Input
             if (_timer == null) return;
 
             // 读光标位置，判定是否动过。
-            GesturePoint? current = _cursorProbe();
+            ScreenPoint? current = _cursorProbe();
             if (current is null) return;
 
             bool moved = _lastCursor is not { } last || current.Value.X != last.X || current.Value.Y != last.Y;

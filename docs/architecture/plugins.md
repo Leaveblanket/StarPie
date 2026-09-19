@@ -56,7 +56,7 @@ StarPie/
 ├── Directory.Packages.props              # 中央包管理(包版本唯一集中处);「SDK 零第三方包」= SDK csproj 无 PackageReference,「Host 零 WPF」由 TFM 结构性保证(原机械断言已下线)
 ├── StarPie.Sdk/                          # net10.0;零 WPF / 零第三方包;headless 唯一引用面
 │   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginLog:插件眼里「宿主长什么样」的全部
-│   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型:AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / GesturePoint;跨 ALC 传递的类型必须来自默认 ALC 的 SDK
+│   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型:AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / ScreenPoint;跨 ALC 传递的类型必须来自默认 ALC 的 SDK
 │   ├── Services/  ViewModels/            # 非插件面契约与模型(Messages / Navigation / Dialogs / Icons / Programs / Wheel / Themes 契约与界面契约)
 │   ├── Events/                           # 宿主事件契约(订阅返回 IDisposable):卸载即断的实现基础
 │   ├── Manifest/                         # plugin.json 纯数据模型(校验逻辑在 Host,SDK 不做 IO)
@@ -66,8 +66,8 @@ StarPie/
 │   ├── Services/                         # IIconAssetService 与 IThemeService 的 WPF 契约(条目类型在 SDK、目录在 Host)
 │   └── Compatibility/                    # UiSdkAbi 与 DefaultAlcPolicy(与 Sdk 分政策编号)
 ├── StarPie.Host/                         # 零 WPF 引用、零 XAML;可 headless 单测
-│   ├── Configuration/  Localization/  Programs/  ShellIntegration/  Icons/  Themes/  Wheel/  Gestures/  Actions/
-│   │                                     # 配置 / 文案 / 程序扫描 / 注册表与进程级壳集成 / 资产目录 / 调色板计算 / 配色解析 / 手势内核 / 动作路由(纯模型与逻辑;几何构造与 WPF 亲和件归 Ui)
+│   ├── Configuration/  Localization/  Programs/  ShellIntegration/  Icons/  Themes/  Wheel/  WheelInteraction/  Actions/
+│   │                                     # 配置 / 文案 / 程序扫描 / 注册表与进程级壳集成 / 资产目录 / 调色板计算 / 配色解析 / 轮盘交互内核 / 动作路由(纯模型与逻辑;几何构造与 WPF 亲和件归 Ui)
 │   ├── Ports/                            # Host→Ui 端口:IThemeApplier(Host 零 WPF 只能吃接口;其余端口随需求引入)
 │   ├── HostServices/                     # 插件可见宿主服务实现:PluginLog / PluginEvents / PluginEventPump / PluginServiceScope(每插件一个作用域)
 │   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Diagnostics,Ui}

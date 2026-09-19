@@ -30,7 +30,7 @@ PAUSE_ITEM = "TrayMenuPause"
 NAV_ITEMS = {
     "TrayMenuPreferences": 0,  # 触发与场景
     "TrayMenuAppearance": 1,  # 外观与形态
-    "TrayMenuGestures": 2,  # 手势与动作
+    "TrayMenuWheelActions": 2,  # 轮盘与动作
 }
 EXIT_ITEM = "TrayMenuExit"
 
@@ -71,17 +71,17 @@ def test_tray_menu_items_and_pause_roundtrip(app):
 
     menu = open_tray_menu(pid)
     pause = menu_item(menu, PAUSE_ITEM)
-    assert "暂停" in pause.window_text(), f"初始应为「暂停手势」: {pause.window_text()!r}"
+    assert "暂停" in pause.window_text(), f"初始应为「暂停」: {pause.window_text()!r}"
 
     click_menu_item(menu, PAUSE_ITEM)
 
     menu = open_tray_menu(pid)
-    assert "恢复" in menu_item(menu, PAUSE_ITEM).window_text(), "暂停后菜单应显示「恢复手势」"
+    assert "恢复" in menu_item(menu, PAUSE_ITEM).window_text(), "暂停后菜单应显示「恢复」"
 
     click_menu_item(menu, PAUSE_ITEM)
 
     menu = open_tray_menu(pid)
-    assert "暂停" in menu_item(menu, PAUSE_ITEM).window_text(), "恢复后菜单应回到「暂停手势」"
+    assert "暂停" in menu_item(menu, PAUSE_ITEM).window_text(), "恢复后菜单应回到「暂停」"
     # 收摊：关掉菜单（失焦也会自动关，这里显式关以便断言干净）
     menu.type_keys("{ESC}")
     wait_dialog_closed(menu)

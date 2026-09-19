@@ -1,7 +1,7 @@
-namespace StarPie.Host.Gestures
+namespace StarPie.Host.WheelInteraction
 {
     [Flags]
-    public enum GestureModifierKeys
+    public enum HeldModifierKeys
     {
         None = 0,
         Control = 1,
@@ -11,7 +11,7 @@ namespace StarPie.Host.Gestures
 
     /// <summary>
     /// 前台窗口上下文接缝：把活动窗口与全屏探测收在一个可注入表面后，
-    /// 手势引擎做隔离与方案决策时不直接触碰 Win32/WPF。
+    /// 轮盘交互引擎做隔离与方案决策时不直接触碰 Win32/WPF。
     /// </summary>
     public interface IWindowContext
     {
@@ -23,6 +23,6 @@ namespace StarPie.Host.Gestures
         bool IsForegroundFullScreen();
 
         /// <summary>Modifier keys currently held down (queried live, per event).</summary>
-        GestureModifierKeys GetActiveModifierKeys();
+        HeldModifierKeys GetActiveModifierKeys();
     }
 }

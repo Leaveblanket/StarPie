@@ -271,7 +271,7 @@ def is_blank_image(img) -> bool:
 PAGE_ANCHORS = {
     0: ("EnableOuterEscapeCheckBox", "CheckBox"),
     1: ("AppearancePageSubheader", "Text"),
-    2: ("GesturesPageSubheader", "Text"),
+    2: ("WheelActionsPageSubheader", "Text"),
     3: ("AdvancedPageSubheader", "Text"),
     4: ("PluginManagerSubheader", "Text"),
 }
@@ -409,9 +409,9 @@ def read_plugin_state(local_app_data, predicate=None, timeout: float = 5.0, mess
 
 
 def probe_exe_from_config(local_app_data) -> str:
-    """从沙箱配置读回预置的探针 exe 路径（gesture-probe 预置的 Global 扇区 0 Launch 参数）。
+    """从沙箱配置读回预置的探针 exe 路径（wheel-probe 预置的 Global 扇区 0 Launch 参数）。
 
-    动作执行类用例的落地证据按镜像路径判定，路径来源只此一处（预置见 seed_gesture_config）。
+    动作执行类用例的落地证据按镜像路径判定，路径来源只此一处（预置见 seed_wheel_config）。
     """
     return read_config(local_app_data)["Profiles"][0]["Actions"][0]["Parameter"]
 
@@ -564,7 +564,7 @@ def close_console(win, timeout: float = 8.0) -> None:
 
 
 def open_program_picker(win, nav_slot: int = 2):
-    """从手势页（NavPage2）经 AddProfileButton 打开程序选择器（真实模态对话框）。"""
+    """从轮盘页（NavPage2）经 AddProfileButton 打开程序选择器（真实模态对话框）。"""
     goto(win, nav_slot)
     add_btn = win.child_window(auto_id="AddProfileButton", control_type="Button")
     assert add_btn.exists(timeout=3), "AddProfileButton 必须存在"
@@ -646,7 +646,7 @@ TRAY_CALLBACK_MESSAGE = 0x8001  # WM_APP + 1
 WM_RBUTTONUP = 0x0205
 WM_LBUTTONDBLCLK = 0x0203
 
-# 轮盘窗口标题（产品侧 StarPie.Ui/Views/Wheel/RadialWindow.xaml）：每次手势一个实例，关闭即销毁。
+# 轮盘窗口标题（产品侧 StarPie.Ui/Views/Wheel/RadialWindow.xaml）：每次轮盘交互一个实例，关闭即销毁。
 WHEEL_WINDOW_TITLE = "RadialWindow"
 
 # 程序选择器/动作执行用例共用的探针程序：HKCU App Paths 注册的"记事本副本"——
@@ -700,7 +700,7 @@ def probe_program():
 
 
 def find_wheel_window(pid: int) -> int:
-    """被测进程当前的轮盘窗口 HWND；不存在时为 0（关闭即销毁，不跨手势复用）。"""
+    """被测进程当前的轮盘窗口 HWND；不存在时为 0（关闭即销毁，不跨轮盘交互复用）。"""
     for row in _process_windows(pid):
         if row["visible"] and row["title"] == WHEEL_WINDOW_TITLE:
             return row["hwnd"]
@@ -870,8 +870,8 @@ def write_sandbox_config(local_app_data, config: dict) -> str:
     return str(path)
 
 
-def seed_gesture_config(local_app_data, probe_exe: str) -> None:
-    """手势链路用例的配置：Global 4 扇区，仅扇区 0（正右）是探针 exe 的 Launch 动作，
+def seed_wheel_config(local_app_data, probe_exe: str) -> None:
+    """轮盘交互链路用例的配置：Global 4 扇区，仅扇区 0（正右）是探针 exe 的 Launch 动作，
     其余扇区为空动作（空 Type 在松开时按取消处理，不会误触发别的动作）。"""
     write_sandbox_config(
         local_app_data,
@@ -918,9 +918,9 @@ def sandbox_seed(request, sandbox_env):
     mode = getattr(request, "param", None)
     if mode == "disabled-program-source":
         _seed_plugin_state(local_app_data, {"starpie.builtin.program-source": {"Enabled": False}})
-    elif mode == "gesture-probe":
-        # 手势链路用例：探针 exe 作 Launch 目标（只落文件，不写注册表）。
-        seed_gesture_config(local_app_data, plant_probe_executable())
+    elif mode == "wheel-probe":
+        # 轮盘交互链路用例：探针 exe 作 Launch 目标（只落文件，不写注册表）。
+        seed_wheel_config(local_app_data, plant_probe_executable())
     elif mode == "corrupt-config":
         # 损坏配置的降级路径：文件保留损坏内容，应用须照常可用（回退默认，不触碰文件）。
         state_dir = local_app_data / "StarPie"
@@ -1007,7 +1007,7 @@ def start_app(env, timeout: float = 15.0, trigger_button: int | None = None):
 
     trigger_button 非空时追加 `--trigger-button=<n>`：把触发键换成 SharpHook MouseButton
     的第 n 个按键（4/5 即鼠标侧键 XBUTTON1/XBUTTON2）。侧键未被抑制时不弹上下文菜单，
-    手势链路的外部观测不必先收菜单——注入面见 tests/mouse_input.py 的 side_down/side_up。
+    轮盘交互链路的外部观测不必先收菜单——注入面见 tests/mouse_input.py 的 side_down/side_up。
     """
 
     app_path = find_app_path()
@@ -1044,7 +1044,7 @@ def trigger_button(request):
 
     用例经 `@pytest.mark.parametrize("trigger_button", [4], indirect=True)` 取用（与
     sandbox_seed 同一模式）。4/5 是鼠标侧键（XBUTTON1/XBUTTON2）：侧键未被抑制时不弹
-    上下文菜单，手势链路的外部观测不必先收菜单——本 fixture 只决定启动参数，
+    上下文菜单，轮盘交互链路的外部观测不必先收菜单——本 fixture 只决定启动参数，
     注入面须同步用侧键（tests/mouse_input.py 的 side_down/side_up）。
     """
     return getattr(request, "param", None)

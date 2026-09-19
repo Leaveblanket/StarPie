@@ -5,15 +5,15 @@ using System.Threading.Tasks;
 using SharpHook;
 using SharpHook.Data;
 using SharpHook.Simulation;
-using StarPie.Host.Gestures;
+using StarPie.Host.WheelInteraction;
 using StarPie.Sdk.Models;
 
 namespace StarPie.Ui.Services.Input
 {
     /// <summary>
-    /// 输入栈的捕获侧：全局鼠标钩子把触发键的按下 / 移动 / 抬起喂入 <see cref="GestureEngine"/>，
+    /// 输入栈的捕获侧：全局鼠标钩子把触发键的按下 / 移动 / 抬起喂入 <see cref="WheelInteractionEngine"/>，
     /// 按引擎决策同步抑制事件，并把引擎交付的副作用（补发点击 / 执行动作）卸载到 UI 线程。
-    /// 手势决策全部在引擎内，本类只做事件捕获、抑制与副作用投放。
+    /// 轮盘交互决策全部在引擎内，本类只做事件捕获、抑制与副作用投放。
     /// </summary>
     /// <remarks>
     /// 线程模型：钩子独占专用线程（<c>RunAsync(..., useBackgroundThread: true)</c>），
@@ -21,7 +21,7 @@ namespace StarPie.Ui.Services.Input
     /// <c>SimpleGlobalHook</c> 满足），其余工作一律卸载到 UI 线程：低级钩子回调超时会被
     /// 系统静默移除，不能把窗口创建与渲染留在钩子路径上。
     /// 自注入识别走回放窗口（<see cref="ReplayWindow"/>），不按模拟标记整体过滤——
-    /// 外部注入（e2e 的 pywin32 注入）必须仍能触发手势。
+    /// 外部注入（e2e 的 pywin32 注入）必须仍能触发轮盘交互。
     /// 看门狗（<see cref="HookWatchdog"/>）周期探测静默失效，并就地在新的专用线程上重注册。
     /// </remarks>
     public sealed class MouseInputHook : IDisposable
@@ -39,7 +39,7 @@ namespace StarPie.Ui.Services.Input
         private readonly object _lifecycleLock = new();
 
         private readonly IGlobalHook _hook;
-        private readonly GestureEngine _engine;
+        private readonly WheelInteractionEngine _engine;
         private readonly IActionExecutorService _actionExecutor;
         private readonly Action<Action> _postToUiThread;
         private readonly MouseButton _triggerButton;
@@ -52,7 +52,7 @@ namespace StarPie.Ui.Services.Input
         private bool _isRunning;
 
         /// <param name="hook">全局钩子实现（生产为 <c>SimpleGlobalHook</c>，测试为 TestGlobalHook）。</param>
-        /// <param name="engine">手势引擎（纯决策）。</param>
+        /// <param name="engine">轮盘交互引擎（纯决策）。</param>
         /// <param name="actionExecutor">动作执行器（副作用落地）。</param>
         /// <param name="postToUiThread">调度接缝：副作用回 UI 线程执行（本类不引 UI 框架类型）。</param>
         /// <param name="triggerButton">触发键（默认右键；栈内参数化，不暴露配置面）。</param>
@@ -61,12 +61,12 @@ namespace StarPie.Ui.Services.Input
         /// <param name="watchdogPeriod">看门狗探针周期（默认 3 秒，ADR-0052 口径）。</param>
         public MouseInputHook(
             IGlobalHook hook,
-            GestureEngine engine,
+            WheelInteractionEngine engine,
             IActionExecutorService actionExecutor,
             Action<Action> postToUiThread,
             MouseButton triggerButton = MouseButton.Button2,
             Func<IEventSimulator>? simulatorFactory = null,
-            Func<GesturePoint?>? cursorProbe = null,
+            Func<ScreenPoint?>? cursorProbe = null,
             TimeSpan? watchdogPeriod = null)
         {
             ArgumentNullException.ThrowIfNull(hook);
@@ -91,7 +91,7 @@ namespace StarPie.Ui.Services.Input
             _hook.MouseDragged += OnMouseMoved;  // 触发键按住期间，移动在钩子层是 MouseDragged 而非 MouseMoved（掩码含按键）。
         }
 
-        /// <summary>暂停开关：暂停只是放行全部事件，钩子仍挂着（托盘"暂停/恢复手势"）。</summary>
+        /// <summary>暂停开关：暂停只是放行全部事件，钩子仍挂着（托盘"暂停/恢复"）。</summary>
         public bool IsPaused
         {
             get => _isPaused;
@@ -188,7 +188,7 @@ namespace StarPie.Ui.Services.Input
             if (e.Data.Button != _triggerButton) return;
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
 
-            // 引擎决定按下是否被手势接管（接管即抑制；未成手势时松手补发点击）。
+            // 引擎决定按下是否被轮盘交互接管（接管即抑制；未成轮盘交互时松手补发点击）。
             if (_engine.OnTriggerDown(new(e.Data.X, e.Data.Y)))
             {
                 e.SuppressEvent = true;
@@ -203,7 +203,7 @@ namespace StarPie.Ui.Services.Input
             if (e.Data.Button != _triggerButton) return;
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
 
-            GestureReleaseResult result = _engine.OnTriggerUp(new(e.Data.X, e.Data.Y));
+            WheelInteractionReleaseResult result = _engine.OnTriggerUp(new(e.Data.X, e.Data.Y));
             if (!result.Handled) return;
 
             if (result.ShouldReplayClick)

@@ -11,8 +11,8 @@ namespace StarPie.Ui.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘 ViewModel：持有轮盘视图状态——选中扇区、外围逃逸状态、扇区集合与中心点——
-    /// 以及样式渲染器消费的状态。手势引擎经 <see cref="IWheelViewModel"/> 驱动，
-    /// 窗口观察变更通知并完成全部绘制；每次手势一个实例。
+    /// 以及样式渲染器消费的状态。轮盘交互引擎经 <see cref="IWheelViewModel"/> 驱动，
+    /// 窗口观察变更通知并完成全部绘制；每次轮盘交互一个实例。
     /// </summary>
     public partial class WheelViewModel : ObservableObject, IWheelViewModel
     {
@@ -30,7 +30,7 @@ namespace StarPie.Ui.ViewModels.Wheel
         [ObservableProperty]
         private bool _isClosed;
 
-        public GesturePoint Center { get; }
+        public ScreenPoint Center { get; }
 
         /// <summary>瞬态视图数据投影（快照）：只含渲染所需字段，窗口据此绘制；
         /// 视图因此不可达全局配置对象。</summary>
@@ -57,7 +57,7 @@ namespace StarPie.Ui.ViewModels.Wheel
 
         public bool ShowCoreIcon { get; }
 
-        public WheelViewModel(GesturePoint center, WheelProfile profile, WheelViewData viewData, ILocalizationService localization)
+        public WheelViewModel(ScreenPoint center, WheelProfile profile, WheelViewData viewData, ILocalizationService localization)
         {
             Center = center;
             _profile = profile;
