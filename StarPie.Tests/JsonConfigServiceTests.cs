@@ -75,6 +75,31 @@ public sealed class JsonConfigServiceTests : IDisposable
     }
 
     [Fact]
+    public void Load_LegacyConfigWithoutTriggerButtonKey_FallsBackToRightButton()
+    {
+        File.WriteAllText(_configPath, """{ "Language": "en", "DragThreshold": 42.0 }""");
+        var service = new JsonConfigService(_configPath, Localization);
+
+        service.Load();
+
+        Assert.Equal("RightButton", service.Current.TriggerButton);
+    }
+
+    [Fact]
+    public void TriggerButton_RoundTripsThroughDisk()
+    {
+        var writer = new JsonConfigService(_configPath, Localization);
+        writer.Load();
+        writer.Current.TriggerButton = "XButton1";
+
+        writer.Save();
+
+        var reader = new JsonConfigService(_configPath, Localization);
+        reader.Load();
+        Assert.Equal("XButton1", reader.Current.TriggerButton);
+    }
+
+    [Fact]
     public void Load_WithCorruptJson_FallsBackToDefaultsWithoutOverwritingFile()
     {
         const string corrupt = "{ this is not json";

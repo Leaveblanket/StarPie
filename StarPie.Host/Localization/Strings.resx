@@ -84,6 +84,14 @@
   <data name="BtnClose" xml:space="preserve"><value>关闭设置台</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>触发与场景隔离设置</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>在此配置轮盘手势的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
+  <data name="TriggerButtonTitle" xml:space="preserve"><value>触发键</value></data>
+  <data name="TriggerButtonDesc" xml:space="preserve"><value>启动轮盘手势的鼠标按键，选择后立即生效。轻点（未拖出轮盘）仍会把点击补发给下层应用。</value></data>
+  <data name="TriggerKeyLeft" xml:space="preserve"><value>鼠标左键</value></data>
+  <data name="TriggerKeyRight" xml:space="preserve"><value>鼠标右键</value></data>
+  <data name="TriggerKeyMiddle" xml:space="preserve"><value>鼠标中键</value></data>
+  <data name="TriggerKeySide1" xml:space="preserve"><value>鼠标侧键 1（后退）</value></data>
+  <data name="TriggerKeySide2" xml:space="preserve"><value>鼠标侧键 2（前进）</value></data>
+  <data name="BtnResetTriggerButton" xml:space="preserve"><value>恢复默认</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>轮盘触发灵敏度</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>按住鼠标右键移动超过指定像素距离后呼出轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>场景隔离与防误触</value></data>

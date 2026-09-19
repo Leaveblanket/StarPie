@@ -101,6 +101,9 @@ def test_smoke_console_pages_and_controls(app):
     def _trigger_controls():
         goto(win, 0)
         _assert_controls(win, (
+            ("TriggerButtonBadgeText", "Text"),
+            ("TriggerButtonOptionRight", "RadioButton"),
+            ("ResetTriggerButtonButton", "Button"),
             ("EnableOuterEscapeCheckBox", "CheckBox"),
             ("AddBlacklistButton", "Button"),
             ("DeleteBlacklistButton", "Button"),
@@ -111,8 +114,8 @@ def test_smoke_console_pages_and_controls(app):
         ))
 
     report.check(
-        "触发页旁路开关与黑名单控件就位",
-        "tests/test_settings.py::test_trigger_modifier_bypass_and_escape_distance_live_apply",
+        "触发页触发键配置面、旁路开关与黑名单控件就位",
+        "tests/test_wheel_gesture.py::test_wheel_config_surface_switch_trigger_live",
         _trigger_controls,
     )
 

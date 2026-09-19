@@ -26,6 +26,7 @@
             <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
             <converters:StringToGeometryConverter x:Key="StringToGeometryConverter" />
             <converters:IntEqualsConverter x:Key="IntEqualsConverter" />
+            <converters:StringEqualsConverter x:Key="StringEqualsConverter" />
             <converters:FilePathToImageConverter x:Key="FilePathToImageConverter" />
             <!--  轮盘核图标预览配套转换器：外观聚合页预览用  -->
             <converters:CoreIconGeometryConverter x:Key="CoreIconGeometryConverter" />

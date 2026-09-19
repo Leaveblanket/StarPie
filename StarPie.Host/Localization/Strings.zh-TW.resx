@@ -84,6 +84,14 @@
   <data name="BtnClose" xml:space="preserve"><value>關閉設定台</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>觸發與場景隔離設定</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>在此配置輪盤互動的觸發靈敏度、全螢幕遊戲自動攔截與排除程式黑名單。</value></data>
+  <data name="TriggerButtonTitle" xml:space="preserve"><value>觸發鍵</value></data>
+  <data name="TriggerButtonDesc" xml:space="preserve"><value>啟動輪盤手勢的滑鼠按鍵，選擇後立即生效。輕點（未拖出輪盤）仍會把點擊補發給下層應用。</value></data>
+  <data name="TriggerKeyLeft" xml:space="preserve"><value>滑鼠左鍵</value></data>
+  <data name="TriggerKeyRight" xml:space="preserve"><value>滑鼠右鍵</value></data>
+  <data name="TriggerKeyMiddle" xml:space="preserve"><value>滑鼠中鍵</value></data>
+  <data name="TriggerKeySide1" xml:space="preserve"><value>滑鼠側鍵 1（後退）</value></data>
+  <data name="TriggerKeySide2" xml:space="preserve"><value>滑鼠側鍵 2（前進）</value></data>
+  <data name="BtnResetTriggerButton" xml:space="preserve"><value>恢復預設</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>輪盤觸發靈敏度</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>按住滑鼠右鍵移動超過指定像素距離後呼出輪盤。距離越小越靈敏，過小可能造成右鍵微抖動誤觸。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>場景隔離與防誤觸</value></data>

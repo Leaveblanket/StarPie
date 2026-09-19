@@ -51,8 +51,8 @@ namespace StarPie.Ui
         public Composition()
         {
             // 阶段 1｜注册期：有序列表驱动（贡献者只登记不解析；注册顺序 ≠ 解析时机）。
-            // 触发键在注册期定下（测试实例可经命令行覆盖，见 TestInstanceSwitches）：
-            // 钩子单例由 WheelGestureContributor 在注册时按该值构造，故覆盖必须在注册前解析。
+            // 测试实例的触发键覆盖在注册期解析（命令行属一次性启动事务，见 TestInstanceSwitches）；
+            // 正式触发键由运行态配置决定——捕获侧经触发键实时读数逐事件读配置（ADR-0056）。
             _contributors = BuiltInContributors.CreateAll(
                 _hostDelegates,
                 TestInstanceSwitches.Resolve(Environment.CommandLine));

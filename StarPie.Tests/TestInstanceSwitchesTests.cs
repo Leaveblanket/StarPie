@@ -6,7 +6,8 @@ namespace StarPie.Tests;
 
 /// <summary>
 /// 测试实例的触发键覆盖解析：只有声明了测试实例的进程受理 <c>--trigger-button=</c>，
-/// 取值限于 Button1–Button5，其余一律回退默认右键（见 <see cref="TestInstanceSwitches"/>）。
+/// 取值限于 Button1–Button5，其余一律返回 null（触发键交由运行态配置决定，
+/// 见 <see cref="TestInstanceSwitches"/> 与 ADR-0056）。
 /// </summary>
 /// <remarks>
 /// 解析是全字符串匹配 + 手工取数，边界（前缀大小写、缺等号、非数字、越界、
@@ -60,9 +61,7 @@ public sealed class TestInstanceSwitchesTests
 
     [Fact]
     public void Resolve_NonTestInstance_IgnoresTheSwitch()
-        => Assert.Equal(
-            TestInstanceSwitches.DefaultButton,
-            TestInstanceSwitches.Resolve("StarPie.exe --trigger-button=4"));
+        => Assert.Null(TestInstanceSwitches.Resolve("StarPie.exe --trigger-button=4"));
 
     [Theory]
     [InlineData("StarPie.exe --allow-multiple")]
@@ -72,12 +71,12 @@ public sealed class TestInstanceSwitchesTests
     [InlineData("StarPie.exe --allow-multiple --trigger-button=6")]
     [InlineData("StarPie.exe --allow-multiple --trigger-button=-1")]
     [InlineData("StarPie.exe --allow-multiple --trigger-button")]
-    public void Resolve_MissingOrInvalidValue_FallsBackToDefault(string commandLine)
-        => Assert.Equal(TestInstanceSwitches.DefaultButton, TestInstanceSwitches.Resolve(commandLine));
+    public void Resolve_MissingOrInvalidValue_YieldsNoOverride(string commandLine)
+        => Assert.Null(TestInstanceSwitches.Resolve(commandLine));
 
     [Fact]
-    public void Resolve_DefaultIsRightButton()
-        => Assert.Equal(MouseButton.Button2, TestInstanceSwitches.DefaultButton);
+    public void Resolve_TestInstanceWithoutSwitch_YieldsNoOverride()
+        => Assert.Null(TestInstanceSwitches.Resolve("StarPie.exe --allow-multiple"));
 
     [Fact]
     public void Resolve_TrailingSwitchAfterValue_DoesNotLeakIntoTheNumber()

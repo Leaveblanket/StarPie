@@ -19,11 +19,11 @@ namespace StarPie.Ui.Modules
         /// 其余贡献者无状态。
         /// </summary>
         /// <param name="hostDelegates">宿主回调委托包。</param>
-        /// <param name="triggerButton">轮盘触发键（默认右键；测试实例可经命令行覆盖，解析见
-        /// <see cref="TestInstanceSwitches"/>）。</param>
+        /// <param name="testTriggerOverride">测试实例的触发键覆盖（默认 null；组合根在注册期解析
+        /// 命令行，见 <see cref="TestInstanceSwitches"/>。正式触发键由运行态配置实时决定，ADR-0056）。</param>
         public static IReadOnlyList<ICompositionContributor> CreateAll(
             AppHostDelegates hostDelegates,
-            MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
+            MouseButton? testTriggerOverride = null)
         {
             ICompositionContributor[] contributors =
             {
@@ -36,7 +36,7 @@ namespace StarPie.Ui.Modules
                 // M2 轮盘与渲染（无导航页）。
                 new WheelContributor(),
                 // M1 轮盘与动作（槽位 0/2）。
-                new WheelGestureContributor(triggerButton),
+                new WheelGestureContributor(testTriggerOverride),
                 // M5 常驻壳层与系统设置面（槽位 3）。
                 new SystemIntegrationContributor(),
                 // S6 对话框（无导航页）。

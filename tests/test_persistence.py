@@ -174,6 +174,50 @@ def test_partial_config_keeps_model_defaults(app):
     assert abs(label_value(win, "WheelRadiusLabel") - 138.0) < 0.01, "缺键必须回落到模型默认 WheelRadius"
 
 
+@pytest.mark.parametrize("sandbox_seed", ["partial-config"], indirect=True)
+def test_trigger_button_survives_restart(sandbox_env, sandbox_seed):
+    """触发键（触发页录制卡）：旧配置缺键回显默认右键；切换落盘后同沙盒重启读回侧键 1。"""
+    env, local_app_data = sandbox_env
+
+    proc, win = start_app(env)
+    try:
+        goto(win, 0)
+        option_right = win.child_window(auto_id="TriggerButtonOptionRight", control_type="RadioButton")
+        option_side1 = win.child_window(auto_id="TriggerButtonOptionSide1", control_type="RadioButton")
+        # 旧配置无 TriggerButton 键：单选回显默认右键（缺键回退）。
+        wait_until(
+            lambda: option_right.exists(timeout=1.0) and option_right.is_selected(),
+            timeout=5.0,
+            description="缺键时右键单选回显",
+        )
+
+        option_side1.select()
+        wait_until(
+            lambda: option_side1.is_selected(),
+            timeout=3.0,
+            description="切到侧键 1 单选回显",
+        )
+        read_config(
+            local_app_data,
+            predicate=lambda c: c.get("TriggerButton") == "XButton1",
+            message="切换触发键应已落盘（TriggerButton=XButton1）",
+        )
+    finally:
+        stop_app(proc)
+
+    proc2, win2 = start_app(env)
+    try:
+        goto(win2, 0)
+        option_side1_2 = win2.child_window(auto_id="TriggerButtonOptionSide1", control_type="RadioButton")
+        wait_until(
+            lambda: option_side1_2.exists(timeout=1.0) and option_side1_2.is_selected(),
+            timeout=5.0,
+            description="重启后触发键回读为侧键 1",
+        )
+    finally:
+        stop_app(proc2)
+
+
 def test_export_and_import_dialog_roundtrip(app, tmp_path):
     """导出走真实保存对话框落文件；改设置后经真实打开对话框导入，配置回到导出时的值。"""
     win, local_app_data = app

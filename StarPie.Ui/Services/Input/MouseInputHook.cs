@@ -42,10 +42,20 @@ namespace StarPie.Ui.Services.Input
         private readonly WheelGestureEngine _engine;
         private readonly IActionExecutorService _actionExecutor;
         private readonly Action<Action> _postToUiThread;
-        private readonly MouseButton _triggerButton;
+        private readonly Func<MouseButton> _triggerButtonProvider;
         private readonly Func<IEventSimulator> _simulatorFactory;
         private readonly ReplayWindow _replayWindow = new();
         private readonly HookWatchdog _watchdog;
+
+        // 钩子线程读写：当前在途交互按下时被接管的键（null 即无在途按下）。配置面改键即时
+        // 生效（每事件实时读）；在途期间第二次触发按下不接管、抬起仍按按下时的键配对收尾——
+        // 补发点击才不会错注入新键或丢在旧键上。
+        private MouseButton? _activeTriggerPress;
+
+        // 钩子线程读、UI 线程写（补发投放）：最近一次补发的键，不清零（NoButton 为尚未补发过
+        // 的初值）。它只用于把补发回波放行进回放窗口；窗口自身两笔配额 + 1 秒截止自闭，
+        // 记账过期无副作用——非回波的该键抬起在配对门后原样放行。
+        private volatile MouseButton _lastReplayedButton = MouseButton.NoButton;
 
         private IEventSimulator? _simulator;
         private Task? _runTask;
@@ -55,7 +65,8 @@ namespace StarPie.Ui.Services.Input
         /// <param name="engine">轮盘手势引擎（纯决策）。</param>
         /// <param name="actionExecutor">动作执行器（副作用落地）。</param>
         /// <param name="postToUiThread">调度接缝：副作用回 UI 线程执行（本类不引 UI 框架类型）。</param>
-        /// <param name="triggerButton">触发键（默认右键；栈内参数化，不暴露配置面）。</param>
+        /// <param name="triggerButtonProvider">触发键实时读数（每个按下/抬起事件调用；配置面改键
+        /// 即时生效，测试实例的命令行覆盖在提供方内折叠，见 <c>WheelGestureContributor</c>）。</param>
         /// <param name="simulatorFactory">注入模拟器工厂（默认创建 SharpHook 模拟器；交出所有权，由本类释放）。</param>
         /// <param name="cursorProbe">看门狗的光标探针（默认读系统光标位置）。</param>
         /// <param name="watchdogPeriod">看门狗探针周期（默认 3 秒，ADR-0052 口径）。</param>
@@ -64,7 +75,7 @@ namespace StarPie.Ui.Services.Input
             WheelGestureEngine engine,
             IActionExecutorService actionExecutor,
             Action<Action> postToUiThread,
-            MouseButton triggerButton = MouseButton.Button2,
+            Func<MouseButton> triggerButtonProvider,
             Func<IEventSimulator>? simulatorFactory = null,
             Func<ScreenPoint?>? cursorProbe = null,
             TimeSpan? watchdogPeriod = null)
@@ -73,12 +84,13 @@ namespace StarPie.Ui.Services.Input
             ArgumentNullException.ThrowIfNull(engine);
             ArgumentNullException.ThrowIfNull(actionExecutor);
             ArgumentNullException.ThrowIfNull(postToUiThread);
+            ArgumentNullException.ThrowIfNull(triggerButtonProvider);
 
             _hook = hook;
             _engine = engine;
             _actionExecutor = actionExecutor;
             _postToUiThread = postToUiThread;
-            _triggerButton = triggerButton;
+            _triggerButtonProvider = triggerButtonProvider;
             _simulatorFactory = simulatorFactory ?? (() => EventSimulator.Create(SimulatorApplicationName));
             _watchdog = new HookWatchdog(
                 watchdogPeriod ?? HookWatchdog.DefaultPeriod,
@@ -185,12 +197,22 @@ namespace StarPie.Ui.Services.Input
             _watchdog.CountEvent();
 
             if (_isPaused) return;
-            if (e.Data.Button != _triggerButton) return;
+
+            MouseButton trigger = _triggerButtonProvider();
+            // 回放窗口先于引擎：窗口只对当前触发键与最近补发的键敞开——后者承接改键瞬间
+            // 的旧键回波；窗口期内的模拟事件不进引擎（真实输入照常参与）。
+            if (e.Data.Button != trigger && e.Data.Button != _lastReplayedButton) return;
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
+            // 非触发键到此为止（补发回波走这里原样放行给下层应用）：不接管、不抑制。
+            if (e.Data.Button != trigger) return;
+            // 已有按下未收尾（改键瞬间旧键仍按住时的第二次触发按下）不接管：按下原样放行，
+            // 在途交互留给原按下键的抬起收尾——旧键的补发点击因此不丢。
+            if (_activeTriggerPress != null) return;
 
             // 引擎决定按下是否被轮盘手势接管（接管即抑制；未成轮盘手势时松手补发点击）。
             if (_engine.OnTriggerDown(new(e.Data.X, e.Data.Y)))
             {
+                _activeTriggerPress = e.Data.Button;
                 e.SuppressEvent = true;
             }
         }
@@ -199,17 +221,38 @@ namespace StarPie.Ui.Services.Input
         {
             _watchdog.CountEvent();
 
-            if (_isPaused) return;
-            if (e.Data.Button != _triggerButton) return;
+            if (_isPaused)
+            {
+                // 暂停期的抬起不再喂引擎，但配对记账要清：否则恢复后「有在途按下」的记账
+                // 挡住新触发键接管，轮盘手势停摆（引擎侧由下一次按下的重新起点的既有语义自愈）。
+                if (e.Data.Button == _activeTriggerPress)
+                {
+                    _activeTriggerPress = null;
+                }
+                return;
+            }
+
+            // 收尾门：在途交互按下时的键（含改键瞬间的旧键抬起），以及补发回波（最近补发的键）。
+            if (e.Data.Button != _activeTriggerPress && e.Data.Button != _lastReplayedButton) return;
             if (_replayWindow.TryConsume(e.IsEventSimulated)) return;
+            if (e.Data.Button != _activeTriggerPress) return;
 
             WheelGestureReleaseResult result = _engine.OnTriggerUp(new(e.Data.X, e.Data.Y));
-            if (!result.Handled) return;
+            if (!result.Handled)
+            {
+                // 交互已不在途（如外甩取消后残留的抬起）：原样放行，配对记账一并清掉。
+                _activeTriggerPress = null;
+                return;
+            }
+
+            _activeTriggerPress = null;
 
             if (result.ShouldReplayClick)
             {
                 // 补发不在钩子回调栈内做：注入的事件要等本次回调返回后才回到捕获侧。
-                _postToUiThread(ReplayTriggerClick);
+                // 补的是当初按下的那颗键（改键瞬间的收尾也按旧键补）。
+                MouseButton replayedButton = e.Data.Button;
+                _postToUiThread(() => ReplayTriggerClick(replayedButton));
             }
             else if (result.ActionToExecute is { } action)
             {
@@ -229,18 +272,19 @@ namespace StarPie.Ui.Services.Input
         }
 
         /// <summary>补发一次完整的触发键点击，并先开回放窗口——注入事件回到捕获侧时被放行。</summary>
-        private void ReplayTriggerClick()
+        private void ReplayTriggerClick(MouseButton button)
         {
             // 必须是 fire-and-forget 投放里唯一不许抛异常的路径,因为这里是 UI 线程，抛了就挂了。
             // 模拟器创建或注入失败只记调试日志，不能让 UI 线程上的这条续接把进程带走。
             try
             {
                 _replayWindow.Open();
+                _lastReplayedButton = button;
 
                 IEventSimulator simulator = _simulator ??= _simulatorFactory();
                 // 位置无关：在系统当前光标处补发。
-                UioHookResult press = simulator.SimulateMousePress(_triggerButton);
-                UioHookResult release = simulator.SimulateMouseRelease(_triggerButton);
+                UioHookResult press = simulator.SimulateMousePress(button);
+                UioHookResult release = simulator.SimulateMouseRelease(button);
                 if (press != UioHookResult.Success || release != UioHookResult.Success)
                 {
                     Debug.WriteLine($"Replay trigger click failed: press={press}, release={release}.");

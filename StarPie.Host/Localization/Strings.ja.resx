@@ -84,6 +84,14 @@
   <data name="BtnClose" xml:space="preserve"><value>設定を閉じる</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>トリガーとシーンの分離設定</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>ホイールの感度、フルスクリーンゲームでの自動回避、除外プロセスを設定します。</value></data>
+  <data name="TriggerButtonTitle" xml:space="preserve"><value>トリガーボタン</value></data>
+  <data name="TriggerButtonDesc" xml:space="preserve"><value>ホイールジェスチャーを開始するマウスボタンです。選択するとすぐに反映されます。短くクリックした場合（ホイール未表示）は、クリックを下のアプリへ再生します。</value></data>
+  <data name="TriggerKeyLeft" xml:space="preserve"><value>マウス左ボタン</value></data>
+  <data name="TriggerKeyRight" xml:space="preserve"><value>マウス右ボタン</value></data>
+  <data name="TriggerKeyMiddle" xml:space="preserve"><value>マウス中央ボタン</value></data>
+  <data name="TriggerKeySide1" xml:space="preserve"><value>マウス側ボタン 1（戻る）</value></data>
+  <data name="TriggerKeySide2" xml:space="preserve"><value>マウス側ボタン 2（進む）</value></data>
+  <data name="BtnResetTriggerButton" xml:space="preserve"><value>既定に戻す</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>ホイール起動感度</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>右クリックを押しながら指定ピクセル以上移動するとホイールを呼び出します。値が小さいほど高感度です。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>シーン分離と誤操作防止</value></data>

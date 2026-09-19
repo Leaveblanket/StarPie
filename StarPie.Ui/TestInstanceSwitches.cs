@@ -8,9 +8,10 @@ namespace StarPie.Ui
     /// <see cref="MouseButton"/> 的第 n 个按键（n 取 1–5），供 e2e 以鼠标侧键驱动轮盘手势链路。
     /// </summary>
     /// <remarks>
-    /// ADR-0052 的「触发键在栈内参数化（默认右键，不暴露配置面与 UI）」不变：本入口只对声明了
-    /// 测试实例的进程生效（与单实例闸门绕过、退出消息受理同一标记），既不写配置、也不出现在界面上，
-    /// 非测试实例、缺开关或取值非法时一律取默认右键。
+    /// 正式触发键已开放配置面（运行态 config.json 的 <c>TriggerButton</c>，ADR-0056）；测试实例覆盖
+    /// 高于配置：声明了测试实例且带合法开关时无视配置直取覆盖，组合根把它折叠进捕获侧的触发键
+    /// 实时读数（见 <c>WheelGestureContributor</c>）。非测试实例、缺开关或取值非法时返回 null——
+    /// 触发键完全由运行态配置决定（配置缺键或非法值回退右键，见 <c>TriggerButtonParser</c>）。
     /// 侧键（<see cref="MouseButton.Button4"/>／<see cref="MouseButton.Button5"/>，即 Windows 的
     /// XBUTTON1／XBUTTON2）作 e2e 观察面的价值：未被抑制时不弹出上下文菜单，轮盘手势链路的外部观测
     /// 不必先收菜单再判定（见 tests/mouse_input.py）。
@@ -19,9 +20,6 @@ namespace StarPie.Ui
     {
         /// <summary>命令行开关前缀（取值紧跟等号）。</summary>
         private const string SwitchPrefix = "--trigger-button=";
-
-        /// <summary>默认触发键（右键）；与 <c>MouseInputHook</c> 的默认实参同值。</summary>
-        public const MouseButton DefaultButton = MouseButton.Button2;
 
         /// <summary>
         /// 命令行是否声明了测试实例（e2e 冷启动绕过单实例闸门、受理测试实例退出消息的同一标记）。
@@ -33,16 +31,16 @@ namespace StarPie.Ui
              commandLine.Contains("--test-instance", StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
-        /// 解析生效的触发键：非测试实例、缺 <c>--trigger-button</c> 或取值非法时回退
-        /// <see cref="DefaultButton"/>。合法范围为 Button1–Button5（NoButton 不构成轮盘手势）。
+        /// 解析测试实例的触发键覆盖：非测试实例、缺 <c>--trigger-button</c> 或取值非法时返回
+        /// null（触发键交由运行态配置决定）。合法范围为 Button1–Button5（NoButton 不构成轮盘手势）。
         /// </summary>
         /// <param name="commandLine">完整命令行（<see cref="Environment.CommandLine"/>）。</param>
-        public static MouseButton Resolve(string? commandLine)
+        public static MouseButton? Resolve(string? commandLine)
         {
-            if (!IsTestInstance(commandLine)) return DefaultButton;
+            if (!IsTestInstance(commandLine)) return null;
 
             int at = commandLine!.IndexOf(SwitchPrefix, StringComparison.OrdinalIgnoreCase);
-            if (at < 0) return DefaultButton;
+            if (at < 0) return null;
 
             int start = at + SwitchPrefix.Length;
             int end = start;
@@ -51,10 +49,10 @@ namespace StarPie.Ui
                 end++;
             }
 
-            if (end == start) return DefaultButton;
-            if (!int.TryParse(commandLine.AsSpan(start, end - start), out int number)) return DefaultButton;
+            if (end == start) return null;
+            if (!int.TryParse(commandLine.AsSpan(start, end - start), out int number)) return null;
 
-            return number is >= 1 and <= 5 ? (MouseButton)number : DefaultButton;
+            return number is >= 1 and <= 5 ? (MouseButton)number : null;
         }
     }
 }

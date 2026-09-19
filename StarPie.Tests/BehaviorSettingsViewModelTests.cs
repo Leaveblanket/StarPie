@@ -181,6 +181,80 @@ public sealed class BehaviorSettingsViewModelTests
         Assert.Equal(1, save.Immediate);
     }
 
+    // --- live-apply：触发键（立即落盘） ----------------------------------------------
+
+    [Fact]
+    public void Constructor_LoadsTriggerButtonFromConfig()
+    {
+        var config = MakeConfig();
+        config.TriggerButton = "XButton1";
+
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
+
+        Assert.Equal("XButton1", vm.TriggerButton);
+        Assert.Equal(0, save.Immediate);
+    }
+
+    [Fact]
+    public void SelectTriggerButton_WritesConfigLiveAndRequestsImmediateSave()
+    {
+        var config = MakeConfig();
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
+
+        vm.SelectTriggerButtonCommand.Execute("XButton1");
+
+        Assert.Equal("XButton1", config.TriggerButton);
+        Assert.Equal("XButton1", vm.TriggerButton);
+        Assert.Equal(1, save.Immediate);
+    }
+
+    [Fact]
+    public void SelectTriggerButton_UnknownName_IsRejected()
+    {
+        var config = MakeConfig();
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
+
+        vm.SelectTriggerButtonCommand.Execute("PinkyButton");
+
+        Assert.Equal("RightButton", config.TriggerButton);
+        Assert.Equal("RightButton", vm.TriggerButton);
+        Assert.Equal(0, save.Immediate);
+    }
+
+    [Fact]
+    public void ResetTriggerButton_RestoresRightButtonAndRequestsImmediateSave()
+    {
+        var config = MakeConfig();
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(config, Dialogs(), messenger);
+        vm.SelectTriggerButtonCommand.Execute("MiddleButton");
+
+        vm.ResetTriggerButtonCommand.Execute(null);
+
+        Assert.Equal("RightButton", config.TriggerButton);
+        Assert.Equal("RightButton", vm.TriggerButton);
+        Assert.Equal(2, save.Immediate);
+    }
+
+    [Fact]
+    public void Reload_NormalizesUnknownConfigValueForDisplay_WithoutWritingBack()
+    {
+        var (messenger, save) = SaveSpy.Create();
+        var vm = new BehaviorSettingsViewModel(MakeConfig(), Dialogs(), messenger);
+        var imported = MakeConfig();
+        imported.TriggerButton = "PinkyButton";
+
+        vm.Reload(imported);
+
+        // 手改配置里的非法值:运行态按右键生效,界面同样按右键回显;重挂不回写。
+        Assert.Equal("RightButton", vm.TriggerButton);
+        Assert.Equal("PinkyButton", imported.TriggerButton);
+        Assert.Equal(0, save.Immediate);
+    }
+
     // --- 黑名单：输入框添加 -----------------------------------------------------------
 
     [Fact]

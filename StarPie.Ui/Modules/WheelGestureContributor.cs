@@ -31,12 +31,13 @@ namespace StarPie.Ui.Modules
     /// </remarks>
     internal sealed class WheelGestureContributor : ICompositionContributor
     {
-        private readonly MouseButton _triggerButton;
+        private readonly MouseButton? _testTriggerOverride;
 
-        /// <param name="triggerButton">轮盘触发键（默认右键；测试实例经命令行覆盖，
-        /// 解析见 <see cref="TestInstanceSwitches"/>——本贡献者只消费结果，不接触命令行）。</param>
-        public WheelGestureContributor(MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
-            => _triggerButton = triggerButton;
+        /// <param name="testTriggerOverride">测试实例的触发键覆盖（组合根在注册期解析命令行，
+        /// 见 <see cref="TestInstanceSwitches"/>——本贡献者只消费结果，不接触命令行）。
+        /// 非测试实例为 null：正式触发键由运行态配置决定（ADR-0056），捕获侧每事件实时读。</param>
+        public WheelGestureContributor(MouseButton? testTriggerOverride = null)
+            => _testTriggerOverride = testTriggerOverride;
 
         public string Id => "wheel.interaction";
 
@@ -69,15 +70,22 @@ namespace StarPie.Ui.Modules
             // 输入栈（ADR-0052）：捕获走 SharpHook 的 SimpleGlobalHook——只有它支持与钩子
             // 同线程同步设置抑制；抑制决策、回放窗口与看门狗留在本集自研侧。
             // 钩子独占专用线程，松手副作用经调度接缝回 UI 线程——适配器不引用 UI 框架类型。
+            // 触发键实时读数（ADR-0056）：测试实例覆盖优先，否则每事件解析运行态配置
+            // （未知值在解析器内回退右键）；配置服务是单例，捕获一次引用随闭包常驻。
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
             services.AddSingleton<WheelGestureEngine>();
-            services.AddSingleton(sp => new MouseInputHook(
-                new SimpleGlobalHook(),
-                sp.GetRequiredService<WheelGestureEngine>(),
-                sp.GetRequiredService<IActionExecutorService>(),
-                callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
-                triggerButton: _triggerButton));
+            services.AddSingleton(sp =>
+            {
+                var configService = sp.GetRequiredService<IConfigService>();
+                return new MouseInputHook(
+                    new SimpleGlobalHook(),
+                    sp.GetRequiredService<WheelGestureEngine>(),
+                    sp.GetRequiredService<IActionExecutorService>(),
+                    callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
+                    triggerButtonProvider: () => _testTriggerOverride
+                        ?? TriggerButtonParser.ParseOrDefault(configService.Current.TriggerButton));
+            });
 
             // 页面 VM 的作用域是设置台会话：同一会话内保留实例（切页保状态），会话结束整批释放；
             // 解析只经导航执行缝（ADR-0039 决策 9）。

@@ -84,6 +84,14 @@
   <data name="BtnClose" xml:space="preserve"><value>Close Console</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>Trigger &amp; Scene Isolation</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>Configure wheel trigger sensitivity, full-screen gaming bypass, and exclusion blacklist.</value></data>
+  <data name="TriggerButtonTitle" xml:space="preserve"><value>Trigger Button</value></data>
+  <data name="TriggerButtonDesc" xml:space="preserve"><value>The mouse button that starts the wheel gesture. Changes take effect immediately; a quick tap (no wheel) still replays the click to the app below.</value></data>
+  <data name="TriggerKeyLeft" xml:space="preserve"><value>Mouse Left Button</value></data>
+  <data name="TriggerKeyRight" xml:space="preserve"><value>Mouse Right Button</value></data>
+  <data name="TriggerKeyMiddle" xml:space="preserve"><value>Mouse Middle Button</value></data>
+  <data name="TriggerKeySide1" xml:space="preserve"><value>Mouse Side Button 1 (Back)</value></data>
+  <data name="TriggerKeySide2" xml:space="preserve"><value>Mouse Side Button 2 (Forward)</value></data>
+  <data name="BtnResetTriggerButton" xml:space="preserve"><value>Restore Default</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>Trigger Sensitivity</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>Hold right-click and move beyond this pixel distance to trigger radial menu. Lower values are more sensitive.</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>Scene Isolation &amp; Guard</value></data>

@@ -27,6 +27,9 @@ public sealed class InputStackTests : IDisposable
     private readonly WheelGestureEngine _engine;
     private readonly MouseInputHook _stack;
 
+    // 触发键实时读数的可变后端：改键即时生效无需重建捕获栈（配置面 live-apply 的替身）。
+    private MouseButton _triggerButton = MouseButton.Button2;
+
     public InputStackTests()
     {
         _engine = new WheelGestureEngine(_config, _windowContext, _wheelFactory);
@@ -39,6 +42,7 @@ public sealed class InputStackTests : IDisposable
             _engine,
             _executor,
             postToUiThread: action => action(),
+            triggerButtonProvider: () => _triggerButton,
             simulatorFactory: () => _hook,
             cursorProbe: () => null,
             watchdogPeriod: TimeSpan.FromHours(1));
@@ -100,26 +104,131 @@ public sealed class InputStackTests : IDisposable
     [Fact]
     public void TriggerButton_IsParameterised_MiddleButtonTriggersInsteadOfRight()
     {
-        var hook = new TestGlobalHook();
-        hook.EventMask = _ => EventMask.SimulatedEvent;
-        var engine = new WheelGestureEngine(_config, _windowContext, _wheelFactory);
-        using var stack = new MouseInputHook(
-            hook,
-            engine,
-            _executor,
-            postToUiThread: action => action(),
-            triggerButton: MouseButton.Button3,
-            simulatorFactory: () => hook,
-            cursorProbe: () => null,
-            watchdogPeriod: TimeSpan.FromHours(1));
-        stack.Start();
+        _triggerButton = MouseButton.Button3;
 
-        hook.SimulateMousePress(MouseButton.Button2);
-        Assert.Empty(hook.SuppressedEvents);
+        Press(MouseButton.Button2);
+        Assert.Empty(_hook.SuppressedEvents);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
 
-        hook.SimulateMousePress(MouseButton.Button3);
-        Assert.Single(hook.SuppressedEvents);
-        Assert.Equal(WheelGestureState.WaitingThreshold, engine.State);
+        Press(MouseButton.Button3);
+        Assert.Single(_hook.SuppressedEvents);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
+    }
+
+    [Fact]
+    public void TriggerButton_FollowsLiveProvider_ChangeTakesEffectWithoutRestart()
+    {
+        // 初始右键:侧键按下不接管。
+        Press(MouseButton.Button4);
+        Release(MouseButton.Button4);
+        Assert.Empty(_hook.SuppressedEvents);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
+
+        // 配置面把触发键换成侧键 1:同一捕获栈,下一个按下事件即按新键接管。
+        _triggerButton = MouseButton.Button4;
+
+        Press(MouseButton.Button2);
+        Assert.Empty(_hook.SuppressedEvents);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
+
+        Press(MouseButton.Button4);
+        Assert.Single(_hook.SuppressedEvents);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
+    }
+
+    [Fact]
+    public void TriggerButton_ChangedMidPress_ReleaseOfOldButton_StillReplaysItsClick()
+    {
+        // 右键按下被接管(抑制)后改键:抬起必须仍按按下时的键配对收尾,
+        // 补发的点击是当初按下的右键,而不是新配置的侧键。
+        Press(MouseButton.Button2);
+        Assert.Single(_hook.SuppressedEvents);
+
+        _triggerButton = MouseButton.Button4;
+        Release(MouseButton.Button2);
+
+        // 注入面共四笔:测试的按下/抬起 + 补发的一对(全为右键)。补发回波经最近补发键记账
+        // 进入回放窗口、不被抑制——点击照常还给下层应用,且不再喂给引擎。
+        Assert.Equal(2, _hook.SuppressedEvents.Count);
+        Assert.Equal(4, _hook.SimulatedEvents.Count);
+        Assert.All(_hook.SimulatedEvents, e => Assert.Equal(MouseButton.Button2, e.Mouse.Button));
+        Assert.Empty(_wheelFactory.Created);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
+
+        // 回放窗口已被回波配额耗尽:新触发键的下一个真实按下照常接管,不被窗口误吞。
+        Press(MouseButton.Button4);
+        Assert.Equal(3, _hook.SuppressedEvents.Count);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
+    }
+
+    [Fact]
+    public void TriggerButton_Changed_NewKeyTap_ReplaysNewKeyClick()
+    {
+        // 换键后的轻点:补发点击语义随新键工作——补的是侧键 1,不是旧右键。
+        _triggerButton = MouseButton.Button4;
+
+        Press(MouseButton.Button4);
+        Release(MouseButton.Button4);
+
+        // 注入面共四笔:测试的按下/抬起 + 补发的一对(全为侧键 1,回波进回放窗口不被抑制)。
+        Assert.Equal(2, _hook.SuppressedEvents.Count);
+        Assert.Equal(4, _hook.SimulatedEvents.Count);
+        Assert.All(_hook.SimulatedEvents, e => Assert.Equal(MouseButton.Button4, e.Mouse.Button));
+        Assert.Empty(_wheelFactory.Created);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
+    }
+
+    [Fact]
+    public void TriggerButton_ChangedMidPress_SecondTriggerPress_PassesThrough()
+    {
+        // 旧键按下在途(未收尾)时按下新触发键:不接管(放行给下层应用),在途交互留给旧键抬起收尾。
+        Press(MouseButton.Button2);
+        _triggerButton = MouseButton.Button4;
+
+        Press(MouseButton.Button4);
+        Assert.Single(_hook.SuppressedEvents); // 只有旧键按下被抑制
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
+
+        Release(MouseButton.Button4);
+        Assert.Single(_hook.SuppressedEvents); // 新键按下/抬起均原样放行
+
+        // 旧键抬起照常配对收尾:补发的是旧右键的点击(回放窗口耗尽其回波对),链路无残留。
+        Release(MouseButton.Button2);
+        Assert.Equal(2, _hook.SuppressedEvents.Count);
+        // 注入面六笔:[旧键按下, 新键按下(放行), 新键抬起(放行), 旧键抬起, 旧键回波按下, 旧键回波抬起]。
+        Assert.Equal(6, _hook.SimulatedEvents.Count);
+        Assert.Equal(MouseButton.Button2, _hook.SimulatedEvents[4].Mouse.Button);
+        Assert.Equal(MouseButton.Button2, _hook.SimulatedEvents[5].Mouse.Button);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
+
+        // 交互收尾后新键照常接管。
+        Press(MouseButton.Button4);
+        Assert.Equal(3, _hook.SuppressedEvents.Count);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
+    }
+
+    [Fact]
+    public void TriggerButton_Changed_NewKeyDragsWheelAndExecutes()
+    {
+        _config.AddProfile("Global", sectorCount: 4, actionCount: 4);
+
+        // 先用旧键轻点一次(补发点击对消耗回放窗口),再切键用侧键 1 走完整轮盘手势。
+        Press(MouseButton.Button2);
+        Release(MouseButton.Button2);
+        _triggerButton = MouseButton.Button4;
+
+        Press(MouseButton.Button4);
+        MoveTo(210, 100); // 越过 25px 阈值,角度 0° → 扇区 0
+
+        var (center, profile) = Assert.Single(_wheelFactory.Created);
+        Assert.Equal(new ScreenPoint(100, 100), center);
+        Assert.Equal("Global", profile.ProcessName);
+
+        Release(MouseButton.Button4, x: 210);
+
+        ActionItem executed = Assert.Single(_executor.Executed);
+        Assert.Equal("动作0", executed.Name);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     // --- 回放回路 -------------------------------------------------

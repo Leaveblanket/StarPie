@@ -5,10 +5,13 @@ namespace StarPie.Ui.Views.DesignTime;
 /// <summary>
 /// 触发与场景页设计期样例数据（ADR-0025，仅被 TriggerSettingsPage 根节点
 /// <c>d:DataContext</c> 消费，无条件编译、惰性；运行时代码不得引用）：
-/// Blacklist（4 条进程名）。其余单值/命令绑定按叶子“未样例清单”留空。
+/// Blacklist（4 条进程名）与 TriggerButton（触发键徽章/五键单选回显）。
+/// 其余单值/命令绑定按叶子“未样例清单”留空。
 /// </summary>
 public sealed class TriggerSettingsDesignTimeData
 {
+    public string TriggerButton { get; } = TriggerButtonNames.Default;
+
     public ObservableCollection<string> BlacklistProcesses { get; } = new()
     {
         "chrome.exe",

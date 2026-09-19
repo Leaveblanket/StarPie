@@ -29,6 +29,13 @@ namespace StarPie.Ui.ViewModels.Pages
         [ObservableProperty]
         private double _dragThreshold;
 
+        /// <summary>
+        /// 轮盘触发键（配置键名，词表见 <see cref="TriggerButtonNames"/>）。变更即时写回运行态配置；
+        /// 捕获栈每事件实时读配置，改键无需任何推送即生效（ADR-0056）。
+        /// </summary>
+        [ObservableProperty]
+        private string _triggerButton = TriggerButtonNames.Default;
+
         /// <summary>全屏游戏/独占应用自动禁用轮盘手势。</summary>
         [ObservableProperty]
         private bool _disableOnFullScreen;
@@ -102,6 +109,9 @@ namespace StarPie.Ui.ViewModels.Pages
             try
             {
                 DragThreshold = config.DragThreshold;
+                TriggerButton = TriggerButtonNames.IsKnown(config.TriggerButton)
+                    ? config.TriggerButton
+                    : TriggerButtonNames.Default; // 手改配置里的非法值：运行态按右键生效，界面同口径回显
                 DisableOnFullScreen = config.DisableOnFullScreen;
                 DisableOnCtrl = config.DisableOnCtrl;
                 DisableOnShift = config.DisableOnShift;
@@ -134,6 +144,28 @@ namespace StarPie.Ui.ViewModels.Pages
             _config.DragThreshold = value;
             _messenger.Send(DebouncedSaveRequestedMessage.Instance);
         }
+
+        partial void OnTriggerButtonChanged(string value)
+        {
+            if (_isReloading || _config == null) return;
+            // 词表外的取值不落运行态配置（运行态一律回退右键）；正常写入只来自录制卡的
+            // 五键选项与恢复默认，这里拦的是将来绑定改坏时的静默漂移。
+            if (!TriggerButtonNames.IsKnown(value)) return;
+            _config.TriggerButton = value;
+            _messenger.Send(ImmediateSaveRequestedMessage.Instance);
+        }
+
+        /// <summary>录制卡五键选项：把所选键写为轮盘触发键（即时生效并立即落盘）。</summary>
+        [RelayCommand]
+        private void SelectTriggerButton(string? button)
+        {
+            if (!TriggerButtonNames.IsKnown(button)) return;
+            TriggerButton = button!;
+        }
+
+        /// <summary>恢复默认触发键（右键）。</summary>
+        [RelayCommand]
+        private void ResetTriggerButton() => TriggerButton = TriggerButtonNames.Default;
 
         partial void OnDisableOnFullScreenChanged(bool value)
         {

@@ -24,6 +24,72 @@
                 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,0,10,0">
+                        <!-- Card 0: Trigger Button (trigger key card) -->
+                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,14">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{DynamicResource TriggerButtonTitle}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{DynamicResource TriggerButtonDesc}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <!-- 当前生效键徽章：配置值与词表逐一比对，词表外（运行态回退右键）显示右键 -->
+                                    <Border Grid.Column="1" AutomationProperties.AutomationId="TriggerButtonBadge"
+                                            BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1"
+                                            CornerRadius="8" Padding="10,3" VerticalAlignment="Top" Margin="8,0,0,0">
+                                        <TextBlock AutomationProperties.AutomationId="TriggerButtonBadgeText" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="{DynamicResource TriggerKeyRight}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding TriggerButton}" Value="LeftButton">
+                                                            <Setter Property="Text" Value="{DynamicResource TriggerKeyLeft}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding TriggerButton}" Value="MiddleButton">
+                                                            <Setter Property="Text" Value="{DynamicResource TriggerKeyMiddle}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding TriggerButton}" Value="XButton1">
+                                                            <Setter Property="Text" Value="{DynamicResource TriggerKeySide1}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding TriggerButton}" Value="XButton2">
+                                                            <Setter Property="Text" Value="{DynamicResource TriggerKeySide2}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </Grid>
+                                <!-- 鼠标五键单选：写入运行态配置即时生效（捕获侧每事件实时读）。
+                                     键名值域见 StarPie.Sdk 的 TriggerButtonNames（与上游 config.json 同名同值域）；新增键须词表/解析/词表文案/此卡四处同改 -->
+                                <WrapPanel Margin="0,12,0,0">
+                                    <RadioButton GroupName="TriggerButtonChoice" AutomationProperties.AutomationId="TriggerButtonOptionLeft" Content="{DynamicResource TriggerKeyLeft}" Margin="0,0,16,6"
+                                                 IsChecked="{Binding TriggerButton, Converter={StaticResource StringEqualsConverter}, ConverterParameter=LeftButton}"
+                                                 Command="{Binding SelectTriggerButtonCommand}" CommandParameter="LeftButton"/>
+                                    <RadioButton GroupName="TriggerButtonChoice" AutomationProperties.AutomationId="TriggerButtonOptionRight" Content="{DynamicResource TriggerKeyRight}" Margin="0,0,16,6"
+                                                 IsChecked="{Binding TriggerButton, Converter={StaticResource StringEqualsConverter}, ConverterParameter=RightButton}"
+                                                 Command="{Binding SelectTriggerButtonCommand}" CommandParameter="RightButton"/>
+                                    <RadioButton GroupName="TriggerButtonChoice" AutomationProperties.AutomationId="TriggerButtonOptionMiddle" Content="{DynamicResource TriggerKeyMiddle}" Margin="0,0,16,6"
+                                                 IsChecked="{Binding TriggerButton, Converter={StaticResource StringEqualsConverter}, ConverterParameter=MiddleButton}"
+                                                 Command="{Binding SelectTriggerButtonCommand}" CommandParameter="MiddleButton"/>
+                                    <RadioButton GroupName="TriggerButtonChoice" AutomationProperties.AutomationId="TriggerButtonOptionSide1" Content="{DynamicResource TriggerKeySide1}" Margin="0,0,16,6"
+                                                 IsChecked="{Binding TriggerButton, Converter={StaticResource StringEqualsConverter}, ConverterParameter=XButton1}"
+                                                 Command="{Binding SelectTriggerButtonCommand}" CommandParameter="XButton1"/>
+                                    <RadioButton GroupName="TriggerButtonChoice" AutomationProperties.AutomationId="TriggerButtonOptionSide2" Content="{DynamicResource TriggerKeySide2}" Margin="0,0,16,6"
+                                                 IsChecked="{Binding TriggerButton, Converter={StaticResource StringEqualsConverter}, ConverterParameter=XButton2}"
+                                                 Command="{Binding SelectTriggerButtonCommand}" CommandParameter="XButton2"/>
+                                </WrapPanel>
+                                <Button AutomationProperties.AutomationId="ResetTriggerButtonButton" Content="{DynamicResource BtnResetTriggerButton}"
+                                        Style="{StaticResource ModernButtonStyle}" HorizontalAlignment="Left" Height="30" Padding="12,0" Margin="0,8,0,0"
+                                        Command="{Binding ResetTriggerButtonCommand}"/>
+                            </StackPanel>
+                        </Border>
                         <!-- Card 1: Trigger Sensitivity -->
                         <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,14">
                             <Border.Effect>

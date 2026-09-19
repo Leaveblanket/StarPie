@@ -25,6 +25,7 @@ import win32gui
 from conftest import (
     find_process_by_executable,
     find_wheel_window,
+    goto,
     kill_processes,
     probe_exe_from_config,
     wait_process_started,
@@ -387,6 +388,89 @@ def test_wheel_on_desktop_pops_wheel(app):
     finally:
         _toggle_show_desktop()  # 还原 Win+D 之前的最小化状态
 
+    wait_until(
+        lambda: find_wheel_window(pid) == 0,
+        timeout=3.0,
+        description="松手后轮盘窗口收起",
+    )
+
+
+# --- 配置面换键（触发页录制卡，ADR-0056 / issue #220） --------------------------
+# 无 --trigger-button 开关：触发键走运行态配置，捕获侧每事件实时读——设置台里切键后
+# 同一进程立即按新键接管，这是"配置面 live-apply 贯通捕获栈"的行为证据。
+
+
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_config_surface_switch_trigger_live(app):
+    """配置面把触发键换成侧键 1：新键走通轮盘手势全链路，旧键（右键）放行；恢复默认后右键重新接管。"""
+    win, local_app_data = app
+    pid = win.process_id()
+    probe_exe = probe_exe_from_config(local_app_data)
+
+    # 配置面就位：徽章 + 五键单选 + 恢复默认；初始右键选中。
+    goto(win, 0)
+    # 徽章观察面取内层 TextBlock：WPF Border 不产生 UIA 元素（control_type 无 Border 一类）。
+    assert win.child_window(auto_id="TriggerButtonBadgeText", control_type="Text").exists(timeout=3), (
+        "触发页必须可见触发键徽章"
+    )
+    option_right = win.child_window(auto_id="TriggerButtonOptionRight", control_type="RadioButton")
+    option_side1 = win.child_window(auto_id="TriggerButtonOptionSide1", control_type="RadioButton")
+    reset_button = win.child_window(auto_id="ResetTriggerButtonButton", control_type="Button")
+    for control in (option_right, option_side1, reset_button):
+        assert control.exists(timeout=3), "触发键配置面的五键单选与恢复默认必须就位"
+    wait_until(option_right.is_selected, timeout=3.0, description="默认触发键为右键（单选回显）")
+
+    # 切到侧键 1：捕获侧每事件实时读配置，改键无需重启即生效。
+    option_side1.select()
+    wait_until(option_side1.is_selected, timeout=3.0, description="侧键 1 单选回显")
+
+    # 旧键放行：右键过阈拖动不再弹轮盘（探针窗口收到原样放行的右键事件）。
+    with RightClickProbeWindow() as probe:
+        move_to(*probe.center)
+        time.sleep(0.2)
+        press_right_at(*probe.center)
+        drag_right(90, steps=4)
+        release_right()
+        assert probe.wait_right_button_up(3.0), "换键后右键事件必须原样放行到下层窗口"
+        assert find_wheel_window(pid) == 0, "换键后右键不得再触发轮盘"
+
+    # 新键全链路：侧键 1 过阈拖动 → 轮盘弹出 → 正右扇区动作执行。
+    press_side_at(*START)
+    drag_right(20, steps=2)
+    move_by(45, 0)
+    hwnd = wait_until(
+        lambda: find_wheel_window(pid),
+        timeout=3.0,
+        interval=0.02,
+        description="换键后侧键过阈拖动弹出轮盘",
+    )
+    assert hwnd, "轮盘窗口句柄必须有效"
+    drag_right(45, steps=2)
+    release_side()
+    wait_until(
+        lambda: find_wheel_window(pid) == 0,
+        timeout=3.0,
+        description="松手后轮盘窗口收起",
+    )
+    pids = wait_process_started(probe_exe, timeout=10.0)
+    print(f"配置面换键后的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
+    kill_processes(pids)
+
+    # 恢复默认：右键重新接管（捕获侧下一个按下事件即按新配置走）。
+    reset_button.click_input()
+    wait_until(option_right.is_selected, timeout=3.0, description="恢复默认后右键单选回显")
+    press_right_at(*START)
+    drag_right(20, steps=2)
+    move_by(45, 0)
+    hwnd = wait_until(
+        lambda: find_wheel_window(pid),
+        timeout=3.0,
+        interval=0.02,
+        description="恢复默认后右键过阈拖动弹出轮盘",
+    )
+    assert hwnd, "轮盘窗口句柄必须有效"
+    drag_right(45, steps=2)
+    release_right()
     wait_until(
         lambda: find_wheel_window(pid) == 0,
         timeout=3.0,

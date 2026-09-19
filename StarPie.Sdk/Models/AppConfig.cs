@@ -12,6 +12,10 @@ namespace StarPie.Sdk.Models
     {
         // —— 语言与轮盘手势行为 ——
         public string Language { get; set; } = "Auto"; // 界面语言："Auto"（按系统区域）/ "zh-CN" / "zh-TW" / "en" / "ja"
+        /// <summary>轮盘触发键：LeftButton / RightButton / MiddleButton / XButton1 / XButton2（词表见
+        /// <see cref="TriggerButtonNames"/>，与上游 config.json 同名同值域）。旧配置缺该键或取值非法
+        /// 时回退右键；捕获侧每事件实时读本值，设置台改键即时生效（ADR-0056）。</summary>
+        public string TriggerButton { get; set; } = TriggerButtonNames.Default;
         public double DragThreshold { get; set; } = 25.0; // 轮盘触发阈值（像素）：按住拖动超过该距离才展开轮盘
         public bool EnableOuterEscapeCancel { get; set; } = true; // 是否启用"外圈逃逸取消"：指针越过逃逸距离即收起轮盘
         public double OuterEscapeDistance { get; set; } = 186.0; // 外圈逃逸取消的触发距离（像素）；0 时回退为轮盘半径 × 1.5
