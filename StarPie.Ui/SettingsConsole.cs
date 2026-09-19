@@ -3,28 +3,30 @@ using System.Windows;
 using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Host.Localization;
 using StarPie.Sdk.Services;
-using StarPie.Sdk.Wpf.Services.Shell;
-using StarPie.Ui.Services.Shell;
+using StarPie.Sdk.Wpf.Services.Themes;
+using StarPie.Ui.Services.SystemIntegration;
+using StarPie.Ui.Services.Themes;
+using StarPie.Ui.Services.WindowLifecycle;
 using StarPie.Ui.ViewModels.Navigation;
 using StarPie.Ui.Views.Navigation;
 
 namespace StarPie.Ui
 {
     /// <summary>
-    /// 设置台租户：按需创建、关闭即销毁的设置控制台会话——主窗口（<see cref="MainView"/>）
-    /// 与其 VM 树（导航区 + 壳区）同生共死。
+    /// 设置台：启动时建立、关闭即销毁的界面会话——窗口（<see cref="SettingsConsoleWindow"/>）
+    /// 与其 VM 树（导航区 + 窗口外框）同生共死。
     /// </summary>
     /// <remarks>
     /// 常驻职责不寄居在本对象上：托盘、轮盘交互、单实例接收、退出编排都在常驻壳层
-    /// （<see cref="ShellHost"/>）。本对象只承担设置台一段生命期：开窗（含初始主题、对话框 Owner
+    /// （<see cref="ResidentShell"/>）。本对象只承担设置台一段生命期：开窗（含初始主题、对话框 Owner
     /// 绑定、托盘状态信号接线）与关窗收尾（对话框 Owner 解绑 → 成对退订 → 瞬态窗口收尾 →
     /// 释放 VM 树与会话作用域）。关闭即销毁、重开重建：关窗后本对象、窗口、VM 树与会话内的
     /// 页面 VM 一起不可达（会话作用域由组合根交付的工厂开启，由本对象结束）。
     /// </remarks>
     public sealed class SettingsConsole : IDisposable
     {
-        private MainViewModel? _main;
-        private ShellViewModel? _shell;
+        private NavigationViewModel? _main;
+        private WindowChromeViewModel? _shell;
         private readonly IThemeService _themeService;
         // 设置台会话作用域：页面 VM 与设置台会话级 VM 的实例边界；释放时结束会话（整批释放）。
         private readonly ConsolePageSession _pageSession;
@@ -37,15 +39,15 @@ namespace StarPie.Ui
         private readonly Window _anchor;
         // 退出态探针：退出态归常驻壳层（设置台只是被关闭；Shutdown 触发的关窗不得走托盘态出账序列）。
         private readonly Func<bool> _isExiting;
-        private MainView? _view;
+        private SettingsConsoleWindow? _view;
         private bool _disposed;
 
         /// <summary>设置台是否已创建（有窗口即开着）。</summary>
         public bool IsOpen => _view is not null;
 
         public SettingsConsole(
-            MainViewModel main,
-            ShellViewModel shell,
+            NavigationViewModel main,
+            WindowChromeViewModel shell,
             IThemeService themeService,
             DialogService dialogs,
             InterfaceThemeSettingsViewModel interfaceTheme,
@@ -77,7 +79,7 @@ namespace StarPie.Ui
         /// </summary>
         public void Show()
         {
-            MainView view = EnsureView();
+            SettingsConsoleWindow view = EnsureView();
             if (view.IsVisible)
             {
                 view.Activate();
@@ -93,7 +95,7 @@ namespace StarPie.Ui
         /// <summary>显示并激活（托盘直达/单实例恢复）：已开着走淡入激活，否则先建后显示。</summary>
         public void ShowAndActivate()
         {
-            MainView view = EnsureView();
+            SettingsConsoleWindow view = EnsureView();
             bool wasOpen = view.IsVisible;
             view.ShowAndActivate();
 
@@ -105,20 +107,20 @@ namespace StarPie.Ui
         }
 
         /// <summary>创建窗口并完成接线（幂等：窗口已存在时直接返回）。</summary>
-        private MainView EnsureView()
+        private SettingsConsoleWindow EnsureView()
         {
             if (_view is { } existing)
             {
                 return existing;
             }
 
-            var view = new MainView(
+            var view = new SettingsConsoleWindow(
                 _main ?? throw new InvalidOperationException("设置台已释放，不能再开窗"),
                 _shell ?? throw new InvalidOperationException("设置台已释放，不能再开窗"),
                 _themeService);
 
             // 关窗即租户生命期结束：任何关窗路径（关闭按钮、Alt+F4、WM_CLOSE、进程退出）都收敛到 Closed，
-            // 在此完成窗口收尾与 VM 树释放——否则壳层持有的设置台引用会停在已关闭窗口上，
+            // 在此完成窗口收尾与 VM 树释放——否则常驻壳层持有的设置台引用会停在已关闭窗口上，
             // 重开时既开不了新窗（旧窗口不能 Show）也释放不了旧对象图。
             view.Closed += OnViewClosed;
 
@@ -223,7 +225,7 @@ namespace StarPie.Ui
             // 从 Closed 路径进来时窗口已在关闭流程中（ReleaseView(alreadyClosed: true) 已执行），
             // 此处 no-op；显式释放路径则由它关窗。
             ReleaseView(alreadyClosed: false);
-            // 丢弃 VM 树强引用：释放后本对象（可能仍被壳层字段引用）不再钉住会话对象图。
+            // 丢弃 VM 树强引用：释放后本对象（可能仍被常驻壳层字段引用）不再钉住会话对象图。
             _main?.Dispose();
             _shell?.Dispose();
             _main = null;

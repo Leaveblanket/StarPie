@@ -8,10 +8,10 @@ using StarPie.Ui.ViewModels.Pages;
 namespace StarPie.Ui.Modules
 {
     /// <summary>
-    /// Host 外观聚合页贡献者：注册仍留宿主的聚合页壳（槽位 1 外观与形态）。
+    /// Host 外观聚合页贡献者：注册仍留宿主的聚合页（槽位 1 外观与形态）。
     /// </summary>
     /// <remarks>
-    /// 聚合页壳归属宿主，不随业务模块拆集：<see cref="RegisterNavigation"/> 把页面写入
+    /// 聚合页归属宿主，不随业务模块拆集：<see cref="RegisterNavigation"/> 把页面写入
     /// <see cref="NavigationCatalog"/>，页面 DataTemplate 收进 HostPageTemplates.xaml（App 级静态合并）。
     /// <see cref="RegisterServices"/> 注册聚合页 VM——构造经容器解析 M4/M2 两个设置子 VM
     /// （由 Theme/Wheel 贡献者登记），解析时机随组合根 eager 解析阶段。

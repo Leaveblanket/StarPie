@@ -290,10 +290,10 @@ def test_wheel_side_button_drag_pops_wheel_and_executes_sector_action(app):
     kill_processes(pids)
 
 
-# --- 桌面壳窗口场景（全屏误判回归） ----------------------------------------------
+# --- 桌面窗口场景（全屏误判回归） ----------------------------------------------
 # Win11 上桌面图标区（SHELLDLL_DefView）常挂在一个覆盖整屏的 WorkerW 下；前台为桌面时
 # IsForegroundFullScreen 的排除清单若只含 Progman（GetShellWindow）/窗口站桌面（GetDesktopWindow），
-# 会把桌面壳窗口误判成"全屏应用"，轮盘交互被 DisableOnFullScreen 隔离、右键直通系统原生。
+# 会把桌面窗口误判成"全屏应用"，轮盘交互被 DisableOnFullScreen 隔离、右键直通系统原生。
 # 本用例把前台焦点切到桌面后再做轮盘交互：修复前轮盘不弹（红），修复后照常弹出（绿）。
 
 def _is_desktop_host(hwnd) -> bool:

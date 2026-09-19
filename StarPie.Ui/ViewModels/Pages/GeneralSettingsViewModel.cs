@@ -16,9 +16,9 @@ namespace StarPie.Ui.ViewModels.Pages
     /// 上报组合根编排的订阅者；配置导入成功发布 <see cref="ConfigImportedMessage"/>，各页面 VM
     /// 订阅后自行重挂（本 VM 亦订阅重挂语言码，并经 <see cref="PageConfigReloadedMessage"/>
     /// 通知页面 View 同步控件）。
-    /// 托盘气泡是壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
+    /// 托盘气泡是常驻壳层动作（[ADR-0039](../adr/0039-resident-shell-and-transient-settings-console.md)
     /// 决策 7）：本 VM 不自行启动进程、不碰托盘。「立即以管理员身份重启」同理——本 VM 只经
-    /// <see cref="AppHostDelegates"/> 的转发委托请求壳层动手，与托盘菜单项共用同一条触发路径。
+    /// <see cref="AppHostDelegates"/> 的转发委托请求常驻壳层动手，与托盘菜单项共用同一条触发路径。
     /// </remarks>
     public partial class GeneralSettingsViewModel : ObservableObject
     {

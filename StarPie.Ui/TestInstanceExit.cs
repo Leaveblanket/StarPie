@@ -3,7 +3,7 @@ using Windows.Win32;
 namespace StarPie.Ui
 {
     /// <summary>测试实例退出的窗口消息：测试运行器以此请求被测进程走真实退出路径
-    /// （<see cref="ShellHost.ExitApplication"/> 的落盘 → 释放托盘 → 应用关闭），取代硬杀进程。</summary>
+    /// （<see cref="ResidentShell.ExitApplication"/> 的落盘 → 释放托盘 → 应用关闭），取代硬杀进程。</summary>
     /// <remarks>
     /// 硬杀（<c>TerminateProcess</c>）不执行用户态收尾，托盘图标不会有
     /// <c>Shell_NotifyIcon(NIM_DELETE)</c>，shell 的通知区会留下宿主窗口已失效的死条目

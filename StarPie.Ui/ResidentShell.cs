@@ -9,8 +9,10 @@ using StarPie.Ui.PluginHosting;
 using StarPie.Host.PluginRuntime.Diagnostics;
 using StarPie.Host.PluginRuntime.Hosting;
 using StarPie.Sdk.Services;
-using StarPie.Sdk.Wpf.Services.Shell;
-using StarPie.Ui.Services.Shell;
+using StarPie.Sdk.Wpf.Services.Themes;
+using StarPie.Ui.Services.SystemIntegration;
+using StarPie.Ui.Services.Themes;
+using StarPie.Ui.Services.WindowLifecycle;
 using StarPie.Ui.Views.Navigation;
 
 using StarPie.Sdk.Services.Wheel;
@@ -20,31 +22,31 @@ namespace StarPie.Ui
 {
     /// <summary>
     /// 常驻壳层：进程存活期内一直存在的编排面——鼠标钩子、语言资源字典、托盘、插件运行时、
-    /// 单实例恢复接收、退出协调，以及设置台租户（<see cref="SettingsConsole"/>）的按需创建与释放。
+    /// 单实例恢复接收、退出协调，以及设置台租户（<see cref="SettingsConsole"/>）的创建与释放。
     /// </summary>
     /// <remarks>
-    /// 单进程内按生命周期划分：本类常驻至进程结束；设置台是按需创建、关闭即销毁的租户；
+    /// 单进程内按生命周期划分：本类常驻至进程结束；设置台是关闭即销毁、重开重建的租户；
     /// 轮盘维持每次轮盘交互一个实例。常驻职责不寄居在瞬态对象上——单实例恢复消息的接收端驻托盘
     /// 消息窗口（常驻 HWND），退出编排与托盘气泡归本类，设置台窗口只是它创建的瞬态窗口。
-    /// <see cref="Application.MainWindow"/> 由常驻锚窗口（<see cref="ShellAnchorWindow"/>）兜底持有，
+    /// <see cref="Application.MainWindow"/> 由常驻锚窗口（<see cref="AnchorWindow"/>）兜底持有，
     /// 使任何瞬态窗口都不可能被自动赋值钉住。
     /// DI 注册与解析仍归 <see cref="Composition"/>（组合根），本类不接触 ServiceProvider；
     /// 设置台的对象图经组合根交付的工厂创建，解析点未离开组合根。
-    /// 生命周期：App.OnStartup 经 <see cref="Composition.CreateShellHost"/> 取得本对象后调用
+    /// 生命周期：App.OnStartup 经 <see cref="Composition.CreateResidentShell"/> 取得本对象后调用
     /// Run；App.OnExit 先保存配置再释放本对象（释放设置台、托盘、停钩、退订语言），
     /// Composition 最后释放容器。
     /// </remarks>
-    internal sealed class ShellHost : IDisposable
+    internal sealed class ResidentShell : IDisposable
     {
         private readonly IMessenger _messenger;
-        // 输入栈捕获侧（ADR-0052）：钩子 + 回放窗口 + 看门狗；启停与暂停态由本壳层编排。
+        // 输入栈捕获侧（ADR-0052）：钩子 + 回放窗口 + 看门狗；启停与暂停态由本常驻壳层编排。
         private readonly MouseInputHook _inputHook;
         private readonly ThemeService _themeService;
         private readonly ILocalizationService _localization;
-        // 轮盘工厂：预热经契约调用，壳层不构造具体轮盘视图模型。
+        // 轮盘工厂：预热经契约调用，常驻壳层不构造具体轮盘视图模型。
         private readonly IWheelFactory _wheelFactory;
         private readonly SettingsSaveOrchestrator _saveOrchestrator;
-        // 目录执行缝按槽位导航——壳层不持有任何页面类型。
+        // 目录执行缝按槽位导航——常驻壳层不持有任何页面类型。
         private readonly INavigationExecutor _navigation;
         private readonly AppHostDelegates _hostDelegates;
         // 插件 UI 托管：托盘/设置面的插件条目由它提供（无插件时为空，菜单与设置面不出现空壳）。
@@ -61,8 +63,8 @@ namespace StarPie.Ui
         // 使 e2e 能以真实退出路径收尾——硬杀不执行用户态收尾，托盘图标会以死条目留在通知区。
         private readonly bool _testInstance;
         // 常驻锚窗口：永不显示，专门长期持有 Application.MainWindow。
-        private readonly ShellAnchorWindow _anchor;
-        // 退出态：进程退出编排归壳层（设置台关闭不是退出；退出时的关窗不走托盘态出账序列）。
+        private readonly AnchorWindow _anchor;
+        // 退出态：进程退出编排归常驻壳层（设置台关闭不是退出；退出时的关窗不走托盘态出账序列）。
         private bool _isExiting;
         private TrayIconManager? _trayIcon;
         private SettingsConsole? _settingsConsole;
@@ -71,7 +73,7 @@ namespace StarPie.Ui
         // 让位请求接收端（只装在非提权首实例上；见 StartHandoverListener）。
         private InstanceHandoverListener? _handoverListener;
 
-        public ShellHost(
+        public ResidentShell(
             IMessenger messenger,
             MouseInputHook inputHook,
             ThemeService themeService,
@@ -103,14 +105,14 @@ namespace StarPie.Ui
             // 锚窗口在任何其它窗口之前实例化并占住 Application.MainWindow：
             // 进程内第一个实例化的 Window 会被该属性长期强引用，先占位可保证瞬态窗口
             // （设置台/轮盘/对话框/插件窗口）永远不可能被自动赋值钉住。
-            _anchor = new ShellAnchorWindow();
+            _anchor = new AnchorWindow();
             if (Application.Current is { } application)
             {
                 application.MainWindow = _anchor;
             }
 
             // 回填宿主回调：模块注册器装配页面 VM 时持转发委托，此刻起托盘气泡、退出动作与
-            // 立即提权重启指向本壳层实例。
+            // 立即提权重启指向本常驻壳层实例。
             _hostDelegates.ShowTrayBalloonTip = ShowTrayBalloonTip;
             _hostDelegates.ExitApplication = ExitApplication;
             _hostDelegates.RestartElevated = RestartElevated;
@@ -183,11 +185,11 @@ namespace StarPie.Ui
             // 初始页为“触发与场景”槽位。
             _navigation.Navigate(NavigationSlot.Trigger);
 
-            // 初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）——进程级主题状态随壳层，
+            // 初始主题就绪后监听 Windows 深浅色变化（System 模式自动跟随）——进程级主题状态随常驻壳层，
             // 不随设置台开关反复启停（实现内部幂等，重入安全）。
             _themeService.EnableSystemThemeTracking();
 
-            // 托盘深色配色由壳层以委托注入深色探针，壳层模块不反向引用宿主/主题模块。
+            // 托盘深色配色由常驻壳层以委托注入深色探针，常驻壳层模块不反向引用宿主/主题模块。
             // 通知区入口保留（人工观察/退出）；e2e 经托盘消息窗口投递恢复与测试实例退出消息。
             _trayIcon = new TrayIconManager(
                 windowsInDarkModeProbe: () => _themeService.IsWindowsInDarkTheme(),
@@ -262,7 +264,7 @@ namespace StarPie.Ui
             MemoryOptimizer.CollectGarbage(true);
         }
 
-        /// <summary>轮盘核心路径离屏预热：经工厂契约触发，壳层不构造具体轮盘视图模型、
+        /// <summary>轮盘核心路径离屏预热：经工厂契约触发，常驻壳层不构造具体轮盘视图模型、
         /// 也不知道 Profile 查找与预热装配；失败吞异常记调试日志，不影响启动。</summary>
         private void WarmUpWheelCorePath()
         {
@@ -279,7 +281,7 @@ namespace StarPie.Ui
 
         public void Dispose()
         {
-            // 成对退订语言字典换入（订阅在 Run()），避免壳层释放后事件仍持有引用。
+            // 成对退订语言字典换入（订阅在 Run()），避免常驻壳层释放后事件仍持有引用。
             _localization.LanguageChanged -= ApplyLanguageDictionary;
             _localization.LanguageChanged -= RefreshTrayTooltip;
 
@@ -491,7 +493,7 @@ namespace StarPie.Ui
             _trayIcon?.SetTooltip(CurrentTooltip());
         }
 
-        /// <summary>当前暂停态对应的托盘 tooltip；语言切换时由壳层按暂停态刷新。</summary>
+        /// <summary>当前暂停态对应的托盘 tooltip；语言切换时由常驻壳层按暂停态刷新。</summary>
         private string CurrentTooltip()
         {
             return _inputHook.IsPaused ? $"StarPie ({_localization.GetString("TrayPause")})" : DefaultTooltip;
@@ -508,17 +510,17 @@ namespace StarPie.Ui
         private string DefaultTooltip => _localization.GetString("TrayTooltip") + DevInstance.Suffix;
 
         /// <summary>
-        /// 托盘退出：按 <see cref="ShellExitSequence"/> 的固定顺序执行（落盘 → 释壳 → 应用关闭）。
+        /// 托盘退出：按 <see cref="ExitSequence"/> 的固定顺序执行（落盘 → 释放托盘 → 应用关闭）。
         /// 不依赖设置台是否存在——无控制台时同样走完（退出态先置位，Shutdown 触发的关窗不再走
         /// 托盘态出账序列，设置台租户随之销毁）；互斥体与容器的释放由 `App.OnExit` 收尾。
         /// </summary>
         private void ExitApplication()
         {
-            foreach (ShellExitStep step in ShellExitSequence.Resolve())
+            foreach (ExitStep step in ExitSequence.Resolve())
             {
                 switch (step)
                 {
-                    case ShellExitStep.FlushPendingSave:
+                    case ExitStep.FlushPendingSave:
                         try
                         {
                             // 兜底落盘：直调编排订阅者冲刷挂起防抖并立即落盘。
@@ -526,10 +528,10 @@ namespace StarPie.Ui
                         }
                         catch { }
                         break;
-                    case ShellExitStep.ReleaseTray:
+                    case ExitStep.ReleaseTray:
                         DisposeTray();
                         break;
-                    case ShellExitStep.ShutdownApplication:
+                    case ExitStep.ShutdownApplication:
                         // 退出态先置位：Shutdown 触发的关窗不走托盘态出账序列。
                         _isExiting = true;
                         Application.Current.Shutdown();

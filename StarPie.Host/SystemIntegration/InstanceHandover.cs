@@ -4,7 +4,7 @@ using System.Runtime.Versioning;
 using System.Threading;
 using StarPie.Host.Configuration;
 
-namespace StarPie.Host.ShellIntegration
+namespace StarPie.Host.SystemIntegration
 {
     /// <summary>
     /// 提权实例接管非提权实例的握手信道：**命名内核对象**（同用户跨完整性级别可开），

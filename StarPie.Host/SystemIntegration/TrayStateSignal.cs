@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.Host.ShellIntegration
+namespace StarPie.Host.SystemIntegration
 {
     /// <summary>
     /// 主框架可见性 → 托盘状态信号的纯决策：动作序列即语义——
@@ -23,7 +23,7 @@ namespace StarPie.Host.ShellIntegration
     /// <summary>控制台状态变化：设置台开窗 / 关闭——托盘状态信号的输入。</summary>
     public enum TrayStateChange
     {
-        /// <summary>设置台已打开（按需创建并显示，或关闭后重开）。</summary>
+        /// <summary>设置台已打开（启动时建立，或关闭后重开）。</summary>
         ConsoleOpened,
 
         /// <summary>设置台已关闭（关窗即销毁，托盘驻留由常驻壳层承担）。</summary>

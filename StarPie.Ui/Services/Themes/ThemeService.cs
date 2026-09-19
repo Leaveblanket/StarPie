@@ -8,9 +8,9 @@ using Windows.UI.ViewManagement;
 using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Dwm;
-using StarPie.Sdk.Wpf.Services.Shell;
+using StarPie.Sdk.Wpf.Services.Themes;
 
-namespace StarPie.Ui.Services.Shell
+namespace StarPie.Ui.Services.Themes
 {
     /// <summary>
     /// 界面主题服务（<see cref="IThemeService"/> 实现）：把内核主题引擎的有效主题应用到

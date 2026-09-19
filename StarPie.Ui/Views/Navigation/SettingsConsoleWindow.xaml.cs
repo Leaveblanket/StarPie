@@ -13,46 +13,46 @@ using StarPie.Ui.ViewModels.Wheel;
 namespace StarPie.Ui.Views.Navigation
 {
     /// <summary>
-    /// 设置控制台主框架：独立承担窗口职责——淡入淡出动画与界面主题应用；
+    /// 设置台窗口：独立承担窗口职责——淡入淡出动画与界面主题应用；
     /// 页面区是 ContentControl（DataContext.CurrentViewModel），页面经 DataTemplate 由页面 VM 映射呈现。
-    /// 壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播
+    /// 常驻壳层不感知具体页面，也不持页面 VM 引用。落盘/托盘驻留经 <see cref="IMessenger"/> 广播
     /// 由组合根承接。
     /// </summary>
     /// <remarks>
     /// 本窗口是设置台租户的瞬态窗口：关窗即销毁（不隐藏、不保留状态），托盘驻留由常驻壳层承担，
-    /// 重开时重建。壳层静态文案为声明式 {DynamicResource}；Window.Title 收进
-    /// <see cref="ShellViewModel.WindowTitle"/>。DataContext 分区——壳区（本窗口）绑壳层 VM，
-    /// 导航区（侧栏 + 页面 ContentControl）绑 <see cref="MainViewModel"/>。
+    /// 重开时重建。常驻壳层静态文案为声明式 {DynamicResource}；Window.Title 收进
+    /// <see cref="WindowChromeViewModel.WindowTitle"/>。DataContext 分区——窗口外框（本窗口）绑常驻壳层 VM，
+    /// 导航区（侧栏 + 页面 ContentControl）绑 <see cref="NavigationViewModel"/>。
     /// 界面主题应用改消息驱动：订阅 <see cref="AppThemeChangedMessage"/> 执行
-    /// <see cref="ApplyAppTheme"/>（配置导入后的重挂路径同样经此消息由壳层执行），初始主题
+    /// <see cref="ApplyAppTheme"/>（配置导入后的重挂路径同样经此消息由常驻壳层执行），初始主题
     /// 仍由设置台开窗时直调本方法。
     /// </remarks>
-    public partial class MainView : Window
+    public partial class SettingsConsoleWindow : Window
     {
-        private readonly ShellViewModel _shell;
+        private readonly WindowChromeViewModel _shell;
         private readonly IThemeService _themeService;
 
-        public MainView(MainViewModel main, ShellViewModel shell, IThemeService themeService)
+        public SettingsConsoleWindow(NavigationViewModel main, WindowChromeViewModel shell, IThemeService themeService)
         {
             InitializeComponent();
             _shell = shell ?? throw new ArgumentNullException(nameof(shell));
             _themeService = themeService ?? throw new ArgumentNullException(nameof(themeService));
 
-            // 主框架分区 DataContext：壳区（窗口标题/底部操作区）
-            // 绑壳层 VM，导航区（侧栏导航项 + 当前页 ContentControl）绑导航 VM。
+            // 主框架分区 DataContext：窗口外框（窗口标题/底部操作区）
+            // 绑常驻壳层 VM，导航区（侧栏导航项 + 当前页 ContentControl）绑导航 VM。
             DataContext = _shell;
             NavSidebar.DataContext = main ?? throw new ArgumentNullException(nameof(main));
             PageContent.DataContext = main;
 
-            // 壳层静态文案声明式化（{DynamicResource}）；Window.Title 绑定壳层 VM，
-            // 语言切换由 ShellViewModel（本地化订阅）刷新，View 不做本地化回填。
+            // 常驻壳层静态文案声明式化（{DynamicResource}）；Window.Title 绑定常驻壳层 VM，
+            // 语言切换由 WindowChromeViewModel（本地化订阅）刷新，View 不做本地化回填。
 
-            // 主题变更消息订阅（壳层 code-behind 白名单）：界面主题子 VM 写穿配置后发布，
-            // 此处执行窗口主题应用；弱引用接收，壳层随窗口生命周期常驻。
+            // 主题变更消息订阅（常驻壳层 code-behind 白名单）：界面主题子 VM 写穿配置后发布，
+            // 此处执行窗口主题应用；弱引用接收，常驻壳层随窗口生命周期常驻。
             WeakReferenceMessenger.Default.Register<AppThemeChangedMessage>(this, (_, m) => ApplyAppTheme(m.AppTheme));
         }
 
-        /// <summary>应用界面主题到主窗口（窗口视觉是壳层职责：外观页切换主题与导入后同步经此调用，
+        /// <summary>应用界面主题到主窗口（窗口视觉是常驻壳层职责：外观页切换主题与导入后同步经此调用，
         /// 页面不持 IThemeService——保持无参构造不经容器）。单一入口 SetTheme + 本窗口 DWM 应用。</summary>
         public void ApplyAppTheme(string appTheme)
         {

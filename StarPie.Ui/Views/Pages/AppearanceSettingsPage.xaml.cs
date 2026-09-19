@@ -21,8 +21,8 @@ namespace StarPie.Ui.Views.Pages
     /// （layering Views 例外登记）。
     /// 界面主题卡 DataContext 指向 <see cref="InterfaceThemeSettingsViewModel"/>（经
     /// <see cref="AppearanceSettingsViewModel.InterfaceTheme"/> 绑定）；主题应用改消息驱动，
-    /// 由壳层主窗口订阅 <see cref="AppThemeChangedMessage"/> 执行，本页面不挂主题选择处理器，
-    /// 导入后的窗口主题应用路径同样在壳层。
+    /// 由常驻壳层主窗口订阅 <see cref="AppThemeChangedMessage"/> 执行，本页面不挂主题选择处理器，
+    /// 导入后的窗口主题应用路径同样在常驻壳层。
     /// 实时预览渲染/交互路径只依赖轮盘模块只读状态接口 <see cref="IWheelAppearanceState"/>；
     /// 具体聚合 VM 引用仅用于 DataContext 桥接（取 WheelAppearance 子 VM）。
     /// </remarks>
@@ -73,7 +73,7 @@ namespace StarPie.Ui.Views.Pages
 
         private void OnConfigReloaded()
         {
-            // 导入后只剩预览重绘这一 View 效果（主题应用由界面主题子 VM 发消息、壳层主窗口
+            // 导入后只剩预览重绘这一 View 效果（主题应用由界面主题子 VM 发消息、常驻壳层主窗口
             // 订阅执行）；状态、配色下拉项与核圆面板/文本均声明式绑定，随 VM 通知自动刷新。
             RenderLiveWheelPreview();
         }
@@ -89,7 +89,7 @@ namespace StarPie.Ui.Views.Pages
         {
             if (LiveWheelPreviewCanvas == null || _previewState == null || _previewRenderer == null) return;
             // 深浅色取值由 VM 提供（无状态探针注入设置 VM）：View 不做服务调用，
-            // 也不经窗口向上找壳层——渲染器只接收 bool。
+            // 也不经窗口向上找常驻壳层——渲染器只接收 bool。
             bool windowsInDarkMode = (DataContext as AppearanceSettingsViewModel)?.WindowsInDarkMode ?? false;
             _previewRenderer.Render(LiveWheelPreviewCanvas, PreviewState, windowsInDarkMode);
         }

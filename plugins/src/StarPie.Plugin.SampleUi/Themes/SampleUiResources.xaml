@@ -13,7 +13,7 @@
         <Setter Property="Background" Value="#11FFFFFF"/>
     </Style>
 
-    <!-- 页面 VM → 页面视图：插件页的视图映射（宿主壳层 ContentControl 隐式模板命中）。 -->
+    <!-- 页面 VM → 页面视图：插件页的视图映射（宿主 ContentControl 隐式模板命中）。 -->
     <DataTemplate DataType="{x:Type ui:SampleUiPageViewModel}">
         <views:SampleUiPageView />
     </DataTemplate>

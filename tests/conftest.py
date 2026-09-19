@@ -639,7 +639,7 @@ def find_app_path() -> str:
 TRAY_WINDOW_TITLE = "StarPieTrayWindow"
 TEST_INSTANCE_EXIT_MESSAGE = "StarPie_TestInstance_Exit"
 
-# 托盘菜单窗口标题与托盘回调消息（产品侧见 StarPie.Ui/Services/Shell/TrayIconManager.cs）：
+# 托盘菜单窗口标题与托盘回调消息（产品侧见 StarPie.Ui/Services/SystemIntegration/TrayIconManager.cs）：
 # 菜单每次打开新建窗口，用例按标题定位；回调消息经 PostMessage 投递即等价于右键点托盘图标。
 TRAY_MENU_WINDOW_TITLE = "StarPieTrayMenu"
 TRAY_CALLBACK_MESSAGE = 0x8001  # WM_APP + 1
@@ -789,7 +789,7 @@ def exit_via_test_message(pid: int, timeout: float = 15.0) -> None:
 def shutdown_app(proc, timeout: float = 15.0) -> bool:
     """请求被测应用退出，返回是否走成了优雅退出。
 
-    优雅退出（投递测试实例退出消息 → 常驻壳层按 ShellExitSequence 落盘/释放托盘/关应用）是唯一
+    优雅退出（投递测试实例退出消息 → 常驻壳层按 ExitSequence 落盘/释放托盘/关应用）是唯一
     执行 `NIM_DELETE` 的路径。硬杀（`TerminateProcess`）不跑用户态收尾，托盘图标会以宿主窗口已
     失效的死条目留在 shell 通知区（幽灵托盘图标），累积到用户托盘里，故硬杀只作超时兜底并告警。
     """
@@ -881,7 +881,7 @@ def seed_wheel_config(local_app_data, probe_exe: str) -> None:
             "EnableOuterEscapeCancel": True,
             "OuterEscapeDistance": 186,
             "BlacklistedProcesses": [],
-            # 显式开启全屏隔离（与模型默认值一致）：桌面壳窗口误判为全屏的回归用例依赖它。
+            # 显式开启全屏隔离（与模型默认值一致）：桌面窗口误判为全屏的回归用例依赖它。
             "DisableOnFullScreen": True,
             "Profiles": [
                 {

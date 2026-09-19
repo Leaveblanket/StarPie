@@ -27,7 +27,7 @@ namespace StarPie.Ui.Modules
         {
             ICompositionContributor[] contributors =
             {
-                // 宿主编排与内核接入（配置/本地化/图标/扫描/导航运行时/壳层 VM）。
+                // 宿主编排与内核接入（配置/本地化/图标/扫描/导航运行时/常驻壳层 VM）。
                 new HostCoreContributor(hostDelegates),
                 // Host 外观聚合页（槽位 1）。
                 new HostPageContributor(),
@@ -37,8 +37,8 @@ namespace StarPie.Ui.Modules
                 new WheelContributor(),
                 // M1 轮盘与动作（槽位 0/2）。
                 new WheelInteractionContributor(triggerButton),
-                // M5 壳层与系统设置面（槽位 3）。
-                new ShellContributor(),
+                // M5 常驻壳层与系统设置面（槽位 3）。
+                new SystemIntegrationContributor(),
                 // S6 对话框（无导航页）。
                 new DialogsContributor(),
             };

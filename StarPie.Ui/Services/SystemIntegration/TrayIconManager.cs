@@ -15,7 +15,7 @@ using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.HiDpi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
-namespace StarPie.Ui.Services.Shell
+namespace StarPie.Ui.Services.SystemIntegration
 {
     /// <summary>
     /// 托盘上下文菜单的一行。条目在每次菜单打开时由属主重新提供，因此标签

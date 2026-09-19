@@ -74,14 +74,14 @@
   <data name="Error" xml:space="preserve"><value>錯誤</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>現代滑鼠輪盤系統</value></data>
-  <data name="WindowTitle" xml:space="preserve"><value>StarPie 設定控制台 (Preferences)</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie 設定台 (Preferences)</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 觸發與場景</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外觀與形態</value></data>
   <data name="PageWheelActions" xml:space="preserve"><value>⚡ 輪盤與動作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 進階與系統</value></data>
-  <data name="BottomStatusNote" xml:space="preserve"><value>註: 所有修改均在記憶體中即時生效，點擊【儲存變更】持久化儲存至硬碟。</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>註: 所有修改即時生效並自動儲存；【儲存變更】用於立即落盤。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>儲存變更</value></data>
-  <data name="BtnClose" xml:space="preserve"><value>關閉並隱藏</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>關閉設定台</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>觸發與場景隔離設定</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>在此配置輪盤互動的觸發靈敏度、全螢幕遊戲自動攔截與排除程式黑名單。</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>輪盤觸發靈敏度</value></data>
@@ -147,7 +147,7 @@
   <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 萌寵貓爪 (Cute Cat Paw)</value></data>
   <data name="CorePatternImage" xml:space="preserve"><value>🖼️ 自訂圖片檔案 (Custom Image)</value></data>
   <data name="BtnBrowseImage" xml:space="preserve"><value>瀏覽圖片...</value></data>
-  <data name="ConsoleThemeTitle" xml:space="preserve"><value>軟體控制台介面主題 (App Theme)</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>設定台介面主題 (App Theme)</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>🌓 跟隨系統 (System Auto)</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>☀️ 極簡純白 (Modern Light)</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>🌙 極夜曜黑 (Obsidian Dark)</value></data>
@@ -174,7 +174,7 @@
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 選擇應用程式...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>系統整合與進階偏好設定</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>介面語言 (Display Language)</value></data>
-  <data name="LanguageDesc" xml:space="preserve"><value>選擇軟體控制台與輪盤的顯示語言，支援即時熱切換並自動儲存。</value></data>
+  <data name="LanguageDesc" xml:space="preserve"><value>選擇設定台與輪盤的顯示語言，支援即時熱切換並自動儲存。</value></data>
   <data name="ProgramPickerTitle" xml:space="preserve"><value>選擇程式</value></data>
   <data name="ProgramPickerHeader" xml:space="preserve"><value>從已安裝的軟體與開始功能表中選擇</value></data>
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>搜尋軟體名稱、執行檔或路徑...</value></data>
@@ -209,7 +209,7 @@
   <data name="MsgConfirmReset" xml:space="preserve"><value>確定要恢復原廠預設設定嗎？所有自訂輪盤設定與樣式將被重設。</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ 暫停</value></data>
   <data name="TrayResume" xml:space="preserve"><value>▶️ 恢復</value></data>
-  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好設定 (Settings)</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 設定台 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外觀與形態 (Appearance)</value></data>
   <data name="TrayWheelActions" xml:space="preserve"><value>⚡ 輪盤與動作 (Mappings)</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
@@ -227,7 +227,7 @@
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>啟動參數 (如命令列參數或URL)</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>從已安裝軟體清單中快速選擇要排除的程式</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>將輸入框中的處理程序名稱加入排除黑名單</value></data>
-  <data name="ConsoleThemeDesc" xml:space="preserve"><value>自訂 StarPie 控制台整體介面的視覺色彩風格，支援跟隨 Windows 系統深淺色切換。</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>自訂 StarPie 設定台整體介面的視覺色彩風格，支援跟隨 Windows 系統深淺色切換。</value></data>
 <data name="StyleTypeLabel" xml:space="preserve"><value>主題風格 (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>重新命名目前選取的自訂配色方案預設</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>自訂十六進位色彩 (色盤調色 / 螢幕吸色):</value></data>

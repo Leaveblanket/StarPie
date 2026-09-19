@@ -8,7 +8,7 @@ using StarPie.Ui.PluginHosting.Extensions;
 namespace StarPie.Ui.ViewModels.Navigation
 {
     /// <summary>
-    /// 主框架导航区 ViewModel：设置控制台窗口导航区（导航栏与页面内容区）的 DataContext。
+    /// 导航区 ViewModel：设置台窗口导航区（导航栏与页面内容区）的 DataContext。
     /// </summary>
     /// <remarks>
     /// <see cref="CurrentViewModel"/> 供页面 ContentControl 呈现当前页面（DataTemplate 按 VM 类型
@@ -18,12 +18,12 @@ namespace StarPie.Ui.ViewModels.Navigation
     /// <see cref="INavigationExecutor"/> 按槽位惰性解析页面 VM——本 VM 不硬编码页面 VM 类型。
     /// 选中态驱动导航（而非仅命令驱动）是为 UIA <c>SelectionItem.Select</c> 留出入口：
     /// 自动化/无障碍客户端只能置选中态、不产生鼠标输入，e2e 静默导航依赖这条路径。
-    /// 壳层职责（WindowTitle/IsExiting/Save）
-    /// 在 Host 的 ShellViewModel；主框架分区 DataContext：导航区绑本 VM、壳区绑壳层 VM。
+    /// 常驻壳层职责（WindowTitle/IsExiting/Save）
+    /// 在 Host 的 WindowChromeViewModel；主框架分区 DataContext：导航区绑本 VM、窗口外框绑常驻壳层 VM。
     /// 本 VM 的实例与设置台租户同生命周期（一个设置台会话一份），实现 <see cref="IDisposable"/>
     /// 与常驻事件源成对退订，由设置台释放时统一执行。
     /// </remarks>
-    public partial class MainViewModel : ObservableObject, IDisposable
+    public partial class NavigationViewModel : ObservableObject, IDisposable
     {
         private readonly NavigationStore _store;
         private readonly ILocalizationService _localization;
@@ -36,7 +36,7 @@ namespace StarPie.Ui.ViewModels.Navigation
         /// <summary>当前页面 ViewModel（经 NavigationStore 转发；启动初始导航前为 null）。</summary>
         public System.ComponentModel.INotifyPropertyChanged? CurrentViewModel => _store.CurrentViewModel;
 
-        public MainViewModel(
+        public NavigationViewModel(
             NavigationStore store,
             NavigationCatalog catalog,
             INavigationExecutor navigation,

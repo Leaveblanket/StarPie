@@ -2,11 +2,11 @@ using System;
 using System.Runtime.Versioning;
 using System.Threading;
 
-namespace StarPie.Host.ShellIntegration
+namespace StarPie.Host.SystemIntegration
 {
     /// <summary>
     /// 接管握手的接收端（常驻）：在后台线程上等提权新实例的两个信号——让位请求与"提权未生效"——
-    /// 收到即回调（壳层接的是既有退出编排与既有气泡通道）。托盘先于单实例互斥体释放，
+    /// 收到即回调（常驻壳层接的是既有退出编排与既有气泡通道）。托盘先于单实例互斥体释放，
     /// 故新实例接手时通知区里不会有两个图标。
     /// </summary>
     /// <remarks>
@@ -16,7 +16,7 @@ namespace StarPie.Host.ShellIntegration
     /// <see cref="InstanceHandover.PublishOwnerMarker"/> / <see cref="InstanceHandover.PublishElevationFailedEvent"/>），
     /// 本类只按名字打开它们——置位方（提权新实例）打开的是同一个对象。
     /// 让位只受理一次（随即走退出编排）；"提权未生效"受理后继续等——用户解卡后可以再试一次。
-    /// 回调在后台线程上触发，切回工作线程是调用方的事（壳层走 Dispatcher）。
+    /// 回调在后台线程上触发，切回工作线程是调用方的事（常驻壳层走 Dispatcher）。
     /// 等待用 <see cref="WaitHandle.WaitAny(WaitHandle[])"/> 与停止信号配对：收尾时不误触让位。
     /// </remarks>
     [SupportedOSPlatform("windows")]
@@ -39,8 +39,8 @@ namespace StarPie.Host.ShellIntegration
         private bool _disposed;
 
         /// <summary>构造接收端（尚未开始等待，见 <see cref="Start"/>）。</summary>
-        /// <param name="onYieldRequested">收到让位请求时回调（壳层在此走既有退出编排）。</param>
-        /// <param name="onElevationNotApplied">收到"提权未生效"时回调（壳层在此报气泡）。</param>
+        /// <param name="onYieldRequested">收到让位请求时回调（常驻壳层在此走既有退出编排）。</param>
+        /// <param name="onElevationNotApplied">收到"提权未生效"时回调（常驻壳层在此报气泡）。</param>
         public InstanceHandoverListener(Action onYieldRequested, Action onElevationNotApplied)
         {
             _onYieldRequested = onYieldRequested ?? throw new ArgumentNullException(nameof(onYieldRequested));

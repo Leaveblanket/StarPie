@@ -9,7 +9,7 @@ namespace StarPie.Tests;
 /// </summary>
 /// <remarks>
 /// 语言切换下的重取不变由 <see cref="PluginSurfaceTitleTests"/> 与
-/// <see cref="MainViewModelTests.LanguageChanged_RefreshesItemTitles"/> 承担。
+/// <see cref="NavigationViewModelTests.LanguageChanged_RefreshesItemTitles"/> 承担。
 /// </remarks>
 public sealed class NavigationItemViewModelTests
 {

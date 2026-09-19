@@ -74,7 +74,7 @@ namespace StarPie.Ui.ViewModels.Pages
         /// <param name="localization">本地化服务。</param>
         /// <param name="pluginUi">插件 UI 托管门面；为 null 时不呈现插件设置区块。</param>
         /// <param name="dialogs">对话框服务（彻底移除前的确认）；为 null 时按取消处理，不误删。</param>
-        /// <param name="isAdministrator">提权态探测（与壳层托盘入口、高级页卡片同源）；为 null 时按非提权处理。</param>
+        /// <param name="isAdministrator">提权态探测（与常驻壳层托盘入口、高级页卡片同源）；为 null 时按非提权处理。</param>
         public PluginManagerViewModel(
             PluginRuntimeHost runtime,
             NavigationStore navigation,

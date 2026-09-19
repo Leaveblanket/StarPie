@@ -55,7 +55,7 @@ namespace StarPie.Ui.Services.Wheel
         }
 
         /// <summary>启动期预热：本方法装配预热所需的一切——取全局方案（缺失即空方案）构造
-        /// 与轮盘交互同形的视图模型，再离屏渲染一次。调用方（壳层）不必知道 Profile 查找语义
+        /// 与轮盘交互同形的视图模型，再离屏渲染一次。调用方（常驻壳层）不必知道 Profile 查找语义
         /// 与预热方式，调用方不必知道这些装配细节。</summary>
         public void Warmup()
         {

@@ -6,8 +6,10 @@ using StarPie.Sdk.Wpf.Services.Icons;
 using StarPie.Ui.Services.Icons;
 using StarPie.Host.Localization;
 using StarPie.Sdk.Services.Programs;
-using StarPie.Sdk.Wpf.Services.Shell;
-using StarPie.Ui.Services.Shell;
+using StarPie.Sdk.Wpf.Services.Themes;
+using StarPie.Ui.Services.SystemIntegration;
+using StarPie.Ui.Services.Themes;
+using StarPie.Ui.Services.WindowLifecycle;
 
 namespace StarPie.Ui.Modules
 {
@@ -23,7 +25,7 @@ namespace StarPie.Ui.Modules
     /// <c>StarPie.Sdk.Wpf</c> 的 <see cref="IIconAssetService"/> 注入，实现与注册均在组合根；
     /// 窗口主题应用消费 <see cref="IThemeService"/>。
     /// <see cref="DialogService"/> 裁决 public——宿主 AppHost 建窗后调
-    /// <c>SetOwner(MainView)</c> 惰性回填 Owner（ADR-0004）。
+    /// <c>SetOwner(SettingsConsoleWindow)</c> 惰性回填 Owner（ADR-0004）。
     /// </remarks>
     internal sealed class DialogsContributor : ICompositionContributor
     {
