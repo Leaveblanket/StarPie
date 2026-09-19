@@ -10,9 +10,9 @@ namespace StarPie.Sdk.ViewModels.Pages
     /// <remarks>
     /// 轮盘外观设置子 VM 经本接口取预览 Profile，再经其轮盘只读状态接口暴露给预览渲染器。
     /// 接口只读：不暴露选中写入口/事件/命令/列表集合，预览方不得反向牵动配置方案编辑实现；
-    /// 实现方（ProfileListViewModel，驻 WheelInteraction runtime）与消费方（Wheel runtime）分属
+    /// 实现方（ProfileListViewModel，驻 WheelGesture runtime）与消费方（Wheel runtime）分属
     /// 不同模块，均只依赖本契约程序集（不引用具体方案列表 VM 类型）；契约与实现方同驻
-    /// M1 侧可避免 Wheel ↔ WheelInteraction runtime 程序集环。
+    /// M1 侧可避免 Wheel ↔ WheelGesture runtime 程序集环。
     /// </remarks>
     public interface IProfilePreviewSource
     {

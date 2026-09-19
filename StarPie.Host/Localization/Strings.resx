@@ -83,14 +83,14 @@
   <data name="BtnSave" xml:space="preserve"><value>保存更改</value></data>
   <data name="BtnClose" xml:space="preserve"><value>关闭设置台</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>触发与场景隔离设置</value></data>
-  <data name="TriggerSubheader" xml:space="preserve"><value>在此配置轮盘交互的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>在此配置轮盘手势的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>轮盘触发灵敏度</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>按住鼠标右键移动超过指定像素距离后呼出轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>场景隔离与防误触</value></data>
   <data name="SceneIsolationDesc" xml:space="preserve"><value>当处于特定场景或配合修饰键操作时，自动绕过轮盘拦截，放行原生右键事件。</value></data>
-  <data name="FullScreenOption" xml:space="preserve"><value>全屏游戏/独占应用自动禁用轮盘交互</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>全屏游戏/独占应用自动禁用轮盘手势</value></data>
   <data name="FullScreenOptionDesc" xml:space="preserve"><value>自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。</value></data>
-  <data name="ModifierPassTitle" xml:space="preserve"><value>快捷键旁路穿透 (按住以下修饰键拖拽时不触发轮盘交互):</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>快捷键旁路穿透 (按住以下修饰键拖拽时不触发轮盘手势):</value></data>
   <data name="ModifierCtrl" xml:space="preserve"><value>按住 Ctrl 键时旁路</value></data>
   <data name="ModifierShift" xml:space="preserve"><value>按住 Shift 键时旁路</value></data>
   <data name="ModifierAlt" xml:space="preserve"><value>按住 Alt 键时旁路</value></data>

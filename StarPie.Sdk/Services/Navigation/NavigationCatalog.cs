@@ -16,7 +16,7 @@ namespace StarPie.Sdk.Services.Navigation
     {
         Trigger = 0,
         Appearance = 1,
-        WheelInteraction = 2,
+        WheelGesture = 2,
         Advanced = 3,
         Plugins = 4,
     }

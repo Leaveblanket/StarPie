@@ -1,4 +1,4 @@
-namespace StarPie.Host.WheelInteraction
+namespace StarPie.Host.WheelGesture
 {
     [Flags]
     public enum HeldModifierKeys
@@ -11,7 +11,7 @@ namespace StarPie.Host.WheelInteraction
 
     /// <summary>
     /// 前台窗口上下文接缝：把活动窗口与全屏探测收在一个可注入表面后，
-    /// 轮盘交互引擎做隔离与方案决策时不直接触碰 Win32/WPF。
+    /// 轮盘手势引擎做隔离与方案决策时不直接触碰 Win32/WPF。
     /// </summary>
     public interface IWindowContext
     {

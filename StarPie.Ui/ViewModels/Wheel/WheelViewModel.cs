@@ -11,8 +11,8 @@ namespace StarPie.Ui.ViewModels.Wheel
 {
     /// <summary>
     /// 轮盘 ViewModel：持有轮盘视图状态——选中扇区、外围逃逸状态、扇区集合与中心点——
-    /// 以及样式渲染器消费的状态。轮盘交互引擎经 <see cref="IWheelViewModel"/> 驱动，
-    /// 窗口观察变更通知并完成全部绘制；每次轮盘交互一个实例。
+    /// 以及样式渲染器消费的状态。轮盘手势引擎经 <see cref="IWheelViewModel"/> 驱动，
+    /// 窗口观察变更通知并完成全部绘制；每次轮盘手势一个实例。
     /// </summary>
     public partial class WheelViewModel : ObservableObject, IWheelViewModel
     {

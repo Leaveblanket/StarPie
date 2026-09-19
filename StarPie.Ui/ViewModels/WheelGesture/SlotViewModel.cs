@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.Ui.ViewModels.WheelInteraction
+namespace StarPie.Ui.ViewModels.WheelGesture
 {
     /// <summary>系统预设动作条目：Key、分类与展示名，以及新建系统动作时的默认名称/图标。</summary>
     public class SystemPresetItem

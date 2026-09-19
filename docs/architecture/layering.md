@@ -42,7 +42,7 @@ ResidentShell 回填）属宿主侧装配职责；本文件以下分层规则适
   只读契约读方案列表——经契约边；不引用具体 VM 类型）；动态/广播协调一律走
   IMessenger；
   同页状态不得用 messenger 替代绑定。
-3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`WheelInteractionEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
+3. **Services 内部依赖**：允许经接口构造注入（如 `SettingsSaveOrchestrator → IConfigService/ISaveDebouncer`、`WheelGestureEngine → IConfigService/IWindowContext/IWheelFactory`）；**解析点只允许在 Composition**，例外：
    - `NavigationExecutor` 经设置台会话 `ConsolePageSession` 持作用域（目录驱动惰性解析入口；随
      运行时归宿主侧——宿主内部解析缝而非跨程序集缝（见 [assemblies.md](assemblies.md) §8）；
     - **运行期组装例外**:`WheelFactory`（驻 `StarPie.Ui/Services/Wheel/`）在服务内组合
@@ -101,14 +101,14 @@ ResidentShell 回填）属宿主侧装配职责；本文件以下分层规则适
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
   有状态/IO/Win32 = 实例服务」判据的统一表述。
-- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按轮盘交互瞬态创建。
+- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按轮盘手势瞬态创建。
 
 ## ViewModels
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 为**设置台会话作用域**（scoped：同一会话内保留实例使状态跨导航常驻，
   会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
-  导航区/窗口外框 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按轮盘交互创建、不注册；
+  导航区/窗口外框 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按轮盘手势创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
 - 主框架 VM 拆分：`NavigationViewModel`（导航状态；目录驱动；运行时主体在
   宿主侧 `ViewModels/Navigation/`——与 `WindowChromeViewModel` 均归 Host）与
@@ -120,7 +120,7 @@ ResidentShell 回填）属宿主侧装配职责；本文件以下分层规则适
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
 - 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡与退出是
   常驻壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
-  系统集成页面 VM 由 SystemIntegrationContributor 登记、轮盘交互页面 VM 由 WheelInteractionContributor 登记）；
+  系统集成页面 VM 由 SystemIntegrationContributor 登记、轮盘手势页面 VM 由 WheelGestureContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`。
 - 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`NavigationViewModel.Dispose`/
@@ -141,8 +141,8 @@ ResidentShell 回填）属宿主侧装配职责；本文件以下分层规则适
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
 - code-behind 只保留 View code-behind 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、窗口类白名单（界面主题应用、托盘/窗口行为）。
-- 页面经 App 级模块页面模板字典（系统集成在 `StarPie.Ui/Modules/SystemIntegrationPageTemplates.xaml`、轮盘交互在
-  `StarPie.Ui/Modules/WheelInteractionPageTemplates.xaml`，本地合并；宿主外观
+- 页面经 App 级模块页面模板字典（系统集成在 `StarPie.Ui/Modules/SystemIntegrationPageTemplates.xaml`、轮盘手势在
+  `StarPie.Ui/Modules/WheelGesturePageTemplates.xaml`，本地合并；宿主外观
   聚合页在 `StarPie.Ui/Modules/HostPageTemplates.xaml`、插件管理页在 `StarPie.Ui/Modules/HostCorePageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器）；页面 XAML 根直承 `UserControl`
   （无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`

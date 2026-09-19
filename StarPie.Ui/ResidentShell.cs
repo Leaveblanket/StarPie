@@ -26,7 +26,7 @@ namespace StarPie.Ui
     /// </summary>
     /// <remarks>
     /// 单进程内按生命周期划分：本类常驻至进程结束；设置台是关闭即销毁、重开重建的租户；
-    /// 轮盘维持每次轮盘交互一个实例。常驻职责不寄居在瞬态对象上——单实例恢复消息的接收端驻托盘
+    /// 轮盘维持每次轮盘手势一个实例。常驻职责不寄居在瞬态对象上——单实例恢复消息的接收端驻托盘
     /// 消息窗口（常驻 HWND），退出编排与托盘气泡归本类，设置台窗口只是它创建的瞬态窗口。
     /// <see cref="Application.MainWindow"/> 由常驻锚窗口（<see cref="AnchorWindow"/>）兜底持有，
     /// 使任何瞬态窗口都不可能被自动赋值钉住。
@@ -209,7 +209,7 @@ namespace StarPie.Ui
             console.Show();
 
             // 启动编排末尾：预热轮盘核心路径（BAML/样式渲染器工厂/调色板与画刷构造踩热，
-            // 首次轮盘交互弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
+            // 首次轮盘手势弹出免付一次性成本），随后兜底内存整理——预热在前、GC 在后，
             // 预热的一次性分配由紧随的 force GC 顺带回收，不等硬顶压力另行触发。
             WarmUpWheelCorePath();
             RunStartupMemoryHousekeeping();
@@ -401,11 +401,11 @@ namespace StarPie.Ui
             };
 
             string pauseText = _inputHook.IsPaused ? _localization.GetString("TrayResume") : _localization.GetString("TrayPause");
-            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseWheelInteraction, "TrayMenuPause"));
+            entries.Add(TrayMenuEntry.Item(pauseText, TogglePauseWheelGesture, "TrayMenuPause"));
             // 托盘直达项经目录槽位导航（触发/外观/轮盘与动作）。
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayPreferences"), () => NavigateAndShow(NavigationSlot.Trigger), "TrayMenuPreferences"));
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayAppearance"), () => NavigateAndShow(NavigationSlot.Appearance), "TrayMenuAppearance"));
-            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayWheelActions"), () => NavigateAndShow(NavigationSlot.WheelInteraction), "TrayMenuWheelActions"));
+            entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayWheelActions"), () => NavigateAndShow(NavigationSlot.WheelGesture), "TrayMenuWheelActions"));
             entries.Add(TrayMenuEntry.Separator());
             AddAdminRestartEntry(entries);
             entries.Add(TrayMenuEntry.Item(_localization.GetString("TrayExit"), ExitApplication, "TrayMenuExit"));
@@ -487,7 +487,7 @@ namespace StarPie.Ui
             _trayIcon?.ShowBalloonTip(title, text);
         }
 
-        private void TogglePauseWheelInteraction()
+        private void TogglePauseWheelGesture()
         {
             _inputHook.IsPaused = !_inputHook.IsPaused;
             _trayIcon?.SetTooltip(CurrentTooltip());

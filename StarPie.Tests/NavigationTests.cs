@@ -10,7 +10,7 @@ using StarPie.Sdk.Services;
 using StarPie.Sdk.ViewModels.Pages;
 using StarPie.Sdk.ViewModels.Wheel;
 using StarPie.Ui.ViewModels.Dialogs;
-using StarPie.Ui.ViewModels.WheelInteraction;
+using StarPie.Ui.ViewModels.WheelGesture;
 using StarPie.Ui.ViewModels.Navigation;
 using StarPie.Ui.ViewModels.Pages;
 using StarPie.Ui.ViewModels.Wheel;
@@ -253,7 +253,7 @@ public sealed class NavigationViewModelTests
         {
             [NavigationSlot.Trigger] = fixture.Behavior,
             [NavigationSlot.Appearance] = fixture.Appearance,
-            [NavigationSlot.WheelInteraction] = fixture.Profiles,
+            [NavigationSlot.WheelGesture] = fixture.Profiles,
             [NavigationSlot.Advanced] = fixture.General
         });
         var vm = new NavigationViewModel(store, catalog, navigation, Localization);
@@ -415,7 +415,7 @@ public sealed class NavigationViewModelPluginPageTests
     private sealed class PluginPageViewModel : ObservableObject { }
     private sealed class TriggerPageViewModel : ObservableObject { }
     private sealed class AppearancePageViewModel : ObservableObject { }
-    private sealed class WheelInteractionPageViewModel : ObservableObject { }
+    private sealed class WheelGesturePageViewModel : ObservableObject { }
     private sealed class AdvancedPageViewModel : ObservableObject { }
     private sealed class PluginsPageViewModel : ObservableObject { }
 
@@ -426,8 +426,8 @@ public sealed class NavigationViewModelPluginPageTests
             NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         catalog.RegisterPage<AppearancePageViewModel>(
             NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
-        catalog.RegisterPage<WheelInteractionPageViewModel>(
-            NavigationSlot.WheelInteraction, NavigationSlots.GetAutomationId(NavigationSlot.WheelInteraction), "PageWheelActions", "");
+        catalog.RegisterPage<WheelGesturePageViewModel>(
+            NavigationSlot.WheelGesture, NavigationSlots.GetAutomationId(NavigationSlot.WheelGesture), "PageWheelActions", "");
         catalog.RegisterPage<AdvancedPageViewModel>(
             NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "");
         catalog.RegisterPage<PluginsPageViewModel>(
@@ -445,7 +445,7 @@ public sealed class NavigationViewModelPluginPageTests
                 // 固定页 VM：与生产容器同形的可解析目标，供插件页摘除后的回落导航使用。
                 .AddSingleton<TriggerPageViewModel>()
                 .AddSingleton<AppearancePageViewModel>()
-                .AddSingleton<WheelInteractionPageViewModel>()
+                .AddSingleton<WheelGesturePageViewModel>()
             .AddSingleton<AdvancedPageViewModel>()
             .AddSingleton<PluginsPageViewModel>()
             .BuildServiceProvider();

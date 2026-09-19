@@ -4,13 +4,13 @@ using System.Text.Json.Nodes;
 namespace StarPie.Sdk.Models
 {
     /// <summary>
-    /// 应用运行配置模型：与 config.json 一一对应的持久化数据（语言、轮盘交互行为、轮盘外观与
+    /// 应用运行配置模型：与 config.json 一一对应的持久化数据（语言、轮盘手势行为、轮盘外观与
     /// 几何、自定义配色/背景纹理、配置方案与场景隔离等）。文件读写由宿主内核的配置服务负责；
     /// 反序列化采用宽松模式（大小写不敏感、允许注释与尾随逗号），便于手工编辑。
     /// </summary>
     public class AppConfig
     {
-        // —— 语言与轮盘交互行为 ——
+        // —— 语言与轮盘手势行为 ——
         public string Language { get; set; } = "Auto"; // 界面语言："Auto"（按系统区域）/ "zh-CN" / "zh-TW" / "en" / "ja"
         public double DragThreshold { get; set; } = 25.0; // 轮盘触发阈值（像素）：按住拖动超过该距离才展开轮盘
         public bool EnableOuterEscapeCancel { get; set; } = true; // 是否启用"外圈逃逸取消"：指针越过逃逸距离即收起轮盘
@@ -83,7 +83,7 @@ namespace StarPie.Sdk.Models
         public List<WheelProfile> Profiles { get; set; } = new List<WheelProfile>();
 
         // —— 场景隔离设置 ——
-        public List<string> BlacklistedProcesses { get; set; } = new List<string> { "mstsc.exe", "paint.exe" }; // 黑名单进程：处于前台时禁用轮盘交互/轮盘
+        public List<string> BlacklistedProcesses { get; set; } = new List<string> { "mstsc.exe", "paint.exe" }; // 黑名单进程：处于前台时禁用轮盘手势/轮盘
         public bool DisableOnCtrl { get; set; } = false; // 按住 Ctrl 时禁用
         public bool DisableOnShift { get; set; } = false; // 按住 Shift 时禁用
         public bool DisableOnAlt { get; set; } = false; // 按住 Alt 时禁用

@@ -5,19 +5,19 @@ using StarPie.Ui;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 轮盘交互引擎的状态迁移覆盖：阈值触发、方向选择、外围逃逸、中心死区取消、前台 Profile
+/// 轮盘手势引擎的状态迁移覆盖：阈值触发、方向选择、外围逃逸、中心死区取消、前台 Profile
 /// 匹配、全屏隔离、修饰键隔离、黑名单隔离，以及释放结果（执行 / 重放点击 / 穿透）。
 /// </summary>
-public sealed class WheelInteractionEngineTests
+public sealed class WheelGestureEngineTests
 {
     private readonly FakeConfigService _config = new();
     private readonly FakeWindowContext _windowContext = new();
     private readonly FakeWheelFactory _wheelFactory = new();
-    private readonly WheelInteractionEngine _engine;
+    private readonly WheelGestureEngine _engine;
 
-    public WheelInteractionEngineTests()
+    public WheelGestureEngineTests()
     {
-        _engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
+        _engine = new WheelGestureEngine(_config, _windowContext, _wheelFactory);
     }
 
     private static ScreenPoint P(double x, double y) => new(x, y);
@@ -31,12 +31,12 @@ public sealed class WheelInteractionEngineTests
     public void Move_BelowThreshold_DoesNotActivateWheel()
     {
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
 
         _engine.OnTriggerMove(P(124, 100)); // 24 < 25 default threshold
 
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
     }
 
     [Fact]
@@ -53,11 +53,11 @@ public sealed class WheelInteractionEngineTests
         Assert.Same(profile, createdProfile);
         var wheel = Assert.Single(_wheelFactory.Wheels);
         Assert.Equal(new[] { "Show", "Escape:False", "Highlight:0" }, wheel.Calls);
-        Assert.Equal(WheelInteractionState.Active, _engine.State);
+        Assert.Equal(WheelGestureState.Active, _engine.State);
     }
 
     [Fact]
-    public void Move_ThresholdReadLive_MidWheelInteractionThresholdChangeApplies()
+    public void Move_ThresholdReadLive_MidWheelGestureThresholdChangeApplies()
     {
         AddProfile("Global", sectorCount: 8, actionCount: 8);
         _engine.OnTriggerDown(P(100, 100));
@@ -122,7 +122,7 @@ public sealed class WheelInteractionEngineTests
         Assert.False(result.ShouldReplayClick);
         Assert.Null(result.ActionToExecute);
         Assert.Equal(new[] { "Show", "Escape:False", "Highlight:0", "Highlight:-1", "Escape:False", "Close" }, wheel.Calls);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     // --- 外围逃逸 -------------------------------------------------------
@@ -145,7 +145,7 @@ public sealed class WheelInteractionEngineTests
         Assert.True(result.Handled);
         Assert.Null(result.ActionToExecute);
         Assert.Equal("Close", wheel.Calls[^1]);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -250,7 +250,7 @@ public sealed class WheelInteractionEngineTests
         _windowContext.ProcessName = "MSTSC.EXE"; // case-insensitive match
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
         Assert.Empty(_wheelFactory.Created);
     }
 
@@ -262,7 +262,7 @@ public sealed class WheelInteractionEngineTests
         _windowContext.ProcessName = "anything.exe";
 
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
     }
 
     // --- 隔离：全屏 ----------------------------------------------
@@ -274,7 +274,7 @@ public sealed class WheelInteractionEngineTests
         _windowContext.FullScreen = true;
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public sealed class WheelInteractionEngineTests
         _windowContext.FullScreen = true;
 
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
     }
 
     // --- 隔离：修饰键 ---------------------------------------------
@@ -340,7 +340,7 @@ public sealed class WheelInteractionEngineTests
         Assert.True(result.ShouldReplayClick);
         Assert.Null(result.ActionToExecute);
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -358,7 +358,7 @@ public sealed class WheelInteractionEngineTests
         Assert.Same(profile.Actions[2], result.ActionToExecute);
         var wheel = Assert.Single(_wheelFactory.Wheels);
         Assert.Equal("Close", wheel.Calls[^1]);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public sealed class WheelInteractionEngineTests
     // --- 轮盘生命周期 ---------------------------------------------------------
 
     [Fact]
-    public void SecondWheelInteraction_CreatesFreshWheel_AndClosesPrevious()
+    public void SecondWheelGesture_CreatesFreshWheel_AndClosesPrevious()
     {
         AddProfile("Global", sectorCount: 8, actionCount: 8);
 
@@ -427,7 +427,7 @@ public sealed class WheelInteractionEngineTests
         _engine.OnTriggerMove(P(500, 500));
 
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 }
 

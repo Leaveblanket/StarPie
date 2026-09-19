@@ -24,12 +24,12 @@ public sealed class InputStackTests : IDisposable
     private readonly FakeWheelFactory _wheelFactory = new();
     private readonly TestActionExecutor _executor = new();
     private readonly TestGlobalHook _hook = new();
-    private readonly WheelInteractionEngine _engine;
+    private readonly WheelGestureEngine _engine;
     private readonly MouseInputHook _stack;
 
     public InputStackTests()
     {
-        _engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
+        _engine = new WheelGestureEngine(_config, _windowContext, _wheelFactory);
         _hook.EventMask = _ => EventMask.SimulatedEvent;
         // 替身默认在每次松开后再补一笔 MouseClicked（生产里 libuiohook 亦然）；本栈不订阅它，
         // 关掉后模拟事件计数只反映按下与抬起，断言不必迁就噪声。
@@ -58,11 +58,11 @@ public sealed class InputStackTests : IDisposable
     // --- 抑制决策 -------------------------------------------------
 
     [Fact]
-    public void Press_TriggerButton_TakenByWheelInteraction_IsSuppressed()
+    public void Press_TriggerButton_TakenByWheelGesture_IsSuppressed()
     {
         Press();
 
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
         Assert.Single(_hook.SuppressedEvents);
     }
 
@@ -72,7 +72,7 @@ public sealed class InputStackTests : IDisposable
         Press(MouseButton.Button1);
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class InputStackTests : IDisposable
         Press();
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public sealed class InputStackTests : IDisposable
         Press();
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class InputStackTests : IDisposable
     {
         var hook = new TestGlobalHook();
         hook.EventMask = _ => EventMask.SimulatedEvent;
-        var engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
+        var engine = new WheelGestureEngine(_config, _windowContext, _wheelFactory);
         using var stack = new MouseInputHook(
             hook,
             engine,
@@ -119,7 +119,7 @@ public sealed class InputStackTests : IDisposable
 
         hook.SimulateMousePress(MouseButton.Button3);
         Assert.Single(hook.SuppressedEvents);
-        Assert.Equal(WheelInteractionState.WaitingThreshold, engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, engine.State);
     }
 
     // --- 回放回路 -------------------------------------------------
@@ -136,24 +136,24 @@ public sealed class InputStackTests : IDisposable
         Assert.Equal(4, _hook.SimulatedEvents.Count);
         Assert.Equal(2, _hook.SuppressedEvents.Count);
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(WheelInteractionState.Idle, _engine.State);
+        Assert.Equal(WheelGestureState.Idle, _engine.State);
     }
 
     [Fact]
-    public void Click_BelowThreshold_ReplayWindowCloses_SoLaterInjectionsAreWheelInteraction()
+    public void Click_BelowThreshold_ReplayWindowCloses_SoLaterInjectionsAreWheelGesture()
     {
         Press();
         Release();
         Assert.Equal(2, _hook.SuppressedEvents.Count);
 
-        // 窗口只有两笔配额：后续注入（e2e 走的就是这条路径）仍按轮盘交互输入处理。
+        // 窗口只有两笔配额：后续注入（e2e 走的就是这条路径）仍按轮盘手势输入处理。
         Press();
 
         Assert.Equal(3, _hook.SuppressedEvents.Count);
-        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelGestureState.WaitingThreshold, _engine.State);
     }
 
-    // --- 轮盘交互回路 -------------------------------------------------
+    // --- 轮盘手势回路 -------------------------------------------------
 
     [Fact]
     public void Drag_BeyondThreshold_ShowsWheel_AndReleaseExecutesSelectedAction()

@@ -131,7 +131,7 @@ public sealed class ConsolePageSessionTests
     [Fact]
     public void 只读预览源别名_与方案列表VM在同一会话内指向同一实例()
     {
-        // 与 WheelInteractionContributor 的注册同形：实现 VM 与只读契约别名同在会话作用域。
+        // 与 WheelGestureContributor 的注册同形：实现 VM 与只读契约别名同在会话作用域。
         using ServiceProvider provider = BuildProvider(services =>
         {
             services.AddSingleton<IMessenger>(TestHub.NewMessenger());

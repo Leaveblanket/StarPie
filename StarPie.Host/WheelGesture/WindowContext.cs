@@ -6,7 +6,7 @@ using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
 
-namespace StarPie.Host.WheelInteraction
+namespace StarPie.Host.WheelGesture
 {
     /// <summary>
     /// Win32 implementation of <see cref="IWindowContext"/>; merges the former
@@ -58,7 +58,7 @@ namespace StarPie.Host.WheelInteraction
 
             // 桌面图标宿主同属桌面（Win11 上 SHELLDLL_DefView 常挂在一个覆盖整屏的 WorkerW 下，
             // 它不是 GetShellWindow() 返回的 Progman）：桌面铺满整屏但不是全屏应用，
-            // 漏排会让桌面上的轮盘交互被全屏隔离误伤（点击/框选桌面后右键直通系统原生）。
+            // 漏排会让桌面上的轮盘手势被全屏隔离误伤（点击/框选桌面后右键直通系统原生）。
             if (HostsDesktopIconView(hWnd)) return false;
 
             if (!PInvoke.GetWindowRect(hWnd, out RECT windowRect)) return false;

@@ -1,4 +1,4 @@
-"""轮盘交互链路 e2e：注射鼠标输入 → 全局钩子 → 轮盘交互引擎 → 轮盘窗口 → 动作执行。
+"""轮盘手势链路 e2e：注射鼠标输入 → 全局钩子 → 轮盘手势引擎 → 轮盘窗口 → 动作执行。
 
 这是 xUnit 覆盖不到的集成面：轮盘窗口真的弹出/收起、扇区动作真的被执行
 （Launch 探针 exe 的进程出现）、阈值下的触发键补发真的落到光标下的窗口。
@@ -9,7 +9,7 @@
 OuterEscapeDistance=186，扇区 0（正右）是探针 exe 的 Launch 动作，其余扇区空动作。
 
 触发键默认右键；**侧键**用例经 `trigger_button` fixture 传 4（后侧键 XBUTTON1，
-对应 SharpHook Button4）。侧键未被抑制时不弹上下文菜单——首次轮盘交互/启动时序一类用例
+对应 SharpHook Button4）。侧键未被抑制时不弹上下文菜单——首次轮盘手势/启动时序一类用例
 优先用它，观测不必先收菜单（见下方 side-button 组）。
 
 运行期间请勿操作键鼠（全局钩子在跑，注入输入与真实鼠标共用同一个游标）。
@@ -44,7 +44,7 @@ from mouse_input import (
 )
 from win32_probe import WM_XBUTTON_UP, RightClickProbeWindow
 
-# 轮盘交互起点：默认设置台窗口覆盖区内的固定点（远离任务栏/托盘，避免注入点击命中系统 UI）。
+# 轮盘手势起点：默认设置台窗口覆盖区内的固定点（远离任务栏/托盘，避免注入点击命中系统 UI）。
 START = (600, 400)
 
 # 越过 DragThreshold(25)、远小于 OuterEscapeDistance(186) 的拖动距离 → 命中正右扇区 0。
@@ -286,15 +286,15 @@ def test_wheel_side_button_drag_pops_wheel_and_executes_sector_action(app):
     )
 
     pids = wait_process_started(probe_exe, timeout=10.0)
-    print(f"侧键轮盘交互的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
+    print(f"侧键轮盘手势的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
     kill_processes(pids)
 
 
 # --- 桌面窗口场景（全屏误判回归） ----------------------------------------------
 # Win11 上桌面图标区（SHELLDLL_DefView）常挂在一个覆盖整屏的 WorkerW 下；前台为桌面时
 # IsForegroundFullScreen 的排除清单若只含 Progman（GetShellWindow）/窗口站桌面（GetDesktopWindow），
-# 会把桌面窗口误判成"全屏应用"，轮盘交互被 DisableOnFullScreen 隔离、右键直通系统原生。
-# 本用例把前台焦点切到桌面后再做轮盘交互：修复前轮盘不弹（红），修复后照常弹出（绿）。
+# 会把桌面窗口误判成"全屏应用"，轮盘手势被 DisableOnFullScreen 隔离、右键直通系统原生。
+# 本用例把前台焦点切到桌面后再做轮盘手势：修复前轮盘不弹（红），修复后照常弹出（绿）。
 
 def _is_desktop_host(hwnd) -> bool:
     """窗口是否是桌面宿主：Progman（shell 窗口），或承载 SHELLDLL_DefView 的 WorkerW。

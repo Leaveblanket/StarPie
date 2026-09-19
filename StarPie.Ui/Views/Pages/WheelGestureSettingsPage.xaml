@@ -1,16 +1,16 @@
-<UserControl x:Class="StarPie.Ui.Views.Pages.WheelInteractionSettingsPage"
+<UserControl x:Class="StarPie.Ui.Views.Pages.WheelGestureSettingsPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:controls="clr-namespace:StarPie.Ui.Views.Controls"
-        xmlns:vm="clr-namespace:StarPie.Ui.ViewModels.WheelInteraction"
+        xmlns:vm="clr-namespace:StarPie.Ui.ViewModels.WheelGesture"
         xmlns:dt="clr-namespace:StarPie.Ui.Views.DesignTime"
         mc:Ignorable="d"
         d:DesignHeight="569" d:DesignWidth="780"
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
         RenderOptions.BitmapScalingMode="HighQuality"
-        d:DataContext="{d:DesignInstance Type=dt:WheelInteractionSettingsDesignTimeData, IsDesignTimeCreatable=True}">
+        d:DataContext="{d:DesignInstance Type=dt:WheelGestureSettingsDesignTimeData, IsDesignTimeCreatable=True}">
 
     <Grid>
         <Grid>

@@ -53,8 +53,8 @@ StarPie/
 │   ├── Services/                         # IIconAssetService 与 IThemeService 的 WPF 契约(条目类型在 SDK、目录在 Host)
 │   └── Compatibility/                    # UiSdkAbi 与 DefaultAlcPolicy(与 Sdk 分政策编号)
 ├── StarPie.Host/                         # 零 WPF 引用、零 XAML;可 headless 单测
-│   ├── Configuration/  Localization/  Programs/  SystemIntegration/  Icons/  Themes/  Wheel/  WheelInteraction/  Actions/
-│   │                                     # 配置 / 文案 / 程序扫描 / 注册表与进程级系统集成 / 资产目录 / 调色板计算 / 配色解析 / 轮盘交互内核 / 动作路由(纯模型与逻辑;几何构造与 WPF 亲和件归 Ui)
+│   ├── Configuration/  Localization/  Programs/  SystemIntegration/  Icons/  Themes/  Wheel/  WheelGesture/  Actions/
+│   │                                     # 配置 / 文案 / 程序扫描 / 注册表与进程级系统集成 / 资产目录 / 调色板计算 / 配色解析 / 轮盘手势内核 / 动作路由(纯模型与逻辑;几何构造与 WPF 亲和件归 Ui)
 │   ├── Ports/                            # Host→Ui 端口:IThemeApplier(Host 零 WPF 只能吃接口;其余端口随需求引入)
 │   ├── HostServices/                     # 插件可见宿主服务实现:PluginLog / PluginEvents / PluginEventPump / PluginServiceScope(每插件一个作用域)
 │   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Diagnostics,Ui}

@@ -36,7 +36,7 @@ namespace StarPie.Ui.Modules
                 // M2 轮盘与渲染（无导航页）。
                 new WheelContributor(),
                 // M1 轮盘与动作（槽位 0/2）。
-                new WheelInteractionContributor(triggerButton),
+                new WheelGestureContributor(triggerButton),
                 // M5 常驻壳层与系统设置面（槽位 3）。
                 new SystemIntegrationContributor(),
                 // S6 对话框（无导航页）。

@@ -646,7 +646,7 @@ TRAY_CALLBACK_MESSAGE = 0x8001  # WM_APP + 1
 WM_RBUTTONUP = 0x0205
 WM_LBUTTONDBLCLK = 0x0203
 
-# 轮盘窗口标题（产品侧 StarPie.Ui/Views/Wheel/RadialWindow.xaml）：每次轮盘交互一个实例，关闭即销毁。
+# 轮盘窗口标题（产品侧 StarPie.Ui/Views/Wheel/RadialWindow.xaml）：每次轮盘手势一个实例，关闭即销毁。
 WHEEL_WINDOW_TITLE = "RadialWindow"
 
 # 程序选择器/动作执行用例共用的探针程序：HKCU App Paths 注册的"记事本副本"——
@@ -700,7 +700,7 @@ def probe_program():
 
 
 def find_wheel_window(pid: int) -> int:
-    """被测进程当前的轮盘窗口 HWND；不存在时为 0（关闭即销毁，不跨轮盘交互复用）。"""
+    """被测进程当前的轮盘窗口 HWND；不存在时为 0（关闭即销毁，不跨轮盘手势复用）。"""
     for row in _process_windows(pid):
         if row["visible"] and row["title"] == WHEEL_WINDOW_TITLE:
             return row["hwnd"]
@@ -871,7 +871,7 @@ def write_sandbox_config(local_app_data, config: dict) -> str:
 
 
 def seed_wheel_config(local_app_data, probe_exe: str) -> None:
-    """轮盘交互链路用例的配置：Global 4 扇区，仅扇区 0（正右）是探针 exe 的 Launch 动作，
+    """轮盘手势链路用例的配置：Global 4 扇区，仅扇区 0（正右）是探针 exe 的 Launch 动作，
     其余扇区为空动作（空 Type 在松开时按取消处理，不会误触发别的动作）。"""
     write_sandbox_config(
         local_app_data,
@@ -919,7 +919,7 @@ def sandbox_seed(request, sandbox_env):
     if mode == "disabled-program-source":
         _seed_plugin_state(local_app_data, {"starpie.builtin.program-source": {"Enabled": False}})
     elif mode == "wheel-probe":
-        # 轮盘交互链路用例：探针 exe 作 Launch 目标（只落文件，不写注册表）。
+        # 轮盘手势链路用例：探针 exe 作 Launch 目标（只落文件，不写注册表）。
         seed_wheel_config(local_app_data, plant_probe_executable())
     elif mode == "corrupt-config":
         # 损坏配置的降级路径：文件保留损坏内容，应用须照常可用（回退默认，不触碰文件）。
@@ -1007,7 +1007,7 @@ def start_app(env, timeout: float = 15.0, trigger_button: int | None = None):
 
     trigger_button 非空时追加 `--trigger-button=<n>`：把触发键换成 SharpHook MouseButton
     的第 n 个按键（4/5 即鼠标侧键 XBUTTON1/XBUTTON2）。侧键未被抑制时不弹上下文菜单，
-    轮盘交互链路的外部观测不必先收菜单——注入面见 tests/mouse_input.py 的 side_down/side_up。
+    轮盘手势链路的外部观测不必先收菜单——注入面见 tests/mouse_input.py 的 side_down/side_up。
     """
 
     app_path = find_app_path()
@@ -1044,7 +1044,7 @@ def trigger_button(request):
 
     用例经 `@pytest.mark.parametrize("trigger_button", [4], indirect=True)` 取用（与
     sandbox_seed 同一模式）。4/5 是鼠标侧键（XBUTTON1/XBUTTON2）：侧键未被抑制时不弹
-    上下文菜单，轮盘交互链路的外部观测不必先收菜单——本 fixture 只决定启动参数，
+    上下文菜单，轮盘手势链路的外部观测不必先收菜单——本 fixture 只决定启动参数，
     注入面须同步用侧键（tests/mouse_input.py 的 side_down/side_up）。
     """
     return getattr(request, "param", None)

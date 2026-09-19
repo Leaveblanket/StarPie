@@ -1,10 +1,10 @@
 using System;
 using System.Diagnostics;
 
-namespace StarPie.Host.WheelInteraction
+namespace StarPie.Host.WheelGesture
 {
     /// <summary>States of the wheel state machine: idle → press and wait for threshold → drag-select.</summary>
-    public enum WheelInteractionState
+    public enum WheelGestureState
     {
         Idle,
         WaitingThreshold,
@@ -12,7 +12,7 @@ namespace StarPie.Host.WheelInteraction
     }
 
     /// <summary>What the app side should do with the trigger release, decided by the engine.</summary>
-    public readonly struct WheelInteractionReleaseResult
+    public readonly struct WheelGestureReleaseResult
     {
         /// <summary>True when the release belongs to wheel handling and must not reach the app below.</summary>
         public bool Handled { get; }
@@ -23,17 +23,17 @@ namespace StarPie.Host.WheelInteraction
         /// <summary>The action bound to the released sector, or null when the wheel ended as a cancel.</summary>
         public ActionItem? ActionToExecute { get; }
 
-        private WheelInteractionReleaseResult(bool handled, bool shouldReplayClick, ActionItem? actionToExecute)
+        private WheelGestureReleaseResult(bool handled, bool shouldReplayClick, ActionItem? actionToExecute)
         {
             Handled = handled;
             ShouldReplayClick = shouldReplayClick;
             ActionToExecute = actionToExecute;
         }
 
-        public static WheelInteractionReleaseResult PassThrough() => new(false, false, null);
-        public static WheelInteractionReleaseResult ReplayClick() => new(true, true, null);
-        public static WheelInteractionReleaseResult Execute(ActionItem action) => new(true, false, action);
-        public static WheelInteractionReleaseResult Cancel() => new(true, false, null);
+        public static WheelGestureReleaseResult PassThrough() => new(false, false, null);
+        public static WheelGestureReleaseResult ReplayClick() => new(true, true, null);
+        public static WheelGestureReleaseResult Execute(ActionItem action) => new(true, false, action);
+        public static WheelGestureReleaseResult Cancel() => new(true, false, null);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ namespace StarPie.Host.WheelInteraction
     /// through <see cref="IWindowContext"/> and <see cref="IConfigService"/>.
     /// Config is consulted live on every decision so settings apply mid-wheel.
     /// </summary>
-    public class WheelInteractionEngine
+    public class WheelGestureEngine
     {
         // 运行期兜底：配置里的轮盘半径写成 0/负值时，外甩逃逸距离以此为基准换算。
         // 语义与外观默认值（WheelGeometryDefaults.Radius）不同——那是"新装观感"，这是"坏配置读数的
@@ -66,9 +66,9 @@ namespace StarPie.Host.WheelInteraction
         private int _selectedSectorIndex = -1;
         private IWheelViewModel? _wheel;
 
-        public WheelInteractionState State { get; private set; } = WheelInteractionState.Idle;
+        public WheelGestureState State { get; private set; } = WheelGestureState.Idle;
 
-        public WheelInteractionEngine(IConfigService config, IWindowContext windowContext, IWheelFactory wheelFactory)
+        public WheelGestureEngine(IConfigService config, IWindowContext windowContext, IWheelFactory wheelFactory)
         {
             _config = config;
             _windowContext = windowContext;
@@ -79,16 +79,16 @@ namespace StarPie.Host.WheelInteraction
         /// click is replayed on release when no wheel started); false passes it through.</summary>
         public bool OnTriggerDown(ScreenPoint position)
         {
-            if (IsWheelInteractionIsolated())
+            if (IsWheelGestureIsolated())
             {
-                State = WheelInteractionState.Idle;
+                State = WheelGestureState.Idle;
                 return false;
             }
 
             _startPoint = position;
             _activeProfile = null;
             _selectedSectorIndex = -1;
-            State = WheelInteractionState.WaitingThreshold;
+            State = WheelGestureState.WaitingThreshold;
             Debug.WriteLine($"RightMouseDown at {position.X}, {position.Y}. Waiting for threshold.");
             return true;
         }
@@ -97,25 +97,25 @@ namespace StarPie.Host.WheelInteraction
         /// drag threshold is crossed, then updates the selected sector per move.</summary>
         public void OnTriggerMove(ScreenPoint position)
         {
-            if (State == WheelInteractionState.WaitingThreshold)
+            if (State == WheelGestureState.WaitingThreshold)
             {
                 if (Distance(position, _startPoint) < _config.Current.DragThreshold)
                 {
                     return;
                 }
 
-                State = WheelInteractionState.Active;
+                State = WheelGestureState.Active;
 
                 string processName = _windowContext.GetForegroundProcessName();
                 _activeProfile = _config.GetProfileForProcess(processName);
-                Debug.WriteLine($"WheelInteraction activated. Process: {processName}, Profile: {_activeProfile.ProcessName}, Sectors: {_activeProfile.SectorCount}");
+                Debug.WriteLine($"WheelGesture activated. Process: {processName}, Profile: {_activeProfile.ProcessName}, Sectors: {_activeProfile.SectorCount}");
 
                 _wheel?.Close();
                 _wheel = _wheelFactory.Create(_startPoint, _activeProfile);
                 _wheel.Show();
                 UpdateSelection(position);
             }
-            else if (State == WheelInteractionState.Active)
+            else if (State == WheelGestureState.Active)
             {
                 UpdateSelection(position);
             }
@@ -123,18 +123,18 @@ namespace StarPie.Host.WheelInteraction
 
         /// <summary>Trigger button released. Returns the decision for the app side:
         /// replay the suppressed click, execute the selected action, or cancel.</summary>
-        public WheelInteractionReleaseResult OnTriggerUp(ScreenPoint position)
+        public WheelGestureReleaseResult OnTriggerUp(ScreenPoint position)
         {
-            if (State == WheelInteractionState.WaitingThreshold)
+            if (State == WheelGestureState.WaitingThreshold)
             {
-                State = WheelInteractionState.Idle;
+                State = WheelGestureState.Idle;
                 Debug.WriteLine("Normal click detected. Replaying right click.");
-                return WheelInteractionReleaseResult.ReplayClick();
+                return WheelGestureReleaseResult.ReplayClick();
             }
 
-            if (State == WheelInteractionState.Active)
+            if (State == WheelGestureState.Active)
             {
-                Debug.WriteLine($"WheelInteraction completed. Selected sector: {_selectedSectorIndex}");
+                Debug.WriteLine($"WheelGesture completed. Selected sector: {_selectedSectorIndex}");
                 ActionItem? action = null;
                 if (_activeProfile != null && _selectedSectorIndex >= 0 && _selectedSectorIndex < _activeProfile.Actions.Count)
                 {
@@ -146,16 +146,16 @@ namespace StarPie.Host.WheelInteraction
                 }
 
                 CloseWheel();
-                State = WheelInteractionState.Idle;
-                return action != null ? WheelInteractionReleaseResult.Execute(action) : WheelInteractionReleaseResult.Cancel();
+                State = WheelGestureState.Idle;
+                return action != null ? WheelGestureReleaseResult.Execute(action) : WheelGestureReleaseResult.Cancel();
             }
 
-            return WheelInteractionReleaseResult.PassThrough();
+            return WheelGestureReleaseResult.PassThrough();
         }
 
         /// <summary>False when the current foreground process, held modifiers, or a
         /// full-screen foreground window isolate the wheel (right click passes through).</summary>
-        private bool IsWheelInteractionIsolated()
+        private bool IsWheelGestureIsolated()
         {
             string processName = _windowContext.GetForegroundProcessName();
 
@@ -184,7 +184,7 @@ namespace StarPie.Host.WheelInteraction
 
             if (isBlacklisted || isModifierPressed || isFullScreen)
             {
-                Debug.WriteLine($"WheelInteraction trigger isolated. Process: {processName}, Blacklisted: {isBlacklisted}, Modifier: {isModifierPressed}, FullScreen: {isFullScreen}. Passing right click through.");
+                Debug.WriteLine($"WheelGesture trigger isolated. Process: {processName}, Blacklisted: {isBlacklisted}, Modifier: {isModifierPressed}, FullScreen: {isFullScreen}. Passing right click through.");
                 return true;
             }
 

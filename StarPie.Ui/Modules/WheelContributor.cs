@@ -20,7 +20,7 @@ namespace StarPie.Ui.Modules
     /// 本模块无导航页，<see cref="ICompositionContributor.RegisterNavigation"/> 保持默认空实现。
     /// 轮盘工厂实现（<see cref="WheelFactory"/>）
     /// 与接口 <see cref="IWheelFactory"/> 契约（驻 StarPie.Sdk）
-    /// 本模块实现之，轮盘交互侧（WheelInteraction runtime）只经该契约消费，不反向组装瞬态轮盘；
+    /// 本模块实现之，轮盘手势侧（WheelGesture runtime）只经该契约消费，不反向组装瞬态轮盘；
     /// 预览 Profile 只读契约 <see cref="IProfilePreviewSource"/> 驻 SDK 面，实现方与消费方
     /// 经其解耦。工厂/外观子 VM 只依赖共享内核、SDK 契约面与宿主注入的无状态深浅色探针
     /// <c>Func&lt;bool&gt;</c>，不反向引用宿主。
@@ -34,11 +34,11 @@ namespace StarPie.Ui.Modules
         /// <summary>注册轮盘工厂（常驻单例）与轮盘外观设置子 VM（设置台会话作用域）。</summary>
         public void RegisterServices(IServiceCollection services)
         {
-            // IWheelFactory → WheelFactory 装配注册；轮盘交互侧仅经接口消费。
+            // IWheelFactory → WheelFactory 装配注册；轮盘手势侧仅经接口消费。
             services.AddSingleton<IWheelFactory, WheelFactory>();
             // 轮盘外观设置子 VM：与外观聚合 VM 同在设置台会话作用域（子 VM 随设置台销毁）；
             // 预览 Profile 上下文经 SDK 只读契约 IProfilePreviewSource 转发（实现方别名由
-            // WheelInteractionContributor 在同一会话作用域登记），本贡献者只解析 SDK 契约面，
+            // WheelGestureContributor 在同一会话作用域登记），本贡献者只解析 SDK 契约面，
             // 不引用具体方案列表 VM。
             services.AddScoped(sp => new WheelAppearanceSettingsViewModel(
                 sp.GetRequiredService<IConfigService>(),

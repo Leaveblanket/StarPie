@@ -21,7 +21,7 @@ namespace StarPie.Ui.Modules
     /// <remarks>
     /// <see cref="RegisterNavigation"/> 把本模块页面（触发与场景 / 轮盘与动作）写入
     /// <see cref="NavigationCatalog"/>（槽位/标题键/图标/目标类型），页面 DataTemplate 收进
-    /// WheelInteractionPageTemplates.xaml(App.xaml 以本地相对 Source 每模块一次静态合并)。
+    /// WheelGesturePageTemplates.xaml(App.xaml 以本地相对 Source 每模块一次静态合并)。
     /// <see cref="RegisterServices"/> 把本模块输入栈（捕获/看门狗）、页面 VM 与只读预览契约
     /// <see cref="IProfilePreviewSource"/> 别名的 DI 注册下放本程序集（组合根仍唯一
     /// BuildServiceProvider，本贡献者只注册不解析）。新增页面/动作/触发规则只动本模块内部。
@@ -29,13 +29,13 @@ namespace StarPie.Ui.Modules
     /// <c>IWheelFactory</c>/<c>IWheelViewModel</c> 契约接口消费瞬态轮盘（M1→M2 runtime
     /// 允许边清零，ADR-0023），不反向引用宿主。
     /// </remarks>
-    internal sealed class WheelInteractionContributor : ICompositionContributor
+    internal sealed class WheelGestureContributor : ICompositionContributor
     {
         private readonly MouseButton _triggerButton;
 
         /// <param name="triggerButton">轮盘触发键（默认右键；测试实例经命令行覆盖，
         /// 解析见 <see cref="TestInstanceSwitches"/>——本贡献者只消费结果，不接触命令行）。</param>
-        public WheelInteractionContributor(MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
+        public WheelGestureContributor(MouseButton triggerButton = TestInstanceSwitches.DefaultButton)
             => _triggerButton = triggerButton;
 
         public string Id => "wheel.interaction";
@@ -51,15 +51,15 @@ namespace StarPie.Ui.Modules
                 "PageTrigger",
                 IconTrigger);
             catalog.RegisterPage<ProfileListViewModel>(
-                NavigationSlot.WheelInteraction,
-                NavigationSlots.GetAutomationId(NavigationSlot.WheelInteraction),
+                NavigationSlot.WheelGesture,
+                NavigationSlots.GetAutomationId(NavigationSlot.WheelGesture),
                 "PageWheelActions",
-                IconWheelInteraction);
+                IconWheelGesture);
         }
 
         /// <summary>
-        /// 注册本模块轮盘交互管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
-        /// 引擎与触发+轮盘交互两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
+        /// 注册本模块轮盘手势管线服务与页面 VM（容器单例）：鼠标钩子/窗口上下文/动作执行器/
+        /// 引擎与触发+轮盘手势两页 VM 全部在本贡献者接线；工厂经 ServiceProvider
         /// 惰性解析 SDK 契约。<see cref="ProfileListViewModel"/> 另以只读契约
         /// <see cref="IProfilePreviewSource"/>（ADR-0023；驻 <c>StarPie.Sdk</c>）
         /// 注册别名——消费方轮盘外观设置子 VM 只依赖契约程序集，不引用本集具体 VM。
@@ -71,10 +71,10 @@ namespace StarPie.Ui.Modules
             // 钩子独占专用线程，松手副作用经调度接缝回 UI 线程——适配器不引用 UI 框架类型。
             services.AddSingleton<IActionExecutorService, ActionExecutorService>();
             services.AddSingleton<IWindowContext, WindowContext>();
-            services.AddSingleton<WheelInteractionEngine>();
+            services.AddSingleton<WheelGestureEngine>();
             services.AddSingleton(sp => new MouseInputHook(
                 new SimpleGlobalHook(),
-                sp.GetRequiredService<WheelInteractionEngine>(),
+                sp.GetRequiredService<WheelGestureEngine>(),
                 sp.GetRequiredService<IActionExecutorService>(),
                 callback => System.Windows.Application.Current?.Dispatcher?.BeginInvoke(callback),
                 triggerButton: _triggerButton));
@@ -101,7 +101,7 @@ namespace StarPie.Ui.Modules
         // 导航图标路径数据（NavPage0 / NavPage2）。
         private const string IconTrigger =
             "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z";
-        private const string IconWheelInteraction =
+        private const string IconWheelGesture =
             "M4,6c0-1.1,0.9-2,2-2h12c1.1,0,2,0.9,2,2v12c0,1.1-0.9,2-2,2H6c-1.1,0-2-0.9-2-2V6z M6,8h12V6H6V8z M6,12h12v-2H6V12z M6,16h6v-2H6V16z";
     }
 }

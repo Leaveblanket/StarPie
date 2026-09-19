@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StarPie.Ui.ViewModels.WheelInteraction
+namespace StarPie.Ui.ViewModels.WheelGesture
 {
     /// <summary>
     /// 扇区方位表：按扇区数为每个扇区给出方位名文案键与语言中立符号

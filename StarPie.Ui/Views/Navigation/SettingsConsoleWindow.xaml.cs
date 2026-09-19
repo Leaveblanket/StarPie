@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using StarPie.Sdk.ViewModels.Pages;
 using StarPie.Sdk.ViewModels.Wheel;
 using StarPie.Ui.ViewModels.Dialogs;
-using StarPie.Ui.ViewModels.WheelInteraction;
+using StarPie.Ui.ViewModels.WheelGesture;
 using StarPie.Ui.ViewModels.Navigation;
 using StarPie.Ui.ViewModels.Pages;
 using StarPie.Ui.ViewModels.Wheel;

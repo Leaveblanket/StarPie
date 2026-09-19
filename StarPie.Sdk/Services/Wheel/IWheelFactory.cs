@@ -4,19 +4,19 @@ using StarPie.Sdk.ViewModels.Wheel;
 namespace StarPie.Sdk.Services.Wheel
 {
     /// <summary>
-    /// 每次轮盘交互创建全新瞬态轮盘（视图模型 + 窗口）的工厂接口。
+    /// 每次轮盘手势创建全新瞬态轮盘（视图模型 + 窗口）的工厂接口。
     /// </summary>
     /// <remarks>
     /// 实现方负责把创建与显示调度到 UI 线程；调用方就是钩子线程（ADR-0052），因此
-    /// <see cref="Create"/> 一律不阻塞，返回的句柄把这轮轮盘交互的构建与状态变更按序投放。
-    /// 轮盘交互侧只经本接口消费轮盘，不反向组装瞬态轮盘。
+    /// <see cref="Create"/> 一律不阻塞，返回的句柄把这轮轮盘手势的构建与状态变更按序投放。
+    /// 轮盘手势侧只经本接口消费轮盘，不反向组装瞬态轮盘。
     /// </remarks>
     public interface IWheelFactory
     {
         IWheelViewModel Create(ScreenPoint center, WheelProfile profile);
 
         /// <summary>启动期轮盘核心路径预热：踩热窗口 BAML、样式渲染器工厂与调色板/画刷构造路径，
-        /// 使首次轮盘交互弹出不再付这些一次性成本。失败以异常表达，由调用方决定是否吞掉。</summary>
+        /// 使首次轮盘手势弹出不再付这些一次性成本。失败以异常表达，由调用方决定是否吞掉。</summary>
         /// <remarks>
         /// 装配（取哪个 Profile、经什么方式预热）归实现方，调用方不必知道。预热作为本契约的
         /// 单方法扩展承载，不另立预热契约：实现方已持有预热所需的全部依赖。须在 UI 线程调用
