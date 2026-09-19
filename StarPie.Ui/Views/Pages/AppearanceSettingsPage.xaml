@@ -30,7 +30,7 @@
                     <!--  左侧配置区控件  -->
                     <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,0,14,0">
                         <StackPanel Margin="0,0,6,0">
-                            <!--  卡片 0：软件界面主题风格  -->
+                            <!--  卡片 0：软件界面主题  -->
                             <!--  界面主题卡 DataContext 指向界面主题设置子 VM（外观聚合 VM 的
                                   InterfaceTheme 属性）；选项目录随语言重建（新增主题不再改页面
                                   XAML），主题应用经消息由常驻壳层执行。  -->

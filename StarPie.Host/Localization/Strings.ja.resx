@@ -228,7 +228,7 @@
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>インストール済みアプリ一覧から除外するアプリを選択します</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>入力欄のプロセス名を除外ブラックリストに追加します</value></data>
   <data name="ConsoleThemeDesc" xml:space="preserve"><value>コンソール全体の配色をカスタマイズし、Windows のライト/ダークモードに追従できます。</value></data>
-<data name="StyleTypeLabel" xml:space="preserve"><value>レンダースタイル (Wheel Style):</value></data>
+<data name="StyleTypeLabel" xml:space="preserve"><value>ホイールスタイル (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>選択中のカスタムカラープリセット名を変更します</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>カスタム16進色（カラーホイール/スクリーンピッカー）:</value></data>
   <data name="CustomSectorBgLabel" xml:space="preserve"><value>セクター背景色:</value></data>

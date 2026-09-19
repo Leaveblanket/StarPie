@@ -21,7 +21,7 @@ namespace StarPie.Sdk.Models
         // 风格名与方案名默认值刻意写在这里而非引常量：模型层不依赖 Services 层（依赖矩阵 Models→Services 为 ✗），
         // 取值与 WheelStyleNames / WheelPaletteNames 同源，改动须两处同改。
         public string WheelPalette { get; set; } = "System"; // 轮盘配色主题："System" / "Dark" / "Light" / "MatchaForest" / "GlacialIce" / "MorandiMuted" / "Custom"
-        public string WheelStyle { get; set; } = "ClassicRing"; // 轮盘主题风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
+        public string WheelStyle { get; set; } = "ClassicRing"; // 轮盘风格："ClassicRing" / "CleanSectors" / "Glassmorphism" / "CatPaw"
 
         // —— 轮盘几何 ——
         public bool ShowText { get; set; } = true; // 扇区上是否显示文字标签

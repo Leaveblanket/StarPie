@@ -275,7 +275,7 @@
     <sys:String x:Key="StyleClean" xml:space="preserve">极简扇区 (Clean Sectors)</sys:String>
     <sys:String x:Key="StyleGlass" xml:space="preserve">液态毛玻璃 (Glassmorphism)</sys:String>
     <sys:String x:Key="StyleTitle" xml:space="preserve">轮盘视觉风格与色彩</sys:String>
-    <sys:String x:Key="StyleTypeLabel" xml:space="preserve">主题风格 (Wheel Style):</sys:String>
+    <sys:String x:Key="StyleTypeLabel" xml:space="preserve">轮盘风格 (Wheel Style):</sys:String>
     <sys:String x:Key="ThemeDark" xml:space="preserve">🌙 极夜曜黑 (Obsidian Dark)</sys:String>
     <sys:String x:Key="ThemeGray" xml:space="preserve">⚙️ 钛金深灰 (Titanium Gray)</sys:String>
     <sys:String x:Key="ThemeLight" xml:space="preserve">☀️ 极简纯白 (Modern Light)</sys:String>
