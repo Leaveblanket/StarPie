@@ -74,14 +74,14 @@
   <data name="Error" xml:space="preserve"><value>错误</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>现代鼠标轮盘笔势系统</value></data>
-  <data name="WindowTitle" xml:space="preserve"><value>StarPie 设置控制台 (Preferences)</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie 设置台 (Preferences)</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
   <data name="PageWheelActions" xml:space="preserve"><value>⚡ 轮盘与动作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
-  <data name="BottomStatusNote" xml:space="preserve"><value>注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>注: 所有修改即时生效并自动保存；【保存更改】用于立即落盘。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>保存更改</value></data>
-  <data name="BtnClose" xml:space="preserve"><value>关闭并隐藏</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>关闭设置台</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>触发与场景隔离设置</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>在此配置轮盘交互的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>轮盘触发灵敏度</value></data>
@@ -147,7 +147,7 @@
   <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 萌宠猫爪 (Cute Cat Paw)</value></data>
   <data name="CorePatternImage" xml:space="preserve"><value>🖼️ 自定义图片文件 (Custom Image)</value></data>
   <data name="BtnBrowseImage" xml:space="preserve"><value>浏览图片...</value></data>
-  <data name="ConsoleThemeTitle" xml:space="preserve"><value>软件控制台界面主题 (App Theme)</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>设置台界面主题 (App Theme)</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>🌓 跟随系统 (System Auto)</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>☀️ 极简纯白 (Modern Light)</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>🌙 极夜曜黑 (Obsidian Dark)</value></data>
@@ -174,7 +174,7 @@
   <data name="BtnBrowseApp" xml:space="preserve"><value>🔍 选择应用程序...</value></data>
   <data name="AdvancedHeader" xml:space="preserve"><value>系统集成与高级偏好设置</value></data>
   <data name="LanguageTitle" xml:space="preserve"><value>界面语言 (Display Language)</value></data>
-  <data name="LanguageDesc" xml:space="preserve"><value>选择软件控制台与轮盘的显示语言，支持即时热切换并自动保存。</value></data>
+  <data name="LanguageDesc" xml:space="preserve"><value>选择设置台与轮盘的显示语言，支持即时热切换并自动保存。</value></data>
   <data name="ProgramPickerTitle" xml:space="preserve"><value>选择程序</value></data>
   <data name="ProgramPickerHeader" xml:space="preserve"><value>从已安装的软件和开始菜单中选择</value></data>
   <data name="ProgramPickerPlaceholder" xml:space="preserve"><value>搜索软件名称、可执行文件或路径...</value></data>
@@ -209,7 +209,7 @@
   <data name="MsgConfirmReset" xml:space="preserve"><value>确定要恢复出厂默认设置吗？所有自定义轮盘配置与样式将被重置。</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ 暂停</value></data>
   <data name="TrayResume" xml:space="preserve"><value>▶️ 恢复</value></data>
-  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好设置 (Settings)</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 设置台 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外观与形态 (Appearance)</value></data>
   <data name="TrayWheelActions" xml:space="preserve"><value>⚡ 轮盘与动作 (Mappings)</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
@@ -227,7 +227,7 @@
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>启动参数 (如命令行参数或URL)</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>从已安装软件列表中快速选择要排除的程序</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>将输入框中的进程名称加入排除黑名单</value></data>
-  <data name="ConsoleThemeDesc" xml:space="preserve"><value>定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>定制 StarPie 设置台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</value></data>
 <data name="StyleTypeLabel" xml:space="preserve"><value>主题风格 (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>重命名当前选中的自定义配色方案预设</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>自定义十六进制色彩 (色盘调色 / 屏幕吸色):</value></data>

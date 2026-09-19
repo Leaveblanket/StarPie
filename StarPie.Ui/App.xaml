@@ -17,7 +17,7 @@
                 <ResourceDictionary Source="Views/Styles/HotkeyRecorderBox.xaml" />
                 <!--  模块页面模板字典：本地合并；宿主外观聚合页模板在 Modules/HostPageTemplates.xaml  -->
                 <ResourceDictionary Source="Modules/WheelInteractionPageTemplates.xaml" />
-                <ResourceDictionary Source="Modules/ShellPageTemplates.xaml" />
+                <ResourceDictionary Source="Modules/SystemIntegrationPageTemplates.xaml" />
 <ResourceDictionary Source="Modules/HostPageTemplates.xaml" />
 <ResourceDictionary Source="Modules/HostCorePageTemplates.xaml" />
             </ResourceDictionary.MergedDictionaries>

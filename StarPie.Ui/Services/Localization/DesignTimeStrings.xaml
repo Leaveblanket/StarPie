@@ -30,7 +30,7 @@
     <sys:String x:Key="BlacklistDesc" xml:space="preserve">在排除名单中的应用程序（如远程桌面、画图、3D建模软件）中，完全放行鼠标右键。</sys:String>
     <sys:String x:Key="BlacklistPlaceholder" xml:space="preserve">输入进程名称 (如 solidworks.exe) 或点击右侧选择应用...</sys:String>
     <sys:String x:Key="BlacklistTitle" xml:space="preserve">进程排除黑名单</sys:String>
-    <sys:String x:Key="BottomStatusNote" xml:space="preserve">注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。</sys:String>
+    <sys:String x:Key="BottomStatusNote" xml:space="preserve">注: 所有修改即时生效并自动保存；【保存更改】用于立即落盘。</sys:String>
     <sys:String x:Key="BrowseAppTooltip" xml:space="preserve">选择应用程序或快捷方式...</sys:String>
     <sys:String x:Key="BrowseFolderTooltip" xml:space="preserve">选择本地文件夹...</sys:String>
     <sys:String x:Key="BtnAddAppProfile" xml:space="preserve">➕ 新增程序专属配置</sys:String>
@@ -43,7 +43,7 @@
     <sys:String x:Key="BtnCancel" xml:space="preserve">取消</sys:String>
     <sys:String x:Key="BtnChooseIcon" xml:space="preserve">选择图标...</sys:String>
     <sys:String x:Key="BtnClear" xml:space="preserve">清除</sys:String>
-    <sys:String x:Key="BtnClose" xml:space="preserve">关闭并隐藏</sys:String>
+    <sys:String x:Key="BtnClose" xml:space="preserve">关闭设置台</sys:String>
     <sys:String x:Key="BtnConfirm" xml:space="preserve">确定</sys:String>
     <sys:String x:Key="BtnDeletePreset" xml:space="preserve">🗑️ 删除预设</sys:String>
     <sys:String x:Key="BtnDeleteProcess" xml:space="preserve">🗑️ 移除选中</sys:String>
@@ -70,8 +70,8 @@
     <sys:String x:Key="ColorPickerSubtitle" xml:space="preserve">在色盘中精调色彩，或使用屏幕吸管捕获任意像素。</sys:String>
     <sys:String x:Key="ColorPickerSwatches" xml:space="preserve">预设经典配色卡 (Quick Swatches - 滚轮滚动查看全部):</sys:String>
     <sys:String x:Key="ColorPickerTitle" xml:space="preserve">色彩选择器与屏幕吸管 (Color Picker)</sys:String>
-    <sys:String x:Key="ConsoleThemeDesc" xml:space="preserve">定制 StarPie 控制台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</sys:String>
-    <sys:String x:Key="ConsoleThemeTitle" xml:space="preserve">软件控制台界面主题 (App Theme)</sys:String>
+    <sys:String x:Key="ConsoleThemeDesc" xml:space="preserve">定制 StarPie 设置台整体界面的视觉色彩风格，支持跟随 Windows 系统深浅色切换。</sys:String>
+    <sys:String x:Key="ConsoleThemeTitle" xml:space="preserve">设置台界面主题 (App Theme)</sys:String>
     <sys:String x:Key="CoreCustomImageTooltip" xml:space="preserve">自定义图片本地路径</sys:String>
     <sys:String x:Key="CoreIconType" xml:space="preserve">核圆图案类型 (Core Pattern):</sys:String>
     <sys:String x:Key="CoreImageBrowseTitle" xml:space="preserve">选择中心核圆图案图片</sys:String>
@@ -143,7 +143,7 @@
     <sys:String x:Key="LangAuto" xml:space="preserve">🖥️ 跟随系统 (System Default)</sys:String>
     <sys:String x:Key="LangEn" xml:space="preserve">🇺🇸 English (US/UK)</sys:String>
     <sys:String x:Key="LangJa" xml:space="preserve">🇯🇵 日本語 (Japanese)</sys:String>
-    <sys:String x:Key="LanguageDesc" xml:space="preserve">选择软件控制台与轮盘的显示语言，支持即时热切换并自动保存。</sys:String>
+    <sys:String x:Key="LanguageDesc" xml:space="preserve">选择设置台与轮盘的显示语言，支持即时热切换并自动保存。</sys:String>
     <sys:String x:Key="LanguageTitle" xml:space="preserve">界面语言 (Display Language)</sys:String>
     <sys:String x:Key="LangZhCn" xml:space="preserve">🇨🇳 简体中文 (Simplified Chinese)</sys:String>
     <sys:String x:Key="LangZhTw" xml:space="preserve">🇭🇰/🇹🇼 繁體中文 (Traditional Chinese)</sys:String>
@@ -302,5 +302,5 @@
     <sys:String x:Key="WheelPaletteSystem" xml:space="preserve">跟随系统 (System Auto)</sys:String>
     <sys:String x:Key="WheelPaletteTitle" xml:space="preserve">轮盘配色方案 (Wheel Palette):</sys:String>
     <sys:String x:Key="WheelSectorEmpty" xml:space="preserve">未设置</sys:String>
-    <sys:String x:Key="WindowTitle" xml:space="preserve">StarPie 设置控制台 (Preferences)</sys:String>
+    <sys:String x:Key="WindowTitle" xml:space="preserve">StarPie 设置台 (Preferences)</sys:String>
 </ResourceDictionary>

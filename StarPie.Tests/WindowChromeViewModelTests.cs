@@ -7,19 +7,19 @@ using StarPie.Ui;
 namespace StarPie.Tests;
 
 /// <summary>
-/// 主框架壳层 VM 的行为覆盖：<see cref="ShellViewModel"/> 的壳层职责——
+/// 窗口外框 VM 的行为覆盖：<see cref="WindowChromeViewModel"/> 的窗口外框职责——
 /// WindowTitle 随 I18n 刷新并成对退订、Save 落盘请求与成功提示。
 /// 只测外部行为，直接 new + 替身，不经容器；进程退出态归常驻壳层，不在本 VM。
 /// </summary>
-public sealed class ShellViewModelTests
+public sealed class WindowChromeViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
-    private static (ShellViewModel Vm, SaveSpy Spy, TestDialogService Dialogs) Create()
+    private static (WindowChromeViewModel Vm, SaveSpy Spy, TestDialogService Dialogs) Create()
     {
         var (messenger, spy) = SaveSpy.Create();
         var dialogs = new TestDialogService();
-        var vm = new ShellViewModel(messenger, dialogs, Localization);
+        var vm = new WindowChromeViewModel(messenger, dialogs, Localization);
         return (vm, spy, dialogs);
     }
 
@@ -34,25 +34,25 @@ public sealed class ShellViewModelTests
     [Fact]
     public void LanguageChanged_RaisesWindowTitlePropertyChanged_UntilDisposed()
     {
-        // WindowTitle 由壳层 VM 订阅 I18n 刷新；Dispose 后不再订阅静态事件。
+        // WindowTitle 由本 VM 订阅 I18n 刷新；Dispose 后不再订阅静态事件。
         var (vm, _, _) = Create();
         var original = Localization.CurrentLanguage;
         var changes = new List<string?>();
         vm.PropertyChanged += (_, e) =>
         {
-            if (e.PropertyName == nameof(ShellViewModel.WindowTitle)) changes.Add(e.PropertyName);
+            if (e.PropertyName == nameof(WindowChromeViewModel.WindowTitle)) changes.Add(e.PropertyName);
         };
         try
         {
             Localization.SetLanguage("en");
 
-            Assert.Contains(nameof(ShellViewModel.WindowTitle), changes);
+            Assert.Contains(nameof(WindowChromeViewModel.WindowTitle), changes);
             Assert.Equal(Localization.GetString("WindowTitle") + DevInstance.Suffix, vm.WindowTitle);
 
             changes.Clear();
             vm.Dispose();
             Localization.SetLanguage("ja");
-            Assert.DoesNotContain(nameof(ShellViewModel.WindowTitle), changes);
+            Assert.DoesNotContain(nameof(WindowChromeViewModel.WindowTitle), changes);
         }
         finally
         {

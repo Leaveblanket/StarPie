@@ -13,9 +13,9 @@ namespace StarPie.Ui.Views.Navigation
     /// 本窗口不 Show（无 HWND、不进任务栏、不参与视觉树），只在
     /// <see cref="Application.Current"/> 的窗口集合中占位。
     /// </remarks>
-    public sealed class ShellAnchorWindow : Window
+    public sealed class AnchorWindow : Window
     {
-        public ShellAnchorWindow()
+        public AnchorWindow()
         {
             ShowInTaskbar = false;
             ShowActivated = false;

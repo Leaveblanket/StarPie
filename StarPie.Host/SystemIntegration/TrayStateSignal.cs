@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace StarPie.Host.ShellIntegration
+namespace StarPie.Host.SystemIntegration
 {
     /// <summary>
     /// 主框架可见性 → 托盘状态信号的纯决策：动作序列即语义——

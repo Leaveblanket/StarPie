@@ -8,11 +8,11 @@ namespace StarPie.Tests;
 /// <summary>
 /// 界面主题设置子 ViewModel 的行为覆盖：AppTheme 透传（读穿配置 /
 /// 写穿 + 防抖落盘 + 主题应用消息）、驻留选项目录（切语重建 / 选中恢复 / Dispose 退订）、
-/// 配置导入后重挂路径（补发选中通知 + 主题应用消息由壳层订阅执行）。
+/// 配置导入后重挂路径（补发选中通知 + 主题应用消息由窗口订阅执行）。
 /// </summary>
 public sealed class InterfaceThemeSettingsViewModelTests
 {
-    /// <summary>主题应用消息记录器（壳层主窗口订阅语义的测试投影）。</summary>
+    /// <summary>主题应用消息记录器（窗口订阅语义的测试投影）。</summary>
     private sealed class ThemeApplyLog
     {
         public List<string> Themes { get; } = new();
@@ -194,12 +194,12 @@ public sealed class InterfaceThemeSettingsViewModelTests
 
         h.Messenger.Send(new ConfigImportedMessage(imported));
 
-        // 补发选中通知（绑定拉取新值恢复 ComboBox 选中）并发布主题应用消息（壳层执行窗口主题应用）
+        // 补发选中通知（绑定拉取新值恢复 ComboBox 选中）并发布主题应用消息（窗口执行主题应用）
         Assert.Contains(nameof(InterfaceThemeSettingsViewModel.AppTheme), h.Notified);
         var apply = Assert.Single(h.Applied.Themes);
         Assert.Equal("RoyalViolet", apply);
         Assert.Equal("RoyalViolet", h.Vm.AppTheme);
-        // 重挂只是视图/壳层路径：不触发落盘请求
+        // 重挂只是视图/窗口路径：不触发落盘请求
         Assert.Equal(0, h.Spy.Debounced);
         Assert.Equal(0, h.Spy.Immediate);
         Assert.Equal(0, h.ConfigService.SaveCalls);

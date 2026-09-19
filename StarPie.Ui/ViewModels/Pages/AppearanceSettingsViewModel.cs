@@ -6,7 +6,7 @@ using StarPie.Sdk.Services;
 namespace StarPie.Ui.ViewModels.Pages
 {
     /// <summary>
-    /// 外观设置页聚合 ViewModel：页面整体 DataContext 的薄页壳——不持有任何轮盘外观
+    /// 外观设置页聚合 ViewModel：页面整体 DataContext 的薄页——不持有任何轮盘外观
     /// 状态/命令，只暴露两个设置子 VM：
     /// <list type="bullet">
     /// <item><see cref="InterfaceTheme"/>：界面主题设置子 VM（独占 AppTheme 透传、选项目录
@@ -21,7 +21,7 @@ namespace StarPie.Ui.ViewModels.Pages
     /// 配置导入后，两个子 VM 各自订阅 <see cref="ConfigImportedMessage"/> 自行重挂；本聚合 VM
     /// 保留导入订阅只为页面级收尾——广播
     /// <see cref="PageConfigReloadedMessage"/>（typeof 本 VM）通知外观页 View 重绘实时预览等 View
-    /// 效果；窗口主题应用由 InterfaceTheme 子 VM 发 AppThemeChangedMessage、壳层主窗口订阅执行。
+    /// 效果；窗口主题应用由 InterfaceTheme 子 VM 发 AppThemeChangedMessage、常驻壳层主窗口订阅执行。
     /// 系统深浅色取值经注入的无状态探针 <see cref="WindowsInDarkMode"/> 暴露给页面：
     /// 页面（View）不得做服务调用，也不得用 messenger 替代同页绑定，故由 VM 取值、页面读属性。
     /// 释放链：随设置台会话释放时先释放两个子 VM（各自退订语言订阅）；
@@ -66,7 +66,7 @@ namespace StarPie.Ui.ViewModels.Pages
             WheelAppearance = wheelAppearance ?? throw new ArgumentNullException(nameof(wheelAppearance));
             IconAssetService = iconAssetService ?? throw new ArgumentNullException(nameof(iconAssetService));
 
-            // 导入成功广播 → 子 VM 各自订阅自行重挂；聚合壳只做页面级收尾广播——外观页
+            // 导入成功广播 → 子 VM 各自订阅自行重挂；聚合页只做页面级收尾广播——外观页
             // View 收到后重绘实时预览（状态与下拉项已声明式绑定，随子 VM 通知自动刷新）。
             messenger.Register<ConfigImportedMessage>(this, (_, _) =>
                 _messenger.Send(new PageConfigReloadedMessage(typeof(AppearanceSettingsViewModel))));

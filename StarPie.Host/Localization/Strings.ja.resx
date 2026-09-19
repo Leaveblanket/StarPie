@@ -74,14 +74,14 @@
   <data name="Error" xml:space="preserve"><value>エラー</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>次世代マウスラジアルホイール</value></data>
-  <data name="WindowTitle" xml:space="preserve"><value>StarPie 環境設定コンソール</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie 設定コンソール</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 トリガーとシーン</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
   <data name="PageWheelActions" xml:space="preserve"><value>⚡ ホイールと動作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高度な設定とシステム</value></data>
-  <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更はメモリ上で即座に有効になります。[変更を保存] で設定ファイルに永続化されます。</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>注: 変更は即時反映され、自動保存されます。[変更を保存] で直ちにファイルへ書き出します。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>変更を保存</value></data>
-  <data name="BtnClose" xml:space="preserve"><value>閉じて隠す</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>設定を閉じる</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>トリガーとシーンの分離設定</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>ホイールの感度、フルスクリーンゲームでの自動回避、除外プロセスを設定します。</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>ホイール起動感度</value></data>
@@ -147,7 +147,7 @@
   <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 キュートな肉球</value></data>
   <data name="CorePatternImage" xml:space="preserve"><value>🖼️ カスタム画像</value></data>
   <data name="BtnBrowseImage" xml:space="preserve"><value>画像を参照...</value></data>
-  <data name="ConsoleThemeTitle" xml:space="preserve"><value>コンソールテーマ (App Theme)</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>設定コンソールテーマ (App Theme)</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>🌓 システム自動</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>☀️ モダンライト</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>🌙 オブシディアンダーク</value></data>
@@ -209,7 +209,7 @@
   <data name="MsgConfirmReset" xml:space="preserve"><value>工場出荷時の初期設定に戻してもよろしいですか？すべてのカスタム設定がリセットされます。</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ 一時停止</value></data>
   <data name="TrayResume" xml:space="preserve"><value>▶️ 再開</value></data>
-  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 環境設定 (Settings)</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 設定コンソール</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外観と形状</value></data>
   <data name="TrayWheelActions" xml:space="preserve"><value>⚡ ホイールと動作</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ StarPie を終了</value></data>

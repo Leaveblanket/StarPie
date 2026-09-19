@@ -35,7 +35,7 @@ namespace StarPie.Ui.Services.Input
         // 钩子线程读、UI 线程写（托盘暂停/恢复），须 volatile 保可见性。
         private volatile bool _isPaused;
 
-        // 生命周期串行化：UI 线程（壳层启停）与看门狗线程（就地重注册）可能并发相遇。
+        // 生命周期串行化：UI 线程（常驻壳层启停）与看门狗线程（就地重注册）可能并发相遇。
         private readonly object _lifecycleLock = new();
 
         private readonly IGlobalHook _hook;

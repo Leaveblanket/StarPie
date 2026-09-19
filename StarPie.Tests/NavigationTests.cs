@@ -147,7 +147,7 @@ public sealed class NavigationExecutorTests
 /// 空 store 下的无选中态、条目命令与外部选中的双向同步、插件页动态注册 / 摘除时导航项的
 /// 追加 / 移除与当前页回落，以及释放时对 store / 目录 / 语言三处常驻事件源的退订。
 /// </summary>
-public sealed class MainViewModelTests
+public sealed class NavigationViewModelTests
 {
     private static readonly LocalizationService Localization = new();
 
@@ -229,13 +229,13 @@ public sealed class MainViewModelTests
         }
     }
 
-    private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture) Create()
+    private static (NavigationViewModel Vm, NavigationStore Store, PageVmFixture Fixture) Create()
     {
         var (vm, store, fixture, _, _) = CreateCore();
         return (vm, store, fixture);
     }
 
-    private static (MainViewModel Vm, NavigationStore Store, PageVmFixture Fixture, FakeNavigationExecutor Navigation, NavigationCatalog Catalog) CreateCore()
+    private static (NavigationViewModel Vm, NavigationStore Store, PageVmFixture Fixture, FakeNavigationExecutor Navigation, NavigationCatalog Catalog) CreateCore()
     {
         var fixture = new PageVmFixture();
         var store = new NavigationStore();
@@ -256,7 +256,7 @@ public sealed class MainViewModelTests
             [NavigationSlot.WheelInteraction] = fixture.Profiles,
             [NavigationSlot.Advanced] = fixture.General
         });
-        var vm = new MainViewModel(store, catalog, navigation, Localization);
+        var vm = new NavigationViewModel(store, catalog, navigation, Localization);
         return (vm, store, fixture, navigation, catalog);
     }
 
@@ -283,7 +283,7 @@ public sealed class MainViewModelTests
         var (vm, _, _) = Create();
 
         // 五槽正典（顺序/标识/类型的逐项真值）原由 BuiltInContributorsTests 逐项断言，该测试已下线；
-        // 此处只锁 MainViewModel 投影承接了目录（数量、有序 AutomationId 同形）。
+        // 此处只锁 NavigationViewModel 投影承接了目录（数量、有序 AutomationId 同形）。
         Assert.Equal(5, vm.NavigationItems.Count);
         Assert.Equal(
             vm.NavigationItems.OrderBy(i => i.AutomationId, StringComparer.Ordinal).Select(i => i.AutomationId),
@@ -408,7 +408,7 @@ public sealed class MainViewModelTests
 /// 插件页在控制台导航区的动态呈现：目录增页即出现在固定页之后，目录摘页即消失，
 /// 选中态与当前页保持同步；插件页导航经注册工厂创建页面 VM。
 /// </summary>
-public sealed class MainViewModelPluginPageTests
+public sealed class NavigationViewModelPluginPageTests
 {
     private static readonly LocalizationService Localization = new();
 
@@ -435,7 +435,7 @@ public sealed class MainViewModelPluginPageTests
         return catalog;
     }
 
-    private static (MainViewModel Vm, NavigationCatalog Catalog, NavigationStore Store) Create()
+    private static (NavigationViewModel Vm, NavigationCatalog Catalog, NavigationStore Store) Create()
     {
         var catalog = CreateCatalog();
         var store = new NavigationStore();
@@ -452,7 +452,7 @@ public sealed class MainViewModelPluginPageTests
         var session = new ConsolePageSession(provider.CreateScope);
         session.Begin();
         var executor = new NavigationExecutor(store, catalog, session);
-        return (new MainViewModel(store, catalog, executor, Localization), catalog, store);
+        return (new NavigationViewModel(store, catalog, executor, Localization), catalog, store);
     }
 
     [Fact]

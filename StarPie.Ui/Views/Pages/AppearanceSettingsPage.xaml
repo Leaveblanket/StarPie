@@ -33,7 +33,7 @@
                             <!--  卡片 0：软件界面主题风格  -->
                             <!--  界面主题卡 DataContext 指向界面主题设置子 VM（外观聚合 VM 的
                                   InterfaceTheme 属性）；选项目录随语言重建（新增主题不再改页面
-                                  XAML），主题应用经消息由壳层执行。  -->
+                                  XAML），主题应用经消息由常驻壳层执行。  -->
                             <Border DataContext="{Binding InterfaceTheme}" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                                 <Border.Effect>
                                     <DropShadowEffect BlurRadius="12" ShadowDepth="1" Color="#000000" Opacity="0.03"/>
@@ -44,7 +44,7 @@
 
                                     <!--  AppTheme 双向绑定（SelectedValuePath 取 Tag）+
                                           选项目录 ItemsSource 化；主题应用由子 VM 发布
-                                          AppThemeChangedMessage、壳层主窗口订阅执行，
+                                          AppThemeChangedMessage、常驻壳层主窗口订阅执行，
                                           页面不挂 SelectionChanged。  -->
                                     <ComboBox x:Name="AppThemeComboBox" Style="{StaticResource FlatComboBoxStyle}" Height="34" ItemsSource="{Binding AppThemeOptions}" DisplayMemberPath="Label" SelectedValuePath="Tag" SelectedValue="{Binding AppTheme, Mode=TwoWay}"/>
                                 </StackPanel>

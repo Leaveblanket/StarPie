@@ -30,9 +30,9 @@ namespace StarPie.Ui.Modules
     /// 导航运行时）按贡献者接口登记，组合根不再逐行硬编码注册体。
     /// </summary>
     /// <remarks>
-    /// 宿主回调委托包 <see cref="AppHostDelegates"/> 由组合根持有并在 ShellHost 构造后回填
+    /// 宿主回调委托包 <see cref="AppHostDelegates"/> 由组合根持有并在 ResidentShell 构造后回填
     /// （宿主状态不归贡献者，本贡献者只负责把同一实例注册为单例）；插件管理页（槽位 4）随本贡献者登记。
-    /// 设置台会话级 VM（导航区 <c>MainViewModel</c>、壳区 <c>ShellViewModel</c>）不在此登记：
+    /// 设置台会话级 VM（导航区 <c>NavigationViewModel</c>、窗口外框 <c>WindowChromeViewModel</c>）不在此登记：
     /// 它们随设置台开关重建，由组合根在设置台工厂里构造。
     /// 注册的可解析件：内核实现驻 <c>StarPie.Host</c>，WPF 适配件（<c>DispatcherSaveDebouncer</c>）
     /// 与图像构造（<c>IconAssetService</c>）驻本集，契约在 <c>StarPie.Sdk</c>/<c>StarPie.Sdk.Wpf</c>。
@@ -182,7 +182,7 @@ namespace StarPie.Ui.Modules
                 sp.GetRequiredService<ILocalizationService>(),
                 sp.GetRequiredService<PluginUiCoordinator>(),
                 sp.GetService<IDialogService>(),
-                // 提权态探测与壳层托盘入口、高级页卡片同源（共享内核 ProcessElevation），不各留一份实现。
+                // 提权态探测与常驻壳层托盘入口、高级页卡片同源（共享内核 ProcessElevation），不各留一份实现。
                 isAdministrator: ProcessElevation.IsRunningAsAdministrator));
         }
 

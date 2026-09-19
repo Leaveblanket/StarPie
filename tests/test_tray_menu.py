@@ -25,7 +25,7 @@ from conftest import (
 )
 from tray_area import wait_icon
 
-# 菜单条目 id 与产品发布面一致（StarPie.Ui/ShellHost.cs）
+# 菜单条目 id 与产品发布面一致（StarPie.Ui/ResidentShell.cs）
 PAUSE_ITEM = "TrayMenuPause"
 NAV_ITEMS = {
     "TrayMenuPreferences": 0,  # 触发与场景

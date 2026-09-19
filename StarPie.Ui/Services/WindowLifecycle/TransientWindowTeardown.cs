@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
 
-namespace StarPie.Ui.Services.Shell
+namespace StarPie.Ui.Services.WindowLifecycle
 {
     /// <summary>
     /// 瞬态窗口收尾纪律的唯一实现：清窗口动画 → <c>Close()</c> → 排空 Dispatcher →

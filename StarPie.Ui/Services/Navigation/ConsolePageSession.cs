@@ -60,7 +60,7 @@ namespace StarPie.Ui.Services.Navigation
             return instance;
         }
 
-        /// <summary>按类型取会话级 VM（导航区/壳区/设置台子 VM 的取用面，与页面 VM 共用同一作用域）。</summary>
+        /// <summary>按类型取会话级 VM（导航区/窗口外框/设置台子 VM 的取用面，与页面 VM 共用同一作用域）。</summary>
         public T Resolve<T>() where T : notnull => (T)Resolve(typeof(T));
 
         /// <summary>结束会话：实例记账清空 + 作用域释放（scoped 实例的成对退订在此执行）；幂等。</summary>

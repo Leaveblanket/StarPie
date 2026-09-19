@@ -3,7 +3,7 @@
                     xmlns:vm="clr-namespace:StarPie.Ui.ViewModels.Pages"
                     xmlns:pages="clr-namespace:StarPie.Ui.Views.Pages">
 
-    <!--  宿主页面模板字典：外观聚合页壳模板。页面 View 无参构造、按导航重建、不经容器。  -->
+    <!--  宿主页面模板字典：外观聚合页模板。页面 View 无参构造、按导航重建、不经容器。  -->
     <DataTemplate DataType="{x:Type vm:AppearanceSettingsViewModel}">
         <pages:AppearanceSettingsPage/>
     </DataTemplate>

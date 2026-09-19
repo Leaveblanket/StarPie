@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace StarPie.Sdk.Wpf.Services.Shell
+namespace StarPie.Sdk.Wpf.Services.Themes
 {
     /// <summary>
     /// 界面主题服务接缝（驻 <c>StarPie.Sdk.Wpf</c>）：
@@ -11,7 +11,7 @@ namespace StarPie.Sdk.Wpf.Services.Shell
     /// 调色板整项替换由宿主装配的主题应用端口执行（内核主题引擎触发），本服务不触碰 Views。
     /// 消费方为宿主的窗口/对话框工厂与对话框侧（Dialogs runtime 只经本契约边消费）；
     /// 深浅色读数不经本契约，由宿主注入的无状态探针提供（见 <c>interface-theme.md</c>），
-    /// 页面不持有本服务（壳层 View 效果白名单）。
+    /// 页面不持有本服务（窗口 View 效果白名单）。
     /// </remarks>
     public interface IThemeService
     {

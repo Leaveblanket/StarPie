@@ -57,8 +57,8 @@ namespace StarPie.Sdk.Services.Messages
 
     /// <summary>
     /// 界面主题（AppTheme）变更消息：<see cref="StarPie.Sdk.ViewModels.Pages.InterfaceThemeSettingsViewModel"/>
-    /// 写穿运行态配置后发布，由壳层主窗口（MainView）订阅执行窗口主题应用（<c>ApplyAppTheme</c>）；
-    /// 配置导入后的重挂路径同样经本消息触发壳层执行。
+    /// 写穿运行态配置后发布，由设置台窗口（SettingsConsoleWindow）订阅执行窗口主题应用（<c>ApplyAppTheme</c>）；
+    /// 配置导入后的重挂路径同样经本消息触发窗口执行。
     /// </summary>
     public sealed class AppThemeChangedMessage
     {

@@ -17,7 +17,7 @@ namespace StarPie.Tests;
 /// </summary>
 /// <remarks>
 /// 导入广播的自订阅重挂与 Dispose 退订的守护在 <see cref="AppearanceSettingsViewModelTests"/>
-/// （聚合壳用例经同一总线触达子 VM）；刷新器自身的语义见 <see cref="ResidentOptionRefresherTests"/>。
+/// （聚合页用例经同一总线触达子 VM）；刷新器自身的语义见 <see cref="ResidentOptionRefresherTests"/>。
 /// </remarks>
 public sealed class WheelAppearanceSettingsViewModelTests
 {

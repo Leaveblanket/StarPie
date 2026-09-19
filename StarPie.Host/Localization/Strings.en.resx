@@ -74,14 +74,14 @@
   <data name="Error" xml:space="preserve"><value>Error</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
   <data name="AppSubtitle" xml:space="preserve"><value>Modern Mouse Radial Wheel</value></data>
-  <data name="WindowTitle" xml:space="preserve"><value>StarPie Preferences Console</value></data>
+  <data name="WindowTitle" xml:space="preserve"><value>StarPie Settings Console</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 Trigger &amp; Scenes</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
   <data name="PageWheelActions" xml:space="preserve"><value>⚡ Wheel &amp; Actions</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
-  <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes take effect in memory immediately. Click [Save Changes] to persist to disk.</value></data>
+  <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes apply immediately and are saved automatically. [Save Changes] writes them to disk now.</value></data>
   <data name="BtnSave" xml:space="preserve"><value>Save Changes</value></data>
-  <data name="BtnClose" xml:space="preserve"><value>Close &amp; Hide</value></data>
+  <data name="BtnClose" xml:space="preserve"><value>Close Console</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>Trigger &amp; Scene Isolation</value></data>
   <data name="TriggerSubheader" xml:space="preserve"><value>Configure wheel trigger sensitivity, full-screen gaming bypass, and exclusion blacklist.</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>Trigger Sensitivity</value></data>
@@ -147,7 +147,7 @@
   <data name="CorePatternCatPaw" xml:space="preserve"><value>🐾 Cute Cat Paw</value></data>
   <data name="CorePatternImage" xml:space="preserve"><value>🖼️ Custom Image</value></data>
   <data name="BtnBrowseImage" xml:space="preserve"><value>Browse Image...</value></data>
-  <data name="ConsoleThemeTitle" xml:space="preserve"><value>Console Theme (App Theme)</value></data>
+  <data name="ConsoleThemeTitle" xml:space="preserve"><value>Settings Console Theme (App Theme)</value></data>
   <data name="ThemeSystem" xml:space="preserve"><value>🌓 System Auto</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>☀️ Modern Light</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>🌙 Obsidian Dark</value></data>
@@ -209,7 +209,7 @@ This cannot be undone.</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>Are you sure you want to restore factory defaults? All customizations will be reset.</value></data>
   <data name="TrayPause" xml:space="preserve"><value>⏸️ Pause</value></data>
   <data name="TrayResume" xml:space="preserve"><value>▶️ Resume</value></data>
-  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Preferences (Settings)</value></data>
+  <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Settings Console</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
   <data name="TrayWheelActions" xml:space="preserve"><value>⚡ Wheel &amp; Actions</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
@@ -227,7 +227,7 @@ This cannot be undone.</value></data>
   <data name="LaunchArgsTooltip" xml:space="preserve"><value>Launch arguments (e.g. command-line args or URL)</value></data>
   <data name="BlacklistBrowseTooltip" xml:space="preserve"><value>Quickly pick an app to exclude from the installed apps list</value></data>
   <data name="BlacklistAddTooltip" xml:space="preserve"><value>Add the process name in the input box to the exclusion blacklist</value></data>
-  <data name="ConsoleThemeDesc" xml:space="preserve"><value>Customize the console's visual color style and follow Windows light/dark mode.</value></data>
+  <data name="ConsoleThemeDesc" xml:space="preserve"><value>Customize the settings console's visual color style and follow Windows light/dark mode.</value></data>
 <data name="StyleTypeLabel" xml:space="preserve"><value>Renderer Style (Wheel Style):</value></data>
   <data name="RenamePresetTooltip" xml:space="preserve"><value>Rename the currently selected custom color preset</value></data>
   <data name="CustomColorsLabel" xml:space="preserve"><value>Custom hex colors (color wheel / screen picker):</value></data>

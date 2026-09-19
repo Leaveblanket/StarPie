@@ -16,7 +16,7 @@ namespace StarPie.Ui
         // "提权未生效"事件句柄：同上——对象归首实例所有，提权新实例只是打开同一个对象并置位。
         private static EventWaitHandle? _elevationFailedEvent;
         private Composition? _composition;
-        private ShellHost? _shellHost;
+        private ResidentShell? _residentShell;
 
         // 单实例闸门：全机命名互斥，dev 与正式实例同闸（不并行运行，后启动方按已有实例路径置前退出）。
         private const string SingleInstanceMutexName = @"Global\StarPie_SingleInstance_Mutex_9B8A7C";
@@ -129,15 +129,15 @@ namespace StarPie.Ui
             try
             {
                 // 手动组合根 + 常驻壳层：Composition 装配对象图（无 StartupUri），
-                // ShellHost 执行启动编排。
+                // ResidentShell 执行启动编排。
                 _composition = new Composition();
 
                 // 经注入的配置服务加载配置
                 _composition.Config.Load();
 
-                _shellHost = _composition.CreateShellHost(testInstance);
-                _shellHost.Run();
-                // 启动兜底内存整理（含 Debug 构建的堆硬顶生效值日志）在 ShellHost 启动编排末尾执行（预热之后）
+                _residentShell = _composition.CreateResidentShell(testInstance);
+                _residentShell.Run();
+                // 启动兜底内存整理（含 Debug 构建的堆硬顶生效值日志）在 ResidentShell 启动编排末尾执行（预热之后）
             }
             catch (Exception ex)
             {
@@ -168,9 +168,9 @@ namespace StarPie.Ui
             }
             catch { }
 
-            // 托盘、鼠标钩子与设置台的生命周期归 ShellHost；DI 容器由组合根最后释放
-            _shellHost?.Dispose();
-            _shellHost = null;
+            // 托盘、鼠标钩子与设置台的生命周期归 ResidentShell；DI 容器由组合根最后释放
+            _residentShell?.Dispose();
+            _residentShell = null;
             _composition?.Dispose();
             _composition = null;
 

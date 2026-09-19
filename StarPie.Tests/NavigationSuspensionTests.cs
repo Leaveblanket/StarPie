@@ -112,7 +112,7 @@ public sealed class NavigationSuspensionTests
     {
         var (suspension, executor, store, catalog, _) = Create();
         executor.Navigate(NavigationSlot.Appearance);
-        var main = new MainViewModel(store, catalog, executor, new LocalizationService());
+        var main = new NavigationViewModel(store, catalog, executor, new LocalizationService());
         NavigationItemViewModel item = main.NavigationItems.First(i => i.TargetViewModelType == typeof(AppearanceViewModel));
         Assert.True(item.IsSelected);
 

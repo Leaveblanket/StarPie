@@ -5,7 +5,7 @@
 ## 分层总览
 
 ```text
-App / ShellHost / SettingsConsole / Composition  # 常驻壳层 + 设置台租户 + 装配与解析（Composition，唯一解析点）
+App / ResidentShell / SettingsConsole / Composition  # 常驻壳层 + 设置台租户 + 装配与解析（Composition，唯一解析点）
       |
       v
 ViewModels ---> Views        # 经 DataContext/DataTemplate；View 不反向引用 VM 之外
@@ -18,17 +18,17 @@ Services ---> Models
 
 程序集划分、依赖方向与逐程序集职责见 [assemblies.md](assemblies.md) §2/§3。跨程序集回填缝
 （`AppHostDelegates` 为 SDK 公开契约由组合根注册 /
-ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各程序集内部。
+ResidentShell 回填）属 H1 装配职责；本文件以下分层规则适用于各程序集内部。
 
 ## 依赖矩阵
 
-| 引用方 \ 被引用方 | App/ShellHost/Composition | Models | Services | ViewModels | Views | Messages |
+| 引用方 \ 被引用方 | App/ResidentShell/Composition | Models | Services | ViewModels | Views | Messages |
 |---|---|---|---|---|---|---|
 | Models | ✗ | △（同层值类型互用） | ✗ | ✗ | ✗ | ✗ |
 | Services | ✗ | ✅ | ✅（经接口，见下） | ✗ | ✗ | ✅ |
 | ViewModels | ✗ | ✅ | ✅（接口/委托） | △（仅静态已知依赖，见下） | ✗ | ✅ |
 | Views | ✗ | △（仅 WPF-free 值类型经绑定/转换器） | △（仅白名单服务构造注入，见下） | ✅（DataContext/DataTemplate） | △（同层控件/样式/转换器） | ✗ |
-| App/ShellHost/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App/ResidentShell/Composition | — | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ### 必须遵守的例外与说明
 
@@ -56,7 +56,7 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - **命名空间 = 工程名 + 工程内相对目录**：命名空间根是**工程名**（即 csproj 文件名），
   故 `StarPie.Host/Configuration/` 内文件声明 `StarPie.Host.Configuration`、
   `StarPie.Ui/Services/Input/HookWatchdog.cs` 声明 `StarPie.Ui.Services.Input`；
-  根级类型（`App`、`ShellHost`、`Composition`、`DevInstance`）在 `StarPie.Ui`。
+  根级类型（`App`、`ResidentShell`、`Composition`、`DevInstance`）在 `StarPie.Ui`。
   插件工程同理以自身工程名起根（`StarPie.Plugin.SampleUi/Views/` → `StarPie.Plugin.SampleUi.Views`）。
 - **命名空间根跟随工程，不跟随产品名**：每个工程自成一棵命名空间树，同名命名空间
   不再跨程序集合并——`StarPie.Ui.Services.Wheel` 与 `StarPie.Sdk.Services.Wheel`
@@ -71,12 +71,12 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
   - 需要被 Host 装配的模块公开件显式 `public`；与装配方同集、只作容器解析或被测类型的件维持 `public`，装配方与实现同集且无跨集消费的回落 `internal`。
   - 其余内部实现细节（私有嵌套、纯辅助类等）默认 `internal`。
   - **不引入 `InternalsVisibleTo`**（现状：测试工程直接引用 public 类型）。若日后要收紧可见性，先写 ADR。
-  - `Composition`、`ShellHost` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露
+  - `Composition`、`ResidentShell` 为 `internal sealed class`，仅同程序集 `App` 使用；不对外暴露
   （`SettingsConsole` 为 `public`：被测类型保持 public，见测试约定）。
 
   既有先例与逐件裁决（`AppDataPaths`/`TrayIconManager`/`AutostartRegistry`/`AppThemePaletteManager`/
   `WheelFactory` 等）正典在 [assemblies.md](assemblies.md) §7——本叶只写规则，不抄先例。
-- 页面 View 无参构造、不注册容器，因此不需要 public 构造注入（`MainView`、对话框 Window 是仅有的、经组合根/服务显式 `new` 的窗口）。
+- 页面 View 无参构造、不注册容器，因此不需要 public 构造注入（`SettingsConsoleWindow`、对话框 Window 是仅有的、经组合根/服务显式 `new` 的窗口）。
 
 ## Models
 
@@ -108,23 +108,23 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 为**设置台会话作用域**（scoped：同一会话内保留实例使状态跨导航常驻，
   会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
-  导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按轮盘交互创建、不注册；
+  导航区/窗口外框 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按轮盘交互创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
-- 主框架 VM 拆分（判据 D3）：`MainViewModel`（导航状态；目录驱动；运行时主体在
-  Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与
-  `ShellViewModel`（窗口标题/退出态/保存，Host 壳窗口）分别供 `MainView` 分区 DataContext 的
-  导航区与壳区。
+- 主框架 VM 拆分（判据 D3）：`NavigationViewModel`（导航状态；目录驱动；运行时主体在
+  Host `ViewModels/Navigation/`——与 `WindowChromeViewModel` 均归 Host）与
+  `WindowChromeViewModel`（窗口标题/退出态/保存，Host 窗口外框）分别供 `SettingsConsoleWindow` 分区 DataContext 的
+  导航区与窗口外框。
 - 仅暴露可观察状态、命令与必要消息；**不得暴露临时 `event Action`**。
 - 状态传输：View 经 `DataContext`/`Binding` 读取；可编辑值 `Mode=TwoWay`；VM 用 `INotifyPropertyChanged`（本项目 `ObservableObject`）。
 - 用户动作：一律 `ICommand`；Button 等 `ICommandSource` 绑 `Command`/`CommandParameter`；代码后置不得调用 `Vm.Command.Execute(...)`。
 - 跨 VM/页面协调：不可变 `IMessenger` 消息；静态已知依赖可构造注入（见上文例外 2）；同页状态不得用 messenger 替代绑定。
 - 副作用经注入服务或**贡献者注入的委托**编排（自启、导入导出在本页接线；**托盘气泡与退出是
-  壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
-  M5 页面 VM 由 ShellContributor 登记、M1 页面 VM 由 WheelInteractionContributor 登记）；
+  常驻壳层动作**，页面只经 `AppHostDelegates` 转发触发；模式沿用 `GeneralSettingsViewModel`，
+  M5 页面 VM 由 SystemIntegrationContributor 登记、M1 页面 VM 由 WheelInteractionContributor 登记）；
   VM 不直接持有 `Window`、`MessageBox`、文件对话框等 WPF 类型。
 - 对话框 VM 完成语义：`IsCompleted` 可观察状态 + `BuildResult()` 返回可空结果 record；取消/无效输入返回 `null`。
-- 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`MainViewModel.Dispose`/
-  `ShellViewModel.Dispose` 模式；页面 VM 随设置台会话释放，退订在 `Dispose` 内执行，
+- 订阅 `I18n.LanguageChanged`/messenger 的 VM 必须成对退订（`NavigationViewModel.Dispose`/
+  `WindowChromeViewModel.Dispose` 模式；页面 VM 随设置台会话释放，退订在 `Dispose` 内执行，
   messenger 侧另有 `UnregisterAll(this)` 显式出账）。
 
 官方 API：
@@ -140,14 +140,14 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
 ## Views
 
 - XAML/View 负责布局、控件树、样式、模板、资源、动画和可视状态；**不在 View 中编排业务、写配置、调用服务、处理文件/注册表或决定领域状态**。
-- code-behind 只保留 View code-behind 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、壳层职责（窗口类：主题应用、托盘/窗口行为）。
-- 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/ShellPageTemplates.xaml`、M1 在
+- code-behind 只保留 View code-behind 白名单：生命周期接线、XAML 表达不了的位置本地化、纯视觉渲染（Canvas 绘制/坐标转发）、纯 UI 适配（取消、滚动、焦点）、窗口类白名单（主题应用、托盘/窗口行为）。
+- 页面经 App 级模块页面模板字典（M5 在 `StarPie.Ui/Modules/SystemIntegrationPageTemplates.xaml`、M1 在
   `StarPie.Ui/Modules/WheelInteractionPageTemplates.xaml`，M1/M5 本地合并；Host 外观
   聚合页在 Ui 集 `StarPie.Ui/Modules/HostPageTemplates.xaml`）中的 DataTemplate 映射 VM
   （无参构造、不注册容器）；页面 XAML 根直承 `UserControl`
   （页面 XAML 根直承 `UserControl`，无共享页面基类；页面 code-behind 以 `Loaded`/`Unloaded`
   成对自订阅，不使用基类 virtual 钩子）；
-  页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`MainView` 模式）。
+  页面卸载时成对取消静态事件与 messenger 订阅（`RadialWindow`、`SettingsConsoleWindow` 模式）。
 - WPF 事件允许保留，但只能处理纯 UI 细节；不得调用 VM 方法、服务或命令作为业务入口（参见 [Routed events overview](https://learn.microsoft.com/en-us/dotnet/desktop/wpf/events/routed-events-overview)）。
 - 没有 `Command` 属性的控件优先属性绑定；仅“无等价绑定且纯 UI 适配”时才用行为/附加属性（`SpectrumCanvasBehavior` 属 View code-behind 输入适配白名单）。
 

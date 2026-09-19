@@ -16,7 +16,7 @@ namespace StarPie.Ui
     /// <summary>
     /// 组合根：容器装配与解析集中在本类——注册期遍历内置贡献者有序清单（导航目录 +
     /// 服务/页面 ViewModel），随后调用 <c>BuildServiceProvider</c>；解析点只出现在组合根
-    /// （含 <see cref="CreateShellHost"/> 与它交付的设置台工厂）。
+    /// （含 <see cref="CreateResidentShell"/> 与它交付的设置台工厂）。
     /// </summary>
     /// <remarks>
     /// 三个阶段在本类显式分离（**注册顺序 ≠ 解析时机**）：
@@ -24,13 +24,13 @@ namespace StarPie.Ui
     /// <item>注册期：<see cref="BuiltInContributors.CreateAll"/> 的有序清单驱动——先写导航目录并收口，
     /// 再写容器描述符（贡献者只注册不解析）；</item>
     /// <item>容器构建：唯一 <c>BuildServiceProvider</c>；</item>
-    /// <item>解析：<see cref="CreateShellHost"/> 在配置加载后解析常驻件；设置台的会话对象图
+    /// <item>解析：<see cref="CreateResidentShell"/> 在配置加载后解析常驻件；设置台的会话对象图
     ///（含会话作用域内的页面 VM 与设置子 VM）由组合根交付的工厂在每次开窗时解析——
     /// 页面 VM 不再启动期 eager 解析。</item>
     /// </list>
     /// 插件贡献者在装载期适配成同一 <see cref="ICompositionContributor"/> 接口追加进同一管线。
-    /// 运行与退出编排在 <see cref="ShellHost"/>，本类不持有托盘/主窗口/语言字典等宿主状态；
-    /// 装配顺序（钩子先启 → 配置加载 → 建窗）由 ShellHost.Run 保持，配置加载由
+    /// 运行与退出编排在 <see cref="ResidentShell"/>，本类不持有托盘/主窗口/语言字典等宿主状态；
+    /// 装配顺序（钩子先启 → 配置加载 → 建窗）由 ResidentShell.Run 保持，配置加载由
     /// App.OnStartup 在本组合根创建后驱动。
     /// 生命周期：服务为单例（常驻）；页面 View 瞬态，由 DataTemplate 无参构造实例化、不经容器。
     /// 测试不经容器（直接 new + mock）。
@@ -61,7 +61,7 @@ namespace StarPie.Ui
 
             // 1a 导航目录：各贡献者自报导航页（M1 槽位 0/2、Host 聚合页槽位 1、M5 槽位 3、
             // 宿主直持的插件管理页槽位 4）。Validate 在 BuildServiceProvider 前收口五槽完整，
-            // 供 CreateShellHost 与导航执行缝消费（页面解析由目录驱动，不硬编码页面类型）。
+            // 供 CreateResidentShell 与导航执行缝消费（页面解析由目录驱动，不硬编码页面类型）。
             var navigationCatalog = new NavigationCatalog();
             foreach (ICompositionContributor contributor in _contributors)
             {
@@ -83,10 +83,10 @@ namespace StarPie.Ui
             _config = _provider.GetRequiredService<JsonConfigService>();
         }
 
-        /// <summary>解析全部常驻依赖并创建 <see cref="ShellHost"/>；解析点仍集中在本组合根。</summary>
-        internal ShellHost CreateShellHost(bool testInstance = false)
+        /// <summary>解析全部常驻依赖并创建 <see cref="ResidentShell"/>；解析点仍集中在本组合根。</summary>
+        internal ResidentShell CreateResidentShell(bool testInstance = false)
         {
-            // 阶段 3｜解析：时机在配置加载后、ShellHost.Run 前，与贡献者注册顺序无关
+            // 阶段 3｜解析：时机在配置加载后、ResidentShell.Run 前，与贡献者注册顺序无关
             //（页面清单由导航目录驱动，不逐个硬编码页面类型）。
             var messenger = _provider.GetRequiredService<IMessenger>();
             var inputHook = _provider.GetRequiredService<MouseInputHook>();
@@ -97,7 +97,7 @@ namespace StarPie.Ui
             var navigation = _provider.GetRequiredService<INavigationExecutor>();
             var navigationCatalog = _provider.GetRequiredService<NavigationCatalog>();
             var iconAssets = _provider.GetRequiredService<IIconAssetService>();
-            // 轮盘预热（启动编排末尾）经工厂契约触发，壳层不知道 Profile 查找与预热装配。
+            // 轮盘预热（启动编排末尾）经工厂契约触发，常驻壳层不知道 Profile 查找与预热装配。
             var wheelFactory = _provider.GetRequiredService<IWheelFactory>();
             var navigationStore = _provider.GetRequiredService<NavigationStore>();
 
@@ -105,23 +105,23 @@ namespace StarPie.Ui
             // 由导航执行缝经 ConsolePageSession 构造（见 CreateSettingsConsole）。
             // 设置台会话缓存：开/结束会话由设置台租户驱动，实例边界是组合根交付的 DI 作用域。
             var pageSession = _provider.GetRequiredService<ConsolePageSession>();
-            // 插件运行时（扫描 + 装载/停用/再启用）：由 ShellHost 在启动序列里驱动。
+            // 插件运行时（扫描 + 装载/停用/再启用）：由 ResidentShell 在启动序列里驱动。
             var pluginRuntime = _provider.GetRequiredService<PluginRuntimeHost>();
-            // 插件 UI 托管门面：ShellHost 用它合成托盘菜单的插件条目、插件管理页用它呈现设置区块。
+            // 插件 UI 托管门面：ResidentShell 用它合成托盘菜单的插件条目、插件管理页用它呈现设置区块。
             var pluginUi = _provider.GetRequiredService<PluginUiCoordinator>();
             // 导航视图出账与恢复重放（设置台关闭出账、重开重放；构造点收在组合根）。
             var navigationSuspension = new NavigationSuspension(navigationStore, navigationCatalog, navigation);
 
-            // 设置台会话工厂：会话级对象图（导航区 VM + 壳区 VM + 会话作用域内的页面/设置子 VM）
-            // 在每次开窗时新建，解析仍只发生在组合根——壳层拿到的只是这个闭包。
+            // 设置台会话工厂：会话级对象图（导航区 VM + 窗口外框 VM + 会话作用域内的页面/设置子 VM）
+            // 在每次开窗时新建，解析仍只发生在组合根——常驻壳层拿到的只是这个闭包。
             // 工厂在构造租户前开启会话作用域（Begin），结束由租户释放时执行（End）。
             SettingsConsole CreateSettingsConsole(System.Windows.Window anchor, Func<bool> isExiting)
             {
                 pageSession.Begin();
                 IServiceProvider sessionServices = pageSession.Services;
                 return new SettingsConsole(
-                    new MainViewModel(navigationStore, navigationCatalog, navigation, localization),
-                    new ShellViewModel(messenger, dialogService, localization),
+                    new NavigationViewModel(navigationStore, navigationCatalog, navigation, localization),
+                    new WindowChromeViewModel(messenger, dialogService, localization),
                     themeService,
                     dialogService,
                     sessionServices.GetRequiredService<InterfaceThemeSettingsViewModel>(),
@@ -134,7 +134,7 @@ namespace StarPie.Ui
                     isExiting);
             }
 
-            return new ShellHost(
+            return new ResidentShell(
                 messenger,
                 inputHook,
                 themeService,
@@ -152,7 +152,7 @@ namespace StarPie.Ui
 
         public void Dispose()
         {
-            // 容器随组合根释放；托盘/钩子/设置台由 ShellHost.Dispose 先行释放。
+            // 容器随组合根释放；托盘/钩子/设置台由 ResidentShell.Dispose 先行释放。
             _provider.Dispose();
         }
     }

@@ -44,7 +44,7 @@ public sealed class InteropBaselineTests
     {
         // Shell_NotifyIcon 在 win32metadata 中标记为架构特定（PInvoke005），AnyCPU 下 CsWin32 无法生成；
         // 如日后收敛到 PlatformTarget=x64 可连同 NOTIFYICONDATA 一起回收。
-        [Path.Combine("StarPie.Ui", "Services", "Shell", "TrayIconManager.cs")] = 1,
+        [Path.Combine("StarPie.Ui", "Services", "SystemIntegration", "TrayIconManager.cs")] = 1,
         // SHGetFileInfo 同属架构特定（PInvoke005），与 SHFILEINFO 一起保留。
         [Path.Combine("StarPie.Ui", "Services", "Icons", "IconAssetService.cs")] = 1,
         // WinVerifyTrust 与 WinTrust* 结构族：准安全路径 + 手工封送 + 既有异常面（零行为变化优先）。

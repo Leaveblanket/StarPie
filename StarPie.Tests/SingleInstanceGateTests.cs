@@ -1,4 +1,4 @@
-using StarPie.Host.ShellIntegration;
+using StarPie.Host.SystemIntegration;
 
 namespace StarPie.Tests;
 

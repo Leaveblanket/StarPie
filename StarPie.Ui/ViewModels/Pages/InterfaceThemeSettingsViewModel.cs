@@ -13,8 +13,8 @@ namespace StarPie.Ui.ViewModels.Pages
     /// 随语言切换重建并补发选中通知恢复选中）。
     /// </summary>
     /// <remarks>
-    /// 主题应用到窗口属壳层 View 效果：写穿后发布 <see cref="AppThemeChangedMessage"/>，由
-    /// 壳层主窗口（MainView）订阅执行窗口主题应用；配置导入后的重挂路径同样经本消息由壳层
+    /// 主题应用到窗口属常驻壳层 View 效果：写穿后发布 <see cref="AppThemeChangedMessage"/>，由
+    /// 常驻壳层主窗口（SettingsConsoleWindow）订阅执行窗口主题应用；配置导入后的重挂路径同样经本消息由常驻壳层
     /// 执行。本 VM 由 <c>ThemeContributor</c> 以会话作用域注册（设置台会话内驻留，随设置台关闭
     /// 释放），外观页的界面主题卡 DataContext 指向它；切语重建选项目录，
     /// 由 <see cref="ResidentOptionRefresher"/> 管订阅与退订。
@@ -37,7 +37,7 @@ namespace StarPie.Ui.ViewModels.Pages
             _localization = localization ?? throw new ArgumentNullException(nameof(localization));
 
             // 配置导入会替换运行态配置实例（JsonConfigService.Import）：重挂后补发选中通知并发布
-            // 主题应用消息，由壳层主窗口订阅执行（含配置导入后重挂路径）。
+            // 主题应用消息，由常驻壳层主窗口订阅执行（含配置导入后重挂路径）。
             messenger.Register<ConfigImportedMessage>(this, (_, _) => ReloadFromConfig());
 
             RebuildAppThemeOptions();
@@ -56,7 +56,7 @@ namespace StarPie.Ui.ViewModels.Pages
         /// 透传属性：读直取运行态配置，取值经主题目录归一到常量原形——空值、遗留别名与未知名
         /// 回落 System，否则旧的遗留值会让下拉空白且界面静默停在别的主题上；归一只读不写盘。
         /// 写直穿配置后经防抖消息请求落盘，并发布 <see cref="AppThemeChangedMessage"/>
-        /// 交壳层主窗口应用窗口主题。
+        /// 交常驻壳层主窗口应用窗口主题。
         /// 下拉项重建期间绑定回推的瞬态 null/空值被忽略，避免切语重建目录时误把选中清成 System。
         /// </summary>
         public string AppTheme
@@ -100,7 +100,7 @@ namespace StarPie.Ui.ViewModels.Pages
 
         /// <summary>
         /// 导入配置后从当前配置重挂：透传属性读穿新配置实例，无需状态迁移——补发选中通知
-        /// 让绑定拉取新值恢复 ComboBox 选中，并发布 <see cref="AppThemeChangedMessage"/> 由壳层
+        /// 让绑定拉取新值恢复 ComboBox 选中，并发布 <see cref="AppThemeChangedMessage"/> 由常驻壳层
         /// 主窗口执行窗口主题应用。
         /// </summary>
         public void ReloadFromConfig()
