@@ -12,8 +12,8 @@ namespace StarPie.Ui.Modules
     /// <summary>
     /// M5 常驻壳层与系统集成贡献者：模块侧注册自治。<see cref="RegisterNavigation"/> 自报本模块
     /// 页面（高级与系统）写入 <see cref="NavigationCatalog"/>（槽位/标题键/图标/
-    /// 目标类型），页面 DataTemplate 收进 SystemIntegrationPageTemplates.xaml（宿主 App.xaml 经跨程序集
-    /// pack URI 每模块一次静态合并）；<see cref="RegisterServices"/> 把本模块页面 VM 的 DI 注册
+/// 目标类型），页面 DataTemplate 收进 SystemIntegrationPageTemplates.xaml（App.xaml 以本地相对
+/// Source 每模块一次静态合并）；<see cref="RegisterServices"/> 把本模块页面 VM 的 DI 注册
     /// 下放本程序集（组合根仍唯一 BuildServiceProvider，本贡献者只注册不解析）。
     /// </summary>
     /// <remarks>

@@ -29,3 +29,6 @@
 ## 维护
 
 新增/修改规范只动这三片叶子对应的那片,不要新增第四片。
+符号命名沿革与术语归位(轮盘交互、设置台、常驻壳层)见
+[adr/0054-wheel-interaction-naming.md](adr/0054-wheel-interaction-naming.md) 与
+[adr/0055-settings-console-and-resident-shell.md](adr/0055-settings-console-and-resident-shell.md)。
