@@ -101,14 +101,14 @@ ShellHost 回填）属 H1 装配职责；本文件以下分层规则适用于各
   图标提取）收敛为实例服务 `IIconAssetService`/`IconAssetService` 经 DI 注入；无状态纯表
   （矢量图标清单/SVG 键目录/路径解析）保持静态 `IconCatalog`——「static = 无状态纯表；
   有状态/IO/Win32 = 实例服务」判据的统一表述。
-- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按手势瞬态创建。
+- 服务注册以单例为主；页面 VM 按设置台会话作用域（scoped，见下）、轮盘 VM 按轮盘交互瞬态创建。
 
 ## ViewModels
 
 - 使用 `ObservableObject`、`[ObservableProperty]`、`[RelayCommand]`。
 - **生命周期注册**：页面 VM 为**设置台会话作用域**（scoped：同一会话内保留实例使状态跨导航常驻，
   会话结束整批释放）——暂留常驻的页面（仅插件管理页：插件范围跨设置台开关）注册 singleton；
-  导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按手势创建、不注册；
+  导航区/壳区 VM 不进容器，由组合根的设置台会话工厂构造；轮盘 VM 按轮盘交互创建、不注册；
   对话框 VM 由 `DialogService` 每次 `Show*` 新建（不注册容器）。
 - 主框架 VM 拆分（判据 D3）：`MainViewModel`（导航状态；目录驱动；运行时主体在
   Host `ViewModels/Navigation/`——与 `ShellViewModel` 均归 Host）与

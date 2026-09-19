@@ -14,6 +14,7 @@
 - **SharpHook `UioHookProvider` 低级面自起消息循环**:否决。等于把管道收回自己手里,收益归零。
 - **给自身注入打戳记**(社区 Stroke 的 `dwExtraInfo = 0x7F` 做法):不可行。捕获侧读不到 `dwExtraInfo`,只能退回「回放窗口 + `IsEventSimulated`」。
 - **raw input**(微软对该场景的替代建议):否决。raw input 只能异步监视、不能抑制,与「吞掉触发键」的手势语义冲突。
+- **引入键盘捕获**(对齐上游的键盘触发键、独占热键录制、ESC 取消、切层键):否决,键盘侧维持不在范围内。技术上可行却代价失衡:捕获必须与鼠标共用**同一个** `IGlobalHook` 实例(库的硬约束,见「后果」),而两库键码**不互通**——`KeyboardEventData.KeyCode` 是 libuiohook 编号(实测 `VcEscape=1`、`VcF12=13`、`VcLeftControl=146`),`RawCode` 才是 Windows VK(实测 `27`/`123`/`162`),但测试替身 `TestGlobalHook` 喂出的 `RawCode` 恒为 `1`——**「键身份」在捕获侧没有既对应测试又能对应生产的字段**,要么自建 VK 映射表,要么放弃替身覆盖。叠加抑制面扩大的风险(独占录制会拦下 `Win+D`/`Alt+Tab`,任一退出路径失效即让用户失去键盘),收益不抵成本。将来若重启该方向,先解决键身份字段与替身覆盖。
 - **把输入栈抽进 `StarPie.Sdk` 或新建工程**:本次不做。插件与设置页没有输入消费方,而 SDK 面是 additive-only 的兼容负担;等出现第一个真实消费方再评估。
 
 ## 后果
@@ -22,5 +23,6 @@
 - 分发面新增 LGPL-3.0 的 libuiohook 原生库(`runtimes/win-*/native/uiohook.dll`,动态加载;单文件发布经自解压落地):随发布物附 SharpHook 与 libuiohook 的许可声明,动态加载形态满足可替换要求。
 - 钩子线程由 UI 线程改为专用后台线程:`IWheelFactory`/`IWheelViewModel` 契约注释里「调用方可能位于钩子线程」由假设变成事实;轮盘侧的阻塞式 `Dispatcher.Invoke` 改为非阻塞派发,顺序由 Dispatcher 队列 FIFO 保证。
 - 回放窗口内若有外部注入(含 e2e 注入)恰好到达,会被误吞——已知残差风险,由 e2e 覆盖正常路径、并在代码注释点名。
+- **全进程只允许一个 `IGlobalHook` 实例**(库的硬约束:文档明写多个并发钩子会损坏 libuiohook 的内部全局状态)。故「鼠标 + 键盘」不是两个钩子实例,若将来扩展只能改为**同一实例**以 `GlobalHookType.All` 运行、在处理器内分流——这也会把两类事件压进同一条钩子线程与同一个看门狗,键身份字段问题(见「考虑过的方案」)随之成为前置。当前实现是单实例 `GlobalHookType.Mouse`,天然合规。
 - 钩子专属的 CsWin32 声明(`SetWindowsHookEx`/`UnhookWindowsHookEx`/`CallNextHookEx`/`MSLLHOOKSTRUCT`/`WM_RBUTTONDOWN`/`WM_RBUTTONUP`/`WM_MOUSEMOVE`/`mouse_event`)随实现回收;`GetCursorPos` 因看门狗保留。ADR-0051 的其余条款(唯一声明面、白名单、防回流扫描)不变。
 - 落地顺序:ADR 与术语 → 输入栈骨架(捕获适配 / 抑制决策 / 回放窗口 / 看门狗) → xUnit(`TestGlobalHook`) → e2e(`-Full`) → 架构叶子(`layering.md`/`assemblies.md` 的 M1 模块件清单)同步。
