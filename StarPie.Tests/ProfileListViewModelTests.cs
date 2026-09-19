@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -516,7 +516,7 @@ public sealed class ProfileListViewModelTests
     public void SlotName_Set_WritesThroughToActionAndRaisesChange()
     {
         var action = new ActionItem { Type = "Hotkey", Name = "旧名" };
-        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
+        var slot = new SlotViewModel(new DirectionCatalog.Direction("DirectionRight", "E / 0°"), action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
         var names = new List<string?>();
         slot.PropertyChanged += (s, e) => names.Add(e.PropertyName);
 
@@ -530,7 +530,7 @@ public sealed class ProfileListViewModelTests
     public void SlotName_SetSameValue_DoesNotRaiseChange()
     {
         var action = new ActionItem { Type = "Hotkey", Name = "同名" };
-        var slot = new SlotViewModel("右 (E / 0°)", action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
+        var slot = new SlotViewModel(new DirectionCatalog.Direction("DirectionRight", "E / 0°"), action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
         var raised = false;
         slot.PropertyChanged += (s, e) => { if (e.PropertyName == nameof(slot.Name)) raised = true; };
 
@@ -543,7 +543,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SlotName_Get_NullActionName_ReturnsEmpty()
     {
-        var slot = new SlotViewModel("下 (S / 90°)", new ActionItem { Name = null! }, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
+        var slot = new SlotViewModel(new DirectionCatalog.Direction("DirectionDown", "S / 90°"), new ActionItem { Name = null! }, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
 
         Assert.Equal("", slot.Name);
     }
@@ -551,7 +551,7 @@ public sealed class ProfileListViewModelTests
     [Fact]
     public void SlotConstructor_NullAction_CreatesDefaultHotkeyAction()
     {
-        var slot = new SlotViewModel("左 (W / 180°)", null!, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
+        var slot = new SlotViewModel(new DirectionCatalog.Direction("DirectionLeft", "W / 180°"), null!, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
 
         Assert.Equal("左 (W / 180°)", slot.DirectionLabel);
         Assert.Equal("Hotkey", slot.Action.Type);
@@ -563,7 +563,7 @@ public sealed class ProfileListViewModelTests
     public void SlotPassthroughProperties_WriteThroughToAction()
     {
         var action = new ActionItem();
-        var slot = new SlotViewModel("上 (N / 270°)", action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
+        var slot = new SlotViewModel(new DirectionCatalog.Direction("DirectionUp", "N / 270°"), action, Dialogs(), new TestActionExecutor(), TestHub.NewMessenger(), Localization, new TestIconAssetService());
 
         slot.Parameter = "Ctrl+Shift+Esc";
         slot.Arguments = "--minimized";

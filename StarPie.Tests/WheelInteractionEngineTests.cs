@@ -1,26 +1,26 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using StarPie.Ui;
 
 namespace StarPie.Tests;
 
 /// <summary>
-/// 手势引擎的状态迁移覆盖：阈值触发、方向选择、外围逃逸、中心死区取消、前台 Profile
+/// 轮盘交互引擎的状态迁移覆盖：阈值触发、方向选择、外围逃逸、中心死区取消、前台 Profile
 /// 匹配、全屏隔离、修饰键隔离、黑名单隔离，以及释放结果（执行 / 重放点击 / 穿透）。
 /// </summary>
-public sealed class GestureEngineTests
+public sealed class WheelInteractionEngineTests
 {
     private readonly FakeConfigService _config = new();
     private readonly FakeWindowContext _windowContext = new();
     private readonly FakeWheelFactory _wheelFactory = new();
-    private readonly GestureEngine _engine;
+    private readonly WheelInteractionEngine _engine;
 
-    public GestureEngineTests()
+    public WheelInteractionEngineTests()
     {
-        _engine = new GestureEngine(_config, _windowContext, _wheelFactory);
+        _engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
     }
 
-    private static GesturePoint P(double x, double y) => new(x, y);
+    private static ScreenPoint P(double x, double y) => new(x, y);
 
     private WheelProfile AddProfile(string processName, int sectorCount, int actionCount)
         => _config.AddProfile(processName, sectorCount, actionCount);
@@ -31,12 +31,12 @@ public sealed class GestureEngineTests
     public void Move_BelowThreshold_DoesNotActivateWheel()
     {
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
 
         _engine.OnTriggerMove(P(124, 100)); // 24 < 25 default threshold
 
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
     }
 
     [Fact]
@@ -53,11 +53,11 @@ public sealed class GestureEngineTests
         Assert.Same(profile, createdProfile);
         var wheel = Assert.Single(_wheelFactory.Wheels);
         Assert.Equal(new[] { "Show", "Escape:False", "Highlight:0" }, wheel.Calls);
-        Assert.Equal(GestureState.Active, _engine.State);
+        Assert.Equal(WheelInteractionState.Active, _engine.State);
     }
 
     [Fact]
-    public void Move_ThresholdReadLive_MidGestureThresholdChangeApplies()
+    public void Move_ThresholdReadLive_MidWheelInteractionThresholdChangeApplies()
     {
         AddProfile("Global", sectorCount: 8, actionCount: 8);
         _engine.OnTriggerDown(P(100, 100));
@@ -122,7 +122,7 @@ public sealed class GestureEngineTests
         Assert.False(result.ShouldReplayClick);
         Assert.Null(result.ActionToExecute);
         Assert.Equal(new[] { "Show", "Escape:False", "Highlight:0", "Highlight:-1", "Escape:False", "Close" }, wheel.Calls);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     // --- 外围逃逸 -------------------------------------------------------
@@ -145,7 +145,7 @@ public sealed class GestureEngineTests
         Assert.True(result.Handled);
         Assert.Null(result.ActionToExecute);
         Assert.Equal("Close", wheel.Calls[^1]);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -250,7 +250,7 @@ public sealed class GestureEngineTests
         _windowContext.ProcessName = "MSTSC.EXE"; // case-insensitive match
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
         Assert.Empty(_wheelFactory.Created);
     }
 
@@ -262,7 +262,7 @@ public sealed class GestureEngineTests
         _windowContext.ProcessName = "anything.exe";
 
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
     }
 
     // --- 隔离：全屏 ----------------------------------------------
@@ -274,7 +274,7 @@ public sealed class GestureEngineTests
         _windowContext.FullScreen = true;
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public sealed class GestureEngineTests
         _windowContext.FullScreen = true;
 
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
     }
 
     // --- 隔离：修饰键 ---------------------------------------------
@@ -293,7 +293,7 @@ public sealed class GestureEngineTests
     public void TriggerDown_DisableOnCtrl_AndCtrlHeld_PassesThrough()
     {
         _config.Current.DisableOnCtrl = true;
-        _windowContext.Modifiers = GestureModifierKeys.Control;
+        _windowContext.Modifiers = HeldModifierKeys.Control;
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
     }
@@ -302,7 +302,7 @@ public sealed class GestureEngineTests
     public void TriggerDown_DisableOnShift_AndShiftHeld_PassesThrough()
     {
         _config.Current.DisableOnShift = true;
-        _windowContext.Modifiers = GestureModifierKeys.Shift;
+        _windowContext.Modifiers = HeldModifierKeys.Shift;
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
     }
@@ -311,7 +311,7 @@ public sealed class GestureEngineTests
     public void TriggerDown_DisableOnAlt_AndAltHeld_PassesThrough()
     {
         _config.Current.DisableOnAlt = true;
-        _windowContext.Modifiers = GestureModifierKeys.Alt;
+        _windowContext.Modifiers = HeldModifierKeys.Alt;
 
         Assert.False(_engine.OnTriggerDown(P(100, 100)));
     }
@@ -320,7 +320,7 @@ public sealed class GestureEngineTests
     public void TriggerDown_ModifierFlagOff_WaitsForThreshold()
     {
         _config.Current.DisableOnCtrl = false;
-        _windowContext.Modifiers = GestureModifierKeys.Control;
+        _windowContext.Modifiers = HeldModifierKeys.Control;
 
         Assert.True(_engine.OnTriggerDown(P(100, 100)));
     }
@@ -340,7 +340,7 @@ public sealed class GestureEngineTests
         Assert.True(result.ShouldReplayClick);
         Assert.Null(result.ActionToExecute);
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -358,7 +358,7 @@ public sealed class GestureEngineTests
         Assert.Same(profile.Actions[2], result.ActionToExecute);
         var wheel = Assert.Single(_wheelFactory.Wheels);
         Assert.Equal("Close", wheel.Calls[^1]);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public sealed class GestureEngineTests
     // --- 轮盘生命周期 ---------------------------------------------------------
 
     [Fact]
-    public void SecondGesture_CreatesFreshWheel_AndClosesPrevious()
+    public void SecondWheelInteraction_CreatesFreshWheel_AndClosesPrevious()
     {
         AddProfile("Global", sectorCount: 8, actionCount: 8);
 
@@ -427,7 +427,7 @@ public sealed class GestureEngineTests
         _engine.OnTriggerMove(P(500, 500));
 
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 }
 
@@ -479,21 +479,21 @@ internal sealed class FakeWindowContext : IWindowContext
 {
     public string ProcessName { get; set; } = "explorer.exe";
     public bool FullScreen { get; set; }
-    public GestureModifierKeys Modifiers { get; set; } = GestureModifierKeys.None;
+    public HeldModifierKeys Modifiers { get; set; } = HeldModifierKeys.None;
 
     public string GetForegroundProcessName() => ProcessName;
 
     public bool IsForegroundFullScreen() => FullScreen;
 
-    public GestureModifierKeys GetActiveModifierKeys() => Modifiers;
+    public HeldModifierKeys GetActiveModifierKeys() => Modifiers;
 }
 
 internal sealed class FakeWheelFactory : IWheelFactory
 {
-    public List<(GesturePoint Center, WheelProfile Profile)> Created { get; } = new();
+    public List<(ScreenPoint Center, WheelProfile Profile)> Created { get; } = new();
     public List<FakeWheel> Wheels { get; } = new();
 
-    public IWheelViewModel Create(GesturePoint center, WheelProfile profile)
+    public IWheelViewModel Create(ScreenPoint center, WheelProfile profile)
     {
         Created.Add((center, profile));
         var wheel = new FakeWheel();

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -41,6 +41,14 @@
   <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ Add Custom Profile</value></data>
   <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ Rename Profile</value></data>
   <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ Delete Profile</value></data>
+    <data name="DirectionRight" xml:space="preserve"><value>Right</value></data>
+  <data name="DirectionDownRight" xml:space="preserve"><value>Down-Right</value></data>
+  <data name="DirectionDown" xml:space="preserve"><value>Down</value></data>
+  <data name="DirectionDownLeft" xml:space="preserve"><value>Down-Left</value></data>
+  <data name="DirectionLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="DirectionUpLeft" xml:space="preserve"><value>Up-Left</value></data>
+  <data name="DirectionUp" xml:space="preserve"><value>Up</value></data>
+  <data name="DirectionUpRight" xml:space="preserve"><value>Up-Right</value></data>
   <data name="SectorCountOptionTitle" xml:space="preserve"><value>Sector Count</value></data>
   <data name="SectorCountOptionDesc" xml:space="preserve"><value>Switch sector counts: 4-way for fast blind flicks, 8-way for balanced productivity, 12-way for high-density actions.</value></data>
   <data name="SectorActionListTitle" xml:space="preserve"><value>Sector Action Mappings</value></data>
@@ -65,24 +73,24 @@
   <data name="Notice" xml:space="preserve"><value>Notice</value></data>
   <data name="Error" xml:space="preserve"><value>Error</value></data>
   <data name="AppName" xml:space="preserve"><value>StarPie</value></data>
-  <data name="AppSubtitle" xml:space="preserve"><value>Modern Mouse Radial Gestures</value></data>
+  <data name="AppSubtitle" xml:space="preserve"><value>Modern Mouse Radial Wheel</value></data>
   <data name="WindowTitle" xml:space="preserve"><value>StarPie Preferences Console</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 Trigger &amp; Scenes</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
-  <data name="PageGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
+  <data name="PageWheelActions" xml:space="preserve"><value>⚡ Wheel &amp; Actions</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ Advanced &amp; System</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>Note: All changes take effect in memory immediately. Click [Save Changes] to persist to disk.</value></data>
   <data name="BtnSave" xml:space="preserve"><value>Save Changes</value></data>
   <data name="BtnClose" xml:space="preserve"><value>Close &amp; Hide</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>Trigger &amp; Scene Isolation</value></data>
-  <data name="TriggerSubheader" xml:space="preserve"><value>Configure mouse gesture sensitivity, full-screen gaming bypass, and exclusion blacklist.</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>Configure wheel trigger sensitivity, full-screen gaming bypass, and exclusion blacklist.</value></data>
   <data name="SensitivityTitle" xml:space="preserve"><value>Trigger Sensitivity</value></data>
   <data name="SensitivityDesc" xml:space="preserve"><value>Hold right-click and move beyond this pixel distance to trigger radial menu. Lower values are more sensitive.</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>Scene Isolation &amp; Guard</value></data>
   <data name="SceneIsolationDesc" xml:space="preserve"><value>Automatically bypass radial menu and pass-through native right-click in specific scenarios.</value></data>
   <data name="FullScreenOption" xml:space="preserve"><value>Auto-disable in Full-screen games / Exclusive apps</value></data>
   <data name="FullScreenOptionDesc" xml:space="preserve"><value>Detects whether active window is running in full-screen to avoid intercepting gaming right-clicks.</value></data>
-  <data name="ModifierPassTitle" xml:space="preserve"><value>Modifier Pass-Through (hold to bypass gestures):</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>Modifier Pass-Through (hold to bypass the wheel):</value></data>
   <data name="ModifierCtrl" xml:space="preserve"><value>Bypass on Ctrl</value></data>
   <data name="ModifierShift" xml:space="preserve"><value>Bypass on Shift</value></data>
   <data name="ModifierAlt" xml:space="preserve"><value>Bypass on Alt</value></data>
@@ -146,14 +154,14 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 Midnight Navy</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 Royal Violet</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ Titanium Gray</value></data>
-  <data name="WheelPaletteSystem" xml:space="preserve"><value>System Auto</value></data>
+  <data name="WheelPaletteSystem" xml:space="preserve"><value>System Auto (wheel)</value></data>
   <data name="WheelPaletteLight" xml:space="preserve"><value>Light</value></data>
   <data name="WheelPaletteDark" xml:space="preserve"><value>Dark</value></data>
   <data name="WheelPaletteMatchaForest" xml:space="preserve"><value>Matcha Forest</value></data>
   <data name="WheelPaletteGlacialIce" xml:space="preserve"><value>Glacial Ice</value></data>
   <data name="WheelPaletteMorandiMuted" xml:space="preserve"><value>Morandi Muted</value></data>
   <data name="WheelPaletteCustomPreset" xml:space="preserve"><value>🎨 {0} (Custom Preset)</value></data>
-  <data name="GesturesHeader" xml:space="preserve"><value>Gesture Sectors &amp; Action Mappings</value></data>
+  <data name="WheelActionsHeader" xml:space="preserve"><value>Wheel Sectors &amp; Action Mappings</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>Sector Count</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4 Sectors (Cross 4-Way)</value></data>
   <data name="SectorCount8" xml:space="preserve"><value>8 Sectors (Standard 8-Way)</value></data>
@@ -183,7 +191,7 @@
   <data name="StartupTitle" xml:space="preserve"><value>Run on Windows Startup</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>Automatically start StarPie silently minimized to tray on login.</value></data>
   <data name="AdminAutoStartTitle" xml:space="preserve"><value>Run as administrator at startup</value></data>
-  <data name="AdminAutoStartDesc" xml:space="preserve"><value>Launches silently with highest privileges via Windows Task Scheduler, with no UAC prompt at sign-in, so gestures work in elevated windows such as Task Manager. The trade-off: StarPie and its in-process plugins then run as administrator at all times.</value></data>
+  <data name="AdminAutoStartDesc" xml:space="preserve"><value>Launches silently with highest privileges via Windows Task Scheduler, with no UAC prompt at sign-in, so the wheel works in elevated windows such as Task Manager. The trade-off: StarPie and its in-process plugins then run as administrator at all times.</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>Notice</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>Elevated autostart was not applied — the UAC prompt may have been cancelled, or this account has no administrator credentials. Normal-privilege autostart is kept.</value></data>
   <data name="AdminRestartNow" xml:space="preserve"><value>Restart as administrator now</value></data>
@@ -199,16 +207,16 @@
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>Are you sure you want to permanently delete the custom color preset "{0}"?
 This cannot be undone.</value></data>
   <data name="MsgConfirmReset" xml:space="preserve"><value>Are you sure you want to restore factory defaults? All customizations will be reset.</value></data>
-  <data name="TrayPause" xml:space="preserve"><value>⏸️ Pause Gestures</value></data>
-  <data name="TrayResume" xml:space="preserve"><value>▶️ Resume Gestures</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ Pause</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ Resume</value></data>
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ Preferences (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 Appearance &amp; Shapes</value></data>
-  <data name="TrayGestures" xml:space="preserve"><value>⚡ Gestures &amp; Actions</value></data>
+  <data name="TrayWheelActions" xml:space="preserve"><value>⚡ Wheel &amp; Actions</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ Exit StarPie</value></data>
-  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Gestures</value></data>
+  <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - Modern Mouse Radial Wheel</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS Live Rendering</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>Manage interface language, Windows startup (including silent administrator launch), and config import/export backups.</value></data>
-  <data name="GesturesSubheader" xml:space="preserve"><value>Set dedicated multi-directional gesture wheels, key actions, and vector icons per foreground app.</value></data>
+  <data name="WheelActionsSubheader" xml:space="preserve"><value>Set dedicated multi-directional wheel profiles, key actions, and vector icons per foreground app.</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>Create a dedicated profile by choosing an installed app from the Start menu</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>Create a new wheel profile with a custom name</value></data>
   <data name="RenameProfileTooltip" xml:space="preserve"><value>Rename the selected profile</value></data>

@@ -7,7 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 
-namespace StarPie.Ui.ViewModels.Gestures
+namespace StarPie.Ui.ViewModels.WheelInteraction
 {
     /// <summary>系统预设动作条目：Key、分类与展示名，以及新建系统动作时的默认名称/图标。</summary>
     public class SystemPresetItem
@@ -88,7 +88,11 @@ namespace StarPie.Ui.ViewModels.Gestures
 
         public static readonly Dictionary<string, string> SystemPresets = SystemPresetList.ToDictionary(x => x.Key, x => x.FormattedDisplay);
 
-        public string DirectionLabel { get; }
+        /// <summary>方位标签：方位名经 resx 取词、切语时刷新，符号语言中立。</summary>
+        public string DirectionLabel => $"{_localization.GetString(_direction.NameKey)} ({_direction.Symbol})";
+
+        private readonly DirectionCatalog.Direction _direction;
+
         public ActionItem Action { get; }
 
         /// <summary>槽位在 Slots 集合中的 0 基序号；用于生成稳定 AutomationId。</summary>
@@ -290,7 +294,7 @@ namespace StarPie.Ui.ViewModels.Gestures
         public string TestButtonText => _localization.GetString("BtnTest");
 
         public SlotViewModel(
-            string directionLabel,
+            DirectionCatalog.Direction direction,
             ActionItem action,
             IDialogService dialogs,
             IActionExecutorService actionExecutor,
@@ -298,7 +302,7 @@ namespace StarPie.Ui.ViewModels.Gestures
             ILocalizationService localization,
             IIconAssetService iconAssets)
         {
-            DirectionLabel = directionLabel;
+            _direction = direction;
             Action = action ?? new ActionItem { Type = "Hotkey", Name = "快捷动作", Parameter = "" };
             _dialogs = dialogs ?? throw new ArgumentNullException(nameof(dialogs));
             _actionExecutor = actionExecutor ?? throw new ArgumentNullException(nameof(actionExecutor));
@@ -311,6 +315,7 @@ namespace StarPie.Ui.ViewModels.Gestures
                 OnPropertyChanged(nameof(ActionTypes));
                 OnPropertyChanged(nameof(TestButtonText));
                 OnPropertyChanged(nameof(IconDisplayText));
+                OnPropertyChanged(nameof(DirectionLabel));
             };
             _localization.LanguageChanged += _languageChangedHandler;
         }

@@ -25,15 +25,6 @@ namespace StarPie.Ui.ViewModels.Pages
     /// </remarks>
     public partial class ProfileListViewModel : ObservableObject, IProfilePreviewSource, IDisposable
     {
-        // 方位角标签与新建方案的缺省动作补齐规则
-        private static readonly string[] Directions4 = { "右 (E / 0°)", "下 (S / 90°)", "左 (W / 180°)", "上 (N / 270°)" };
-        private static readonly string[] Directions8 = { "右 (E / 0°)", "右下 (SE / 45°)", "下 (S / 90°)", "左下 (SW / 135°)", "左 (W / 180°)", "左上 (NW / 225°)", "上 (N / 270°)", "右上 (NE / 315°)" };
-        private static readonly string[] Directions12 = {
-            "右 3点钟 (E / 0°)", "右下 4点钟 (30°)", "右下 5点钟 (60°)", "下 6点钟 (S / 90°)",
-            "左下 7点钟 (120°)", "左下 8点钟 (150°)", "左 9点钟 (W / 180°)", "左上 10点钟 (210°)",
-            "左上 11点钟 (240°)", "上 12点钟 (N / 270°)", "右上 1点钟 (300°)", "右上 2点钟 (330°)"
-        };
-
         private static readonly ActionItem[] DefaultPresets4 = new[]
         {
             new ActionItem { Type = "Hotkey", Name = "复制 (Copy)", Parameter = "Ctrl+C", IconKey = "Copy" },
@@ -217,12 +208,7 @@ namespace StarPie.Ui.ViewModels.Pages
                 int count = profile.SectorCount;
                 if (count != 4 && count != 8 && count != 12) count = 8;
 
-                string[] directions = count switch
-                {
-                    4 => Directions4,
-                    12 => Directions12,
-                    _ => Directions8
-                };
+                var directions = DirectionCatalog.ForSectorCount(count);
 
                 if (profile.Actions == null)
                 {

@@ -11,9 +11,9 @@ namespace StarPie.Ui.Services.Input
     internal static class SystemCursor
     {
         /// <summary>读取当前光标屏幕坐标（物理像素）；调用失败返回 null。</summary>
-        public static GesturePoint? TryGetPosition()
+        public static ScreenPoint? TryGetPosition()
             => PInvoke.GetCursorPos(out Point point)
-                ? new GesturePoint(point.X, point.Y)
+                ? new ScreenPoint(point.X, point.Y)
                 : null;
     }
 }

@@ -149,7 +149,7 @@ def test_smoke_console_pages_and_controls(app):
         _appearance_glow_and_panel,
     )
 
-    def _gestures_controls():
+    def _wheelinteraction_controls():
         goto(win, 2)
         _assert_controls(
             win,
@@ -167,9 +167,9 @@ def test_smoke_console_pages_and_controls(app):
         assert any("Global" in item for item in items), f"Global 兜底方案必须列出: {items}"
 
     report.check(
-        "手势页方案按钮/扇区单选/Global 兜底方案就位",
+        "轮盘页方案按钮/扇区单选/Global 兜底方案就位",
         "tests/test_settings.py::test_profile_management_ui_and_buttons",
-        _gestures_controls,
+        _wheelinteraction_controls,
     )
 
     def _advanced_admin_entry():

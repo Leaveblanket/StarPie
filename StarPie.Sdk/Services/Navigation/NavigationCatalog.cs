@@ -6,7 +6,7 @@ using System.Linq;
 namespace StarPie.Sdk.Services.Navigation
 {
     /// <summary>
-    /// 导航槽位：全局槽位表 0–4，枚举顺序即侧边栏顺序正典（触发/外观/手势/高级/插件）。
+    /// 导航槽位：全局槽位表 0–4，枚举顺序即侧边栏顺序正典（触发/外观/轮盘与动作/高级/插件）。
     /// </summary>
     /// <remarks>
     /// AutomationId 由 <see cref="NavigationSlots.GetAutomationId"/> 固定为 NavPage{槽位}，0–3 是既有四页、
@@ -16,7 +16,7 @@ namespace StarPie.Sdk.Services.Navigation
     {
         Trigger = 0,
         Appearance = 1,
-        Gestures = 2,
+        WheelInteraction = 2,
         Advanced = 3,
         Plugins = 4,
     }

@@ -24,12 +24,12 @@ public sealed class InputStackTests : IDisposable
     private readonly FakeWheelFactory _wheelFactory = new();
     private readonly TestActionExecutor _executor = new();
     private readonly TestGlobalHook _hook = new();
-    private readonly GestureEngine _engine;
+    private readonly WheelInteractionEngine _engine;
     private readonly MouseInputHook _stack;
 
     public InputStackTests()
     {
-        _engine = new GestureEngine(_config, _windowContext, _wheelFactory);
+        _engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
         _hook.EventMask = _ => EventMask.SimulatedEvent;
         // 替身默认在每次松开后再补一笔 MouseClicked（生产里 libuiohook 亦然）；本栈不订阅它，
         // 关掉后模拟事件计数只反映按下与抬起，断言不必迁就噪声。
@@ -58,11 +58,11 @@ public sealed class InputStackTests : IDisposable
     // --- 抑制决策 -------------------------------------------------
 
     [Fact]
-    public void Press_TriggerButton_TakenByGesture_IsSuppressed()
+    public void Press_TriggerButton_TakenByWheelInteraction_IsSuppressed()
     {
         Press();
 
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
         Assert.Single(_hook.SuppressedEvents);
     }
 
@@ -72,7 +72,7 @@ public sealed class InputStackTests : IDisposable
         Press(MouseButton.Button1);
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class InputStackTests : IDisposable
         Press();
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public sealed class InputStackTests : IDisposable
         Press();
 
         Assert.Empty(_hook.SuppressedEvents);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class InputStackTests : IDisposable
     {
         var hook = new TestGlobalHook();
         hook.EventMask = _ => EventMask.SimulatedEvent;
-        var engine = new GestureEngine(_config, _windowContext, _wheelFactory);
+        var engine = new WheelInteractionEngine(_config, _windowContext, _wheelFactory);
         using var stack = new MouseInputHook(
             hook,
             engine,
@@ -119,7 +119,7 @@ public sealed class InputStackTests : IDisposable
 
         hook.SimulateMousePress(MouseButton.Button3);
         Assert.Single(hook.SuppressedEvents);
-        Assert.Equal(GestureState.WaitingThreshold, engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, engine.State);
     }
 
     // --- 回放回路 -------------------------------------------------
@@ -136,24 +136,24 @@ public sealed class InputStackTests : IDisposable
         Assert.Equal(4, _hook.SimulatedEvents.Count);
         Assert.Equal(2, _hook.SuppressedEvents.Count);
         Assert.Empty(_wheelFactory.Created);
-        Assert.Equal(GestureState.Idle, _engine.State);
+        Assert.Equal(WheelInteractionState.Idle, _engine.State);
     }
 
     [Fact]
-    public void Click_BelowThreshold_ReplayWindowCloses_SoLaterInjectionsAreGestures()
+    public void Click_BelowThreshold_ReplayWindowCloses_SoLaterInjectionsAreWheelInteraction()
     {
         Press();
         Release();
         Assert.Equal(2, _hook.SuppressedEvents.Count);
 
-        // 窗口只有两笔配额：后续注入（e2e 走的就是这条路径）仍按手势输入处理。
+        // 窗口只有两笔配额：后续注入（e2e 走的就是这条路径）仍按轮盘交互输入处理。
         Press();
 
         Assert.Equal(3, _hook.SuppressedEvents.Count);
-        Assert.Equal(GestureState.WaitingThreshold, _engine.State);
+        Assert.Equal(WheelInteractionState.WaitingThreshold, _engine.State);
     }
 
-    // --- 手势回路 -------------------------------------------------
+    // --- 轮盘交互回路 -------------------------------------------------
 
     [Fact]
     public void Drag_BeyondThreshold_ShowsWheel_AndReleaseExecutesSelectedAction()
@@ -164,7 +164,7 @@ public sealed class InputStackTests : IDisposable
         MoveTo(210, 100); // 越过 25px 阈值，角度 0° → 扇区 0
 
         var (center, profile) = Assert.Single(_wheelFactory.Created);
-        Assert.Equal(new GesturePoint(100, 100), center);
+        Assert.Equal(new ScreenPoint(100, 100), center);
         Assert.Equal("Global", profile.ProcessName);
 
         FakeWheel wheel = Assert.Single(_wheelFactory.Wheels);
@@ -193,7 +193,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void CursorMoved_WithoutAnyEvents_Recovers()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(10, 10));
+        var probe = new CursorProbe(new ScreenPoint(0, 0), new ScreenPoint(10, 10));
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -207,7 +207,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void CursorMoved_WithEvents_DoesNotRecover()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(10, 10));
+        var probe = new CursorProbe(new ScreenPoint(0, 0), new ScreenPoint(10, 10));
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -222,7 +222,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void CursorStill_ResetsCount_SoStaleCountsCannotMaskDeath()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(0, 0), new GesturePoint(5, 5));
+        var probe = new CursorProbe(new ScreenPoint(0, 0), new ScreenPoint(0, 0), new ScreenPoint(5, 5));
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -239,7 +239,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void CursorUnavailable_DoesNotJudge()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0), null);
+        var probe = new CursorProbe(new ScreenPoint(0, 0), null);
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -255,7 +255,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void BeforeStart_DoesNotProbe()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0));
+        var probe = new CursorProbe(new ScreenPoint(0, 0));
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -269,7 +269,7 @@ public sealed class HookWatchdogTests
     [Fact]
     public void AfterStop_DoesNotProbe()
     {
-        var probe = new CursorProbe(new GesturePoint(0, 0), new GesturePoint(9, 9));
+        var probe = new CursorProbe(new ScreenPoint(0, 0), new ScreenPoint(9, 9));
         int recovered = 0;
         var time = new FakeTimeProvider();
         using var watchdog = NewWatchdog(probe.Read, () => recovered++, time);
@@ -283,17 +283,17 @@ public sealed class HookWatchdogTests
         Assert.Equal(0, recovered);
     }
 
-    private static HookWatchdog NewWatchdog(Func<GesturePoint?> probe, Action recover, TimeProvider time)
+    private static HookWatchdog NewWatchdog(Func<ScreenPoint?> probe, Action recover, TimeProvider time)
         => new(Period, probe, recover, time);
 
     /// <summary>按序吐出预置光标位置的探针（取尽后返回 null），并记录被调用次数。</summary>
     private sealed class CursorProbe
     {
-        private readonly Queue<GesturePoint?> _positions = new();
+        private readonly Queue<ScreenPoint?> _positions = new();
 
-        public CursorProbe(params GesturePoint?[] positions)
+        public CursorProbe(params ScreenPoint?[] positions)
         {
-            foreach (GesturePoint? position in positions)
+            foreach (ScreenPoint? position in positions)
             {
                 _positions.Enqueue(position);
             }
@@ -301,7 +301,7 @@ public sealed class HookWatchdogTests
 
         public int Calls { get; private set; }
 
-        public GesturePoint? Read()
+        public ScreenPoint? Read()
         {
             Calls++;
             return _positions.Count > 0 ? _positions.Dequeue() : null;

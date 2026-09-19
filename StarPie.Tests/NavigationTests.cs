@@ -10,7 +10,7 @@ using StarPie.Sdk.Services;
 using StarPie.Sdk.ViewModels.Pages;
 using StarPie.Sdk.ViewModels.Wheel;
 using StarPie.Ui.ViewModels.Dialogs;
-using StarPie.Ui.ViewModels.Gestures;
+using StarPie.Ui.ViewModels.WheelInteraction;
 using StarPie.Ui.ViewModels.Navigation;
 using StarPie.Ui.ViewModels.Pages;
 using StarPie.Ui.ViewModels.Wheel;
@@ -253,7 +253,7 @@ public sealed class MainViewModelTests
         {
             [NavigationSlot.Trigger] = fixture.Behavior,
             [NavigationSlot.Appearance] = fixture.Appearance,
-            [NavigationSlot.Gestures] = fixture.Profiles,
+            [NavigationSlot.WheelInteraction] = fixture.Profiles,
             [NavigationSlot.Advanced] = fixture.General
         });
         var vm = new MainViewModel(store, catalog, navigation, Localization);
@@ -297,7 +297,7 @@ public sealed class MainViewModelTests
 
         Assert.Equal(Localization.GetString("PageTrigger"), vm.NavigationItems[0].Title);
         Assert.Equal(Localization.GetString("PageAppearance"), vm.NavigationItems[1].Title);
-        Assert.Equal(Localization.GetString("PageGestures"), vm.NavigationItems[2].Title);
+        Assert.Equal(Localization.GetString("PageWheelActions"), vm.NavigationItems[2].Title);
         Assert.Equal(Localization.GetString("PageAdvanced"), vm.NavigationItems[3].Title);
         Assert.Equal(Localization.GetString("PagePlugins"), vm.NavigationItems[4].Title);
     }
@@ -415,7 +415,7 @@ public sealed class MainViewModelPluginPageTests
     private sealed class PluginPageViewModel : ObservableObject { }
     private sealed class TriggerPageViewModel : ObservableObject { }
     private sealed class AppearancePageViewModel : ObservableObject { }
-    private sealed class GesturesPageViewModel : ObservableObject { }
+    private sealed class WheelInteractionPageViewModel : ObservableObject { }
     private sealed class AdvancedPageViewModel : ObservableObject { }
     private sealed class PluginsPageViewModel : ObservableObject { }
 
@@ -426,8 +426,8 @@ public sealed class MainViewModelPluginPageTests
             NavigationSlot.Trigger, NavigationSlots.GetAutomationId(NavigationSlot.Trigger), "PageTrigger", "");
         catalog.RegisterPage<AppearancePageViewModel>(
             NavigationSlot.Appearance, NavigationSlots.GetAutomationId(NavigationSlot.Appearance), "PageAppearance", "");
-        catalog.RegisterPage<GesturesPageViewModel>(
-            NavigationSlot.Gestures, NavigationSlots.GetAutomationId(NavigationSlot.Gestures), "PageGestures", "");
+        catalog.RegisterPage<WheelInteractionPageViewModel>(
+            NavigationSlot.WheelInteraction, NavigationSlots.GetAutomationId(NavigationSlot.WheelInteraction), "PageWheelActions", "");
         catalog.RegisterPage<AdvancedPageViewModel>(
             NavigationSlot.Advanced, NavigationSlots.GetAutomationId(NavigationSlot.Advanced), "PageAdvanced", "");
         catalog.RegisterPage<PluginsPageViewModel>(
@@ -445,7 +445,7 @@ public sealed class MainViewModelPluginPageTests
                 // 固定页 VM：与生产容器同形的可解析目标，供插件页摘除后的回落导航使用。
                 .AddSingleton<TriggerPageViewModel>()
                 .AddSingleton<AppearancePageViewModel>()
-                .AddSingleton<GesturesPageViewModel>()
+                .AddSingleton<WheelInteractionPageViewModel>()
             .AddSingleton<AdvancedPageViewModel>()
             .AddSingleton<PluginsPageViewModel>()
             .BuildServiceProvider();

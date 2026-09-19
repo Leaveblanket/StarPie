@@ -1,15 +1,15 @@
-"""手势链路 e2e：注射鼠标输入 → 全局钩子 → 手势引擎 → 轮盘窗口 → 动作执行。
+"""轮盘交互链路 e2e：注射鼠标输入 → 全局钩子 → 轮盘交互引擎 → 轮盘窗口 → 动作执行。
 
 这是 xUnit 覆盖不到的集成面：轮盘窗口真的弹出/收起、扇区动作真的被执行
 （Launch 探针 exe 的进程出现）、阈值下的触发键补发真的落到光标下的窗口。
 产品钩子不做 LLMHF_INJECTED 过滤，注入事件与物理操作走同一条回调路径
 （注入层见 tests/mouse_input.py），因此"没有产品内测试通道"不妨碍真实链路被驱动。
 
-配置由 sandbox_seed="gesture-probe" 预置：Global 4 扇区、DragThreshold=25、
+配置由 sandbox_seed="wheel-probe" 预置：Global 4 扇区、DragThreshold=25、
 OuterEscapeDistance=186，扇区 0（正右）是探针 exe 的 Launch 动作，其余扇区空动作。
 
 触发键默认右键；**侧键**用例经 `trigger_button` fixture 传 4（后侧键 XBUTTON1，
-对应 SharpHook Button4）。侧键未被抑制时不弹上下文菜单——首手势/启动时序一类用例
+对应 SharpHook Button4）。侧键未被抑制时不弹上下文菜单——首次轮盘交互/启动时序一类用例
 优先用它，观测不必先收菜单（见下方 side-button 组）。
 
 运行期间请勿操作键鼠（全局钩子在跑，注入输入与真实鼠标共用同一个游标）。
@@ -44,7 +44,7 @@ from mouse_input import (
 )
 from win32_probe import WM_XBUTTON_UP, RightClickProbeWindow
 
-# 手势起点：默认设置台窗口覆盖区内的固定点（远离任务栏/托盘，避免注入点击命中系统 UI）。
+# 轮盘交互起点：默认设置台窗口覆盖区内的固定点（远离任务栏/托盘，避免注入点击命中系统 UI）。
 START = (600, 400)
 
 # 越过 DragThreshold(25)、远小于 OuterEscapeDistance(186) 的拖动距离 → 命中正右扇区 0。
@@ -61,8 +61,8 @@ DENSE_SWEEP_INTERVAL = 0.001
 DENSE_SWEEP_RADIUS = 110
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_below_threshold_replays_right_click(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_below_threshold_replays_right_click(app):
     """阈值内的按下/松开不弹轮盘：补发的右键点击落在光标下的窗口上。"""
     win, _ = app
     pid = win.process_id()
@@ -82,8 +82,8 @@ def test_gesture_below_threshold_replays_right_click(app):
         assert find_wheel_window(pid) == 0, "阈值内的拖动不得弹出轮盘"
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_drag_pops_wheel_and_executes_sector_action(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_drag_pops_wheel_and_executes_sector_action(app):
     """过阈拖动弹出轮盘、松手收起，并执行正右扇区 0 绑定的 Launch 动作。"""
     win, local_app_data = app
     pid = win.process_id()
@@ -123,8 +123,8 @@ def test_gesture_drag_pops_wheel_and_executes_sector_action(app):
     kill_processes(pids)
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_dense_drag_keeps_close_prompt(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_dense_drag_keeps_close_prompt(app):
     """密集拖动后松手：轮盘收起时延不随拖动事件数增长（拖动工作不在 UI 线程积压）。
 
     观察面取「松手 → 轮盘窗口销毁」：轮盘收起排在已排队的拖动工作项之后，因此这条
@@ -166,8 +166,8 @@ def test_gesture_dense_drag_keeps_close_prompt(app):
     )
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_outer_escape_cancels_without_executing(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_outer_escape_cancels_without_executing(app):
     """外甩越过逃逸距离：松手按取消处理，不执行任何动作。"""
     win, local_app_data = app
     pid = win.process_id()
@@ -191,8 +191,8 @@ def test_gesture_outer_escape_cancels_without_executing(app):
     assert find_process_by_executable(probe_exe) == [], "外甩取消不得执行扇区动作"
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_return_to_center_cancels_without_executing(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_return_to_center_cancels_without_executing(app):
     """弹出后拖回中心死区：取消选中，松手不执行动作。"""
     win, local_app_data = app
     pid = win.process_id()
@@ -226,9 +226,9 @@ def test_gesture_return_to_center_cancels_without_executing(app):
 # 侧键未被抑制时不弹上下文菜单，这两条用例因此不受"死区里漏出的菜单"干扰。
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
 @pytest.mark.parametrize("trigger_button", [4], indirect=True)
-def test_gesture_side_button_below_threshold_replays_side_click(app):
+def test_wheel_side_button_below_threshold_replays_side_click(app):
     """侧键作触发键：阈值内按下/松开不弹轮盘，且补发的是**同一个侧键**的点击。
 
     换键若只改了捕获侧而没改注入侧，补发会退回右键——探针窗口按侧键消息断言即抓住。
@@ -252,9 +252,9 @@ def test_gesture_side_button_below_threshold_replays_side_click(app):
         assert find_wheel_window(pid) == 0, "阈值内的拖动不得弹出轮盘"
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
 @pytest.mark.parametrize("trigger_button", [4], indirect=True)
-def test_gesture_side_button_drag_pops_wheel_and_executes_sector_action(app):
+def test_wheel_side_button_drag_pops_wheel_and_executes_sector_action(app):
     """侧键作触发键：过阈拖动照常弹出轮盘、松手收起并执行扇区动作。
 
     证明触发键参数化贯通「捕获 → 抑制 → 引擎 → 轮盘 → 动作」全链路，
@@ -286,15 +286,15 @@ def test_gesture_side_button_drag_pops_wheel_and_executes_sector_action(app):
     )
 
     pids = wait_process_started(probe_exe, timeout=10.0)
-    print(f"侧键手势的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
+    print(f"侧键轮盘交互的扇区动作已执行：探针进程 {pids}（exe={probe_exe}）")
     kill_processes(pids)
 
 
 # --- 桌面壳窗口场景（全屏误判回归） ----------------------------------------------
 # Win11 上桌面图标区（SHELLDLL_DefView）常挂在一个覆盖整屏的 WorkerW 下；前台为桌面时
 # IsForegroundFullScreen 的排除清单若只含 Progman（GetShellWindow）/窗口站桌面（GetDesktopWindow），
-# 会把桌面壳窗口误判成"全屏应用"，手势被 DisableOnFullScreen 隔离、右键直通系统原生。
-# 本用例把前台焦点切到桌面后再做手势：修复前轮盘不弹（红），修复后照常弹出（绿）。
+# 会把桌面壳窗口误判成"全屏应用"，轮盘交互被 DisableOnFullScreen 隔离、右键直通系统原生。
+# 本用例把前台焦点切到桌面后再做轮盘交互：修复前轮盘不弹（红），修复后照常弹出（绿）。
 
 def _is_desktop_host(hwnd) -> bool:
     """窗口是否是桌面宿主：Progman（shell 窗口），或承载 SHELLDLL_DefView 的 WorkerW。
@@ -341,8 +341,8 @@ def _press_escape() -> None:
     win32api.keybd_event(win32con.VK_ESCAPE, 0, win32con.KEYEVENTF_KEYUP, 0)
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_gesture_on_desktop_pops_wheel(app):
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_wheel_on_desktop_pops_wheel(app):
     """桌面宿主窗口上的右键拖动照常弹出轮盘（全屏误判回归）。
 
     前置：显示桌面后单击桌面点，把前台焦点切到桌面宿主（Win11 上常为承载

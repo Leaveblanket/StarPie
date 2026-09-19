@@ -1,7 +1,7 @@
 global using StarPie.Sdk.Models;
 global using StarPie.Host.Actions;
 global using StarPie.Host.Icons;
-global using StarPie.Host.Gestures;
+global using StarPie.Host.WheelInteraction;
 global using StarPie.Host.Ports;
 global using StarPie.Host.Programs;
 global using StarPie.Ui.Services.Actions;
@@ -25,7 +25,7 @@ global using StarPie.Sdk.Services.Wheel;
 global using StarPie.Ui.Services.Wheel;
 global using StarPie.Host.Themes;
 global using StarPie.Ui.ViewModels.Dialogs;
-global using StarPie.Ui.ViewModels.Gestures;
+global using StarPie.Ui.ViewModels.WheelInteraction;
 global using StarPie.Ui.ViewModels.Navigation;
 global using StarPie.Sdk.ViewModels.Pages;
 global using StarPie.Ui.ViewModels.Pages;

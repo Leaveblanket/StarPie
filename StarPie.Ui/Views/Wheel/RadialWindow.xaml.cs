@@ -26,8 +26,8 @@ using Path = System.Windows.Shapes.Path;
 namespace StarPie.Ui.Views.Wheel
 {
     /// <summary>
-    /// 轮盘窗口：全部视图状态位于每次手势的 <see cref="WheelViewModel"/>——本类观察其
-    /// 变更通知并完成绘制与动画；手势引擎从不直接调用窗口。
+    /// 轮盘窗口：全部视图状态位于每次轮盘交互的 <see cref="WheelViewModel"/>——本类观察其
+    /// 变更通知并完成绘制与动画；轮盘交互引擎从不直接调用窗口。
     /// </summary>
     public partial class RadialWindow : Window
     {
@@ -83,7 +83,7 @@ namespace StarPie.Ui.Views.Wheel
             DataContext = viewModel;
 
             // 白名单订阅边界：订阅 VM PropertyChanged 只驱动纯视觉重绘与窗口生命周期动作
-            // （IsShown→Show/IsClosed→Close）；在 Closed 成对退订，避免每手势窗口实例
+            // （IsShown→Show/IsClosed→Close）；在 Closed 成对退订，避免每轮盘交互窗口实例
             // 经事件被 VM 侧引用滞留。
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
             Closed += (_, _) => _viewModel.PropertyChanged -= OnViewModelPropertyChanged;

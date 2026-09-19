@@ -9,7 +9,7 @@
     <sys:String x:Key="ActionTypeSystemShort" xml:space="preserve">系统控制</sys:String>
     <sys:String x:Key="AddCustomProfileTooltip" xml:space="preserve">自定义命名创建新的轮盘配置方案</sys:String>
     <sys:String x:Key="AddProfileTooltip" xml:space="preserve">从已安装软件或开始菜单中选择程序创建专属配置</sys:String>
-    <sys:String x:Key="AdminAutoStartDesc" xml:space="preserve">经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势。代价是 StarPie 与进程内插件都以管理员身份常驻。</sys:String>
+    <sys:String x:Key="AdminAutoStartDesc" xml:space="preserve">经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起轮盘交互。代价是 StarPie 与进程内插件都以管理员身份常驻。</sys:String>
     <sys:String x:Key="AdminAutoStartFailed" xml:space="preserve">提权自启未生效：可能取消了 UAC，或当前账号没有管理员凭据。已保持普通权限自启。</sys:String>
     <sys:String x:Key="AdminAutoStartFailedTitle" xml:space="preserve">提示</sys:String>
     <sys:String x:Key="AdminAutoStartTitle" xml:space="preserve">以管理员身份开机自启</sys:String>
@@ -102,11 +102,11 @@
     <sys:String x:Key="DeletePresetTooltip" xml:space="preserve">删除当前选中的自定义配色方案预设</sys:String>
     <sys:String x:Key="DeleteProfileTooltip" xml:space="preserve">删除选中的配置方案</sys:String>
     <sys:String x:Key="Error" xml:space="preserve">错误</sys:String>
-    <sys:String x:Key="FullScreenOption" xml:space="preserve">全屏游戏/独占应用自动禁用手势</sys:String>
+    <sys:String x:Key="FullScreenOption" xml:space="preserve">全屏游戏/独占应用自动禁用轮盘交互</sys:String>
     <sys:String x:Key="FullScreenOptionDesc" xml:space="preserve">自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。</sys:String>
     <sys:String x:Key="GeometryTitle" xml:space="preserve">几何形态与尺寸微调</sys:String>
-    <sys:String x:Key="GesturesHeader" xml:space="preserve">手势轮盘分位与动作配置</sys:String>
-    <sys:String x:Key="GesturesSubheader" xml:space="preserve">支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。</sys:String>
+    <sys:String x:Key="WheelActionsHeader" xml:space="preserve">轮盘分位与动作配置</sys:String>
+    <sys:String x:Key="WheelActionsSubheader" xml:space="preserve">支持针对不同前台应用程序设置专属的多向轮盘、按键动作与矢量图标。</sys:String>
     <sys:String x:Key="GlowColorLabel" xml:space="preserve">光晕色值:</sys:String>
     <sys:String x:Key="GlowFollowTheme" xml:space="preserve">🌈 跟随主题高亮色 (Auto / Follow Theme)</sys:String>
     <sys:String x:Key="GlowOpacity" xml:space="preserve">光晕不透明度 (Glow Opacity)</sys:String>
@@ -157,21 +157,21 @@
     <sys:String x:Key="LivePreviewTitle" xml:space="preserve">实时交互画布 (Live Preview)</sys:String>
     <sys:String x:Key="ModifierAlt" xml:space="preserve">按住 Alt 键时旁路</sys:String>
     <sys:String x:Key="ModifierCtrl" xml:space="preserve">按住 Ctrl 键时旁路</sys:String>
-    <sys:String x:Key="ModifierPassTitle" xml:space="preserve">快捷键旁路穿透 (按住以下修饰键拖拽时不触发手势):</sys:String>
+    <sys:String x:Key="ModifierPassTitle" xml:space="preserve">快捷键旁路穿透 (按住以下修饰键拖拽时不触发轮盘交互):</sys:String>
     <sys:String x:Key="ModifierShift" xml:space="preserve">按住 Shift 键时旁路</sys:String>
     <sys:String x:Key="MsgConfirmDeletePreset" xml:space="preserve">确定要永久删除自定义配色方案预设【{0}】吗？
 删除后不可恢复。</sys:String>
-    <sys:String x:Key="MsgConfirmReset" xml:space="preserve">确定要恢复出厂默认设置吗？所有自定义手势与样式将被重置。</sys:String>
+    <sys:String x:Key="MsgConfirmReset" xml:space="preserve">确定要恢复出厂默认设置吗？所有自定义轮盘交互与样式将被重置。</sys:String>
     <sys:String x:Key="MsgSaveSuccess" xml:space="preserve">设置已成功保存至硬盘！</sys:String>
     <sys:String x:Key="Notice" xml:space="preserve">提示</sys:String>
-    <sys:String x:Key="OuterEscapeCheckbox" xml:space="preserve">启用向外顺势甩出取消手势 (推荐开启)</sys:String>
+    <sys:String x:Key="OuterEscapeCheckbox" xml:space="preserve">启用向外顺势甩出取消轮盘交互 (推荐开启)</sys:String>
     <sys:String x:Key="OuterEscapeDesc" xml:space="preserve">超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。</sys:String>
     <sys:String x:Key="OuterEscapeDistanceDesc" xml:space="preserve">设定光标划出距离中心多远时判定为放弃。数值越小越灵敏（更易甩出取消），数值越大越沉稳（需甩得更远）。</sys:String>
     <sys:String x:Key="OuterEscapeDistanceTitle" xml:space="preserve">外甩取消距离灵敏度 (Escape Distance):</sys:String>
     <sys:String x:Key="OuterEscapeTitle" xml:space="preserve">顺势外甩脱离取消 (Outer Escape Cancel)</sys:String>
     <sys:String x:Key="PageAdvanced" xml:space="preserve">⚙️ 高级与系统</sys:String>
     <sys:String x:Key="PageAppearance" xml:space="preserve">🎨 外观与形态</sys:String>
-    <sys:String x:Key="PageGestures" xml:space="preserve">⚡ 手势与动作</sys:String>
+    <sys:String x:Key="PageWheelActions" xml:space="preserve">⚡ 轮盘与动作</sys:String>
     <sys:String x:Key="PagePlugins" xml:space="preserve">🧩 插件</sys:String>
     <sys:String x:Key="PageTrigger" xml:space="preserve">🎯 触发与场景</sys:String>
     <sys:String x:Key="PickColorTooltip" xml:space="preserve">打开调色板选取颜色</sys:String>
@@ -251,7 +251,7 @@
     <sys:String x:Key="SectorCount12" xml:space="preserve">12 键 (钟表表盘 / Clock Dial 12-Way)</sys:String>
     <sys:String x:Key="SectorCount4" xml:space="preserve">4 键 (十字方位 / Cross 4-Way)</sys:String>
     <sys:String x:Key="SectorCount8" xml:space="preserve">8 键 (八卦全向 / Standard 8-Way)</sys:String>
-    <sys:String x:Key="SectorCountOptionDesc" xml:space="preserve">切换手势轮盘的切分数量。4 键最快最不易误触，8 键为标准全能方位，12 键适合功能密集场景。</sys:String>
+    <sys:String x:Key="SectorCountOptionDesc" xml:space="preserve">切换轮盘的切分数量。4 键最快最不易误触，8 键为标准全能方位，12 键适合功能密集场景。</sys:String>
     <sys:String x:Key="SectorCountOptionTitle" xml:space="preserve">扇区方位数量 (Sector Count)</sys:String>
     <sys:String x:Key="SectorCountTitle" xml:space="preserve">轮盘方位按键数 (Sector Count)</sys:String>
     <sys:String x:Key="SectorFontSize" xml:space="preserve">文字字号大小 (Font Size):</sys:String>
@@ -259,8 +259,8 @@
     <sys:String x:Key="SectorIconSize" xml:space="preserve">图标尺寸大小 (Icon Size):</sys:String>
     <sys:String x:Key="SelectedAppPathTooltip" xml:space="preserve">选择的应用程序路径</sys:String>
     <sys:String x:Key="SelectedFolderPathTooltip" xml:space="preserve">选择的本地文件夹路径</sys:String>
-    <sys:String x:Key="SensitivityDesc" xml:space="preserve">按住鼠标右键移动超过指定像素距离后呼出手势轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</sys:String>
-    <sys:String x:Key="SensitivityTitle" xml:space="preserve">手势触发灵敏度</sys:String>
+    <sys:String x:Key="SensitivityDesc" xml:space="preserve">按住鼠标右键移动超过指定像素距离后呼出轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</sys:String>
+    <sys:String x:Key="SensitivityTitle" xml:space="preserve">轮盘触发灵敏度</sys:String>
     <sys:String x:Key="ShapeCapsule" xml:space="preserve">圆润胶囊 (Pill Capsules)</sys:String>
     <sys:String x:Key="ShapeCircle" xml:space="preserve">独立圆形卡片 (Circle)</sys:String>
     <sys:String x:Key="ShapeHexagon" xml:space="preserve">蜂巢六边形矩阵 (HexagonHive)</sys:String>
@@ -284,13 +284,13 @@
     <sys:String x:Key="ThemeViolet" xml:space="preserve">🔮 暗夜紫罗兰 (Royal Violet)</sys:String>
     <sys:String x:Key="TrayAppearance" xml:space="preserve">🎨 外观与形态 (Appearance)</sys:String>
     <sys:String x:Key="TrayExit" xml:space="preserve">❌ 退出 StarPie</sys:String>
-    <sys:String x:Key="TrayGestures" xml:space="preserve">⚡ 手势与动作 (Mappings)</sys:String>
-    <sys:String x:Key="TrayPause" xml:space="preserve">⏸️ 暂停手势</sys:String>
+    <sys:String x:Key="TrayWheelActions" xml:space="preserve">⚡ 轮盘与动作 (Mappings)</sys:String>
+    <sys:String x:Key="TrayPause" xml:space="preserve">⏸️ 暂停</sys:String>
     <sys:String x:Key="TrayPreferences" xml:space="preserve">⚙️ 偏好设置 (Settings)</sys:String>
-    <sys:String x:Key="TrayResume" xml:space="preserve">▶️ 恢复手势</sys:String>
+    <sys:String x:Key="TrayResume" xml:space="preserve">▶️ 恢复</sys:String>
     <sys:String x:Key="TrayTooltip" xml:space="preserve">StarPie v1.4.1 - 现代化鼠标轮盘笔势</sys:String>
     <sys:String x:Key="TriggerHeader" xml:space="preserve">触发与场景隔离设置</sys:String>
-    <sys:String x:Key="TriggerSubheader" xml:space="preserve">在此配置全局鼠标手势的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</sys:String>
+    <sys:String x:Key="TriggerSubheader" xml:space="preserve">在此配置全局鼠标轮盘交互的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</sys:String>
     <sys:String x:Key="WheelCoreSubtitle" xml:space="preserve">{0} 键动作</sys:String>
     <sys:String x:Key="WheelCoreTitle" xml:space="preserve">全局动作</sys:String>
     <sys:String x:Key="WheelPaletteCustomPreset" xml:space="preserve">🎨 {0} (自定义预设)</sys:String>

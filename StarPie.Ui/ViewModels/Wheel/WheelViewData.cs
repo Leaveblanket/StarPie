@@ -7,12 +7,12 @@ namespace StarPie.Ui.ViewModels.Wheel
 {
     /// <summary>
     /// 运行时轮盘的瞬态视图数据投影：只含渲染真正需要的轮盘外观字段，由
-    /// <see cref="StarPie.Ui.Services.Wheel.WheelFactory"/> 在每次手势创建轮盘时从运行态配置
+    /// <see cref="StarPie.Ui.Services.Wheel.WheelFactory"/> 在每次轮盘交互创建轮盘时从运行态配置
     /// <b>快照组装</b>，生命周期与轮盘窗口一致。
     /// </summary>
     /// <remarks>
     /// 视图因此看不见全局配置对象——黑名单、配置方案等与渲染无关的字段不再可达。投影是快照而非
-    /// 引用：轮盘弹出期间改配置不会回流到已弹出的轮盘（亚秒级瞬态，下次手势自然取新值），
+    /// 引用：轮盘弹出期间改配置不会回流到已弹出的轮盘（亚秒级瞬态，下次轮盘交互自然取新值），
     /// 不引入变更传播。
     /// </remarks>
     public sealed class WheelViewData

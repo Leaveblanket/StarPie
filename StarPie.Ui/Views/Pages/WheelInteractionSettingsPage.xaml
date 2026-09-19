@@ -1,16 +1,16 @@
-<UserControl x:Class="StarPie.Ui.Views.Pages.GesturesSettingsPage"
+<UserControl x:Class="StarPie.Ui.Views.Pages.WheelInteractionSettingsPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:controls="clr-namespace:StarPie.Ui.Views.Controls"
-        xmlns:vm="clr-namespace:StarPie.Ui.ViewModels.Gestures"
+        xmlns:vm="clr-namespace:StarPie.Ui.ViewModels.WheelInteraction"
         xmlns:dt="clr-namespace:StarPie.Ui.Views.DesignTime"
         mc:Ignorable="d"
         d:DesignHeight="569" d:DesignWidth="780"
         FontFamily="Segoe UI, Microsoft YaHei UI, Arial"
         RenderOptions.BitmapScalingMode="HighQuality"
-        d:DataContext="{d:DesignInstance Type=dt:GesturesSettingsDesignTimeData, IsDesignTimeCreatable=True}">
+        d:DataContext="{d:DesignInstance Type=dt:WheelInteractionSettingsDesignTimeData, IsDesignTimeCreatable=True}">
 
     <Grid>
         <Grid>
@@ -20,8 +20,8 @@
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
-                <TextBlock AutomationProperties.AutomationId="GesturesPageHeader" Text="{DynamicResource GesturesHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                <TextBlock AutomationProperties.AutomationId="GesturesPageSubheader" Text="{DynamicResource GesturesSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                <TextBlock AutomationProperties.AutomationId="WheelActionsPageHeader" Text="{DynamicResource WheelActionsHeader}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock AutomationProperties.AutomationId="WheelActionsPageSubheader" Text="{DynamicResource WheelActionsSubheader}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
             </StackPanel>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">

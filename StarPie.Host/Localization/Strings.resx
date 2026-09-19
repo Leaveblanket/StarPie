@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -18,7 +18,7 @@
   <data name="OuterEscapeDesc" xml:space="preserve"><value>超过轮盘外圈范围后立即解除高亮，松开右键 0 误触安全放弃。</value></data>
   <data name="OuterEscapeDistanceTitle" xml:space="preserve"><value>外甩取消距离灵敏度 (Escape Distance):</value></data>
   <data name="OuterEscapeDistanceDesc" xml:space="preserve"><value>设定光标划出距离中心多远时判定为放弃。数值越小越灵敏（更易甩出取消），数值越大越沉稳（需甩得更远）。</value></data>
-  <data name="OuterEscapeCheckbox" xml:space="preserve"><value>启用向外顺势甩出取消手势 (推荐开启)</value></data>
+  <data name="OuterEscapeCheckbox" xml:space="preserve"><value>启用向外顺势甩出取消 (推荐开启)</value></data>
   <data name="IconPickerImport" xml:space="preserve"><value>➕ 导入自定义图标...</value></data>
   <data name="CustomColorsExpanderTitle" xml:space="preserve"><value>🎨 自定义高级配色与色彩微调</value></data>
   <data name="CustomColorsExpanderDesc" xml:space="preserve"><value>展开后可精准微调扇区底色、高亮光晕、边框线条、文字与光弧等各项色彩。</value></data>
@@ -41,8 +41,16 @@
   <data name="BtnAddCustomProfile" xml:space="preserve"><value>➕ 新建自定义配置</value></data>
   <data name="BtnRenameProfile" xml:space="preserve"><value>✏️ 重命名当前配置</value></data>
   <data name="BtnDeleteProfile" xml:space="preserve"><value>🗑️ 删除当前配置</value></data>
+    <data name="DirectionRight" xml:space="preserve"><value>右</value></data>
+  <data name="DirectionDownRight" xml:space="preserve"><value>右下</value></data>
+  <data name="DirectionDown" xml:space="preserve"><value>下</value></data>
+  <data name="DirectionDownLeft" xml:space="preserve"><value>左下</value></data>
+  <data name="DirectionLeft" xml:space="preserve"><value>左</value></data>
+  <data name="DirectionUpLeft" xml:space="preserve"><value>左上</value></data>
+  <data name="DirectionUp" xml:space="preserve"><value>上</value></data>
+  <data name="DirectionUpRight" xml:space="preserve"><value>右上</value></data>
   <data name="SectorCountOptionTitle" xml:space="preserve"><value>扇区方位数量 (Sector Count)</value></data>
-  <data name="SectorCountOptionDesc" xml:space="preserve"><value>切换手势轮盘的切分数量。4 键最快最不易误触，8 键为标准全能方位，12 键适合功能密集场景。</value></data>
+  <data name="SectorCountOptionDesc" xml:space="preserve"><value>切换轮盘的切分数量。4 键最快最不易误触，8 键为标准全能方位，12 键适合功能密集场景。</value></data>
   <data name="SectorActionListTitle" xml:space="preserve"><value>扇区动作映射列表</value></data>
   <data name="SectorActionListDesc" xml:space="preserve"><value>为每个方位指定触发动作与图标。支持热键组合（如 Ctrl+C）、启动本地程序、打开文件夹与系统级操作。</value></data>
   <data name="IconPickerTitle" xml:space="preserve"><value>选择动作矢量图标</value></data>
@@ -69,20 +77,20 @@
   <data name="WindowTitle" xml:space="preserve"><value>StarPie 设置控制台 (Preferences)</value></data>
   <data name="PageTrigger" xml:space="preserve"><value>🎯 触发与场景</value></data>
   <data name="PageAppearance" xml:space="preserve"><value>🎨 外观与形态</value></data>
-  <data name="PageGestures" xml:space="preserve"><value>⚡ 手势与动作</value></data>
+  <data name="PageWheelActions" xml:space="preserve"><value>⚡ 轮盘与动作</value></data>
   <data name="PageAdvanced" xml:space="preserve"><value>⚙️ 高级与系统</value></data>
   <data name="BottomStatusNote" xml:space="preserve"><value>注: 所有修改均在内存中即时生效，点击【保存更改】持久化保存至硬盘。</value></data>
   <data name="BtnSave" xml:space="preserve"><value>保存更改</value></data>
   <data name="BtnClose" xml:space="preserve"><value>关闭并隐藏</value></data>
   <data name="TriggerHeader" xml:space="preserve"><value>触发与场景隔离设置</value></data>
-  <data name="TriggerSubheader" xml:space="preserve"><value>在此配置全局鼠标手势的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
-  <data name="SensitivityTitle" xml:space="preserve"><value>手势触发灵敏度</value></data>
-  <data name="SensitivityDesc" xml:space="preserve"><value>按住鼠标右键移动超过指定像素距离后呼出手势轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</value></data>
+  <data name="TriggerSubheader" xml:space="preserve"><value>在此配置轮盘交互的触发灵敏度、全屏游戏自动拦截与排除程序黑名单。</value></data>
+  <data name="SensitivityTitle" xml:space="preserve"><value>轮盘触发灵敏度</value></data>
+  <data name="SensitivityDesc" xml:space="preserve"><value>按住鼠标右键移动超过指定像素距离后呼出轮盘。距离越小越灵敏，过小可能造成右键微抖动误触。</value></data>
   <data name="SceneIsolationTitle" xml:space="preserve"><value>场景隔离与防误触</value></data>
   <data name="SceneIsolationDesc" xml:space="preserve"><value>当处于特定场景或配合修饰键操作时，自动绕过轮盘拦截，放行原生右键事件。</value></data>
-  <data name="FullScreenOption" xml:space="preserve"><value>全屏游戏/独占应用自动禁用手势</value></data>
+  <data name="FullScreenOption" xml:space="preserve"><value>全屏游戏/独占应用自动禁用轮盘交互</value></data>
   <data name="FullScreenOptionDesc" xml:space="preserve"><value>自动检测当前前台窗口是否处于全屏独占状态，避免游戏瞄准等右键操作被拦截。</value></data>
-  <data name="ModifierPassTitle" xml:space="preserve"><value>快捷键旁路穿透 (按住以下修饰键拖拽时不触发手势):</value></data>
+  <data name="ModifierPassTitle" xml:space="preserve"><value>快捷键旁路穿透 (按住以下修饰键拖拽时不触发轮盘交互):</value></data>
   <data name="ModifierCtrl" xml:space="preserve"><value>按住 Ctrl 键时旁路</value></data>
   <data name="ModifierShift" xml:space="preserve"><value>按住 Shift 键时旁路</value></data>
   <data name="ModifierAlt" xml:space="preserve"><value>按住 Alt 键时旁路</value></data>
@@ -146,14 +154,14 @@
   <data name="ThemeNavy" xml:space="preserve"><value>🌌 午夜深蓝 (Midnight Navy)</value></data>
   <data name="ThemeViolet" xml:space="preserve"><value>🔮 暗夜紫罗兰 (Royal Violet)</value></data>
   <data name="ThemeGray" xml:space="preserve"><value>⚙️ 钛金深灰 (Titanium Gray)</value></data>
-  <data name="WheelPaletteSystem" xml:space="preserve"><value>跟随系统 (System Auto)</value></data>
+  <data name="WheelPaletteSystem" xml:space="preserve"><value>跟随系统（轮盘深浅）(System Auto)</value></data>
   <data name="WheelPaletteLight" xml:space="preserve"><value>浅色模式 (Light)</value></data>
   <data name="WheelPaletteDark" xml:space="preserve"><value>深色模式 (Dark)</value></data>
   <data name="WheelPaletteMatchaForest" xml:space="preserve"><value>抹茶森林 (Matcha Forest)</value></data>
   <data name="WheelPaletteGlacialIce" xml:space="preserve"><value>冰川透蓝 (Glacial Ice)</value></data>
   <data name="WheelPaletteMorandiMuted" xml:space="preserve"><value>莫兰迪柔灰 (Morandi Muted)</value></data>
   <data name="WheelPaletteCustomPreset" xml:space="preserve"><value>🎨 {0} (自定义预设)</value></data>
-  <data name="GesturesHeader" xml:space="preserve"><value>手势轮盘分位与动作配置</value></data>
+  <data name="WheelActionsHeader" xml:space="preserve"><value>轮盘分位与动作配置</value></data>
   <data name="SectorCountTitle" xml:space="preserve"><value>轮盘方位按键数 (Sector Count)</value></data>
   <data name="SectorCount4" xml:space="preserve"><value>4 键 (十字方位 / Cross 4-Way)</value></data>
   <data name="SectorCount8" xml:space="preserve"><value>8 键 (八卦全向 / Standard 8-Way)</value></data>
@@ -183,7 +191,7 @@
   <data name="StartupTitle" xml:space="preserve"><value>开机自启动</value></data>
   <data name="StartupDesc" xml:space="preserve"><value>在 Windows 开机登录时静默自启动并在后台托盘驻留。</value></data>
   <data name="AdminAutoStartTitle" xml:space="preserve"><value>以管理员身份开机自启</value></data>
-  <data name="AdminAutoStartDesc" xml:space="preserve"><value>经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常唤起手势。代价是 StarPie 与进程内插件都以管理员身份常驻。</value></data>
+  <data name="AdminAutoStartDesc" xml:space="preserve"><value>经 Windows 任务计划程序以最高权限静默启动，登录时不再弹出 UAC，可在任务管理器等高权限窗口中正常使用轮盘。代价是 StarPie 与进程内插件都以管理员身份常驻。</value></data>
   <data name="AdminAutoStartFailedTitle" xml:space="preserve"><value>提示</value></data>
   <data name="AdminAutoStartFailed" xml:space="preserve"><value>提权自启未生效：可能取消了 UAC，或当前账号没有管理员凭据。已保持普通权限自启。</value></data>
   <data name="AdminRestartNow" xml:space="preserve"><value>立即以管理员身份重启</value></data>
@@ -198,17 +206,17 @@
   <data name="MsgSaveSuccess" xml:space="preserve"><value>设置已成功保存至硬盘！</value></data>
   <data name="MsgConfirmDeletePreset" xml:space="preserve"><value>确定要永久删除自定义配色方案预设【{0}】吗？
 删除后不可恢复。</value></data>
-  <data name="MsgConfirmReset" xml:space="preserve"><value>确定要恢复出厂默认设置吗？所有自定义手势与样式将被重置。</value></data>
-  <data name="TrayPause" xml:space="preserve"><value>⏸️ 暂停手势</value></data>
-  <data name="TrayResume" xml:space="preserve"><value>▶️ 恢复手势</value></data>
+  <data name="MsgConfirmReset" xml:space="preserve"><value>确定要恢复出厂默认设置吗？所有自定义轮盘配置与样式将被重置。</value></data>
+  <data name="TrayPause" xml:space="preserve"><value>⏸️ 暂停</value></data>
+  <data name="TrayResume" xml:space="preserve"><value>▶️ 恢复</value></data>
   <data name="TrayPreferences" xml:space="preserve"><value>⚙️ 偏好设置 (Settings)</value></data>
   <data name="TrayAppearance" xml:space="preserve"><value>🎨 外观与形态 (Appearance)</value></data>
-  <data name="TrayGestures" xml:space="preserve"><value>⚡ 手势与动作 (Mappings)</value></data>
+  <data name="TrayWheelActions" xml:space="preserve"><value>⚡ 轮盘与动作 (Mappings)</value></data>
   <data name="TrayExit" xml:space="preserve"><value>❌ 退出 StarPie</value></data>
   <data name="TrayTooltip" xml:space="preserve"><value>StarPie v1.4.1 - 现代化鼠标轮盘笔势</value></data>
   <data name="LivePreviewFps" xml:space="preserve"><value>60FPS 同步渲染</value></data>
   <data name="AdvancedSubheader" xml:space="preserve"><value>管理界面语言、Windows 开机自启（含以管理员身份静默启动）与配置文件的导入/导出备份。</value></data>
-  <data name="GesturesSubheader" xml:space="preserve"><value>支持针对不同前台应用程序设置专属的多向手势轮盘、按键动作与矢量图标。</value></data>
+  <data name="WheelActionsSubheader" xml:space="preserve"><value>支持针对不同前台应用程序设置专属的多向轮盘、按键动作与矢量图标。</value></data>
   <data name="AddProfileTooltip" xml:space="preserve"><value>从已安装软件或开始菜单中选择程序创建专属配置</value></data>
   <data name="AddCustomProfileTooltip" xml:space="preserve"><value>自定义命名创建新的轮盘配置方案</value></data>
   <data name="RenameProfileTooltip" xml:space="preserve"><value>重命名选中的配置方案</value></data>

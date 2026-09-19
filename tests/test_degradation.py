@@ -2,7 +2,7 @@
 
 降级：坏输入（损坏清单的用户插件、只读配置）不得让应用起不来或卡死——坏件被拒/落盘
 失败后，其余功能仍可用。观察：设置台关闭后的内存/句柄回落（关闭序列里含内存整理步骤），
-以及"关闭后仍能完成一次手势"这条壳层仍活着的证据。
+以及"关闭后仍能完成一次轮盘交互"这条壳层仍活着的证据。
 """
 
 import ctypes
@@ -106,9 +106,9 @@ def test_readonly_config_degrades_without_crash(app):
             pass
 
 
-@pytest.mark.parametrize("sandbox_seed", ["gesture-probe"], indirect=True)
-def test_residency_after_console_close_and_gesture_still_works(app):
-    """观察：关闭设置台后内存/句柄不失控，且壳层仍能完成一次手势（钩子与编排都活着）。
+@pytest.mark.parametrize("sandbox_seed", ["wheel-probe"], indirect=True)
+def test_residency_after_console_close_and_wheel_still_works(app):
+    """观察：关闭设置台后内存/句柄不失控，且壳层仍能完成一次轮盘交互（钩子与编排都活着）。
 
     阈值放宽为"不失控"而非"必须下降"：工作集回收受 CLR/系统影响，严格下降会假红。
     """
@@ -138,7 +138,7 @@ def test_residency_after_console_close_and_gesture_still_works(app):
     )
     assert after["handles"] <= before["handles"] + 200, f"关闭后句柄异常膨胀: {before} -> {after}"
 
-    # 壳层仍活着：设置台关着也能完成一次手势并执行动作
+    # 壳层仍活着：设置台关着也能完成一次轮盘交互并执行动作
     probe_exe = probe_exe_from_config(local_app_data)
     press_right_at(*START)
     drag_right(SECTOR_DRAG)

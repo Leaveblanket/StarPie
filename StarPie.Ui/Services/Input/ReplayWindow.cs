@@ -5,7 +5,7 @@ namespace StarPie.Ui.Services.Input
 {
     /// <summary>
     /// 回放窗口：补发的点击由本进程注入，注入事件会再回到输入栈；
-    /// 窗口内到达的注入事件不参与手势，直接放行。
+    /// 窗口内到达的注入事件不参与轮盘交互，直接放行。
     /// </summary>
     /// <remarks>
     /// SharpHook 的 <c>UioHookEvent</c> 不暴露 <c>dwExtraInfo</c>，社区通行的注入戳记
@@ -33,7 +33,7 @@ namespace StarPie.Ui.Services.Input
 
         /// <summary>
         /// 吃掉一个配额并报告该事件是否属于本窗口。只认注入来源（模拟标记）——
-        /// 窗口内到达的真实输入必须照常参与手势。
+        /// 窗口内到达的真实输入必须照常参与轮盘交互。
         /// </summary>
         public bool TryConsume(bool isSimulated)
         {
