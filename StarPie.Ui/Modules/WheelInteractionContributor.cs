@@ -21,7 +21,7 @@ namespace StarPie.Ui.Modules
     /// <remarks>
     /// <see cref="RegisterNavigation"/> 把本模块页面（触发与场景 / 轮盘与动作）写入
     /// <see cref="NavigationCatalog"/>（槽位/标题键/图标/目标类型），页面 DataTemplate 收进
-    /// WheelInteractionPageTemplates.xaml（宿主 App.xaml 经跨程序集 pack URI 每模块一次静态合并）。
+    /// WheelInteractionPageTemplates.xaml(App.xaml 以本地相对 Source 每模块一次静态合并)。
     /// <see cref="RegisterServices"/> 把本模块输入栈（捕获/看门狗）、页面 VM 与只读预览契约
     /// <see cref="IProfilePreviewSource"/> 别名的 DI 注册下放本程序集（组合根仍唯一
     /// BuildServiceProvider，本贡献者只注册不解析）。新增页面/动作/触发规则只动本模块内部。

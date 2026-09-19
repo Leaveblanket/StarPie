@@ -6,41 +6,28 @@
 > 本文不复制可用面清单。**正文为纯 as-built**(标注「as-built:」的条款即现状,
 > 未加标注的条款即现行规范)。
 
-## 术语(架构词正典在本文)
+## 术语
 
-**宿主内核 (Host Kernel)**:`StarPie.Host` 承载的全部不可卸载运行时与服务。宿主内核不是插件。
+术语正典在 [`CONTEXT.md`](../../CONTEXT.md)(「插件」词条组);本节只给正文用词与代码符号的对照,不重复定义。
 
-**插件 (Plugin)**:可在运行期装载 / 卸载、只经 `StarPie.Sdk` 与宿主交互的扩展单元;可贡献 headless 能力与宿主托管的 UI。
-
-**能力 (Capability)**:宿主声明、插件实现的无 UI 扩展点,用 id + ABI 号标识(如 `program-source@1`)。
-
-**插件 UI 资产 (Plugin UI Asset)**:插件贡献的 WPF 对象——视图、窗口、资源字典、DataTemplate、命令 / 菜单、定时器 / 动画、事件订阅。
-
-**资产登记表 (Asset Registry)**:`StarPie.Ui/PluginHosting` 中按 plugin id 记录全部 UI 资产的宿主侧清单;是卸载清理与验证的唯一依据。
-
-**受支持特性白名单 (Certified Feature Set)**:已认证可可靠卸载的 WPF 特性集合;白名单外的特性不受支持。
-
-**安全点 (Safe Point)**:无在途插件调用、配置已落盘、宿主侧引用可清的卸载时机。
-
-**危险区 (Danger Zone)**:卸载链上"插件代码不得再运行"的一侧——服务作用域释放起,经 `ALC.Unload()`;进入后没有回头路。在途调用未归零一律中止于危险区之前(只摘能力条目,不释放作用域、不卸载 ALC)。
-
-**泄漏隔离 (Leak Quarantine)**:清理或卸载验证失败后插件被停用、不再调用、提示重启的状态。
-
-**宿主门面 (Host Facade)**:`IPluginContext`(headless 服务)与 `IPluginUiContext`(UI 资产注册);插件可触达的全部宿主能力集合。
-
-**宿主服务作用域 (Plugin Service Scope)**:每插件一个的子容器与句柄账本(`PluginServiceScope`);订阅、回调、动作句柄全部登记于此,卸载时按 plugin id 整体释放。
-
-**准入模式 (Admission Mode)**:插件被允许装载的依据——内置 / 审核清单 / 开发者模式。
-
-**开发者模式 (Developer Mode)**:默认关闭的显式开关,开启后允许装载未命中审核清单的插件,并向用户展示进程内全信任风险披露。
-
-**宿主状态 (Plugin State)**:宿主权威的插件运行状态(启用 / 停用 / 已装版本 / 路径 / 准入来源 / 隔离),存 `plugin-state.json`;与插件自己的配置 `plugins.<id>` 分离。
+| 概念(CONTEXT 正典) | 代码符号 / 机制落点 |
+|---|---|
+| 宿主内核 | `StarPie.Host` 程序集(`PluginRuntime/` 等) |
+| 能力 | 能力契约 + `CapabilityRegistry` / `CapabilityGuard`(`StarPie.Host`) |
+| 界面资产 | `StarPie.Ui/PluginHosting/` 托管的 WPF 对象 |
+| 资产登记表 | `PluginUiAssetRegistry` |
+| 宿主门面 | `IPluginContext`(headless)+ `IPluginUiContext`(UI) |
+| 宿主服务作用域 | `PluginServiceScope` |
+| 准入 | 三种准入模式(内置 / 审核清单 / 开发者模式)+ 拒绝 = 准入四态;判定在 `PluginRuntime/Admission/` |
+| 受支持特性白名单 | `StarPie.Sdk.Wpf/Abstractions/Ui/` 与 `Compatibility/` 的契约面(§1.8) |
+| 生命周期状态 | `PluginRuntime/State/` 状态机(§4) |
+| 隔离 | `Quarantined` 终态;诊断在 `PluginRuntime/Diagnostics/` |
 
 ## 1. 边界与原则
 
 1. **插件只引用 `StarPie.Sdk` 与 `StarPie.Sdk.Wpf`**;`StarPie.Host` / `StarPie.Ui` 的内部类型不在插件引用面内。
 2. **宿主独占生命周期**:插件可创建 XAML / Window / ResourceDictionary / DataTemplate,但必须经宿主契约注册;宿主登记、跟踪、移除、验证,插件不得自行 merge 全局资源或长期持有 WPF 全局对象。
-3. **宿主内核零 WPF**:`StarPie.Host` 不引用 WPF;一切 WPF 类型与清理在主进程 Ui 层 `PluginHosting` 执行,Host 经 `IPluginUiCoordinator` 端口协调。
+3. **宿主内核零 WPF**:`StarPie.Host` 不引用 WPF;一切 WPF 类型与清理在主进程 Ui 层 `PluginHosting` 执行,宿主内核经 `IPluginUiCoordinator` 端口协调。
 4. **插件缺席是可运行态**:每个扩展点必须定义降级行为(无插件页时导航正常、无程序来源时选择器只有内置来源)。
 5. **跨 ALC 只共享 SDK 与框架程序集**:`StarPie.Sdk` / `StarPie.Sdk.Wpf` 一律从默认 ALC 解析,保证接口与 WPF 类型身份唯一。
 6. **一切装卸发生在安全点**:更新 = 安全点卸载 + 装载新版本;不做无约束即时重载。
@@ -56,7 +43,7 @@ StarPie/
 ├── Directory.Packages.props              # 中央包管理(包版本唯一集中处);「SDK 零第三方包」= SDK csproj 无 PackageReference,「Host 零 WPF」由 TFM 结构性保证(原机械断言已下线)
 ├── StarPie.Sdk/                          # net10.0;零 WPF / 零第三方包;headless 唯一引用面
 │   ├── Abstractions/                     # IPlugin、IPluginContext、IPluginLog:插件眼里「宿主长什么样」的全部
-│   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型:AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / ScreenPoint;跨 ALC 传递的类型必须来自默认 ALC 的 SDK
+│   ├── Models/                           # 稳定 DTO 与 WPF-free 值类型:AppConfig / WheelProfile / ActionItem / CustomColorPreset / ColorMath / ScreenPoint / WheelGeometryDefaults;跨 ALC 传递的类型必须来自默认 ALC 的 SDK
 │   ├── Services/  ViewModels/            # 非插件面契约与模型(Messages / Navigation / Dialogs / Icons / Programs / Wheel / Themes 契约与界面契约)
 │   ├── Events/                           # 宿主事件契约(订阅返回 IDisposable):卸载即断的实现基础
 │   ├── Manifest/                         # plugin.json 纯数据模型(校验逻辑在 Host,SDK 不做 IO)
@@ -73,12 +60,13 @@ StarPie/
 │   └── PluginRuntime/{Discovery,Manifest,Admission,State,Hosting,Loading,Unloading,Lifecycle,Registry,Diagnostics,Ui}
 │                                         # 发现 / 清单校验 / 准入判定 / 宿主状态 / 启用装载与停用再启用 / collectible ALC / 安全点卸载 / 状态机 / 能力表 / 诊断报告 / 插件 UI 协调
 ├── StarPie.Ui/                           # WinExe,AssemblyName=StarPie;唯一含 XAML
-│   ├── App.xaml(.cs)  ResidentShell.cs  SettingsConsole.cs  Composition.cs   # 应用资源树、常驻壳层、设置台租户、组合根(内置与插件贡献者共用一条注册管线)
+│   ├── App.xaml(.cs)  ResidentShell.cs  SettingsConsole.cs  Composition.cs  DevInstance.cs   # 应用资源树、常驻壳层、设置台租户、组合根(内置与插件贡献者共用一条注册管线)
 │   ├── Adapters/                         # 实现 Host/Ports 的 WPF 适配器:零 WPF 的 Host 只能吃接口
 │   ├── ViewModels/  Views/  Services/  Modules/  Themes/   # 全部 VM / View / 对话框 / 轮盘渲染 / 主题字典 / 共享 UI 基建与贡献者注册
-│   └── PluginHosting/                    # 插件 UI 资产生命周期(宿主托管)
+│   └── PluginHosting/                    # 界面资产生命周期(宿主托管)
 │       ├── PluginUiAssetRegistry.cs      # plugin id → 资产清单;卸载枚举与清零断言的唯一依据
-│       ├── PluginUiHost.cs               # IPluginUiCoordinator + IPluginUiContext 实现:Host 端口与插件 funnel 在此对接
+│       ├── PluginUiCoordinator.cs        # IPluginUiCoordinator 实现:Host 端口,装卸编排封送到 UI 线程
+│       ├── PluginUiHost.cs               # IPluginUiContext 实现:插件注册 funnel,条目入资产登记表
 │       ├── Extensions/                   # 固定扩展点:导航页 PluginPage / 设置区 PluginSettingsSection / 托盘菜单项 PluginMenuItem 的注册与摘除(PluginExtensionRegistry)
 │       ├── Resources/PluginResourceRoot.cs    # 每插件资源根字典(一次 merge、一次摘除),DataTemplate / Style 随容器摘净
 │       ├── Windows/PluginWindowRegistry.cs    # 窗口由宿主创建、关闭并等待 Closed
@@ -178,7 +166,7 @@ public interface IPluginUiModule
    - 松散 XAML(`XamlReader` 解析含 `assembly=` 类型引用的文本)不在支持面:插件 XAML 一律走编译期 BAML。
 
 > 硬约束(`StarPie.Sdk.Wpf` 九条)与「插件可达面」定义见 `StarPie.Sdk.Wpf/Abstractions/Ui/` 的契约类型;
-> 受支持特性白名单与不支持列表见 §3。
+> 受支持特性白名单的正典同在该契约面,本文不复制清单。
 
 ## 6. 能力注册与调用代理(headless)
 
@@ -204,7 +192,7 @@ public interface IPluginUiModule
 `PluginWindowRegistry` 与 `PluginViewHost` 托管。**无插件时每个扩展点都必须为空而非空壳**:
 目录只有固定页、托盘菜单不追加分隔线、设置区整块隐藏、未注册 UI 资产的插件释放直接成功。
 
-### 7.2 契约funnel:插件只能经 `IPluginUiContext` 注册
+### 7.2 契约 funnel:插件只能经 `IPluginUiContext` 注册
 
 ```csharp
 public interface IPluginUiContext
@@ -244,7 +232,7 @@ public interface IPluginUiContext
 ### 7.5 线程模型
 
 - 一切 UI 注册、创建、清理都在 UI 线程;插件后台线程不得直接触碰 WPF 对象,须经宿主 `IUiDispatcher` 端口。
-- 卸载编排:Host(后台 / 任意线程)→ `IPluginUiCoordinator.ReleaseAsync(pluginId)` → Ui 封送到 UI 线程执行清理 → 返回验证结果。
+- 卸载编排:宿主内核(后台 / 任意线程)→ `IPluginUiCoordinator.ReleaseAsync(pluginId)` → Ui 封送到 UI 线程执行清理 → 返回验证结果。
 
 ## 8. 卸载管线与验证
 
@@ -288,7 +276,7 @@ public interface IPluginUiContext
 
 - **配置**:`config.json` 的 `plugins: { "<id>": { … } }` 段(`AppConfig.Plugins`)归插件所有,缺失该段照常加载;宿主状态不写这里,插件侧读写面见 §11。
 - **数据**:`%LOCALAPPDATA%\StarPie\plugin-data\<id>\`;卸载默认保留,管理面提供"彻底移除"。
-- **宿主状态**:`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用 / 停用、已装版本、路径、准入来源(内置 / 审核清单 / 开发者模式)、隔离状态、挂起版本;宿主唯一权威,插件不可读写。
+- **宿主状态**:`%LOCALAPPDATA%\StarPie\plugin-state.json`——启用 / 停用、已装版本、路径、准入来源(内置 / 审核清单 / 开发者模式 / 拒绝)、隔离状态、挂起版本;宿主唯一权威,插件不可读写。
 - **三个动作要分清**:**停用** = 安全点卸载(停用插件代码、摘除能力、释放服务作用域与插件对象;WPF 宿主里插件程序集留到重启释放),保留包与状态;**移除包** = 停用后删插件目录、状态条目保留;**彻底移除** = 删 `plugins.<id>` 配置段 + `plugin-data\<id>` + `plugin-state.json` 条目,再 `FlushPendingSave()`。
 
   as-built:管理面按插件形态给两条更新路径——无界面插件就地「安全点卸载 + 按新包装载」;界面插件只隔离旧版本,
