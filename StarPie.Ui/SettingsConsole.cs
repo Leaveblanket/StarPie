@@ -13,7 +13,7 @@ using StarPie.Ui.Views.Navigation;
 namespace StarPie.Ui
 {
     /// <summary>
-    /// 设置台：按需创建、关闭即销毁的界面会话——窗口（<see cref="SettingsConsoleWindow"/>）
+    /// 设置台：启动时建立、关闭即销毁的界面会话——窗口（<see cref="SettingsConsoleWindow"/>）
     /// 与其 VM 树（导航区 + 窗口外框）同生共死。
     /// </summary>
     /// <remarks>
