@@ -4,7 +4,8 @@
 常驻壳层重建并显示设置台、按最后导航槽位重放页面：UIA invoke 关闭 + 消息级恢复，
 全程零物理键鼠输入。
 出账置空/重放命中/lastSlot 为空/幂等/插件页 VM 回收由 NavigationSuspensionTests 锁；
-窗口生命周期不变量（全局窗口集合只剩锚窗口、主窗口属性指向锚窗口）由 ResidentShellLifetimeTests 锁。
+窗口生命周期不变量（全局窗口集合只剩锚窗口、主窗口属性指向锚窗口）原由 ResidentShellLifetimeTests 锁，
+该测试已随「xUnit 只留核心逻辑检查」下线（ADR-0050），现无机械断言。
 """
 
 import win32gui
